@@ -533,3 +533,69 @@ def test_MODE_enforce_R4_a_ringless_uid_on_the_same_ff_leaves_the_ref_UNCHANGED(
     r = _move(repo, "refs/heads/posts/belam", bad, base, {**env, "AGI_RING": NORING})
     assert r.returncode != 0 and "refused, nothing changed" in r.stderr, r.stderr
     assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == base           # the ref UNCHANGED
+
+
+# ---- MODE before every other cell: the mode lives in the SCHEMA (council 3/3 01:58Z 10-26, GATE264 RETURN 2) ----------
+def _break_cell(repo, cell, how):
+    if how == "absent":
+        repo.git("rm", "-q", f"{G}/{cell}")
+    elif how == "not-a-mapping":
+        repo.write(f"{G}/{cell}", "---\n- just\n- a list\n---\n")
+    elif how == "bad-yaml":
+        repo.write(f"{G}/{cell}", "---\nkey: [unclosed\n---\n")
+    return repo.commit("belam", f"{cell} {how}")
+
+
+@pytest.mark.parametrize("cell", ["ladder.md", "vetoes.md"])
+@pytest.mark.parametrize("how", ["absent", "not-a-mapping", "bad-yaml"])
+def test_MODE_report_mutant_a_broken_vetoes_or_ladder_at_BASE_is_would_refuse_rc_0(repo, cell, how):
+    repo.set_mode("report")
+    base = _break_cell(repo, cell, how)
+    rc, out = repo.run(base=base)
+    assert rc == 0 and out.startswith("R-land: would refuse ") and "(unread " in out, (rc, out)
+    assert cell.split(".")[0] in out or "vetoes/ladder" in out, out
+
+
+@pytest.mark.parametrize("cell", ["ladder.md", "vetoes.md"])
+def test_MODE_enforce_mutant_the_same_broken_cell_is_rc_1(repo, cell):
+    repo.set_mode("enforce")
+    base = _break_cell(repo, cell, "not-a-mapping")
+    rc, out = repo.run(base=base)
+    assert rc == 1 and out.startswith("R-land: unread ("), (rc, out)
+
+
+@pytest.mark.parametrize("how", ["not-a-mapping", "bad-yaml"])
+def test_MODE_the_schema_is_the_modes_own_home_unparseable_fails_closed_even_though_it_could_say_report(repo, how):
+    repo.write(".agi/context/schemas/[config].md", "---\n- a list\n---\n" if how == "not-a-mapping" else "---\nk: [x\n---\n")
+    base = repo.commit("belam", "schema " + how)
+    rc, out = repo.run(base=base)
+    assert rc == 1 and out.startswith("R-land: unread (yaml frontmatter of the schema at "), (rc, out)
+
+
+def test_MODE_report_R4_a_broken_ladder_at_the_old_tip_the_ref_MOVES_with_the_line_and_the_FIX_commit_lands(hooked):
+    repo, env = hooked
+    repo.set_mode("report")
+    broken = _break_cell(repo, "ladder.md", "not-a-mapping")
+    _branch_at(repo, "refs/heads/posts/belam", broken)
+    bad = repo.edit_rows(lambda r: row(r, "dg2").update(pubkey="zz"), "dg1")
+    r = _move(repo, "refs/heads/posts/belam", bad, broken, env)
+    assert r.returncode == 0 and "[r-land] refs/heads/posts/belam moves (report mode)" in r.stderr, r.stderr
+    assert "R-land: would refuse" in r.stderr and "(unread " in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == bad
+    # the lockout shape: the commit that FIXES the cell is judged by the broken BASE and must still move the ref
+    repo.write(f"{G}/ladder.md", LADDER)
+    fix = repo.commit("belam", "fix ladder")
+    r = _move(repo, "refs/heads/posts/belam", fix, bad, env)
+    assert r.returncode == 0, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == fix
+
+
+def test_MODE_enforce_R4_a_broken_ladder_at_the_old_tip_the_ref_stays_UNCHANGED(hooked):
+    repo, env = hooked
+    repo.set_mode("enforce")
+    broken = _break_cell(repo, "ladder.md", "not-a-mapping")
+    _branch_at(repo, "refs/heads/posts/belam", broken)
+    bad = repo.edit_rows(lambda r: row(r, "dg2").update(pubkey="zz"), "dg1")
+    r = _move(repo, "refs/heads/posts/belam", bad, broken, env)
+    assert r.returncode != 0 and "refused, nothing changed" in r.stderr, r.stderr
+    assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == broken
