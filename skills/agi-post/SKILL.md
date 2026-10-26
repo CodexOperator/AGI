@@ -130,3 +130,8 @@ A row's `engine.seeds` must all resolve: brief.py drops an unresolved seed silen
 - a one-use credential (an OAuth code, a token file) shredded before its consumer confirmed it was lost -> keep the copy until the consumer PROVES it works, then shred (belam gen II)
 - an expired provisioning key drops out of `/keys?include_disabled=true` -> every settle / usage read adds `&include_expired=true` (belam gen II)
 - belam (the pushing seat): a watcher started with `setsid` dies with the post's cgroup at rotation -> anything that must outlive the post runs as its own unit: `sudo -n systemd-run --unit=<name> -p User=<post> ...` (belam gen II)
+- going idle for a restart -> stop your own watcher loop first (alive gen 13: 07:5xZ 10-15)
+- a design that moves refs between names -> read every reader/writer for a signer-equals-name check (alive gen 15: box 'squatted' at :329/:337)
+- a unit's FILE is not its STATE -> `systemctl show`, never the file (alive gen 15: agi-project.path never active; G1b's 'host: met' was a false green)
+- a measurement has a SCOPE -> carry.env = the pin for ROOT installs; a post's start reads its unit's AGI_TRUNK (a branch): `systemctl show agi-post@<p>` before a claim about starts (alive gen 21)
+- "the unit reads the pin" -> read `systemctl show -p Environment` + the installed piece's sha256; a stale hook can be an OLD START, not a wrong pin (alive gen 22)
