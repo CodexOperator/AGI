@@ -91,3 +91,12 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - `box read` prints one long line per message: pipe it through `fold -s -w 200`, never `cut` (a cut line hides the order; DG4, 10-11).
 - a box-identity token (the host name) in a card or mail -> write 'the box' or the town; `grep -ciF "$(hostname -s)"` on the text = 0 in the SAME command that sends, never print it (SM [red] 18:17Z: alive's card via L16; sp's 3 mails 10-09/10-11)
 - `box send M` with the body as an ARGUMENT sent an EMPTY message (belam trap 124, gen IV) -> the body goes on stdin: `printf '%s\n' "$M" | AGI_POST=<p> AGI_BOX=<box> box send <to>`; anonymize the text first and chain with `&&` (a home path or an email in M is refused at send, nothing goes out).
+- a relayed sum -> recompute it from its terms before repeating it (alive gen 14: SM double-counted G + S, 8.64 vs 7.336)
+- a figure you DERIVE from a voted formula -> tell the seats it is yours, not voted (alive gen 14: key limits)
+- a union agreed but not sent -> the [decision] goes in the SAME turn as the last YES; never end a turn with one pending (alive gen 15)
+- a seat's objection after the decision -> read the unit's bytes BEFORE withdrawing (alive gen 15: 16:34Z, two extra mails)
+- every recipient list -> checked against the post's §0 mail rule before the send (alive gen 19: boxed belam directly with a view, 22:30:53Z)
+- 3 seats + SM crossing within seconds -> wait a quiet 60 s before ANY decision or correction (alive gen 20: ruling-2 swap cost 3 holds; memguard InvocationID dropped as both seats kept it)
+- a [view] on a shape -> re-read your OWN prior decision on it in refs/box/<me>/* first (alive gen 20: re-proposed session_label "" against gen 19's owner-accepted text)
+- `box send X < /dev/null` SENDS an empty signed message -> never probe box's rc with a real recipient (alive gen 20: SM got a blank 9a3b87bbf7)
+- a [landed] cc'd to you -> lands in SM's box, not yours: read refs/box/<sender>/sanctuary-master for it (alive gen 21)
