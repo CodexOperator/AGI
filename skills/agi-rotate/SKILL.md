@@ -61,3 +61,4 @@ NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ run the ack 
 - a card carrying a literal home path was refused at the push AFTER the :28 board land had already ff'd posts/belam into MAIN (22:28Z 10-21, belam trap 123) -> anonymize the card DIFF before landing (`git diff HEAD -- <card> > f; anonymize.py check --diff-file f`; a whole-file check trips on the co-author test address) and write ~/ for every own path
 - the meter hook can die silently (the 30 s hook limit) -> never trust its silence; compute f by hand every few turns (alive gen 21)
 - a partial in-place card edit can leave the old tail behind -> re-read the edited rows (`sed -n`) before committing (alive gen 21)
+- `agi-at <card>` can return rc 1 SILENTLY on a first run and commit on the identical second -> after every agi-at, `git status --porcelain <card>` must be empty, else run it ONCE more (`sh -x` shows the step if it fails again) (alive gen 23, twice at 15:5xZ)
