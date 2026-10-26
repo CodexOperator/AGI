@@ -107,7 +107,10 @@ GIT_MODE_EXEC = "100755"
 GIT_MODE_SYMLINK = "120000"
 FETCH_SPEC = f"{REF_NS}/node/*:{REF_NS}/node/*"
 FETCH_SPECS = [FETCH_SPEC, f"{REF_NS}/session/*:{REF_NS}/session/*"]
-PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
+#: the two kinds of ref `push_batches` lists, and the ONLY two a push may carry (goal:g7.16.1.11.46.16, council 10:50:48Z 10-26 R2): a wide
+#: `<ns>/*` refspec spans slashes and would carry `refs/grid/origin-snap/*` and every legacy namespace to origin with it.
+PUSH_KINDS = ("node", "session")
+PUSH_SPECS = [f"{REF_NS}/{k}/*:{REF_NS}/{k}/*" for k in PUSH_KINDS]
 
 
 def ref_ns_for(root: Path) -> str:
@@ -214,18 +217,24 @@ def migrated_trunk_namespaces(root: Path) -> list[str]:
         found = re.sub(r"/(node|session)/.*$", "", line, count=1)
         if found != line and found != DEFAULT_REF_NS:
             ns.add(found)
-    return sorted(ns - set(legacy_namespaces_for(root)))
+    return sorted(ns - set(legacy_namespaces_for(root)) - {ORIGIN_SNAP_NS})
 
 
-def push_spec_for(root: Path) -> str:
-    """`REF_NS` push refspec for graph root `root` — the one spelling of it.
+def push_spec_for(root: Path) -> list[str]:
+    """`REF_NS` push refspecs for graph root `root` — THE one builder of them (the census C-blocks of
+    goal:g7.16.1.11.13 pin it by name: any other function returning a refs/grid refspec is a NEW site).
+
+    A LIST of two (`<ns>/node/*` and `<ns>/session/*`, `PUSH_KINDS`), not one `<ns>/*`: a `*` refspec spans
+    slashes (measured, git 2.43.0: `git push <bare> 'refs/grid/*:refs/grid/*'` carried node/, origin-snap/node/
+    and a legacy namespace's node/ all three), so the old one-liner pushed the private origin mirror and the
+    read-only legacy namespaces too. Callers pass them as separate arguments (`git push origin *specs`).
 
     `crons.py` imports this rather than re-hardcoding the namespace (goal:g14.14.7
     item b): the second spelling in the cron template was the gap, and a
     function is what makes `apply` and the cron line agree by construction.
     """
     ns = ref_ns_for(root)
-    return f"{ns}/*:{ns}/*"
+    return [f"{ns}/{k}/*:{ns}/{k}/*" for k in PUSH_KINDS]
 
 
 # The ONE declared home of the grid push defaults: a project that has not set
@@ -305,7 +314,7 @@ def grid_retired(root: Path) -> bool:
     (the operator's verb, ungated by design) can only republish tips that
     already exist locally: a non-force push, idempotent, nothing new written
     (whether root pushes refs/grid at all is E2d, belam's). The `cron_lines` snap
-    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
+    line (`commit --all && git push -q origin PUSH_SPECS`, installed only by
     `grid.py cron install`) is EXEMPT with `sync`: it never calls the push verbs
     gated here, and a retired `commit --all` exits 0, so its `&&` push
     republishes pre-existing tips.
@@ -352,19 +361,19 @@ def fetch_spec_for(root: Path) -> str:
 def apply_storage_trunk(root: Path) -> str:
     """Resolve `grid.storage_trunk` for `root` into this module's globals.
 
-    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+    `REF_NS`, `FETCH_SPEC` and `PUSH_SPECS` are the values every other function
     here derives from, so one call makes all of them config-aware with no
     further edits. `main()` calls it once, before dispatch; a test or a caller
     holding a configured tree calls it directly. Returns the resolved
     namespace so a caller can report it without re-reading the config.
     """
-    global REF_NS, FETCH_SPEC, PUSH_SPEC
+    global REF_NS, FETCH_SPEC, PUSH_SPECS
     global FETCH_SPECS, LEGACY_NS
     REF_NS = ref_ns_for(root)
     LEGACY_NS = [n for n in legacy_namespaces_for(root) if n != REF_NS]
     FETCH_SPECS = fetch_specs_for(root)
     FETCH_SPEC = FETCH_SPECS[0]
-    PUSH_SPEC = push_spec_for(root)
+    PUSH_SPECS = push_spec_for(root)
     return REF_NS
 
 
@@ -2038,6 +2047,14 @@ def _is_ancestor(root: Path, a: str, b: str) -> bool | None:
     return True if rc == 0 else False if rc == 1 else None
 
 
+#: goal:g7.16.1.11.46.16 (the third history): origin's `refs/grid/node` as ONE private, read-only-by-convention
+#: mirror. `origin-snap` writes it (forced: it is a local mirror, never a shared ref), `unify --legacy` reads it,
+#: nothing pushes it and the writer's nested-namespace refusal exempts it.
+ORIGIN_SNAP_NS = "refs/grid/origin-snap"
+#: one grid_sync lap, minutes: the least a snapshot pair may be apart for the second to call origin QUIET.
+ORIGIN_LAP_MIN = 30
+
+
 def _cas(root: Path, ref: str, new: str, old: str) -> bool:
     """The ONE ref write of `unify`: compare-and-swap (old "" = the ref must not exist). Never a delete."""
     return git_try(root, "update-ref", ref, new, old).returncode == 0
@@ -2082,7 +2099,12 @@ class _Snapshot:
 def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Snapshot) -> str:
     """One mint of `cmd_unify`: merge the read-only `lns` tip into `ns`. Returns
     merged | adopted | unchanged | conflict | unread. Every ref write goes through `_cas`
-    (a compare-and-swap); there is no delete anywhere in this verb."""
+    (a compare-and-swap); there is no delete anywhere in this verb.
+
+    The merged tree is the LEGACY side's, which is right for the writer's own old namespace (the live side
+    wins by construction). For `ORIGIN_SNAP_NS` (a second writer's history) it is NEVER an automatic pick: a
+    diverged pair merges only when the two tips' trees are EQUAL, and is a CONFLICT otherwise (origin has
+    versions after the merge-base that this namespace does not carry), listed by mint, nothing written."""
     lref, nref = f"{lns}/node/{mint}", f"{ns}/node/{mint}"
     ltip, ntip = ref_tip(root, lref), ref_tip(root, nref)
     if ltip is None:
@@ -2107,6 +2129,9 @@ def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Sna
             if not _cas(root, nref, ltip, ntip):
                 return "conflict"
         return "adopted"
+    if lns == ORIGIN_SNAP_NS and git(root, "rev-parse", f"{ltip}^{{tree}}", check=False) != git(
+            root, "rev-parse", f"{ntip}^{{tree}}", check=False):
+        return "conflict"    # an origin-side edit after the base: never an automatic tree pick
     if write:
         snap.ensure()
         n = int(git(root, "rev-list", "--count", "--first-parent", ltip)) + 1
@@ -2141,16 +2166,32 @@ def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[s
         if c[-1] < max(c[:-1]):
             bad.append(f"{m} (fewer commits than an old side)")
             continue
-        if ntip == ltip:    # adopted: no merge commit; an old tip, if any, is inside the live history (checked above)
-            good += 1
+        if ntip == ltip or otip is None:    # adopted: no merge commit; an old tip, if any, is inside the live history (checked above)
+            good += 1                       # (otip None: no ref before the write, so nothing to preserve beyond the live tip)
             continue
+        live_tips = [x.split(":", 1)[1].strip() for x in git_try(root, "log", "--format=%B", ntip).stdout.splitlines()
+                     if x.startswith("Unify-Live:")]
+        if _is_ancestor(root, ltip, otip) is True and not any(
+                x.startswith("Unify-Live:") for x in git_try(root, "log", "--format=%B", otip).stdout.splitlines()):
+            good += 1    # the live tip was already inside the pre-write tip (nothing to merge): sound ONLY while the snapshot
+            continue     # is early, so a pre-write tip that already carries a unify merge (a late snapshot) never takes this exit
         merge = None
-        for line in git_try(root, "rev-list", "--first-parent", "--parents", ntip).stdout.splitlines():
-            parts = line.split()
-            if len(parts) > 2 and parts[1] == ltip:
-                merge, second = parts[0], parts[2]
+        # first-parent first (the merge this namespace took last); then the whole history: a LATER namespace's
+        # merge (the third history) sits on top and holds this one as its second parent
+        for walk in (("--first-parent",), ()):
+            for line in git_try(root, "rev-list", *walk, "--parents", ntip).stdout.splitlines():
+                parts = line.split()
+                if len(parts) > 2 and parts[1] == ltip:
+                    merge, second = parts[0], parts[2]
+                    break
+            if merge is not None:
                 break
         if merge is None:
+            # another namespace's merge may already hold this tip: a unify merge of ANOTHER live tip L' in the history with
+            # this tip inside L' (L' != the tip itself, so a merge that dropped its own parent never covers itself)
+            if any(lt != ltip and _is_ancestor(root, ltip, lt) is True for lt in live_tips):
+                good += 1
+                continue
             bad.append(f"{m} (no merge commit takes the live tip as its first parent)")
             continue
         if git(root, "rev-parse", f"{merge}^{{tree}}", check=False) != git(root, "rev-parse", f"{ltip}^{{tree}}", check=False):
@@ -2228,13 +2269,25 @@ def cmd_unify(root: Path, write: bool, check: bool = False) -> int:
             return 1
         print(f"grid unify check: snapshot {snaps[0].name} ({len(before)} refs)")
         rc = 0
+        bad_mints: set[str] = set()
         for lns, names in listing.items():
             good, bad = _unify_check(root, ns, lns, names, before)
             print(f"grid unify check: unified {good}/{len(names)} ({lns} -> {ns})")
             for b in bad[:10]:
                 print(f"  RED {b}")
+            bad_mints.update(b.split()[0] for b in bad)
             rc = rc or (0 if good == len(names) else 1)
+        if len(listing) > 1:    # the UNION of every namespace's names, never the first one alone
+            union = set().union(*listing.values())
+            print(f"grid unify check: unified {len(union) - len(bad_mints & union)}/{len(union)} "
+                  f"(union of {len(listing)} namespaces -> {ns})")
+            rc = rc or (1 if bad_mints & union else 0)
         return rc
+    if write and ORIGIN_SNAP_NS in listing:
+        why = _origin_quiet(root)
+        if why:    # a one-shot merge cannot settle a two-writer namespace: only a QUIET lap opens the write
+            print(f"grid unify: unread ({ORIGIN_SNAP_NS} is not QUIET: {why})")
+            return 1
     lock = None
     if write:
         lock = GridLock(root, 120)
@@ -2244,16 +2297,153 @@ def cmd_unify(root: Path, write: bool, check: bool = False) -> int:
         total: dict[str, int] = {}
         for lns, names in listing.items():
             tally = {"merged": 0, "adopted": 0, "unchanged": 0, "conflict": 0, "unread": 0}
+            conflicts: list[str] = []
             for m in names:
-                tally[_unify_one(root, ns, lns, m, write, snap)] += 1
+                got = _unify_one(root, ns, lns, m, write, snap)
+                tally[got] += 1
+                if got == "conflict":
+                    conflicts.append(m)
             for k, v in tally.items():
                 total[k] = total.get(k, 0) + v
             print(f"grid unify ({'write' if write else 'dry-run'}): {lns} -> {ns}: "
                   + ", ".join(f"{v} {k}" for k, v in tally.items()) + f" of {len(names)}")
+            for m in conflicts[:50]:    # listed by mint; never an automatic tree pick
+                print(f"  CONFLICT {m} ({lns}: a version after the merge-base with a different tree, or a lost compare-and-swap)")
+            if len(conflicts) > 50:
+                print(f"  ... {len(conflicts) - 50} more CONFLICT mints")
     finally:
         if lock is not None:
             lock.release()
     return 1 if total.get("conflict") or total.get("unread") else 0
+
+
+def _origin_dir(root: Path) -> Path:
+    """Where `origin-snap` keeps its listings and its QUIET verdict (scratch, never versioned, one dir for
+    every worktree). NOT `_unify_dir`: `unify --check` reads every `*.refs` there as a pre-write snapshot."""
+    base = locations.shared_sessions_dir(root) if locations.is_graph_dir(root) else root / ".agi" / "sessions"
+    return base / "origin-snap"
+
+
+def _origin_listing(root: Path) -> dict[str, str] | None:
+    """{mint: tip} of `ORIGIN_SNAP_NS/node`, or None when git could not list it (never 'empty')."""
+    res = git_try(root, "for-each-ref", f"{ORIGIN_SNAP_NS}/node", "--format=%(refname) %(objectname)")
+    if res.returncode != 0:
+        return None
+    out = {}
+    for line in res.stdout.splitlines():
+        ref, _, tip = line.partition(" ")
+        out[ref[len(ORIGIN_SNAP_NS) + 6:]] = tip
+    return out
+
+
+def _listing_digest(listing: dict[str, str]) -> str:
+    import hashlib
+    return hashlib.sha256("".join(f"{m} {t}\n" for m, t in sorted(listing.items())).encode()).hexdigest()
+
+
+def _origin_quiet(root: Path) -> str | None:
+    """Why `unify --write` may NOT merge `ORIGIN_SNAP_NS`, or None when origin read QUIET for a lap: the
+    verdict `origin-snap` wrote names the digest of the listing it judged, and the mirror still has it."""
+    verdict = _origin_dir(root) / "quiet"
+    try:
+        want = verdict.read_text().split()[0]
+    except (OSError, IndexError):
+        return "no QUIET verdict: run `grid.py origin-snap` twice, one lap apart"
+    have = _origin_listing(root)
+    if not have:
+        return f"{ORIGIN_SNAP_NS} cannot be listed"
+    if _listing_digest(have) != want:
+        return "the mirror changed since the QUIET verdict: run `grid.py origin-snap` again"
+    return None
+
+
+def cmd_origin_snap(root: Path, remote: str = "origin", lap_min: int = ORIGIN_LAP_MIN) -> int:
+    """goal:g7.16.1.11.46.16 (the third history, council 07:47Z 10-26): O1 + O2 for origin's `refs/grid/node`,
+    which holds tips this repo never fetched (another box's grid wrote them), so `push-changed` is rejected on
+    every name whose origin tip is not in MAIN.
+
+    O1 SNAPSHOT: `git fetch <remote> '+<ns>/node/*:refs/grid/origin-snap/node/*'`. The `+` forces a PRIVATE local
+    mirror, never a shared ref; nothing pushes it and nothing else writes it. A fetch that errors or lists 0
+    refs prints `unread` and returns 1 (an empty side would 'succeed' with 0 merged).
+    O2 LIVENESS: print the newest mirror tip's committer date and name, record the listing, and diff it against
+    the most recent listing at least `lap_min` minutes old (else the latest one). A tip that MOVED, or a name
+    that appeared, to a commit that is NOT inside this repo's own `<ns>/node/<mint>` history is another writer:
+    `LIVE second writer`, rc 2, STOP and bank ONE question (one writer per namespace, or per-box namespaces).
+    Moves to our own history are our own `push-changed` landing and are not a second writer. No foreign move
+    over a baseline >= one lap old writes the QUIET verdict `unify --write` demands for `ORIGIN_SNAP_NS`."""
+    ensure_repo(root)
+    ns = REF_NS
+    if ns == ORIGIN_SNAP_NS or ns.startswith(ORIGIN_SNAP_NS + "/"):
+        print(f"grid origin-snap: unread (the one namespace {ns} is the mirror itself)")
+        return 1
+    d = _origin_dir(root)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "quiet").unlink(missing_ok=True)    # every run re-earns the verdict
+    res = git_try(root, "fetch", "--no-tags", "--prune", "-q", remote, f"+{ns}/node/*:{ORIGIN_SNAP_NS}/node/*")
+    if res.returncode != 0:
+        print(f"grid origin-snap: unread (fetch from {remote} failed: {(res.stderr.strip().splitlines() or ['no reason'])[0][:160]})")
+        return 1
+    have = _origin_listing(root)
+    if not have:
+        print(f"grid origin-snap: unread ({remote} lists no {ns}/node refs; nothing to merge)")
+        return 1
+    top = git_try(root, "for-each-ref", f"{ORIGIN_SNAP_NS}/node", "--sort=-committerdate", "--count=1",
+                  "--format=%(committerdate:iso-strict) %(committername) %(refname)")
+    line = top.stdout.strip()
+    date, _, rest = line.partition(" ")
+    who, _, ref = rest.rpartition(" ")
+    print(f"grid origin-snap: fetched {len(have)} refs into {ORIGIN_SNAP_NS} (remote {remote}); "
+          f"newest tip {date} by {who} ({ref[len(ORIGIN_SNAP_NS) + 6:]})")
+    now = int(time.time())
+    # the earlier listings, newest first: `<epoch>-<pid>-<n>.refs`, header `# fetched <epoch>`
+    earlier = []
+    for p in d.glob("*.refs"):
+        try:
+            head, *body = p.read_text().splitlines()
+            earlier.append((int(head.split()[2]), p, dict(tuple(x.split(" ", 1)) for x in body if " " in x)))
+        except (OSError, ValueError, IndexError):
+            continue
+    earlier.sort(key=lambda e: (e[0], e[1].stat().st_mtime_ns), reverse=True)    # newest first, even within one second
+    n = 0
+    while True:
+        path = d / f"{now:011d}-{os.getpid()}-{n}.refs"
+        try:
+            with open(path, "x") as f:
+                f.write(f"# fetched {now}\n" + "".join(f"{m} {t}\n" for m, t in sorted(have.items())))
+            break
+        except FileExistsError:
+            n += 1
+    if not earlier:
+        print(f"grid origin-snap: first look ({path.name}); run it again after one lap ({lap_min} min) to read liveness")
+        return 0
+    base = next((e for e in earlier if now - e[0] >= lap_min * 60), earlier[0])
+    age = (now - base[0]) // 60
+    foreign, own = [], 0
+    for m, t in sorted(have.items()):
+        if base[2].get(m) == t:
+            continue
+        ours = ref_tip(root, f"{ns}/node/{m}")
+        if ours and _is_ancestor(root, t, ours):
+            own += 1
+        else:
+            foreign.append(m)
+    gone = sorted(m for m in base[2] if m not in have)    # --prune dropped a name origin no longer lists: a delete is a write too
+    print(f"grid origin-snap: against {base[1].name} ({age} min earlier): {len(foreign)} foreign move(s), "
+          f"{own} landing of this repo's own push, {len(gone)} name(s) origin no longer lists")
+    foreign += gone
+    if foreign:
+        for m in foreign[:10]:
+            print(f"  MOVED {m}")
+        print("grid origin-snap: LIVE second writer: origin's tips are still being written by someone else -- STOP; "
+              "bank ONE question (one writer per namespace, or per-box namespaces). A one-shot unify cannot settle it.")
+        return 2
+    if age < lap_min:
+        print(f"grid origin-snap: not yet a lap ({age} min < {lap_min}): no verdict; run it again later")
+        return 0
+    (d / "quiet").write_text(f"{_listing_digest(have)} {now}\n")
+    print(f"grid origin-snap: QUIET for the lap ({age} min >= {lap_min}): `grid.py unify --into {ns} "
+          f"--legacy {ORIGIN_SNAP_NS} --write` may run")
+    return 0
 
 
 def cmd_census(root: Path, rev: str = "HEAD") -> int:
@@ -2333,7 +2523,7 @@ def cmd_sync(root: Path, remote: str | None) -> None:
     if "origin" not in git(root, "remote").splitlines():
         sys.exit("ERR: no origin — grid.py sync <remote-url> once to set it")
     cmd_init(root)  # keep the fetch refspec aligned on every sync
-    out = git(root, "push", "origin", PUSH_SPEC)
+    out = git(root, "push", "origin", *PUSH_SPECS)
     print(out or "grid: synced")
 
 
@@ -2375,7 +2565,7 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path) -> list[str]:
     repo = repo_root(root)
     snap = (f"*/{mins} * * * * cd {repo} && "
             f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
-            f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
+            f"git push -q origin {' '.join(repr(x) for x in PUSH_SPECS)} >> {log} 2>&1")
     d1 = f"7 * * * * git -C {repo} push -q origin {branch} >> {log} 2>&1"
     return [snap, d1]
 
@@ -2505,6 +2695,12 @@ def main() -> None:
                     help="the namespace to merge INTO (refs/grid: the 09-21 freeze, the one namespace), overriding the config (run BEFORE the config lands)")
     un.add_argument("--legacy", action="append", default=None,
                     help="a LEGACY namespace to merge FROM (repeatable; refs/grid/local-maxxing, the namespace every writer used until this land), overriding grid.legacy_namespaces")
+    os_ = sub.add_parser("origin-snap",
+                         help="goal:g7.16.1.11.46.16 -- mirror origin's refs/grid/node into the PRIVATE refs/grid/origin-snap and "
+                              "read whether origin is still being written (rc 2 = a LIVE second writer); the QUIET verdict "
+                              "`unify --legacy refs/grid/origin-snap --write` demands")
+    os_.add_argument("remote", nargs="?", default="origin")
+    os_.add_argument("--lap", type=int, default=ORIGIN_LAP_MIN, help="minutes that make a lap (default 30, grid_sync's cadence)")
     ce = sub.add_parser("census", help="goal:g7.16.1.11.46.16 -- mints, live, retired, versions, orphans")
     ce.add_argument("--rev", default="HEAD")
     s = sub.add_parser("sync")
@@ -2555,6 +2751,8 @@ def main() -> None:
         pass
     elif args.cmd == "unify":
         sys.exit(cmd_unify(root, args.write, args.check))
+    elif args.cmd == "origin-snap":
+        sys.exit(cmd_origin_snap(root, args.remote, args.lap))
     elif args.cmd == "census":
         sys.exit(cmd_census(root, args.rev))
     elif args.cmd == "sync":
