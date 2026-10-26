@@ -1,17 +1,77 @@
 #!/bin/sh
-# verify-land.sh N LANDSHA BASE GATETIP -- held, tree, parents, G, D, anonymize, home, gpu, cite, r-land, ran as, self; one reading per line, then ONE verdict line:
+# verify-land.sh N LANDSHA BASE GATETIP -- held, wrap, tree, parents, G, D, anonymize, home, gpu, cite, r-land, ran as, self; one reading per line, then ONE verdict line:
 # `verify-land: OK` rc 0, or `verify-land: HOLD (<checks>)` rc 1 (rc 2 = no work tree). Box-local and unreviewed until VL (council 3/3, alive 21:31:33Z 10-25):
 # commit 1 was the ~/tools bytes every land L1..L132 ran; this commit gives each check its HOLD. Installed from the pin at /opt/agi/bin/verify-land (the host-act path).
-# VL_T (work tree), VL_MAIN (the held refs), VL_OUT (diff + msg), VL_ANON, VL_CARRY (the pin), VL_INSTALLED, VL_TOOLS, VL_RING (r-land's ring), VL_RLAND_SINCE (L140): the lane's knobs; defaults are the live box.
+# VL_T (work tree), VL_MAIN (the held refs), VL_OUT (diff + msg), VL_ANON, VL_CARRY (the pin), VL_INSTALLED, VL_TOOLS, VL_RING (r-land's ring), VL_RLAND_SINCE (L140), VL_WRAP_SIGNER + VL_LAND_SIGNER (R3's
+# principals): the lane's knobs; defaults are the live box. `verify-land.sh wrap N L BASE GATETIP` = the WRAP step (below): prints `land: plain <L>` or makes
+# W and prints `land: wrap <W> over <L> (<why>)`; it moves no ref (the CAS to that sha stays belam's step), then verify-land runs on that sha.
 N=$1 L=$2 B=$3 G=$4;T=${VL_T:-$HOME/t};MAIN=${VL_MAIN:-/data/work/agi};S=${VL_OUT:-$HOME/.verify-land};A=${VL_ANON:-$T/extensions/agi/bin/anonymize.py}
 mkdir -p "$S"&&cd "$T"||exit 2
 h=;hold(){ h="$h $1";}
+# WRAP (owner ruling (1) 05:0xZ 10-26 "Yeah you can land"; council 3/3 alive 05:18:24Z + [correction] 05:19:08Z; THE list 06:06:56Z): a RULES land moves the
+# trunk to W = commit-tree L^{tree} -p BASE -p L -S (belam-signed, adds no change), never to L: the first-parent lander is belam (written_by), SM's signed L
+# stays W's 2nd parent. L1 RULES = `git diff --name-only BASE L -- <specs>` non-empty, specs = BASE's .agi/config.json land.rules_paths (never TIP's);
+# L4 the cell absent, unparsable, not a list of strings or EMPTY = RULES (`rules_paths unread ...: wrapped`); R1's guard route: BASE's r-land printed a
+# `config:` line on the range, or r-land was unread there. R2 `config: lander not provable` HOLDS; R3 a wrap's tree, parent order and two signers HOLD.
+rp(){ git cat-file blob $1:.agi/config.json 2>/dev/null|python3 -I -c 'import json,sys
+try: v=json.load(sys.stdin)["land"]["rules_paths"]
+except Exception: sys.exit(1)
+ok=isinstance(v,list) and v and all(isinstance(x,str) and x for x in v)
+print("\n".join(v)) if ok else sys.exit(1)';}
+# P1 (council 07:01:14Z): every git call that takes the specs runs with the pathspec env CLEARED: an inherited GIT_LITERAL_PATHSPECS=1 makes the :(glob) specs
+# match nothing (a .gitattributes-only RULES land would land plain); P2 (07:01:25Z + 07:01:37Z): `rules: N of M specs match nothing at BASE (...)`, a reading
+gs(){ env -u GIT_LITERAL_PATHSPECS -u GIT_NOGLOB_PATHSPECS -u GIT_GLOB_PATHSPECS -u GIT_ICASE_PATHSPECS git "$@";}
+rnone(){ sp=$(rp $1)||{ echo "rules: specs unread at BASE $(echo $1|cut -c1-10)";return;};e=$(git hash-object -t tree /dev/null)
+  printf '%s\n' "$sp"|{ m=0;n=0;z=;while IFS= read -r x;do m=$((m+1));[ -n "$(gs diff --name-only $e $1 -- "$x" 2>/dev/null|head -1)" ]||{ n=$((n+1));z="$z${z:+ }$x";};done
+  printf 'rules: %s of %s specs match nothing at BASE (%s)\n' $n $m "$z";};}
+rules(){ sp=$(rp $1)||{ echo "rules_paths unread at BASE $(echo $1|cut -c1-10): wrapped";return 0;}   # rc 0 = RULES (prints why), rc 1 = not by the list
+  f=$(printf '%s\n' "$sp"|tr '\n' '\0'|xargs -0 env -u GIT_LITERAL_PATHSPECS -u GIT_NOGLOB_PATHSPECS -u GIT_GLOB_PATHSPECS -u GIT_ICASE_PATHSPECS git diff --name-only $1 $2 -- 2>/dev/null)||{ echo "rules: diff unread: wrapped";return 0;}
+  [ -n "$f" ]&&{ echo "rules: $(echo $f|cut -c1-160)";return 0;};return 1;}
+# r-land (council 3/3, alive 02:11:54Z 10-26, R4 site 2): the SAME call as SM's gate and the reference-transaction piece: BASE's guard/r-land blob on
+# BASE..LAND (a range never brings its own judge), ring from VL_RING. Its lines print as they are (report mode: `would refuse` lines at rc 0 are readings
+# for the [landed]); rc != 0 (an enforce refusal or unread, a BASE/TIP that does not rev-parse) HOLDS. GATE272 (council 03:49-03:5xZ 10-26): V1 no tmpfile
+# HOLDS; V3 an ancestry read that errors (an unresolvable BASE) HOLDS; fail open (the hook's reading) ONLY for a BASE that does not descend L140
+# (VL_RLAND_SINCE); V2' at a post-L140 BASE an ABSENT or EMPTY judge is replaced by the LAST non-empty r-land blob in BASE's history (never none, never the
+# range's own: a HOLD there would lock out the restoring land, the GATE264 shape; the walk is --first-parent, or a land merge that deletes r-land,
+# TREESAME to its 2nd parent, leads the walk off the trunk into the range's own history); HOLD only for what a retry clears: a read error on a present blob, a
+# failed history search, no prior judge. NAMED LIMIT: a land that makes r-land a BROKEN script locks out its own repair (BASE's judge runs); the repair path
+# is the stated override: the hook's hooksPath bypass (R5), and belam lifting this HOLD with the reason in the [landed].
+rjudge(){ B=$1;RX=$2;RP=extensions/agi/guard/r-land;RS=${VL_RLAND_SINCE:-20e4947d3a0dc641340df3d07449bed0ab205325};b=$(echo $B|cut -c1-10);j=;ra=9;rr=;s=$(mktemp 2>/dev/null)||s=
+if [ -z "$s" ];then echo "r-land: unread (tmpfile)";ra=9
+else git merge-base --is-ancestor $RS $B 2>/dev/null;d=$?
+  if [ $d != 0 ]&&[ $d != 1 ];then echo "r-land: unread (BASE $b)";ra=9
+  elif git cat-file -e $B:$RP 2>/dev/null&&! git cat-file blob $B:$RP >$s 2>/dev/null;then echo "r-land: unread (unreadable at BASE $b)";ra=9
+  elif [ -s $s ];then j=$B
+  elif [ $d = 1 ];then echo "r-land: none at BASE $b (a pre-L140 BASE: fail open, as the hook)";ra=0
+  elif ! hs=$(git log --first-parent --format=%H $B -- $RP 2>/dev/null);then echo "r-land: unread (history search at BASE $b)";ra=9
+  else w=$(echo "$hs"|head -1);git cat-file -e $w:$RP 2>/dev/null&&k=emptied||k=deleted
+    for c in $hs;do git cat-file -e $c:$RP 2>/dev/null||continue;git cat-file blob $c:$RP >$s 2>/dev/null||{ j=x;break;};[ -s $s ]&&{ j=$c;break;};done
+    [ -n "$w" ]||k=absent;case $j in x)j=;echo "r-land: unread (unreadable prior judge at $(echo $c|cut -c1-10))";ra=9;;
+      "")echo "r-land: unread (no prior judge at BASE $b)";ra=9;;
+      *)echo "r-land: judge from $(echo $j|cut -c1-10) ($k at $(echo $w|cut -c1-10))";;esac;fi
+  [ -z "$j" ]||{ rr=$(AGI_RING=${VL_RING:-/var/lib/agi/allowed_signers} sh $s $B $RX 2>&1);ra=$?;printf '%s\n' "$rr";echo "r-land=$ra";};rm -f $s;fi;}
+if [ "${1:-}" = wrap ];then N=$2 L=$3 B=$4 G=$5;T=${VL_T:-$HOME/t};MAIN=${VL_MAIN:-/data/work/agi};cd "$T"||exit 2
+  H=$(git -C "$MAIN" rev-parse -q --verify refs/held/sanctuary-master/$N 2>/dev/null || git rev-parse -q --verify refs/held/sanctuary-master/$N)
+  L=$(git rev-parse -q --verify "$L^{commit}")&&[ "$L" = "$H" ]||{ echo "wrap: refused ($N: the land is not the held refs/held/sanctuary-master/$N)";exit 1;}
+  B=$(git rev-parse -q --verify "$B^{commit}")||{ echo "wrap: refused (BASE unread)";exit 1;};rnone $B
+  y=$(rules $B $L)||{ rjudge $B $L >/dev/null;case $rr in *"
+config: "*|"config: "*)y="r-land judged a config change";;esac;[ $ra = 9 ]&&y="r-land unread on the route question";}
+  [ -n "$y" ]||{ echo "land: plain $L";exit 0;}
+  W=$(git commit-tree "$L^{tree}" -p $B -p $L -S -m "belam: wrap of $N (gate $L)")||{ echo "wrap: refused (commit-tree -S failed)";exit 1;}
+  echo "land: wrap $W over $L ($y)";exit 0;fi
 git fetch -q origin 2>/dev/null
 H=$(git -C "$MAIN" rev-parse -q --verify refs/held/sanctuary-master/$N 2>/dev/null || git rev-parse -q --verify refs/held/sanctuary-master/$N)
 L=$(git rev-parse -q --verify "$L^{commit}")||{ echo "verify-land: HOLD (land unread)";exit 1;}
-echo "held=$(echo $H|cut -c1-10) land=$(echo $L|cut -c1-10) $( [ "$H" = "$L" ] && echo OK || echo MISMATCH)";[ "$H" = "$L" ]||hold held
-P=$(git log -1 --format=%P $L);W="$(git rev-parse -q --verify "$B^{commit}") $(git rev-parse -q --verify "$G^{commit}")"
+X=;[ -n "$H" ]&&[ "$L" != "$H" ]&&[ "$(git rev-parse -q --verify $L^2 2>/dev/null)" = "$H" ]&&X=1   # LAND = a WRAP W whose 2nd parent is the held L
+echo "held=$(echo $H|cut -c1-10) land=$(echo $L|cut -c1-10) $( [ "$H" = "$L" ] && echo OK || { [ -n "$X" ] && echo "WRAP over held" || echo MISMATCH; })";[ "$H" = "$L" ]||[ -n "$X" ]||hold held
+K=$L;[ -z "$X" ]||K=$H   # the land SM gated: its parents are [BASE, GATETIP]
+P=$(git log -1 --format=%P $K);W="$(git rev-parse -q --verify "$B^{commit}") $(git rev-parse -q --verify "$G^{commit}")"
 echo "parents: $(echo $P | awk '{print substr($1,1,10), substr($2,1,10)}') want $(echo $W | awk '{print substr($1,1,10), substr($2,1,10)}')";[ "$P" = "$W" ]||hold parents
+if [ -n "$X" ];then P2=$(git log -1 --format=%P $L);echo "R3 wrap parents: $(echo $P2 | awk '{print substr($1,1,10), substr($2,1,10)}') want $(echo $B|cut -c1-10) $(echo $H|cut -c1-10)"
+  [ "$P2" = "$(git rev-parse -q --verify "$B^{commit}") $H" ]||hold r3-parents
+  [ "$(git rev-parse $L^{tree})" = "$(git rev-parse $H^{tree})" ]&&echo "R3 wrap tree = land tree"||{ echo "R3 wrap tree != land tree";hold r3-tree;}
+  ws=$(git log -1 --format='%G? %GS' $L);ls=$(git log -1 --format='%G? %GS' $H);echo "R3 signers: wrap [$ws] land [$ls]"
+  [ "$ws" = "G ${VL_WRAP_SIGNER:-belam@agi}" ]&&[ "$ls" = "G ${VL_LAND_SIGNER:-sanctuary-master@agi}" ]||hold r3-signer;fi
 t1=$(git rev-parse $L^{tree});t2=$(git merge-tree --write-tree $B $G 2>/dev/null | head -1)
 echo "tree $(echo $t1|cut -c1-10) merge-tree $(echo $t2|cut -c1-10)";[ -n "$t2" ]&&[ "$t1" = "$t2" ]||hold tree
 echo "sigs: $(git log --format=%G? $B..$L | sort | uniq -c | tr '\n' ' ')";[ -z "$(git log --format=%G? $B..$L | grep -vx G)" ]||hold sigs
@@ -27,36 +87,28 @@ homes={p.pw_dir for p in pwd.getpwall() if len(p.pw_dir)>5 and p.pw_dir not in (
 hits=[h for f in sys.argv[1:] for h in homes if h+'/' in open(f,errors='replace').read()]
 print('home hits', hits);sys.exit(1 if hits else 0)
 P
-echo "gpu: $(grep -c -i -E 'nvidia|cuda|gpu' "$S/$N.diff")"   # a reading, not a hold (as before VL)
+gp=$(python3 -I - "$A" "$S/$N.diff" "$T" <<'P'
+import os,sys
+sys.path.insert(0,os.path.dirname(os.path.abspath(sys.argv[1])))
+try:
+    import anonymize as a
+    fr=[v for c,v in a.box_tokens(sys.argv[3],secrets=False) if c=="hardware" and len(v)>=a.MIN_TOKEN]
+    print(0 if not fr else sum(1 for l in open(sys.argv[2],errors="replace") if a._hw_frag_re(fr).search(l)))
+except Exception: print("unread")
+P
+);echo "gpu: $gp (lines naming a box device, anonymize's hardware list; never the bare word)"   # a reading, not a hold (council 06:06:56Z: device names, its own file not excluded)
 # cite (council 3/3, alive 21:31:33Z 10-25, M10 row b): a land that changes a node file holding a `## OWNER` block (at BASE or LAND; broader than a changed
 # heading, so a body edit that drops a cited chunk id is caught) runs agi-mem cite on the LAND tree; rc != 0 (a violation or unread) holds the land
 o=$(for x in $(git diff --name-only $B $L -- .agi/nodes);do { git show $L:$x 2>/dev/null;git show $B:$x 2>/dev/null;}|grep -q '^## OWNER'&&echo $x;done)
 if [ -n "$o" ];then w=$(mktemp -d)/land;if git worktree add -q --detach $w $L 2>/dev/null;then r=$(AGI_ENGINE=$w AGI_POST=belam agi-mem cite 2>&1);a=$?;git worktree remove --force $w
   printf '%s\n' "$r";echo "cite=$a ($(echo $o|wc -w) OWNER file(s))";[ $a = 0 ]||hold cite;else echo "cite: unread (no land worktree)";hold cite;fi
 else echo "cite: n/a (no OWNER file changed)";fi
-# r-land (council 3/3, alive 02:11:54Z 10-26, R4 site 2): the SAME call as SM's gate and the reference-transaction piece: BASE's guard/r-land blob on
-# BASE..LAND (a range never brings its own judge), ring from VL_RING. Its lines print as they are (report mode: `would refuse` lines at rc 0 are readings
-# for the [landed]); rc != 0 (an enforce refusal or unread, a BASE/TIP that does not rev-parse) HOLDS. GATE272 (council 03:49-03:5xZ 10-26): V1 no tmpfile
-# HOLDS; V3 an ancestry read that errors (an unresolvable BASE) HOLDS; fail open (the hook's reading) ONLY for a BASE that does not descend L140
-# (VL_RLAND_SINCE); V2' at a post-L140 BASE an ABSENT or EMPTY judge is replaced by the LAST non-empty r-land blob in BASE's history (never none, never the
-# range's own: a HOLD there would lock out the restoring land, the GATE264 shape; the walk is --first-parent, or a land merge that deletes r-land,
-# TREESAME to its 2nd parent, leads the walk off the trunk into the range's own history); HOLD only for what a retry clears: a read error on a present blob, a
-# failed history search, no prior judge. NAMED LIMIT: a land that makes r-land a BROKEN script locks out its own repair (BASE's judge runs); the repair path
-# is the stated override: the hook's hooksPath bypass (R5), and belam lifting this HOLD with the reason in the [landed].
-RP=extensions/agi/guard/r-land;RS=${VL_RLAND_SINCE:-20e4947d3a0dc641340df3d07449bed0ab205325};b=$(echo $B|cut -c1-10);j=;s=$(mktemp 2>/dev/null)||s=
-if [ -z "$s" ];then echo "r-land: unread (tmpfile)";hold r-land
-else git merge-base --is-ancestor $RS $B 2>/dev/null;d=$?
-  if [ $d != 0 ]&&[ $d != 1 ];then echo "r-land: unread (BASE $b)";hold r-land
-  elif git cat-file -e $B:$RP 2>/dev/null&&! git cat-file blob $B:$RP >$s 2>/dev/null;then echo "r-land: unread (unreadable at BASE $b)";hold r-land
-  elif [ -s $s ];then j=$B
-  elif [ $d = 1 ];then echo "r-land: none at BASE $b (a pre-L140 BASE: fail open, as the hook)"
-  elif ! hs=$(git log --first-parent --format=%H $B -- $RP 2>/dev/null);then echo "r-land: unread (history search at BASE $b)";hold r-land
-  else w=$(echo "$hs"|head -1);git cat-file -e $w:$RP 2>/dev/null&&k=emptied||k=deleted
-    for c in $hs;do git cat-file -e $c:$RP 2>/dev/null||continue;git cat-file blob $c:$RP >$s 2>/dev/null||{ j=x;break;};[ -s $s ]&&{ j=$c;break;};done
-    [ -n "$w" ]||k=absent;case $j in x)j=;echo "r-land: unread (unreadable prior judge at $(echo $c|cut -c1-10))";hold r-land;;
-      "")echo "r-land: unread (no prior judge at BASE $b)";hold r-land;;
-      *)echo "r-land: judge from $(echo $j|cut -c1-10) ($k at $(echo $w|cut -c1-10))";;esac;fi
-  [ -z "$j" ]||{ r=$(AGI_RING=${VL_RING:-/var/lib/agi/allowed_signers} sh $s $B $L 2>&1);a=$?;printf '%s\n' "$r";echo "r-land=$a";[ $a = 0 ]||hold r-land;};rm -f $s;fi
+rjudge $B $L;[ $ra = 0 ]||hold r-land   # the r-land block (council 02:11:54Z R4 site 2 + GATE272), as the function above
+case $rr in *"config: lander not provable"*)echo "R2: config lander not provable on this land";hold lander-unprovable;;esac
+rnone $B
+if [ -n "$X" ];then echo "wrap: $(echo $L|cut -c1-10) over $(echo $H|cut -c1-10) ($(rules $B $H||echo needless: the range is not RULES))"
+else y=$(rules $B $H)||{ case $rr in *"
+config: "*|"config: "*)y="r-land judged a config change";;esac;};[ -z "$y" ]||{ echo "wrap: MISSING, landed plain ($y)";hold wrap-missing;};fi
 echo "ran as: $(id -un 2>/dev/null||echo unread) uid $(id -u)"   # M2 (council 3/3, alive 02:53:20Z 10-26): a reading, never a verdict input
 # self (council VL): this copy must be the pin's repo blob, and the one on PATH; the ~/tools copy is retired
 pin=$(sed -n 's/^AGI_TRUNK=//p' "${VL_CARRY:-/etc/agi/carry.env}" 2>/dev/null|tail -1);rb=$(git -C "$MAIN" show "$pin:extensions/agi/guard/verify-land.sh" 2>/dev/null|sha256sum|cut -c1-64);me=$(sha256sum <"$0"|cut -c1-64)
