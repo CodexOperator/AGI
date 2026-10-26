@@ -216,7 +216,7 @@ def test_n_mutant_the_log_redirect_dropped_the_child_holds_the_hooks_stdout_RED(
 
 
 def test_o_mutant_no_flock_two_wakes_RED(tmp_path):
-    text = piece("agi-meter").replace("||flock -n 9", "||true")
+    text = piece("agi-meter").replace("elif flock -n 9;then", "elif true;then")
     assert text != piece("agi-meter")
     for _ in range(2):
         run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, sh_text=text, atomize=START_3S, timeout=15)
@@ -236,3 +236,42 @@ def test_q_mutant_the_unread_line_dropped_RED(tmp_path):
     finally:
         _reap(tmp_path)
     assert "At the line" in r.stdout and "[mem] tap unread" not in r.stdout, "the mutant is silent about the killed tap (row k catches it)"
+
+
+# ---- alive 14:45:31Z 10-26 CONDITION 1 (a false line is RED) + self-perpetuating's two later rows ----
+def _home_lock_dir(tmp_path):
+    (tmp_path / ".atomize.lock").mkdir()           # the lock path unopenable: a DIRECTORY
+
+
+def test_r_an_unopenable_lock_is_named_truly_not_as_a_running_wake(tmp_path):
+    _home_lock_dir(tmp_path)
+    for _ in range(2):
+        r = run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, atomize="echo start >>$HOME/starts\n", notice="echo \"$*\" >>$HOME/notices.log\n", timeout=15)
+        assert r.returncode == 0 and r.stdout == "", r.stdout
+    log = (tmp_path / ".atomize.log").read_text()
+    assert "[atomize] wake not run: ~/.atomize.lock unopenable" in log and "still runs" not in log, log
+    assert not (tmp_path / "starts").exists()
+    n = (tmp_path / "notices.log").read_text()
+    assert "[atomize] wake not run: ~/.atomize.lock unopenable" in n, n      # the post SEES it (agi-notice dedups per day)
+
+
+def test_s_mutant_the_open_check_dropped_says_still_runs_which_is_FALSE_RED(tmp_path):
+    _home_lock_dir(tmp_path)
+    text = piece("agi-meter").replace('if [ -z "$o" ];then', 'if false;then')
+    assert text != piece("agi-meter")
+    run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, sh_text=text, timeout=15)
+    log = (tmp_path / ".atomize.log").read_text()
+    assert "still runs" in log and "unopenable" not in log, "the mutant tells the false story (the row above catches it)"
+
+
+def test_u_no_flock_binary_is_named_in_the_log_and_the_wake_still_runs(tmp_path):
+    text = piece("agi-meter").replace("command -v flock", "command -v flock-none")
+    run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, sh_text=text, atomize="echo start >>$HOME/starts\n", timeout=15)
+    time.sleep(1)
+    assert "[atomize] wake unguarded: no flock" in (tmp_path / ".atomize.log").read_text()
+    assert (tmp_path / "starts").read_text().split() == ["start"]
+
+
+def test_v_the_two_doc_lines_no_longer_say_agi_meter_calls_the_notice_first():
+    t = (GEO / "engine-post.md").read_text()
+    assert "called first by agi-brief and agi-meter" not in t and "agi-meter's prompt hook call it first" not in t
