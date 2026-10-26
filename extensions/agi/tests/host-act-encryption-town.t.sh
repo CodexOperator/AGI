@@ -2,6 +2,9 @@
 # host-act-encryption-town.t.sh: the REHEARSAL of extensions/agi/guard/host-act-encryption-town.sh (ROOT=<scratch>, no systemd, no root): step 0 + the act + the rollback + the per-post move, on a scratch MAIN holding the REAL geometry. One ok/FAIL line per case; exit = FAIL count. ACT=<script copy> runs a mutant.
 umask 022;T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=$(cd "$(dirname "$0")/../../.." && pwd);ACT=${ACT:-$R0/extensions/agi/guard/host-act-encryption-town.sh};GEO=$R0/.agi/nodes/.geometry
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# a mutant/fixture edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_COMMITTER_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_EMAIL;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 mk(){ X=$T/$1;rm -rf $X;mkdir -p $X/data/work/agi/.agi/nodes/.geometry $X/opt/agi/bin $X/etc/systemd/system $X/etc/polkit-1/rules.d $X/usr/local $X/mnt $X/var/lib;M=$X/data/work/agi;cp $GEO/engine*.md $M/.agi/nodes/.geometry/
@@ -88,13 +91,13 @@ ok e4-projection-is-the-hconf-dropin-not-the-wants-link "[ $re4 != 0 ]&&grep -q 
 run env PIN=$PIN2 sh $ACT move 'bad name'>/dev/null 2>$T/e3.err;ok e3-a-bad-post-name-is-refused "[ \$? != 0 ]"
 # ---- S2a (goal:g7.16.1.11.44.8, council 09:20Z 10-16): the act lives in `agi.sh host`; the old script's `act` is ONE delegating line. Each row has its mutant (one edit on the code under test; the row passes only when the clean property BREAKS) ----
 AGI=${AGI:-$R0/extensions/agi/bin/agi.sh}
-rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for [$1]";}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&{ echo "FAIL rep-anchor-not-found rep anchor not found: [$1]";f=$((f+1));};}
 backups(){ ls -d $X/var/backups/agi-act-* 2>/dev/null|wc -l|tr -d ' ';}
 # the `act)` branch of the old script (condition 1): exactly the one exec line, no step of its own left in it
 onebranch(){ b=$(sed -n '/^act)/,/^move)/p' $1|sed '$d');[ "$(echo "$b"|wc -l|tr -d ' ')" = 1 ]&&echo "$b"|grep -qx 'act)exec sh "$(dirname "$0")/../bin/agi.sh" host;;'&&! echo "$b"|grep -q 'setfacl\|install\|put\|systemctl\|printf\|mkdir';}
 unitread(){ env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory $(grep '^GIT_CONFIG_VALUE_0=' $X/etc/agi/carry.env 2>/dev/null) git config --get safe.directory 2>/dev/null;}
 ok k1-the-old-act-branch-is-one-exec-line-and-no-step-of-its-own "onebranch $ACT"
-sed '/^act)/a setfacl -m g:x:rwx /nonexistent' $ACT>$T/act.mut;cmp -s $ACT $T/act.mut&&echo "# NO EDIT in the act mutant"
+sed '/^act)/a setfacl -m g:x:rwx /nonexistent' $ACT>$T/act.mut;chg $ACT $T/act.mut "the act mutant"
 ok k1-mutant-an-act-branch-that-runs-its-own-step-is-RED "! onebranch $T/act.mut"
 mk k;run sh $AGI host>$T/k.out 2>$T/k.err;rk=$?
 ok k2-carry-env-keeps-GIT_CONFIG_VALUE_0-and-the-stub-unit-read-prints-the-repo "[ $rk = 0 ]&&grep -qx 'GIT_CONFIG_VALUE_0=/data/work/agi' $X/etc/agi/carry.env&&[ \"\$(unitread)\" = /data/work/agi ]"
@@ -110,7 +113,7 @@ mk q;run sh $AGI host>/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;run
 ok k3-a-drifted-piece-is-not-met-and-is-restored "[ $rq = 0 ]&&! grep -qx 'host: met' $T/q.out&&[ $(backups) = 2 ]&&sect sect|cmp -s - $X/opt/agi/bin/sect"
 mk q;run sh $AGI host>/dev/null 2>&1;setfacl -x g:$GG $X/data/work/agi/.agi/sessions/inbox;sleep 1;run sh $AGI host>$T/q2.out 2>&1;rq2=$?
 ok k3-a-removed-inbox-acl-is-not-met-and-is-restored "[ $rq2 = 0 ]&&! grep -qx 'host: met' $T/q2.out&&getfacl -p $X/data/work/agi/.agi/sessions/inbox 2>/dev/null|grep -qx \"group:$GG:rwx\""
-mk q;run sh $AGI host>/dev/null 2>&1;sed -i 's/^MemoryMax=6G/MemoryMax=9G/' $X/etc/systemd/system/agi.slice;sleep 1;run sh $AGI host>$T/q3.out 2>&1
+mk q;run sh $AGI host>/dev/null 2>&1;sedc 's/^MemoryMax=6G/MemoryMax=9G/' $X/etc/systemd/system/agi.slice "the slice MemoryMax edit";sleep 1;run sh $AGI host>$T/q3.out 2>&1
 ok k3-an-edited-slice-is-not-met-and-is-restored "grep -qx 'MemoryMax=6G' $X/etc/systemd/system/agi.slice&&! grep -qx 'host: met' $T/q3.out"
 # the hub's fetch timer: enabled only when the cell is true at the pin (default false)
 ok k4-cell-absent-no-enable-line "! grep -q 'rehearsal: systemctl enable --now agi-carry-fetch.timer' $T/m1.out"
@@ -167,7 +170,7 @@ rep 'printf '"'"'%s\n'"'"' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.
 ok r1-mutant-no-host-done-write-never-becomes-met-RED "[ ! -e $X/$HD ]&&! grep -qx 'host: met' $T/m3b.out"
 # stop never touches it: every host.done in agi.sh sits inside up_host
 ok r1-stop-never-touches-host-done "[ \$(grep -v '^#' $AGI|grep -c 'host[.]done') -gt 0 ]&&[ \$(awk '/^up_host\\(\\)/{i=1}/^ck_host\\(\\)/{i=0}i&&/host[.]done/&&!/^#/{n++}END{print n+0}' $AGI) = \$(grep -v '^#' $AGI|grep -c 'host[.]done') ]"
-sed 's|^dn_host(){ return 0;}|dn_host(){ rm -f /etc/agi/host.done;}|' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for dn_host mutant"
+sed 's|^dn_host(){ return 0;}|dn_host(){ rm -f /etc/agi/host.done;}|' $AGI>$T/mut.sh;chg $AGI $T/mut.sh "the dn_host mutant"
 ok r1-mutant-dn_host-removing-it-is-RED "! [ \$(awk '/^up_host\\(\\)/{i=1}/^ck_host\\(\\)/{i=0}i&&/host[.]done/&&!/^#/{n++}END{print n+0}' $T/mut.sh) = \$(grep -v '^#' $T/mut.sh|grep -c 'host[.]done') ]"
 # the timer on the live tail: a cell true enables it, false does not (the stub log)
 CFG='{"values":{"local_maxxing":{"agi_town":{"carry_fetch":true}}}}';mk n;CFG=;: >$T/sc.log;hu "">/dev/null 2>&1
@@ -267,11 +270,24 @@ mk w;: >$T/sc.log;NEEDUNIT=1;hu "">$T/f1.out 2>$T/f1.err;rf1=$?;sleep 1;hu "">$T
 ok f1-a-fresh-box-act-completes-writes-the-unit-and-the-second-run-is-met "[ $rf1 = 0 ]&&[ -e $X/run/systemd/system/agi-project.service ]&&grep -q 'agi-xp' $X/run/systemd/system/agi-users.conf&&[ -s $X/$HD ]&&grep -qx 'host: met' $T/f1b.out&&[ \$(backups) = 1 ]"
 rep 'fresh(){ [ -e $R/run/systemd/system/agi-project.service ]&&return 0;' 'fresh(){ return 0;';mk w;: >$T/sc.log;NEEDUNIT=1;hu "" $T/mut.sh>$T/f2.out 2>$T/f2.err;rf2=$?;NEEDUNIT=
 ok f2-mutant-the-tail-without-the-fresh-box-fallback-dies-at-the-start-RED "[ $rf2 != 0 ]&&grep -q 'agi-project.service did not run at $PIN' $T/f2.err&&[ ! -e $X/$HD ]"
-mk w;sed -i '/^### agi-project /,/^### /s|^#!/bin/sh$|#!/bin/sh\nexit 4|' $M/.agi/nodes/.geometry/engine.md;PIN=$(pj_commit brokenpiece);: >$T/sc.log;NEEDUNIT=1;hu "">$T/f3.out 2>$T/f3.err;rf3=$?;NEEDUNIT=
+mk w;sedc '/^### agi-project /,/^### /s|^#!/bin/sh$|#!/bin/sh\nexit 4|' $M/.agi/nodes/.geometry/engine.md "the broken agi-project piece";PIN=$(pj_commit brokenpiece);: >$T/sc.log;NEEDUNIT=1;hu "">$T/f3.out 2>$T/f3.err;rf3=$?;NEEDUNIT=
 ok f3-a-pinned-piece-that-itself-fails-dies-by-name-with-the-rollback-line-and-no-marker "[ $rf3 != 0 ]&&grep -q 'the pinned agi-project piece failed at $PIN' $T/f3.err&&grep -q 'rollback.sh' $T/f3.err&&[ ! -e $X/$HD ]&&! grep -q 'start agi-project' $T/sc.log"
 # G3 20:00Z 10-21: the backup step of a re-run (every file present, so NO $B/absent) printed `agi.sh: 170: cannot open .../absent` on stderr beside "0 absent files": the shell reports a failed `<file` before the command's own 2>/dev/null applies
 mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "">$T/g1.out 2>$T/g1.err
 ok g1-the-backup-step-of-a-re-run-with-0-absent-files-says-so-and-prints-nothing-on-stderr "grep -q ' 0 absent files' $T/g1.out&&! grep -q 'cannot open' $T/g1.err"
 rep '$(cat $B/absent 2>/dev/null|wc -l|tr -d " ") absent files' '$(wc -l <$B/absent 2>/dev/null||echo 0) absent files';mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "" $T/mut.sh>$T/g2.out 2>$T/g2.err
 ok g2-mutant-the-old-redirect-prints-cannot-open-on-stderr-RED "grep -q 'cannot open' $T/g2.err"
+# r3 (the census): rep() and chg() fail closed; the old print-only shapes are the mutants
+x=$(f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
+ok rep-a-matchless-anchor-fails-closed 'echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=1"'
+x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for [$1]";};f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
+ok rep-mutant-the-comment-only-branch-is-RED '! echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
+ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
+ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
+printf 'a\n' >$T/c1;x=$(f=0;sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo "f=$f")
+ok sedc-a-sed-i-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted sed -i matched nothing"&&echo "$x"|grep -qx "f=1"'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};f=0;sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo "f=$f")
+ok sedc-mutant-the-bare-sed-i-is-RED '[ "$x" = "f=0" ]'
 echo "host-act-encryption-town: $f FAIL";exit $f
