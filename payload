@@ -227,6 +227,7 @@
   },
   "anonymize": {
     "home_roots": ["/data/home-"],
+    "fixture_homes": ["ubuntu"],
     "hardware": {
       "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
                   ["lscpu"],
