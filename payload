@@ -2456,20 +2456,29 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     return 4 if status in ("REFUSED", "FAILED") else 0
 
 
-# ── apply_note (the one place write.py can be reached from) ──────────────
+# ── apply_note (the one place a sensei change is written into a node) ───
 
 
 def apply_note(root: Path, node_id: str, change: str) -> str:
-    """`write.py <node> "note SENSEI: <change>"` — the exact once-only write."""
-    proc = subprocess.run(
-        [sys.executable, str(Path(__file__).resolve().parent / "write.py"),
-         node_id, f"note SENSEI: {change}", "--root", str(root)],
-        capture_output=True, text=True)
-    if proc.returncode != 0:
-        raise RuntimeError(
-            f"write.py failed ({proc.returncode}): "
-            f"{proc.stderr.strip() or proc.stdout.strip()}")
-    return (proc.stdout.strip() or proc.stderr.strip())
+    """`note SENSEI: <change>` -- the exact once-only write, appended under the node's `## Agent Notes`, ONE
+    commit of the node by exact path (node_commit.land; V8a 3a: no writer subprocess). A hand edit in the node
+    refuses it before anything is written. Raises RuntimeError carrying the named line on any refusal."""
+    import node_commit
+    import node_writer
+    from graph_core.persistence import frontmatter as fm_reader
+    text = f"SENSEI: {change}"
+
+    def apply():
+        path = node_writer.find_node_file(root, node_id)
+        body = fm_reader.load_node_file(path).body
+        return node_writer.update_node(root, node_id, body=node_commit.append_note(body, text),
+                                       set_fm=node_commit.provenance(root, SENSEI))
+
+    try:
+        node_commit.land(root, node_id, f"sensei: {node_id}", apply)
+    except node_commit.CommitRefused as exc:
+        raise RuntimeError(exc.line) from exc
+    return f"noted {node_id}: {text}"
 
 
 # ── subcommand bodies ────────────────────────────────────────────────────
@@ -2533,7 +2542,7 @@ def cmd_apply(root: Path, croot: Path, args) -> int:
         return _draft_for_owner(root, croot, args, threads)
     node_id = args.node_id or (row.get("owning_goal") or "") or args.target
     if args.dry_run:
-        print(f"[dry-run] write.py {node_id} 'note SENSEI: {args.change}'")
+        print(f"[dry-run] note SENSEI: {args.change} -> {node_id}")
         return 0
     out = apply_note(root, node_id, args.change)
     print(f"APPLIED: {node_id} <- SENSEI note")
