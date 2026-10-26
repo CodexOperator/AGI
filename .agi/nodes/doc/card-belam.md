@@ -71,6 +71,7 @@ NEXT COMMAND: `AGI_POST=belam AGI_BOX=encryption-town timeout 120 box read | fol
 | 138 | `pkill -f '<pattern>'` killed my own shell (its argv held the pattern) | pgrep -x / a pid, never pkill -f on a pattern you typed (agi-memory-guard) |
 | 139 | `sudo du -xsh /var/lib/agi ...` walked the homes and filled the dentry slab (10:55Z warn) | never du/find over /var/lib/agi or /data/work; df + named small dirs only (agi-memory-guard) |
 | 140 | agi-meter times out at 30 s on every mail prompt: no post ever saw its rotation line | compute f by hand until DG1's fix lands (agi-rotate) |
+| 141 | `agi-at` run with NO path (to see usage) committed ALL of ~/t onto posts/belam: a2afb06f76 reverted GATE300's 7 files from a stale ~/t + added media/ (15:04Z 10-26; caught before any push/cut, posts/belam CAS-rewound to 8cd7bffb49) | never run an agi-* tool bare to learn it: read its line-2 comment (`sed -n 2p ~/bin/<tool>`); leaf banked: agi-at refuses zero paths (agi-node-write) |
 
 ## §5 Verification
 L149-L163: installed verify-land bare rc 0 `verify-land: OK` on each landed sha (L154 the ONE council-ruled HOLD (D)); links 5960-5962 resolved 0 broken on each land tree. Re-pin: RE-PIN GATE rc 0 x6, memguard (a)-(d), agi.sh host rc 0, self: = a131cf575f87. My tips: verify-land.t.sh 0 FAIL + 5 mutants RED (.46.23.1); test_crons* + test_grid_gate + test_grid_writers 234/0 (lap fix); posts readers 29/0 (models).
