@@ -4,7 +4,7 @@
 R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};D=$(mktemp -d);trap 'kill $SV 2>/dev/null;rm -rf "${D:?}"' 0;f=0;unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_ATOM_CARD AGI_ATOM_COMMIT AGI_INFER_SCHEMA AGI_INFER_KEY
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ awk -v n="$1" '$0~"^### "n" "{h=1;next}h&&/^~~~/{if(z)exit;z=1;next}h&&z' $R0/.agi/nodes/.geometry/$2;}
-mkdir $D/bin;sect agi-atom engine-post.md>$D/bin/agi-atom;sect agi-meter engine-post.md>$D/bin/agi-meter;sect agi-infer engine-wrap.md>$D/bin/agi-infer;PC=${PIECE:-$D/bin/agi-atomize};[ -n "$PIECE" ]||sect agi-atomize engine-post.md>$PC;chmod +x $D/bin/*
+mkdir $D/bin;sect agi-atom engine-post.md>$D/bin/agi-atom;sect agi-meter engine-post.md>$D/bin/agi-meter;sect agi-mem engine-post.md>$D/bin/agi-mem;sect agi-infer engine-wrap.md>$D/bin/agi-infer;PC=${PIECE:-$D/bin/agi-atomize};[ -n "$PIECE" ]||sect agi-atomize engine-post.md>$PC;chmod +x $D/bin/*
 for x in agi-atom agi-infer;do [ -s $D/bin/$x ]||{ echo "FAIL inputs: no $x piece";exit 99;};done;[ -s "$PC" ]||{ echo "FAIL inputs: no agi-atomize piece";exit 99;}
 printf '#!/bin/sh\ncd "$AGI_T"&&git add -A -- "$@"&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm "stub agi-at: $*"\n' >$D/stub;chmod +x $D/stub
 # the stub endpoint: reply n of a run = file $D/q/r<n> (its text is the assistant message); every request is logged (model, prompt) to $D/q/log<n>
@@ -86,9 +86,11 @@ ok "m-no-marker-RED the mutant without the marker ref read the same fyi twice (c
 rm -f $D/.atomize.last;M2=$D/ms;sed '/^date -u +%FT%TZ>/d' $PC>$M2;mk s;msg sm 'Numbers: 1 landed.';reply 1 '{"kind":"report","atoms":[]}';AT $M2
 ok "m-no-stamp-RED the mutant without the stamp line leaves no ~/.atomize.last: the stamp lane catches it" '[ ! -e $D/.atomize.last ]&&! cmp -s $M2 $PC'
 # --- the WAKE-PATH CALLER (the remainder of .46.3): agi-meter, the UserPromptSubmit hook, runs `agi-atomize wake` on the prompt "mail: box read"
+# the meter runs agi-mem tap from PATH: the TREE's agi-mem (not an installed one: SM's finding 23:1xZ 10-25) against a tiny repo whose `trunk` ref holds a posts.md with no mem row for p, so the tap is silent by its own gate
+mkdir -p $D/me/.agi/nodes/.geometry;printf -- '---\nid: config:posts\nposts:\n  - {"name": "p", "mem": "none"}\n---\n'>$D/me/.agi/nodes/.geometry/posts.md;(cd $D/me&&git init -q .&&git config core.hooksPath /dev/null&&git add -A&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm posts&&git update-ref refs/heads/trunk HEAD)>/dev/null 2>&1;[ -s $D/bin/agi-mem ]||{ echo "FAIL inputs: no agi-mem piece";exit 99;}
 [ -n "$PIECE" ]&&cp $PC $D/bin/agi-atomize;[ -s $D/bin/agi-meter ]||{ echo "FAIL inputs: no agi-meter piece";exit 99;};chmod +x $D/bin/*
 cred(){ mkdir -p .agi/nodes/.geometry;if [ -n "$1" ];then printf 'credits_live: %s\ndoppler: x\n' "$1">.agi/nodes/.geometry/secrets.md;else printf 'doppler: x\n'>.agi/nodes/.geometry/secrets.md;fi;git add -A;git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm cred;git update-ref refs/heads/trunk HEAD;}
-WK(){ printf '%s' "${1:-{\"prompt\":\"mail: box read\"\}}" | (cd $T;env AGI_T=$T AGI_POST=p AGI_LAP=5 HOME=$D PATH=$WKP$D/bin:$PATH AGI_ATOM_COMMIT=$D/stub AGI_ATOMIZE_AGE=99999999 AGI_TRUNK=trunk sh ${2:-$D/bin/agi-meter}) 2>$D/err;}
+WK(){ printf '%s' "${1:-{\"prompt\":\"mail: box read\"\}}" | (cd $T;env AGI_T=$T AGI_POST=p AGI_LAP=5 HOME=$D PATH=$WKP$D/bin:$PATH AGI_ATOM_COMMIT=$D/stub AGI_ATOMIZE_AGE=99999999 AGI_TRUNK=trunk AGI_ENGINE=$D/me sh ${2:-$D/bin/agi-meter}) 2>$D/err;}
 WP='{"prompt":"mail: box read"}';WKP=;rm -f $D/.atomize.log
 mk m;cred false;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';o=$(WK "$WP")
 ok "wake-credits-false-stdout-empty-skip-logged with credits_live false the hook's STDOUT is EMPTY (it enters the post's context), the named skip line goes to ~/.atomize.log, 0 calls, 0 rows, nothing marked (out: '$o', log: $(tail -1 $D/.atomize.log 2>/dev/null|cut -d' ' -f2-), calls $(calls))" '[ -z "$o" ]&&grep -qF "[atomize] skipped: credits_live is false, no model call" $D/.atomize.log&&[ "$(calls)" = 0 ]&&[ $(rows) = 0 ]&&! marked'
