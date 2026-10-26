@@ -415,6 +415,49 @@ def test_b8_read_verbs_are_not_gated(tmp_path):
     assert miss.returncode == 0 and miss.stdout.strip() == "0", "a missing mint prints 0 and exits 0: why the row above needs a count >= 1"
 
 
+
+def unify_case(tmp_path: Path):
+    """A seeded project plus ONE legacy tip that `unify --write` would adopt: refs/grid/legacy-x/node/<f*32> at an existing grid commit, a mint the live namespace lacks."""
+    root, env = seeded(tmp_path)
+    tip = git(root.parent, "rev-parse", f"refs/grid/node/{1:032x}").strip()
+    git(root.parent, "update-ref", f"refs/grid/legacy-x/node/{'f' * 32}", tip)
+    snaps = lambda: sorted(p.name for p in root.parent.rglob("unify/*.refs"))
+    return root, env, snaps
+
+
+UNIFY = ("unify", "--into", "refs/grid", "--legacy", "refs/grid/legacy-x", "--write")
+
+
+def test_b8_retired_unify_write_writes_nothing(tmp_path):
+    """goal:g7.16.1.11.46.16 G1a (council 3/3 alive 08:28:23Z (iii), SM [red] 08:2xZ 10-26): retired, `grid.py unify --write` prints RETIRED, rc 0, moves no ref under refs/grid and writes no
+    pre-write snapshot (grid.py's dispatch `elif args.cmd == "unify" and not args.check and _retired_write(...)`). MUTANT in the same fixture: that dispatch line removed -> the legacy tip is adopted -> RED."""
+    root, env, snaps = unify_case(tmp_path)
+    before = refs_grid(root.parent)
+    set_grid_sync(root, "off")
+    r = grid_py(root, env, *UNIFY)
+    assert r.returncode == 0 and RETIRED in r.stdout, (r.returncode, r.stdout[-300:], r.stderr[-300:])
+    assert refs_grid(root.parent) == before, "unify --write moved refs/grid while retired"
+    assert snaps() == [], snaps()
+    gp = root.parent / "extensions/agi/bin/grid.py"
+    gate = '    elif args.cmd == "unify" and not args.check and _retired_write(root, args.write):\n        pass\n'
+    text = gp.read_text()
+    assert text.count(gate) == 1, "the retired-unify dispatch line moved: re-cut this row"
+    gp.write_text(text.replace(gate, ""))
+    m = grid_py(root, env, *UNIFY)
+    assert refs_grid(root.parent) != before and f"refs/grid/node/{'f' * 32}" in "\n".join(refs_grid(root.parent)), \
+        ("the mutant (gate removed) must adopt the legacy tip, else this row cannot fail", m.stdout[-300:], m.stderr[-300:])
+
+
+def test_b8_witness_unify_write_on_adopts_the_legacy_tip(tmp_path):
+    """The same call with grid_sync ON moves refs/grid (the adopted mint) and writes its snapshot: the retired row above is not vacuous."""
+    root, env, snaps = unify_case(tmp_path)
+    before = refs_grid(root.parent)
+    r = grid_py(root, env, *UNIFY)
+    assert r.returncode == 0 and RETIRED not in r.stdout, (r.returncode, r.stdout[-300:], r.stderr[-300:])
+    after = refs_grid(root.parent)
+    assert after != before and any(l.startswith(f"refs/grid/node/{'f' * 32} ") for l in after), after
+    assert len(snaps()) == 1, snaps()
+
 # --- B8c (RE7): the gate reads the SHARED root, like ref_ns_for ---
 # A linked git worktree carries its OWN .agi/nodes/.geometry/crons.md (committed, so it can predate the
 # switch). refs/grid is ONE namespace in the common git dir, so the gate is the MAIN checkout's cell
