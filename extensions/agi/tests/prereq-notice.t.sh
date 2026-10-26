@@ -10,6 +10,9 @@ BIN=$R0/extensions/agi/bin
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 red(){ if eval "$2";then echo "FAIL $1 (the mutant read GREEN)";f=$((f+1));else echo "ok $1";fi;}
+# a fixture/mutant edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+# the council's shape (alive/sp/aio 22:00Z): ONE named line `FAIL fixture: <helper> matched nothing: <literal>`; EXIT 99 where a fixture helper rewrites a copy later rows run on (fixgeo), a counted FAIL (f++) only for a self-contained row with its own verdict (tr2m, fb2m's second half; mut() already counts and skips its row)
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: $3 matched nothing: $4";f=$((f+1));};:;}
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL AGI_POST
 export HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 mkdir -p $T/hm $T/k $T/mbin
@@ -32,7 +35,7 @@ SP=$T/spool/alarm.spool
 fixgeo(){ { printf -- '---\nid: config:posts\nmint_id: 00000000000000000000000000000005\ntype: config\n---\nposts:\n'
  for r in 'belam|owner|1' 'sanctuary-master|belam|1' 'director-goals-1|sanctuary-master|1' 'director-general-2|sanctuary-master|1' 'deep-post|director-goals-1|1' 'inert|sanctuary-master|0' 'old-retired|sanctuary-master|1';do n=${r%%|*};q=${r#*|};pa=${q%|*};h=${q#*|};if [ $h = 1 ];then printf '  - {"name": "%s", "parent": "%s", "harness": "claude-code"}\n' $n $pa;else printf '  - {"name": "%s", "parent": "%s"}\n' $n $pa;fi;done
  printf '  - {"name": "council", "parent": "belam", "role": "council", "members": []}\n';} >$R/.agi/nodes/.geometry/posts.md
- sed -n '/^### box (/,/^### [^b]/p' $R0/.agi/nodes/.geometry/engine-post.md >$R/.agi/nodes/.geometry/engine-post.md
+ sed -n '/^### box (/,/^### [^b]/p' $R0/.agi/nodes/.geometry/engine-post.md >$R/.agi/nodes/.geometry/engine-post.md;[ -s $R/.agi/nodes/.geometry/engine-post.md ]||{ echo "FAIL fixture: fixgeo matched nothing: ### box (";exit 99;}
  printf -- '---\nid: cron:crons\ntype: cron\ncadences:\n  prereq_notice:\n    every_mins: 3\n    enabled: true\n---\n' >$R/.agi/nodes/.geometry/crons.md;}   # the cell the reader's ON/OFF state reads
 newrepo(){ R=${1:-$T/r};rm -rf $R $T/spool;$G init -q -b core/season3/main $R;$G -C $R config user.name t;$G -C $R config user.email t@agi;$G -C $R config commit.gpgsign false;mkdir -p $R/.agi/nodes/goal $R/.agi/nodes/town $R/.agi/nodes/.geometry;fixgeo;printf -- '---\nid: goal:g1\nmint_id: 00000000000000000000000000000001\ntype: goal\nstatus: active\nparents: []\n---\nroot\n' >$R/.agi/nodes/goal/g1.md;printf 'town 0\n' >$R/.agi/nodes/town/board.md;commit base;seq=1;}
 commit(){ $G -C $R add -A;$G -C $R commit -q --allow-empty -m "${1:-c}";}
@@ -184,7 +187,8 @@ if mut prereq_notice.py 's/            red.append("no-goal-files-read")/        
 # (2) goal files exist and an ACTIVE one is claimed, but the census read none (a pathspec that matches nothing on a non-empty goal dir)
 CZ='s|"^Assigned to ", rev_, "--", \*top(\*LEAF_DIRS)|"^Assigned to ", rev_, "--", *top(".agi/nowhere")|'
 if mut prereq_notice.py "$CZ"; then B=$T/mbin;newrepo;leaf l1 director-goals-1 active;commit one;seed;o=$(lineo);B=;ok "fb2-a-census-that-read-nothing-while-an-active-leaf-is-claimed-reads-no-claims-read [$o]" 'echo "$o"|grep -q "claims=0 .*red=.*no-claims-read"';fi
-if mut prereq_notice.py "$CZ;"'s/            red.append("no-claims-read") .*$/            pass/'; then B=$T/mbin;newrepo;leaf l1 director-goals-1 active;commit one;seed;o=$(lineo);B=;red "fb2m-mutant-no-claims-read-with-no-red-reads-GREEN [$o]" 'echo "$o"|grep -q "no-claims-read"';fi
+sed "$CZ" $BIN/prereq_notice.py >$T/cz.only
+if mut prereq_notice.py "$CZ;"'s/            red.append("no-claims-read") .*$/            pass/'; then chg $T/cz.only $T/mbin/prereq_notice.py "fb2m (second half)" '            red.append("no-claims-read") .*$';B=$T/mbin;newrepo;leaf l1 director-goals-1 active;commit one;seed;o=$(lineo);B=;red "fb2m-mutant-no-claims-read-with-no-red-reads-GREEN [$o]" 'echo "$o"|grep -q "no-claims-read"';fi
 newrepo;leaf l1 director-goals-1 retired;commit retired;seed;o=$(lineo)
 ok "fb3-a-goal-dir-with-no-ACTIVE-claim-is-not-no-claims-read [$o]" '! echo "$o"|grep -q "no-claims-read"'
 # F-c / F-f: each ref is its own check. A clone has neither refs/notices/* nor the trunk branch; a repo with neither ref reads BOTH reds
@@ -282,6 +286,14 @@ ok "fa3-make_line-of-the-agi-dir-carries-claims-in-the-notices-segment [$(echo "
 SPELL='season[0-9][0-9]*/[A-Za-z_0-9]'
 ok "tr1-the-default-trunk-is-unchanged [$(cd $BIN&&python3 -c 'import prereq_notice as p;print(p.default_trunk())')]" '[ "$(cd $BIN&&python3 -c "import prereq_notice as p;print(p.default_trunk())")" = refs/heads/core/season3/main ]'
 ok "tr2-the-file-holds-no-hand-spelled-season-literal" '! grep -qE "$SPELL" $BIN/prereq_notice.py'
-sed 's#^    return "refs/heads/" + .*#    return "refs/heads/core/season3/main"#' $BIN/prereq_notice.py >$T/pn.mut.py
+sed 's#^    return "refs/heads/" + .*#    return "refs/heads/core/season3/main"#' $BIN/prereq_notice.py >$T/pn.mut.py;chg $BIN/prereq_notice.py $T/pn.mut.py "tr2m" '^    return "refs/heads/" + .*'
 red "tr2m-mutant-the-literal-put-back-reads-RED" '! grep -qE "$SPELL" $T/pn.mut.py'
+# r3 (the census, the council's shape): fixgeo EXITS 99 (every notice row runs on its copy); tr2m and fb2m's second half are self-contained rows, so chg COUNTS; the old print-only test is the mutant
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted sed" 'LITERAL';echo "f=$f")
+ok chg-a-matchless-edit-counts-one-named-line 'echo "$x"|grep -qx "FAIL fixture: a drifted sed matched nothing: LITERAL"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live sed" 'LITERAL';echo "f=$f")
+ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
+x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};f=0;printf a >$T/c2;chg $T/c1 $T/c2 "the old test" 'LITERAL';echo "f=$f")
+ok chg-mutant-the-print-only-test-is-RED '! echo "$x"|grep -q "^FAIL fixture"&&echo "$x"|grep -qx "f=0"'
+ok fixgeo-the-box-slice-of-engine-post-is-not-empty '[ -s $R0/.agi/nodes/.geometry/engine-post.md ]&&[ "$(sed -n "/^### box (/,/^### [^b]/p" $R0/.agi/nodes/.geometry/engine-post.md|wc -l)" -gt 0 ]'
 exit $f
