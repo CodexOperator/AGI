@@ -1549,6 +1549,55 @@ def test_p0_reads_a_to_f_and_goes_red_on_each_failure(brief_repo, tmp_path, monk
     assert run()["g"][0] is False
 
 
+# --- trunk red 2 (council 13:47Z 10-26): the trunk's name is DERIVED through branches.py, never spelled in p1_ab.py ---------
+
+def test_trunk_the_default_trunk_is_derived_through_branches_and_no_season_literal_is_spelled_in_p1_ab():
+    import branches  # noqa: PLC0415
+    assert p1_ab.default_trunk() == "origin/" + branches.derive_names(p1_ab.TRUNK_TOWN, p1_ab.trunk_season())["town_season_main"]
+    assert p1_ab.default_trunk() == "origin/core/season3/main"                         # the name the old literal spelled
+    assert not re.search(r"TRUNK_TOWN_SEASON|= *\"core\", *[0-9]", Path(p1_ab.__file__).read_text())   # no season NUMBER spelled either
+
+
+def test_trunk_a_patched_current_season_moves_default_trunk_and_an_unreadable_ladder_never_guesses(monkeypatch, brief_repo, tmp_path):
+    import season  # noqa: PLC0415
+    monkeypatch.setattr(season, "_load_ladder", lambda root: {"current_season": 5})
+    assert p1_ab.trunk_season() == 5 and p1_ab.default_trunk() == "origin/core/season5/main"   # the literal 3 back -> RED here
+    monkeypatch.setattr(season, "_load_ladder", lambda root: {})
+    with pytest.raises(KeyError):
+        p1_ab.default_trunk()                                                              # a ladder without the key: loud, not season 1
+    def gone(root):
+        raise SystemExit(1)
+    monkeypatch.setattr(season, "_load_ladder", gone)
+    repo, cfg = brief_repo
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: None)
+    (tmp_path / "ok").mkdir()
+    f = next(r for r in p1_ab.p0_readings(cfg=cfg, repo=repo, worktree=repo, main_env=tmp_path / ".env", fetch=lambda: [],
+                                          slice_files=_slice_files(tmp_path / "ok")) if r[0].startswith("f "))
+    assert f[1] is False and "unread" in f[2]                                              # P0 f reds; the other rows still run
+    assert not re.search(r"season[0-9]+/[A-Za-z_0-9]", Path(p1_ab.__file__).read_text())   # test_branch_spelling_grep's own shape
+
+
+def test_trunk_p0_f_reads_the_derived_trunk_when_none_is_passed(brief_repo, tmp_path, monkeypatch):
+    repo, cfg = brief_repo
+    modfile = repo / "extensions/agi/bin/p1_ab.py"
+    modfile.parent.mkdir(parents=True)
+    modfile.write_text(Path(p1_ab.__file__).read_text())
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "trunk carries p1_ab")
+    monkeypatch.setattr(success_metrics, "p1_segment", lambda root: "")
+    monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda root=None: None)
+    monkeypatch.setattr(provisioning, "_call", lambda *a, **k: (0, {}))
+    (tmp_path / "ok").mkdir()
+    kw = dict(cfg=cfg, repo=repo, worktree=repo, main_env=tmp_path / ".env", fetch=lambda: [], slice_files=_slice_files(tmp_path / "ok"), module_file=modfile)
+    f = lambda: next(r for r in p1_ab.p0_readings(**kw) if r[0].startswith("f "))
+    assert f()[1] is False                                                              # no such ref yet: the blob is unread, never ok
+    _git(repo, "update-ref", "refs/remotes/" + p1_ab.default_trunk(), "HEAD")           # origin/<derived trunk> now holds the same blob
+    assert f()[1] is True and p1_ab.default_trunk() in f()[2]
+    monkeypatch.setattr(p1_ab, "default_trunk", lambda: "origin/elsewhere/main")        # mutant: another derived name -> the omitted trunk follows it
+    assert f()[1] is False
+
+
 # --- the kill-path guard (SM's finding on GATE193): the sweep must never be pointed at HOME or the caller's own tree --
 
 def test_guard_a_kid_home_that_is_home_or_outside_k_is_refused_before_any_spawn(arm):
