@@ -26,6 +26,7 @@ sys.path.insert(0, str(BIN))
 
 import boxes  # noqa: E402
 import rotate  # noqa: E402
+import geometry_config  # noqa: E402
 import write  # noqa: E402
 
 # The LIVE schema bytes, so the grant under test is the real one, not a copy.
@@ -141,7 +142,7 @@ def test_seating_stamps_the_live_row_box(tmp_path, monkeypatch):
     out = rotate._stamp_row_box(root, seat="director-belam",
                                 row={"name": "director-belam"})
     assert "box=local-town" in out
-    rows = write._load_seats(root)
+    rows = geometry_config.load_rows(root)
     stamped = next(r for r in rows if r["name"] == "director-belam")
     assert stamped["box"] == "local-town"
 
@@ -150,11 +151,11 @@ def test_seating_never_rewrites_a_row_that_names_its_box(tmp_path, monkeypatch):
     """A row already carrying its own box is left exactly as it is."""
     monkeypatch.setenv("AGI_BOX", "local-town")
     root = _graph(tmp_path)
-    before = write._load_seats(root)
+    before = geometry_config.load_rows(root)
     assert rotate._stamp_row_box(root, seat="director-belam",
                                  row={"name": "director-belam",
                                       "box": "sanctuary"}) == ""
-    assert write._load_seats(root) == before  # untouched, never relabelled
+    assert geometry_config.load_rows(root) == before  # untouched, never relabelled
 
 
 def test_seating_writes_no_box_when_the_graph_names_none(tmp_path):
@@ -162,7 +163,7 @@ def test_seating_writes_no_box_when_the_graph_names_none(tmp_path):
     out = rotate._stamp_row_box(root, seat="director-belam",
                                 row={"name": "director-belam"})
     assert "undeclared" in out
-    assert all("box" not in r for r in write._load_seats(root))
+    assert all("box" not in r for r in geometry_config.load_rows(root))
 
 
 # ------------------------------------------------- claim (3): the refusal line

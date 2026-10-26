@@ -32,6 +32,7 @@ BIN = HERE.parent / "bin"
 sys.path.insert(0, str(BIN))
 
 import rotate  # noqa: E402
+import geometry_config  # noqa: E402
 import write  # noqa: E402
 
 LIVE_SCHEMA = (HERE.parents[2] / ".agi" / "context" / "schemas" / "[config].md")
@@ -214,7 +215,7 @@ def test_seating_call_site_stamps_the_box(tmp_path, monkeypatch):
         session_id="sid-1", session_name="agi-test")
     assert "box=local-town" in out, out
     assert {"box": "local-town"} in seen, seen
-    row = next(r for r in write._load_seats(root)
+    row = next(r for r in geometry_config.load_rows(root)
                if r["name"] == "director-belam")
     assert row["box"] == "local-town"
 
