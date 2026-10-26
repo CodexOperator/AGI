@@ -21,9 +21,8 @@ from pathlib import Path
 
 STAMP_DIRNAME = "seats"
 
-#: Set in the env of an ENGINE-INTERNAL write.py invocation (the rotate
-#: closeout's `_g17_1_note`) so its stamp cannot re-stale the card it just
-#: wrote (conjunct 1's measured hazard).
+#: Set in the env of an ENGINE-INTERNAL write that runs AFTER a rotation wrote the seat's card, so its stamp
+#: cannot re-stale the card it just wrote (conjunct 1's measured hazard).
 INTERNAL_ENV = "AGI_LAST_ACT_INTERNAL"
 
 #: The env keys an act's seat is resolved from, in order. AGI_AGENT_ID comes

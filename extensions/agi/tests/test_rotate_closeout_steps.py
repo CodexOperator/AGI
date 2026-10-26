@@ -379,7 +379,7 @@ def test_step_list_is_chosen_by_seat_kind_and_template_still_wins():
         "parent", tmpl, worktree="/tmp/wt") == ["merge_up", "numbers"]
     # the three coded spellings are exactly the claim's
     assert rotate.MAIN_POST_CLOSEOUT_STEPS == ["pathspec_commit", "push"]
-    assert rotate.PRIME_CLOSEOUT_STEPS == ["g17_1_note", "push"]  # render retired (W-G)
+    assert rotate.PRIME_CLOSEOUT_STEPS == ["push"]  # render retired (W-G); g17_1_note retired (V8a 3a)
 
 
 def test_real_seam_table_covers_every_step_of_all_three_lists():
@@ -393,7 +393,7 @@ def test_real_seam_table_covers_every_step_of_all_three_lists():
         for step in lst:
             assert step in seams, f"{step!r} missing from the real seam table"
     # the four NEW thin wrappers are present and callable
-    for step in ("pathspec_commit", "g17_1_note", "push"):
+    for step in ("pathspec_commit", "push"):
         assert callable(seams[step])
 
 
@@ -524,11 +524,13 @@ def test_main_post_cli_drives_only_pathspec_commit_and_push(
     assert all(e["result"] == "ok" for e in rec["closeout"]), rec["closeout"]
 
 
-def test_prime_cli_drives_only_g17_1_note_push(
-        _co_rs_kind, monkeypatch):
+def test_prime_cli_drives_only_push(
+        _co_rs_kind, monkeypatch, capsys):
     """(e) A prime_director fixture (no worktree cell) driven through the CLI
-    path records a closeout list of EXACTLY [g17_1_note, push] in
-    order -- the Prime is never asked for a grant and never merges."""
+    path records a closeout list of EXACTLY [push] -- the Prime is never
+    asked for a grant and never merges. V8a 3a ROW: a closeout run prints no
+    `g17_1_note` line (the step retired: goal:g17.1 was renumbered to g7.16
+    by da2edb3f9e and the step refused at every closeout for 5 weeks)."""
     root, win = _co_rs_kind
     g = root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
@@ -540,8 +542,9 @@ def test_prime_cli_drives_only_g17_1_note_push(
         "---\n", encoding="utf-8")
     _drive_rotate_self_closeout(root, win, monkeypatch, "{}")
     rec = _driven_record(root)
-    assert [e["step"] for e in rec["closeout"]] == \
-        ["g17_1_note", "push"]
+    assert [e["step"] for e in rec["closeout"]] == ["push"]
+    out = capsys.readouterr()
+    assert "g17_1_note" not in out.out + out.err, "a closeout run must print no g17_1_note line"
     names = {e["step"] for e in rec["closeout"]}
     _wt_only = set(rotate.WORKTREE_POST_CLOSEOUT_STEPS) - {"push"}
     assert not (names & _wt_only), names
@@ -549,6 +552,21 @@ def test_prime_cli_drives_only_g17_1_note_push(
     # pathspec_commit, no worktree merge-up steps
     assert "pathspec_commit" not in names
     assert not (names & {"merge_up_ask", "wait_grant", "merge_up", "suite"})
+
+
+def _names_g17_1_note(steps, seams) -> bool:
+    return "g17_1_note" in steps or "g17_1_note" in seams
+
+
+def test_v8a_the_closeout_step_list_no_longer_names_g17_1_note_and_the_name_back_is_red():
+    """V8a 3a ROW (belam 10-26, council form): none of the three coded closeout lists and no real seam names
+    g17_1_note. MUTANT: the name back in the Prime list reads RED on the same predicate."""
+    seams = rotate._make_closeout_seams(Path("/tmp/co-root"), {})
+    for lst in (rotate.WORKTREE_POST_CLOSEOUT_STEPS, rotate.MAIN_POST_CLOSEOUT_STEPS,
+                rotate.PRIME_CLOSEOUT_STEPS):
+        assert not _names_g17_1_note(lst, seams), lst
+    assert _names_g17_1_note(rotate.PRIME_CLOSEOUT_STEPS + ["g17_1_note"], seams)      # the mutant is RED
+    assert _names_g17_1_note(rotate.PRIME_CLOSEOUT_STEPS, {**seams, "g17_1_note": lambda: None})   # a seam back too
 
 
 def test_pathspec_commit_real_runner_commits_only_card_and_own_row(tmp_path):
@@ -609,42 +627,6 @@ def test_pathspec_commit_real_runner_commits_only_card_and_own_row(tmp_path):
         capture_output=True, text=True).stdout
     assert "scratch.log" in dirty, "decoy was swept into the commit"
 
-
-def test_g17_1_note_runner_drives_write_py_subprocess_seam(
-        _co_rs_kind, monkeypatch):
-    """(f) The g17_1_note REAL runner is driven through a subprocess seam --
-    a recorded argv -- never by writing the live goal:g17.1 node."""
-    root, _win = _co_rs_kind
-    recorded = []
-    def _fake(subprocess_module, argv, **kw):
-        recorded.append(argv)
-        class _R:
-            returncode = 0
-            stdout = "ok"
-            stderr = ""
-        return _R()
-    monkeypatch.setattr(rotate.subprocess, "run",
-                        lambda argv, *a, **k: _fake(rotate.subprocess, argv))
-    seams = rotate._make_closeout_seams(root, {"commit": "abc1234",
-                                               "facts": ["42"]})
-    ok, result, detail = seams["g17_1_note"]()
-    assert ok is True and result == "ok", detail
-    assert recorded and str(recorded[0][1]).endswith("write.py")
-    assert recorded[0][2] == "goal:g17.1"
-    # the ONE-arg note grammar: 'note <text>' as a SINGLE script argument
-    # (write.py rc-2 if <text> rides a second positional instead)
-    assert str(recorded[0][3]) == "note 42 | abc1234"   # the numbers line
-    assert "--root" in [str(a) for a in recorded[0]]
-    # a non-zero exit REFUSES BY NAME
-    def _refuse(argv, *a, **k):
-        class _R:
-            returncode = 1
-            stdout = ""
-            stderr = "boom"
-        return _R()
-    monkeypatch.setattr(rotate.subprocess, "run", _refuse)
-    ok, result, detail = seams["g17_1_note"]()
-    assert ok is False and result == "refused" and "g17_1_note" in detail
 
 # ── REAL crosscheck-worktree runners (SL7.92): the merge-up in MAIN ───────
 # hypothesis:l4-closeout-worktree-post-...-the-merge-up-in-main. These prove
@@ -1120,58 +1102,7 @@ def test_closeout_merge_up_refuses_an_unmeasurable_tree(tmp_path,
 # process-level subprocess, a real commit, a real render -- asserting the
 # observable, never a fake.
 
-def _closeout_goal_fixture(tmp_path):
-    """A minimal agi project (repo root + `.agi/` graph) with one
-    render-valid goal node: `origin: goals-doc` + `goal_id` + `heading_level`
-    (the fields snapshot-goals --render needs). Returns (repo_root, graph_root)."""
-    repo = tmp_path
-    graph = repo / ".agi"
-    (graph / "nodes" / "goal").mkdir(parents=True)
-    (graph / "config.json").write_text("{}", encoding="utf-8")
-    (graph / "nodes" / "goal" / "g17.1.md").write_text(
-        '---\nid: "goal:g17.1"\ntype: goal\norigin: goals-doc\n'
-        'goal_id: G17.1\nheading_level: 3\nmint_id: deadbeef\n'
-        'title: "t"\nstatus: active\n---\nthe body\n', encoding="utf-8")
-    return repo, graph
-
-
-def test_g17_1_note_real_runner_writes_one_arg_note_on_a_fixture(tmp_path):
-    """(SL7.103) The g17_1_note REAL runner invokes write.py with the ONE-arg
-    'note <text>' grammar (--root/--actor/--role, cwd root) THROUGH the real
-    subprocess; the note lands on the goal:g17.1 node with the numbers line
-    composed from the record (never ''). write.py with the TWO-positional
-    form is the rc-2 regression this fixes."""
-    repo, graph = _closeout_goal_fixture(tmp_path)
-    record = {"facts": ["42"], "commit": "abc1234", "goals": ["g17.1 kept"]}
-    seams = rotate._make_closeout_seams(graph, record, seat="adv",
-                                        role="prime_director")
-    ok, result, detail = seams["g17_1_note"]()
-    assert ok is True and result == "ok", detail
-    body = (graph / "nodes" / "goal" / "g17.1.md").read_text(encoding="utf-8")
-    assert "## Agent Notes" in body
-    assert "42 | abc1234" in body and "g17.1 kept" in body
-    # the note text was composed from the record, never ''
-    assert body.split("## Agent Notes", 1)[1].strip()
-
-
-def test_write_py_two_positional_note_form_is_the_rc2_regression(tmp_path):
-    """(SL7.103) write.py's grammar is ONE script arg; `write.py <id> note
-    <text>` (two positionals -- the pre-fix `_g17_1_note` argv) is rc 2, and
-    the note text rides the unused slug slot. This pins the regression the
-    one-arg fix removes."""
-    import subprocess as sp
-    _repo, graph = _closeout_goal_fixture(tmp_path)
-    wp = Path(__file__).parent.parent / "bin" / "write.py"
-    old = sp.run(["python3", str(wp), "goal:g17.1", "note", "hi there",
-                  "--root", str(graph)], capture_output=True, text=True)
-    assert old.returncode == 2
-    assert "one script per call" in (old.stderr or "")   # the refusal's words since c6878a56f
-    # the one-arg form succeeds and the note lands
-    new = sp.run(["python3", str(wp), "goal:g17.1", "note hi there",
-                  "--root", str(graph)], capture_output=True, text=True)
-    assert new.returncode == 0, new.stderr
-    body = (graph / "nodes" / "goal" / "g17.1.md").read_text(encoding="utf-8")
-    assert "hi there" in body
+# (the closeout's goal-note fixture and its two tests retired with the g17_1_note step: V8a 3a)
 
 
 # test_render_real_runner_renders_and_checks_from_root retired with the

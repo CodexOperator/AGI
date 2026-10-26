@@ -952,3 +952,14 @@ def test_fd3b_a_hand_merge_whose_resolution_edits_the_path_never_reaches_the_x_t
     got = box.job()
     assert got.returncode == 3 and box.tip() == merge
     assert f"{merge[:7]} refused: (m) the tree is not the clean merge" in box.notice.read_text()
+
+
+def test_v8a_3a_the_subject_the_job_commits_under_is_board_and_the_retired_one_still_lands():
+    """metrics_cell now commits `board: <node> (<actor>)` (node_commit); the commits the retired writer made
+    (`write.py: town:...`) that are still unlanded at the cutover stay landable. Anything else is not the job's."""
+    import board_job
+    assert board_job.SUBJECT_RE.match("board: town:local-maxxing (belam)")
+    assert board_job.SUBJECT_RE.match("write.py: town:local-maxxing (belam)")
+    assert not board_job.SUBJECT_RE.match("board: doc:card-belam (belam)")          # a node outside town: is not the board's
+    assert not board_job.SUBJECT_RE.match("board: town:local-maxxing (belam) + a hand edit")
+    assert not board_job.SUBJECT_RE.match("notes: town:local-maxxing (belam)")
