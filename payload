@@ -715,7 +715,7 @@ def test_g73320_r3_commands_actor_is_the_resolved_seat_not_the_unix_user(
     with AGI_ACTOR unset a seated post is its seat, never the `$USER` every post
     runs as (`belam`); no seat and a colliding USER is `unknown`; and the owner gate
     refuses the seat by that name."""
-    import write
+    import geometry_config
     (stream_project / "nodes" / ".geometry" / "posts.md").write_text(
         "---\nid: config:posts\ntype: config\nposts:\n"
         '  - {"name": "belam", "role": "director"}\n'
@@ -725,7 +725,7 @@ def test_g73320_r3_commands_actor_is_the_resolved_seat_not_the_unix_user(
     monkeypatch.setenv("USER", "belam")
     monkeypatch.setenv("AGI_POST", "director-general-3")
     assert commands._actor(stream_project) == "director-general-3"
-    assert commands._actor(stream_project) == write._default_actor(stream_project)
+    assert commands._actor(stream_project) == geometry_config.default_actor(stream_project)
     monkeypatch.setattr(commands.subprocess, "call", lambda *a, **k: (_ for _ in ()).throw(
         AssertionError("panic must be refused before any subprocess call")))
     assert commands.run(stream_project, "panic") == 3
