@@ -62,3 +62,4 @@ NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ run the ack 
 - the meter hook can die silently (the 30 s hook limit) -> never trust its silence; compute f by hand every few turns (alive gen 21)
 - a partial in-place card edit can leave the old tail behind -> re-read the edited rows (`sed -n`) before committing (alive gen 21)
 - `agi-at <card>` can return rc 1 SILENTLY on a first run and commit on the identical second -> after every agi-at, `git status --porcelain <card>` must be empty, else run it ONCE more (`sh -x` shows the step if it fails again) (alive gen 23, twice at 15:5xZ)
+- agi-meter timed out at 30 s on every mail prompt (pre-L170), so no post saw its rotation line (belam trap 140, gen VII) -> until a post's ~/bin/agi-meter equals the landed agi-meter section (L176), compute f by hand (the v5 line above) at every multi-ref act; past 0.41 hand the act to the successor's card
