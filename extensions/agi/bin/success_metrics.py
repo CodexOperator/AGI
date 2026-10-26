@@ -440,6 +440,15 @@ def p1_segment(root: Path) -> str:
         return f"| p1: UNMEASURED(results unreadable: {_reason(exc)})"
 
 
+def _trunk_ref() -> str:
+    """The trunk's local ref, DERIVED through branches.py from the ladder's current_season (never hand-spelled; the
+    branch-spelling grep test's ask). The ladder is the ENGINE's own (this file's tree), not the segment's `root`: the board
+    cron reads MAIN's refs, and a MAIN checkout need not carry the graph."""
+    import branches  # noqa: PLC0415
+    cur = int(season._load_ladder(locations.find_project_root(Path(__file__).resolve())).get("current_season", 1))
+    return "refs/heads/" + branches.derive_names("core", cur)["town_season_main"]
+
+
 def _notices(root: Path) -> str:
     """goal:g7.16.1.11.46.12 -- the prereq-cleared notice's board segment, read from refs only (prereq_notice.line).
 
@@ -449,7 +458,7 @@ def _notices(root: Path) -> str:
     try:
         import argparse as _ap  # noqa: PLC0415
         import prereq_notice  # noqa: PLC0415
-        return prereq_notice.line(_ap.Namespace(repo=str(locations.repo_root(Path(root))), trunk="refs/heads/core/season3/main", lag_red_min=None))
+        return prereq_notice.line(_ap.Namespace(repo=str(locations.repo_root(Path(root))), trunk=_trunk_ref(), lag_red_min=None))
     except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
         return f"notices: UNMEASURED(source failed: {_reason(exc)})"
 
