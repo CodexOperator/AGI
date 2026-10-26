@@ -63,12 +63,14 @@ import stat
 import subprocess
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 # goal:g11 — one resolver for every path. Plain sibling import; every entry
 # point under `bin/` already has this directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import anonymize  # noqa: E402 -- HOME_PATH_RE: the ONE home-path spelling (covers this box's passwd homes, not just /home/)
 import branches  # noqa: E402
 import locations  # noqa: E402
 import verification  # noqa: E402 -- acquire_suite_lock: the ONE suite-lock reader
@@ -2138,6 +2140,133 @@ def _is_ancestor(root: Path, a: str, b: str) -> bool | None:
 ORIGIN_SNAP_NS = "refs/grid/origin-snap"
 #: one grid_sync lap, minutes: the least a snapshot pair may be apart for the second to call origin QUIET.
 ORIGIN_LAP_MIN = 30
+#: goal:g7.16.1.11.46.16 (council 14:21:47Z, condition (2) REPLACED by a BYTE TEST in alive's [correction] 14:53:03Z, council 3/3, 10-26): a diverged
+#: origin pair with NO merge-base and a DIFFERENT tree is a CONFLICT unless EVERY blob of origin's tip tree was SEEN, each at its own path class (below).
+#: No date compare survives: tip-vs-tip passed 10 origin-only edits and a root date is a re-mint coincidence (live roots: 1721 on 09-21, 225 on 10-08).
+#: WHOLE-VERDICT CADENCE of `unify --write` (alive 16:36Z: say what the code does): `_origin_quiet` runs (1) in the pre-run gate, (2) immediately before the FIRST
+#: unrelated-root write, (3) before every UNRELATED_QUIET_EVERY-th unrelated-root write after it (so at most this many writes sit between two whole reads; a
+#: banked or tree-equal row does not count), and (4) once after the run. A whole-listing read is ~0.17 s; one per write would hold the grid lock ~5 min over
+#: ~1900 pairs. What EVERY write does re-read, immediately before its compare-and-swap, is that pair's own two tips (a moved tip -> CONFLICT, nothing written).
+UNRELATED_QUIET_EVERY = 50
+UNRELATED_CLASSES = ("live-seen", "trunk-seen")
+_PAYLOAD_REF_RE = re.compile(r"[A-Za-z0-9_.][A-Za-z0-9_./+-]*")    # a leading dot is legal (`.agi/config.json`); `:` (pathspec magic) and a leading `-` are not
+_ZERO_SHA = "0" * 40
+
+
+def _raw_blobs(text: str) -> dict[str, set[str]]:
+    """{path: {blob}} from `git log --raw --no-abbrev --format=` output: the NEW side of every change that is not a delete."""
+    out: dict[str, set[str]] = {}
+    for line in text.splitlines():
+        if not line.startswith(":") or "\t" not in line:
+            continue
+        meta, _, path = line.partition("\t")
+        fields = meta.split()
+        if len(fields) >= 5 and fields[3] != _ZERO_SHA:
+            out.setdefault(path, set()).add(fields[3])
+    return out
+
+
+class _TrunkSeen:
+    """The trunk's blob evidence for `_unrelated_class`, built ONCE per run (alive 14:53:03Z): every blob that was ever at a `.agi/nodes` path
+    (live or deprecated/) on `trunk`'s history -- ONE path-limited `git log --raw --no-abbrev -m --format= <trunk> -- .agi/nodes` (`-m`: a blob that
+    entered the trunk only in a MERGE's resolution is trunk history too; alive 16:50Z C2, 1441 such blobs on 10-26) -- plus, on
+    demand and cached, the blobs ever at ONE `payload_ref` path (`at_path`). FAIL CLOSED: a walk that errors or yields 0 blobs sets `problem`, and
+    `_unrelated_class` then answers CONFLICT for every pair; an empty set is never read as a real one. `cost` quotes the walk (wall seconds, the
+    git child's peak RSS) under the memory guard."""
+
+    def __init__(self, root: Path, trunk: str) -> None:
+        import resource  # noqa: PLC0415
+        self.root, self.trunk, self.problem, self.nodes, self._paths, self.cost = root, trunk, "", set(), {}, ""
+        t0 = time.time()
+        res = git_try(root, "log", "--raw", "--no-abbrev", "--no-renames", "-m", "--format=", trunk, "--", ".agi/nodes")
+        if res.returncode != 0:
+            self.problem = f"git log {trunk} -- .agi/nodes failed rc {res.returncode}: {(res.stderr.strip().splitlines() or ['no reason'])[0][:120]}"
+            return
+        for blobs in _raw_blobs(res.stdout).values():
+            self.nodes |= blobs
+        if not self.nodes:
+            self.problem = f"git log {trunk} -- .agi/nodes yielded 0 blobs"
+            return
+        self.cost = (f"{len(self.nodes)} blobs at .agi/nodes paths of {trunk}, one walk, {time.time() - t0:.1f} s, "
+                     f"git child peak RSS {resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss // 1024} MB")
+
+    def at_path(self, path: str) -> set[str] | None:
+        """Blobs ever at `path` on the trunk (cached); None when git could not say or the path is not a plain repo path."""
+        if not _PAYLOAD_REF_RE.fullmatch(path) or not path.strip("./") or any(seg in ("", ".", "..") for seg in path.split("/")):
+            return None
+        if path not in self._paths:
+            res = git_try(self.root, "log", "--raw", "--no-abbrev", "--no-renames", "-m", "--format=", self.trunk, "--", path)
+            self._paths[path] = None if res.returncode != 0 else {b for bs in _raw_blobs(res.stdout).values() for b in bs}
+        return self._paths[path]
+
+
+def _live_seen(root: Path, tip: str) -> dict[str, set[str]] | None:
+    """{path: {blob}} the live ref's WHOLE history held (merges included), or None when git could not say."""
+    res = git_try(root, "log", "--raw", "--no-abbrev", "--no-renames", "-m", "--format=", tip)
+    return _raw_blobs(res.stdout) if res.returncode == 0 else None
+
+
+def _payload_ref(root: Path, *tips: str) -> str | None:
+    """`payload_ref:` from the first tip whose node.md frontmatter has one (origin's first, then live's); None when neither is readable."""
+    for tip in tips:
+        res = git_try(root, "show", f"{tip}:node.md")
+        if res.returncode != 0:
+            continue
+        seen_fence = 0
+        for line in res.stdout.splitlines():
+            if line.strip() == "---":
+                seen_fence += 1
+                if seen_fence == 2:
+                    break
+            elif seen_fence == 1 and line.startswith("payload_ref:"):
+                ref = line.split(":", 1)[1].strip().strip("\"'")
+                if ref:
+                    return ref
+    return None
+
+
+def _unrelated_class(root: Path, otip: str, live: str, seen: "_TrunkSeen | None") -> tuple[str | None, str]:
+    """(class, why) of a diverged origin pair (origin tip `otip`, live tip `live`) whose trees differ. class is `live-seen` / `trunk-seen`
+    (tree = LIVE may be written), None (stays a CONFLICT; `why` says which condition), or "unread" (git could not say).
+    (1) NO merge-base; (2) EVERY blob of origin's tip tree was SEEN at its own path class: `node.md` in the node's own live grid history OR at an
+    `.agi/nodes` path in the trunk's history; `payload` in the node's own live grid history OR at that node's `payload_ref` path in the trunk's
+    history (a `payload_ref` that cannot be read -> CONFLICT, named); any other path -> CONFLICT. `trunk-seen` = at least one blob needed the
+    trunk, else `live-seen`. Judged per pair, at write time, from the bytes in front of it, never from a precomputed list and never from a date."""
+    mb = git_try(root, "merge-base", otip, live)
+    if mb.returncode == 0 and mb.stdout.strip():
+        return None, "has a merge-base"
+    if mb.returncode not in (0, 1):
+        return "unread", "merge-base unread"
+    if seen is None or seen.problem:
+        return None, f"trunk blob set unread: {seen.problem if seen else 'no trunk'}"
+    tree = git_try(root, "ls-tree", "-r", otip)
+    ours = _live_seen(root, live)
+    if tree.returncode != 0 or ours is None:
+        return "unread", "tree / live history unread"
+    absent, used_trunk, ref = [], False, None
+    for line in tree.stdout.splitlines():
+        meta, _, path = line.partition("\t")
+        blob = meta.split()[-1]
+        if blob in ours.get(path, ()):
+            continue
+        if path == "node.md" and blob in seen.nodes:
+            used_trunk = True
+        elif path == "payload":
+            ref = ref or _payload_ref(root, otip, live)
+            if ref is None:
+                return None, "payload_ref unreadable"
+            at = seen.at_path(ref)
+            if at is None:
+                return None, f"payload_ref {ref} unreadable (not a plain repo path, or its walk failed)"
+            if blob in at:
+                used_trunk = True
+            else:
+                absent.append(f"payload@{ref}")
+        else:
+            absent.append(path)
+    if absent:
+        return None, "bytes unseen: " + ", ".join(absent)
+    return ("trunk-seen" if used_trunk else "live-seen"), ""
 
 
 def _cas(root: Path, ref: str, new: str, old: str) -> bool:
@@ -2181,7 +2310,8 @@ class _Snapshot:
         print(f"grid unify: pre-write snapshot {path.name} ({len(listing.splitlines())} refs, in {d.name}/)")
 
 
-def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Snapshot) -> str:
+def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Snapshot, classes: list | None = None,
+               seen: "_TrunkSeen | None" = None) -> str:
     """One mint of `cmd_unify`: merge the read-only `lns` tip into `ns`. Returns
     merged | adopted | unchanged | conflict | unread. Every ref write goes through `_cas`
     (a compare-and-swap); there is no delete anywhere in this verb.
@@ -2189,7 +2319,12 @@ def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Sna
     The merged tree is the LEGACY side's, which is right for the writer's own old namespace (the live side
     wins by construction). For `ORIGIN_SNAP_NS` (a second writer's history) it is NEVER an automatic pick: a
     diverged pair merges only when the two tips' trees are EQUAL, and is a CONFLICT otherwise (origin has
-    versions after the merge-base that this namespace does not carry), listed by mint, nothing written."""
+    versions after the merge-base that this namespace does not carry), listed by mint, nothing written. The ONE
+    narrow exception (goal:g7.16.1.11.46.16, council 14:21:47Z, condition (2) a BYTE TEST since alive's 14:53:03Z [correction]):
+    `_unrelated_class` -- a pair with NO merge-base whose origin tip's blobs were ALL seen (live's own history, or the trunk's, each at its
+    own path class) gets a 2-parent commit, tree = LIVE (never origin's), first parent the live tip, origin's tip the second. A pair
+    that fails the byte test is a CONFLICT and, when it failed on unseen bytes, is BANKED (a `banked` row in `classes`, the reason as its
+    4th field) for the owner's one batch look. `classes`, when given, collects (class, mint, origin tip, written commit | reason)."""
     lref, nref = f"{lns}/node/{mint}", f"{ns}/node/{mint}"
     ltip, ntip = ref_tip(root, lref), ref_tip(root, nref)
     if ltip is None:
@@ -2216,7 +2351,30 @@ def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Sna
         return "adopted"
     if lns == ORIGIN_SNAP_NS and git(root, "rev-parse", f"{ltip}^{{tree}}", check=False) != git(
             root, "rev-parse", f"{ntip}^{{tree}}", check=False):
-        return "conflict"    # an origin-side edit after the base: never an automatic tree pick
+        sub, why = _unrelated_class(root, ltip, ntip, seen)
+        if sub == "unread":
+            return "unread"
+        if sub is None:
+            if classes is not None and (why.startswith("bytes unseen") or why.startswith("payload_ref")):
+                classes.append(("banked", mint, ltip, why))
+            return "conflict"    # an origin-side edit after the base, or bytes nobody saw: never an automatic tree pick
+        if write:
+            # immediately before the write: this pair's own two tips are still the ones judged; the whole QUIET verdict is re-read on the cadence above
+            if ref_tip(root, lref) != ltip or ref_tip(root, nref) != ntip:
+                return "conflict"
+            if (classes is None or sum(1 for c in classes if c[0].startswith("unrelated-root/")) % UNRELATED_QUIET_EVERY == 0) and _origin_quiet(root):
+                return "unread"
+            snap.ensure()
+            n = int(git(root, "rev-list", "--count", "--first-parent", ntip)) + 1
+            msg = (f"unify v{n} {mint}\n\nUnify-Unrelated: {ltip}\nUnify-Class: unrelated-root/{sub}\n")
+            res = git_try(root, "commit-tree", f"{ntip}^{{tree}}", "-p", ntip, "-p", ltip, "-m", msg)
+            if res.returncode != 0 or not _cas(root, nref, res.stdout.strip(), ntip):
+                return "conflict"
+            if classes is not None:
+                classes.append((f"unrelated-root/{sub}", mint, ltip, res.stdout.strip()))
+        elif classes is not None:
+            classes.append((f"unrelated-root/{sub}", mint, ltip, ""))
+        return "merged"
     if write:
         snap.ensure()
         n = int(git(root, "rev-list", "--count", "--first-parent", ltip)) + 1
@@ -2226,10 +2384,15 @@ def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Sna
         res = git_try(root, "commit-tree", f"{ltip}^{{tree}}", "-p", ltip, "-p", ntip, "-m", msg)
         if res.returncode != 0 or not _cas(root, nref, res.stdout.strip(), ntip):
             return "conflict"
+        if classes is not None:
+            classes.append(("tree-equal", mint, ltip, res.stdout.strip()))
+    elif classes is not None:
+        classes.append(("tree-equal", mint, ltip, ""))
     return "merged"
 
 
-def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[str, str]) -> tuple[int, list[str]]:
+def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[str, str],
+                 seen: "_TrunkSeen | None" = None) -> tuple[int, list[str]]:
     """The per-mint falsifier of G1a-T, read-only. `before` is the verb's OWN earliest pre-write snapshot.
     Per mint: the live tip and the snapshot's old tip are ancestors of the new tip, `rev-list --count` new
     >= max(old), and the merge commit that took the live tip as its first parent (a) carries the live tip's
@@ -2260,6 +2423,14 @@ def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[s
                 x.startswith("Unify-Live:") for x in git_try(root, "log", "--format=%B", otip).stdout.splitlines()):
             good += 1    # the live tip was already inside the pre-write tip (nothing to merge): sound ONLY while the snapshot
             continue     # is early, so a pre-write tip that already carries a unify merge (a late snapshot) never takes this exit
+        if lns == ORIGIN_SNAP_NS:
+            why = _check_unrelated(root, ltip, ntip, seen)
+            if why is None:
+                good += 1
+                continue
+            if why:
+                bad.append(f"{m} ({why})")
+                continue
         merge = None
         # first-parent first (the merge this namespace took last); then the whole history: a LATER namespace's
         # merge (the third history) sits on top and holds this one as its second parent
@@ -2310,7 +2481,76 @@ def _set_unify_namespaces(into: str | None, legacy: list[str] | None) -> bool:
     return False
 
 
-def cmd_unify(root: Path, write: bool, check: bool = False) -> int:
+def _class_line(counts: "Counter[str]") -> str:
+    """`classes: tree-equal K, unrelated-root tree=live N (origin bytes in live's history X, in the trunk's Y), banked B` -- the ONE line
+    `unify` and `--check` print (banked = the pairs the byte test left CONFLICT on unseen bytes, for the owner's one batch look)."""
+    x, y = counts.get("unrelated-root/live-seen", 0), counts.get("unrelated-root/trunk-seen", 0)
+    return (f"classes: tree-equal {counts.get('tree-equal', 0)}, unrelated-root tree=live {x + y} "
+            f"(origin bytes in live's history {x}, in the trunk's {y}), banked {counts.get('banked', 0)}")
+
+
+def _write_class_record(root: Path, ns: str, classes: list[tuple[str, str, str, str]]) -> str:
+    """The stamped record of one `unify --write`: a line per merged mint, `<class> <mint> <origin tip> <written commit>`, and a `banked` line per pair
+    the byte test left CONFLICT on unseen bytes (`banked <mint> <origin tip> <reason>`), created exclusively (never overwritten), under `_unify_dir` with the
+    suffix `.classes` (`--check` reads `*.refs` as snapshots and `*.classes` as records). The banked pairs also get a `.batch` file beside it: per mint the
+    reason and the DIFF of origin's node.md against live's (<= 150 lines), the one batch the owner / a reader looks at."""
+    d = _unify_dir(root)
+    d.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    n = 0
+    while True:
+        path = d / f"{stamp}-{os.getpid()}-{n}.classes"
+        try:
+            with open(path, "x") as f:
+                f.write("".join(f"{c} {m} {o} {w}\n" for c, m, o, w in sorted(classes)))
+            break
+        except FileExistsError:
+            n += 1
+    banked = sorted(c for c in classes if c[0] == "banked")
+    if banked:
+        with open(path.with_suffix(".batch"), "x") as f:
+            for _, m, o, why in banked:
+                live = ref_tip(root, f"{ns}/node/{m}") or ""
+                diff = git_try(root, "diff", "--no-color", f"{live}:node.md", f"{o}:node.md").stdout.splitlines()
+                f.write(f"== {m} origin {o} live {live}\n   {why}\n" + "".join(f"   {x}\n" for x in diff[:150])
+                        + (f"   ... {len(diff) - 150} more diff lines\n" if len(diff) > 150 else ""))
+    return path.name + (f" + {path.with_suffix('.batch').name}" if banked else "")
+
+
+def _home_added(root: Path, first: str, merge: str) -> bool:
+    """Did `merge` ADD a home-path literal (anonymize.HOME_PATH_RE) against its first parent? `git diff first merge` is empty when the trees are equal."""
+    res = git_try(root, "diff", "--no-color", "-U0", first, merge)
+    return any(x.startswith("+") and not x.startswith("+++") and anonymize.HOME_PATH_RE.search(x) for x in res.stdout.splitlines())
+
+
+def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None") -> str | None:
+    """`--check` for a pair `_unify_one` merged as an UNRELATED ROOT: None = sound, "" = this pair is not one (fall through to the ordinary
+    check), else why it is RED. The merge is found by its SECOND parent (origin's tip) and its `Unify-Unrelated` trailer; it must carry the tree of
+    its FIRST parent (the live tip it took in), and the class is judged AGAIN on that first parent (origin's tip is inside ntip's history now, so
+    the live tip itself would read `live-seen` for everything)."""
+    for line in git_try(root, "rev-list", "--parents", ntip).stdout.splitlines():
+        parts = line.split()
+        if len(parts) != 3 or parts[2] != ltip:
+            continue
+        merge, first = parts[0], parts[1]
+        body = git(root, "log", "-1", "--format=%B", merge, check=False)
+        if f"Unify-Unrelated: {ltip}" not in body.splitlines():
+            continue
+        # the home-path count is over what the merge ADDED against its first parent (empty when the trees are equal): a live tip that already carries a
+        # literal merges as tree = LIVE and must read GREEN; the count is computed even when the tree check is RED (the tree = ORIGIN mutant reads RED twice)
+        added = _home_added(root, first, merge)
+        if git(root, "rev-parse", f"{merge}^{{tree}}", check=False) != git(root, "rev-parse", f"{first}^{{tree}}", check=False):
+            return "the unrelated-root merge does not carry the live tree" + ("; a written tip carries a home-path literal" if added else "")
+        if added:
+            return "a written tip carries a home-path literal"
+        cls, why = _unrelated_class(root, ltip, first, seen)
+        if cls in (None, "unread"):
+            return f"the unrelated-root merge is outside the class ({why})"
+        return None
+    return ""
+
+
+def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD") -> int:
     """goal:g7.16.1.11.46.16 G1a: ONE namespace, written ADDITIVELY. Words: LEGACY = `refs/grid/local-maxxing`,
     the namespace every writer used until this land (6025 refs, live until then); `refs/grid/node` = the 09-21
     FREEZE (3807 refs), which becomes the one namespace. For every mint in each read-only legacy namespace
@@ -2355,9 +2595,16 @@ def cmd_unify(root: Path, write: bool, check: bool = False) -> int:
         print(f"grid unify check: snapshot {snaps[0].name} ({len(before)} refs)")
         rc = 0
         bad_mints: set[str] = set()
+        seen = _TrunkSeen(root, trunk) if ORIGIN_SNAP_NS in listing else None
         for lns, names in listing.items():
-            good, bad = _unify_check(root, ns, lns, names, before)
+            good, bad = _unify_check(root, ns, lns, names, before, seen)
             print(f"grid unify check: unified {good}/{len(names)} ({lns} -> {ns})")
+            if lns == ORIGIN_SNAP_NS:
+                recs = Counter()
+                for rec in sorted(_unify_dir(root).glob("*.classes")):
+                    recs.update(x.split(" ", 1)[0] for x in rec.read_text().splitlines() if x.strip())
+                print(f"grid unify check: {_class_line(recs)} (from the stamped record{'s' if len(list(_unify_dir(root).glob('*.classes'))) != 1 else ''})")
+                print(f"grid unify check: anonymize over the written tips: {sum('home-path literal' in b for b in bad)} carry a home-path literal")
             for b in bad[:10]:
                 print(f"  RED {b}")
             bad_mints.update(b.split()[0] for b in bad)
@@ -2380,11 +2627,16 @@ def cmd_unify(root: Path, write: bool, check: bool = False) -> int:
     try:
         snap = _Snapshot(root, ns, write)
         total: dict[str, int] = {}
+        seen = _TrunkSeen(root, trunk) if ORIGIN_SNAP_NS in listing else None
+        if seen is not None:    # ONE walk per run, its cost quoted; a failed / empty walk makes every unrelated-root pair a CONFLICT
+            print(f"grid unify: trunk blob set unread: {seen.problem} (every unrelated-root pair stays CONFLICT)" if seen.problem
+                  else f"grid unify: trunk blob set: {seen.cost}")
         for lns, names in listing.items():
             tally = {"merged": 0, "adopted": 0, "unchanged": 0, "conflict": 0, "unread": 0}
             conflicts: list[str] = []
+            classes: list[tuple[str, str, str, str]] = []
             for m in names:
-                got = _unify_one(root, ns, lns, m, write, snap)
+                got = _unify_one(root, ns, lns, m, write, snap, classes, seen)
                 tally[got] += 1
                 if got == "conflict":
                     conflicts.append(m)
@@ -2392,10 +2644,20 @@ def cmd_unify(root: Path, write: bool, check: bool = False) -> int:
                 total[k] = total.get(k, 0) + v
             print(f"grid unify ({'write' if write else 'dry-run'}): {lns} -> {ns}: "
                   + ", ".join(f"{v} {k}" for k, v in tally.items()) + f" of {len(names)}")
-            for m in conflicts[:50]:    # listed by mint; never an automatic tree pick
-                print(f"  CONFLICT {m} ({lns}: a version after the merge-base with a different tree, or a lost compare-and-swap)")
-            if len(conflicts) > 50:
-                print(f"  ... {len(conflicts) - 50} more CONFLICT mints")
+            if lns == ORIGIN_SNAP_NS:
+                print(f"grid unify ({'write' if write else 'dry-run'}): {_class_line(Counter(c[0] for c in classes))}")
+                if write and classes:
+                    print(f"grid unify: record {_write_class_record(root, ns, classes)} (every merged mint by class, the banked pairs with their diffs)")
+                if write and _origin_quiet(root):    # the mirror moved while this ran: the writes are additive, but say so
+                    print(f"grid unify: unread (the mirror is no longer QUIET after the write: {_origin_quiet(root)}); the writes above stand")
+                    total["unread"] = total.get("unread", 0) + 1
+            banked = {c[1]: c[3] for c in classes if c[0] == "banked"}    # the byte test's own reason, listed in full: the owner's one batch
+            shown = [m for m in conflicts if m in banked] + [m for m in conflicts if m not in banked][:50]
+            for m in shown:    # listed by mint; never an automatic tree pick
+                print(f"  CONFLICT {m} ({lns}: " + (f"banked, {banked[m]}" if m in banked else
+                      "a version after the merge-base with a different tree, or a lost compare-and-swap") + ")")
+            if len(shown) < len(conflicts):
+                print(f"  ... {len(conflicts) - len(shown)} more CONFLICT mints")
     finally:
         if lock is not None:
             lock.release()
@@ -2824,6 +3086,8 @@ def main() -> None:
                     help="the namespace to merge INTO (refs/grid: the 09-21 freeze, the one namespace), overriding the config (run BEFORE the config lands)")
     un.add_argument("--legacy", action="append", default=None,
                     help="a LEGACY namespace to merge FROM (repeatable; refs/grid/local-maxxing, the namespace every writer used until this land), overriding grid.legacy_namespaces")
+    un.add_argument("--trunk", default="HEAD",
+                    help="the ref whose history is the TRUNK's blob evidence for the origin mirror's byte test (default HEAD; pass the land branch when HEAD is not it)")
     os_ = sub.add_parser("origin-snap",
                          help="goal:g7.16.1.11.46.16 -- mirror origin's refs/grid/node into the PRIVATE refs/grid/origin-snap and "
                               "read whether origin is still being written (rc 2 = a LIVE second writer); the QUIET verdict "
@@ -2881,7 +3145,7 @@ def main() -> None:
     elif args.cmd == "unify" and not args.check and _retired_write(root, args.write):
         pass
     elif args.cmd == "unify":
-        sys.exit(cmd_unify(root, args.write, args.check))
+        sys.exit(cmd_unify(root, args.write, args.check, args.trunk))
     elif args.cmd == "origin-snap":
         sys.exit(cmd_origin_snap(root, args.remote, args.lap))
     elif args.cmd == "census":
