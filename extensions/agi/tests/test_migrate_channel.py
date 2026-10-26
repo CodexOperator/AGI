@@ -894,8 +894,21 @@ def test_a_real_grant_without_both_seating_cells_cuts_no_worktree_and_spawns(
     repo = _real_repo(tmp_path)
     schema = repo / ".agi" / "context" / "schemas" / "[config].md"
     text = schema.read_text(encoding="utf-8")
-    assert ", worktree]" in text, "the live grant must carry worktree to drop"
-    schema.write_text(text.replace(", worktree]", "]"), encoding="utf-8")
+    import re
+    import yaml
+
+    def sm_fields(t):
+        """The sanctuary-master `posts` list grant's `fields`, PARSED: a list's last item is not a string suffix (L153 appended `engine`)."""
+        fm = yaml.safe_load(t.split("---")[1])
+        return next(e for e in fm["actor_rows"]
+                    if e.get("actor") == "sanctuary-master" and e.get("list_key") == "posts" and e.get("fields"))["fields"]
+    assert "worktree" in sm_fields(text), "the live grant must carry worktree to drop"
+    lines = text.split("\n")
+    i = next(k for k, ln in enumerate(lines) if ln.startswith("  - {actor: sanctuary-master") and "fields:" in ln and "worktree" in ln)
+    lines[i] = re.sub(r",\s*worktree(?=[,\]])", "", lines[i], count=1)
+    dropped = "\n".join(lines)
+    assert "worktree" not in sm_fields(dropped) and "box" in sm_fields(dropped), "only worktree is dropped"
+    schema.write_text(dropped, encoding="utf-8")
     monkeypatch.setenv("AGI_BOX", "boxB")
     live, fake = _fake_comms(tmp_path, monkeypatch)
     _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
