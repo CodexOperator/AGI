@@ -599,3 +599,174 @@ def test_MODE_enforce_R4_a_broken_ladder_at_the_old_tip_the_ref_stays_UNCHANGED(
     r = _move(repo, "refs/heads/posts/belam", bad, broken, env)
     assert r.returncode != 0 and "refused, nothing changed" in r.stderr, r.stderr
     assert repo.git("rev-parse", "refs/heads/posts/belam").stdout.strip() == broken
+
+
+# ---- MOVE GRANT: `name_suffix` + `move_of` (owner "Accept both" 05:0xZ 10-26, council 3/3 alive 05:20:59Z) -------------------
+MOVE_GRANT = '  - {actor: master, list_key: posts, match_key: name, ops: [create], name_suffix: "-retired", move_of: "<x>"}\n'
+
+
+def with_move_grant(repo, grant=MOVE_GRANT, signer="belam", mode="enforce"):
+    """Commit a schema whose actor_rows carries the move grant (or another line) as the new BASE."""
+    anchor = "town_cell:"
+    t = SCHEMA.replace(anchor, grant + anchor, 1).replace("r_land: {mode: enforce}", f"r_land: {{mode: {mode}}}")
+    repo.write(".agi/context/schemas/[config].md", t)
+    repo.base = repo.commit(signer, "move grant")
+    return repo
+
+
+def move(rows, x="dg1", keep_x=False, **over):
+    """The shape of a real `<x>` -> `<x>-retired` commit: <x> gone, the copy at its retired process-cell values."""
+    src = row(rows, x)
+    if not keep_x:
+        rows.remove(src)
+    rows.append({**src, "name": f"{x}-retired", "session_label": f"{x}-retired", "box": "off", "pid": 0, **over})
+
+
+def test_MOVE_master_moves_a_row_to_its_retired_copy_admitted(repo):
+    with_move_grant(repo)
+    repo.edit_rows(lambda r: move(r), "master")
+    rc, out = repo.run()
+    assert rc == 0 and "ok (1 cell change(s)" in out, out
+
+
+def test_MOVE_the_same_commit_without_the_grant_at_BASE_is_refused(repo):
+    repo.edit_rows(lambda r: move(r), "master")
+    rc, out = repo.run()
+    assert rc == 1 and "dg1-retired" in out and "needs a written_by role or an actor_rows grant" in out, out
+
+
+def test_MOVE_a_signer_the_grant_does_not_name_is_refused(repo):
+    with_move_grant(repo)
+    repo.edit_rows(lambda r: move(r), "dg2")
+    rc, out = repo.run()
+    assert rc == 1 and "dg1-retired" in out, out
+
+
+@pytest.mark.parametrize("why,over,keep_x,marker", [
+    ("a lone -retired while <x> stays live", {}, True, "is still live"),
+    ("a changed pubkey", {"pubkey": "bb"}, False, "cells pubkey differ"),
+    ("a changed key_history", {"key_history": [{"pub": "x"}]}, False, "cells key_history differ"),
+    ("a changed role", {"role": "prime_director"}, False, "cells role differ"),
+    ("box not off", {"box": "local-town"}, False, "process cells"),
+    ("recover true", {"recover": True}, False, "process cells"),
+    ("pid not 0", {"pid": 5}, False, "process cells"),
+    ("a live window", {"window": "@1"}, False, "process cells"),
+    ("a worktree", {"worktree": ".agi/worktrees/x"}, False, "process cells"),
+    ("a session_name", {"session_name": "s"}, False, "process cells"),
+    ("boot not null", {"boot": True}, False, "process cells"),
+    ("session_label not the name", {"session_label": "dg1"}, False, "session_label must equal"),
+])
+def test_MOVE_mutant_each_broken_condition_is_refused_naming_the_rule(repo, why, over, keep_x, marker):
+    with_move_grant(repo)
+    repo.edit_rows(lambda r: move(r, keep_x=keep_x, **over), "master")
+    rc, out = repo.run()
+    assert rc == 1 and marker in out and "(move_of)" in out, (why, out)
+
+
+def test_MOVE_mutant_x_absent_at_the_parent_is_unread_and_refused(repo):
+    with_move_grant(repo)
+
+    def ghost(rows):
+        rows.append({"name": "ghost-retired", "session_label": "ghost-retired", "box": "off", "pid": 0, "role": "director"})
+    repo.edit_rows(ghost, "master")
+    rc, out = repo.run()
+    assert rc == 1 and "unread (ghost at " in out, out
+
+
+def test_MOVE_the_grant_is_not_a_field_grant_a_set_on_a_retired_row_is_judged_as_before(repo):
+    with_move_grant(repo)
+    repo.edit_rows(lambda r: move(r), "master")
+    repo.base = repo.git("rev-parse", "HEAD").stdout.strip()
+    rows = json.loads(json.dumps(ROWS))
+    move(rows)
+    row(rows, "dg1-retired").update(pubkey="zz")
+    repo.write(f"{G}/posts.md", _posts(rows))
+    repo.commit("master", "set pubkey on the retired row")
+    rc, out = repo.run()
+    assert rc == 1 and "dg1-retired" in out and "set pubkey" in out, out
+
+
+def test_MOVE_a_move_of_other_than_the_placeholder_is_not_honoured(repo):
+    with_move_grant(repo, grant=MOVE_GRANT.replace('"<x>"', '"dg1"'))
+    repo.edit_rows(lambda r: move(r), "master")
+    rc, out = repo.run()
+    assert rc == 1 and "needs a written_by role or an actor_rows grant" in out, out
+
+
+def test_MOVE_report_mode_prints_the_would_refuse_line_with_the_rule_and_rc_0(repo):
+    with_move_grant(repo, mode="report")
+    repo.edit_rows(lambda r: move(r, pubkey="bb"), "master")
+    rc, out = repo.run()
+    assert rc == 0 and "would refuse" in out and "cells pubkey differ" in out, out
+
+
+def test_MOVE_a_suffix_grant_that_also_lists_fields_is_never_a_plain_field_grant(repo):
+    g = '  - {actor: dg2, list_key: posts, match_key: name, ops: [create], fields: [town], name_suffix: "-retired", move_of: "<x>"}\n'
+    with_move_grant(repo, grant=g)
+
+    def fresh(rows):
+        rows.append({"name": "fresh", "town": "core"})
+    repo.edit_rows(fresh, "dg2")
+    rc, out = repo.run()
+    assert rc == 1 and "fresh" in out and "needs a written_by role or an actor_rows grant" in out, out
+
+
+# ---- council [correction]s 05:39:16Z / 05:40:12Z / 05:40:26Z 10-26 to the falsifier: b737cef238 is the NEGATIVE control, and its exact
+# cell changes (pid, window, recover absent -> false) are the ADMITTED fixture, because 7c1ef3664f never changes those three ----------
+BELAM_X = {"name": "director-belam", "role": "director", "tier": 1, "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high",
+           "settings": "", "session_kind": "remote-control", "personality_ref": "", "handoff_file": "",
+           "pin_ref": ".agi/sessions/sanctuary-director.meter", "rotated_by": "sanctuary-master", "owning_goal": "",
+           "worktree": ".agi/worktrees/post-sanctuary-director", "session_ref": "", "session_id": "446773a7-cd37-4d57-9614-cf841ea0e4b5",
+           "window": "@466", "pid": 2783249, "town": "sanctuary", "pubkey": "f7d004317613f5dce92f672c219e4f61825fdc738f7af0b4d0b342ae1bfd9461",
+           "sig_scheme": "ed25519", "enc_scheme": "none", "key_history": [{"pub": "310a45d5", "fp": "7be65ab8", "from": 20, "to": 21}],
+           "box": "core-town", "session_name": "post-sanctuary-director-59", "session_label": "director-belam"}   # no `recover` cell: absent at the source
+
+
+def b737_shape(repo):
+    """BASE carries director-belam as it stood before b737cef238; the returned fn is that commit's exact change to posts.md."""
+    rows = json.loads(json.dumps(ROWS)) + [json.loads(json.dumps(BELAM_X))]
+    repo.write(f"{G}/posts.md", _posts(rows))
+    repo.base = repo.commit("belam", "base with director-belam")
+
+    def fn(rs):
+        src = next(r for r in rs if r["name"] == "director-belam")
+        rs.remove(src)
+        rs.append({**src, "name": "director-belam-retired", "session_label": "director-belam-retired", "box": "off", "pid": 0,
+                   "window": "", "recover": False, "session_name": "", "worktree": "", "boot": None})
+    return rows, fn
+
+
+def edit_from(repo, rows, fn, signer):
+    rows = json.loads(json.dumps(rows))
+    fn(rows)
+    repo.write(f"{G}/posts.md", _posts(rows))
+    return repo.commit(signer, "b737cef238 shape")
+
+
+def test_MOVE_iii_the_b737cef238_diff_signed_by_the_grants_actor_is_ADMITTED_pid_window_recover_take_the_fixed_values(repo):
+    with_move_grant(repo)
+    rows, fn = b737_shape(repo)
+    edit_from(repo, rows, fn, "master")
+    rc, out = repo.run()
+    assert rc == 0 and "ok (1 cell change(s)" in out, out
+
+
+def test_MOVE_ii_NEGATIVE_CONTROL_the_same_diff_signed_by_a_signer_the_grant_does_not_name_stays_REFUSED(repo):
+    with_move_grant(repo)
+    rows, fn = b737_shape(repo)
+    edit_from(repo, rows, fn, "dg2")      # b737cef238's signer was director-general-3: not the grant's actor
+    rc, out = repo.run()
+    assert rc == 1 and "director-belam-retired" in out and "needs a written_by role or an actor_rows grant" in out, out
+
+
+@pytest.mark.parametrize("cell,value", [("pid", 2783249), ("window", "@466"), ("recover", True)])
+def test_MOVE_iii_mutant_a_process_cell_kept_at_BASE_s_live_value_is_REFUSED(repo, cell, value):
+    with_move_grant(repo)
+    rows, fn = b737_shape(repo)
+
+    def keep(rs):
+        fn(rs)
+        next(r for r in rs if r["name"] == "director-belam-retired")[cell] = value
+    edit_from(repo, rows, keep, "master")
+    rc, out = repo.run()
+    assert rc == 1 and "process cells" in out, out
