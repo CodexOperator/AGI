@@ -73,38 +73,40 @@ $ git grep -nE 'update-ref|commit-tree|mktree|hash-object -w' -- extensions src 
 .agi/nodes/.geometry/engine-post.md:93:[ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$({ echo "$P: $*";[ -s $x.s ]&&{ echo
 .agi/nodes/.geometry/engine-post.md:159:  git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||continue;git log -1
 .agi/nodes/.geometry/engine-post.md:164:  [ "$ok" ]&&git update-ref $M/$c $c ""||echo "[atomize] $c: an atom was refused
-.agi/nodes/.geometry/engine-post.md:185:cm(){ c=$(git -C $S -c user.name=mem -c user.email=mem@agi -c commit.gpgsign=fal
-.agi/nodes/.geometry/engine-post.md:190: hz=$(cat $S/horizon 2>/dev/null);if [ "$hz" != "$H" ];then if [ "$hz" ]&&ot=$(g
-.agi/nodes/.geometry/engine-post.md:196:  b=$(git -C $S hash-object -w $D/c)&&git -C $S update-index --add --cacheinfo 1
-.agi/nodes/.geometry/engine-post.md:214:  awk -v a="$v" -v k="$k" '/^---$/{n++}n<2&&/^atom: /{print "atom: " a;next}n<2&
-.agi/nodes/.geometry/engine-post.md:308: t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-remova
-.agi/nodes/.geometry/engine-post.md:312: c=$({ echo "$P: $(sed q $d.p)";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree
-.agi/nodes/.geometry/engine-post.md:313: git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
-.agi/nodes/.geometry/engine-post.md:384:git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[
-.agi/nodes/.geometry/engine-post.md:386:case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git upd
-.agi/nodes/.geometry/engine-post.md:499:  c=$(printf '%s\n' "$b"|GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git 
-.agi/nodes/.geometry/engine-post.md:507:  b=$(git log -1 --format=%B $c);case $b in "[town]"*)[ $f = belam ]&&[ "$(print
-.agi/nodes/.geometry/engine-post.md:508:  [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$b";git update-ref $h
+.agi/nodes/.geometry/engine-post.md:186:cm(){ c=$(git -C $S -c user.name=mem -c user.email=mem@agi -c commit.gpgsign=fal
+.agi/nodes/.geometry/engine-post.md:192: hz=$(cat $S/horizon 2>/dev/null);if [ "$hz" != "$H" ];then if [ "$hz" ]&&ot=$(g
+.agi/nodes/.geometry/engine-post.md:198:  b=$(git -C $S hash-object -w $D/c)&&git -C $S update-index --add --cacheinfo 1
+.agi/nodes/.geometry/engine-post.md:217:  awk -v a="$v" -v k="$k" '/^---$/{n++}n<2&&/^atom: /{print "atom: " a;next}n<2&
+.agi/nodes/.geometry/engine-post.md:311: t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-remova
+.agi/nodes/.geometry/engine-post.md:315: c=$({ echo "$P: $(sed q $d.p)";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree
+.agi/nodes/.geometry/engine-post.md:316: git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
+.agi/nodes/.geometry/engine-post.md:387:git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[
+.agi/nodes/.geometry/engine-post.md:389:case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git upd
+.agi/nodes/.geometry/engine-post.md:497:  c=$(printf '%s\n' "$b"|GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git 
+.agi/nodes/.geometry/engine-post.md:505:  b=$(git log -1 --format=%B $c);case $b in "[town]"*)[ $f = belam ]&&[ "$(print
+.agi/nodes/.geometry/engine-post.md:506:  [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$b";git update-ref $h
 .agi/nodes/.geometry/engine-root.md:144: { echo $n;[ -z "$o" ]||echo ^$o;}|as $1 git -C $2 pack-objects --revs --stdout|
-.agi/nodes/.geometry/engine-root.md:278:git update-ref $T $n $o
+.agi/nodes/.geometry/engine-root.md:283:git update-ref $T $n $o
 .agi/nodes/.geometry/engine-wrap.md:78:V=1;fl $M;V=;fl $M;(export GIT_DIR=$PWD/.git GIT_WORK_TREE=$D GIT_INDEX_FILE=$(mk
 extensions/agi/bin/board_job.py:325:        if _git(main, "update-ref", ref, head, tip).returncode:
 extensions/agi/bin/grid.py:16:  - Commits are made with plumbing (hash-object -> mktree -> commit-tree ->
 extensions/agi/bin/grid.py:17:    update-ref), never a checkout, so the working tree is untouchable by
-extensions/agi/bin/grid.py:92:# `payload_ref`, so a flat entry name is unambiguous and keeps `mktree` to the
-extensions/agi/bin/grid.py:360:# `ref_tip`, `rev-list` and `commit-tree` take no pathspec and were correct
-extensions/agi/bin/grid.py:849:    return git(root, "mktree", input_text=lines)
-extensions/agi/bin/grid.py:899:#: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
-extensions/agi/bin/grid.py:943:                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
-extensions/agi/bin/grid.py:958:    commit = git(root, "commit-tree", tree, *parent, "-m", message)
-extensions/agi/bin/grid.py:960:    res = git_try(root, "update-ref", ref, commit, tip or "")
-extensions/agi/bin/grid.py:969:            print(f"ERROR: update-ref {ref} failed (not a CAS miss): {why}", file=sys.std
-extensions/agi/bin/grid.py:1633:      1. `git update-ref <new_ref> <old_tip>` -- point the NEW ref at the
-extensions/agi/bin/grid.py:1642:      2. `git update-ref -d <old_ref> <old_tip>` -- a **compare-and-swap
-extensions/agi/bin/grid.py:1656:        if git_try(root, "update-ref", new_ref, old_tip, "").returncode != 0:  # CAS (go
-extensions/agi/bin/grid.py:1658:        git(root, "update-ref", "-d", old_ref, old_tip)
-extensions/agi/bin/grid.py:1849:    UNCHANGED for the safety-critical mutation -- `update-ref <new> <old_tip>`
-extensions/agi/bin/grid.py:1851:    then a compare-and-swap `update-ref -d <old> <old_tip>` -- so it inherits
+extensions/agi/bin/grid.py:94:# `payload_ref`, so a flat entry name is unambiguous and keeps `mktree` to the
+extensions/agi/bin/grid.py:393:# `ref_tip`, `rev-list` and `commit-tree` take no pathspec and were correct
+extensions/agi/bin/grid.py:882:    return git(root, "mktree", input_text=lines)
+extensions/agi/bin/grid.py:932:#: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
+extensions/agi/bin/grid.py:1005:                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+extensions/agi/bin/grid.py:1020:    commit = git(root, "commit-tree", tree, *parent, "-m", message)
+extensions/agi/bin/grid.py:1022:    res = git_try(root, "update-ref", ref, commit, tip or "")
+extensions/agi/bin/grid.py:1031:            print(f"ERROR: update-ref {ref} failed (not a CAS miss): {why}", file=sys.st
+extensions/agi/bin/grid.py:1701:      1. `git update-ref <new_ref> <old_tip>` -- point the NEW ref at the
+extensions/agi/bin/grid.py:1710:      2. `git update-ref -d <old_ref> <old_tip>` -- a **compare-and-swap
+extensions/agi/bin/grid.py:1724:        if git_try(root, "update-ref", new_ref, old_tip, "").returncode != 0:  # CAS (go
+extensions/agi/bin/grid.py:1726:        git(root, "update-ref", "-d", old_ref, old_tip)
+extensions/agi/bin/grid.py:1917:    UNCHANGED for the safety-critical mutation -- `update-ref <new> <old_tip>`
+extensions/agi/bin/grid.py:1919:    then a compare-and-swap `update-ref -d <old> <old_tip>` -- so it inherits
+extensions/agi/bin/grid.py:1989:    return git_try(root, "update-ref", ref, new, old).returncode == 0
+extensions/agi/bin/grid.py:2020:        res = git_try(root, "commit-tree", f"{ltip}^{{tree}}", "-p", ltip, "-p", ntip, "
 extensions/agi/bin/heal.py:1546:            # unborn tree reached _sweep_archive, and `update-ref <ref> 0000..0` on an
 extensions/agi/bin/heal.py:1701:            _, rc = _git(["update-ref", ref, head], main_checkout)
 extensions/agi/bin/heal.py:1703:                return "update-ref failed"
@@ -117,32 +119,31 @@ extensions/agi/bin/prereq_notice.py:348:        git(repo, "update-ref", f"{BUNDL
 extensions/agi/bin/prereq_notice.py:353:    git(repo, "update-ref", SEEN, new, old)              # CAS: advance last, so
 extensions/agi/bin/prereq_notice.py:361:        git(repo, "update-ref", STATUS, blob)
 extensions/agi/bin/prereq_notice.py:375:    git(repo, "update-ref", SEEN, sha, "")
-extensions/agi/bin/rotate.py:11175:            sha = _g("commit-tree", tree, "-p", head, "-m",
-extensions/agi/bin/rotate.py:11179:                last = "commit-tree failed"; continue
+extensions/agi/bin/rotate.py:11184:            sha = _g("commit-tree", tree, "-p", head, "-m",
+extensions/agi/bin/rotate.py:11188:                last = "commit-tree failed"; continue
 extensions/agi/bin/season.py:1374:        print(f"[rollover]   drop the scratch cell commit {h1[:12]} on {branch}: git u
 extensions/agi/guard/f1-nspawn.sh:282: git -C "$MM" update-ref refs/heads/core/season3/main "$SHA"&&git -C "$MM" symboli
 ```
 C2 every user of the grid push-spec builders
 ```
 $ git grep -nE 'PUSH_SPEC|push_spec_for|grid_spec' -- extensions src .agi/nodes/.geometry ':!extensions/agi/tests' ':!*.js' ':!*.json' ':!extensions/**/*.md' | cut -c1-120
-extensions/agi/bin/crons.py:83:import grid  # noqa: E402 -- grid.push_spec_for: ONE spelling of the ref namespace
-extensions/agi/bin/grid.py:107:PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
-extensions/agi/bin/grid.py:171:def push_spec_for(root: Path) -> str:
-extensions/agi/bin/grid.py:254:    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
-extensions/agi/bin/grid.py:281:    """`REF_NS` fetch refspec for graph root `root` (see `push_spec_for`)."""
-extensions/agi/bin/grid.py:289:    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
-extensions/agi/bin/grid.py:295:    global REF_NS, FETCH_SPEC, PUSH_SPEC
-extensions/agi/bin/grid.py:298:    PUSH_SPEC = push_spec_for(root)
-extensions/agi/bin/grid.py:1907:    out = git(root, "push", "origin", PUSH_SPEC)
-extensions/agi/bin/grid.py:1949:            f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
+extensions/agi/bin/crons.py:86:import grid  # noqa: E402 -- grid.push_spec_for: ONE spelling of the ref namespace
+extensions/agi/bin/grid.py:110:PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
+extensions/agi/bin/grid.py:220:def push_spec_for(root: Path) -> str:
+extensions/agi/bin/grid.py:308:    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
+extensions/agi/bin/grid.py:355:    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+extensions/agi/bin/grid.py:361:    global REF_NS, FETCH_SPEC, PUSH_SPEC
+extensions/agi/bin/grid.py:367:    PUSH_SPEC = push_spec_for(root)
+extensions/agi/bin/grid.py:2336:    out = git(root, "push", "origin", PUSH_SPEC)
+extensions/agi/bin/grid.py:2378:            f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
 extensions/agi/bin/level3.py:330:_grid_spec = importlib.util.spec_from_file_location("grid_for_level3", _GRID_PATH)
 extensions/agi/bin/level3.py:331:grid = importlib.util.module_from_spec(_grid_spec)
 extensions/agi/bin/level3.py:332:_grid_spec.loader.exec_module(grid)
-extensions/agi/bin/rotate.py:9651:        # graph root, so `push_spec_for(main)` would read no config and return
-extensions/agi/bin/rotate.py:9654:        grid_spec = grid.push_spec_for(_shared_graph_root(root))
-extensions/agi/bin/rotate.py:9661:        p2 = _git_proc(main, "push", "origin", grid_spec)
-extensions/agi/bin/rotate.py:9666:                    f"push: push origin {grid_spec} refused: "
-extensions/agi/bin/rotate.py:9669:                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
+extensions/agi/bin/rotate.py:9758:        # graph root, so `push_spec_for(main)` would read no config and return
+extensions/agi/bin/rotate.py:9761:        grid_spec = grid.push_spec_for(_shared_graph_root(root))
+extensions/agi/bin/rotate.py:9768:        p2 = _git_proc(main, "push", "origin", grid_spec)
+extensions/agi/bin/rotate.py:9773:                    f"push: push origin {grid_spec} refused: "
+extensions/agi/bin/rotate.py:9776:                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
 extensions/agi/bin/stitch.py:194:_grid_spec = importlib.util.spec_from_file_location("grid_for_stitch", _GRID_PATH)
 extensions/agi/bin/stitch.py:195:grid = importlib.util.module_from_spec(_grid_spec)
 extensions/agi/bin/stitch.py:196:_grid_spec.loader.exec_module(grid)
@@ -150,16 +151,18 @@ extensions/agi/bin/stitch.py:196:_grid_spec.loader.exec_module(grid)
 C3 every user of the grid fetch-spec builders
 ```
 $ git grep -nE 'FETCH_SPEC|fetch_spec_for|remote.origin.fetch' -- extensions src .agi/nodes/.geometry ':!extensions/agi/tests' ':!*.js' ':!*.json' ':!extensions/**/*.md' | cut -c1-120
-extensions/agi/bin/crons.py:426:    `git config --add remote.origin.fetch '+refs/agi/*:refs/agi/*'`)."""
-extensions/agi/bin/grid.py:106:FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
-extensions/agi/bin/grid.py:280:def fetch_spec_for(root: Path) -> str:
-extensions/agi/bin/grid.py:289:    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
-extensions/agi/bin/grid.py:295:    global REF_NS, FETCH_SPEC, PUSH_SPEC
-extensions/agi/bin/grid.py:297:    FETCH_SPEC = fetch_spec_for(root)
-extensions/agi/bin/grid.py:878:        specs = git(root, "config", "--get-all", "remote.origin.fetch",
-extensions/agi/bin/grid.py:880:        if FETCH_SPEC not in specs:
-extensions/agi/bin/grid.py:881:            git(root, "config", "--add", "remote.origin.fetch", FETCH_SPEC)
-extensions/agi/bin/grid.py:882:            print(f"grid: added fetch refspec {FETCH_SPEC} to origin")
+extensions/agi/bin/crons.py:451:    `git config --add remote.origin.fetch '+refs/agi/*:refs/agi/*'`)."""
+extensions/agi/bin/grid.py:108:FETCH_SPEC = f"{REF_NS}/node/*:{REF_NS}/node/*"
+extensions/agi/bin/grid.py:109:FETCH_SPECS = [FETCH_SPEC, f"{REF_NS}/session/*:{REF_NS}/session/*"]
+extensions/agi/bin/grid.py:347:def fetch_spec_for(root: Path) -> str:
+extensions/agi/bin/grid.py:355:    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+extensions/agi/bin/grid.py:361:    global REF_NS, FETCH_SPEC, PUSH_SPEC
+extensions/agi/bin/grid.py:362:    global FETCH_SPECS, LEGACY_NS
+extensions/agi/bin/grid.py:365:    FETCH_SPECS = fetch_specs_for(root)
+extensions/agi/bin/grid.py:366:    FETCH_SPEC = FETCH_SPECS[0]
+extensions/agi/bin/grid.py:947:        specs = git(root, "config", "--get-all", "remote.origin.fetch",
+extensions/agi/bin/grid.py:949:        added = [x for x in FETCH_SPECS if x not in specs]
+extensions/agi/bin/grid.py:951:            git(root, "config", "--add", "remote.origin.fetch", spec)
 ```
 C4 wildcard-push probe (its three hits are comment / docstring / prose text -- the third is crons.md's THOUGHT line, whose words push ... commit --all match the pattern: no `--all` / `--mirror` / `refs/*` push exists)
 ```
@@ -252,7 +255,7 @@ extensions/agi/bin/rotate.py:9617:        binp = Path(__file__).with_name("grid.
 extensions/agi/bin/rotate.py:12564:                              str(Path(__file__).with_name("grid.py")),
 ```
 TABLE (every CODE site of C1-C5, C7 and C8 is in a row; NOT in a row, by design: C1's comment / docstring hits (grid.py:16, :17, :92, :354, :893, :1627, :1636, :1833, :1835; heal.py:1546); gates are those live on this trunk TODAY)
-G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, reads False on live MAIN (crons.md grid_sync enabled: true), so GATED TODAY = no for everything it covers; it is the only gate that can stop W1/W2. grid.py:1171 (namespace refusal) and :1201 (branch refusal) fire only when ref_ns_for(root) == DEFAULT_REF_NS; .agi/config.json:239 sets grid.storage_trunk = refs/grid/local-maxxing, so both are open here.
+G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, reads False on live MAIN (crons.md grid_sync enabled: true), so GATED TODAY = no for everything it covers; it is the only gate that can stop W1/W2. grid.py's namespace refusal fires only when ref_ns_for(root) == DEFAULT_REF_NS AND a nested namespace NOT named in grid.legacy_namespaces holds refs, and its branch refusal fires only when grid.storage_trunk is UNDECLARED (goal:g7.16.1.11.46.16 G1a, 10-26: the writer is re-pointed at refs/grid, so the config now declares grid.storage_trunk = refs/grid and grid.legacy_namespaces = [refs/grid/local-maxxing], the read-only old namespace); both are open here.
 | # | path:line | acts | carries refs/grid | gated today | covered once the flip lands |
 |---|---|---|---|---|---|
 | W1 | grid.py:952 commit-tree, :954 update-ref (commit_file :898; mktree :843, :937; sole caller cmd_commit :1117) | writes | yes | no | grid.py:1150 |
@@ -263,9 +266,10 @@ G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, rea
 | W6 | rotate.py:12564-12565 (_button_down runs `grid.py commit --all`; C8) | via W1 | yes | no | grid.py:1150 |
 | W7 | crons.py:902-903 (rendered `commit --all` ; `push-changed`; C8) | via W1, W2 | yes | no | grid.py:1150, :269 |
 | W8 | grid.py:1650 update-ref, :1652 update-ref -d (migrate helpers; cmd_migrate_refs :1656, cmd_migrate_mint_refs :1717, cmd_migrate_trunk :1822) | writes (renames existing tips) | yes | no | dry-run unless --write (grid.py:1656, :1717, :1822) |
-| W9 | grid.py:881 `git config --add remote.origin.fetch FETCH_SPEC` (cmd_init :874) | config | no ref written | n/a | n/a |
+| W9 | grid.py:881 `git config --add remote.origin.fetch` for each of FETCH_SPECS (cmd_init :874; goal:g7.16.1.11.46.16 R3: `fetch_specs_for` = `<ns>/node/*:<ns>/node/*` and `<ns>/session/*:<ns>/session/*`, NEVER forced, never the legacy namespaces nested under refs/grid) | config | no ref written | n/a | n/a |
 | W10 | grid.py:1948-1949 snap line (commit half :1948 = C8, push half :1949) `git push -q origin PUSH_SPEC` (cron_lines :1927, cmd_cron :1967); its commit half is W1 | pushes | yes | exempt-by-name grid.py:253-254 (row test_grid_gate.py:522) | exempt |
-| W11 | cli.py:4241 (`git fetch`), crons.py:953 (the built-in mail_poll line, 5 min) and the LIVE cell .agi/nodes/.geometry/crons.md:32 (mail_poll `fetch -q origin`, which crons.py prefers over :953): plain fetches under the configured FETCH_SPEC `+refs/grid/*:refs/grid/*` ('+' forced, grid.py:106) | fetches into local grid refs | yes | exempt-by-name (this row; brings in tips that already exist remotely); AFTER goal:g7.16.1.11.13.1 (F2) with grid_sync off the RENDERED mail_poll line is rewritten at render time by crons.py (`text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs/remotes/origin/*'", 1)`, a C7 TEXT site, not a new git call) so it fetches heads only and writes no refs/grid | exempt |
+| W12 | grid.py `_cas` (the ONE update-ref of `cmd_unify`) and `_unify_one`'s `commit-tree` (goal:g7.16.1.11.46.16 G1a; cite by arm): `grid.py unify` merges each tip of a READ-ONLY legacy namespace (config grid.legacy_namespaces) into refs/grid/node/<mint>: a missing ref is created at the live tip, a ref inside the live history fast-forwards, a diverged pair gets ONE two-parent merge commit (tree = the live side's, first parent = the live tip); every write is a compare-and-swap through `_cas`, there is NO delete, the legacy refs are only read; `--check --before FILE` and the dry run write nothing | writes (additive) | yes | dry-run unless `--write` (`_retired_write`: refused when grid_retired); takes the commit-all flock | idempotent: a second `--write` moves no ref |
+| W11 | cli.py:4241 (`git fetch`), crons.py:953 (the built-in mail_poll line, 5 min) and the LIVE cell .agi/nodes/.geometry/crons.md:32 (mail_poll `fetch -q origin`, which crons.py prefers over :953): plain fetches under the configured fetch specs (the live repo's config names heads only; a tree that ran `grid.py init` holds the two NON-forced node/ and session/ specs of FETCH_SPECS, grid.py:106, which refuse a non-fast-forward, goal:g7.16.1.11.46.16 R3; before R3 the spec was the forced `+refs/grid/*:refs/grid/*`) | fetches into local grid refs | yes | exempt-by-name (this row; brings in tips that already exist remotely); AFTER goal:g7.16.1.11.13.1 (F2) with grid_sync off the RENDERED mail_poll line is rewritten at render time by crons.py (`text.replace("fetch -q origin", "fetch -q origin '+refs/heads/*:refs/remotes/origin/*'", 1)`, a C7 TEXT site, not a new git call) so it fetches heads only and writes no refs/grid | exempt |
 | T1 | C7 text only, no fetch run: cli.py:4239-4240, :4243, :4245 (the rename verb's step label and notes around W11's :4241), rotate.py:11009, :13206, :14387, :17016, :17301 (strings, comments and a printed `git fetch origin <b> && git merge` that a human runs), send.py:550 (a comment; all of these ARE lines of the C7 block); NOT matched by C7's pattern, found by a wider read of the word `fetch` and listed so no one hunts them again: grid.py:20, metrics.py:367, send.py:5798 (docstring / help text) | none | n/a | n/a | n/a |
 | F1 | dispatch.py:579, rotate.py:10999, :17007, send.py:905, :4935 (`fetch origin <ref>`: an explicit ref); engine-root.md:96, :119 (fetch from file:// G / refs/box) | fetches a named ref | no | n/a | n/a |
 | F2 | extensions/agi/guard/f1-nspawn.sh (goal:g7.16.1.11.44.8 F1, the nspawn harness; cite by arm, line numbers drift): the host leg's `git -C "$MM" fetch -q --depth 1 --upload-pack=... file://$F1_REPO $SHA` = an EXPLICIT sha read from the live repo (read-only: upload-pack runs on the live repo, nothing is written there) into the rootfs clone the harness just made | fetches a named sha | no | n/a | n/a |
