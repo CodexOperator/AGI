@@ -19,13 +19,13 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-brief         1369 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          829 B  past rotate_pct: out-line; tap chat; read: atomize
+agi-meter         2000 B  past rotate_pct: out-line; tap chat; read: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
 agi-atomize       4146 B  box mail -> verbatim card atoms (wake path, model)
 agi-mem           19689 B  chat tap -> own 0700 store; tap, at
 agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
-agi-turn           4615 B  a signed commit per changed node tree
+agi-turn           4641 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track           89 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
@@ -33,7 +33,7 @@ agi-sync           2579 B  merge the trunk each turn; a conflict said by name
 agi-out           3285 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
-agi-notice          1141 B  engine->post notices: add / claim + print
+agi-notice          1169 B  engine->post notices: add / claim + print
 reference-transaction 4394 B  peer-ref mistake guard + R-land (mode cell)
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
@@ -76,12 +76,13 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (829 B)
+### agi-meter (2000 B)
 ~~~sh
 #!/bin/sh
-ls ~/.notice* >/dev/null 2>&1&&agi-notice;j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
-printf %s "$j"|agi-mem tap 2>/dev/null;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)agi-atomize wake||echo "[atomize] wake rc=$?: no atoms this read (~/.atomize.log); the next read retries";;esac
-[ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
+# FIRST the rotation line (Claude Code kills a UserPromptSubmit hook at 30 s, and the line is the only thing that rotates a post: belam 14:2xZ 10-26); then the notice and the tap (bounded: `timeout -k 2 15`, so the hook's total wall time is bounded by construction, and a killed tap prints ONE `[mem] tap unread` line, never a silent drop); `agi-atomize wake` (26 s, stdout NEVER used) runs in the BACKGROUND under a flock held by the child, its output and failure line in ~/.atomize.log, so the hook returns in seconds
+j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
+[ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID"
+ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;case $? in 124|137)echo "[mem] tap unread (killed at 15 s)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ (agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;;esac;:
 ~~~
 
 ### agi-at (1129 B)
@@ -297,10 +298,10 @@ except BaseException as e:print("[spawn-gate-broken] spawn_gate.py: "+repr(e)[:1
 sys.exit(b)
 ~~~
 
-### agi-turn (4615 B)
+### agi-turn (4641 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (its report-mode `Scope:` lines become trailers of the commit; a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (called first by agi-brief and agi-meter) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (its report-mode `Scope:` lines become trailers of the commit; a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (agi-brief calls it first; agi-meter right after the rotation line) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
 cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l $x.s' 0;export GIT_INDEX_FILE=$x;k=0
 c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
 [ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
@@ -326,10 +327,10 @@ unset GIT_INDEX_FILE;agi-sync;if agi-turn strand;then git checkout -q --detach $
 [ -x ~/hooks/pre-commit ]&&exec ~/hooks/pre-commit "$@";:
 ~~~
 
-### agi-notice (1141 B)
+### agi-notice (1169 B)
 ~~~sh
 #!/bin/sh
-# agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (the [label] plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart and agi-meter's prompt hook call it first), THEN remove the claims printed
+# agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (the [label] plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart calls it first; agi-meter's prompt hook right after the rotation line), THEN remove the claims printed
 case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,r){n=split(x,a," ");for(i=1;i<=n;i++)if(a[i]~/^\[/||(length(a[i])>6&&a[i]~/^[0-9a-f]+$/))r=r a[i];return r}K($0)==K(l){f=1}END{exit f}' ~/.notice&&echo "$2">>~/.notice;exit 0;;esac
 mv ~/.notice ~/.notice.$$ 2>/dev/null;f=$(ls ~/.notice.* 2>/dev/null)||exit 0;cat $f|awk '!s[$0]++';rm -f $f
 ~~~
