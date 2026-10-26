@@ -24,6 +24,7 @@
 #  veto  while BASE's config:vetoes holds an unanswered active_gate for scope `prime`, a row change that is not
 #      the signer's own self_row write is refused.  town  a changed row's `town` must be in the ladder's
 #      `towns:` plus the schema's `town_cell.also_accepted`.
+#  The ok / report line ends `; N row op(s): a retire, b create, c set`: ROW ops judged (a posts.md change that moves two rows is 4, not "1 cell change"; council 09:23Z 10-26).
 #  A merge commit that takes one parent's cell wholesale adds nothing (the commits it brought are judged on their
 #  own); a merge that writes a NEW cell is judged against its first parent by the merge's signer.
 #  MODE  ONE cell, BASE's [config].md `r_land: {mode: report|enforce}` (council 3/3 22:48Z 10-25, V8a re-cut to REPORT
@@ -38,6 +39,11 @@
 #      prints `R-land: would refuse <tip> (unread <what>)` rc 0 in report and `R-land: unread (<what>)` rc 1 in enforce. The
 #      ring is read only when a row change must be verified in report (a 0-change range needs none and says ok).
 #      Flipping it is ONE commit on a RULES path, at all three call sites together (they all read this one cell).
+#  W   (section at the end) who changed a node whose type declares `written_by` (BASE's schemas): moral / vision / town by PER-COMMIT
+#      SIGNER (lines end (W1)); config by its LANDER, the first-parent commit that introduces it (a direct config leaf by a seat
+#      outside written_by = a (W2) line; a land MERGE signed outside written_by = ONE report line `config: lander not provable in
+#      history (RULES via unsigned ff)` with the count and leaf signers, never absorbing an R1 line, an unread or a leaf signer with
+#      no seat by name or `was:` (c)); an unsigned / unringed lander or leaf is the R1 line. A `ran as` line names the process uid.
 #  R5  what this is: enforced at every trunk move except a deliberate core.hooksPath bypass. A hook guards against
 #      MISTAKES; it is not a wall.
 # Reads ONLY git objects of BASE/TIP plus the ring file; writes nothing. sh + jq + one python3 yaml read.
@@ -94,7 +100,7 @@ rows(){ # rev cell -> file
 rows "$B" posts.md "$d/b.posts"; rows "$B" seats.md "$d/b.seats"
 jq -s 'add' "$d/b.posts" "$d/b.seats" >"$d/brows" 2>/dev/null||U "BASE rows"
 
-nchg=0; bad=0
+nchg=0; bad=0; opc=0; opr=0; ops=0       # opc/opr/ops = row ops judged: create / retire / set (a cell file with 2 moves is 4 row ops, not 1 change)
 git rev-list --reverse "$B..$T" >"$d/revs" 2>/dev/null||U "range ${B%${B#????????}}..${T%${T#????????}}"
 while read -r c; do
   par=$(git rev-list --parents -n1 "$c"|sed 's/^[^ ]* *//')
@@ -111,6 +117,10 @@ while read -r c; do
     s=$(git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile="$A" verify-commit --raw "$c" 2>&1|sed -n 's/.*signature for \([^@]*\)@agi with.*/\1/p'|head -1)
     if [ -z "$s" ]; then echo "R-land: $V ${c%${c#????????}} (nobody, $cell, -, changes $cell but is signed by nobody the ring knows (R1))"; bad=$((bad+1)); continue; fi
     rows "$p1" "$cell" "$d/before"; rows "$c" "$cell" "$d/after"
+    o3=$(jq -r -n --slurpfile Bf "$d/before" --slurpfile Af "$d/after" '
+      ($Bf[0]|map({(.name|tostring):.})|add//{}) as $o | ($Af[0]|map({(.name|tostring):.})|add//{}) as $n | (($o|keys)+($n|keys)|unique) as $k
+      | "\([$k[]|select($o[.]==null and $n[.]!=null)]|length) \([$k[]|select($o[.]!=null and $n[.]==null)]|length) \([$k[]|select($o[.]!=null and $n[.]!=null and $o[.]!=$n[.])]|length)"' 2>/dev/null)||o3=
+    case "$o3" in [0-9]*" "[0-9]*" "[0-9]*) opc=$((opc+${o3%% *})); t3=${o3#* }; opr=$((opr+${t3%% *})); ops=$((ops+${t3#* }));; esac
     jq -r -n --arg v "$V" --arg s "$s" --arg c "${c%${c#????????}}" --arg pp "${p1%${p1#????????}}" --slurpfile D "$d/data.json" --slurpfile Bf "$d/before" \
       --slurpfile Af "$d/after" --slurpfile Br "$d/brows" '
       ($D[0].schema) as $sc | ($D[0].vetoes) as $vt | ($D[0].ladder) as $ld
@@ -164,8 +174,192 @@ while read -r c; do
     if [ -s "$d/out" ]; then cat "$d/out"; bad=$((bad+$(wc -l <"$d/out"))); fi
   done
 done <"$d/revs"
+# ---- W: who changed a node whose type declares written_by (goal:g7.16.1.11.46.23; council 3/3 alive 02:53:20Z + 02:54:27Z 10-26)
+# moral / vision / town: PER-COMMIT SIGNER (a leaf is judged by its own signer; the quiet owner-only types). config: the LANDER, the
+# first-parent commit of BASE..TIP that introduces the change (a config leaf ff'd straight onto the ref is its own lander). A land MERGE
+# whose signer holds no written_by role (SM is a director) prints ONE named report line `config: lander not provable in history (RULES
+# via unsigned ff)` with the count and the leaf signers; it NEVER absorbs an R1 line, an unread or a leaf signer with no seat (each
+# prints BESIDE it); an unsigned / unringed lander is the R1 line. posts.md / seats.md rows are judged above, not here. Same mode cell,
+# same three call sites; `R-land: ran as <post> (user <name>, uid <n>)` names this run's PROCESS uid (id -un, never AGI_POST), informational only.
+git diff --name-only "$B" "$T" -- .agi/nodes >"$d/nwb" 2>/dev/null; nrc=$?   # a git error is a CHANGE (council P1): the section runs, never a silent skip
+nwb=$(grep -c '\.md$' "$d/nwb")
+if [ "$nrc" != 0 ] || [ "${nwb:-0}" != 0 ]; then
+python3 -I - "$B" "$T" "$MODE" "$A" >"$d/wb.out" 2>/dev/null <<'PY'||U "written_by section at ${B%${B#????????}}..${T%${T#????????}}"
+import collections, json, re, subprocess, sys
+BASE, TIP, MODE, RING = sys.argv[1:5]
+V = "would refuse" if MODE == "report" else "refused"
+G = ".agi/nodes/.geometry"
+def git(*a):
+    r = subprocess.run(["git", *a], capture_output=True, text=True)
+    if r.returncode != 0:      # a git that cannot answer is an UNREAD, never an empty answer (council P1)
+        unread(f"git {a[0]} failed rc {r.returncode} in the written_by section")
+    return r.stdout
+def blob(rev, path):
+    r = subprocess.run(["git", "cat-file", "blob", f"{rev}:{path}"], capture_output=True, text=True)
+    return r.stdout if r.returncode == 0 else None
+def s8(c):
+    return c[:8]
+def unread(what):
+    print(f"R-land: would refuse {s8(TIP)} (unread {what})" if MODE == "report" else f"R-land: unread ({what})")
+    sys.exit(0)
+def head(t):
+    m = re.match(r"---\n(.*?)\n---", t or "", re.S)
+    return m[1] if m else ""
+try:
+    import yaml
+except Exception:
+    unread("yaml for the written_by section")
+types = {}
+for path in git("ls-tree", "--name-only", BASE, ".agi/context/schemas/").split("\n"):
+    m = re.search(r"\[([a-z_-]+)\]\.md$", path)
+    if not m:
+        continue
+    t = blob(BASE, path)
+    try:
+        f = yaml.safe_load(head(t)) if t is not None else None
+    except Exception:
+        f = None
+    if not isinstance(f, dict):
+        unread(f"schema {path} at {s8(BASE)}")
+    wb = f.get("written_by")
+    if wb is None:
+        continue
+    types[m.group(1)] = [x for x in re.split(r"[,\s]+", wb) if x] if isinstance(wb, str) else [str(x) for x in wb]
+rows = {}
+for cell in ("posts.md", "seats.md"):
+    for ln in (blob(BASE, f"{G}/{cell}") or "").splitlines():
+        if ln.startswith("  - {"):
+            try:
+                r = json.loads(ln[4:])
+            except Exception:
+                unread(f"{cell} rows at {s8(BASE)}")
+            if isinstance(r, dict) and r.get("name"):
+                rows.setdefault(r["name"], r)
+def role_of(name):
+    seen, todo = {name}, [name]
+    while todo:
+        n = todo.pop()
+        if n in rows:
+            return rows[n].get("role")
+        for r in rows.values():
+            if r.get("was") == n and r["name"] not in seen:
+                seen.add(r["name"]); todo.append(r["name"])
+    return None
+sig = None
+def signer(c):
+    """The ring-verified signer name of c, else None. The ring is read ONLY when a judged node change needs it (a range that
+    changes no node of a written_by type needs none), and an unreadable ring is the mode-aware unread."""
+    global sig
+    if sig is None:
+        import os
+        if not (RING and os.path.isfile(RING) and os.access(RING, os.R_OK)):
+            unread("allowed_signers ring")
+        sig = {}
+        for ln in git("-c", "gpg.format=ssh", "-c", f"gpg.ssh.allowedSignersFile={RING}", "log", "--format=%H\t%G?\t%GS", f"{BASE}..{TIP}").splitlines():
+            h, g, s = (ln.split("\t") + ["", ""])[:3]
+            sig[h] = s.split("@")[0] if g == "G" and s.endswith("@agi") else None
+    return sig.get(c)
+parents = {}
+for ln in git("rev-list", "--parents", f"{BASE}..{TIP}").splitlines():
+    p = ln.split()
+    parents[p[0]] = p[1:]
+def changed(c, parent):
+    res = []
+    for ln in git("diff-tree", "-r", "--no-renames", "--name-status", parent, c, "--", ".agi/nodes").splitlines():
+        st, _, p = ln.partition("\t")
+        if p.endswith(".md") and not p.endswith((f"{G}/posts.md", f"{G}/seats.md")):
+            res.append((st[0], p))
+    return res
+def ntype(path, new, old):
+    for rev in (new, old):
+        t = blob(rev, path) if rev else None
+        if t is not None:
+            m = re.search(r"^type:[ \t]*([A-Za-z_-]+)[ \t]*$", head(t), re.M)
+            if m:
+                return m.group(1)
+    return None
+out = []
+def r1(c, p, typ):
+    out.append(f"R-land: {V} {s8(c)} (nobody, {p}, -, changes {typ} node but is signed by nobody the ring knows (R1))")
+def op(st):
+    return {"A": "create", "D": "retire"}.get(st, "set")
+def ok(s, roles):
+    return s is not None and (role_of(s) in roles or s in roles)
+# per-commit types
+for c in git("rev-list", "--reverse", f"{BASE}..{TIP}").split():
+    par = parents.get(c) or []
+    if not par:
+        continue
+    for st, p in changed(c, par[0]):
+        if len(par) > 1 and any(blob(q, p) == blob(c, p) for q in par[1:]):
+            continue
+        typ = ntype(p, c if st != "D" else None, par[0])
+        if typ is None or typ == "config" or typ not in types:
+            continue
+        s = signer(c)
+        if s is None:
+            r1(c, p, typ)
+        elif not ok(s, types[typ]):
+            out.append(f"R-land: {V} {s8(c)} ({s}, {p}, {op(st)} {typ}, written_by: {', '.join(types[typ])}; signer role {role_of(s) or 'none'} (W1))")
+# config: the lander
+nconf, nprov, leafs = 0, 0, collections.Counter()
+if "config" in types:
+    roles = types["config"]
+    for lander in git("rev-list", "--first-parent", "--reverse", f"{BASE}..{TIP}").split():
+        par = parents.get(lander) or []
+        if not par:
+            continue
+        items = [(st, p) for st, p in changed(lander, par[0]) if ntype(p, lander if st != "D" else None, par[0]) == "config"]
+        if not items:
+            continue
+        s = signer(lander)
+        merge = len(par) > 1
+        leaves = git("rev-list", "--no-merges", f"{par[0]}..{par[1]}").split() if merge else []
+        for st, p in items:
+            nconf += 1
+            if s is None:
+                r1(lander, p, "config")
+            elif ok(s, roles):
+                continue
+            elif merge:
+                nprov += 1
+                for lf in leaves:
+                    lpar = parents.get(lf)
+                    if not lpar or not any(pp == p for _, pp in changed(lf, lpar[0])):
+                        continue
+                    ls = signer(lf)
+                    if ls is None:
+                        r1(lf, p, "config")
+                    elif role_of(ls) is None and ls not in roles:
+                        out.append(f"R-land: {V} {s8(lf)} ({ls}, {p}, -, leaf signer has no seat at {s8(BASE)} and none reachable by was: (c))")
+                    else:
+                        leafs[ls] += 1
+            else:
+                out.append(f"R-land: {V} {s8(lander)} ({s}, {p}, {op(st)} config, written_by: {', '.join(roles)}; direct lander role {role_of(s) or 'none'} (W2))")
+if nprov:
+    who = ", ".join(f"{k} x{v}" for k, v in leafs.most_common()) or "none found"
+    out.append(f"R-land: config: lander not provable in history (RULES via unsigned ff): {nprov} change(s); leaf signers: {who}")
+if nconf:     # informational only: never a verdict input, never in the rc-1 set (council 03:25Z: it names the PROCESS uid, never AGI_POST)
+    def idq(*a):
+        r = subprocess.run(["id", *a], capture_output=True, text=True)
+        return r.stdout.strip() if r.returncode == 0 else ""
+    u, n = idq("-un"), idq("-u")
+    post = u[4:] if u.startswith("agi-") else u
+    if u and post in rows:
+        out.append(f"R-land: ran as {post} (user {u}, uid {n or '?'})")
+    elif u:
+        out.append(f"R-land: ran as: unread (user {u}, uid {n or '?'}; no seat row of that name)")
+    else:
+        out.append(f"R-land: ran as: unread (uid {n or '?'}; no name)")
+print("\n".join(out))
+PY
+cat "$d/wb.out"
+bad=$((bad+$(grep -c -E '^R-land: (would refuse|refused|unread) ' "$d/wb.out")))
+fi
+nro=$((opc+opr+ops)); rowops="$nro row op(s)"
+if [ $nro != 0 ]; then rp=""; for kv in "$opr retire" "$opc create" "$ops set"; do [ "${kv%% *}" != 0 ]&&rp="${rp:+$rp, }$kv"; done; rowops="$rowops: $rp"; fi
 if [ $bad != 0 ]; then
-  [ $MODE = report ]&&{ echo "R-land: report ($nchg cell change(s) in ${B%${B#????????}}..${T%${T#????????}} judged, $bad would refuse; rc 0, the ref moves)"; exit 0; }
+  [ $MODE = report ]&&{ echo "R-land: report ($nchg cell change(s) in ${B%${B#????????}}..${T%${T#????????}} judged, $bad would refuse; $rowops; rc 0, the ref moves)"; exit 0; }
   exit 1
 fi
-echo "R-land: ok ($nchg cell change(s) in $B..$T judged, mode $MODE)"
+echo "R-land: ok ($nchg cell change(s) in $B..$T judged, mode $MODE; $rowops)"
