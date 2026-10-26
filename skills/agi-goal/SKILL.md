@@ -96,3 +96,4 @@ g14 → `goal:g5` · g13 → none (read/write-path work: `goal:g4.19`) · g15 �
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - a 'what do I own' grep -> search the council's name too: `'Assigned to **council**'` (alive gen 12: told SM alive owns no leaf, then corrected)
+- an `Assigned to` name on a leaf -> a post name is RE-USED after a shuffle: read the line's first-write date (`git log -S '<line>' --format=%ci -- <goal file>`) before trusting it names today's holder (aio gen 12)

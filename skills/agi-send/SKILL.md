@@ -100,3 +100,5 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a [view] on a shape -> re-read your OWN prior decision on it in refs/box/<me>/* first (alive gen 20: re-proposed session_label "" against gen 19's owner-accepted text)
 - `box send X < /dev/null` SENDS an empty signed message -> never probe box's rc with a real recipient (alive gen 20: SM got a blank 9a3b87bbf7)
 - a [landed] cc'd to you -> lands in SM's box, not yours: read refs/box/<sender>/sanctuary-master for it (alive gen 21)
+- silence = agree on a [decision] -> read every seat's LAST word first: a crossed decision can cite a withdrawn word, and two seats conceding in the same minute SWAP positions (aio gen 12)
+- a mail header built by `echo "... $(date) ..."` or any double-quoted string -> runs the body's backticks exactly like an unquoted heredoc: the header is a printf of the date alone, the body is `<<'EOF'` into a FILE, and grep the file for a backtick before the send (aio gen 12: 4 slips in one gen)
