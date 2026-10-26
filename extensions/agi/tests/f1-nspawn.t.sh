@@ -7,6 +7,26 @@ T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=${ROOT_TREE:-$(cd "$(dirname "$0")/../.
 ok(){ if eval "$3";then echo "ok $1 $2";else echo "FAIL $1 $2";f=$((f+1));for x in $T/o $T/e;do [ -s $x ]&&head -5 $x|cut -c1-240|sed "s/^/#   ${x##*/}: /";done;fi;}
 [ -f $SRC ]||{ echo "FAIL inputs: $SRC";exit 99;}
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t
+# a fixture/mutant edit of a COPY must change it: a literal that no longer matches is a setup failure (exit 99), never a green row (goal:g7.16.1.11.13.5)
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: $3 matched nothing";exit 99;};:;}
+# ================= the mutant anchors exist EXACTLY ONCE in the real agi.sh, and the patch fn edits one place or none
+A1='[ -z "$bad" ]||die "[posts] cannot start:$bad (listed; a re-run retries them)"';A2='$BOXB town up $PIN)||die';A3='CRU remove --root "$MAIN" --user $u||die "[crons] remove failed for $u"'
+n=0;for a in "$A1" "$A2" "$A3";do [ "$(grep -cF -- "$a" $AGS)" = 1 ]&&n=$((n+1));done
+ok mut-the-3-anchors-are-each-in-agi-sh-exactly-once "$n of 3" '[ $n = 3 ]'
+ap(){ cp $AGS $T/ag.copy;( F1_LIB=1;. $SRC;patch_agsh $T/ag.copy "$1" "$2" );}
+ap "$A3" ':';rc=$?;ok mut-patch-edits-the-one-anchor-and-the-copy-still-parses "rc $rc; diff lines: $(diff $AGS $T/ag.copy|grep -c '^>')" '[ $rc = 0 ]&&[ "$(diff $AGS $T/ag.copy|grep -c "^>")" = 1 ]&&sh -n $T/ag.copy'
+ap 'THIS TEXT IS NOT IN agi.sh' x;rc=$?;ok mut-patch-mutant-anchor-absent-is-refused-and-edits-nothing-RED "rc $rc" '[ $rc != 0 ]&&cmp -s $AGS $T/ag.copy'
+ap 'local' x;rc=$?;n=$(grep -cF 'local' $AGS);ok mut-patch-mutant-anchor-twice-is-refused-RED "anchor 'local' occurs $n times, rc $rc" '[ "$n" != 1 ]&&[ $rc != 0 ]&&cmp -s $AGS $T/ag.copy'
+# ---- the class guard (goal:g7.16.1.11.13.5): every sed/awk that edits a COPY goes through chg or simedit, and chg fails closed
+printf a >$T/c1;printf a >$T/c2;( chg $T/c1 $T/c2 "unmatchable literal" ) >$T/o 2>&1;rc=$?
+ok fx-a-literal-that-matches-nothing-exits-99-and-names-itself "chg on two equal files: rc $rc, $(cut -c1-70 $T/o)" '[ $rc = 99 ]&&grep -q "^FAIL fixture: unmatchable literal matched nothing" $T/o'
+printf b >$T/c2;( chg $T/c1 $T/c2 "changed" ) >$T/o 2>&1;rc=$?
+ok fx-an-edit-that-changed-bytes-passes "chg on two differing files: rc $rc" '[ $rc = 0 ]'
+chg_old(){ [ "$(cmp "$1" "$2" >/dev/null 2>&1;echo $?)" = 1 ];}
+out=$(sed "s/NO-SUCH-LITERAL/x/" $T/c1 >$T/c3;chg_old $T/c1 $T/c3;echo ran-on)
+ok fx-mutant-the-old-bare-cmp-test-lets-the-lane-run-on-an-unedited-copy-RED "the old shape on a dropped literal prints [$out] (want ran-on: the clean chg exits 99 first)" '[ "$out" = ran-on ]'
+ok fx-every-edit-of-a-copy-in-this-lane-is-measured "chg calls on the four seds + simedit: $(grep -c ';chg \$SRC \$T/f1\.' $0) (want 4), simedit uses: $(grep -c '^simworld;simedit ' $0) (want 2)" '[ "$(grep -c ";chg \$SRC \$T/f1\." $0)" = 4 ]&&[ "$(grep -c "^simworld;simedit " $0)" = 2 ]'
+[ -z "$F1_ANCHORS_ONLY" ]||{ echo "f1-nspawn.t.sh anchors: $f FAIL";exit $f;}   # the gate's bare lap runs only the anchor rows (grep + patch_agsh on a copy: no root, no nspawn)
 # ---- shims: every tool the harness calls, logging to $T/log (a refused leg must leave it EMPTY)
 SH=$T/shim;mkdir -p $SH;: >$T/log
 mk(){ printf '#!/bin/sh\n%s\n' "$2" >$SH/$1;chmod +x $SH/$1;}
@@ -178,14 +198,6 @@ mkres "$B11";echo "hard unit x was active, now failed" >$T/v/host.delta;vv >$T/o
 mkres "$B11";echo "hard unit x was active, now failed" >$T/v/host.delta;printf 'oom_kill 7\n' >$T/v/mem.events;vv >$T/o;ok m7-a-changed-live-town-outranks-INCONCLUSIVE "$(cut -c1-120 $T/o)" 'grep -q "^FAIL|" $T/o'
 mkres "$B11";rm $T/v/host.delta;vv >$T/o;ok m7-mutant-no-host-delta-is-not-a-PASS-RED "$(cut -c1-160 $T/o)" '! grep -q "^PASS" $T/o'
 mkres "$B13";( F1_LIB=1;. $SRC;summary $T/v ) >$T/o;ok m7-the-summary-shows-both-lines-and-the-outcome-first "$(head -3 $T/o|cut -c1-120)" 'head -1 $T/o|grep -q "^F1 OUTCOME: FAIL"&&sed -n 2p $T/o|grep -q "(i)  RT2"&&sed -n 3p $T/o|grep -q "(ii) first-start set"'
-# ================= the mutant anchors exist EXACTLY ONCE in the real agi.sh, and the patch fn edits one place or none
-A1='[ -z "$bad" ]||die "[posts] cannot start:$bad (listed; a re-run retries them)"';A2='$BOXB town up $PIN)||die';A3='$CR remove --root "$MAIN" --user $u||die "[crons] remove failed for $u"'
-n=0;for a in "$A1" "$A2" "$A3";do [ "$(grep -cF -- "$a" $AGS)" = 1 ]&&n=$((n+1));done
-ok mut-the-3-anchors-are-each-in-agi-sh-exactly-once "$n of 3" '[ $n = 3 ]'
-ap(){ cp $AGS $T/ag.copy;( F1_LIB=1;. $SRC;patch_agsh $T/ag.copy "$1" "$2" );}
-ap "$A3" ':';rc=$?;ok mut-patch-edits-the-one-anchor-and-the-copy-still-parses "rc $rc; diff lines: $(diff $AGS $T/ag.copy|grep -c '^>')" '[ $rc = 0 ]&&[ "$(diff $AGS $T/ag.copy|grep -c "^>")" = 1 ]&&sh -n $T/ag.copy'
-ap 'THIS TEXT IS NOT IN agi.sh' x;rc=$?;ok mut-patch-mutant-anchor-absent-is-refused-and-edits-nothing-RED "rc $rc" '[ $rc != 0 ]&&cmp -s $AGS $T/ag.copy'
-ap 'local' x;rc=$?;n=$(grep -cF 'local' $AGS);ok mut-patch-mutant-anchor-twice-is-refused-RED "anchor 'local' occurs $n times, rc $rc" '[ "$n" != 1 ]&&[ $rc != 0 ]&&cmp -s $AGS $T/ag.copy'
 # ================= the stubbed claude, the inner unit: what the harness writes into the image
 ( F1_LIB=1;. $SRC;inner_unit ) >$T/unit
 ok unit-poweroff-on-success-and-failure-runs-the-inner-leg-and-logs-to-the-out-dir "$(grep -c 'poweroff' $T/unit) poweroff lines" 'grep -qx "SuccessAction=poweroff" $T/unit&&grep -qx "FailureAction=poweroff" $T/unit&&grep -qx "ExecStart=/bin/sh /f1/f1-nspawn.sh inner" $T/unit&&grep -q "^StandardOutput=file:/f1/out/inner.log" $T/unit'
@@ -257,7 +269,7 @@ printf '#!/bin/sh\necho "${STUB_VIRT:-systemd-nspawn}"\n' >$SH2/systemd-detect-v
 chmod +x $SH2/*
 # the stub agi.sh: the shape of the real one around the SAME anchor lines the mutants edit
 cat >$T/sim.agi.sh <<'EOF'
-D=$(cd "$(dirname "$0")" && pwd);MAIN=$AGI_MAIN;BOX=$AGI_BOX;CR="python3 $D/crons.py";BOXB=${AGI_TOWN_BOXBIN};ST=$F1_ROOT/etc/agi/town.state;die(){ echo "$*" >&2;exit 1;}
+D=$(cd "$(dirname "$0")" && pwd);MAIN=$AGI_MAIN;BOX=$AGI_BOX;CR="python3 $D/crons.py";CRU(){ $CR "$@";};BOXB=${AGI_TOWN_BOXBIN};ST=$F1_ROOT/etc/agi/town.state;die(){ echo "$*" >&2;exit 1;}
 g(){ git -c safe.directory="$MAIN" -C "$MAIN" "$@";}
 rows(){ g show "$PIN:.agi/nodes/.geometry/posts.md"|sed -n 's/^  - {/{/p'|jq -r --arg x "$AGI_BOX" 'select(has("harness") and .box==$x and (.boot==true or env.STUB_ALLROWS=="1"))|.name';}
 pset(){ if grep -q '^stopped ' $ST 2>/dev/null;then sed -n 's/^running //p' $ST;else rows;fi;}
@@ -270,7 +282,7 @@ case $r in
 host)for p in $(STUB_ALLROWS=1 rows);do echo "agi-$p:x:1000:1000::$SD/h/$p:/bin/sh" >>$SD/passwd;done;exit 0;;
 answer)exit 0;;
 stop)mkdir -p $(dirname $ST);{ for n in $(cat $SD/active);do echo "running $n";done;} >$ST
- for u in $(uids);do c=$($CR marked --root "$MAIN" --user $u)||die "[crons] cannot read the crontab of $u";[ "$c" = 0 ]||$CR remove --root "$MAIN" --user $u||die "[crons] remove failed for $u";done
+ for u in $(uids);do c=$(CRU marked --root "$MAIN" --user $u)||die "[crons] cannot read the crontab of $u";[ "$c" = 0 ]||CRU remove --root "$MAIN" --user $u||die "[crons] remove failed for $u";done
  [ "$(marked)" = 0 ]||die "[step] crons: still unmet after its down arm"
  (cd "$MAIN"&&sudo -H -u agi-belam env AGI_POST=belam AGI_BOX=$AGI_BOX $BOXB town down $PIN)||die "[blast] box town down failed"
  for n in $(cat $SD/active);do echo "ack $n held" >>$ST;systemctl stop agi-post@$n.service;done;echo "stopped $AGI_BOX now" >>$ST;echo "stopped $AGI_BOX";exit 0;;
@@ -315,8 +327,9 @@ ok sim-the-reads-are-all-there-psi-units-nrestarts-crondigs-town-lines "$(grep -
 simworld;simrun;rc=$?;simv >$T/o
 ok sim-a-start-that-brings-up-only-the-boot-rows-is-an-overall-PASS "$(cut -c1-200 $T/o)" '[ $rc = 0 ]&&grep -q "^PASS|PASS the round trip on the recorded set (11 posts)" $T/o&&grep -q "|PASS first-start set == the 11 boot=true names|" $T/o'
 simworld;STUB_NRESTARTS=2 simrun;simv >$T/o;ok sim-mutant-posts-that-restart-are-FAIL-RED "$(cut -c1-200 $T/o)" 'grep -q "^FAIL|FAIL NRestarts" $T/o'
-simworld;sed -i 's/^\[ "\$(marked)" = 0 \]||die "\[step\] crons: still unmet after its down arm"$/:/' $SS/data/work/agi/extensions/agi/bin/agi.sh;/usr/bin/git -C $SS/data/work/agi commit -qam break;simrun;simv >$T/o;ok sim-mutant-a-stub-agi-sh-whose-stop-checks-nothing-still-sees-the-cron-reads "$(cut -c1-220 $T/o)" '! grep -q "^PASS" $T/o||true'
-simworld;sed -i 's/\$CR remove --root "\$MAIN" --user \$u||die/:||die/' $SS/data/work/agi/extensions/agi/bin/agi.sh;/usr/bin/git -C $SS/data/work/agi add -A;/usr/bin/git -C $SS/data/work/agi commit -qm break2;simrun;simv >$T/o
+simedit(){ cp $2 $T/se.pre;sed -i "$1" $2;chg $T/se.pre $2 "the sim agi.sh sed";}
+simworld;simedit 's/^ \[ "\$(marked)" = 0 \]||die "\[step\] crons: still unmet after its down arm"$/ :/' $SS/data/work/agi/extensions/agi/bin/agi.sh;/usr/bin/git -C $SS/data/work/agi commit -qam break;simrun;simv >$T/o;ok sim-mutant-a-stub-agi-sh-whose-stop-checks-nothing-still-sees-the-cron-reads "$(cut -c1-220 $T/o)" 'grep -q "^PASS|PASS the round trip on the recorded set (11 posts), crontab bytes equal, marked 0" $T/o'
+simworld;simedit 's/CRU remove --root "\$MAIN" --user \$u||die/:||die/' $SS/data/work/agi/extensions/agi/bin/agi.sh;/usr/bin/git -C $SS/data/work/agi add -A;/usr/bin/git -C $SS/data/work/agi commit -qm break2;simrun;simv >$T/o
 ok sim-mutant-a-town-whose-stop-leaves-the-cron-blocks-is-FAIL-RED "$(cut -c1-260 $T/o)" '! grep -q "^PASS" $T/o&&grep -q "^FAIL|FAIL" $T/o'
 simworld;STUB_VIRT=none simrun;rc=$?
 ok sim-mutant-the-simulated-box-is-not-a-container-nothing-runs-RED "rc $rc; systemctl log: $(wc -l <$SD/log|tr -d ' ') lines; res: $([ -e $SS/f1/out/res ]&&echo made||echo none)" '[ $rc != 0 ]&&[ ! -s $SD/log ]&&[ ! -e $SS/f1/out/res ]'
@@ -327,19 +340,19 @@ sigrun(){ sf=$1;sg=$2;rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log
 # (INT: a background job of a non-interactive shell starts with SIGINT ignored, which no shell can re-trap: the same `trap ... INT TERM HUP` line is covered by TERM and HUP)
 for sg in TERM HUP;do sigrun $SRC $sg
  ok "sig-$sg-to-the-run-leg-leaves-no-rootfs-and-terminates-the-machine" "rc $rcs; rootfs dirs left: $left; terminate: $(grep -c '^machinectl terminate' $T/log)" '[ "$left" = 0 ]&&grep -q "^machinectl terminate" $T/log&&[ $rcs = 130 ]';done
-sed 's/;trap .exit 130. INT TERM HUP;trap cleanup 0/;trap cleanup 0/' $SRC >$T/f1.notrap-host.sh;[ "$(cmp $SRC $T/f1.notrap-host.sh >/dev/null 2>&1;echo $?)" = 1 ]
+sed 's/;trap .exit 130. INT TERM HUP;trap cleanup 0/;trap cleanup 0/' $SRC >$T/f1.notrap-host.sh;chg $SRC $T/f1.notrap-host.sh "the run-leg trap sed"
 sigrun $T/f1.notrap-host.sh TERM;ok sig-mutant-the-run-leg-without-the-trap-leaves-the-rootfs-RED "rc $rcs; rootfs dirs left: $left (clean 0)" '[ "$left" != 0 ]'
 rm -rf $T/hd
 sigin(){ sf=$1;simworld;( PATH=$SH2:$PATH;export PATH SD STUB_ALLROWS STUB_NRESTARTS STUB_VIRT F1_ROOT=$SS F1_STEPTIMEOUT=60 F1_QTIMEOUT=5 T_CRON=$SD/cron T_PASSWD=$SD/passwd STUB_SLEEP=1;exec sh $sf inner ) >$T/sim.out 2>&1 &
  pid=$!;i=0;while ! grep -q start1 $SS/f1/out/steps 2>/dev/null&&[ $i -lt 100 ];do i=$((i+1));sleep 0.1;done;sleep 0.5;kill -TERM $pid;pkill -TERM -P $pid;i=0;while kill -0 $pid 2>/dev/null&&[ $i -lt 60 ];do i=$((i+1));sleep 0.1;done;kill -0 $pid 2>/dev/null&&{ kill -KILL $pid;pkill -KILL -P $pid;};wait $pid 2>/dev/null;rci=$?;}
 sigin $SRC;ok sig-TERM-to-the-inner-leg-runs-the-exit-trap-and-powers-off "rc $rci; poweroff: $([ -e $SD/poweroff ]&&echo yes||echo NO)" '[ -e $SD/poweroff ]&&[ $rci = 130 ]'
-awk '/^inner\(\)/{f=1}f&&/trap .exit 130. INT TERM HUP;/{sub(/trap .exit 130. INT TERM HUP;/,"")}{print}' $SRC >$T/f1.notrap-in.sh;[ "$(cmp $SRC $T/f1.notrap-in.sh >/dev/null 2>&1;echo $?)" = 1 ]
+awk '/^inner\(\)/{f=1}f&&/trap .exit 130. INT TERM HUP;/{sub(/trap .exit 130. INT TERM HUP;/,"")}{print}' $SRC >$T/f1.notrap-in.sh;chg $SRC $T/f1.notrap-in.sh "the inner-leg trap awk"
 sigin $T/f1.notrap-in.sh;ok sig-mutant-the-inner-leg-without-the-trap-does-not-power-off-RED "rc $rci; poweroff: $([ -e $SD/poweroff ]&&echo yes||echo NO) (clean yes)" '[ ! -e $SD/poweroff ]'
 mkres "$B13";( F1_LIB=1;. $SRC;summary $T/v ) >$T/o;ok m7-the-summary-names-the-stub-behaviour-and-the-d6-reading "$(grep -c 'stub' $T/o) stub lines" 'grep -q "box read. every 30 s" $T/o&&grep -q "unmeasured stand-in" $T/o&&grep -q "agi-belam.s own cron block left standing" $T/o'
 # ================= run 1 on the real box (10-22 21:15Z): mmdebstrap built a DIRECTORY named noble.tar.part (no tar suffix, no --format) and the run died at extract. The stub mmdebstrap above now HONOURS that rule.
 STUB_RES=$T/res.good11 hrun >$T/o 2>$T/e;rc=$?;IMG=$T/hd/f1-nspawn-image/noble.tar
 ok img-the-image-is-a-regular-file-tar-reads-it-and-the-build-line-says-format-tar "rc $rc; $(ls -ld $IMG|cut -c1-10); mmdebstrap: $(grep -c -e '--format=tar' $T/log)" '[ -f $IMG ]&&tar -tf $IMG >/dev/null&&grep "^mmdebstrap" $T/log|grep -q -e "--format=tar"&&[ ! -e $IMG.part ]'
-sed 's/--format=tar //' $SRC >$T/f1.noformat.sh;rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log
+sed 's/--format=tar //' $SRC >$T/f1.noformat.sh;chg $SRC $T/f1.noformat.sh "the --format=tar sed";rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log
 ( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.good11 sh $T/f1.noformat.sh run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e;rc=$?
 ok img-mutant-without-format-tar-mmdebstrap-builds-a-directory-and-the-run-is-refused-before-extract-the-directory-is-left-RED "rc $rc; noble.tar.part is a $([ -d $T/hd/f1-nspawn-image/noble.tar.part ]&&echo DIRECTORY-LEFT||echo gone); nspawn calls: $(grep -c '^nspawn' $T/log); $(tail -1 $T/e|cut -c1-90)" '[ $rc != 0 ]&&[ "$(grep -c "^nspawn" $T/log)" = 0 ]&&[ -d $T/hd/f1-nspawn-image/noble.tar.part ]&&grep -q "no readable tar" $T/e&&[ ! -e $T/hd/f1-nspawn-image/noble.tar ]'
 rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd/f1-nspawn-image/noble.tar/etc;: >$T/log
@@ -379,7 +392,7 @@ ok host-the-container-gets-its-own-hostname-in-etc-hostname-etc-hosts-and-on-the
 printf '#!/bin/sh\necho plantedhost\n' >$SH/hostname;chmod +x $SH/hostname;{ cat $T/res.good11;echo 'fail sudo: unable to resolve host plantedhost';} >$T/res.host
 STUB_RES=$T/res.host hrun >$T/o 2>$T/e;rc=$?
 ok host-name-the-summary-is-redacted-counted-and-the-files-are-named "$(grep 'host-name check' $T/hd/out/summary.txt|cut -c1-200)" '! grep -qi plantedhost $T/hd/out/summary.txt&&grep -q "<host>" $T/hd/out/summary.txt&&grep -q "^host-name check: [1-9][0-9]* line(s) in the raw files of OUT name this host (.*res" $T/hd/out/summary.txt&&grep -qi plantedhost $T/hd/out/res'
-sed 's/|sed "s\/$rx\/<host>\/Ig" >"$OUT\/summary.txt"/ >"$OUT\/summary.txt"/' $SRC >$T/f1.noredact.sh;[ "$(cmp $SRC $T/f1.noredact.sh >/dev/null 2>&1;echo $?)" = 1 ]
+sed 's/|sed "s\/$rx\/<host>\/Ig" >"$OUT\/summary.txt"/ >"$OUT\/summary.txt"/' $SRC >$T/f1.noredact.sh;chg $SRC $T/f1.noredact.sh "the redaction sed"
 rm -rf $T/hd $T/term $T/seen;mkdir -p $T/hd;: >$T/log;( cd $T;F1_DATA=$T/hd F1_REPO=$W2 F1_MEMINFO=$T/mi.ok F1_TIMEOUT=60 F1_CGROOT=$T/cg STUB_RES=$T/res.host sh $T/f1.noredact.sh run $SHA $T/answers0 $T/hd/out ) >$T/o 2>$T/e
 ok host-name-mutant-without-the-redaction-leaves-the-host-name-in-summary-RED "planted in summary: $(grep -ci plantedhost $T/hd/out/summary.txt)" 'grep -qi plantedhost $T/hd/out/summary.txt'
 rm -f $SH/hostname
