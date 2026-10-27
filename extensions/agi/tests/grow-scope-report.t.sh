@@ -26,6 +26,9 @@ if [ "${1:-}" = window ];then   # falsifier 3: run in the real repo, against the
  echo "ok window $n hit(s), every one has an explain row (a commit row or standing parent rows)";exit 0;fi
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# a fixture/mutant edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 # a row that must read RED: the SAME condition run against a mutated gate has to fail
 red(){ if eval "$2";then echo "FAIL $1 (the mutant read GREEN)";f=$((f+1));else echo "ok $1";fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_WT RUNTIME_DIRECTORY AGI_TRUNK GROW_TRAILERS
@@ -39,7 +42,7 @@ nv4=$(sel "$PM"|wc -l|tr -d ' ')
 miss=$(sel "$PM"|jq -c 'select((has("grow") and has("roots"))|not)|.name')
 ok "c1-every-v4-row-has-both-cells $nv4 v4 row(s); rows lacking grow or roots: [$miss] (want none)" '[ -z "$miss" ]'
 ok "c2-the-selection-is-not-vacuous $nv4 v4 row(s) (want >= 15)" '[ "$nv4" -ge 15 ]'
-sed 's/"engine": {"v": 4/"enginx": {"v": 4/' "$PM" >$T/pm.mut
+sed 's/"engine": {"v": 4/"enginx": {"v": 4/' "$PM" >$T/pm.mut;chg "$PM" $T/pm.mut "the engine-key rename"
 red "c3-mutant-an-engine-key-renamed-reads-RED" '[ "$(sel $T/pm.mut|wc -l|tr -d " ")" -ge 15 ]'
 tf=$(sel "$PM"|jq -c 'select((.grow|type)!="array" or (.roots|type)!="array" or (.grow|length)==0 or (.roots|length)==0)|.name')
 ok "c4-every-cell-is-a-non-empty-list [$tf] (want none)" '[ -z "$tf" ]'
@@ -156,5 +159,14 @@ mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;win
 mknodes;hit alive experiment:xx;srow director-general-3 goal:g2;win;wr=$?;ok "w4b-the-same-node-by-another-post-is-not-explained [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
 mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sed -i 's/^status: active/status: complete/' $T/w/.agi/nodes/goal/g7.16.1.11.46.9.md;$G -C $T/w commit -qam "46.9 closes";win;wr=$?;ok "w4c-the-rows-retire-when-their-until-goal-closes [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
 mknodes;hit director-general-3 experiment:nowhere;srow director-general-3 goal:g2;win;wr=$?;ok "w4d-a-parent-that-resolves-to-no-node-is-not-under-anything [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
-mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sed -i 's/under "\$2" "\$sparent"&&echo yes/[ "$2" = "$sparent" ]\&\&echo yes/' $T/w/extensions/agi/tests/grow-scope-report.t.sh;win;wr=$?;red "w4m-mutant-a-literal-only-match-leaves-the-two-level-node-unexplained [$(cat $T/wo)]" '[ $wr = 0 ]'
+mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sedc 's/under "\$2" "\$sparent"&&echo yes/[ "$2" = "$sparent" ]\&\&echo yes/' $T/w/extensions/agi/tests/grow-scope-report.t.sh "the literal-only-match mutant of this lane";win;wr=$?;red "w4m-mutant-a-literal-only-match-leaves-the-two-level-node-unexplained [$(cat $T/wo)]" '[ $wr = 0 ]'
+# r3 (the census): the fixture edits fail closed; the old unmeasured shapes are the mutants
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
+ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
+ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
+printf 'a\n' >$T/c1;x=$(f=0;sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo "f=$f")
+ok sedc-a-sed-i-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted sed -i matched nothing"&&echo "$x"|grep -qx "f=1"'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};f=0;sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo "f=$f")
+ok sedc-mutant-the-bare-sed-i-is-RED '[ "$x" = "f=0" ]'
 exit $f
