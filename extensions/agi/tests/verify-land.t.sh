@@ -10,7 +10,7 @@ ssh-keygen -q -t ed25519 -N '' -C t@t -f $T/k||exit 99;printf 't@t namespaces="g
 CA="Co-Authored-By: Claude Opus 5.5 <noreply@""anthropic.com>"   # every land message carries the real co-author trailer (C4)
 R=$T/r;git init -q $R;g(){ git -C $R "$@";}
 g config user.name t;g config user.email t@t;g config gpg.format ssh;g config user.signingkey $T/k;g config gpg.ssh.allowedSignersFile $T/allowed;g config commit.gpgsign true
-mkdir -p $R/extensions/agi/guard $R/docs $R/.agi;echo '{"land": {"rules_paths": [".agi/context/schemas/", ".agi/nodes/.geometry/", ".github/", ":(glob).gitattributes", ":(glob)**/.gitattributes", "skills/agi-master-gate/", ".agi/config.json", "extensions/agi/guard/", "CLAUDE.md", "AGENTS.md", "QUICKSTART.md"]}}' >$R/.agi/config.json;   # the live seed (council 06:06:56Z L2)
+mkdir -p $R/extensions/agi/guard $R/docs $R/.agi;echo '{"land": {"rules_paths": [".agi/context/schemas/", ".agi/nodes/.geometry/", ".github/", ":(glob).gitattributes", ":(glob)**/.gitattributes", "skills/agi-master-gate/", ".agi/config.json", "extensions/agi/guard/", "CLAUDE.md", "AGENTS.md", "QUICKSTART.md"]}, "anonymize": {"fixture_homes": ["fxuser"]}}' >$R/.agi/config.json;   # the live seed (council 06:06:56Z L2)
 cp "$VL" $R/extensions/agi/guard/verify-land.sh;echo a >$R/docs/a;echo keep >$R/docs/keep;g add -A;g commit -qm base;BASE=$(g rev-parse HEAD)
 # SINCE = the lane's L140: BASE + a judge stub; every pre-existing fixture base is a SIBLING (does not descend it: the fail-open reading)
 g checkout -q --detach $BASE;printf '%s\n' '#!/bin/sh' 'echo "R-land: judged by SINCE $1..$2";exit 0' >$R/extensions/agi/guard/r-land;g add -A;g commit -qm since;SINCE=$(g rev-parse HEAD);g checkout -q --detach $BASE
@@ -23,7 +23,7 @@ gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNS
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
  LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n${MSG:+
 $MSG}" -m "$CA" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
-run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
+run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} ${VPW:+VL_PASSWD=$VPW} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
 # wrun(NAME, LAND, BASE, GT): the WRAP step (`verify-land wrap`) then verify-land on what it printed: WS = the wrap sha (empty = plain)
 wrun(){ run wrap "$@";cp $T/o $T/w;WS=$(sed -n 's/^land: wrap \([0-9a-f]*\) over .*/\1/p' $T/w);n=$1;shift;run $n ${WS:-$1} "$2" "$3";}
@@ -195,4 +195,59 @@ gate gd 'echo "runs on a Zeta Card 9990 here" >$R/docs/gd';AGI_FIX=$T/fix.json;r
 ok "g1-a-real-device-name-in-any-file-reads-nonzero $(grep '^gpu:' $T/o|cut -c1-12)" 'grep -q "^gpu: [1-9]" $T/o'
 gate gw 'echo "gpu cuda nvidia words only" >$R/docs/gw';AGI_FIX=$T/fix.json;run gw $LD $BASE $GT;AGI_FIX=
 ok "g2-the-bare-word-gpu-reads-0 $(grep '^gpu:' $T/o|cut -c1-12)" 'grep -q "^gpu: 0 " $T/o'
+# --- (c) the FIXTURE CLASS of the anon-diff (council 3/3 alive 18:25:50Z 10-26; belam's [hold] 18:15Z on L177+L178): a PINNED fixture user's /home/<name> in an ADDED line of a file under extensions/agi/tests/ is ONE named WARN, not a HOLD
+# (BASE's anonymize.fixture_homes = ["fxuser"] here). Every other hit HOLDs. FAIL CLOSED: a missing / empty / malformed cell, an unreadable or empty passwd, a pinned name that is also a passwd home.
+FH=/home   # the fixture home ROOT, spelled once at run time: every row below hands the guard a real `<root>/<name>` (the class keys on it), while the committed bytes carry no home literal (SM 00:21Z 10-27: the OLD guard reads this diff too)
+cfgbase(){ n=$1;j=$2;g checkout -q --detach $BASE;printf '%s' "$j" >$R/.agi/config.json;g add -A;g commit -qm "base $n";eval "BASE_$n=$(g rev-parse HEAD)";g checkout -q --detach;}
+RP='"land": {"rules_paths": [".agi/config.json"]}'
+cfgbase empty "{$RP, \"anonymize\": {\"fixture_homes\": []}}";cfgbase str "{$RP, \"anonymize\": {\"fixture_homes\": \"fxuser\"}}";cfgbase none "{$RP}"
+fx(){ n=$1;shift;gate $n "mkdir -p \$R/extensions/agi/tests;$*";eval "LD_$n=$LD;GT_$n=$GT";}
+sw(){ sbase=$BASE;BASE=$1;shift;"$@";BASE=$sbase;}      # sw BASE_x fx ...: run a gate on another base
+fx fa 'echo "see $FH/fxuser/a and $FH/fxuser/b" >$R/extensions/agi/tests/x.t.sh';run fa $LD $BASE $GT;cp $T/o $T/fa.o;rcfa=$rc
+ok "f1-a-pinned-fixture-user-under-tests-is-one-named-WARN rc $rcfa, $(grep -c '^anon-diff WARN' $T/fa.o) WARN line: $(grep '^anon-diff WARN' $T/fa.o|cut -c1-120), $(tail -1 $T/fa.o)" '[ $rcfa = 0 ]&&[ "$(grep -c "^anon-diff WARN (fixture class)" $T/fa.o)" = 1 ]&&grep -q "^anon-diff WARN (fixture class): pinned /home/<fxuser> x2 in extensions/agi/tests/x.t.sh$" $T/fa.o&&grep -qx "anon-diff=0" $T/fa.o&&tail -1 $T/fa.o|grep -q "verify-land: OK"'
+gate fb 'echo "see $FH/fxuser/a" >$R/docs/y';LD_fb=$LD;GT_fb=$GT;run fb $LD $BASE $GT
+ok "f2-the-pinned-name-OUTSIDE-tests-HOLDS (the class is the diff path, not the line) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+fx fc 'echo "see $FH/zzuser/a" >$R/extensions/agi/tests/x.t.sh';run fc $LD $BASE $GT
+ok "f3-an-UNPINNED-name-under-tests-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+fx fd 'echo "a $FH/fxuser/a b $FH/zzuser/b" >$R/extensions/agi/tests/x.t.sh';run fd $LD $BASE $GT
+ok "f4-a-line-with-a-pinned-AND-an-unpinned-name-HOLDS (the unpinned one stays) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
+printf 'fxuser:x:1000:1000::%s/fxuser:/bin/sh\n' "$FH" >$T/pw.fx;printf '' >$T/pw.empty
+g show $GT_fa:extensions/agi/tests/x.t.sh >$T/fa.x;tk=$(python3 -I -c 'import sys;sys.path.insert(0,sys.argv[1]);import paths;print(" ".join(m for f in sys.argv[2:] for m in paths.HOME_RE.findall(open(f).read())))' $R0/extensions/agi/bin $T/fa.x $T/pw.fx)
+ok "f14-the-assembled-root-reaches-the-file-under-test-AND-the-passwd-stub-as-the-REAL-home-token (paths.HOME_RE: $tk; f1 WARNs on it: $(grep -o 'pinned [^ ]* x2' $T/fa.o))" '[ "$tk" = "$FH/fxuser $FH/fxuser $FH/fxuser" ]&&grep -q "pinned $FH/<fxuser> x2" $T/fa.o'
+VPW=$T/pw.fx;run fa $LD_fa $BASE $GT_fa;VPW=
+ok "f5-a-pinned-name-that-IS-a-passwd-home-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+VPW=$T/nowhere;run fa $LD_fa $BASE $GT_fa;VPW=
+ok "f6-an-UNREADABLE-passwd-HOLDS (fails closed) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+VPW=$T/pw.empty;run fa $LD_fa $BASE $GT_fa;VPW=
+ok "f7-an-EMPTY-passwd-HOLDS (fails closed) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+for b in empty str none;do eval "bb=\$BASE_$b";sw $bb fx fe_$b 'echo "see $FH/fxuser/a" >$R/extensions/agi/tests/x.t.sh';run fe_$b $LD $bb $GT;echo "$rc $(tail -1 $T/o)" >$T/fe_$b.r;cp $T/o $T/fe_$b.o;done
+ok "f8-an-EMPTY-allowlist-HOLDS $(cat $T/fe_empty.r)" 'grep -q "^1 verify-land: HOLD (.*anon-diff" $T/fe_empty.r&&! grep -q "^anon-diff WARN" $T/fe_empty.o'
+ok "f9-a-MALFORMED-allowlist-(a-string)-HOLDS $(cat $T/fe_str.r)" 'grep -q "^1 verify-land: HOLD (.*anon-diff" $T/fe_str.r&&! grep -q "^anon-diff WARN" $T/fe_str.o'
+ok "f10-an-ABSENT-allowlist-HOLDS $(cat $T/fe_none.r)" 'grep -q "^1 verify-land: HOLD (.*anon-diff" $T/fe_none.r&&! grep -q "^anon-diff WARN" $T/fe_none.o'
+fx ft 'echo "see $FH/zzuser/a" >$R/extensions/agi/tests/x.t.sh;printf %s "{\"anonymize\": {\"fixture_homes\": [\"zzuser\"]}}" >$R/.agi/config.json';run ft $LD $BASE $GT
+ok "f11-the-allowlist-is-read-from-BASE-never-TIP (a land adding its own name) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+fx fg 'echo "~/x expanduser $FH/fxuser/a" >$R/extensions/agi/tests/x.t.sh';run fg $LD $BASE $GT
+ok "f13-the-WARN-counts-SUBSTITUTIONS-never-tokens (3 paths.HOME_RE tokens, 1 pinned) rc $rc, $(grep '^anon-diff WARN' $T/o|cut -c1-120)" 'grep -q "^anon-diff WARN (fixture class): pinned /home/<fxuser> x1 in extensions/agi/tests/x.t.sh$" $T/o'
+# mutants: the mutated copy runs as SELF; each row is green when the mutant misbehaves (the real row above would then be RED)
+mutate(){ python3 -c '
+import sys
+s=open(sys.argv[1]).read();a,b=sys.argv[2],sys.argv[3]
+assert s.count(a)==1,("mutant anchor",a)
+open(sys.argv[1],"w").write(s.replace(a,b))' "$@";}
+vmut(){ cp "$VL" $T/vm.sh;mutate $T/vm.sh "$1" "$2";SELF=$T/vm.sh;}
+vmut "l=paths.HOME_RE.sub(fixture,l)" "l=l";run fa $LD_fa $BASE $GT_fa;SELF=
+ok "m-substitution-dropped-reads-RED the fixture line HOLDs (rc $rc): f1's WARN is gone" '[ $rc = 1 ]&&tail -1 $T/o|grep -q "HOLD (.*anon-diff"'
+vmut "cur and cur.startswith('extensions/agi/tests/') and l.startswith('+')" "cur and l.startswith('+')";run fb $LD_fb $BASE $GT_fb;SELF=
+ok "m-path-class-dropped-reads-RED the pinned name in docs/y passes as a WARN (rc $rc, $(v) | $(grep -E "^anon-diff" $T/o|tr "\n" " "|cut -c1-90)): the class is no longer the diff path" 'grep -q "^anon-diff WARN" $T/o&&grep -qx "anon-diff=0" $T/o'
+vmut "if t[:6]!='/home/' or t[6:] not in names or" "if t[:6]!='/home/' or";run fc $LD_fc $BASE $GT_fc;SELF=
+ok "m-widened-to-any-nonpasswd-name-reads-RED the UNPINNED name under tests/ WARNs (rc $rc, $(v) | $(grep -E "^anon-diff" $T/o|tr "\n" " "|cut -c1-90))" 'grep -q "^anon-diff WARN" $T/o&&grep -qx "anon-diff=0" $T/o'
+vmut "if not names or not dirs: return []" "if not names: return []";VPW=$T/pw.empty;run fa $LD_fa $BASE $GT_fa;VPW=;SELF=
+ok "m-empty-passwd-tolerated-reads-RED an EMPTY passwd no longer HOLDs the pinned line (rc $rc, $(v) | $(grep -E "^anon-diff" $T/o|tr "\n" " "|cut -c1-90))" 'grep -q "^anon-diff WARN" $T/o&&grep -qx "anon-diff=0" $T/o'
+vmut "except Exception: return []" "except Exception: return ['fxuser']";VPW=$T/nowhere;run fa $LD_fa $BASE $GT_fa;VPW=;SELF=
+ok "m-passwd-error-swallowed-reads-RED an UNREADABLE passwd WARNs instead of HOLDing (rc $rc, $(v) | $(grep -E "^anon-diff" $T/o|tr "\n" " "|cut -c1-90))" 'grep -q "^anon-diff WARN" $T/o&&grep -qx "anon-diff=0" $T/o'
+vmut 'git show "$B:.agi/config.json"' 'git show "$L:.agi/config.json"';run ft $LD_ft $BASE $GT_ft;SELF=
+ok "m-allowlist-from-TIP-reads-RED a land that adds its own name gets anon-diff=0 ($(grep -c '^anon-diff=0' $T/o) line)" 'grep -qx "anon-diff=0" $T/o'
+# f12 (all-is-one P3 00:05:18Z 10-27): the step's ONE source (paths.HOME_RE) UNIMPORTABLE -> the unfiltered diff HOLDs, NAMED (a guard copy whose sys.path misses paths.py; as SELF, so `self` holds too)
+vmut "sys.path.insert(0,os.path.dirname(os.path.abspath(anon)))" "sys.path.insert(0,'/nonexistent')";run fa $LD_fa $BASE $GT_fa;SELF=
+ok "f12-an-UNIMPORTABLE-paths-HOLDS-NAMED rc $rc, $(grep '^anon-diff fixture class' $T/o|cut -c1-90), $(v)" '[ $rc = 1 ]&&grep -qx "anon-diff fixture class: unread (the step failed): nothing pinned, every hit HOLDs" $T/o&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
 echo "verify-land: $f FAIL";exit $f
