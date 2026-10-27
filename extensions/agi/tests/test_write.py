@@ -2631,7 +2631,7 @@ def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
 # hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
 # the verb and every teacher leave in ONE row, so one test pins both. CLAUDE.md
 # is the Prime's (CLAIM 4): checked on the Prime's commit, not here.
-@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 cuts read from VERBS with every teacher in one row")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.7.3: RED until read leaves VERBS with every teacher in one row (bundle 4 W3c)")
 def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
     assert "read" not in write.VERBS and not hasattr(write, "verb_read")  # no alias
     import re

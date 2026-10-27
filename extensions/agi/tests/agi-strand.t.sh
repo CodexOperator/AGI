@@ -17,6 +17,8 @@
 #   h1 core.hooksPath=~/bin makes EVERY piece name a git-hook candidate: no `### name` in engine*.md is a git hook name (githooks(5)) except pre-commit (Door 1) and reference-transaction (goal:g7.16.1.11.38.1, the ref guard)
 #   r1 the notice survives the ROTATION path: the REAL unit ExecStartPre line (engine-root) runs against the scratch HOME, then the successor's first SessionStart (agi-brief) prints it on STDOUT first
 # MUTANTS (PIECES=<engine*.md with the piece edited, each OLD text asserted count == 1): m1 both call sites `if agi-turn strand` -> `if :` (guard dropped: s1 s2 s3 RED) · m2 the `>>~/.notice` writes cut (stderr only: s1 o1 n1 RED) · m3 the pre-commit piece renamed away (d1 RED) · m4 the strand count against posts/<post> ONLY (s4 RED: a post sitting on the trunk would be refused every turn) · m5 the printer to stderr only (n1 n3 r1 RED: the model never reads it) · m6 print-then-truncate, no claim (n3 RED: the late append is lost) · m7 `add` without the key test (b1 b2 RED) · m8 a piece named post-checkout (h1 RED: git would run it after every checkout)
+# the lane's own fixture git is hermetic: a post uid's global core.hooksPath=~/bin would run ITS reference-transaction on the fixture's posts/alive (22 FAIL on a post uid, 0 under GIT_CONFIG_GLOBAL=/dev/null; the census pin, council 02:32:49Z 10-26)
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"; }

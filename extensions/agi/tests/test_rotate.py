@@ -3225,6 +3225,8 @@ def test_stops_push_real_refusal_branch_receive_fails(
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     local_before = subprocess.run(
         ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
         capture_output=True, text=True).stdout.strip()
@@ -8266,6 +8268,50 @@ def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
 # `cmd_ack` exits NON-ZERO (3). Falsifier: a forced commit failure leaves
 # seats.md STAGED, or the command exits 0.
 
+def _ack_hook_fail(top, pin=None):
+    """The forcing pre-commit hook, and the PIN that makes it the one git runs:
+    a global `core.hooksPath` (every post uid has `~/bin`) hides a repo's own
+    `.git/hooks`, so the forced failure never fired off a hermetic box. The
+    repo-local `core.hooksPath` outranks the global one. `pin` overrides the
+    pinned dir (mutants: "" = no pin)."""
+    hooks = top / ".git" / "hooks"
+    hooks.mkdir(parents=True, exist_ok=True)
+    pre = hooks / "pre-commit"
+    pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    pre.chmod(0o755)
+    pin = str(hooks) if pin is None else pin
+    if pin:
+        subprocess.run(["git", "-C", str(top), "config", "core.hooksPath", pin],
+                       check=True)
+
+
+@pytest.mark.parametrize("pin,want", [(None, 3), ("", 0), ("global", 0)],
+                         ids=["pinned", "mutant-no-pin-RED", "mutant-pin-to-the-global-dir-RED"])
+def test_ack_forced_hook_fails_under_a_global_hooks_path_only_when_pinned(
+        tmp_path, tmp_path_factory, monkeypatch, pin, want):
+    """The census pin (council 02:32:49Z 10-26): under a GLOBAL core.hooksPath
+    naming an empty dir (the post uids' shape), the pinned fixture hook still
+    forces the failure (exit 3); the two mutants -- the pin dropped, the pin
+    naming the global's dir -- let the commit succeed (exit 0), which is the
+    host-dependent red this pin cures."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    for k in ("GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0"):
+        monkeypatch.delenv(k, raising=False)
+    g = tmp_path_factory.mktemp("global")   # outside the repo: no untracked dirt
+    gdir = g / "hooks"
+    gdir.mkdir()
+    gcfg = g / "gitconfig"
+    gcfg.write_text(f"[core]\n\thooksPath = {gdir}\n"
+                    "[user]\n\tname = t\n\temail = t@t\n", encoding="utf-8")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(gcfg))
+    _ack_hook_fail(top, pin=str(gdir) if pin == "global" else pin)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=None, window_path=None), root)
+    assert code == want, f"pin={pin!r}: expect exit {want}, got {code}"
+
+
 def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
         tmp_path, monkeypatch, capsys):
     """g15.24 P1 falsifier + as-written claim (first integrity test): a
@@ -8282,11 +8328,7 @@ def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
     monkeypatch.delenv("GIT_CONFIG_COUNT", raising=False)
     monkeypatch.delenv("GIT_CONFIG_KEY_0", raising=False)
     monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
-    hooks = top / ".git" / "hooks"
-    hooks.mkdir(parents=True, exist_ok=True)
-    pre = hooks / "pre-commit"
-    pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
-    pre.chmod(0o755)
+    _ack_hook_fail(top)
     rel = os.path.relpath(rotate._ack_seats_path(root), top)
     code = rotate.cmd_ack(SimpleNamespace(
         seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
@@ -9942,6 +9984,8 @@ def test_rotate_out_mirror_push_failure_refuses_by_name(tmp_path, capsys):
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     err = rotate._stops_push(root, "stops")
     assert err and "refused" in err and "refs/agi/posts/adv" in err, err
     assert subprocess.run(
@@ -10001,6 +10045,8 @@ def test_rename_apply_mirror_failure_refuses_and_keeps_old_head(
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     capsys.readouterr()
     rotate._apply_surfaces(
         root, _post_rename_origin_surface(), delete_old=True,
@@ -10199,6 +10245,8 @@ def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
                     "  case \"$ref\" in refs/agi/*) exit 1;; esac\n"
                     "done\nexit 0\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     capsys.readouterr()
     rc = rotate.cmd_merge_up(
         SimpleNamespace(post="adv", name=None, dry_run=False), root)
@@ -10480,8 +10528,8 @@ _W1B2_PATHS = ("_ack_commit_seats", "_publish_row_to_authority",
                "_commit_spawn_row", "_commit_stops_row")
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 deletes "
-                   "_posts_load_error and _row_names (callers on the one parser)")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.5.3: RED until _posts_load_error "
+                   "and _row_names are deleted (callers on the one parser; bundle 4 W1 B2)")
 def test_b4_w1b2_no_second_posts_parser_in_rotate():
     src = Path(rotate.__file__).read_text(encoding="utf-8")
     assert "def _row_names" not in src and "_posts_load_error(" not in src

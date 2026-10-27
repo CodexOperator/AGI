@@ -1507,6 +1507,8 @@ def test_v3_apply_failed_resume_push_collects_and_continues(
     pre_receive = hooks_dir / "pre-receive"
     pre_receive.write_text(hook)
     pre_receive.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(hooks_dir.parent), "config", "core.hooksPath", str(hooks_dir)], check=True)
 
     res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
     assert res.returncode != 0, res.stdout + res.stderr

@@ -823,7 +823,6 @@ def test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime(tmp
 
 
 # --- bundle 4 W2a (director-general-2) ------------------------------------
-_W2A = "bundle 4 W2a: RED until DG3 builds the one mint-id resolver"
 _W2A_MINT = "d" * 32
 
 
