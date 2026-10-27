@@ -200,7 +200,16 @@ mkpe(){ printf '  credentials:\n    argv: [python3, -c, "import sys;sys.stderr.w
 proj d2a;mkpe $T/mine.txt|cmds;drv check $G credentials >$T/d2a.out;proj d2b;mkpe $T/theirs.txt|cmds;drv check $G credentials >$T/d2b.out
 ok "d2a-readable-path-is-a-genuine-failure a check that died with a PermissionError line naming a path this uid CAN read and write ($T/mine.txt) is FAIL (STATUS $(st $T/d2a.out)), not SKIP: the writer uid's own failure must stay red" '[ "$(st $T/d2a.out)" = FAIL ]'
 ok "d2b-unreadable-path-is-skip (control) the same line naming a mode-000 file this uid cannot read is SKIP (STATUS $(st $T/d2b.out)) with the path in the note: $(nt $T/d2b.out|cut -c1-90)" '[ "$(st $T/d2b.out)" = SKIP ]&&nt $T/d2b.out|grep -q theirs.txt'
-rm -rf $T/bin2;cp -r $BIN $T/bin2;proj d2c;for w in mine theirs;do printf '#!/usr/bin/env python3\nimport sys\nsys.stderr.write("PermissionError: [Errno 13] Permission denied: '"'"'%s'"'"'\\n")\nsys.exit(1)\n' $T/$w.txt >$T/bin2/anonymize.py;(cd $P&&python3 $T/drv.py $T/bin2 $SRC anon $G >$T/d2c.$w 2>&1);done
+# stubanon DIR PATH: DIR's anonymize.py = BIN's with ONLY its `__main__` block replaced by a death naming PATH, so the CHECK (verification runs the script) dies
+# while `import anonymize` still loads the real module: grid.py imports it at load since 970decca3b (verification -> rotate -> grid), so the whole-file stub this lane used killed d2c and d1e AT IMPORT (no STATUS, rc 1) before any check ran
+stubanon(){ python3 - "$BIN/anonymize.py" "$1/anonymize.py" "$2" <<'PY'
+import sys
+src,dst,w=sys.argv[1:4];s=open(src).read();a='if __name__ == "__main__":\n    sys.exit(main())\n'
+assert s.count(a)==1,"stubanon: anonymize.py's __main__ anchor"
+open(dst,"w").write(s.replace(a,'if __name__ == "__main__":\n    sys.stderr.write("PermissionError: [Errno 13] Permission denied: %r\\n" % '+repr(w)+');sys.exit(1)\n'))
+PY
+}
+rm -rf $T/bin2;cp -r $BIN $T/bin2;proj d2c;for w in mine theirs;do stubanon $T/bin2 $T/$w.txt;(cd $P&&python3 $T/drv.py $T/bin2 $SRC anon $G >$T/d2c.$w 2>&1);done
 ok "d2c-anonymize-is-owner-aware-too the anonymize check (its own regex site) over a stub that dies naming a readable path is $(st $T/d2c.mine) (want FAIL), naming an unreadable one $(st $T/d2c.theirs) (want SKIP)" '[ "$(st $T/d2c.mine)" = FAIL ]&&[ "$(st $T/d2c.theirs)" = SKIP ]'
 # D2 fail-closed (DG1 17:32Z N2): the permission SKIP needs a path that EXISTS and cannot be read / written; a PermissionError line naming a path that does not exist (vanished, never there) is a genuine failure
 proj d2d;mkpe $T/vanished-nowhere.txt|cmds;drv check $G credentials >$T/d2d.out
@@ -216,8 +225,8 @@ proj d2g;mkpe $T/loopa|cmds;drv check $G credentials >$T/d2g.out;proj d2h;mkpe $
 ok "d2g-symlink-loop-path-is-fail a PermissionError line naming a SYMLINK-LOOP path (stat raises ELOOP, not a permission wall) is STATUS $(st $T/d2g.out) (want FAIL)" '[ "$(st $T/d2g.out)" = FAIL ]'
 ok "d2h-overlong-name-is-fail a PermissionError line naming a path with a 300-character component (ENAMETOOLONG) is STATUS $(st $T/d2h.out) (want FAIL)" '[ "$(st $T/d2h.out)" = FAIL ]'
 # D1 (all-SKIP, DG1 ruling 16:39Z): a --suite run in which EVERY result is SKIP (links + write-guard die naming the mode-000 file, tests = the exact no-pytest line, context-suite declares no roots, anonymize = a bin copy whose stub names the same file) is rc 3 and certifies nothing: no verified.stamp, fresh or stale
-rm -rf $T/bin3;cp -r $BIN $T/bin3;printf '#!/usr/bin/env python3\nimport sys\nsys.stderr.write("PermissionError: [Errno 13] Permission denied: '"'"'%s'"'"'\\n")\nsys.exit(1)\n' $T/theirs.txt >$T/bin3/anonymize.py
-cp $T/bin3/anonymize.py $T/pe.py
+rm -rf $T/bin3;cp -r $BIN $T/bin3;stubanon $T/bin3 $T/theirs.txt
+printf '#!/usr/bin/env python3\nimport sys\nsys.stderr.write("PermissionError: [Errno 13] Permission denied: '"'"'%s'"'"'\\n")\nsys.exit(1)\n' $T/theirs.txt >$T/pe.py   # links + write-guard: a standalone death, no imports
 for st in fresh stale;do proj d1e$st;{ printf '  links:\n    argv: [python3, %s]\n  write-guard:\n    argv: [python3, %s]\n' $T/pe.py $T/pe.py;cat $T/t.skip;}|cmds;[ $st = stale ]&&echo stale >$G/sessions/verified.stamp;(cd $P&&PYTHONPATH=$T/stub:$SRC python3 $T/bin3/verification.py --level quick --suite >$T/d1e$st.out 2>&1);eval d1e${st}rc=$?;eval d1e${st}st='$([ -e $G/sessions/verified.stamp ]&&echo STAMP||echo none)';done
 ok "d1e-all-skip-suite-run-is-rc-3-and-certifies-nothing a --suite run whose every result is SKIP (checks: $(grep -c '^SKIP' $T/d1efresh.out) SKIP rows, $(grep -c '^PASS' $T/d1efresh.out) PASS rows) exits $d1efreshrc fresh / $d1estalerc with a stale stamp (want 3 and 3) and leaves stamp: fresh $d1efreshst, stale $d1estalest (want none and none); 23a6591f72 already exits 3 here (its all-SKIP line) but leaves the STALE stamp the --delete-old gate reads as green. DG3/SM: test_verified_stamp_from_suite.py:69 test_skip_only_is_green_too becomes test_skip_only_is_not_green (rc 3, not stamp.exists()), a pytest edit not in this file" '[ $d1efreshrc = 3 ]&&[ $d1estalerc = 3 ]&&[ $d1efreshst = none ]&&[ $d1estalest = none ]'
 # D6: an OSError on the stamp / state write on the WRITER uid (it owns the dir; the target is made unwritable by being a DIRECTORY: EISDIR, never /dev/full, whose read-merge would loop forever) is NOT PASS rc 0; on a dir another uid owns it is the named skip. Fixture: the all-green quick --suite project, the stamp / the state file replaced by a directory
