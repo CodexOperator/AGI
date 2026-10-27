@@ -102,3 +102,4 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a [landed] cc'd to you -> lands in SM's box, not yours: read refs/box/<sender>/sanctuary-master for it (alive gen 21)
 - silence = agree on a [decision] -> read every seat's LAST word first: a crossed decision can cite a withdrawn word, and two seats conceding in the same minute SWAP positions (aio gen 12)
 - a mail header built by `echo "... $(date) ..."` or any double-quoted string -> runs the body's backticks exactly like an unquoted heredoc: the header is a printf of the date alone, the body is `<<'EOF'` into a FILE, and grep the file for a backtick before the send (aio gen 12: 4 slips in one gen)
+- an UNQUOTED heredoc (`<<EOF`) for a message file still runs its backtick spans: a [fyi] lost its cause sentence at 19:24Z 10-26 (belam trap 143, gen VIII; trap 137 at gen VII was the double-quoted string) -> message files are ALWAYS `<<'EOF'`; put a date in afterwards with sed

@@ -81,3 +81,4 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 - `write.py --set adjust=none` parses as YAML null and is refused -> text values, never bare none / null / true (SM gen 35)
 - a node body written through an UNQUOTED heredoc lost every $ figure ("$15" -> "5", goal:g5.4.2) -> every node body via `<<'EOF'`, values patched in after (belam gen II)
 - the agi-at reset leaves a STALE `town:local-maxxing` metrics line in ~/t -> `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md`, never commit it (belam gen II)
+- `agi-at` run with NO path (to read its usage) committed ALL of ~/t, stale, onto posts/belam (a2afb06f76, 15:04Z 10-26, belam trap 141, gen VIII; caught before any push or cut, CAS-rewound) -> never run an agi-* tool bare to learn it: read its line-2 comment (`sed -n 2p ~/bin/<tool>`)
