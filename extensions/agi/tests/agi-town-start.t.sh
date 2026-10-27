@@ -113,10 +113,9 @@ import os,sys
 s=open(os.environ['AGF']).read();a=os.environ['A']
 if not a or s.count(a)<1: sys.exit(3)
 open(os.environ['MUT'],'w').write(s.replace(a,os.environ['B']))";pr=$?
- if [ $pr != 0 ];then cp ${PMBASE:-$AG} $T/mut/agi.sh;echo "FAIL pm-anchor-not-found pm anchor empty or not found: [$(echo "$1"|head -1|cut -c1-60)]";f=$((f+1))
- elif cmp -s $AG $T/mut/agi.sh 2>/dev/null;then echo "FAIL pm-anchor-not-found pm edit changed nothing: [$(echo "$1"|head -1|cut -c1-60)]";f=$((f+1));fi;AGSH=$T/mut/agi.sh;}
-# a fixture/mutant edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
-chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+ if [ $pr != 0 ]||cmp -s $AG $T/mut/agi.sh 2>/dev/null;then lit=$(echo "$1"|head -1|cut -c1-60);echo "FAIL fixture: pm matched nothing: ${lit:-(empty anchor)}";exit 99;fi;AGSH=$T/mut/agi.sh;}
+# a fixture/mutant edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
 calls(){ awk -v re="$1" '/^== start/{c=0;next} $0 ~ re{c++} END{print c+0}' $SD/calls;}
 firstflags(){ sed -n '/^== start/,$p' $SD/calls|grep -m1 "^enable agi-boot.service"|sed -n 's/.* flags=\([0-9]*\)$/\1/p';}
 
@@ -294,7 +293,7 @@ ok st2-2-the-host-act-enables-agi-boot-and-starts-nothing "enabled agi-boot: $(g
 world;hact >/dev/null 2>&1;login;printf 'agi-post@p1.service\n' >$SD/active;st STUB_SIGTERM=p1 >$T/o 2>$T/e;rc=$?
 ok st2-2-a-post-that-rewrites-its-claude-json-on-SIGTERM-still-ends-with-the-flags "rc $rc: p1 .claude.json stale=$(jq -r '.stale' $T/h/p1/.claude.json 2>/dev/null) onboarding=$(jq -r '.hasCompletedOnboarding' $T/h/p1/.claude.json 2>/dev/null)" '[ $rc = 0 ]&&jq -e ".stale==true and .hasCompletedOnboarding==true and .fullscreenUpsellSeenCount>=3 and .projects[\"/data/work/agi\"].hasTrustDialogAccepted==true" $T/h/p1/.claude.json >/dev/null'
 world;hact >/dev/null 2>&1;login;printf 'agi-post@p1.service\n' >$SD/active
-A=$(sed -n '/cannot stop \$p before its flags/,/^ for p in \$nf;do flags_do \$p;done/p' $AG);[ "$(echo "$A"|wc -l|tr -d ' ')" = 2 ]||{ echo "FAIL pm-anchor-not-found the flags-then-restart mutant text is not the two lines";f=$((f+1));}
+A=$(sed -n '/cannot stop \$p before its flags/,/^ for p in \$nf;do flags_do \$p;done/p' $AG);[ "$(echo "$A"|wc -l|tr -d ' ')" = 2 ]||{ echo "FAIL fixture: pm matched nothing: the flags-then-restart mutant text (not the two lines)";exit 99;}
 pm "$A" ' for p in $nf;do flags_do $p;done;for p in $nf;do isup $p&&systemctl restart "agi-post@$p.service";done';st STUB_SIGTERM=p1 >$T/o 2>$T/e;rc=$?
 ok st2-2-mutant-the-old-order-flags-then-restart-loses-the-flags-RED "rc $rc with the old order: p1 flags $(jq -r '.hasCompletedOnboarding' $T/h/p1/.claude.json 2>/dev/null) (clean: true)" '! jq -e ".hasCompletedOnboarding==true" $T/h/p1/.claude.json >/dev/null 2>&1'
 world;pm 'systemctl enable agi-boot.service||die "enable failed: sh $B/rollback.sh";fi' 'systemctl enable agi-boot.service&&systemctl start agi-boot.service||die "enable failed: sh $B/rollback.sh";fi';hact >/dev/null 2>&1
@@ -373,21 +372,23 @@ pidwb none;pm '||die "[pid] cannot read posts.md at $PIN: $1"' '';st >$T/o 2>$T/
 ok st2-pid-b-mutant-the-read-check-dropped-lets-start-past-a-pin-with-no-posts-md-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused)" '! grep -q "^\[pid\]" $T/e'
 pidwb garble;pm '||die "[pid] cannot parse a posts.md row at $PIN: $1"' '';st >$T/o 2>$T/e;rc=$?
 ok st2-pid-b-mutant-the-parse-check-dropped-lets-start-past-a-garbled-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused)" '! grep -q "^\[pid\]" $T/e'
-# r3 (the census): pm fails closed too -- an anchor that matches nothing (or is empty) is a counted FAIL and leaves the UNMUTATED copy, never a '# NO EDIT' comment
-x=$(f=0;pm 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f";cmp -s $AG $T/mut/agi.sh&&echo unmutated)
-ok st2-pm-a-matchless-anchor-fails-closed-and-leaves-the-unmutated-copy "a drifted anchor: $(echo "$x"|tr '\n' '|'|cut -c1-130)" 'echo "$x"|grep -q "^FAIL pm-anchor-not-found"&&echo "$x"|grep -qx "f=1"&&echo "$x"|grep -qx unmutated'
-x=$(f=0;pm '' q;echo "f=$f")
-ok st2-pm-an-empty-anchor-is-refused-not-spliced-between-every-character "an empty anchor: $(echo "$x"|tr '\n' '|'|cut -c1-120)" 'echo "$x"|grep -q "^FAIL pm-anchor-not-found"&&echo "$x"|grep -qx "f=1"'
+# r3/r4 (the census, council (A)): pm and chg EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it
+x=$(pm 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok st2-pm-a-matchless-anchor-exits-99-with-one-named-line "a drifted anchor: rc $rc (want 99), $(echo "$x"|tr '\n' '|'|cut -c1-130)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: pm matched nothing: NO-SUCH-ANCHOR-XYZ" ]'
+x=$(pm '' q;echo AFTER);rc=$?
+ok st2-pm-an-empty-anchor-is-refused-not-spliced-between-every-character "an empty anchor: rc $rc (want 99), $(echo "$x"|tr '\n' '|'|cut -c1-120)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: pm matched nothing: (empty anchor)" ]'
 x=$(pm(){ MUT=$T/mut/agi.sh A="$1" B="$2" AGF=${PMBASE:-$AG} python3 -c "
 import os,sys
 s=open(os.environ['AGF']).read();a=os.environ['A']
 if s.count(a)<1: print('# NO EDIT for ['+a[:60]+']');sys.exit(0)
 open(os.environ['MUT'],'w').write(s.replace(a,os.environ['B']))";AGSH=$T/mut/agi.sh;}
-f=0;pm 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
-ok st2-pm-mutant-the-comment-only-branch-is-RED "the old pm (a '# NO EDIT' comment): $(echo "$x"|tr '\n' '|'|cut -c1-120) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL pm-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
-printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
-ok st2-chg-a-matchless-edit-fails-closed "an edit that changed nothing: $(echo "$x"|tr '\n' '|'|cut -c1-120)" 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
-printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
-ok st2-chg-an-edit-that-changed-bytes-is-silent "an edit that changed bytes: $(echo "$x"|tr '\n' '|')" '[ "$x" = "f=0" ]'
+pm 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok st2-pm-mutant-the-guard-dropped-is-RED "the old pm (a '# NO EDIT' comment): rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-120) (want rc 0, AFTER printed and no FAIL line: the clean row exits 99 with its one line)" '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: pm"&&echo "$x"|grep -qx AFTER'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok st2-chg-a-matchless-edit-exits-99-with-one-named-line "an edit that changed nothing: rc $rc (want 99), $(echo "$x"|tr '\n' '|'|cut -c1-120)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok st2-chg-an-edit-that-changed-bytes-is-silent "an edit that changed bytes: rc $rc, $(echo "$x"|tr '\n' '|')" '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};chg $T/c1 $T/c2 "the old mutant";echo AFTER);rc=$?
+ok st2-chg-mutant-the-guard-dropped-is-RED "the old print-only test: rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-120) (want rc 0, AFTER printed and no FAIL line: the clean row exits 99 with its one line)" '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: chg"&&echo "$x"|grep -qx AFTER'
 ok st2-pm-the-live-definition-has-no-print-only-branch "NO EDIT lines inside pm's own definition: $(sed -n '/^pm(){/,/^chg(){/p' $0|grep -c 'NO EDIT') (want 0)" '[ "$(sed -n "/^pm(){/,/^chg(){/p" $0|grep -c "NO EDIT")" = 0 ]'
 echo "agi-town-start: $f FAIL";exit $f
