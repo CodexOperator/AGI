@@ -274,8 +274,11 @@ J1=$(printf 'a%.0s' $(seq 32));J2=$(printf 'b%.0s' $(seq 36));J3=$(printf 'c%.0s
 rm -f $T/env;bad=0
 tw TOKJ "eyJ$J1.$J2.$J3" && bad=$((bad+1));tw TOKB "$J2+$J1/$J3" && bad=$((bad+1));tw TOKC "$J1:ok" && bad=$((bad+1))
 ok st-R7-a-jwt-a-base64-key-and-a-colon-token-are-refused "a JWT-shaped, a +/ base64-shaped and a 32-char-before-colon value: $bad accepted (want 0), town.env: [$(cat $T/env 2>/dev/null|tr '\n' ' ')] (want empty)" '[ $bad = 0 ]&&[ ! -s $T/env ]'
-good=1;tw AGI_BOX local-maxxing||good=0;mkdir -p $T/pp/$(printf 'q%.0s' $(seq 50));tw LP $T/pp/$(printf 'q%.0s' $(seq 50))||good=0;tw SEG "$(printf 'd%.0s' $(seq 31)).x"||good=0;tw V a.b:c@d||good=0
+LPR=$(mktemp -d /tmp/agi-r7.XXXXXX);LPV=$LPR/$(printf 'q%.0s' $(seq 50));mkdir -p $LPV   # a SHORT fixed root: answer's VALUE cap is 128 chars, so a path under $T grew past it with a long TMPDIR (87/1 at /data/work/gate-director-goals-1/wip/c135-tmp, 10-27)
+ok st-R7-the-existing-path-value-fits-the-128-cap-whatever-the-TMPDIR "the path value is ${#LPV} chars (want <= 128; it no longer grows with TMPDIR)" '[ ${#LPV} -le 128 ]'
+good=1;tw AGI_BOX local-maxxing||good=0;tw LP $LPV||good=0;tw SEG "$(printf 'd%.0s' $(seq 31)).x"||good=0;tw V a.b:c@d||good=0
 ok st-R7-a-name-a-path-a-31-char-segment-and-short-segments-pass "AGI_BOX=local-maxxing, an EXISTING path with a 50-char segment (S2-a: only a value that is an existing path is exempt), a 31-char segment, a.b:c@d: all accepted ($good, want 1); town.env has $(wc -l <$T/env|tr -d ' ') lines (want 4)" '[ $good = 1 ]&&[ "$(wc -l <$T/env|tr -d " ")" = 4 ]'
+rm -rf $LPR
 rep '[ ${#w} -lt 32 ]||die "[secret]' '[ ${#v} -ne ${#w} ]||[ ${#w} -lt 32 ]||die "[secret]';rm -f $T/env;tw TOKJ "eyJ$J1.$J2.$J3"&&mj=1||mj=0;tw TOKB "$J2+$J1/$J3"&&mb=1||mb=0
 ok st-R7-mutant-the-old-whole-value-guard-is-RED "the guard that only looks at a value with no separator: JWT accepted=$mj, base64 accepted=$mb (want both 1; the clean row refuses both)" '[ $mj = 1 ]&&[ $mb = 1 ]'
 AGSH=
