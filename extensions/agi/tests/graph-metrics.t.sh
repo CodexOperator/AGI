@@ -6,8 +6,8 @@
 T=$(mktemp -d -t agi-suite-XXXXXX);trap 'rm -rf $T' 0;   # the scratch project carries the throwaway part crons.py's seam (S1) honours under ANY TMPDIR (the gate's is /data/work/gate-sm/tmp)
 f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-# a fixture/mutant edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
-chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+# a fixture/mutant edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
 sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
 export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$SRC AGI_BOX=encryption-town HOME=$T/home;mkdir -p $T/home
@@ -213,7 +213,7 @@ jb;h1=$($G -C $P rev-parse HEAD);hl=$($G -C $P log --all -S'HAND EDIT' --oneline
 ok "r2f-an-unrelated-dirty-file-is-never-swept-in a hand edit lands in goal:g1 while the producer runs: the job commits ONE path ($r2fp, want 1: the town node), HEAD moved ($([ $h0 != $h1 ]&&echo yes||echo NO)), the hand edit is in $hl commit(s) (want 0), still in the working file ($he, want 1), job rc $jrc (want 0)" '[ $h0 != $h1 ]&&[ "$hl" = 0 ]&&[ "$he" = 1 ]&&[ "$r2fp" = 1 ]&&[ $jrc = 0 ]'
 # R3: the cell is metrics_line (sorts between master and scaffold_hash), so a town -> s2 merge-up where another writer rewrote edited_by is CLEAN
 # The base's writer is PINNED to the job's actor and the other writer is a name that is not the actor (never ROOT's edited_by, which moves: goal:g3.8, TM's c74340057f set it to thought-master and the hard-coded rewrite became a no-op). Pinned, the job's own edited_by stamp is a no-op against the base, so only the OTHER writer's line differs and the merge is clean; unpinned, a base that is neither the actor nor the other writer is a true 3-way conflict on that one line, which says nothing about the cell
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;JW=belam;ow=thought-master;[ "$ow" != "$JW" ]||ow=sanctuary-master;sed -i "s/^edited_by: .*/edited_by: $JW/" $TN;grep -qx "edited_by: $JW" $TN||{ echo "FAIL fixture-anchor-not-found the edited_by pin matched nothing";f=$((f+1));};$G -C $P commit -qam pin-job-writer 2>/dev/null;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sedc "s/^edited_by: .*/edited_by: $ow/" $TN "the other-writer edited_by";$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;JW=belam;ow=thought-master;[ "$ow" != "$JW" ]||ow=sanctuary-master;sed -i "s/^edited_by: .*/edited_by: $JW/" $TN;grep -qx "edited_by: $JW" $TN||{ echo "FAIL fixture: chg matched nothing: the edited_by pin";exit 99;};$G -C $P commit -qam pin-job-writer 2>/dev/null;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sedc "s/^edited_by: .*/edited_by: $ow/" $TN "the other-writer edited_by";$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
 nb=$(cd $P&&python3 -c "
 import yaml
 fm=yaml.safe_load(open('$TN').read().split('---')[1]);k=list(fm)
@@ -292,16 +292,18 @@ mkp pk;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
 EOC
 sedc 's/^def intake_segment(root: Path) -> str:/def intake_segment(root: Path) -> str:\n    return "intake: none"/' $P/extensions/agi/bin/success_metrics.py "the intake_segment stub";AGI_LAP=11 sm --line $G_ >$T/m4m.out
 ok "m4m-skipping-the-cards-RED a --line that skips the cards prints 'intake: none' for a card with an open row (got '$(head -1 $T/m4m.out|sed -n 's/.*| intake: //;s/ *|.*//;p')', the m4a lane wants belam=1/0/0 there): the m4a lane catches it" '[ "$(head -1 $T/m4m.out|sed -n "s/.*| intake: //;s/ *|.*//;p")" = none ]'
-# r3 (the census): the measured edits fail closed; the old unmeasured shapes are the mutants (this lane's ok takes a name and a condition)
+# r3/r4 (the census, council (A)): chg and sedc EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it (this lane's ok takes a name and a condition)
 ok mcl-the-rendered-cron-line-lost-its-wrapper-and-its-placeholder '[ ! -e $T/mcl.bad ]'
-printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
-ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
-printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
-ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
-printf 'a\nb\n' >$T/c1;x=$(f=0;sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo "f=$f")
-ok sedc-a-sed-i-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted sed -i matched nothing"&&echo "$x"|grep -qx "f=1"'
-x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};f=0;sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo "f=$f")
-ok sedc-mutant-the-bare-sed-i-is-RED '[ "$x" = "f=0" ]'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok chg-a-matchless-edit-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok chg-an-edit-that-changed-bytes-is-silent '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};chg $T/c1 $T/c2 "the old test";echo AFTER);rc=$?
+ok chg-mutant-the-guard-dropped-is-RED '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: chg"&&echo "$x"|grep -qx AFTER'
+printf 'a\nb\n' >$T/c1;x=$(sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo AFTER);rc=$?
+ok sedc-a-sed-i-that-matches-nothing-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted sed -i" ]'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo AFTER);rc=$?
+ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
 MCLM=$T/m.t;rm -f $T/m.t;echo 'x && python3 /a/board_job.py commit' >$T/w;mclchk <$T/w >/dev/null;a=$([ -e $T/m.t ]&&echo marked||echo clean);rm -f $T/m.t;echo 'python3 /a/success_metrics.py --line' >$T/w;mclchk <$T/w >/dev/null;b=$([ -e $T/m.t ]&&echo marked||echo clean);unset MCLM
 ok mclchk-marks-a-line-that-kept-its-wrapper-and-passes-a-stripped-one '[ "$a" = marked ]&&[ "$b" = clean ]'
 echo "graph-metrics: $f FAIL"
