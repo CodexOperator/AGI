@@ -20,8 +20,10 @@ sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~
 [ -s $BOX ]||{ echo "FAIL extract: box $(wc -c<$BOX)";exit 99;}
 [ -n "$BRSED" ]&&{ sed "$BRSED" $BOX>$T/boxm;BOX=$T/boxm;}
 BR=$BOX;CEIL=${CEIL:-2904};P=${M3_UNSENT_PCT:-5}
-sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1
-sed 's/\[unsent\]/[gone]/' $T/box1>$T/boxs   # the silent-unsent mutant: the cap cut to one attempt AND a failed send that does not say [unsent]
+# a mutant of a COPY of the piece must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1;chg $BR $T/box1 "the cap-one mutant"
+sed 's/\[unsent\]/[gone]/' $T/box1>$T/boxs;chg $T/box1 $T/boxs "the silent-unsent mutant"   # the silent-unsent mutant: the cap cut to one attempt AND a failed send that does not say [unsent]
 # keys + signers + per-post git config + a repo whose trunk (HEAD) holds the fixture matrix
 mkdir $T/k $T/c;: >$T/signers
 for u in belam sm alive dg5 dg1 dg2 dg3 all-is-one sp tm dt1 dg4;do
@@ -210,7 +212,7 @@ TS=$(printf 'c%.0s' $(seq 40) | tr c 7)
 tnb(){ bx=$1;shift;(cd $T/r&&PATH=$T/shim:$PATH AGI_POST=${TPOST:-belam} AGI_BOX=${TBOX-tw} AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null STUB_UID=${TUID:-agi-belam} sh $bx town "$@");}
 nref(){ $G -C $T/r for-each-ref --format='%(refname)' refs/box/belam|wc -l|tr -d ' ';}
 tclr(){ for r in $($G -C $T/r for-each-ref --format='%(refname)' refs/box/belam refs/box/dg1 refs/held);do $G -C $T/r update-ref -d $r;done;}
-rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;}
+rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;cmp -s $BR $T/mut&&{ echo "FAIL rep-anchor-not-found rep anchor not found: [$1]";f=$((f+1));};}
 fk(){ ( cd $T/r&&printf '%s' "$3"|AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/$1 GIT_CONFIG_SYSTEM=/dev/null GIT_AUTHOR_EMAIL=$1@agi GIT_COMMITTER_EMAIL=$1@agi $G commit-tree -S $($G hash-object -w -t tree /dev/null)>$T/fk.sha&&$G update-ref $2 $(cat $T/fk.sha) );}
 tclr;tnb $BR down $TS;rc=$?
 ok3 t-down-rc0-one-commit-per-post-of-the-box "box town down: rc $rc (want 0), refs/box/belam/* = $(nref) (want 5: alive sm dg1 dg2 dg3; not dg4 of box xx, not belam, not the inert rows)" '[ $rc = 0 ]&&[ "$(nref)" = 5 ]&&! $G -C $T/r rev-parse -q --verify refs/box/belam/dg4 >/dev/null&&! $G -C $T/r rev-parse -q --verify refs/box/belam/council >/dev/null'
@@ -237,7 +239,7 @@ ok3 t-F6-the-template-from-a-non-belam-post-is-dropped "a dg1-signed exact '[tow
 # the MUTANTS: each one edit on the piece, each makes its row above FAIL
 mutrun(){ # $1 sed-free A $2 B ; sets MUT=1 when the edit changed the piece
  rep "$1" "$2";cmp -s $BR $T/mut&&MUT=0||MUT=1;}
-rep '[ "$(id -un)" = agi-belam ]&&' '';cmp -s $BR $T/mut&&echo "# mutant-uid: no edit made";tclr;TUID=dg2 tnb $T/mut down $TS 2>/dev/null;r=$?
+rep '[ "$(id -un)" = agi-belam ]&&' '';tclr;TUID=dg2 tnb $T/mut down $TS 2>/dev/null;r=$?
 ok3 t-mutant-no-uid-check-is-RED "the piece without the id -un check, run as uid dg2: rc $r and $(nref) ref(s) (the clean row wants rc != 0 and 0 new refs: this one must send)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" -gt 0 ]'
 rep '[ $# = 3 ]&&' '';tclr;tnb $T/mut down $TS extra 2>/dev/null;r=$?
 ok3 t-mutant-no-argument-count-is-RED "the piece without the 3-argument check accepts 'down SHA extra': rc $r and $(nref) ref(s) (want rc 0 and > 0: the clean row refuses)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" -gt 0 ]'
@@ -257,4 +259,17 @@ ok n1-bytes-le-ceiling '[ "$(wc -c<$BR)" -le $CEIL ]'
 echo "# box (the piece) bytes=$(wc -c<$BR) ceiling=$CEIL"
 ok n2-no-python '! grep -qi python $BR'
 ok n3-no-inbox-path '! grep -q "sessions/inbox" $BR'
+# r3 (the census): rep() and chg() fail closed, and the old print-only shapes are the mutants
+x=$(f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
+ok3 rep-a-matchless-anchor-fails-closed "a drifted anchor: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=1"'
+x=$(rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;}
+f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
+ok3 rep-mutant-the-unguarded-helper-is-RED "the old rep (no measure): $(echo "$x"|tr '\n' '|'|cut -c1-110) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
+ok3 chg-a-matchless-edit-fails-closed "an edit that changed nothing: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
+ok3 chg-an-edit-that-changed-bytes-is-silent "an edit that changed bytes: $(echo "$x"|tr '\n' '|')" '[ "$x" = "f=0" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};f=0;chg $T/c1 $T/c2 "the old test";echo "f=$f")
+ok3 chg-mutant-the-print-only-test-is-RED "the old test: $(echo "$x"|tr '\n' '|'|cut -c1-110) (want f=0 and no FAIL line)" '! echo "$x"|grep -q "^FAIL fixture-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+ok3 chg-the-two-piece-mutants-are-measured "chg calls on the box1 / boxs copies: $(grep -c 'ch''g [$]BR [$]T/box1\|ch''g [$]T/box1 [$]T/boxs' $0) (want 2)" '[ "$(grep -c "ch""g [$]BR [$]T/box1\|ch""g [$]T/box1 [$]T/boxs" $0)" = 2 ]'
 exit $f
