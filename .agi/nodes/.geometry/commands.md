@@ -553,6 +553,8 @@ excluded:
       - {"name": "crit_psi_full_avg60", "type": "float", "required": true, "choices": []}
       - {"name": "warn_cgroup_max_frac", "type": "float", "required": true, "choices": []}
       - {"name": "warn_slab_mib", "type": "float", "required": true, "choices": []}
+      - {"name": "warn_root_free_mib", "type": "float", "required": true, "choices": []}
+      - {"name": "disk_path", "type": "str", "required": true, "choices": []}
       - {"name": "repeat_mins", "type": "float", "required": true, "choices": []}
       - {"name": "clear_margin_frac", "type": "float", "required": true, "choices": []}
       - {"name": "clear_hold_mins", "type": "float", "required": true, "choices": []}

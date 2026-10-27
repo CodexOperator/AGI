@@ -18,7 +18,7 @@ def _runs_as_the_sending_seat(monkeypatch):
 
 TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
                         warn_psi_some_avg60=10, crit_psi_full_avg60=20,
-                        warn_cgroup_max_frac=0.95, warn_slab_mib=1536, clear_margin_frac=0.8)
+                        warn_cgroup_max_frac=0.95, warn_slab_mib=1536, warn_root_free_mib=5120, clear_margin_frac=0.8)
 
 
 def sig(avail=8000.0, box=(0.0, 0.0), cg=(0.0, 0.0), cur=None, cap=None, high=None, slab=None, anon=None, rec=None, name="agi.slice", shmem=0, unrec=None):
@@ -76,7 +76,7 @@ def test_an_ok_run_writes_and_sends_nothing(tmp_path, capsys, monkeypatch):
     monkeypatch.setattr(m.alarm_spool, "append", lambda *a, **k: sent.append(a))
     rc = m.main(_args(tmp_path, "--warn-avail-mib", "0", "--crit-avail-mib", "0",
                       "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
-                      "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12"))
+                      "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/"))
     assert rc == 0 and sent == [] and capsys.readouterr().out == ""
     assert not (tmp_path / "alerts.log").exists() and not (tmp_path / "st.json").exists()
 
@@ -86,7 +86,7 @@ def test_a_raise_logs_once_dms_once_then_stays_quiet(tmp_path, monkeypatch):
     monkeypatch.setattr(m.alarm_spool, "append", lambda job, to, body, **k: sent.append((to, body)))
     argv = _args(tmp_path, "--warn-avail-mib", "1e12", "--crit-avail-mib", "0",
                  "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--crit-psi-full-avg60", "1000",
-                 "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12")
+                 "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/")
     assert m.main(argv) == 0
     lines = (tmp_path / "alerts.log").read_text().splitlines()
     assert len(lines) == 1 and " WARN memory warn: MemAvailable " in lines[0]
@@ -117,7 +117,7 @@ def test_the_default_alerts_log_lands_where_the_cap_looks(tmp_path, monkeypatch)
     monkeypatch.setattr(m.alarm_spool, "append", lambda *a, **k: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
             "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/",
             "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup"),
             "--state", str(tmp_path / "st.json"), "--alarm-seat", "sanctuary-master", "--alarm-to", "belam", "--alarm-job", "memory_alarm_posts", "--alarm-spool-max", "500"]
     assert m.main(argv) == 0
@@ -183,7 +183,7 @@ def test_the_state_path_comes_from_the_sessions_resolver(tmp_path, monkeypatch):
     monkeypatch.setattr(m.alarm_spool, "append", lambda *a, **k: None)
     argv = ["--root", str(root), "--warn-avail-mib", "1e12",
             "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--clear-margin-frac", "1", "--clear-hold-mins", "0",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/",
             "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup")]
     assert m.main(argv) == 0
     state = locations.sessions_dir(root) / m.STATE_FILE
@@ -225,7 +225,7 @@ def _forbid_send_py(monkeypatch):
 
 def _warn_args(tmp_path, *extra, state="st.json", log="alerts.log"):
     return ["--root", str(tmp_path), "--warn-avail-mib", "1e12", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--repeat-mins", "15",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/", "--repeat-mins", "15",
             "--clear-margin-frac", "1", "--clear-hold-mins", "0",
             "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / state), "--alerts-log", str(tmp_path / log), *extra]
 
@@ -249,7 +249,7 @@ def test_the_alarm_is_one_plain_spool_line_in_the_sending_seats_spool_and_nothin
     assert len(_records(tmp_path)) == 1
     # kinds are separate lines: a CLEARED is its own alarm, never a repeat of the WARN
     assert m.main(["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
-                   "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--repeat-mins", "15", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--cgroup", str(tmp_path / "no-cgroup"),
+                   "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/", "--repeat-mins", "15", "--clear-margin-frac", "1", "--clear-hold-mins", "0", "--cgroup", str(tmp_path / "no-cgroup"),
                    "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log"), *_alarm(tmp_path)]) == 0
     recs = _records(tmp_path)
     assert len(recs) == 2 and recs[1]["text"].startswith("[memory-alarm-cleared] "), recs
@@ -361,12 +361,12 @@ def test_the_real_nudge_sweep_cell_is_off_and_renders_no_wake_line_while_the_ena
 import types  # noqa: E402
 
 from_cells = {"warn_avail_mib": 0, "crit_avail_mib": 0, "warn_psi_some_avg60": 10, "crit_psi_full_avg60": 1000,
-              "warn_cgroup_max_frac": 1000, "warn_slab_mib": 1e12}
+              "warn_cgroup_max_frac": 1000, "warn_slab_mib": 1e12, "warn_root_free_mib": 0}
 
 
 def _flap_argv(tmp_path, margin="0.8", hold="3"):
     return ["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "10",
-            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--repeat-mins", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12", "--warn-root-free-mib", "0", "--disk-path", "/", "--repeat-mins", "1000",
             "--clear-margin-frac", margin, "--clear-hold-mins", hold, "--cgroup", str(tmp_path / "no-cgroup"),
             "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log")]
 
@@ -572,7 +572,7 @@ def test_the_slab_alarm_reaches_the_spool_once_and_stays_quiet_inside_the_repeat
     _stub(tmp_path, monkeypatch)
     monkeypatch.setattr(m, "read_signals", lambda cg: sig(slab=2713 * MIB, rec=2698 * MIB, anon=1638 * MIB, avail=4371.0))
     argv = ["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000", "--crit-psi-full-avg60", "1000",
-            "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1536", "--repeat-mins", "15", "--clear-margin-frac", "0.8", "--clear-hold-mins", "3",
+            "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1536", "--warn-root-free-mib", "0", "--disk-path", "/", "--repeat-mins", "15", "--clear-margin-frac", "0.8", "--clear-hold-mins", "3",
             "--cgroup", str(tmp_path / "no-cgroup"), "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log"), *_alarm(tmp_path)]
     assert m.main(argv) == 0 and m.main(argv) == 0
     (rec,) = _records(tmp_path)
@@ -591,3 +591,174 @@ def test_both_real_rows_carry_the_slab_line():
     for name in ("memory_alarm", "memory_alarm_posts"):
         cmd = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"][name]["cmd"].split()
         assert cmd[cmd.index("--warn-slab-mib") + 1] == "1536", name
+
+
+# --- goal:g7.16.1.11.40.1.3: a free-space floor on the root filesystem, WARNed through the same path, with no action ------
+# Falsifier, pre-fix: guard.md held `data-free-min-kb` for /data (a pre-move check) and NOTHING watched `/`, where the posts' homes, the
+# spool and the logs live (83 percent used, ~10 GB free at 13:0xZ 10-27): a full `/` stops every write with no line raised first.
+
+SHM = Path("/dev/shm")                                                                              # a real tmpfs: no mount, no root
+needs_shm = pytest.mark.skipif(not SHM.is_dir(), reason="no /dev/shm on this box")
+
+
+def _shm_free():
+    return m.read_disk(SHM)["disk_free_mib"]
+
+
+def _disk_argv(tmp_path, floor, path=SHM, margin="1", hold="0"):
+    return ["--root", str(tmp_path), "--warn-avail-mib", "0", "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000", "--warn-slab-mib", "1e12",
+            "--warn-root-free-mib", str(floor), "--disk-path", str(path), "--repeat-mins", "15",
+            "--clear-margin-frac", margin, "--clear-hold-mins", hold, "--cgroup", str(tmp_path / "no-cgroup"),
+            "--state", str(tmp_path / "st.json"), "--alerts-log", str(tmp_path / "alerts.log"), *_alarm(tmp_path)]
+
+
+def _disk_sig(free, path="/", used=0.83):
+    return {"avail_mib": 8000.0, "box_psi": {}, "cg_psi": {}, "disk_path": path, "disk_free_mib": free, "disk_used_frac": used}
+
+
+def _src():
+    src = Path(m.__file__).read_text()
+    return src
+
+
+def _mutant(old, new):
+    src = _src(); assert src.count(old) == 1, old
+    return _fresh(src.replace(old, new))
+
+
+def test_read_disk_reads_the_free_mib_of_the_path_and_none_when_it_cannot(tmp_path):
+    got = m.read_disk(tmp_path)
+    assert got["disk_path"] == str(tmp_path) and got["disk_free_mib"] > 0 and 0 <= got["disk_used_frac"] <= 1, got
+    gone = m.read_disk(tmp_path / "nope")
+    assert gone["disk_free_mib"] is None and gone["disk_path"] == str(tmp_path / "nope"), gone
+
+
+def test_a_filesystem_under_its_floor_warns_by_name_and_number():
+    level, reasons = m.decide(_disk_sig(4096.0), TH)
+    assert level == "warn" and reasons == ["/ free 4096 MiB < 5120 (83% used) -- nothing here deletes or drops; the box owner clears space"], reasons
+    assert m.decide(_disk_sig(10240.0), TH) == ("ok", [])                                          # ~10 GB free (the cut's reading) is above 5120
+    assert m.decide(_disk_sig(5120.0), TH) == ("ok", [])                                           # AT the floor is not under it
+
+
+def test_no_disk_signal_is_no_disk_reading():
+    assert m.decide(sig(), TH) == ("ok", [])                                                       # every other row's signals carry no disk keys
+
+
+def test_an_unreadable_disk_path_is_a_warn_not_a_silent_ok():
+    level, reasons = m.decide(_disk_sig(None, path="/nope"), TH)
+    assert level == "warn" and reasons == ["disk path /nope unreadable: its free space is not known"], reasons
+
+
+def test_a_raised_disk_warn_is_held_to_the_clear_line_not_the_raise_line():
+    assert m.decide(_disk_sig(5500.0), TH, "warn")[0] == "warn"                                    # 5500 < 5120 / 0.8 = 6400: still raised
+    assert m.decide(_disk_sig(7000.0), TH, "warn")[0] == "ok"
+    assert m.decide(_disk_sig(5500.0), TH, "ok")[0] == "ok"                                        # but 5500 never RAISES it
+
+
+def test_a_disk_warn_and_a_memory_warn_are_one_level_with_both_reasons():
+    s = {**_disk_sig(4096.0), **sig(avail=1500)}
+    level, reasons = m.decide(s, TH)
+    assert level == "warn" and len(reasons) == 2 and reasons[0].startswith("MemAvailable 1500 MiB") and reasons[1].startswith("/ free 4096 MiB"), reasons
+    assert m.decide({**_disk_sig(4096.0), **sig(avail=900)}, TH)[0] == "crit"                      # a memory crit is still the level; the disk line rides as a reason
+
+
+@needs_shm
+def test_a_real_tmpfs_probe_above_its_free_space_warns_once_by_name_within_one_tick(tmp_path, monkeypatch):
+    _stub(tmp_path, monkeypatch)
+    floor = int(_shm_free()) + 1024                                                                # the probe sits UNDER the floor
+    argv = _disk_argv(tmp_path, floor)
+    assert m.main(argv) == 0 and m.main(argv) == 0                                                 # tick 2 is inside the 15 min repeat window
+    (rec,) = _records(tmp_path)
+    assert rec["text"].startswith("[memory-alarm-warn] ") and f"{SHM} free " in rec["text"] and f"MiB < {floor}" in rec["text"], rec
+    assert "WARN memory warn" in (tmp_path / "alerts.log").read_text()
+
+
+@needs_shm
+def test_a_real_tmpfs_probe_below_its_free_space_fires_nothing(tmp_path, monkeypatch):
+    _stub(tmp_path, monkeypatch)
+    argv = _disk_argv(tmp_path, int(_shm_free() / 2))
+    assert m.main(argv) == 0
+    assert _records(tmp_path) == [] and not (tmp_path / "alerts.log").exists()
+
+
+def test_the_real_root_above_the_floor_fires_none(tmp_path, monkeypatch):
+    _stub(tmp_path, monkeypatch)
+    assert m.main(_disk_argv(tmp_path, 1, path="/")) == 0                                          # 1 MiB free is the floor: any live / is above it
+    assert _records(tmp_path) == []
+
+
+def test_an_unreadable_path_reaches_the_spool_once(tmp_path, monkeypatch):
+    _stub(tmp_path, monkeypatch)
+    argv = _disk_argv(tmp_path, 1, path=tmp_path / "nope")
+    assert m.main(argv) == 0 and m.main(argv) == 0
+    (rec,) = _records(tmp_path)
+    assert "unreadable" in rec["text"] and str(tmp_path / "nope") in rec["text"], rec
+
+
+@needs_shm
+def test_a_raised_disk_alarm_clears_only_past_the_margin_and_after_the_hold(tmp_path, monkeypatch):
+    _stub(tmp_path, monkeypatch)
+    free = _shm_free()
+    clock = [1000.0]
+    monkeypatch.setattr(m.time, "time", lambda: clock[0])
+    raise_floor = int(free) + 1024
+    assert m.main(_disk_argv(tmp_path, raise_floor, margin="0.8", hold="3")) == 0                  # raised
+    hover = int(free / 0.8) - 200                                                                  # free sits BELOW floor / 0.8 (the clear line): still raised
+    clock[0] += 120; assert m.main(_disk_argv(tmp_path, hover, margin="0.8", hold="3")) == 0
+    clock[0] += 120; assert m.main(_disk_argv(tmp_path, hover, margin="0.8", hold="3")) == 0
+    assert [r["text"][:20] for r in _records(tmp_path)] == ["[memory-alarm-warn] "], "a hover under the clear line cleared"
+    calm = max(1, int(free * 0.5))                                                                 # free is past the clear line: the hold starts, nothing cleared yet
+    clock[0] += 60; assert m.main(_disk_argv(tmp_path, calm, margin="0.8", hold="3")) == 0
+    assert len(_records(tmp_path)) == 1
+    clock[0] += 240; assert m.main(_disk_argv(tmp_path, calm, margin="0.8", hold="3")) == 0        # past the 3 min hold
+    kinds = [r["text"].split("]")[0] for r in _records(tmp_path)]
+    assert kinds == ["[memory-alarm-warn", "[memory-alarm-cleared"], kinds
+
+
+def _probe_decide(mod, free, prev="ok", floor=5120):
+    th = argparse.Namespace(**{**vars(TH), "warn_root_free_mib": floor})
+    return mod.decide(_disk_sig(free), th, prev)[0]
+
+
+def test_each_mutant_of_the_disk_rule_goes_red_on_the_row_meant_for_it():
+    # (1) the floor is never compared: the filesystem under its floor reads ok
+    mut = _mutant("elif free < th.warn_root_free_mib:", "elif False:")
+    assert _probe_decide(m, 4096.0) == "warn" and _probe_decide(mut, 4096.0) == "ok"
+    # (2) the comparison reversed: a roomy disk warns
+    mut = _mutant("elif free < th.warn_root_free_mib:", "elif free > th.warn_root_free_mib:")
+    assert _probe_decide(m, 10240.0) == "ok" and _probe_decide(mut, 10240.0) == "warn"
+    # (3) an unreadable path reads ok
+    mut = _mutant('warn.append(f"disk path {dpath} unreadable: its free space is not known")', "pass")
+    assert _probe_decide(m, None) == "warn" and _probe_decide(mut, None) == "ok"
+    # (4) a raised alarm clears at the raise line (the floor not moved toward calm)
+    mut = _mutant('"warn_root_free_mib": th.warn_root_free_mib / f}', '"warn_root_free_mib": th.warn_root_free_mib}')
+    assert _probe_decide(m, 5500.0, "warn") == "warn" and _probe_decide(mut, 5500.0, "warn") == "ok"
+    # (5) the disk is never read in a run: the tmpfs probe under its floor writes nothing
+    mut = _mutant("signals.update(read_disk(a.disk_path))", "pass")
+    assert mut.main is not m.main
+
+
+@needs_shm
+def test_the_mutant_that_never_reads_the_disk_in_a_run_is_red_on_the_probe_row(tmp_path, monkeypatch):
+    mut = _mutant("signals.update(read_disk(a.disk_path))", "pass")
+    mut._uid_name = lambda: "agi-sanctuary-master"
+    argv = _disk_argv(tmp_path, int(_shm_free()) + 1024)
+    assert mut.main(argv) == 0 and _records(tmp_path) == []                                        # the mutant is silent where the real run is not
+    _stub(tmp_path, monkeypatch)
+    assert m.main(argv) == 0 and len(_records(tmp_path)) == 1
+
+
+def test_both_real_rows_carry_the_disk_floor_and_the_path():
+    for name in ("memory_alarm", "memory_alarm_posts"):
+        cmd = crons._parse_frontmatter(crons._node_path(REPO / ".agi"))["cadences"][name]["cmd"].split()
+        assert cmd[cmd.index("--warn-root-free-mib") + 1] == "5120", name
+        assert cmd[cmd.index("--disk-path") + 1] == "/", name
+
+
+def test_the_disk_reading_takes_no_action_and_carries_no_floor_or_path_literal():
+    import re
+    src = _src()
+    assert not re.search(r"unlink|rmtree|os\.remove|truncate|drop_caches", src), "the alarm deletes or drops: that is the box owner's"
+    code = [l for l in src.splitlines() if not l.lstrip().startswith("#")]
+    assert not [l for l in code if re.search(r'\b5120\b|"/"', l)], "the floor or the path is a literal in code"
