@@ -337,7 +337,10 @@ PUSH_NON_FF = "[rejected] (non-fast-forward)"
 PUSH_GENERIC_ERROR = "error: failed to push some refs"
 
 
-def read_push_porcelain(res: "subprocess.CompletedProcess[str]") -> tuple[list[str], str | None]:
+PUSH_STATUS_FLAGS = " *+-!="
+
+
+def read_push_porcelain(res: "subprocess.CompletedProcess[str]", batch: list[str]) -> tuple[list[str], str | None]:
     """Read one batch pushed with `--porcelain`: (the dst refs NAMED as non-fast-forward rejections, unread).
 
     `unread` is None only when every failure is a `!<TAB><src>:<dst><TAB>[rejected] (non-fast-forward)`
@@ -345,10 +348,15 @@ def read_push_porcelain(res: "subprocess.CompletedProcess[str]") -> tuple[list[s
     unless --atomic). Anything else is unread, with the first line that says why: a non-zero rc with no
     `!` line (transport, auth, a missing remote), a `!` line with another summary (`[remote rejected]`,
     `(fetch first)`: the remote holds a tip this repo never fetched), or an `error:`/`fatal:` on stderr
-    other than git's own `error: failed to push some refs` (goal:g7.16.1.11.46.16, alive 19:09:47Z)."""
-    named, other = [], []
+    other than git's own `error: failed to push some refs` (goal:g7.16.1.11.46.16, alive 19:09:47Z).
+    A batch is landed only when EVERY `<src>:<dst>` of `batch` has its own status line: git prints one
+    per ref, `=` for one already up to date (measured, git 2.43), so a missing line (a silent rc 0, a
+    git on PATH that printed nothing) is unread, never counted as landed (sp, alive 20:34:49Z)."""
+    named, other, seen = [], [], set()
     for line in res.stdout.splitlines():
         parts = line.split("\t")
+        if len(parts) >= 3 and len(parts[0]) == 1 and parts[0] in PUSH_STATUS_FLAGS:
+            seen.add(parts[1].rsplit(":", 1)[-1])
         if len(parts) >= 3 and parts[0] == "!":
             if parts[2].strip() == PUSH_NON_FF:
                 named.append(parts[1].rsplit(":", 1)[-1])
@@ -363,6 +371,10 @@ def read_push_porcelain(res: "subprocess.CompletedProcess[str]") -> tuple[list[s
     if res.returncode != 0 and not named:
         first = next((l.strip() for l in res.stderr.splitlines() if l.strip()), "")
         return named, first or f"the push exited {res.returncode} with no ref status line"
+    missing = [dst for dst in (spec.rsplit(":", 1)[-1] for spec in batch) if dst not in seen]
+    if missing:
+        return named, (f"no ref status line for {len(missing)} of {len(batch)} ref(s), first {missing[0]} "
+                       f"(the push exited {res.returncode})")
     return named, None
 
 
@@ -383,7 +395,7 @@ def cmd_push_changed(root: Path) -> int:
     batches = push_batches(root)
     rejected: list[str] = []
     for number, batch in enumerate(batches, 1):
-        named, unread = read_push_porcelain(git_try(root, "push", "--porcelain", "origin", *batch))
+        named, unread = read_push_porcelain(git_try(root, "push", "--porcelain", "origin", *batch), batch)
         rejected.extend(named)    # counted by name; the remote keeps its tip and the next batch still runs
         if unread is not None:
             if rejected:
