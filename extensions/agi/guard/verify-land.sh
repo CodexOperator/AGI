@@ -140,22 +140,28 @@ python3 "$A" check --diff-file "$S/$N.anon.diff"; a=$?;echo "anon-diff=$a";[ $a 
 python3 "$A" check --text "$(grep -v -x -E 'Co-Authored-By: Claude (Opus|Sonnet|Haiku|Fable) [0-9]+\.[0-9]+ <noreply@anthropic\.com>' "$S/$N.msg")" >/dev/null; a=$?;em=$(grep -o -E '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$S/$N.msg" | sort -u | tr '\n' ' ')
 echo "anon-msg=$a emails: $em";[ $a = 0 ]||hold anon-msg   # C4 (council 22:05:25Z) + C5 (22:16:14Z): the message minus EXACTLY the co-author trailer (model family + N.N only, so no ip hides in it) must anonymize clean
 [ -z "$(printf '%s\n' $em | grep -vx 'noreply@''anthropic.com')" ]||hold msg-email   # the co-author line is the one address a land message carries
-# home (SM [red] 13:06Z 10-27, the council 13:07Z: L197 HELD on a CONTEXT line): the diff is read for what the land ADDS -- the `+` lines inside its hunks and the
-# new-side paths (`+++ `) -- never its context or removed lines (a home the trunk already carries, or one a land scrubs, is not this land's); the message whole
-python3 -I - "$S/$N.diff" "$S/$N.msg" <<'P' || hold home
+# home (A: SM [red] 13:06Z 10-27, L197 HELD on a CONTEXT line; B: item 2, the council 3/3, alive [decision] 14:04:59Z): what the land ADDS (anonymize.added_lines:
+# the `+` lines inside its hunks + the post-image paths, never a context or removed line) and the message whole, against anonymize's ONE passwd home set (every
+# 1000 <= uid < 65534 home + $HOME + the post-home class: group agi's members, both readings of config:engine-post's sysusers template asserted). Its reading
+# line prints on every run; `home-unread` HOLDs. The lane's seams: VL_PASSWD + VL_GROUP (passwd / group-format files; VL_PASSWD alone = a box with no group)
+# and VL_SYSUSERS (a fixture sysusers template file).
+python3 -I - "$S/$N.diff" "$S/$N.msg" "$A" <<'P' || hold home
 import os,pwd,sys
-if os.environ.get('VL_PASSWD'):    # the lane's seam (the fixture class reads it too): a passwd-format file standing in for this box's
-    dirs=[l.split(':')[5] for l in open(os.environ['VL_PASSWD']) if l.count(':')>=5]
-else:
-    dirs=[p.pw_dir for p in pwd.getpwall()]
-homes={d for d in dirs if len(d)>5 and d not in ('/nonexistent','/var/empty','/usr/sbin')}   # today's set, unchanged (the council 13:10Z: no hole before item 2)
-add,hunk=[],False
-for l in open(sys.argv[1],errors='replace').read().split('\n'):
-    if l.startswith('diff --git '): hunk=False
-    elif l.startswith('@@'): hunk=True
-    elif hunk and l.startswith('+'): add.append(l[1:])
-    elif not hunk and l.startswith('+++ '): add.append(l[4:])
-hits=[h for t in ('\n'.join(add),open(sys.argv[2],errors='replace').read()) for h in homes if h+'/' in t]
+sys.path.insert(0,os.path.dirname(os.path.abspath(sys.argv[3])))    # anonymize.py beside the check that judges this diff
+import anonymize
+e=os.environ
+pw=gr=None
+if e.get('VL_PASSWD'):
+    pw=[pwd.struct_passwd((f[0],f[1],int(f[2]),int(f[3]),f[4],f[5],f[6])) for f in (l.rstrip('\n').split(':') for l in open(e['VL_PASSWD'])) if len(f)==7]
+    gr={}
+if e.get('VL_GROUP'):
+    gr={f[0]:(int(f[2]),[m for m in f[3].split(',') if m]) for f in (l.rstrip('\n').split(':') for l in open(e['VL_GROUP'])) if len(f)==4}
+homes,line=anonymize.passwd_homes(pw,gr,template_path=e.get('VL_SYSUSERS') or None)
+print(line)
+if line.startswith('home-unread'): sys.exit(1)
+homes={h for h in homes|{(e.get('HOME') or '').rstrip('/')} if h.count('/')>=2}
+add=anonymize.added_lines(open(sys.argv[1],errors='replace').read())
+hits=sorted(h for t in (add,open(sys.argv[2],errors='replace').read()) for h in homes if h+'/' in t)
 print('home hits', hits);sys.exit(1 if hits else 0)
 P
 gp=$(python3 -I - "$A" "$S/$N.diff" "$T" <<'P'

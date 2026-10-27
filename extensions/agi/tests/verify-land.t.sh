@@ -23,7 +23,7 @@ gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNS
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
  LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n${MSG:+
 $MSG}" -m "$CA" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
-run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} ${VPW:+VL_PASSWD=$VPW} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
+run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} ${VPW:+VL_PASSWD=$VPW} ${VGR:+VL_GROUP=$VGR} ${VSY:+VL_SYSUSERS=$VSY} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
 # wrun(NAME, LAND, BASE, GT): the WRAP step (`verify-land wrap`) then verify-land on what it printed: WS = the wrap sha (empty = plain)
 wrun(){ run wrap "$@";cp $T/o $T/w;WS=$(sed -n 's/^land: wrap \([0-9a-f]*\) over .*/\1/p' $T/w);n=$1;shift;run $n ${WS:-$1} "$2" "$3";}
@@ -59,8 +59,9 @@ ok "da6-a-listed-node-D-HOLDS rc $rc, $(grep '^D not admitted' $T/o), $(v)" '[ $
 dab bad '"docs/keep"';BASE=$DA;gate db 'git -C $R rm -q docs/keep';BASE=$B0;CARRY=$T/carry-bad.env;run db $LD $DA $GT;CARRY=
 ok "da7-a-malformed-cell-admits-nothing-and-says-so rc $rc, $(grep '^deletes_admitted unread' $T/o|cut -c1-40), $(v)" '[ $rc = 1 ]&&grep -q "^deletes_admitted unread at BASE" $T/o&&grep -qx "D not admitted: docs/keep" $T/o&&v|grep -q "HOLD (.*D"'
 ok "da8-no-D-reading-diff-without--M (falsifier 2) $(grep -c 'name-status' $VL) name-status line(s), $(grep 'name-status' $VL|grep -vc -- '-M --name-status') without -M" '[ "$(grep "name-status" $VL|grep -vc -- "-M --name-status")" = 0 ]&&grep -q -- "-M --name-status" $VL'
-hm=$(getent passwd "$(id -un)"|cut -d: -f6);gate m 'echo "see $hm/notes" >$R/docs/m';run m $LD $BASE $GT
+hm=$(getent passwd "$(id -un)"|cut -d: -f6);gate m 'echo "see $hm/notes" >$R/docs/m';LD_m=$LD;GT_m=$GT;run m $LD $BASE $GT
 ok "h4-a-home-path-literal-HOLDS rc $rc, $(grep -c '^home hits \[.\+\]' $T/o) hit line, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*home"'
+cp $T/o $T/h4.o
 # hc1-hc3 (SM [red] 13:06Z 10-27 + the council 13:07Z; L197 HELD on a context line): the home step reads what the land ADDS. A base that already carries the same
 # home literal; a tip that edits the NEXT line (the literal rides as CONTEXT) is no hit; a tip that REMOVES it (a scrub) is no hit; h4 above stays the added-line HOLD (the runner's real home); hc3 plants a uid-1000 home through the VL_PASSWD seam
 g checkout -q --detach $BASE;printf 'one\nsee %s/notes\nthree\n' "$hm" >$R/docs/ctx;g add -A;g commit -qm "base ctx";BC=$(g rev-parse HEAD);g checkout -q --detach
@@ -73,10 +74,38 @@ ok "hc3-an-ADDED-line-naming-a-planted-uid-1000-home-HOLDS (VL_PASSWD seam) rc $
 # the home-step mutant (as SELF, so `self` holds too): the whole diff read again -> the context row hc1 and the scrub row hc2 HOLD on home, with a NAMED hit (a crash of the step also HOLDs home: the hit line proves the step ran)
 cp "$VL" $T/hm.sh;python3 -c '
 import sys
-s=open(sys.argv[1]).read();a="    elif hunk and l.startswith(\x27+\x27): add.append(l[1:])\n";assert s.count(a)==1,("mutant anchor",a)
-open(sys.argv[1],"w").write(s.replace(a,"    elif True: add.append(l)\n"))' $T/hm.sh
+s=open(sys.argv[1]).read();a="add=anonymize.added_lines(open(sys.argv[1],errors=\x27replace\x27).read())\n";assert s.count(a)==1,("mutant anchor",a)
+open(sys.argv[1],"w").write(s.replace(a,"add=open(sys.argv[1],errors=\x27replace\x27).read()\n"))' $T/hm.sh
 SELF=$T/hm.sh;run hc $LD_hc $BC $GT_hc;cp $T/o $T/mhc.o;run hr $LD_hr $BC $GT_hr;cp $T/o $T/mhr.o;SELF=
 ok "m-home-reads-the-whole-diff-reads-RED context: $(grep '^home hits' $T/mhc.o|cut -c1-60) / scrub: $(grep '^home hits' $T/mhr.o|cut -c1-60)" 'grep -q "^home hits \[.\+\]$" $T/mhc.o&&grep -q "^home hits \[.\+\]$" $T/mhr.o&&tail -1 $T/mhc.o|grep -q "HOLD (.*home"&&tail -1 $T/mhr.o|grep -q "HOLD (.*home"'
+# hb0-hb6 (item 2 part (B), the council 3/3, alive [decision] 14:04:59Z 10-27): the home step takes anonymize's ONE passwd home set (the 1000 <= uid < 65534 homes +
+# $HOME + group agi's members) and prints its reading line every run; `home-unread` HOLDs. The post root is READ from the one definition, never spelled here; every
+# planted home sits outside $T (run()'s HOME) and is no passwd home of this box (the installed guard reads this file's diff too)
+PR=$(sed -n 's#^u agi-@ - "@" \(/.*\)/@$#\1#p' $R0/.agi/nodes/.geometry/engine-post.md);: >$T/gr.none;printf 'agi:x:987:agi-zz\n' >$T/gr.post
+ok "hb0-the-reading-line-prints-on-every-run (h4, this box): $(grep -c '^post homes: \|^home-unread: ' $T/h4.o) line, root read: $([ -n "$PR" ]&&echo yes||echo NO)" '[ -n "$PR" ]&&[ "$(grep -c "^post homes: \|^home-unread: " $T/h4.o)" = 1 ]&&grep -qx "post homes: [0-9][0-9]* (group agi, root $PR, engine-post.md:[0-9][0-9]*)" $T/h4.o'
+printf 'svc:x:34:34::/srv/vl-svc:/usr/sbin/nologin\n' >$T/pw.sys;gate hs 'echo "see /srv/vl-svc/x" >$R/docs/hs';LD_hs=$LD;GT_hs=$GT;VPW=$T/pw.sys;VGR=$T/gr.none;run hs $LD $BASE $GT;VPW=;VGR=;cp $T/o $T/hs.o
+ok "hb1-a-SYSTEM-home-outside-the-root-on-an-added-line-is-OK rc $rc, $(grep '^post homes\|^home hits' $T/hs.o|tr '\n' ' '), $(v)" '[ $rc = 0 ]&&grep -qx "post homes: none (no group agi, 0 under the root)" $T/hs.o&&grep -qx "home hits \[\]" $T/hs.o'
+printf 'agi-zz:x:900:900::%s/zz:/usr/sbin/nologin\n' "$PR" >$T/pw.post;gate hq 'echo "see $PR/zz/x" >$R/docs/hq';VPW=$T/pw.post;VGR=$T/gr.post;run hq $LD $BASE $GT;VPW=;VGR=
+ok "hb2-a-POST-home-HOLDS (a planted member, not the runner) rc $rc, $(grep '^post homes\|^home hits' $T/o|sed "s#$PR#<root>#g"|tr '\n' ' '), $(v)" '[ $rc = 1 ]&&grep -qx "post homes: 1 (group agi, root $PR, engine-post.md:[0-9][0-9]*)" $T/o&&grep -q "^home hits \[.*$PR/zz.*\]$" $T/o&&v|grep -qx "verify-land: HOLD (home)"'
+printf 'agi-zz:x:900:900::/srv/vl-zz:/usr/sbin/nologin\n' >$T/pw.dis;gate hd 'echo plain >$R/docs/hd';LD_hd=$LD;GT_hd=$GT;VPW=$T/pw.dis;VGR=$T/gr.post;run hd $LD $BASE $GT;VPW=;VGR=;cp $T/o $T/hd.o
+ok "hb3-the-two-readings-DISAGREE-is-home-unread-and-HOLDS (a member off <root>/<name>) rc $rc, $(grep '^home-unread' $T/hd.o), $(v)" '[ $rc = 1 ]&&grep -qx "home-unread: member agi-zz does not live at <root>/<name less agi->" $T/hd.o&&v|grep -qx "verify-land: HOLD (home)"'
+printf 'agi-zz:x:900:900::%s/zz:/usr/sbin/nologin\nagi-yy:x:901:901::%s/yy:/usr/sbin/nologin\n' "$PR" "$PR" >$T/pw.str;VPW=$T/pw.str;VGR=$T/gr.post;run hd $LD_hd $BASE $GT_hd;VPW=;VGR=
+ok "hb4-a-NON-member-under-the-root-is-home-unread rc $rc, $(grep '^home-unread' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "home-unread: 1 account(s) under the root outside group agi" $T/o&&v|grep -qx "verify-land: HOLD (home)"'
+printf '### sysusers.conf (x B)\n~~~ini\nu agi-@ - "@" /srv/vl-root/@\nm agi-@ agi\n~~~\n' >$T/sysusers.md;printf 'agi-zz:x:900:900::/srv/vl-root/zz:/usr/sbin/nologin\n' >$T/pw.fxr
+gate ht 'echo "see /srv/vl-root/zz/x" >$R/docs/ht';LD_ht=$LD;GT_ht=$GT;VPW=$T/pw.fxr;VGR=$T/gr.post;VSY=$T/sysusers.md;run ht $LD $BASE $GT;cp $T/o $T/ht.o;VSY=$T/nowhere;run ht $LD_ht $BASE $GT_ht;cp $T/o $T/ht2.o;VPW=;VGR=;VSY=
+ok "hb5-the-TEMPLATE-seam-reads-a-fixture-root (and an unreadable one is home-unread): $(grep '^post homes\|^home-unread' $T/ht.o) / $(grep '^home-unread' $T/ht2.o)" 'grep -qx "post homes: 1 (group agi, root /srv/vl-root, sysusers.md:3)" $T/ht.o&&tail -1 $T/ht.o|grep -qx "verify-land: HOLD (home)"&&grep -qx "home-unread: config:engine-post.s sysusers template unread (FileNotFoundError)" $T/ht2.o&&tail -1 $T/ht2.o|grep -qx "verify-land: HOLD (home)"'
+# the part (B) mutants (as SELF): the home set widened back to every passwd home -> hb1 HOLDs; home-unread no longer held -> hb3 passes; the reading line dropped -> none printed
+hmut(){ cp "$VL" $T/hb.sh;python3 -c '
+import sys
+s=open(sys.argv[1]).read();a,b=sys.argv[2],sys.argv[3];assert s.count(a)==1,("mutant anchor",a)
+open(sys.argv[1],"w").write(s.replace(a,b))' $T/hb.sh "$1" "$2";SELF=$T/hb.sh;}
+hmut "homes={h for h in homes|" "homes={p.pw_dir.rstrip('/') for p in (pw if pw is not None else pwd.getpwall())}|{h for h in homes|";VPW=$T/pw.sys;VGR=$T/gr.none;run hs $LD_hs $BASE $GT_hs;VPW=;VGR=;SELF=
+ok "m-home-wide-set-reads-RED the system home on hb1's added line HOLDs: $(grep '^home hits' $T/o)" 'grep -q "^home hits \[.*/srv/vl-svc.*\]$" $T/o&&v|grep -q "HOLD (.*home"'
+hmut "if line.startswith('home-unread'): sys.exit(1)" "if False: sys.exit(1)";VPW=$T/pw.dis;VGR=$T/gr.post;run hd $LD_hd $BASE $GT_hd;VPW=;VGR=;SELF=
+ok "m-home-unread-not-held-reads-RED hb3's disagreement passes the home step: $(grep '^home-unread\|^home hits' $T/o|tr '\n' ' ')" 'grep -qx "home hits \[\]" $T/o&&! v|grep -q "HOLD (.*home"'
+hmut "print(line)
+" "";run m $LD_m $BASE $GT_m;SELF=
+ok "m-home-reading-line-dropped-reads-RED h4's run prints $(grep -c '^post homes: \|^home-unread: ' $T/o) reading line(s)" '[ "$(grep -c "^post homes: \|^home-unread: " $T/o)" = 0 ]&&grep -q "^home hits" $T/o'
 gate e 'echo b2 >$R/docs/b2';LE=$(g commit-tree -S -p $BASE -p $GT -m "land e
 leak: someone@""example.org" $(g rev-parse $LD^{tree}));g update-ref refs/held/sanctuary-master/e $LE;run e $LE $BASE $GT
 ok "h5-a-stray-email-in-the-message-HOLDS rc $rc, $(grep -o 'emails: .*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*msg-email"'
