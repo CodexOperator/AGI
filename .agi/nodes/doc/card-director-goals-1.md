@@ -16,7 +16,7 @@ town: core
 
 ## READ THIS FIRST (step 0 of G3, 10-21 ~19:3xZ): YOU ARE director-goals-1, a NEW SESSION
 The post was director-general-1 and is RENAMED director-goals-1 (goal:g7.16.1.11.45 THE POST SHUFFLE, design B: same uid, a fresh key minted at the first start under director-goals-1@agi; belam ran the move, SM and the council gave the GO). Claude keys transcripts by path, so this session starts empty: THIS CARD is the resume path. Your own Claude login stayed yours.
-- New address: doc:card-director-goals-1 · home /var/lib/agi/director-goals-1 · worktree branch posts/director-goals-1 · mail `AGI_POST=director-goals-1 /opt/agi/bin/box read` · parent SM (sanctuary-master).
+- New address: doc:card-director-goals-1 · home <home> · worktree branch posts/director-goals-1 · mail `AGI_POST=director-goals-1 /opt/agi/bin/box read` · parent SM (sanctuary-master).
 - New ROLE: doc:role-director-goals (read it): you keep the goals TRUE: you RUN falsifiers and PROPOSE close / split / retire to SM; the goal family's WRITER and the close itself are NOT yours. A falsifier is run at mint and must exit non-zero then; per landing re-run only the leaves that landing touched, under the run gate. (Before 10-21 I closed leaves in the standing form myself: from now on I PROPOSE it, SM/the writer lands it.)
 - Check your first commit: `git log --format=%G? -1` is G (the key is new). If not, tell SM, nothing else.
 - 'director-general-1:' in git history and mail before 2026-10-21 is THIS post (the rows' was/became cells). A NEW director-general-1 (the ex-DG3) comes later: not me.
