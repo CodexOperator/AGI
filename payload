@@ -2457,7 +2457,7 @@ def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Sna
 
 
 def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[str, str],
-                 seen: "_TrunkSeen | None" = None) -> tuple[int, list[str]]:
+                 seen: "_TrunkSeen | None" = None, owner: "set[tuple[str, str]] | None" = None) -> tuple[int, list[str]]:
     """The per-mint falsifier of G1a-T, read-only. `before` is the verb's OWN earliest pre-write snapshot.
     Per mint: the live tip and the snapshot's old tip are ancestors of the new tip, `rev-list --count` new
     >= max(old), and the merge commit that took the live tip as its first parent (a) carries the live tip's
@@ -2489,7 +2489,7 @@ def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[s
             good += 1    # the live tip was already inside the pre-write tip (nothing to merge): sound ONLY while the snapshot
             continue     # is early, so a pre-write tip that already carries a unify merge (a late snapshot) never takes this exit
         if lns == ORIGIN_SNAP_NS:
-            why = _check_unrelated(root, ltip, ntip, seen)
+            why = _check_unrelated(root, ltip, ntip, seen, owner)
             if why is None:
                 good += 1
                 continue
@@ -2551,7 +2551,8 @@ def _class_line(counts: "Counter[str]") -> str:
     `unify` and `--check` print (banked = the pairs the byte test left CONFLICT on unseen bytes, for the owner's one batch look)."""
     x, y = counts.get("unrelated-root/live-seen", 0), counts.get("unrelated-root/trunk-seen", 0)
     return (f"classes: tree-equal {counts.get('tree-equal', 0)}, unrelated-root tree=live {x + y} "
-            f"(origin bytes in live's history {x}, in the trunk's {y}), banked {counts.get('banked', 0)}")
+            f"(origin bytes in live's history {x}, in the trunk's {y}), banked {counts.get('banked', 0)}"
+            + (f", owner-batch tree=live {counts['owner-batch/live']}" if counts.get("owner-batch/live") else ""))
 
 
 def _write_class_record(root: Path, ns: str, classes: list[tuple[str, str, str, str]]) -> str:
@@ -2598,7 +2599,8 @@ def _tree_sha(root: Path, rev: str) -> str | None:
     return sha if res.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", sha) else None
 
 
-def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None") -> str | None:
+def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None",
+                     owner: "set[tuple[str, str]] | None" = None) -> str | None:
     """`--check` for a pair `_unify_one` merged as an UNRELATED ROOT: None = sound, "" = this pair is not one (fall through to the ordinary
     check), else why it is RED. The merge is found by its SECOND parent (origin's tip) and its `Unify-Unrelated` trailer; it must carry the tree of
     its FIRST parent (the live tip it took in), and the class is judged AGAIN on that first parent (origin's tip is inside ntip's history now, so
@@ -2609,7 +2611,8 @@ def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None"
             continue
         merge, first = parts[0], parts[1]
         body = git(root, "log", "-1", "--format=%B", merge, check=False)
-        if f"Unify-Unrelated: {ltip}" not in body.splitlines():
+        by_owner = f"Unify-Owner: {ltip}" in body.splitlines()
+        if f"Unify-Unrelated: {ltip}" not in body.splitlines() and not by_owner:
             continue
         # the home-path count is over what the merge ADDED against its first parent (empty when the trees are equal): a live tip that already carries a
         # literal merges as tree = LIVE and must read GREEN; the count is computed even when the tree check is RED (the tree = ORIGIN mutant reads RED twice)
@@ -2623,6 +2626,8 @@ def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None"
             return "the unrelated-root merge does not carry the live tree" + ("; a written tip carries a home-path literal" if added else "")
         if added:
             return "a written tip carries a home-path literal"
+        if by_owner:    # the owner's ruling, not the byte test: only a stamped owner-batch row naming this merge for this origin tip, of a pair once banked
+            return None if (ltip, merge) in (owner or set()) else "an owner-batch merge no stamped owner-batch record names"
         cls, why = _unrelated_class(root, ltip, first, seen)
         if cls in (None, "unread"):
             return f"the unrelated-root merge is outside the class ({why})"
@@ -2630,7 +2635,133 @@ def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None"
     return ""
 
 
-def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD") -> int:
+#: the class an owner-batch write records (`_write_class_record`), and the trailer `--check` knows it by (`_check_unrelated`)
+OWNER_CLASS = "owner-batch/live"
+
+
+def _owner_records(root: Path) -> set[tuple[str, str]]:
+    """{(origin tip, written merge)} of every stamped `owner-batch/live` row whose origin tip some stamped record BANKED: the owner
+    ruled the banked batch, so a row for a pair nobody banked holds nothing at `--check`."""
+    rows = [x.split() for rec in sorted(_unify_dir(root).glob("*.classes")) for x in rec.read_text().splitlines()]
+    banked = {r[2] for r in rows if len(r) >= 3 and r[0] == "banked"}
+    return {(r[2], r[3]) for r in rows if len(r) == 4 and r[0] == OWNER_CLASS and r[2] in banked}
+
+
+class _OwnerStamp:
+    """The stamped record of ONE `--owner-batch --write`, written PER ROW: the `.classes` file (and its `.batch`) is created exclusively at the
+    first write and each pair is APPENDED (flushed + fsynced) right after its compare-and-swap, so a run that dies between two pairs (a raise,
+    a power loss) leaves every written merge stamped. The `.batch` entry is `git diff <live tip> <origin tip>` over EVERY path, uncapped: it is
+    where origin's version is SAVED (the owner's words); a diff git cannot read is ONE named `diff unread: <reason>` line, never an empty body."""
+
+    def __init__(self, root: Path) -> None:
+        self.root, self.path = root, None
+
+    def _open(self) -> None:
+        d = _unify_dir(self.root)
+        d.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        n = 0
+        while True:
+            path = d / f"{stamp}-{os.getpid()}-{n}.classes"
+            try:
+                with open(path, "x"), open(path.with_suffix(".batch"), "x"):
+                    pass
+                break
+            except FileExistsError:
+                n += 1
+        self.path = path
+
+    def add(self, mint: str, live: str, otip: str, commit: str) -> None:
+        if self.path is None:
+            self._open()
+        res = git_try(self.root, "diff", "--no-color", live, otip)
+        body = (res.stdout.splitlines() if res.returncode == 0 else
+                [f"diff unread: {(res.stderr.strip().splitlines() or ['git diff rc ' + str(res.returncode)])[0]}"])
+        for path, text in ((self.path.with_suffix(".batch"), f"== {mint} origin {otip} live {live}\n   owner rule: tree = LIVE, origin's tip kept "
+                            f"as the 2nd parent of {commit}\n" + "".join(f"   {x}\n" for x in body)),
+                           (self.path, f"{OWNER_CLASS} {mint} {otip} {commit}\n")):
+            with open(path, "a") as f:
+                f.write(text)
+                f.flush()
+                os.fsync(f.fileno())
+
+
+def _unify_owner_batch(root: Path, ns: str, record: str, write: bool) -> int:
+    """goal:g7.16.1.11.46.16, the OWNER's ruling of the banked batch (10-27, belam relaying the owner: "Sounds good" to "keep the live
+    version for all 40 and save origin's differing version in a stamped record"): the SELECTOR is the `banked` rows of ONE stamped record
+    `<record>` (a `.classes` file under `_unify_dir`, by name). Per selected mint: origin's tip must still be the one the record banked
+    (moved = CONFLICT, named), and the pair is written as ONE two-parent commit, tree = LIVE, first parent the live tip, origin's tip the
+    second (`Unify-Owner: <origin tip>`), by `_cas`: the push of it is a fast-forward of origin's ref, never a force, and origin's version
+    stays in the history. A pair already holding origin's tip is unchanged; one git cannot read is UNREAD, named, never skipped. `--write`
+    needs the QUIET verdict and the grid lock, like every origin write; `_OwnerStamp` stamps each written pair right after its
+    compare-and-swap (`owner-batch/live` rows) with origin's full diff in the `.batch` beside it. Dry-run unless `--write`."""
+    if "/" in record or not record.endswith(".classes") or not (_unify_dir(root) / record).is_file():
+        print(f"grid unify: unread (--owner-batch names no stamped record: {record!r}; a `.classes` file name under {_unify_dir(root).name}/)")
+        return 1
+    rows = [x.split() for x in (_unify_dir(root) / record).read_text().splitlines()]
+    picked = [(r[1], r[2]) for r in rows if len(r) >= 3 and r[0] == "banked"]
+    if not picked:
+        print(f"grid unify: unread (record {record} banks no pair)")
+        return 1
+    if write:
+        why = _origin_quiet(root)
+        if why:
+            print(f"grid unify: unread ({ORIGIN_SNAP_NS} is not QUIET: {why})")
+            return 1
+    lock = None
+    if write:
+        lock = GridLock(root, 120)
+        lock.acquire()
+    tally = {"merged": 0, "unchanged": 0, "conflict": 0, "unread": 0}
+    named: list[str] = []
+    stamp = _OwnerStamp(root)
+    try:
+        snap = _Snapshot(root, ns, write)
+        for mint, want in picked:
+            oref, nref = f"{ORIGIN_SNAP_NS}/node/{mint}", f"{ns}/node/{mint}"
+            otip, ntip = ref_tip(root, oref), ref_tip(root, nref)
+            held = _is_ancestor(root, otip, ntip) if otip and ntip else None
+            ltree = _tree_sha(root, ntip) if ntip else None
+            if otip is None or ntip is None or held is None or ltree is None:
+                tally["unread"] += 1
+                named.append(f"  UNREAD {mint} (a ref, an ancestry or the live tree cannot be read: origin {otip or '-'}, live {ntip or '-'})")
+                continue
+            if otip != want:
+                tally["conflict"] += 1
+                named.append(f"  CONFLICT {mint} (origin moved since the record banked it: {want} -> {otip}; nothing written)")
+                continue
+            if held:
+                tally["unchanged"] += 1
+                continue
+            if write:
+                snap.ensure()
+                n = int(git(root, "rev-list", "--count", "--first-parent", ntip)) + 1
+                msg = f"unify v{n} {mint}\n\nUnify-Owner: {otip}\nUnify-Class: {OWNER_CLASS}\nUnify-Record: {record}\n"
+                res = git_try(root, "commit-tree", ltree, "-p", ntip, "-p", otip, "-m", msg)
+                if res.returncode != 0:
+                    tally["unread"] += 1
+                    named.append(f"  UNREAD {mint} (the merge commit could not be built: {(res.stderr.strip().splitlines() or ['rc ' + str(res.returncode)])[0]}; nothing written)")
+                    continue
+                if not _cas(root, nref, res.stdout.strip(), ntip):
+                    tally["conflict"] += 1
+                    named.append(f"  CONFLICT {mint} (a lost compare-and-swap; nothing written)")
+                    continue
+                stamp.add(mint, ntip, otip, res.stdout.strip())    # stamped NOW: a death before the next pair leaves this one recorded
+            tally["merged"] += 1
+        print(f"grid unify ({'write' if write else 'dry-run'}) --owner-batch {record}: selected {len(picked)} banked pair(s): "
+              + ", ".join(f"{v} {k}" for k, v in tally.items()) + " (tree = LIVE, origin's tip the 2nd parent)")
+        if stamp.path is not None:
+            print(f"grid unify: record {stamp.path.name} + {stamp.path.with_suffix('.batch').name} (the owner-batch rows, each stamped after its "
+                  f"compare-and-swap; origin's full diff per mint)")
+        for line in named:
+            print(line)
+    finally:
+        if lock is not None:
+            lock.release()
+    return 1 if tally["conflict"] or tally["unread"] else 0
+
+
+def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD", owner_batch: str | None = None) -> int:
     """goal:g7.16.1.11.46.16 G1a: ONE namespace, written ADDITIVELY. Words: LEGACY = `refs/grid/local-maxxing`,
     the namespace every writer used until this land (6025 refs, live until then); `refs/grid/node` = the 09-21
     FREEZE (3807 refs), which becomes the one namespace. For every mint in each read-only legacy namespace
@@ -2659,6 +2790,11 @@ def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD")
             print(f"grid unify: unread ({lns} lists no node refs)")
             return 1
         listing[lns] = sorted(names)
+    if owner_batch is not None:
+        if check or ORIGIN_SNAP_NS not in listing:
+            print(f"grid unify: unread (--owner-batch reads {ORIGIN_SNAP_NS} only, and never with --check)")
+            return 1
+        return _unify_owner_batch(root, ns, owner_batch, write)
     if check:
         snaps = sorted(_unify_dir(root).glob("*.refs"))
         if not snaps:
@@ -2676,8 +2812,9 @@ def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD")
         rc = 0
         bad_mints: set[str] = set()
         seen = _TrunkSeen(root, trunk) if ORIGIN_SNAP_NS in listing else None
+        owner = _owner_records(root)
         for lns, names in listing.items():
-            good, bad = _unify_check(root, ns, lns, names, before, seen)
+            good, bad = _unify_check(root, ns, lns, names, before, seen, owner)
             print(f"grid unify check: unified {good}/{len(names)} ({lns} -> {ns})")
             if lns == ORIGIN_SNAP_NS:
                 recs = Counter()
@@ -3166,6 +3303,8 @@ def main() -> None:
                     help="the namespace to merge INTO (refs/grid: the 09-21 freeze, the one namespace), overriding the config (run BEFORE the config lands)")
     un.add_argument("--legacy", action="append", default=None,
                     help="a LEGACY namespace to merge FROM (repeatable; refs/grid/local-maxxing, the namespace every writer used until this land), overriding grid.legacy_namespaces")
+    un.add_argument("--owner-batch", default=None, metavar="RECORD",
+                    help="the owner's ruling of a banked batch: write every `banked` pair of the stamped record RECORD (a .classes name) as tree = LIVE, origin's tip the 2nd parent (with --legacy refs/grid/origin-snap)")
     un.add_argument("--trunk", default="HEAD",
                     help="the ref whose history is the TRUNK's blob evidence for the origin mirror's byte test (default HEAD; pass the land branch when HEAD is not it)")
     os_ = sub.add_parser("origin-snap",
@@ -3225,7 +3364,7 @@ def main() -> None:
     elif args.cmd == "unify" and not args.check and _retired_write(root, args.write):
         pass
     elif args.cmd == "unify":
-        sys.exit(cmd_unify(root, args.write, args.check, args.trunk))
+        sys.exit(cmd_unify(root, args.write, args.check, args.trunk, args.owner_batch))
     elif args.cmd == "origin-snap":
         sys.exit(cmd_origin_snap(root, args.remote, args.lap))
     elif args.cmd == "census":
