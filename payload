@@ -11,7 +11,7 @@
 | Question | Read |
 |---|---|
 | What is agi, and why is it shaped this way? | `skills/agi/SKILL.md` |
-| What is committed to, and what is being worked now? | the goal nodes under `.agi/nodes/goal/`, read by id: `write.py goal:<id> 'read body 1:60'` |
+| What is committed to, and what is being worked now? | the goal nodes under `.agi/nodes/goal/`, read by id: `sed -n '1,60p' .agi/nodes/goal/<id>.md` |
 | What does the repo contain, and how do I run the loop? | `CLAUDE.md` |
 | What does any given engine file do? | its build node — `.agi/nodes/build/*.md`, one per file |
 | What is the CURRENT session doing, and what is next? | `HANDOFF.md` — one section, always current |
