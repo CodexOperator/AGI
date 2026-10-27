@@ -7,6 +7,8 @@ T0=$(mktemp -d);T=$T0/agi-suite-lane;mkdir $T;trap 'rm -rf $T0' 0;f=0;R0=${ROOT:
 # $T carries its OWN agi-suite-* part (crons.py's seam predicate, path facts only): a runner's TMPDIR choice cannot move the fixtures out of every seam; no hook of a runner's git config reaches a scratch repo
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/dev/null
 ok(){ if eval "$3";then echo "ok $1 $2";else echo "FAIL $1 $2";f=$((f+1));for x in $T/o $T/e;do [ -s $x ]&&head -4 $x|cut -c1-220|sed "s/^/#   ${x##*/}: /";done;fi;}
+# a fixture/mutant edit of a COPY must change it (goal:g7.16.1.11.13.5, GATE281 r2's class): a literal that drifted is a counted FAIL, never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
 AG=$R0/extensions/agi/bin/agi.sh;CRONS=$R0/extensions/agi/bin;[ -f $AG ]||{ echo "FAIL inputs: $AG";exit 99;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 sect box >$T/box;chmod +x $T/box;[ -s $T/box ]||{ echo "FAIL extract: box";exit 99;}
@@ -64,7 +66,8 @@ cat >$M/.agi/nodes/.geometry/posts.md <<'EOF'
   - {"name":"far","parent":"belam","harness":"claude","box":"xx","boot":true}
 EOF
 jq '.values.local_maxxing.agi_town.ack_wait_s=3' $R0/.agi/config.json >$M/.agi/config.json
-sed '/^town	start	/d' $R0/.agi/nodes/.geometry/engine.md >$M/.agi/nodes/.geometry/engine.md
+sed '/^town	start	/d' $R0/.agi/nodes/.geometry/engine.md >$M/.agi/nodes/.geometry/engine.md;chg $R0/.agi/nodes/.geometry/engine.md $M/.agi/nodes/.geometry/engine.md "the town-start row delete"
+pe(){ $G -C $M show $PIN:.agi/nodes/.geometry/engine.md>$T/eng.pin;sed "$1" $T/eng.pin >$M/.agi/nodes/.geometry/engine.md;chg $T/eng.pin $M/.agi/nodes/.geometry/engine.md "$2";}
 cm(){ $G -C $M add -A;$G -C $M -c user.name=x -c user.email=x@x commit -q -m "$1";$G -C $M rev-parse HEAD;}
 PIN0=$(cm norow);cp $R0/.agi/nodes/.geometry/engine.md $M/.agi/nodes/.geometry/engine.md;PIN=$(cm withrow)
 grep -qP '^town\tstart\tmain host posts crons units blast\tagi.sh$' $M/.agi/nodes/.geometry/engine.md||{ echo "FAIL inputs: the tree's engine.md has no 'town start' row";exit 99;}
@@ -153,7 +156,7 @@ ok st-F2-a-unit-left-running-is-counted "quiet-watch left running: rc $rc (want 
 # the order is READ from the matrix row: the default row stops units BEFORE posts; the row 'units posts crons blast' runs the posts arm (disable agi-boot) before the units arm (stop quiet-watch). (There is NO heal guard: council 10-21, heal.py never touches agi-post@ units.)
 ord1(){ awk '/^disable agi-boot.service/{if(!b)b=NR} /^stop agi-quiet-watch.timer/{if(!q)q=NR} END{print (b&&q)?((b<q)?"posts-first":"units-first"):"missing"}' $SD/calls;}
 town;ST;run stop >$T/o 2>$T/e;ord0=$(ord1)
-town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	units posts crons blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P2=$(cm reorder);echo "AGI_TRUNK=$P2" >$T/carry2
+town;ST;pe 's/^town	start	main host posts crons units blast	agi.sh$/town	start	units posts crons blast	agi.sh/' "the matrix-row sed: the reorder";P2=$(cm reorder);echo "AGI_TRUNK=$P2" >$T/carry2
 CARRYF=$T/carry2 XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-order-is-read-from-the-matrix-row "default row: $ord0 (want units-first); the row 'units posts crons blast': $(ord1) (want posts-first)" '[ "$ord0" = units-first ]&&[ "$(ord1)" = posts-first ]'
 CARRYF=
@@ -177,12 +180,12 @@ rep '||die "[pid] cannot parse a posts.md row at $PIN: $1"' '';pidbad garble;AGS
 ok st-pid-b-mutant-the-parse-check-dropped-passes-a-garbled-row-RED "rc $rc, [pid] lines $(grep -c '^\[pid\]' $T/e) (clean: refused, rc 1)" '! grep -q "^\[pid\]" $T/e'
 $G -C $M show $PIN:.agi/nodes/.geometry/posts.md>$M/.agi/nodes/.geometry/posts.md   # the pid rows' fixture row goes: later rows build on the tree's own posts.md
 # a row that lacks `crons`: the crontabs keep their block, the stop says so and fails (F1: delete `crons` from the row -> crontab diff > 0)
-town;ST;$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
+town;ST;pe 's/^town	start	main host posts crons units blast	agi.sh$/town	start	posts units blast	agi.sh/' "the matrix-row sed: the nocrons";P3=$(cm nocrons);echo "AGI_TRUNK=$P3" >$T/carry3
 CARRYF=$T/carry3 XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-F1-mutant-crons-deleted-from-the-row-is-RED "row 'posts units blast': rc $rc (want 1), marked cron lines left = $(mark) (want > 0; the clean stop leaves 0)" '[ $rc = 1 ]&&[ "$(mark)" -gt 0 ]'
 CARRYF=
 # a row naming a step this agi.sh has no down arm for
-$G -C $M show $PIN:.agi/nodes/.geometry/engine.md|sed 's/^town	start	main host posts crons units blast	agi.sh$/town	start	zzz main host posts crons units blast	agi.sh/'>$M/.agi/nodes/.geometry/engine.md;P4=$(cm main);echo "AGI_TRUNK=$P4" >$T/carry4
+pe 's/^town	start	main host posts crons units blast	agi.sh$/town	start	zzz main host posts crons units blast	agi.sh/' "the matrix-row sed: the bogus step";P4=$(cm main);echo "AGI_TRUNK=$P4" >$T/carry4
 town;s0=$(snap);CARRYF=$T/carry4 XENV= run stop >$T/o 2>$T/e;rc=$?
 ok st-a-row-step-without-a-down-arm-refuses "the row lists 'zzz' (no such step; 'main' and 'host' have their arms since S2): rc $rc (want 1), [step] named, the town unchanged: $([ "$(snap)" = "$s0" ]&&echo yes||echo NO)" '[ $rc = 1 ]&&grep -q "^\[step\]" $T/e&&[ "$(snap)" = "$s0" ]'
 CARRYF=
@@ -288,16 +291,16 @@ sw(){ rm -f $T/wsh/launches;rm -rf $T/wh/logs/sanctuary-guard;mkdir -p $T/wh/log
 printf 'boot enabled\nrunning dg2\n' >$T/ws.nostop;printf 'boot enabled\nrunning dg2\nstopped tw 2026-10-15T20:00:00Z\n' >$T/ws.stop
 a=$(sw $T/ws.nostop $W);ok st-F2-watch-launches-a-recovery-agent-on-a-running-town "town.state without a stopped line, peer down, PEER_CLAUDE=1: recovery launches = $a (want 1)" '[ "$a" = 1 ]'
 b=$(sw $T/ws.stop $W);ok st-F2-watch-stands-down-on-a-stopped-town "town.state WITH its stopped line: recovery launches = $b (want 0), the watch says so: $(grep -c 'stood down' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null)" '[ "$b" = 0 ]&&grep -q "stood down" $T/wh/logs/sanctuary-guard/watch.log'
-sed 's#grep -q .\^stopped . "\$TOWN_STATE" 2>/dev/null#false#' $W >$T/watch.mut;cmp -s $W $T/watch.mut&&echo "# NO EDIT in the watch mutant"
+sed 's#grep -q .\^stopped . "\$TOWN_STATE" 2>/dev/null#false#' $W >$T/watch.mut;chg $W $T/watch.mut "the watch mutant 1"
 c=$(sw $T/ws.stop $T/watch.mut);ok st-F2-mutant-the-watch-ignores-town-state-is-RED "the watch without the town.state read, on a stopped town: recovery launches = $c (want >= 1; the clean row wants 0)" '[ "$c" -ge 1 ]'
 # R6 (watch half): a stopped line with posts running is a stale line: the watch checks and says so
 a=$(WP=2 sw $T/ws.stop $W);ok st-R6-the-watch-checks-while-posts-run "town.state stopped + 2 agi-post@ units up: recovery launches = $a (want 1: stale line, the checks go on), noted: $(grep -c 'stale-state' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null)" '[ "$a" = 1 ]&&grep -q "stale-state" $T/wh/logs/sanctuary-guard/watch.log'
-sed 's#if (( ${NPOSTS:-0} == 0 )); then#if true; then#' $W >$T/watch.mut2;cmp -s $W $T/watch.mut2&&echo "# NO EDIT in the watch mutant 2"
+sed 's#if (( ${NPOSTS:-0} == 0 )); then#if true; then#' $W >$T/watch.mut2;chg $W $T/watch.mut2 "the watch mutant 2"
 a=$(WP=2 sw $T/ws.stop $T/watch.mut2);ok st-R6-mutant-the-watch-ignores-running-posts-is-RED "the old stand-down, 2 posts up: recovery launches = $a (want 0; the clean row wants 1)" '[ "$a" = 0 ]'
 # S2b / condition 7: a start IN PROGRESS (town.starting) leaves the stopped line with posts up; the watch says the TRUE line, not "brought back by hand"
 date -u +%Y-%m-%dT%H:%M:%SZ >$T/wstart
 a=$(WP=2 TSG=$T/wstart sw $T/ws.stop $W);ok st-S2b-cond7-the-watch-says-a-start-is-in-progress "town.state stopped + 2 posts up + town.starting: the log says the start line: $(grep -c 'a start is in progress since .*finish it with agi.sh start' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null) (want 1), the stale-state line: $(grep -c 'stale-state' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null) (want 0)" 'grep -q "a start is in progress since .*finish it with agi.sh start" $T/wh/logs/sanctuary-guard/watch.log&&! grep -q stale-state $T/wh/logs/sanctuary-guard/watch.log'
-sed 's#if \[ -e "$TOWN_STARTING" \]; then#if false; then#' $W >$T/watch.mut3;cmp -s $W $T/watch.mut3&&echo "# NO EDIT in the watch mutant 3"
+sed 's#if \[ -e "$TOWN_STARTING" \]; then#if false; then#' $W >$T/watch.mut3;chg $W $T/watch.mut3 "the watch mutant 3"
 a=$(WP=2 TSG=$T/wstart sw $T/ws.stop $T/watch.mut3);ok st-S2b-cond7-mutant-the-watch-ignoring-town-starting-is-RED "the watch without the town.starting read says: stale-state $(grep -c stale-state $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null) (want 1; the clean row wants 0)" 'grep -q stale-state $T/wh/logs/sanctuary-guard/watch.log'
 # S2-b: a systemctl that FAILS lists nothing; "0 posts" must not stand the watch down: the checks go on
 a=$(WSF=1 sw $T/ws.stop $W);ok st-S2b-S2-b-a-failing-systemctl-keeps-the-peer-checks-going "stopped line + systemctl rc 1: recovery launches = $a (want 1), noted: $(grep -c '\[systemctl\]' $T/wh/logs/sanctuary-guard/watch.log 2>/dev/null)" '[ "$a" = 1 ]&&grep -q "\[systemctl\]" $T/wh/logs/sanctuary-guard/watch.log'
@@ -328,6 +331,14 @@ ok st-rep-a-matchless-anchor-fails-closed "a drifted anchor: $(echo "$x"|tr '\n'
 x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' ${3:-$AG}>$T/mut.sh;cmp -s ${3:-$AG} $T/mut.sh&&echo "# NO EDIT for [$1]";AGSH=$T/mut.sh;}
 f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
 ok st-rep-mutant-the-comment-only-branch-is-RED "the old rep (a '# NO EDIT' comment): $(echo "$x"|tr '\n' '|'|cut -c1-120) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+# r3 (the census): chg fails closed too, and the old print-only test is the mutant
+printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
+ok st-chg-a-matchless-edit-fails-closed "an edit that changed nothing: $(echo "$x"|tr '\n' '|'|cut -c1-120)" 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
+printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
+ok st-chg-an-edit-that-changed-bytes-is-silent "an edit that changed bytes: $(echo "$x"|tr '\n' '|')" '[ "$x" = "f=0" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};f=0;chg $T/c1 $T/c2 "the old watch mutant";echo "f=$f")
+ok st-chg-mutant-the-print-only-branch-is-RED "the old print-only test: $(echo "$x"|tr '\n' '|'|cut -c1-120) (want f=0 and no FAIL line: the clean row has f=1)" '! echo "$x"|grep -q "^FAIL fixture-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
+ok st-chg-the-watch-mutants-and-the-matrix-seds-are-measured "chg on the watch copies: $(grep -c 'ch''g [$]W ' $0) (want 3), pe calls: $(grep -cE '(^|;)pe .s/[\^]town' $0) (want 3), print-only watch tests left: $(grep -c 'NO EDIT in the wat''ch' $0) (want 0)" '[ "$(grep -c "ch""g [$]W " $0)" = 3 ]&&[ "$(grep -cE "(^|;)pe .s/[\^]town" $0)" = 3 ]&&[ "$(grep -c "NO EDIT in the wat""ch" $0)" = 0 ]'
 # (b) a lane that cannot run the seam rows SKIPS loudly and COUNTS: never an ok line
 x=$(f=0;seamgate '' ;echo "rc=$? f=$f")
 ok st-seamgate-a-skip-is-loud-and-counts "a lane with no real-shaped MAIN: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^SKIP st-seam-rows"&&echo "$x"|grep -qx "rc=1 f=1"&&! echo "$x"|grep -q "^ok "'
