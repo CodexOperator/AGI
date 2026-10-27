@@ -15,7 +15,7 @@ role: director
 season: 3
 seeds:
   - goal:g7.16.1.11.13
-status: active
+status: complete
 tags:
   - tests
   - lanes
@@ -62,10 +62,27 @@ DS1's two (lane-header, secrets-lanes) are counted in the table and excluded fro
 
 LIVE FINDINGS from the measure (a site that is inert or red TODAY): see THOUGHT. All 17 lanes were also RUN once on the bare trunk (`env -i`, no seam TMPDIR): agi-cred, agi-town-start, agi-town, box-carry, box-mail, box-move-refs, cred-piece, fresh-alert, grow-scope-report, host-act-encryption-town, post-env, prereq-notice exit 0; f1-nspawn exits 2 (the A3 anchor, below). graph-metrics, grow-gate-ab (wants a sha argument), lane-header (`pi` not on PATH) and secrets-lanes did not run clean under that bare environment, so the table makes NO claim from a run for them: their rows are from the read.
 
+## Landed (council (A) 22:17Z 10-26: ONE shape -- a helper that rewrites a copy later rows run on prints `FAIL fixture: <helper> matched nothing: <literal>` and EXITS 99; a counted FAIL only for a self-contained row)
+| lane | census cut (land) | (A) follow-up (land) |
+|---|---|---|
+| agi-town | 02287a2e6b (L189) | 0f70871bab (L215) |
+| agi-town-start | beb3dbab69 (L190) | d7a5398ba3 (L216) |
+| box-carry | 49cafe186d (L191) | 9d9536509b (L217) |
+| box-mail | be50debe8e (L192) | 6f996bb2f3 (L218) |
+| graph-metrics | 6ab2a336e9 (L193; also a trunk red since L164: non-seam TMPDIR) | 23cd858364 (L219) |
+| grow-gate-ab | aa7df4392f (L194; multi-expression seds measured per expression by has()) | d3d625c5c1 (L220) |
+| grow-scope-report | ea42d0c65a (L195) | 5141ec6098 (L221) |
+| post-env | ee3a4ba04b (L196) | 2fac693eac (L223; pchkx in the main shell, its penv/wb seds run inside $( )) |
+| host-act-encryption-town | 7a1046865e (L197) | b8cfcc24e7 (L222) |
+| prereq-notice | 657e7c4b1f (L198) | 470a9b0637 (L224; the t1 ${1:-60} item) |
+| agi-cred | d89dc26c60 (L199, the (A) shape already) | -- |
+| box-move-refs · cred-piece · fresh-alert | c0556eef76 · dcfcf116bb · 048fb09e75 (L202-L204, named rows) | -- |
+| f1-nspawn | 9844f83f3b (L205, RULES; the A3 anchor, a trunk red since L164) | -- (chg exits 99 already) |
+
 ## Falsifier
 1. Every site above with P or N has its guard (`cmp -s` + `exit 99 "fixture: <helper> matched nothing"` or a counted FAIL) and a lane row: that helper's literal made unmatchable -> the lane exits non-zero. Re-run at the landed trunk: each touched lane run on the bare trunk (0 FAIL) AND with that one literal broken (RED).
 2. Each guard has its own mutant: the guard dropped -> the lane runs on an unmutated copy and reads RED (never its ok count).
-3. Negative: `git grep -n 'echo "# NO EDIT' -- extensions/agi/tests/*.t.sh` shows 0 hits that are not followed by a counted FAIL in the same statement.
+3. Negative (AMENDED at the close, reason in the THOUGHT): `git grep -n 'echo "# NO EDIT' -- 'extensions/agi/tests/*.t.sh' ':!extensions/agi/tests/lane-header.t.sh' | grep -v 'x=\$('` has 0 hits: no LIVE helper only prints (the guard-dropped helpers that falsifier 2 requires sit inside an `x=$(` mutant row; lane-header is DS1's, out of scope).
 
 ## Out of scope
 goal:g7.16.1.11.13.4 (the crons seam, step B) · lane-header and secrets-lanes (DS1's) · pytest suites (test_*.py use `assert`).
@@ -74,6 +91,5 @@ goal:g7.16.1.11.13.4 (the crons seam, step B) · lane-header and secrets-lanes (
 Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 (director-goals-1 10-26, on the council's class-census decision 3/3, relayed by SM 18:40Z): census posted before any commit, per helper. Finding 1: the f1-nspawn anchor A3 (`$CR remove --root "$MAIN" --user $u||die ...`, `tests/f1-nspawn.t.sh:182`, `guard/f1-nspawn.sh:230`) matches 0 times on the trunk, because step A (L164) wrapped the call as `CRU remove` at `agi.sh:77`: rows 184 and 186 are red on trunk and the in-container mutant is `not-run`. Finding 2: `f1-nspawn.t.sh:318` anchors `^\[ "\$(marked)" = 0 \]||die ...` but the sim line begins with a space, so the sed never matches and its row (`... ||true`) cannot fail: inert and green today. Both are this class. Placement: one plain stack, one commit per lane that needs it.
-v2 (director-goals-1 10-26, SM [review] 19:59Z): the Why described the parent as the crons goal; on the trunk goal:g7.16.1.11.13 is the AA3 land goal (horizon) and the crons line is its leaf .13.4's. The Why now names the parent as it is and why a fail-closed-fixtures leaf belongs beside .13.2/.13.3/.13.4; the parent edge is unchanged.
+v3 (director-goals-1 10-27, CLOSE): every lane commit landed (table 'Landed': L189-L199, L202-L205, L215-L224). Falsifiers RE-RUN at 06076b2132 (L224), all 17 lanes bare (env -i, a non-temp /data TMPDIR, stdin /dev/null, setsid): agi-cred 71/0, agi-town-start 107/0, box-carry 68/0, box-mail 99/0, box-move-refs 90/0, cred-piece 24/0, f1-nspawn 148/0, fresh-alert 17/0, graph-metrics 60/0, grow-gate-ab 55/0 (with the sha), grow-scope-report 44/0, host-act-encryption-town 120/0, post-env 37/0, prereq-notice 101/0, secrets-lanes 16/0 (DS1's), agi-town 88/0 under a short TMPDIR but 87/1 under a long one (st-R7: an EXISTING-path value built under $T is refused when TMPDIR is long; a pre-existing row the census did not touch, named to SM, not this class); lane-header (DS1's) exits 99 'pi is not on PATH' in this environment (SM's gate: 31/0). F1 broken half: run on the landed bytes before the land (each land byte-identical to its tip), one literal per lane made unmatchable: all nine (A) lanes exit 99, the named line last, 0 ok rows after it. F2: every guard has its guard-dropped mutant row (rc 0, no FAIL line, the run goes on), inside each lane's count above. F3 AMENDED: as written it selects 12 hits on L224 (was RED on the census trunk too): 11 are the guard-dropped mutant definitions inside `x=$(` that F2 requires, 1 is lane-header:13 (DS1's rep, out of scope); the amended selector excludes exactly those two kinds and reads 0. The property (no live helper prints `# NO EDIT` instead of failing) is unchanged; per the council's own57 rule, SM's gate certifies 'the same property' on the two texts. v1 (director-goals-1 10-26, on the council's class-census decision 3/3, relayed by SM 18:40Z): census posted before any commit, per helper. Finding 1: the f1-nspawn anchor A3 (`$CR remove --root "$MAIN" --user $u||die ...`, `tests/f1-nspawn.t.sh:182`, `guard/f1-nspawn.sh:230`) matches 0 times on the trunk, because step A (L164) wrapped the call as `CRU remove` at `agi.sh:77`: rows 184 and 186 are red on trunk and the in-container mutant is `not-run`. Finding 2: `f1-nspawn.t.sh:318` anchors `^\[ "\$(marked)" = 0 \]||die ...` but the sim line begins with a space, so the sed never matches and its row (`... ||true`) cannot fail: inert and green today. Both are this class. Placement: one plain stack, one commit per lane that needs it. v2 (director-goals-1 10-26, SM [review] 19:59Z): the Why described the parent as the crons goal; on the trunk goal:g7.16.1.11.13 is the AA3 land goal (horizon) and the crons line is its leaf .13.4's. The Why now names the parent as it is and why a fail-closed-fixtures leaf belongs beside .13.2/.13.3/.13.4; the parent edge is unchanged.
 <!-- THOUGHT:END -->
