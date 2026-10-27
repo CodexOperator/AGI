@@ -167,8 +167,8 @@ Run these in order, from MAIN, every time a Prime is stood up on a box:
 bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
 git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
 git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
-# 1  the row: box cell + identity cells through the OLD setup's writer (write.py, actor = the prime row), never a hand edit
-#    (OLD SETUP: a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)
+# 1  the row: box cell + identity cells, ONE edit of the row in posts.md/seats.md (config_rows.write_rows for an engine caller;
+#    R-land judges the signer of every row change, report mode)
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
 #     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
 # 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
@@ -203,8 +203,8 @@ Five morals anchor the graph. Every node has a path to one.
 `moral:love` (lateral, grounded_in: moral:faith), `moral:empathy` (crossing),
 `moral:antifragility` (dynamics), `moral:beauty` (form) — under
 `.agi/nodes/moral/`. Type `moral` is the only parentless type (cap 5).
-`write_guard.py check` detects unsanctioned writes; `write.py` refuses
-`moral:*` without `--actor owner`.
+`write_guard.py check` detects unsanctioned writes; a `moral:*` edit not signed by the owner is refused at review
+(`written_by: owner`).
 
 **Five questions (owner's wording, verbatim):**
 1. **faith** — Did every role play its part and trust every other model to play theirs?
@@ -264,7 +264,7 @@ the handoff and leave it alone as you finish the rest of the loop around it
 to the best of your abilities.
 
 Measured on 2026-09-03/04 (loop L1): the director's context was the scarce
-resource every time; pi parents on OpenRouter fixed engine bugs (`write.py`
+resource every time; pi parents on OpenRouter fixed engine bugs (the node writer's
 scalar types, `commands.py`, the frontmatter parser) for cents, while seven
 CC subagents used as parents burned the subscription to its limit in minutes.
 The mechanism is `dispatch.py <root> <iter> --tier parent --target <node>`
@@ -272,92 +272,19 @@ with the target node's body as the brief — **mint a hypothesis node for the
 bug, commit it, and aim parents at it.** Sixteen hazards that were carried
 across a handoff instead of fixed in-loop became `goal:s34`.
 
-## Every node edit goes through `write.py` (`goal:g4.18`)
+## Every node edit is a plain file edit (`goal:g4.18`)
 
-> **OLD SETUP:** a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ. The rest of this section is that setup's rule, unchanged.
+> **Never rename this heading:** `rolslice.py` matches it verbatim (the id in the parentheses is stripped) -- add a label under it instead (DG5).
 
-> **Never rename this heading:** `rolslice.py:102,109,117` match it verbatim -- add a label under it instead (DG5).
+The node writer is retired (goal:g7.16.1.11.46.23). A node is a plain file `.agi/nodes/<type>/<slug>.md`; there is no verb grammar to learn.
 
-**One way in (old setup).** Creating a node, editing its frontmatter, appending a body note,
-rewriting its `THOUGHT` or `FEELING` region — all of it is
-`bin/write.py`, for a mechanical reason: a plain file write still gets a grid
-version, but it loses `edited_by`, `thought_session`, the spawn gate and the
-schema warning. **An untraceable write is exactly what this command exists to
-end**, and it is the easiest rule in the project to skip, because a direct edit
-looks like it worked.
-
-```bash
-write.py create <type> <slug> --parent <id> [--payload PATH] [--set k=v]
-write.py <node-id> "set status horizon && note <prose>"
-write.py <node-id> "thought <why THIS version differs>"
-```
-
-Verbs: `set`, `unset`, `link`, `thought`, `note`, chained with `&&`. `--actor`
-and `--session` stamp who and which chat.
-
-**Payloads go through it too** — the file a build node points at is not an
-exception:
-
-```bash
-# inline, the way `note` writes a body — no scratch file
-write.py build:bin-thing "payload_text <the file's new contents>"
-
-# from a file, when the bytes already exist or are large
-write.py build:skills-agi-SKILL.md \
-    "payload /tmp/SKILL.next.md && thought <why this version differs>"
-
-# from stdin, for content the `&&` split cannot carry
-some-generator | write.py build:bin-thing "payload -"
-```
-
-⚠️ **The script form splits on `&&`, so no prose verb — `note`, `thought`,
-`payload_text` — can contain `&&`.** Use `payload -` for payload bytes; for a
-`note` or a `thought`, reword. This bites in practice: it broke a `thought`
-whose text was *about* the `&&` split.
-
-Both verbs replace the bytes at the node's own `payload_ref` and land in the
-**same submit** as the thought that explains them, so `edited_by`,
-`thought_session`, the new bytes and the reason for them are one operation
-instead of an edit plus a hope. It **never creates** (a new file is
-`create --payload`), refuses a source that does not exist rather than emptying
-a payload on a typo, and preserves the destination's mode so replacing a
-script's bytes cannot disarm it.
-
-**Use your editor to compose, never to land.** Draft it, diff it if you like,
-then hand it to `write.py`. Then `grid.py commit --all` versions the payload
-and the node together.
-
-**A payload's base is a name, not a path.** `payload_ref` is relative to the
-node's `location:` — `source_root` by default (absent means that too), plus
-`graph_root`, `repo_root`, or any key declared under `locations:` in the
-project config. `create --payload` stamps it. An unknown name is refused rather
-than defaulted, because a base that silently resolves somewhere plausible
-writes real bytes into the wrong tree and reports success. Move a tree by
-editing the config, never by sweeping every node that points into it.
-
-🚫 ~~Known gap~~ — **resolved:** payload/body writes are no longer whole-file
-only. `write.py` carries three partial verbs (hypothesis:l3-write-partial-diffs-as-writes):
-`read payload|body START:END` fetches a line range (read-only — it never
-restamps `edited_by`, so a read cannot look like an edit).
-`replace payload|body START:END <path|->` **overwrites that range** with new
-text — and it is the exact inverse of `read`, in the same coordinates, so
-`read N:M` then `replace N:M` is the whole round trip with **no offset
-arithmetic and no hand-built hunk**. It behaves identically on a node BODY and
-on a build node's PAYLOAD: one reader, one transform, differing only in where
-the result lands. Reach for the diff verbs only when you already hold a diff:
-`patch` applies a unified diff onto a BUILD node's payload file and
-`body_patch` onto a node's BODY, both fail-closed — a hunk that does not apply
-refuses the whole write and changes nothing. Replacement text and diff bytes
-arrive by path or `-` from stdin, NEVER inline — either can contain the
-doubled `&&` the script form splits on. Provenance is
-unchanged: patched bytes land through the same `replace_payload` the
-whole-file verbs reach, so `edited_by`, `thought_session` and the grid version
-always happen.
-
-**On the OLD setup, if you find yourself writing into `.agi/nodes/**` or over a `payload_ref`
-with anything but `write.py`, stop** — that is the untraceable write this
-command exists to end, and it is the easiest rule here to skip, because a
-direct edit looks like it worked.
+- **Read** by CONTENT anchor, never a file line number: `sed -n '/^## Falsifier/,/^## Out/p' .agi/nodes/goal/<id>.md`.
+- **Edit** in place with your editor: frontmatter fields, body, the `THOUGHT` / `FEELING` region (rewritten whole). Never hand-edit `id`, `mint_id`, `type` or a build node's `BUILD-CONTRACT` block. A validated frontmatter set (a verdict, `evidence_runs`): `node_writer.update_node(root, '<id>', set_fm={...})`.
+- **Check** before every commit: `python3 extensions/agi/bin/links.py schema` (required list, regexes, list fields) and `python3 extensions/agi/bin/links.py links` (broken must be 0).
+- **Commit by exact path**: a post `agi-wt pull <id>` / `agi-wt new <path>` and `agi-turn` at Stop, or `agi-at <path>`; MAIN `git commit -- <path>`. Never `git add -A`.
+- **Create** a node with `node_writer.write_node(root, '<type>', '<slug>', [parents], extra_fm={...}, body=...)`: the one routine that mints a node file, gated by the type schema (the spawn gate runs BEFORE anything is written, a rejection leaves no node). A new node written by hand is judged by the same gate at commit (grow.py).
+- **Retire**, never delete: `node_writer.retire_node(root, '<id>', note='<why>')` = `status: deprecated` + the move to `deprecated/<type>/`, one act.
+- **Payloads**: the file a build node points at is edited in place; its node and the file ride the same commit, with the reason in the node's `THOUGHT`. `payload_ref` is relative to the node's `location:` -- `source_root` by default (absent means that too), plus `graph_root`, `repo_root`, or any key declared under `locations:` in the project config. An unknown name is refused rather than defaulted, because a base that silently resolves somewhere plausible writes real bytes into the wrong tree and reports success. Move a tree by editing the config, never by sweeping every node that points into it.
 
 ## Iteration protocol (parent)
 
