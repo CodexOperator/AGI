@@ -1184,7 +1184,7 @@ def check_spawn(
 
     # 5b. per-town vision cap on the WRITE path (hypothesis:l4-towns-each-app-
     #     is-a-vision-with-its-own-council). The rollover mint already refuses a
-    #     4th vision per town; this gates a direct `write.py create vision:...`
+    #     4th vision per town; this gates a direct `write_node` of a vision
     #     the same way, so the cap is not only enforced on one path. Reuses the
     #     same counting helpers as the rollover -- no second counting rule.
     #     Scoped to caps_vision_scope: town; inert otherwise (a non-town
