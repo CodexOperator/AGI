@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """anonymize.py — physical-token guard at the write seam (SM.122)."""
 from __future__ import annotations
-import argparse, functools, ipaddress, json, os, pwd, re, socket, subprocess, sys
+import argparse, functools, grp, ipaddress, json, os, pwd, re, socket, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile, locations
@@ -56,11 +56,99 @@ def _root_prefix_re(roots):
                                         for r in roots) + ")")
 def _user_path_re(root=None):
     return _root_prefix_re(_prefix_roots(_anonymize_cell(root), "user_roots"))
-def _home_path_re(root=None):
+#: THE POST-HOME class (goal:g7.16.1.11.46.16 item 2 + part (B); the council 3/3, alive
+#: [decision] 14:04:59Z 10-27): the EXACT home of every member of the posts' group, any
+#: uid, so a non-home sibling under their root (the signers file) never matches. ONE
+#: definition, TWO readings that must agree: config:engine-post's sysusers.conf
+#: (`u <prefix>@ - "@" <root>/@` + `m <prefix>@ <group>`, the payload that creates the
+#: post accounts), read on the SAME base the cells use, and this box's passwd + group.
+#: A member = the group's gr_mem PLUS every account whose primary gid is the group's;
+#: each member lives at <root>/<name less prefix>; every account under <root> is a
+#: member. ONE reading line on every run (POST_HOMES_LINE): `post homes: N (...)`,
+#: `post homes: none (no group <g>, 0 under the root)` (the EMPTY class: no group AND
+#: nothing under <root>), or `home-unread: REASON` (the group with 0 members, a read
+#: that errors, an unreadable template, any disagreement): scan() then reports
+#: `home-unread` on every text (every candidate HOLDs). UNREAD NEVER NARROWS the class:
+#: it keeps every candidate either reading found. Never a raise: grid.py imports this
+#: module at load (verification -> rotate -> grid).
+def _sysusers_template(root=None, path=None):
+    """(prefix, root, group, where) from config:engine-post's sysusers.conf; `path`
+    names a fixture file of the same shape (a lane's seam)."""
+    if path is None:
+        base = _project(root or Path(__file__).resolve().parent)
+        cfg = locations.config_path(base) if base else None
+        if cfg is None:
+            raise ValueError("no project holds config:engine-post")
+        path = cfg.parent / "nodes" / ".geometry" / "engine-post.md"
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    head = next(k for k, l in enumerate(lines) if l.startswith("### sysusers.conf"))
+    fence = [k for k in range(head + 1, len(lines)) if lines[k].startswith("~~~")][:2]
+    u = m = None
+    for k in range(fence[0] + 1, fence[1]):
+        u = u or (re.fullmatch(r'u (\S+)@ - "@" (/\S+)/@', lines[k]) and (k, lines[k]))
+        m = m or re.fullmatch(r"m (\S+)@ (\S+)", lines[k])
+    if not u or not m:
+        raise ValueError("config:engine-post's sysusers.conf names no post user and group")
+    ux = re.fullmatch(r'u (\S+)@ - "@" (/\S+)/@', u[1])
+    if ux.group(1) != m.group(1):
+        raise ValueError("config:engine-post's sysusers.conf: its u and m lines name two users")
+    return ux.group(1), ux.group(2).rstrip("/"), m.group(2), f"{Path(path).name}:{u[0] + 1}"
+def post_homes(entries=None, groups=None, template=None, template_path=None):
+    """(homes, line): the post homes and the ONE reading line. On `home-unread` the
+    homes are every candidate either reading found (never narrowed). `entries`
+    (passwd structs), `groups` ({name: (gid, [members])}) and `template` ((prefix,
+    root, group, where)) default to this box and this tree; `template_path` names a
+    fixture template file (a lane's seam), read inside the same never-raise reader."""
+    cands = set()
+    try:
+        prefix, top, group, where = template or _sysusers_template(path=template_path)
+    except Exception as exc:   # an import-time reader: a path never rides the line
+        return cands, f"home-unread: config:engine-post's sysusers template unread ({type(exc).__name__})"
+    try:
+        entries = list(pwd.getpwall()) if entries is None else list(entries)
+        under = {p.pw_name: p.pw_dir.rstrip("/") for p in entries
+                 if p.pw_dir.rstrip("/").startswith(top + "/")}
+        cands |= set(under.values())
+        if groups is None:
+            try:
+                g = grp.getgrnam(group)
+                found = (g.gr_gid, list(g.gr_mem))
+            except KeyError:
+                found = None
+        else:
+            found = groups.get(group)
+        if found is None:
+            if under:
+                return cands, f"home-unread: no group {group}, yet {len(under)} account(s) live under the root"
+            return cands, f"post homes: none (no group {group}, 0 under the root)"
+        gid, mem = found
+        members = set(mem) | {p.pw_name for p in entries if p.pw_gid == gid}
+        byname = {p.pw_name: p for p in entries}
+        cands |= {byname[n].pw_dir.rstrip("/") for n in members if n in byname}
+        if not members:
+            return cands, f"home-unread: group {group} has 0 members"
+        for name in sorted(members):
+            p = byname.get(name)
+            if p is None or not name.startswith(prefix) or p.pw_dir.rstrip("/") != top + "/" + name[len(prefix):]:
+                return cands, f"home-unread: member {name} does not live at <root>/<name less {prefix}>"
+        if set(under) - members:
+            return cands, f"home-unread: {len(set(under) - members)} account(s) under the root outside group {group}"
+        return cands, f"post homes: {len(members)} (group {group}, root {top}, {where})"
+    except Exception as exc:
+        return cands, f"home-unread: passwd/group unread ({type(exc).__name__})"
+def passwd_homes(entries=None, groups=None, template=None, template_path=None):
+    """THE passwd home set, ONE definition (verify-land's home step imports it): every
+    login home (1000 <= uid < 65534) PLUS the post-home class; and its reading line."""
+    try:
+        entries = list(pwd.getpwall()) if entries is None else list(entries)
+    except Exception as exc:
+        return set(), f"home-unread: passwd unread ({type(exc).__name__})"
+    posts, line = post_homes(entries, groups, template, template_path)
+    return {p.pw_dir.rstrip("/") for p in entries if 1000 <= p.pw_uid < 65534} | posts, line
+def _home_path_re(root=None, homes=None):
     roots = ["/home/", "/Users/"] + _prefix_roots(
         _anonymize_cell(root, live=True), "home_roots")
-    dirs = {p.pw_dir.rstrip("/") for p in pwd.getpwall()
-            if 1000 <= p.pw_uid < 65534}
+    dirs = set(passwd_homes()[0] if homes is None else homes)
     dirs.add((os.environ.get("HOME") or "").rstrip("/"))
     # a login home at depth >= 2 not already under a root: /, /nonexistent drop
     dirs = sorted((d for d in dirs if d.count("/") >= 2
@@ -68,7 +156,8 @@ def _home_path_re(root=None):
     alts = [re.escape(r) + r"[\w-][\w.-]*" for r in roots] + \
         [re.escape(d) + r"(?![\w.-])" for d in dirs]
     return re.compile("(?:" + "|".join(alts) + r")(/?)")
-HOME_PATH_RE = _home_path_re()
+PASSWD_HOMES, POST_HOMES_LINE = passwd_homes()
+HOME_PATH_RE = _home_path_re(homes=PASSWD_HOMES)
 #: ONE spelling of an email address (goal:g1.31.5.1.2). The non-personal shapes
 #: that may appear (reserved example domains, key-type names, systemd units) are
 #: the config cell `anonymize.email_allow`: a list of regexes, each FULL-matched
@@ -248,6 +337,8 @@ def scan(text, tokens, email_allow=None, root=None):
         hits.add("hardware")
     if HOME_PATH_RE.search(text):
         hits.add("home")
+    if POST_HOMES_LINE.startswith("home-unread"):
+        hits.add("home-unread")   # the post-home class unread: every text HOLDs
     if has_email(text, email_allow):
         hits.add("email")
     # user_roots is kept OUT of HOME_PATH_RE: the committed-bytes home test
@@ -305,6 +396,7 @@ def cmd_check(root, text, diff_file):
     if locations.shared_project_root(root) is None:
         print("REFUSED: anonymize: no denylist source found; nothing scanned", file=sys.stderr)
         return 2
+    print(f"anonymize: {POST_HOMES_LINE}", file=sys.stderr)   # ONE reading line, every run
     hits = scan(text or "", box_tokens(root), _email_allow(root), root)
     if hits:
         print("REFUSED: text carries " + ", ".join(hits) +
