@@ -8,8 +8,9 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-# the unit's placeholders (%i, %t, /etc/agi/carry.env) must be gone after the seds that read the piece (goal:g7.16.1.11.13.5): a drifted literal leaves one behind; penv/wb run in $( ), so they leave a marker the closing row reads
+# the unit's placeholders (%i, %t, /etc/agi/carry.env) must be gone after the seds that read the piece (goal:g7.16.1.11.13.5): a drifted literal leaves one behind; penv/wb run in $( ), so they leave a marker: pchkx (main shell) exits 99 with ONE named line at the first row that needs a derived text, and the closing row stays as the backstop (council (A) 10-26 22:17Z)
 pchk(){ case "$1" in *%i*|*%t*|*/etc/agi/carry.env*) : >${PCM:-$T/pchk.bad};; esac;}
+pchkx(){ [ ! -e ${PCM:-$T/pchk.bad} ]||{ echo "FAIL fixture: pchk matched nothing: a placeholder (%i, %t or /etc/agi/carry.env) was left in a derived env or body";exit 99;};}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_BOX AGI_WT AGI_TRUNK AGI_ROLE AGI_FILL
 mkdir -p $T/bin $T/hm $T/wt $T/k $T/c
 [ -n "$UNITFILE" ]||UNITFILE=$GEO/engine-root.md
@@ -68,7 +69,7 @@ u2ok(){ ! grep -q '^EnvironmentFile=.*carry.env' $T/unit&&grep -q "^ExecStart=.*
 u2ok;u2=$?
 ok "u2-the-unit-takes-AGI_BOX-from-carry.env-alone the unit loads carry.env as an EnvironmentFile: $(grep -c '^EnvironmentFile=.*carry.env' $T/unit) (want 0: the file also holds a pinned AGI_TRUNK/AGI_REPO/AGI_HUB/GIT_CONFIG_*); ExecStart exports AGI_BOX with one named sed read of it: $(grep -c '^ExecStart=.*export AGI_BOX=' $T/unit) (want 1)" '[ $u2 = 0 ]'
 u5ok(){ pe=$(penv $P);echo "$pe"|grep -qx "AGI_BOX=$HERE"&&! echo "$pe"|grep -q '^\(AGI_TRUNK\|AGI_REPO\|AGI_HUB\|GIT_CONFIG_VALUE_0\)=';}
-if [ -z "$LIVE" ];then u5ok;u5=$?;pe=$(penv $P)
+if [ -z "$LIVE" ];then u5ok;u5=$?;pe=$(penv $P);pchkx
  ok "u5-the-env-the-unit-hands-a-post-has-the-box-and-no-pin the post env from the real Environment= + ExecStart: AGI_BOX [$(echo "$pe"|sed -n 's/^AGI_BOX=//p')] (want $HERE), keys among AGI_TRUNK/AGI_REPO/AGI_HUB/GIT_CONFIG_VALUE_0: [$(echo "$pe"|grep -o '^\(AGI_TRUNK\|AGI_REPO\|AGI_HUB\|GIT_CONFIG_VALUE_0\)'|tr '\n' ' ')] (want none: a post with no AGI_TRUNK of its own must not receive the 40-hex pin)" '[ $u5 = 0 ]';fi
 f6ok(){ a=$(grep -n 'agi-signers %i$' $T/unit|tail -1|cut -d: -f1);r=$(grep -n '^ExecStartPre=-+/usr/local/sbin/agi-signers-repoint %i$' $T/unit|head -1|cut -d: -f1);x=$(grep -n '^ExecStart=' $T/unit|head -1|cut -d: -f1);[ -n "$a" ]&&[ -n "$r" ]&&[ "$r" -gt "$a" ]&&[ "$r" -lt "$x" ]&&grep -q '^Environment=DBUS_SESSION_BUS_ADDRESS=disabled:$' $T/unit;}
 f6ok;f6=$?
@@ -110,12 +111,14 @@ ok "p1-the-helper-reads-AGI_POST AGI_POST set -> [$h1] (want newpost); unset -> 
 # ---- w: the [wrong-box] ExecCondition, the body exactly as systemd hands it to sh (the quoted word, %i substituted)
 body(){ grep '^ExecCondition=sh -c "set -f' $T/unit|sed 's/^ExecCondition=sh -c "//;s/"$//';}
 wb(){ if [ -n "$2" ];then printf 'AGI_HUB=\nAGI_BOX=%s\n' $2>$T/wcarry;else printf 'AGI_HUB=\n'>$T/wcarry;fi;b=$(body|sed "s/%i/$1/g;s|/etc/agi/carry.env|$T/wcarry|g");[ -n "$b" ]||return 99;pchk "$b";(cd $T/r&&env -i PATH=/usr/bin:/bin O=$T/r AGI_TRUNK=${3:-$TR} GIT_CONFIG_GLOBAL=/dev/null sh -c "$b" 2>$T/err);}
+pchkx
 wb alive $HERE;w1=$?;wb alive core-town;w2=$?;m2=$(cat $T/err);wb alive "";w3=$?;m3=$(cat $T/err);wb nobody $HERE;w4=$?
 wb alive $HERE no-such-ref;w5=$?;m5=$(cat $T/err)
 IDX=$T/idx6;BL=$(printf '  - {"name": "alive", "box"\n'|$G -C $T/r hash-object -w --stdin);GIT_INDEX_FILE=$IDX $G -C $T/r read-tree $TR;GIT_INDEX_FILE=$IDX $G -C $T/r update-index --cacheinfo 100644,$BL,.agi/nodes/.geometry/posts.md;BAD=$($G -C $T/r -c user.name=t -c user.email=t@t commit-tree -p $TR -m bad $(GIT_INDEX_FILE=$IDX $G -C $T/r write-tree))
 wb alive $HERE $BAD;w6=$?;m6=$(tail -1 $T/err)
 BL7=$(printf -- '- {"name": "alive", "harness": "claude", "box": "%s"}\n' $HERE|$G -C $T/r hash-object -w --stdin);GIT_INDEX_FILE=$IDX $G -C $T/r update-index --cacheinfo 100644,$BL7,.agi/nodes/.geometry/posts.md;BAD7=$($G -C $T/r -c user.name=t -c user.email=t@t commit-tree -p $TR -m moved-prefix $(GIT_INDEX_FILE=$IDX $G -C $T/r write-tree))
 wb alive $HERE $BAD7;w7=$?;m7=$(tail -1 $T/err)
+pchkx
 ok "w1-the-right-box-starts the row says encryption-town, this box is encryption-town: rc $w1 (want 0)" '[ $w1 = 0 ]'
 ok "w2-another-box-is-refused-by-name the row says encryption-town, this box (carry.env) is core-town: rc $w2 (want 2), says [$m2] (want '[wrong-box] row=encryption-town here=core-town')" '[ $w2 = 2 ]&&[ "$m2" = "[wrong-box] row=encryption-town here=core-town" ]'
 ok "w3-an-unnamed-box-is-refused carry.env has no AGI_BOX: rc $w3 (want 2), says [$m3] (want '[wrong-box] row=encryption-town here=')" '[ $w3 = 2 ]&&[ "$m3" = "[wrong-box] row=encryption-town here=" ]'
@@ -154,4 +157,10 @@ PCM=$T/p.t;rm -f $T/p.t;pchk 'x %i y';a=$([ -e $T/p.t ]&&echo marked||echo clean
 ok pchk-marks-a-left-behind-placeholder-and-passes-a-clean-text '[ "$a" = marked ]&&[ "$b" = marked ]&&[ "$c" = clean ]'
 x=$(pchk(){ :;};PCM=$T/p.t;rm -f $T/p.t;pchk 'x %i y';[ -e $T/p.t ]&&echo marked||echo clean)
 ok pchk-mutant-the-unchecked-seds-are-RED '[ "$x" = clean ]'
+PCM=$T/p.t;: >$T/p.t;x=$(pchkx;echo AFTER);rc=$?;rm -f $T/p.t
+ok pchkx-a-left-behind-placeholder-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: pchk matched nothing: a placeholder (%i, %t or /etc/agi/carry.env) was left in a derived env or body" ]'
+x=$(pchkx;echo AFTER);rc=$?;unset PCM
+ok pchkx-no-marker-is-silent '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+x=$(pchkx(){ :;};PCM=$T/p.t;: >$T/p.t;pchkx;echo AFTER);rc=$?;rm -f $T/p.t
+ok pchkx-mutant-the-guard-dropped-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
 echo "post-env: $f FAIL";exit $f
