@@ -2092,14 +2092,50 @@ def test_commit_all_waits_for_holder_then_succeeds_consistent(guard_project):
     assert int(grid.git(guard_project, "rev-list", "--count", mint_ref)) == 1
 
 
-def test_single_file_commit_takes_no_lock(guard_project):
+def _count_lock_acquires(monkeypatch, mod):
+    """A counter on `mod.GridLock.acquire` (the real acquire still runs)."""
+    n = [0]
+    real = mod.GridLock.acquire
+
+    def acquire(self, *a, **k):
+        n[0] += 1
+        return real(self, *a, **k)
+    monkeypatch.setattr(mod.GridLock, "acquire", acquire)
+    return n
+
+
+def test_single_file_commit_takes_no_lock(guard_project, monkeypatch):
     """commit FILE (non-session) is NOT gated by the flock — a manual
-    per-node commit proceeds even while a commit --all holds the lock."""
+    per-node commit proceeds even while a commit --all holds the lock.
+    goal:g1.43 row 26: the property is a COUNT (GridLock.acquire never called), not a
+    wall clock: the old `< 0.3 s` bound failed 5/5 on the bare trunk under load 10
+    (SM 22:38Z 10-27). The loose `< lock_wait` bound only catches a real hang."""
+    n = _count_lock_acquires(monkeypatch, grid)
     _hold_grid_lock(guard_project, 0.5)
     f = guard_project / "nodes" / "idea" / "x.md"
     t0 = time.time()
-    grid.cmd_commit(guard_project, [str(f)], do_all=False, session=None)
-    assert time.time() - t0 < 0.3                    # returned without waiting
+    grid.cmd_commit(guard_project, [str(f)], do_all=False, session=None, lock_wait=5)
+    assert n[0] == 0                                 # never asked for the lock
+    assert time.time() - t0 < 5                      # and never hung on it
+
+
+def test_single_file_commit_lock_mutant_reads_red(guard_project, monkeypatch):
+    """The row's mutant (goal:g1.43 row 26): a grid.py whose single-file commit TAKES the
+    lock is caught by the same count (1, not 0), under any load."""
+    src = BIN.read_text()
+    a = "    if do_all and not session:\n        lock = GridLock(root, lock_wait)"
+    assert src.count(a) == 1
+    mut = importlib.util.module_from_spec(importlib.util.spec_from_loader("grid_lock_mutant", loader=None))
+    mut.__dict__["__file__"] = str(BIN)
+    sys.modules["grid_lock_mutant"] = mut
+    try:
+        exec(compile(src.replace(a, "    if not session:\n        lock = GridLock(root, lock_wait)"), str(BIN), "exec"), mut.__dict__)
+        n = _count_lock_acquires(monkeypatch, mut)
+        f = guard_project / "nodes" / "idea" / "x.md"
+        mut.cmd_commit(guard_project, [str(f)], do_all=False, session=None, lock_wait=5)
+        assert n[0] == 1
+    finally:
+        sys.modules.pop("grid_lock_mutant", None)
 
 
 def test_commit_all_on_season_branch_succeeds(guard_project):
