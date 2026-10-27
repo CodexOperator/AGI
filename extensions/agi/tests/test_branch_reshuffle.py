@@ -829,6 +829,8 @@ def test_delete_old_continues_past_a_refused_delete(tmp_path: Path):
     pre_receive = hooks_dir / "pre-receive"
     pre_receive.write_text(hook)
     pre_receive.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(hooks_dir.parent), "config", "core.hooksPath", str(hooks_dir)], check=True)
 
     res_b = _run_cli(rb / ".agi", "--delete-old", "--kinds",
                      "main,posts,towns,loops")

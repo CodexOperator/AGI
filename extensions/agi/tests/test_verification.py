@@ -1382,7 +1382,7 @@ def test_extra_suite_runs_at_suite_only(monkeypatch, tmp_path):
 
 # --- bundle 4 W3 B3 (director-general-2) ------------------------------------
 # hypothesis:node-search-lives-beside-node-writer (goal:g4.18.7.2), CLAIM (1)(2)(4).
-@pytest.mark.xfail(strict=True, reason="bundle 4 W3 B3: RED until DG3 moves the node search beside node_writer")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.7.2: RED until the node search moves beside node_writer (bundle 4 W3 B3)")
 @pytest.mark.parametrize("caller", ["verification.py", "write.py"])
 def test_b3_no_caller_reaches_the_node_search_through_rotation_record(caller):
     import re

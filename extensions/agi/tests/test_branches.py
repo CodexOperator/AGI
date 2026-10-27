@@ -581,6 +581,8 @@ def test_mirror_and_prove_refuses_by_name_on_failed_push(tmp_path):
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     ref = b.mirror_ref_for_branch("season2/posts/adv")
     ok, detail, _info = b.mirror_and_prove(repo, ref)
     assert ok is False

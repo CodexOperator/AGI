@@ -6,6 +6,7 @@
 #   s1 the consumer KILLED mid-run, both exit paths: MainPID ends within N s and NO process of the run is left (the loops die with the unit)
 #   s2 ~/track UNWRITABLE (a directory), both exit paths: MainPID ends, 0 `Broken pipe` lines in ~/o, the ONE named line `agi-track: append failed (...), draining` per run
 #   s4 agi-run run BARE (no pty): the stub exits -> the two loops are killed by pid, 0 processes left (the claim 'kills its two loops', independent of any hangup)
+#   NOT COUNTED, by design: (1) a killed loop's pending `sleep` (sleep 300 / sleep 5) is orphaned when its loop shell dies and ends by itself; it holds no pipe and no unit; (2) the FRESH-start [rotation-alert] job (agi-run line 5, only when ~/.fresh was there at start) is a THIRD background job agi-run does not kill: it is bounded by its own `timeout -k 2 20`; every run here starts with no ~/.fresh, so it never forks in the lane
 #   s3 ~/.fresh written by the stub survives its exit: consumed at START only (agi-run line 2), the exit path never touches it
 # MUTANTS (each sed asserted to change its piece): m1 `exec strace` back and no loop kill -> s1 RED (MainPID stays up)   m2 the loop kill dropped -> s4 RED (the loops remain)   m3 the drain dropped (the old one-line agi-track) -> s2 RED (Broken pipe lines)
 # THE KILL IS A CHECKED CLAIM, not the hangup's side effect (alive's pre-read 20:25:38Z): s4 runs agi-run BARE (no script, no pty: stdout/stderr to a file) and the stub exits -> 0 processes of the run left within N s; m2 (the kill dropped) -> the two loops remain -> RED. `kill $(jobs -p)` was a no-op (jobs -p prints nothing in a non-interactive dash), which is why the first cut's dropped-kill mutant could not go RED: the loops then ended only by the pty hangup. The loops' pids are captured where they are forked (L1, L2).
@@ -19,7 +20,7 @@ W=${PIECES_WRAP:-$R0/.agi/nodes/.geometry/engine-wrap.md};P=${PIECES_POST:-$R0/.
 mkdir -p $T/b;sect agi-run $W >$T/b/agi-run;sect agi-track $P >$T/b/agi-track;chmod +x $T/b/*
 ok x0-pieces-extracted '[ -s $T/b/agi-run ]&&[ -s $T/b/agi-track ]'
 # mine: pids whose environ carries HOME=$1 (the run's scratch home) -- never a pattern over argv
-mine(){ for p in /proc/[0-9]*;do [ -r $p/environ ]||continue;tr '\0' '\n' <$p/environ 2>/dev/null|grep -qx "HOME=$1"&&echo ${p#/proc/};done;}
+mine(){ for p in /proc/[0-9]*;do [ -r $p/environ ]||continue;{ tr '\0' '\n' <$p/environ;} 2>/dev/null|grep -qx "HOME=$1"&&echo ${p#/proc/};done;}   # a pid that exits between the -r and the read is silent (the redirect, not tr, printed "cannot open")
 # RUN <bindir> <exit path term|clean> <fault none|killtrack|trackro> [bare]: one run of the chain; sets RS (ended|STRAND) RL (processes of the run left) RB (Broken pipe lines in ~/o) RN (the named agi-track line) RF (y if ~/.fresh is still there)
 RUN(){ b=$1;D=$(mktemp -d $T/r.XXXXXX);h=$D/h;mkdir -p $h/t $h/bin $D/rt;cp $b/agi-run $b/agi-track $h/bin/;git -C $h/t init -q 2>/dev/null
  [ $3 = trackro ]&&mkdir $h/track
@@ -30,7 +31,8 @@ RUN(){ b=$1;D=$(mktemp -d $T/r.XXXXXX);h=$D/h;mkdir -p $h/t $h/bin $D/rt;cp $b/a
  fi
  g=$!;[ $3 = killtrack ]&&{ j=0;while [ $j -lt 30 ];do v=;for q in $(mine $h);do [ "$(cat /proc/$q/comm 2>/dev/null)" = agi-track ]&&{ kill -9 $q;v=1;};done;[ "$v" ]&&break;sleep 0.1;j=$((j+1));done;}   # kill the consumer once it exists (the stub runs 2 s)
  i=0;while [ $i -lt $((N*10)) ]&&kill -0 $g 2>/dev/null;do sleep 0.1;i=$((i+1));done
- if kill -0 $g 2>/dev/null;then RS=STRAND;else RS=ended;fi;sleep 1
+ if kill -0 $g 2>/dev/null;then RS=STRAND;else RS=ended;fi
+ j=0;while [ $j -lt $((N*10)) ];do n=0;for q in $(mine $h);do [ "$(cat /proc/$q/comm 2>/dev/null)" = sleep ]||n=$((n+1));done;[ $n = 0 ]&&break;sleep 0.1;j=$((j+1));done   # the settle POLLS the run's pids (council 22:51Z 10-26): done at the first read with no process but a sleep, else N s, then counted
  RL=0;RLN=;for q in $(mine $h);do c=$(cat /proc/$q/comm 2>/dev/null);[ "$c" = sleep ]||{ RL=$((RL+1));RLN="$RLN $c";};done;   # a killed loop's pending `sleep` ends by itself (<= 300 s): not a loop, not counted
  RB=$(grep -c 'Broken pipe' $h/o 2>/dev/null);RN=$(grep -c 'agi-track: append failed (.*), draining' $h/o 2>/dev/null);RF=$([ -e $h/.fresh ]&&echo y||echo n);RB=${RB:-0};RN=${RN:-0}
  for q in $(mine $h);do kill -9 $q 2>/dev/null;done;wait 2>/dev/null;rm -rf $D;}

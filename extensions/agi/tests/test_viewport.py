@@ -740,7 +740,7 @@ def test_town_is_derived_via_the_shared_helper_from_the_frame(tmp_path):
 # hypothesis:viewport-renders-one-node-for-both-readers (goal:g4.18.7.1). The
 # single-node flag is pinned as `--node` (`--range N:M` for a body slice);
 # DG3 may rename both in the build commit that flips these rows.
-_W3A = "bundle 4 W3a: RED until DG3 builds the viewport's single-node render"
+_W3A = "goal:g4.18.7.1: RED until the viewport's single-node render is built (bundle 4 W3a)"
 
 
 def _w3_project(tmp_path):
@@ -787,7 +787,7 @@ def test_w3a_verify_still_exits_zero_on_a_tiny_project(tmp_path):
 # hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
 # the render's --range is replace's coordinates, so `read N:M` -> `replace N:M`
 # survives the cut as render N:M -> replace N:M (fixture: _w3_project above).
-@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 builds the render's --range")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.7.1: RED until the render's --range is built (bundle 4 W3c)")
 @pytest.mark.parametrize("rng", ["1:3", "4:5", "7:9"])
 def test_w3c_the_render_range_is_the_replace_coordinates(tmp_path, rng):
     import write
@@ -855,7 +855,7 @@ def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
 # --- bundle 4 W3c payload (director-general-2) ------------------------------
 # CLAIM (6): the cut lands only after the render ranges a PAYLOAD too --
 # config:rotations' `skills` first_turn reads 12 payload ranges at every wake.
-@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 builds the render's payload --range")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.7.1: RED until the render's payload --range is built (bundle 4 W3c)")
 def test_w3c_the_render_ranges_a_payload_too(tmp_path):
     rc, out = _w3_view(_w3_project(tmp_path), "--node", "build:b", "--payload", "--range", "2:2", "--emit", "llm")
     assert rc == 0 and "PAY-TWO" in out and "PAY-ONE" not in out

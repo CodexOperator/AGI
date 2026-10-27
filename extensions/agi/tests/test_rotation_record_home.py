@@ -170,7 +170,7 @@ def test_the_seating_announcement_carries_a_home_relative_transcript(home, base)
 
 # --- bundle 4 W3 B3 (director-general-2) ------------------------------------
 # hypothesis:node-search-lives-beside-node-writer (goal:g4.18.7.2), CLAIM (3).
-@pytest.mark.xfail(strict=True, reason="bundle 4 W3 B3: RED until DG3 moves the node search beside node_writer")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.7.2: RED until the node search moves beside node_writer (bundle 4 W3 B3)")
 def test_b3_rotation_record_keeps_only_the_record_helpers():
     import rotation_record
     assert not {"grep_live", "parked_carriers", "GrepError"} & set(vars(rotation_record))

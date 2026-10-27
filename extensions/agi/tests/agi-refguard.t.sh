@@ -5,7 +5,7 @@
 # Rows (each under A and B where it applies):  f1 as agi-alive `update-ref refs/heads/posts/dg1` is refused: rc != 0, ONE named line, the ref UNCHANGED after git's abort  f1b its own posts/alive moves  f1c refs/box/dg1/*, refs/held/dg1/* and a DELETE of the peer's branch are refused; its own refs/box/alive/*, refs/held/alive/* move; one transaction naming own + peer is refused WHOLE (both unchanged)  f1d refs outside the three patterns move  f1e belam and root move a peer's ref (the exemption), and so does a user that is not agi-*  f1f another agi-<p> post user is refused  f1g the PRIME'S post (its unit runs as agi-belam, `systemctl show agi-post@belam -p User`) may move any ref: it answers for dead-ref cleanup and the held / box refs of the others
 # Honesty (F2): f2 `git -c core.hooksPath=/dev/null update-ref` STILL moves the peer's ref -- the row passes only when the bypass works, so nobody reads the hook as a wall.
 # Only `prepared` acts: np committed / aborted exit 0 at once, even on a matching line.
-# No collateral (F3, config A): c1 the post's own `box send` (the REAL box piece, signed)  c2 its own `agi-at` on posts/alive (the REAL piece + grow.py, signed)  c3 a root `box carry` delivers a peer's refs/box/dg1/alive; the same fetch as agi-alive is REFUSED (the guard bites)  c4 a belam ff of the peer's branch  c5 FAIL OPEN: unparseable input, and a failing `id`, exit 0 with the [ref-guard] stderr line AND one line in ~/.notice (a second run the same day adds none)  c6 TIMING: the hook adds < 50 ms to one update-ref (mean of 30)
+# No collateral (F3, config A): c1 the post's own `box send` (the REAL box piece, signed)  c2 its own `agi-at` on posts/alive (the REAL piece + grow.py, signed)  c3 a root `box carry` delivers a peer's refs/box/dg1/alive; the same fetch as agi-alive is REFUSED (the guard bites)  c4 a belam ff of the peer's branch  c5 FAIL OPEN: unparseable input, and a failing `id`, exit 0 with the [ref-guard] stderr line AND one line in ~/.notice (a second run the same day adds none)  c6 TIMING: the hook adds < 50 ms + 2 x git's own update-ref cost (medians of 30 interleaved pairs; c6m a 300 ms hook stays RED)
 # Where it runs: h1 `git rev-parse --git-path hooks` under A is HOME/bin and the hook there is byte-equal to the piece.
 # MUTANTS (PIECES=<engine*.md edited, each OLD text asserted count == 1): the piece renamed away; the `prepared` gate dropped; the q != p test dropped; the agi-* gate dropped; the fail-open `exit 0` -> `exit 1`; the notice write cut; the refs/held or refs/box arm cut.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
@@ -68,7 +68,7 @@ ok c1-its-own-box-send-lands-signed "[ $r = 0 ]&&[ \"\$(ref refs/box/alive/belam
 $PRE worktree add -q --detach $T/hm/alive/t posts/alive;echo x >$T/hm/alive/t/x.txt
 rr A alive sh $T/hm/alive/bin/agi-at x.txt 2>$T/c2.err;r=$?
 ok c2-its-own-agi-at-lands-signed-on-posts-alive "[ $r = 0 ]&&[ \"\$(ref refs/heads/posts/alive)\" != $C1 ]&&[ \"\$($G -C $T/r -c gpg.ssh.allowedSignersFile=$T/signers log -1 --format=%G? posts/alive)\" = G ]"
-$G init -q --bare $T/hub;$PRE push -q $T/hub $C2:refs/box/dg1/alive;reset
+$G init -q --bare $T/hub;$G -C $T/hub config core.hooksPath /dev/null;$PRE push -q $T/hub $C2:refs/box/dg1/alive;reset
 SU=root rr A alive sh $T/hm/alive/bin/box carry $T/hub alive 2>/dev/null;r1=$?;v1=$(ref refs/box/dg1/alive);$PRE update-ref -d refs/box/dg1/alive
 rr A alive sh $T/hm/alive/bin/box carry $T/hub alive 2>/dev/null;r2=$?;v2=$(ref refs/box/dg1/alive)
 ok c3-a-root-box-carry-delivers-a-peers-ref-and-the-same-fetch-as-a-post-is-refused "[ \"$v1\" = $C2 ]&&[ \"$v2\" = none ]"
@@ -80,8 +80,18 @@ rm -f $T/hm/alive/.notice;FAKEDATE=20261011 rr A alive sh $T/hm/alive/bin/refere
 ok c5c-the-notice-is-once-per-post-per-DAY-a-new-day-is-a-new-line "[ \"\$(grep -c '^\[ref-guard\] fail open' $T/hm/alive/.notice)\" = 2 ]"
 rm -f $T/hm/alive/.notice;IDFAIL=1 rr A alive sh $T/hm/alive/bin/reference-transaction prepared </dev/null 2>$T/c5b.err;r=$?
 ok c5b-a-failing-id-fails-open-and-is-noticed "[ $r = 0 ]&&grep -qF '[ref-guard] fail open: no user' $T/c5b.err&&grep -qF '[ref-guard] fail open: no user' $T/hm/alive/.notice"
-reset;t0=$(date +%s%N);i=0;while [ $i -lt 30 ];do rr A alive $G -c core.hooksPath=/dev/null update-ref refs/heads/posts/alive $C2;rr A alive $G -c core.hooksPath=/dev/null update-ref refs/heads/posts/alive $C1;i=$((i+1));done;t1=$(date +%s%N)
-i=0;while [ $i -lt 30 ];do rr A alive $G update-ref refs/heads/posts/alive $C2;rr A alive $G update-ref refs/heads/posts/alive $C1;i=$((i+1));done;t2=$(date +%s%N)
-d=$(( ((t2-t1)-(t1-t0)) / 60000000 ))
-ok c6-the-hook-adds-less-than-50-ms-to-one-update-ref "[ $d -lt 50 ]  # mean delta ${d} ms over 60 updates"
+# c6 is RELATIVE (SM route 04:1xZ 10-26: an absolute wall-time ceiling reddened under load at GATE263/266): 30 INTERLEAVED pairs,
+# each a bare pair (hooksPath=/dev/null) then a hooked pair under the same load; per pair, delta = hooked - bare; the row reads the
+# MEDIANS (ms per update) and passes when delta < 50 + 2 x bare. Honest limit: on a box loaded so that git's own update-ref costs
+# B ms the ceiling is 50 + 2B, so a hook costing a few x git passes there; the c6m mutant (a 300 ms hook) must stay RED.
+tm(){ hp=$1;reset;: >$T/tb;: >$T/td;i=0;while [ $i -lt 30 ];do t0=$(date +%s%N)
+ rr A alive $G -c core.hooksPath=/dev/null update-ref refs/heads/posts/alive $C2;rr A alive $G -c core.hooksPath=/dev/null update-ref refs/heads/posts/alive $C1;t1=$(date +%s%N)
+ if [ "$hp" ];then rr A alive $G -c core.hooksPath=$hp update-ref refs/heads/posts/alive $C2;rr A alive $G -c core.hooksPath=$hp update-ref refs/heads/posts/alive $C1;else rr A alive $G update-ref refs/heads/posts/alive $C2;rr A alive $G update-ref refs/heads/posts/alive $C1;fi;t2=$(date +%s%N)
+ echo $(( (t1-t0)/2000 ))>>$T/tb;echo $(( ((t2-t1)-(t1-t0))/2000 ))>>$T/td;i=$((i+1));done
+ b=$(sort -n $T/tb|sed -n 15p);d=$(sort -n $T/td|sed -n 15p);echo "$((b/1000)) $((d/1000))";}
+set -- $(tm);b=$1;d=$2
+ok c6-the-hook-adds-less-than-50-ms-plus-twice-gits-own-cost-to-one-update-ref "[ $d -lt \$((50+2*$b)) ]  # median delta ${d} ms, median bare ${b} ms per update, 30 interleaved pairs"
+mkdir -p $T/slow;printf '#!/bin/sh\nsleep 0.3\nexec sh %s "$@"\n' $T/hm/alive/bin/reference-transaction >$T/slow/reference-transaction;chmod +x $T/slow/reference-transaction
+set -- $(tm $T/slow);b=$1;d=$2
+ok c6m-mutant-a-300-ms-hook-is-RED-under-the-same-bound "! [ $d -lt \$((50+2*$b)) ]  # median delta ${d} ms, median bare ${b} ms"
 echo "agi-refguard: $f FAIL";exit $f

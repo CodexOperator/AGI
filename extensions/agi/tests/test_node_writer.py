@@ -1756,7 +1756,7 @@ def test_b4_w1a_the_row_index_has_one_definition():
 
 
 # --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2 ------------------
-_W2DB = "bundle 4 W2d-b: RED until DG3 builds the writer's address -> mint_id resolve"
+_W2DB = "goal:g4.18.6.4.2: RED until the writer's address -> mint_id resolve is built (bundle 4 W2d-b)"
 _W2DB_MINT = "0123456789abcdef0123456789abcdef"
 
 
