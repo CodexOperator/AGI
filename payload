@@ -9,7 +9,7 @@ description: >
 
 # agi-dispatch — decompose ▸ dispatch ▸ judge
 
-> **write.py is the OLD setup's node writer.** Quoting skill agi-node-write: "OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)". Every `write.py` command below is for a post on the old setup; a post whose row has engine.v 4 edits the node file directly. The routing in this skill is unchanged.
+> The node writer is retired (goal:g7.16.1.11.46.23): a node is a plain file, read with `sed` and edited in place (skill agi-node-write). Every node edit below is that route.
 
 > **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
 
@@ -17,7 +17,7 @@ Source of truth: `dispatch.py -h` · `season.py judge -h` · `spawn_budget.py st
 
 ## 1 · The loop
 ```
-goal:gX ──decompose──▶ goal:gX.a  goal:gX.b          write.py create goal … (skill agi-goal)
+goal:gX ──decompose──▶ goal:gX.a  goal:gX.b          mint a goal leaf (skill agi-goal)
                           │          │
                        parent     parent             dispatch.py (below)
                           │          │
@@ -63,7 +63,7 @@ Reviews of a round run BY NAME with an EXPLICIT `--harness pi-free` (skill `agi-
 | no-dm | a parent's harvest dm can be lost or blind to `--owns` kids: reconcile by branch + `spawn_budget.py status`, never by inbox alone |
 | vanishing-wt | a CLEAN round worktree is pruned while you test in it (06:25Z 09-27: 58 phantom help-smoke failures, then "file or directory not found"): land its uncommitted edits FIRST, then test on `git worktree add --detach .agi/worktrees/de-h<N> <tip>` |
 | worktree sweep | after every harvest (owner 09-27 via belam 17:1xZ): `python3 extensions/agi/bin/heal.py sweep --root <main checkout>` = census, one `[sweep] <verdict> <agent_id>: <reason>` line per kid worktree (format = cell `values.core.worktree_sweep.report_line`), writes nothing -- there is no apply flag: the live pass = cell `values.core.worktree_sweep.dry_run_default` false for ONE pass, then true again · CLEAN non-live kid tree whose branch resolves to its own HEAD: removed, branch kept · DIRTY: LISTED per owner, never deleted (committing its write-logged node edits is NOT built yet -- its own round; until then land them by the kid-node row) · post worktrees + live rounds never touched · never `git worktree remove --force` by hand |
-| progress → board | every harvest · merge-up · judge that moves a goal (owner 09-28 06:4xZ, "use the board to post progress updates"): ONE numbers-only line on YOUR town's board — `write.py town:<town> 'note <post> <HH:MMZ>: <goal-id> <what landed · sha · numbers>' --actor <post> --role <role>`. NOT YET WRITABLE by a non-Prime post: the [town] schema's written_by is [prime_director, owner] (TM [red] 06:3xZ); the verb-scoped note grant is a goal:g7.33 round (belam [decision] 08:4xZ, TM option a) -- until it lands and belam adds your grant line, ONE line per landing in your card §2, nothing else there · NEVER on the goal (goals are trackers, HEAD B) · NEVER a progress or landed-list line on your card (card = state · plan · where it stops; the board + commit log carry history) · the Prime hears only what agi-send §3 allows |
+| progress → board | every harvest · merge-up · judge that moves a goal (owner 09-28 06:4xZ, "use the board to post progress updates"): ONE numbers-only line on YOUR town's board — one line `<post> <HH:MMZ>: <goal-id> <what landed · sha · numbers>` appended under the notes heading of `.agi/nodes/town/<town>.md` (plain edit, skill agi-node-write §1). NOT YET WRITABLE by a non-Prime post: the [town] schema's written_by is [prime_director, owner] (TM [red] 06:3xZ); the verb-scoped note grant is a goal:g7.33 round (belam [decision] 08:4xZ, TM option a) -- until it lands and belam adds your grant line, ONE line per landing in your card §2, nothing else there · NEVER on the goal (goals are trackers, HEAD B) · NEVER a progress or landed-list line on your card (card = state · plan · where it stops; the board + commit log carry history) · the Prime hears only what agi-send §3 allows |
 | orders-walk | writing a parent's orders: carry "never `find`/`grep -r` outside your own worktree, never walk `.agi/worktrees` or `/mnt/agi-ram`; `git grep -- <paths>` only" (a00-b465ec27 10-01 19:0xZ: D state, io PSI 56-70, SM gate stopped) |
 | board-replace | a scripted replace on the shared town board / trajectory node: `git status` + re-read the row first, assert the old text matches exactly once, never blind-replace (SM: belam edited the row between SM's reads) |
 | scratch-tree | a scratch sweep tree = `git clone --shared --no-checkout` + `checkout --detach`, not `git worktree add` (its admin dir gets pruned); `--local` hardlinks fail across devices (DG5) |
