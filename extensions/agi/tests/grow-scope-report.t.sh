@@ -26,8 +26,8 @@ if [ "${1:-}" = window ];then   # falsifier 3: run in the real repo, against the
  echo "ok window $n hit(s), every one has an explain row (a commit row or standing parent rows)";exit 0;fi
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-# a fixture/mutant edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
-chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+# a fixture/mutant edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
 sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 # a row that must read RED: the SAME condition run against a mutated gate has to fail
 red(){ if eval "$2";then echo "FAIL $1 (the mutant read GREEN)";f=$((f+1));else echo "ok $1";fi;}
@@ -160,13 +160,15 @@ mknodes;hit alive experiment:xx;srow director-general-3 goal:g2;win;wr=$?;ok "w4
 mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sed -i 's/^status: active/status: complete/' $T/w/.agi/nodes/goal/g7.16.1.11.46.9.md;$G -C $T/w commit -qam "46.9 closes";win;wr=$?;ok "w4c-the-rows-retire-when-their-until-goal-closes [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
 mknodes;hit director-general-3 experiment:nowhere;srow director-general-3 goal:g2;win;wr=$?;ok "w4d-a-parent-that-resolves-to-no-node-is-not-under-anything [$(cat $T/wo)]" '[ $wr != 0 ]&&grep -q unexplained $T/wo'
 mknodes;hit director-general-3 experiment:xx;srow director-general-3 goal:g2;sedc 's/under "\$2" "\$sparent"&&echo yes/[ "$2" = "$sparent" ]\&\&echo yes/' $T/w/extensions/agi/tests/grow-scope-report.t.sh "the literal-only-match mutant of this lane";win;wr=$?;red "w4m-mutant-a-literal-only-match-leaves-the-two-level-node-unexplained [$(cat $T/wo)]" '[ $wr = 0 ]'
-# r3 (the census): the fixture edits fail closed; the old unmeasured shapes are the mutants
-printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
-ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
-printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
-ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
-printf 'a\n' >$T/c1;x=$(f=0;sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo "f=$f")
-ok sedc-a-sed-i-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted sed -i matched nothing"&&echo "$x"|grep -qx "f=1"'
-x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};f=0;sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo "f=$f")
-ok sedc-mutant-the-bare-sed-i-is-RED '[ "$x" = "f=0" ]'
+# r3/r4 (the census, council (A)): chg and sedc EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok chg-a-matchless-edit-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok chg-an-edit-that-changed-bytes-is-silent '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};chg $T/c1 $T/c2 "the old test";echo AFTER);rc=$?
+ok chg-mutant-the-guard-dropped-is-RED '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: chg"&&echo "$x"|grep -qx AFTER'
+printf 'a\n' >$T/c1;x=$(sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo AFTER);rc=$?
+ok sedc-a-sed-i-that-matches-nothing-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted sed -i" ]'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo AFTER);rc=$?
+ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
 exit $f
