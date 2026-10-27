@@ -798,6 +798,8 @@ def test_b4_w1b_a_failed_commit_unstages_its_paths(project, shape):
         hook.parent.mkdir(parents=True, exist_ok=True)
         hook.write_text("#!/bin/sh\nexit 1\n")
         hook.chmod(0o755)
+        # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+        g("config", "core.hooksPath", str(hook.parent))
     else:
         (gitdir / "index.lock").write_text("")
     write.main(["hypothesis:h9", "set confidence 0.3", "--root", str(project)])
