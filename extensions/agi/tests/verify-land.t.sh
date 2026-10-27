@@ -23,7 +23,7 @@ gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNS
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
  LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n${MSG:+
 $MSG}" -m "$CA" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
-run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
+run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} ${VPW:+VL_PASSWD=$VPW} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
 # wrun(NAME, LAND, BASE, GT): the WRAP step (`verify-land wrap`) then verify-land on what it printed: WS = the wrap sha (empty = plain)
 wrun(){ run wrap "$@";cp $T/o $T/w;WS=$(sed -n 's/^land: wrap \([0-9a-f]*\) over .*/\1/p' $T/w);n=$1;shift;run $n ${WS:-$1} "$2" "$3";}
@@ -61,6 +61,22 @@ ok "da7-a-malformed-cell-admits-nothing-and-says-so rc $rc, $(grep '^deletes_adm
 ok "da8-no-D-reading-diff-without--M (falsifier 2) $(grep -c 'name-status' $VL) name-status line(s), $(grep 'name-status' $VL|grep -vc -- '-M --name-status') without -M" '[ "$(grep "name-status" $VL|grep -vc -- "-M --name-status")" = 0 ]&&grep -q -- "-M --name-status" $VL'
 hm=$(getent passwd "$(id -un)"|cut -d: -f6);gate m 'echo "see $hm/notes" >$R/docs/m';run m $LD $BASE $GT
 ok "h4-a-home-path-literal-HOLDS rc $rc, $(grep -c '^home hits \[.\+\]' $T/o) hit line, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*home"'
+# hc1-hc3 (SM [red] 13:06Z 10-27 + the council 13:07Z; L197 HELD on a context line): the home step reads what the land ADDS. A base that already carries the same
+# home literal; a tip that edits the NEXT line (the literal rides as CONTEXT) is no hit; a tip that REMOVES it (a scrub) is no hit; h4 above stays the added-line HOLD (the runner's real home); hc3 plants a uid-1000 home through the VL_PASSWD seam
+g checkout -q --detach $BASE;printf 'one\nsee %s/notes\nthree\n' "$hm" >$R/docs/ctx;g add -A;g commit -qm "base ctx";BC=$(g rev-parse HEAD);g checkout -q --detach
+B0h=$BASE;BASE=$BC;gate hc 'printf "one\nsee %s/notes\nthree changed\n" "$hm" >$R/docs/ctx';LD_hc=$LD;GT_hc=$GT;run hc $LD $BC $GT;cp $T/o $T/hc.o;rchc=$rc
+gate hr 'printf "one\nthree\n" >$R/docs/ctx';LD_hr=$LD;GT_hr=$GT;run hr $LD $BC $GT;cp $T/o $T/hr.o;rchr=$rc;BASE=$B0h
+ok "hc1-a-home-on-a-CONTEXT-line-is-no-hit rc $rchc, $(grep '^home hits' $T/hc.o), $(tail -1 $T/hc.o)" 'grep -qx "home hits \[\]" $T/hc.o&&! tail -1 $T/hc.o|grep -q "HOLD (.*home"&&[ "$(g diff $BC $GT_hc|grep -c "^ see $hm/notes")" = 1 ]'
+ok "hc2-a-home-on-a-REMOVED-line-is-no-hit (a scrub) rc $rchr, $(grep '^home hits' $T/hr.o), $(tail -1 $T/hr.o)" 'grep -qx "home hits \[\]" $T/hr.o&&! tail -1 $T/hr.o|grep -q "HOLD (.*home"&&[ "$(g diff $BC $GT_hr|grep -c "^-see $hm/notes")" = 1 ]'
+printf 'pl:x:1000:1000::/srv/plhome:/bin/sh\n' >$T/pw.pl;gate hp 'echo "see /srv/plhome/notes" >$R/docs/hp';VPW=$T/pw.pl;run hp $LD $BASE $GT;VPW=
+ok "hc3-an-ADDED-line-naming-a-planted-uid-1000-home-HOLDS (VL_PASSWD seam) rc $rc, $(grep '^home hits' $T/o), $(v)" '[ $rc = 1 ]&&grep -q "^home hits \[.*/srv/plhome.*\]$" $T/o&&v|grep -qx "verify-land: HOLD (home)"'
+# the home-step mutant (as SELF, so `self` holds too): the whole diff read again -> the context row hc1 and the scrub row hc2 HOLD on home, with a NAMED hit (a crash of the step also HOLDs home: the hit line proves the step ran)
+cp "$VL" $T/hm.sh;python3 -c '
+import sys
+s=open(sys.argv[1]).read();a="    elif hunk and l.startswith(\x27+\x27): add.append(l[1:])\n";assert s.count(a)==1,("mutant anchor",a)
+open(sys.argv[1],"w").write(s.replace(a,"    elif True: add.append(l)\n"))' $T/hm.sh
+SELF=$T/hm.sh;run hc $LD_hc $BC $GT_hc;cp $T/o $T/mhc.o;run hr $LD_hr $BC $GT_hr;cp $T/o $T/mhr.o;SELF=
+ok "m-home-reads-the-whole-diff-reads-RED context: $(grep '^home hits' $T/mhc.o|cut -c1-60) / scrub: $(grep '^home hits' $T/mhr.o|cut -c1-60)" 'grep -q "^home hits \[.\+\]$" $T/mhc.o&&grep -q "^home hits \[.\+\]$" $T/mhr.o&&tail -1 $T/mhc.o|grep -q "HOLD (.*home"&&tail -1 $T/mhr.o|grep -q "HOLD (.*home"'
 gate e 'echo b2 >$R/docs/b2';LE=$(g commit-tree -S -p $BASE -p $GT -m "land e
 leak: someone@""example.org" $(g rev-parse $LD^{tree}));g update-ref refs/held/sanctuary-master/e $LE;run e $LE $BASE $GT
 ok "h5-a-stray-email-in-the-message-HOLDS rc $rc, $(grep -o 'emails: .*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*msg-email"'
