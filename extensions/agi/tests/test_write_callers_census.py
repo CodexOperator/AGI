@@ -24,8 +24,11 @@ PAT = re.compile(
     r"|(?<![A-Za-z_])" + _W.upper() + r"_PY|[\"']" + _W + r"\.py[\"']|/" + _W + r"\.py")
 
 
+UNREAD = "UNREAD:"       # prefix of a census entry whose file could not be read as utf-8 text (never in ALLOWED, so RED)
+
+
 def census(root: Path) -> list[str]:
-    """Sorted repo-relative paths under SCOPE with >= 1 caller line (git ls-files; every file when `root` is not a git tree)."""
+    """Sorted repo-relative paths under SCOPE with >= 1 caller line (git ls-files; every file when `root` is not a git tree). A file that cannot be read as utf-8 text is listed as UNREAD:<path>."""
     root = Path(root)
     r = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", *SCOPE], capture_output=True, text=True)
     if r.returncode == 0 and r.stdout:
@@ -40,6 +43,7 @@ def census(root: Path) -> list[str]:
         try:
             text = (root / f).read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
+            out.append(UNREAD + f)      # an unreadable file is UNREAD, never "not a caller": it reads RED against ALLOWED
             continue
         if any(PAT.search(line) for line in text.splitlines()):
             out.append(f)
@@ -176,3 +180,13 @@ def test_MUTANT_one_converted_for_one_left_behind_nets_zero_by_count_but_the_SET
     b = _tree(tmp_path / "b", {"extensions/agi/bin/one.py": "x = 1\n", "extensions/agi/bin/two.py": "import " + _W + "\n"})
     got = census(b)
     assert len(got) == len(allowed) and got != allowed, "the same COUNT, a different caller: only the set equality sees it"
+
+
+def test_an_unreadable_file_reads_UNREAD_not_not_a_caller(tmp_path):
+    t = _tree(tmp_path, {"extensions/agi/bin/ok.py": "x = 1\n"})
+    (t / "extensions/agi/bin/bin.dat").write_bytes(b"\xff\xfe import " + _W.encode() + b"\n")
+    (t / "extensions/agi/bin/dangling").symlink_to(t / "nowhere")
+    subprocess.run(["git", "-C", str(t), "add", "-A"], check=True, capture_output=True)
+    got = census(t)
+    assert got == [UNREAD + "extensions/agi/bin/bin.dat", UNREAD + "extensions/agi/bin/dangling"]
+    assert got != [], "MUTANT (the old `continue`) returns [] here: an unreadable caller read as not-a-caller"
