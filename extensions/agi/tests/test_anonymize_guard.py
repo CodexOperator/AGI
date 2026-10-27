@@ -409,6 +409,8 @@ def test_a_login_home_outside_home_and_users_is_refused(tmp_path, fake_box, monk
     fixture_home = "/" + "data/" + user
     monkeypatch.setattr(pwd, "getpwall", lambda: [pwd.struct_passwd(
         (user, "x", 4242, 4242, "", fixture_home, "/bin/sh"))])
+    import grp   # a fixture box: no post group and nothing under the post root (item 2's EMPTY class)
+    monkeypatch.setattr(grp, "getgrnam", lambda name: (_ for _ in ()).throw(KeyError(name)))
     monkeypatch.setitem(sys.modules, "anonymize", anonymize)  # undo restores it
     mod = _load("anonymize")  # the pattern is derived at import
     monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
@@ -460,6 +462,164 @@ def test_no_committed_home_path_in_the_four_scrub_scopes():
     per = {s: sum(1 for f in p.stdout.splitlines() if f.startswith(f"HEAD:{s}/"))
            for s in SCRUB_SCOPES}
     assert per == dict.fromkeys(SCRUB_SCOPES, 0)
+
+
+# item 2 + part (B) (goal:g7.16.1.11.46.16; the council 3/3, alive [decision] 14:04:59Z 10-27):
+# the POST-HOME class = the EXACT homes of group agi's members, any uid; both readings of
+# config:engine-post's sysusers template asserted; ONE reading line; unread never narrows.
+# Every row injects passwd, group and the template: no real home is committed here.
+import pwd as _pwd  # noqa: E402
+
+TOP = "/srv/fx-posts"   # a fixture post root (no passwd home of any box)
+TPL = ("agi-", TOP, "agi", "engine-post.md:457")
+
+
+def _pw(name, uid, gid, home, shell="/usr/sbin/nologin"):
+    return _pwd.struct_passwd((name, "x", uid, gid, "", home, shell))
+
+
+def _box(*extra):
+    return [_pw("agi-a", 900, 900, TOP + "/a"), _pw("agi-b", 1500, 901, TOP + "/b"),
+            _pw("login", 1000, 1000, "/srv/fx-login", "/bin/bash"),
+            _pw("svc", 120, 120, "/srv/fx-svc")] + list(extra)
+
+
+def test_post_class_is_the_exact_member_homes_any_uid(monkeypatch):
+    homes, line = anonymize.passwd_homes(_box(), {"agi": (987, ["agi-a", "agi-b"])}, TPL)
+    assert line == f"post homes: 2 (group agi, root {TOP}, engine-post.md:457)"
+    assert homes == {TOP + "/a", TOP + "/b", "/srv/fx-login"}, "a service home is NOT in the class"
+    monkeypatch.setenv("HOME", "/nonexistent")   # any runner uid: the class never rides $HOME
+    rx = anonymize._home_path_re(homes=homes)
+    assert rx.search(TOP + "/a/x") and rx.search(TOP + "/b") and rx.search("/srv/fx-login/y")
+    assert not rx.search(TOP + "/allowed_signers"), "a non-home sibling under the root never matches"
+    assert not rx.search("/srv/fx-svc/x") and not rx.search(TOP + "/ab/x")
+
+
+def test_a_primary_gid_member_is_in_the_class():
+    homes, line = anonymize.post_homes([_pw("agi-c", 950, 987, TOP + "/c")], {"agi": (987, [])}, TPL)
+    assert (homes, line.split(" (")[0]) == ({TOP + "/c"}, "post homes: 1")
+
+
+def test_two_readings_that_disagree_are_unread_and_never_narrow(monkeypatch):
+    homes, line = anonymize.post_homes([_pw("agi-a", 900, 900, "/srv/fx-elsewhere/a")],
+                                       {"agi": (987, ["agi-a"])}, TPL)
+    assert line == "home-unread: member agi-a does not live at <root>/<name less agi->"
+    assert homes == {"/srv/fx-elsewhere/a"}, "unread keeps every candidate a reading found"
+    monkeypatch.setattr(anonymize, "POST_HOMES_LINE", line)
+    assert anonymize.scan("nothing home-shaped here", []) == ["home-unread"]
+
+
+def test_a_non_member_under_the_root_is_unread():
+    homes, line = anonymize.post_homes(_box(_pw("agi-y", 902, 902, TOP + "/y")),
+                                       {"agi": (987, ["agi-a", "agi-b"])}, TPL)
+    assert line == "home-unread: 1 account(s) under the root outside group agi"
+    assert TOP + "/y" in homes and TOP + "/a" in homes
+
+
+def test_a_group_with_0_members_is_unread():
+    assert anonymize.post_homes(_box()[2:], {"agi": (987, [])}, TPL)[1] == "home-unread: group agi has 0 members"
+
+
+def test_no_group_and_nothing_under_the_root_is_an_empty_class_named():
+    homes, line = anonymize.passwd_homes(_box()[2:], {}, TPL)
+    assert (homes, line) == ({"/srv/fx-login"}, "post homes: none (no group agi, 0 under the root)")
+
+
+def test_no_group_over_live_post_homes_is_unread():
+    assert anonymize.post_homes(_box(), {}, TPL)[1] == "home-unread: no group agi, yet 2 account(s) live under the root"
+
+
+def test_an_unreadable_template_is_unread_never_a_raise(tmp_path):
+    homes, line = anonymize.post_homes(_box(), {"agi": (987, ["agi-a"])}, template_path=tmp_path / "gone.md")
+    assert (homes, line) == (set(), "home-unread: config:engine-post's sysusers template unread (FileNotFoundError)")
+
+
+def test_the_template_is_read_on_the_cells_base_root_override_included(tmp_path):
+    prefix, top, group, where = anonymize._sysusers_template()
+    assert (prefix, group) == ("agi-", "agi") and top.startswith("/") and where.startswith("engine-post.md:")
+    root = _graph(tmp_path)
+    with pytest.raises(OSError):
+        anonymize._sysusers_template(root=root)   # the fixture graph carries no engine-post.md
+    (root / "nodes" / ".geometry" / "engine-post.md").write_text(
+        f'### sysusers.conf (41 B)\n~~~ini\nu agi-@ - "@" {TOP}/@\nm agi-@ agi\n~~~\n')
+    assert anonymize._sysusers_template(root=root) == ("agi-", TOP, "agi", "engine-post.md:3")
+
+
+def test_check_prints_one_reading_line_every_run(tmp_path, fake_box, capsys):
+    anonymize.cmd_check(_graph(tmp_path), "plain text\n", None)
+    lines = [l for l in capsys.readouterr().err.splitlines()
+             if l.startswith(("anonymize: post homes: ", "anonymize: home-unread: "))]
+    assert lines == [f"anonymize: {anonymize.POST_HOMES_LINE}"]
+
+
+def test_grid_imports_under_an_unreadable_template(tmp_path):
+    import shutil
+    for part in ("bin", "src"):   # outside any project: the template cannot be read
+        shutil.copytree(BIN.parent / part, tmp_path / "agi" / part)
+    p = subprocess.run([sys.executable, "-I", "-c", "import sys;sys.path.insert(0,sys.argv[1]);import grid,anonymize;"
+                        "print(anonymize.POST_HOMES_LINE)", str(tmp_path / "agi" / "bin")], capture_output=True, text=True)
+    assert p.returncode == 0, p.stderr[-300:]
+    assert p.stdout.startswith("home-unread: config:engine-post's sysusers template unread")
+
+
+def test_the_quorum_symlink_of_a_scrubbed_card_reads_0():
+    repo = Path(__file__).resolve().parents[3]
+    ls = subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "HEAD", "--", ".agi/sessions/quorum"],
+                        capture_output=True, text=True)
+    if ls.returncode != 0:
+        pytest.skip("not a git checkout of this repo")
+    links = [l.split("\t", 1)[1] for l in ls.stdout.splitlines() if l.startswith("120000 ")]
+    assert links, "no quorum/ symlink at HEAD: the row would check nothing"
+    hit = []
+    for link in links:
+        target = subprocess.run(["git", "-C", str(repo), "cat-file", "blob", f"HEAD:{link}"],
+                                capture_output=True, text=True).stdout.strip()
+        path = os.path.normpath(os.path.join(os.path.dirname(link), target))
+        text = subprocess.run(["git", "-C", str(repo), "show", f"HEAD:{path}"], capture_output=True, text=True).stdout
+        hit += [link] if anonymize.HOME_PATH_RE.search(text) else []
+    assert len(hit) == 0, f"{len(hit)} quorum view(s) still carry a home"
+
+
+# the five mutants of the post-home fixes (alive 14:04:59Z), each a copy of anonymize.py
+# with ONE anchor replaced; each must misbehave where the real reader holds
+def _mutant(tmp_path, old, new):
+    src = (BIN / "anonymize.py").read_text(encoding="utf-8")
+    assert src.count(old) == 1, ("mutant anchor", old)
+    (tmp_path / "anonymize_mut.py").write_text(src.replace(old, new), encoding="utf-8")
+    spec = importlib.util.spec_from_file_location("anonymize_mut", tmp_path / "anonymize_mut.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_mutant_gr_mem_only_reader_misses_a_primary_gid_member(tmp_path):
+    m = _mutant(tmp_path, "members = set(mem) | {p.pw_name for p in entries if p.pw_gid == gid}", "members = set(mem)")
+    assert m.post_homes([_pw("agi-c", 950, 987, TOP + "/c")], {"agi": (987, [])}, TPL)[1] == "home-unread: group agi has 0 members"
+
+
+def test_mutant_reverse_assertion_cut_reads_a_non_member_as_read(tmp_path):
+    m = _mutant(tmp_path, "        if set(under) - members:\n", "        if False:\n")
+    line = m.post_homes(_box(_pw("agi-y", 902, 902, TOP + "/y")), {"agi": (987, ["agi-a", "agi-b"])}, TPL)[1]
+    assert line.startswith("post homes: 2")
+
+
+def test_mutant_a_raise_at_import_kills_the_importer(tmp_path):
+    old = ("    except Exception as exc:   # an import-time reader: a path never rides the line\n"
+           "        return cands, f\"home-unread: config:engine-post's sysusers template unread ({type(exc).__name__})\"\n")
+    with pytest.raises(Exception):
+        _mutant(tmp_path, old, "    except Exception as exc:\n        raise\n")   # tmp_path holds no project
+
+
+def test_mutant_unread_from_nothing_leaves_a_member_home_unscrubbed(tmp_path):
+    m = _mutant(tmp_path, 'return cands, f"home-unread: member {name}', 'return set(), f"home-unread: member {name}')
+    homes, line = m.post_homes([_pw("agi-a", 900, 900, "/srv/fx-elsewhere/a")], {"agi": (987, ["agi-a"])}, TPL)
+    assert line.startswith("home-unread") and not m._home_path_re(homes=homes).search("/srv/fx-elsewhere/a/x")
+
+
+def test_mutant_reading_line_dropped_prints_none(tmp_path, fake_box, capsys):
+    m = _mutant(tmp_path, '    print(f"anonymize: {POST_HOMES_LINE}", file=sys.stderr)   # ONE reading line, every run\n', "")
+    m.cmd_check(_graph(tmp_path / "g"), "plain text\n", None)
+    assert not [l for l in capsys.readouterr().err.splitlines() if l.startswith(("anonymize: post homes", "anonymize: home-unread"))]
 
 
 # goal:g1.31.3.2 (b) corrective dg6-03: the goal's invariant "no hardware model name,
