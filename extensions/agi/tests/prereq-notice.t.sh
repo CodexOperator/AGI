@@ -44,10 +44,10 @@ leaf(){ s=$1;c=$2;st=$3;shift 3;seq=$((${seq:-1}+1));m=$(printf '%032x' $(( $(ec
 seed(){ python3 ${B:-$BIN}/prereq_notice.py seed --repo $R --at ${1:-$($G -C $R rev-parse HEAD)} >/dev/null 2>&1;}
 step(){ python3 ${B:-$BIN}/prereq_notice.py run --repo $R --spool $SP >$T/so 2>$T/se;rc=$?;}
 nsp(){ [ -f $SP ]&&wc -l <$SP|tr -d ' '||echo 0;}
-drain(){ (cd $R&&KEY=$T/k/key BOX_FAIL="$BOX_FAIL" NOTICE_OUT=$T/notice.out python3 -c "
+drain(){ MT=${1:-60};(cd $R&&KEY=$T/k/key BOX_FAIL="$BOX_FAIL" NOTICE_OUT=$T/notice.out python3 -c "
 import sys;sys.path.insert(0,'$BIN');import alarm_spool as a;from pathlib import Path
 a._uid_name=lambda:'agi-sanctuary-master'
-sys.exit(a.drain('sanctuary-master',max_tries=${1:-60},spool=Path('$SP'),box_bin=Path('$T/box'),notice_bin=Path('$T/notice'),tree=Path('$R')))" >$T/do 2>&1);}
+sys.exit(a.drain('sanctuary-master',max_tries=$MT,spool=Path('$SP'),box_bin=Path('$T/box'),notice_bin=Path('$T/notice'),tree=Path('$R')))" >$T/do 2>&1);}
 sentn(){ $G -C $R log refs/box/sanctuary-master/$1 --format=%B 2>/dev/null|grep -c '^Alarm-job: prereq_notice';}
 lineo(){ python3 ${B:-$BIN}/prereq_notice.py line --repo $R $@ 2>/dev/null;}
 mut(){ rm -rf $T/mbin;mkdir -p $T/mbin;cp $BIN/*.py $T/mbin/
