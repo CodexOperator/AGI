@@ -77,7 +77,7 @@ records (manifests, trajectories) are data: move them to `.agi/sessions/harvest-
   A long job runs in foreground chunks (`timeout 540`), resumable, logging each decision to a file.
 - A suite or gate tree goes on DISK (`~/gate/<gate>` + its own `TMPDIR` there; tmpfs only while the slice has room, see the scratch rule below), removed after; stopping it = every pid whose cwd is the gate path.
 - ONE full suite on the box at a time, on disk; SM's gate first; others run targeted rows; start only when MemAvailable >= the box's floor (6 GB; encryption-town 3 GB: no RAM disk, no stream stack, a gate tree is ~150 MB of tmpfs -- owner 10-09), memory PSI avg10 < 5 and io PSI avg60 < 50; each run removes its /dev/shm tree at its end (belam [rule] 18:4xZ 10-08: two tmpfs suites at once = box PSI full avg60 34.8%, the watchdog reboots at 40% for 5 min).
-- starting a gate suite: assert the MemAvailable floor + PSI in the SAME command that starts it (exit if below); remove your finished
+- starting a gate suite: assert the MemAvailable floor + PSI in the SAME command that starts it (exit if below): `sh skills/agi-master-gate/start-check.sh` (own57: floor from AGI_BOX, `some` PSI, one reading line, an unread reading never starts); remove your finished
   /dev/shm trees BEFORE starting; never prune another's (SM gen 31 06:01Z: FULL at 2.7 GB under E's 3 GB floor).
 - a Bash call that prints "moved to the background" keeps running: stop it at once with TaskStop unless wanted; use foreground `timeout`
   chunks; never a recursive search over `.agi/` (SM gen 31: `grep -rl` over `.agi/` 19:00-21:01Z, io storm).
