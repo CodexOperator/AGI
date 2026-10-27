@@ -84,7 +84,7 @@ def env_seat(explicit: str | None = None) -> str:
 
 def touch_env(root, explicit: str | None = None) -> str:
     """Stamp the ACTING seat from the flag/env, SKIPPED when the invocation is
-    engine-internal (`INTERNAL_ENV`): the closeout's own `write.py note` runs
+    engine-internal (`INTERNAL_ENV`): the closeout's own `note` write runs
     AFTER the rotation wrote the card, so a stamp there would re-stale it.
     Returns the seat stamped ('' when skipped or unnamed). Never raises (P7)."""
     if os.environ.get(INTERNAL_ENV):

@@ -88,7 +88,7 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 - Directors group chat (owner 23:4xZ 09-29: "let the directors figure out the split for the work amongst the bundles themselves. Let the directors also share a DM room, just like the council."); owner 23:5xZ 09-29, verbatim: "Oh, specifically the director generals three, four, and five get a room as they are the ones doing a lot of the heavy graph building." -> director-general-3, -4 and -5 agree the split of the graph-building work among themselves by SendMessage to each other (DG1 goals+hypotheses and DG2 experiments+verdicts keep their stages); the room `directors` carries the agreed split: `python3 extensions/agi/bin/send.py --from <you> send --room directors "[split] ..."`.
 
 ## Stand up / take down (skill agi-post)
-Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:council-loop'`, ONE call (Prime / owner), read back by verification.py `formation`.
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = edit `active:` in config:formations to `doc:council-loop`, ONE edit (Prime / owner), read back by verification.py `formation`.
 ## Rules
 - Nodes only through write.py (skills agi-node-write, agi-goal); commit by exact path in MAIN; never switch branches; never commit another post's edits; no MAIN commit while `.agi/sessions/verify-suite.lock` exists.
 - No parent/kid dispatch in this mode (dispatch.py stays unused).

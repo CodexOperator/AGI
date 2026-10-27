@@ -75,7 +75,7 @@ from graph_core.identity import ensure_mint_id  # noqa: E402
 # goal:s17 -- underscore is canonical (`context/schemas/[shape].md`).
 #
 # `goal` and `level3` are deliberately absent, each with its own writer:
-# a goal is minted through `write.py create goal` against the [goal] schema
+# a goal is minted through `write_node` with the goal fields in `extra_fm`, against the [goal] schema
 # (skill agi-goal: fields, legal parents, the fixed body order), and
 # `level3.py` regenerates the census. A generic scaffold of either type skips
 # that writer's contract -- offering the option would be offering a trap.
@@ -682,7 +682,7 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     if not dest.is_file():
         raise FileNotFoundError(
             f"payload {dest} does not exist — `payload` replaces bytes, it "
-            f"never creates. A new file is `write.py create --payload`.")
+            f"never creates. A new file is written directly, its node minted by `write_node`.")
 
     new = data
     if dest.read_bytes() == new:
@@ -731,7 +731,7 @@ def judge_create(root, node_type, slug, parents=None, *, extra_fm=None,
                  bypass=False, rules=None, type_index=None, fm_for_gate=None,
                  on_exists=SKIP, announce=True):
     """The spawn gate for ONE create, verdict and messages both -- the SAME call
-    `write_node` makes before it touches disk and `write.py create --dry-run`
+    `write_node` makes before it touches disk and a dry run
     makes instead of touching it (goal:g7.33.20.3 D3: a preview that skips the
     gate says approved where the real create refuses).
 
@@ -1090,11 +1090,11 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 #: The ONE definition: brief.py, links.py, metrics.py, snapshot-goals.py and
 #: graph2sql.py read it through the functions below (`goal:s17`).
 #: The two marker strings a writer emits -- the ONE spelling (moved verbatim
-#: from snapshot-goals.py, goal:g7.16.1.2; that file and write.py import them).
+#: from snapshot-goals.py, goal:g7.16.1.2; that file and the retired writer imported them).
 THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
-#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
+#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; the retired writer imported it)
 #: THE marker head, ONE constant both regexes are built from: `[ \t]*`, never
 #: `\s*`, so a marker never spans a newline (SM 131: `<!--\nTHOUGHT:BEGIN` was a
 #: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129).
@@ -1366,8 +1366,8 @@ def update_node(
             and not _retired(root / "nodes", path)):
         res.status = REJECTED
         res.reason = (f"{node_id}: status: deprecated without the move is refused "
-                      f"(goal:g4.18.5.4): use `write.py {node_id} 'retire <note>'` "
-                      f"(retire_node): status + move to nodes/deprecated/<type>/, "
+                      f"(goal:g4.18.5.4): use `node_writer.retire_node(root, '{node_id}', note='<note>')`: "
+                      f"status + move to nodes/deprecated/<type>/, "
                       f"mint id and grid ref kept")
         return res
 

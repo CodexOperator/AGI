@@ -70,10 +70,10 @@ FT = [
      "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} "
             "--record latest"},
     {"label": "facts",
-     "cmd": "python3 extensions/agi/bin/write.py config:rotations "
-            "'read body 37:46'"},
-    {"label": "write-verbs",
-     "cmd": "python3 extensions/agi/bin/write.py -h | sed -n 1,40p"},
+     "cmd": "python3 extensions/agi/bin/node_read.py config:rotations "
+            "section facts"},
+    {"label": "tool-verbs",
+     "cmd": "python3 extensions/agi/bin/send.py -h | sed -n 1,40p"},
 ]
 
 
@@ -338,8 +338,7 @@ def _write_out_project(tmp_path: Path, cmds=None):
         f"--record latest",
         "tmux capture-pane -t sanctuary-director -p | tail -20",
         "python3 extensions/agi/bin/rotate.py -h | sed -n 1,30p",
-        "python3 extensions/agi/bin/write.py .agi/nodes/handoff.md "
-        "'replace body 5:9 -'",
+        "sed -i 's/old/new/' .agi/nodes/handoff.md",
         f"python3 extensions/agi/bin/rotate.py rotate-self --seat {SEAT} "
         f"--gen 15",
     )):
@@ -617,8 +616,7 @@ def test_rotate_out_green_at_verb_level(tmp_path, capsys):
     """out-side green asserted by RUNNING THE VERB and reading the record,
     never by calling a helper directly."""
     graph, out_path, _tr = _write_out_project(
-        tmp_path, cmds=("python3 extensions/agi/bin/write.py "
-                        ".agi/nodes/handoff.md 'read body 1:2'",))
+        tmp_path, cmds=("sed -n 1,2p .agi/nodes/handoff.md",))
     assert sensei.cmd_rotate_out_audit(graph, _out_args()) == 0
     out = capsys.readouterr().out
     assert f"green {SEAT} out --record {OUT_STAMP} 1 (floor 1)" in out

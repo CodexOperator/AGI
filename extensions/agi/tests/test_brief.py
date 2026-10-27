@@ -223,13 +223,13 @@ def test_the_line_ceiling_is_kid_only():
 def test_parent_brief_names_the_rebrief_answer_protocol():
     """conjunct (3): an answer with no channel is the same defect as a
     request nobody reads. The PARENT brief must name the field it writes
-    (`rebrief_answer`), the field it reads (`rebrief_request`), and the
-    logged writer that carries the write.
+    (`rebrief_answer`), the field it reads (`rebrief_request`), and that it
+    is a frontmatter line of the node, edited in place.
     """
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "rebrief_answer" in parent, "the answer field the parent must write"
     assert "rebrief_request" in parent, "the request field the parent reads"
-    assert "set rebrief_answer" in parent, "the exact verb the parent runs"
+    assert "`rebrief_answer: <proceed with ceiling N | cut>`" in parent, "the exact line the parent writes"
     assert "line_ceiling" in parent, "the ceiling re-set when proceeding"
 
 
@@ -284,8 +284,8 @@ def test_kid_brief_never_orders_set_line_ceiling():
     assert "NEVER write `line_ceiling`" in kid, (
         "the ceiling segment must state the forfeit, not merely omit it")
     # the record fields the kid DOES own survive:
-    assert "set production_lines N" in kid
-    assert "set rebrief_request" in kid
+    assert "`production_lines: N`" in kid
+    assert "rebrief_request:" in kid
 
 
 def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
@@ -758,13 +758,13 @@ def test_kid_brief_is_untouched_by_the_parent_artefact_change():
 
 def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
     """hypothesis:l3-done-broken-frontmatter -- the kid template must say to
-    edit below the closing `---` only and set frontmatter fields with
-    `write.py set`, never rewrite the `---` block by hand (L3.13 taught the
+    edit below the closing `---` only and set a frontmatter field by editing
+    its one line, never rewrite the `---` block by hand (L3.13 taught the
     loop the cost of a kid mangling it)."""
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "below the closing `---`" in kid
     assert "never rewrite the frontmatter" in kid
-    assert "write.py" in kid and "set FIELD VALUE" in kid
+    assert "edit that one line" in kid and "write.py" not in kid
 
 
 def test_kid_brief_suite_line_names_test_files_not_the_bare_directory():
@@ -818,17 +818,17 @@ def test_kid_brief_probe_target_has_no_build_imperative_segment():
     assert "zero lines of code" not in kid.lower()
 
 
-def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
-    """L3.30/L3.31 harness defect: the template showed `write.py <id> set
-    verdict proved` unquoted -- argparse reads `set` as the script, `verdict`
-    as the slug, and dies on the extra positional, so the one command every
-    kid must run was taught broken. The whole verb line is ONE argument."""
+def test_kid_brief_teaches_the_plain_edit_route_not_the_retired_writer():
+    """goal:g7.16.1.11.46.23 (the node writer is retired): the kid brief
+    teaches a node as a plain file -- read by content anchor, edited in
+    place, a validated set through node_writer.update_node, the two link
+    checks before the commit -- and names no write.py command anywhere."""
     kid = _text("kid", scaffold=SCAFFOLD)
-    assert "write.py <node-id> '<verbs>'" in kid
-    assert "write.py experiment:x 'set verdict proved'" in kid
-    assert "write.py experiment:x 'set evidence_runs [\"experiment:x\"]'" in kid
-    # the unquoted example must not survive anywhere in the kid brief
-    assert "write.py experiment:x set verdict proved" not in kid
+    assert "NODE EDITS: a node is the plain file `.agi/nodes/<type>/<slug>.md`" in kid
+    assert "sed -n '/^## Falsifier/,/^## /p' .agi/nodes/experiment/x.md" in kid
+    assert "node_writer.update_node(root, 'experiment:x', set_fm={'verdict': 'proved'})" in kid
+    assert "links.py schema" in kid and "links.py links" in kid
+    assert "write.py" not in kid
 
 
 # ---------------------------------- l2w3-brief-heads: director + prime_director
@@ -910,7 +910,8 @@ def test_director_brief_carries_reasoning_section_with_ascii_diagram():
     parent, judge the outcome."""
     d = _text("director")
     assert "REASON BEFORE YOU ACT" in d
-    assert "write.py create goal" in d
+    assert "mint goal <slug>, parent goal:g16 (agi-goal)" in d
+    assert "write.py" not in d
     assert "--ladder-tier 0" in d
     assert "season.py judge" in d
     # the reasoner is taught, not handed machinery — the diagram is present
@@ -918,7 +919,7 @@ def test_director_brief_carries_reasoning_section_with_ascii_diagram():
     assert "continue" in d and "adjust" in d and "done" in d
     # prime_director reuses the director segments, so it inherits the lesson
     pd = _text("prime_director")
-    assert "write.py create goal" in pd
+    assert "mint goal <slug>, parent goal:g16 (agi-goal)" in pd
 
 
 
@@ -1147,13 +1148,14 @@ def test_kid_brief_evidence_runs_prompts_own_node_id():
     assert "evidence run" in kid.lower(), "must explain what the evidence run is"
 
 
-def test_kid_brief_contains_write_py_syntax():
-    """The kid brief must state write.py verb syntax: set FIELD VALUE,
-    space separated, not k=v."""
+def test_kid_brief_states_how_to_set_a_frontmatter_field():
+    """The kid brief states how a node field is set now that the writer is
+    retired: edit the frontmatter line in place (a text value quoted: a bare
+    none/null/true parses as YAML null/bool), or the validated update_node."""
     kid = _text("kid", scaffold=SCAFFOLD)
-    assert "WRITE.PY SYNTAX" in kid or "write.py" in kid.lower()
-    assert "set FIELD VALUE" in kid or "set verdict" in kid
-    assert "not k=v" in kid.lower()
+    assert "WRITE.PY SYNTAX" not in kid
+    assert "quote a text value" in kid
+    assert "set_fm={'verdict': 'proved'}" in kid
 
 
 # ----------------- l3w0-brief-head-michael: the Archangel Michael line --------
@@ -1430,7 +1432,7 @@ def test_liaison_brief_names_owner_primary_contact_and_banking_duty():
     assert "OWNER LIAISON" in t
     assert "primary contact" in t.lower()
     assert "BANK" in t
-    assert "thought <decision>" in t
+    assert "THOUGHT block of the node it governs" in t
     assert "goal:g17" in t
 
 
@@ -2334,7 +2336,7 @@ def test_parent_brief_demands_the_kid_title_in_its_own_words():
     words, and name the derived title as a harvest defect."""
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "SETS ITS OWN NODE TITLE IN ITS OWN WORDS" in parent
-    assert "'set title" in parent
+    assert "`title:` line of the node's frontmatter" in parent
     assert "A00 f067c356 b0ad80" in parent
     assert "untitled=[<node-id>]" in parent
 
@@ -2346,7 +2348,7 @@ def test_kid_brief_demands_the_title_so_no_parent_has_to_hand_carry_it():
     DERIVED title. The dispatch-rendered `_kid` brief must carry it too."""
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "SET YOUR OWN NODE TITLE IN YOUR OWN WORDS" in kid
-    assert "'set title" in kid
+    assert "`title:` line of its frontmatter" in kid
     assert "untitled=[<node-id>]" in kid
 
 

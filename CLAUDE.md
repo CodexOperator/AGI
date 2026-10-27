@@ -1,7 +1,7 @@
 # CLAUDE.md — agi
 
 **Goals are the source of truth and the only place new work is recorded** — the goal nodes under
-`.agi/nodes/goal/`. Read YOUR goal by id (`python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'`).
+`.agi/nodes/goal/`. Read YOUR goal by id (`sed -n '1,60p' .agi/nodes/goal/<id>.md`).
 **Flows have skills** — `skills/agi-<flow>/SKILL.md` (goal · node-write · send · rotate · dispatch ·
 workflow · merge-pass · verify; Claude posts: the Skill tool). Read the matching one BEFORE the flow.
 Long form of this file, before the 2026-09-27 trim (goal:g4.18.2): `grid.py payload build:CLAUDE.md --version N` or git history.
@@ -76,7 +76,7 @@ Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; ow
 
 ## Editing the engine — one commit
 Edit the file in place · run its tests · `git commit` · `python3 extensions/agi/bin/grid.py commit --all`.
-A new file is written directly under `extensions/`, `skills/` or `src/`; `write.py create build … --payload` gives it a node
+A new file is written directly under `extensions/`, `skills/` or `src/`; `node_writer.write_node` gives it a node (skill `agi-node-write` §3)
 with a legal parent set: [mvp] · [build, goal] · [goal, mvp] · [goal, idea] (checked at mint; a goal alone is refused). Never `level3.py`
 for this until goal:g1.43.1 lands: both its modes mint illegal parent shapes today (council, alive 10-10). **Never `grid.py checkout`** — it silently reverted another
 agent's uncommitted work twice (`goal:g4.1`). `stitch.py --from-grid --grid-version N --out DIR` (writes OUT) survives.
@@ -98,7 +98,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 **Verify which branch is checked out before trusting any push.**
 
 ## Conventions
-- **Retire, never delete**: `write.py <id> 'retire <note>'` = `status: deprecated` + move to `.agi/nodes/deprecated/<type>/` in one commit (a status-only deprecate is refused; `verify` checks status and place agree); never `git rm`. A grid ref
+- **Retire, never delete**: `node_writer.retire_node(root, '<id>', note='<note>')` = `status: deprecated` + move to `.agi/nodes/deprecated/<type>/` in one commit (a status-only deprecate is refused; `verify` checks status and place agree); never `git rm`. A grid ref
   outlives its file; readers that glob a type dir read the retired sibling too, live-first. Watch
   `active_node_count` / `deprecated_node_count`; their sum never drops.
 - **Two identifiers**: the **mint id** never changes (grid refs, provenance); the **address** is derived and may (G2.5).

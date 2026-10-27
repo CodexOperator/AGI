@@ -86,7 +86,7 @@ def test_done_refuses_a_kid_past_2x_with_no_rebrief_request(tmp_path,
     rc = cli.cmd_done(args)
     assert rc == 2
     err = capsys.readouterr().err
-    assert "set rebrief_request 81/40: <why>" in err, err
+    assert 'rebrief_request: "81/40: <why>"' in err, err
     node_text = (graph / "nodes" / "experiment" / "e1.md").read_text()
     assert "verdict:" not in node_text, "a refused done wrote a verdict"
 

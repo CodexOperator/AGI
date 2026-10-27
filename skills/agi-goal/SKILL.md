@@ -10,24 +10,27 @@ description: >
 
 # agi-goal — goals, with their schema
 
-> **write.py is the OLD setup's node writer.** Quoting skill agi-node-write: "OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)". Every `write.py` command below is for a post on the old setup; a post whose row has engine.v 4 edits the node file directly. The routing in this skill is unchanged.
+> The node writer is retired (goal:g7.16.1.11.46.23): a goal is a plain file `.agi/nodes/goal/<id>.md`, read with `sed`, edited in place (skill agi-node-write §1: read, edit, `links.py schema` + `links.py links`, commit by exact path). Only the MINT below runs engine code.
 
-Source of truth: `.agi/context/schemas/[goal].md` (the schema) · `write.py` (the old setup's writer).
+Source of truth: `.agi/context/schemas/[goal].md` (the schema) · `node_writer.write_node` (the one routine that mints a node file).
 This skill is its manual; when the two disagree, the schema wins — fix this file.
 
 ## 1 · Mint a goal (one command)
 ```bash
-python3 extensions/agi/bin/write.py create goal <gX.Y.Z> \
-  --parent goal:<gX.Y> [--parent build:<id>] \
-  --set goal_id=<GX.Y.Z> --set goal_kind=subgoal --set status=active \
-  --set 'title=<GX.Y.Z>: <target end-state in one line>' \
-  --body-file <body.md> --actor <post> --role <role>        # --dry-run first
-python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'   # read it back by id
+cd extensions/agi/bin && python3 - <<'EOF'
+import node_writer
+r = node_writer.write_node('../../../.agi', 'goal', '<gX.Y.Z>', ['goal:<gX.Y>'],      # parents: 1..3, at least one goal
+    extra_fm={'goal_id': '<GX.Y.Z>', 'goal_kind': 'subgoal', 'status': 'active', 'confidence': 0.5, 'origin': 'goal',
+              'seeds': [], 'tags': [], 'title': '<GX.Y.Z>: <target end-state in one line>'},
+    body=open('<body.md>').read())
+print(r.status, r.reason)                                          # 'written'; a rejection writes nothing
+EOF
+sed -n '1,60p' ../../../.agi/nodes/goal/<gX.Y.Z>.md               # read it back by id
 ```
-- `write.py` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `--set`.
+- `write_node` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `extra_fm`.
   A goal minted without them (the slug alone) has no `goal_id` — fixing that later is a renumber.
 - slug = lowercased `goal_id` (`G4.18.2` → `goal:g4.18.2`); `S4` → `goal:s4`.
-- A write commits itself by exact path (message: the `write.commit_message` cell in `.agi/config.json`). Under a held suite lock it writes, prints `the write landed uncommitted` and the one commit-by-path line: run THAT line, nothing else (never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
+- The mint writes the file and nothing else: run `links.py schema` + `links.py links`, then commit it by exact path (a post: `agi-wt new <path>` / `agi-at <path>`; never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
 
 ## 2 · The schema (as at 2026-09-27)
 ```
@@ -65,14 +68,14 @@ A negative-grep falsifier over `.agi/nodes` -> exclude the nodes that quote the 
 ## 4 · Edit · retire · renumber
 | op | how |
 |---|---|
-| edit a field | `write.py goal:<id> 'set status complete && thought <why this version>'` |
-| add a note | `write.py goal:<id> 'note <sentence>'` — notes land where the HEAD's notes line says; goals are trackers (owner 09-24) |
+| edit a field | edit the frontmatter line in `.agi/nodes/goal/<id>.md` (e.g. `status: complete`) and rewrite the THOUGHT block: why this version differs |
+| add a note | one sentence under `## Agent Notes` in the goal file; goals are trackers (owner 09-24) |
 | retire | `set status retired` + deprecate its seed node — NEVER delete, never `git rm`. NEVER while a child hypothesis is pending: place each child first (re-parent to the live goal it serves, or retire it too); a goal whose children PROVED it is `complete`, not retired (owner 04:4xZ 09-30, goal:s31) |
 | renumber (owner 09-23) | keep `mint_id`; re-point EVERY frontmatter reference in the SAME commit; old → new in the moved node's THOUGHT; a retired id is never reused |
 | decompose | one subgoal per leaf (§1), nest rather than widen; each is driven by a dispatched parent (skill `agi-dispatch`) and judged with `season.py judge <outcome> --against goal:<id>` |
 
-Renumber -> `write.py`, or a script anchored on the FULL line; never `str.replace` an id/Why prefix (it hit the id row of .5.5.5; DG4 d1eb5ecad). Order: `write.py` edits FIRST, THEN `git mv` + id/parents/goal_id as ONE commit, THEN re-point refs (id is protected, there is no verb); keep `mint_id` (all-is-one 09-23).
-Every version's why goes in the `THOUGHT` block (`thought <text>`, rewritten whole, never appended;
+Renumber -> a plain edit, or a script anchored on the FULL line; never `str.replace` an id/Why prefix (it hit the id row of .5.5.5; DG4 d1eb5ecad). Order: body edits FIRST, THEN `git mv` + id/parents/goal_id as ONE commit, THEN re-point refs; keep `mint_id` (all-is-one 09-23).
+Every version's why goes in the `THOUGHT` block (the text between its markers, rewritten whole, never appended;
 absent = empty, never fabricated). Mechanism-not-wording: (1) the instruction quoted, (2) what the machine
 does at file:line, (3) the near miss, (4) the property that made a standing rule not apply.
 A brief (hypothesis node) that returns from a gate: re-read the WHOLE node before a re-cut; never patch-on-patch (belam [rule] 10-08 08:4xZ, after E2's six cuts, RE8/RE9/RE11/RE12 were my own patches contradicting each other).

@@ -10,7 +10,7 @@ description: >
 
 # agi-corrective — residue ▸ triage ▸ node update ▸ corrective round ▸ re-mur
 
-> **write.py is the OLD setup's node writer.** Quoting skill agi-node-write: "OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit and agi-turn commits; owner 10-01 23:3xZ)". Every `write.py` command below is for a post on the old setup; a post whose row has engine.v 4 edits the node file directly. The routing in this skill is unchanged.
+> The node writer is retired (goal:g7.16.1.11.46.23): a node is a plain file, read with `sed` and edited in place (skill agi-node-write). Every node edit below is that route.
 
 > **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
 
@@ -73,19 +73,17 @@ orders<N>.md as §4 (the section on the node, same file = --orders) ─▶ cut d
 | admission | skill agi-memory-guard §1: MemAvailable >= (n + 1) x `spawn.memory_max` before placing n kids; load1 + io avg60 as TMM.306 | place fewer, never queue behind a pi chain |
 
 A mixed round (one code, test-logic or config item) stays a pi-free corrective round (§4-§5); its text items ride in it, never split out.
-The kid's brief is the orders: every item fixed with write.py or settled by a PASTED command, committed on its branch (`cli.py done`).
+The kid's brief is the orders: every item fixed by an edit or settled by a PASTED command, committed on its branch (`cli.py done`).
 
 ## 4 · The node update (the orders live in the graph)
 Write the orders ONCE to a scratch file, then append it to the hypothesis node's body; the same file is `--orders`.
 ```bash
-N=$(python3 extensions/agi/bin/write.py hypothesis:<id> 'read body 1:9999' | wc -l)   # body length L
-# file = line L verbatim, a blank line, then the section below  (append = replace body L:L; there is no END keyword)
-# body ENDS in a THOUGHT block (L = '<!-- THOUGHT:END -->')? the paragraph guard refuses L:L -> N = the last one-line
-# paragraph ABOVE THOUGHT:BEGIN (read the body numbered first); the section goes before the block, never inside it
-python3 extensions/agi/bin/write.py hypothesis:<id> "replace body $N:$N <file>" --actor <post> --role director
-python3 extensions/agi/bin/write.py hypothesis:<id> 'thought corrective DH.<N>: <mur key> <labels>: <residues in one line>' --actor <post> --role director
-# order: node section FIRST, verify it landed (read the range), THEN dispatch -- a refused write does not stop a chained dispatch
-git commit <exact node path>      # a real commit before dispatch (grid history)
+sed -n '/^## /p' .agi/nodes/hypothesis/<id>.md       # the section headings: find where the orders go
+# edit the node: insert <file> as the new `## CORRECTIVE DH.<N>` section BEFORE the `<!-- THOUGHT:BEGIN` block (never inside it),
+# then rewrite the THOUGHT block: `corrective DH.<N>: <mur key> <labels>: <residues in one line>`
+python3 extensions/agi/bin/links.py schema; python3 extensions/agi/bin/links.py links     # both clean before the commit
+# order: node section FIRST, read it back (sed -n '/^## CORRECTIVE DH.<N>/,/^## /p'), THEN dispatch -- a failed edit does not stop a chained dispatch
+git commit -- <exact node path>      # a real commit before dispatch (grid history); a post: agi-at <path>
 ```
 Section shape, every line explicit:
 ```

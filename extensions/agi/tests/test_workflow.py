@@ -327,7 +327,7 @@ def test_stage_context_uses_shared_viewport_and_brief_surfaces():
 
     assert "BRIEF HEAD" in context
     assert "VIEWPORT FRAME" in context
-    assert "write.py" in context
+    assert "links.py schema" in context and "write.py" not in context
     assert any("--emit" in cmd and "llm" in cmd for cmd, _ in calls)
     assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
 
@@ -3234,7 +3234,7 @@ def test_research_review_prompts_name_the_runner_project_root():
         if "{project_root}" not in st["prompt"]:
             continue
         seen += 1
-        assert f"cd {worktree} &&" in out, (st["label"], out[:200])
+        assert worktree in out, (st["label"], out[:200])
     assert seen == 4, seen  # review, why, brainstorm, refute
 
 

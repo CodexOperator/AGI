@@ -967,7 +967,7 @@ def _kid_done_refusal(root, node_id):
         return None
     return (f"done refused: production lines {lines} > 2x ceiling {ceiling} "
             f"with no rebrief_request; NOTHING was written. Run:\n"
-            f"  write.py {node_id} \"set rebrief_request "
+            f"  add to the frontmatter of {node_id}: rebrief_request: \""
             f"{lines}/{ceiling}: <why>\"\n"
             f"then re-run done.")
 

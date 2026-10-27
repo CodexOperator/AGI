@@ -893,7 +893,7 @@ def _is_protocol_learning(cmd: str, tool: str) -> bool:
 
 
 _SRC_SCRIPT_NAMES = {
-    "rotate.py", "write.py", "send.py", "sensei.py", "commands.py",
+    "rotate.py", "send.py", "sensei.py", "commands.py",
     "spawn_budget.py", "provisioning.py", "snapshot-goals.py",
 }
 

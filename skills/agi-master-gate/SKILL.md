@@ -77,7 +77,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                each half by its OWN test; name it in the landing message + both dms
              · after a landing the tip's history is criss-cross: git merge-base picks the trunk commit it merged, so base..tip re-lists landed
                files -> what the tip still owes = git diff --stat HEAD $(git merge-tree --write-tree HEAD tip)
-             · a VALIDATION gate (write.py set / create, any refusal every post's calls pass through) = judge it over EVERY live node with the
+             · a VALIDATION gate (node_writer's update / create, any refusal every post's calls pass through) = judge it over EVERY live node with the
                gated predicate + real --dry-runs of the routine writes (the briefs' own lines: brief.py, cli.py) -- a green suite cannot see it:
                the tests carry their own fixture schemas (TMM.171: 111 live (type, field) pairs would have been refused)
              · a temp-index recipe = GIT_INDEX_FILE=<tmp> with read-tree <tree-ish>; a bare read-tree empties the index at rc 0 (SM gen 32,

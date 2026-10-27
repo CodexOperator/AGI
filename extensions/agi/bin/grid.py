@@ -727,7 +727,7 @@ def resolve_payload(root: Path, payload_ref: str,
     **Non-default (`location` names a key declared under the project config's
     `locations:` map)** — resolve through the SAME location-aware mechanism
     `node_writer.ensure_payload`/`replace_payload` use, so the grid agrees
-    with `write.py create --payload`'s link_ref about where the payload
+    with the node's `link_ref` (written when it was minted) about where the payload
     lives (`locations.resolve_payload_path`). The staged/engine pair does not
     apply here: that pairing only ever described the default tree.
 

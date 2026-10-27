@@ -7,7 +7,7 @@ alive 23:28:02Z 10-25, 3/3: option (2) MINIMAL, KEEPING the already-dirty refusa
   KEPT   a path ALREADY dirty against HEAD when the job starts is a hand edit: committing it would publish
          someone's bytes under the job's subject (the board commits in belam's tree, where belam hand-edits).
          The write is REFUSED BEFORE anything is written: `commit_paths: <path> already dirty: refused,
-         nothing written`. The sampling is write.py's `_pre_dirty` as it was (ls-files + `git diff --quiet
+         nothing written`. The sampling is the retired writer's `_pre_dirty` as it was (ls-files + `git diff --quiet
          HEAD -- <p>`, one retry on rc >= 2, then FAIL CLOSED: an unknown state refuses the path).
   KEPT   a held suite lock (verification.suite_lock_holder) is waited for up to `hold_wait_s`, then refuses.
   NEW    `git add` + `git commit -- <paths>` by exact path (never -a, never a file a peer staged), a BOUNDED
@@ -34,7 +34,7 @@ from pathlib import Path
 import node_writer
 
 #: a refusal leaves the bytes either unwritten (already dirty) or written-but-uncommitted (lock, retry); a CLI
-#: caller exits with this over the second kind (write.py's EXIT_UNCOMMITTED, same number).
+#: caller exits with this over the second kind (the retired writer's EXIT_UNCOMMITTED, same number).
 EXIT_UNCOMMITTED = 3
 NOTES_HEADING = "## Agent Notes"
 
@@ -64,7 +64,7 @@ def _commit_wait_s(root) -> float:
 
 
 def pre_dirty(root, paths) -> set:
-    """The paths ALREADY dirty against HEAD (write.py `_pre_dirty`, ported as it was minus the inflight
+    """The paths ALREADY dirty against HEAD (the retired writer's `_pre_dirty`, ported as it was minus the inflight
     markers). Untracked / absent = CLEAN. rc >= 2 from git = unknown: retried once, then FAIL CLOSED (the path
     is returned as dirty and the state is named on stderr)."""
     out: set = set()

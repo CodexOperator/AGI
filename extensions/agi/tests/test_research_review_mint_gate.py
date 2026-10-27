@@ -94,7 +94,8 @@ def test_mint_true_keeps_the_create_instruction_on_both_stages():
     for label in ("why", "brainstorm"):
         prompt = _render(label, {"mint": True})
         assert "MINT GATE: `True`" in prompt
-        assert "write.py create" in prompt
+        assert "node_writer.write_node" in prompt
+        assert "write.py" not in prompt
         assert "run NO create" in prompt  # the other branch is still stated
 
 
