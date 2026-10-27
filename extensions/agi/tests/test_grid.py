@@ -187,25 +187,38 @@ def _porcelain(rc, out="", err=""):
     return subprocess.CompletedProcess(["git", "push"], rc, out, err)
 
 
+def _status(specs, rejected=()):
+    """The porcelain stdout git prints for `specs`: one status line per ref, `!` non-ff for `rejected` dsts."""
+    lines = ["To r.git"]
+    for spec in specs:
+        dst = spec.rsplit(":", 1)[-1]
+        lines.append(f"!\t{spec}\t[rejected] (non-fast-forward)" if dst in rejected else f"*\t{spec}\t[new reference]")
+    return "\n".join(lines + ["Done"]) + "\n"
+
+
 NON_FF = "!\trefs/grid/node/{m}:refs/grid/node/{m}\t[rejected] (non-fast-forward)\n"
 FAILED_SOME = "error: failed to push some refs to 'r.git'\nhint: Updates were rejected\n"
+
+
+def _specs(*mints):
+    return [f"refs/grid/node/{m}:refs/grid/node/{m}" for m in mints]
 
 
 def test_push_changed_stops_after_an_unread_batch(tmp_path, monkeypatch, capsys):
     """A batch git cannot read (rc 128, no ref status line) stops the run there: the next batch is
     never pushed, the last line names the batch and git's first stderr line, rc 1."""
     monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
-    monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
+    monkeypatch.setattr(grid, "push_batches", lambda root: [_specs("a"), _specs("b"), _specs("c")])
     calls = []
     def push(root, *args):
         calls.append(args)
         if len(calls) == 2:
             return _porcelain(128, err="fatal: 'r.git' does not appear to be a git repository\n")
-        return _porcelain(0, "To r.git\n*\ta:a\t[new reference]\nDone\n")
+        return _porcelain(0, _status(args[3:]))
     monkeypatch.setattr(grid, "git_try", push)
     assert grid.cmd_push_changed(tmp_path) == 1
     assert len(calls) == 2
-    assert calls[0][:2] == ("push", "--porcelain") and "--force" not in calls[0] and "-f" not in calls[0]
+    assert calls[0][:3] == ("push", "--porcelain", "origin") and "--force" not in calls[0] and "-f" not in calls[0]
     assert capsys.readouterr().out.splitlines()[-1] == (
         "grid push: unread at batch 2/3: fatal: 'r.git' does not appear to be a git repository")
 
@@ -215,14 +228,12 @@ def test_push_changed_names_non_ff_rejections_and_goes_on(tmp_path, monkeypatch,
     batch is pushed, the old summary line stays, then `rejected N: <mints>`, rc 1."""
     monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
     monkeypatch.setattr(grid, "ref_ns_for", lambda root: "refs/grid")
-    monkeypatch.setattr(grid, "push_batches", lambda root: [["a", "b"], ["c"], ["d"]])
+    monkeypatch.setattr(grid, "push_batches", lambda root: [_specs("m1", "m2"), _specs("m3"), _specs("m4")])
     calls = []
     def push(root, *args):
         calls.append(args)
-        if len(calls) in (1, 3):
-            m = "m1" if len(calls) == 1 else "m3"
-            return _porcelain(1, "To r.git\n" + NON_FF.format(m=m) + "Done\n", FAILED_SOME)
-        return _porcelain(0, "To r.git\nDone\n")
+        bad = {"refs/grid/node/m1", "refs/grid/node/m3"} & {a.rsplit(":", 1)[-1] for a in args[3:]}
+        return _porcelain(1 if bad else 0, _status(args[3:], bad), FAILED_SOME if bad else "")
     monkeypatch.setattr(grid, "git_try", push)
     assert grid.cmd_push_changed(tmp_path) == 1
     assert len(calls) == 3
@@ -231,21 +242,40 @@ def test_push_changed_names_non_ff_rejections_and_goes_on(tmp_path, monkeypatch,
     assert lines[0] == "grid push batch 1/3: 2 ref(s), 1 rejected"
 
 
+def test_push_changed_a_silent_rc_0_is_unread_not_landed(tmp_path, monkeypatch, capsys):
+    """sp's row (alive 20:34:49Z): a push that exits 0 printing NOTHING (a silent git on PATH) read
+    nothing; it is unread at that batch, never a batch counted as landed. So is a status line short."""
+    monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
+    monkeypatch.setattr(grid, "push_batches", lambda root: [_specs("a", "b"), _specs("c"), _specs("d")])
+    calls = []
+    def push(root, *args):
+        calls.append(args)
+        return _porcelain(0, "" if len(calls) == 2 else _status(args[3:]))
+    monkeypatch.setattr(grid, "git_try", push)
+    assert grid.cmd_push_changed(tmp_path) == 1
+    assert len(calls) == 2
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "grid push: unread at batch 2/3: no ref status line for 1 of 1 ref(s), first refs/grid/node/c (the push exited 0)")
+
+
 @pytest.mark.parametrize("res, why", [
     (_porcelain(1, "!\tx:x\t[rejected] (fetch first)\nDone\n", FAILED_SOME), "! x:x [rejected] (fetch first)"),
     (_porcelain(1, "!\tx:x\t[remote rejected] (hook declined)\nDone\n", FAILED_SOME), "! x:x [remote rejected] (hook declined)"),
-    (_porcelain(1, NON_FF.format(m="m"), "fatal: the remote end hung up unexpectedly\n" + FAILED_SOME),
+    (_porcelain(1, "!\tx:x\t[rejected] (non-fast-forward)\n", "fatal: the remote end hung up unexpectedly\n" + FAILED_SOME),
      "fatal: the remote end hung up unexpectedly"),
     (_porcelain(1, "To r.git\nDone\n", ""), "the push exited 1 with no ref status line"),
+    (_porcelain(0, "", ""), "no ref status line for 1 of 1 ref(s), first x (the push exited 0)"),
+    (_porcelain(0, "To r.git\n*\ty:y\t[new reference]\nDone\n", ""), "no ref status line for 1 of 1 ref(s), first x (the push exited 0)"),
 ])
 def test_read_push_porcelain_anything_but_a_named_non_ff_is_unread(res, why):
-    assert grid.read_push_porcelain(res)[1] == why
+    assert grid.read_push_porcelain(res, ["x:x"])[1] == why
 
 
 def test_read_push_porcelain_names_only_non_ff():
     res = _porcelain(1, "To r.git\n \ta:a\t0d3dae5..e1e752e\n" + NON_FF.format(m="m1") + "Done\n", FAILED_SOME)
-    assert grid.read_push_porcelain(res) == (["refs/grid/node/m1"], None)
-    assert grid.read_push_porcelain(_porcelain(0, "To r.git\n=\ta:a\t[up to date]\nDone\n")) == ([], None)
+    assert grid.read_push_porcelain(res, ["a:a", "refs/grid/node/m1:refs/grid/node/m1"]) == (["refs/grid/node/m1"], None)
+    # an up-to-date ref has its own `=` line (measured, git 2.43 --porcelain): landed, not missing
+    assert grid.read_push_porcelain(_porcelain(0, "To r.git\n=\ta:a\t[up to date]\nDone\n"), ["a:a"]) == ([], None)
 
 
 def test_push_batches_exclude_seed_epoch_roots_but_keep_descendants(tmp_path, monkeypatch):

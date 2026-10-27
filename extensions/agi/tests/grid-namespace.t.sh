@@ -183,6 +183,12 @@ pcfix pqm;mut $P/extensions/agi/bin/grid.py '        rejected.extend(named)    #
 ok "m-stop-at-first-rejection-reads-RED stopping at the first named rejection leaves batches 2-5 unpushed: $(pcsame $T/pqm.git)/31 equal (6 = RED, 29 = the fix)" '[ "$(pcsame $T/pqm.git)" = 6 ]'
 pcfix ptm;mut $P/extensions/agi/bin/grid.py '        if unread is not None:' '        if False:';pcgone ptm;(PATH=$T/wbin:$PATH;export PATH;grid push-changed) >$T/ptm.out 2>&1;ptm=$?
 ok "m-every-failure-read-as-rejected-reads-RED reading every failure as 'rejected, continue' pushes on past the gone remote ($(cat $T/npush) push calls) and exits $ptm with no unread line: $(tail -1 $T/ptm.out)" '[ $ptm = 0 ]&&[ "$(cat $T/npush)" = 5 ]&&! grep -q unread $T/ptm.out'
+# a git on PATH that prints NOTHING and exits 0 at the 2nd porcelain push (sp, alive 20:34:49Z): it read nothing, so the batch is unread, never landed
+pcsilent(){ mkdir -p $T/wbin;printf '#!/bin/sh\ncase " $* " in *" push --porcelain "*) n=$(cat %s/npush 2>/dev/null||echo 0);n=$((n+1));echo $n >%s/npush;[ $n = 2 ]&&exit 0;;esac\nexec %s "$@"\n' $T $T $G >$T/wbin/git;chmod +x $T/wbin/git;rm -f $T/npush;}
+pcfix ps7;pcsilent;(PATH=$T/wbin:$PATH;export PATH;grid push-changed) >$T/ps7.out 2>&1;ps7=$?
+ok "d7-a-silent-rc-0-is-unread-not-landed a push that exits 0 printing no status line at batch 2: unread at batch 2/5, no 3rd push ($(cat $T/npush) push calls), batch 1 alone landed ($(pcsame $T/ps7.git)/31), rc $ps7: $(tail -1 $T/ps7.out)" '[ $ps7 = 1 ]&&tail -1 $T/ps7.out|grep -q "^grid push: unread at batch 2/5: no ref status line for 7 of 7 ref(s), first "&&[ "$(cat $T/npush)" = 2 ]&&[ "$(pcsame $T/ps7.git)" = 7 ]'
+pcfix ps7m;mut $P/extensions/agi/bin/grid.py '    if missing:' '    if False:';pcsilent;(PATH=$T/wbin:$PATH;export PATH;grid push-changed) >$T/ps7m.out 2>&1;ps7m=$?
+ok "m-silent-push-counted-as-landed-reads-RED without the per-ref status check the silent batch counts as landed: rc $ps7m, $(cat $T/npush) push calls, $(pcsame $T/ps7m.git)/31 on the remote (24 = RED: batch 2 never reached it): $(tail -1 $T/ps7m.out)" '[ $ps7m = 0 ]&&[ "$(pcsame $T/ps7m.git)" = 24 ]&&! grep -q unread $T/ps7m.out'
 # mutant: a delete-bearing variant of the verb
 rm -rf $T/px;cp -a $T/base $T/px;P=$T/px;setcfg $P "$CFG_NEW";mut $P/extensions/agi/bin/grid.py '        classes.append(("tree-equal", mint, ltip, ""))
     return "merged"
