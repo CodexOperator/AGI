@@ -32,7 +32,8 @@ no machine layout in a graph node).
 ## Exact edit lines (the prime's step — never a kid's)
 
 ```bash
-python3 extensions/agi/bin/write.py cron:crons 'set services {"agi-reaper": {"enabled": true, "exec_start": "ENV-ABS/bin/heal.py watch --root PROJECT --poll-s 30", "restart": "on-failure", "working_directory": "PROJECT", "environment": {}}}'
+# set the `services` cell of cron:crons (.agi/nodes/.geometry/crons.md, a plain edit) to:
+#   {"agi-reaper": {"enabled": true, "exec_start": "ENV-ABS/bin/heal.py watch --root PROJECT --poll-s 30", "restart": "on-failure", "working_directory": "PROJECT", "environment": {}}}
 python3 extensions/agi/bin/crons.py apply --unit-dir ~/.config/systemd/user/   # prime, once
 ```
 

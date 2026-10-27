@@ -97,7 +97,7 @@ def merge_table(body: str, new_rows: list[str], header: tuple,
                      + [rows[k] for k in sorted(rows)]).rstrip("\n") + "\n"
 
 def node_body(root: Path, node_id: str) -> str:
-    """The body as write.py's `replace body` sees it -- the CANONICAL reader."""
+    """The body as node_writer's `update_node` sees it -- the CANONICAL reader."""
     path = node_writer.find_node_file(root, node_id)
     return fm_reader.load_node_file(path).body if path else ""
 

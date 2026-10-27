@@ -35,7 +35,7 @@ town: local-maxxing
 | director-thought · director-engine | two directors, each works ONLY the batches the town master hands it |
 
 ## Stand up / take down (skill agi-post)
-Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:formation-local-town'`, ONE call (Prime / owner), read back by verification.py `formation`.
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = edit `active:` in config:formations to `doc:formation-local-town`, ONE edit (Prime / owner), read back by verification.py `formation`.
 ## Hedge -- a prompt, never a gate
 Before minting ideas, a quick framing check: is there a bigger picture here, or a smaller, simpler one? (owner 09-23 07:5xZ-08:2xZ; kept as a hedge 09-23 14:5xZ)
 

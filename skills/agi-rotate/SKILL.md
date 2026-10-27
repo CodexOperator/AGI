@@ -9,7 +9,7 @@ description: >
 
 # agi-rotate — wake 0 / out 1 (owner 09-12)
 
-Source of truth: `config:rotations` (the `facts` block: `write.py config:rotations 'read body 37:64'`) and the
+Source of truth: `config:rotations` (the `facts` block: `sed -n '/^## facts$/,/^## steps$/p' .agi/nodes/.geometry/rotations.md`) and the
 `rotate.py` record: `rotate.py status --post <post> --record latest`. Never read `rotate.py` source to learn this (22k lines).
 
 ## 1 · When (F27)

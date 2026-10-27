@@ -19,16 +19,16 @@ import rotate  # noqa: E402
 
 # A synthetic director first_turn mirroring the LIVE config:rotations shape
 # (the director role's startup.first_turn: rotation-record, facts, git-state,
-# write-verbs, ...). The classifier must read this fresh, never hardcode it.
+# tool-verbs, ...). The classifier must read this fresh, never hardcode it.
 FT = [
     {"label": "rotation-record",
      "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest"},
     {"label": "facts",
-     "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:46'"},
+     "cmd": "python3 extensions/agi/bin/node_read.py config:rotations section facts"},
     {"label": "git-state",
      "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3"},
-    {"label": "write-verbs",
-     "cmd": "python3 extensions/agi/bin/write.py -h | sed -n 1,40p"},
+    {"label": "tool-verbs",
+     "cmd": "python3 extensions/agi/bin/send.py -h | sed -n 1,40p"},
 ]
 SEAT = "sanctuary-director"
 
@@ -70,7 +70,7 @@ class TestClassifyCall:
         assert label == "rotation-record"
 
     def test_rerun_of_facts_read_is_category_a(self):
-        cmd = "python3 extensions/agi/bin/write.py config:rotations 'read body 37:46'"
+        cmd = "python3 extensions/agi/bin/node_read.py config:rotations section facts"
         cat, label = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
         assert cat == "a"
         assert label == "facts"
@@ -82,16 +82,16 @@ class TestClassifyCall:
         assert label == "git-state"
 
     def test_dash_h_is_protocol_learning_even_when_it_matches_a_label(self):
-        # write.py -h is the write-verbs first_turn, but learning the tool is
+        # send.py -h is the tool-verbs first_turn, but learning the tool is
         # category c (protocol), not a re-derive.
-        cmd = "python3 extensions/agi/bin/write.py -h | sed -n 1,40p"
+        cmd = "python3 extensions/agi/bin/send.py -h | sed -n 1,40p"
         cat, label = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
         assert cat == "c"
-        assert label == "write-verbs"
+        assert label == "tool-verbs"
 
     def test_source_grep_is_protocol_learning(self):
         cmd = ("grep -n '^def verb_note\\\\|^class Edit\\\\|^def verb_' "
-               "extensions/agi/bin/write.py")
+               "extensions/agi/bin/send.py")
         cat, label = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
         assert cat == "c"
         assert label is None
@@ -202,7 +202,7 @@ def _write_root(tmp_path: Path, tools_and_cmds, *, posts: bool = False):
         "`python3 extensions/agi/bin/rotate.py status --seat <seat> --record latest`\n"
         "- F2 (by hand): the seat registry; `whois` or "
         f'`grep "name": "<seat>" .agi/nodes/.geometry/{cfg_name}.md`\n'
-        "- F3 (note verb): `write.py <node-id> \"note <text>\"`\n",
+        "- F3 (links check): `python3 extensions/agi/bin/links.py links`\n",
         encoding="utf-8")
     # people who pass --transcript explicitly skip the pin/slug resolution,
     # so the transcript can live anywhere; put it next to the graph.
@@ -288,7 +288,7 @@ def test_wake_audit_end_to_end_cuts_window_and_counts_on_synthetic(tmp_path):
         ("Bash", "python3 extensions/agi/bin/rotate.py status --seat "
                  "sanctuary-director --record latest"),
         ("Bash", "ps -o pid,ppid -p 1234 2>/dev/null"),
-        ("Bash", "python3 extensions/agi/bin/write.py -h | sed -n 1,40p"),
+        ("Bash", "python3 extensions/agi/bin/send.py -h | sed -n 1,40p"),
         ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py -q"),
         ("Bash", "sed -i 's/A/B/' extensions/agi/bin/sensei.py"),  # past window
     ]
@@ -303,7 +303,7 @@ def test_wake_audit_end_to_end_cuts_window_and_counts_on_synthetic(tmp_path):
     assert _cats(counts) == {"a": 1, "b": 1, "c": 1, "d": 1, "s": 0}
     assert counts["window_reason"] == "first (d) at 4"
     assert calls[0]["label"] == "rotation-record"
-    assert calls[2]["label"] == "write-verbs"  # -h matched the label but is c
+    assert calls[2]["label"] == "tool-verbs"  # -h matched the label but is c
     assert calls[3]["tool"] == "Bash"
 
 
@@ -495,7 +495,7 @@ def _fixture_facts():
         "--seat <seat> --record latest`\n"
         "- F2 (by hand): `whois` or "
         "`grep \"name\": \"<seat>\" .agi/nodes/.geometry/seats.md`\n"
-        "- F3 (note verb): `write.py <node-id> \"note <text>\"`\n")
+        "- F3 (links check): `python3 extensions/agi/bin/links.py links`\n")
 
 
 def _live_rotations_facts():
@@ -560,7 +560,7 @@ class TestFactRederive:
     def test_plain_source_sed_grep_still_protocol_learning(self):
         # only the IN-PLACE edit is real work; a read-only grep stays (c)
         cat, _ = sensei.classify_call(
-            "sed -n 1,40p extensions/agi/bin/write.py",
+            "sed -n 1,40p extensions/agi/bin/send.py",
             "Bash", SEAT, _ft_entries(), _fixture_facts())
         assert cat == "c"
 
@@ -879,7 +879,7 @@ class TestSLO8MiscFixes:
         # `-i` after the pipe belongs to grep, NOT sed; the read-only sed of a
         # source file keeps its protocol-learning verdict (c).
         assert sensei._is_protocol_learning(
-            "sed -n 1,40p extensions/agi/bin/write.py | grep -i '^def '",
+            "sed -n 1,40p extensions/agi/bin/send.py | grep -i '^def '",
             "Bash") is True
 
     def test_item5_minus_i_after_pipe_is_not_seds_inplace_flag(self):
@@ -1528,7 +1528,7 @@ def test_wake_nudge_read_is_service_owed(tmp_path):
 
 def test_wake_audit_verb_anywhere_is_d_not_b(tmp_path):
     # conjunct 3: a Bash command carrying an audit/commit verb ANYWHERE
-    # (sensei.py *-audit, write.py, git commit) is real work (d), never a
+    # (sensei.py *-audit, a node edit, git commit) is real work (d), never a
     # by-hand read (b) — even behind a sleep/grep wait loop that reads a
     # rotation record.
     cmd = ("for i in $(seq 1 8); do grep -q '\"result\": \"success\"' "
@@ -1536,8 +1536,7 @@ def test_wake_audit_verb_anywhere_is_d_not_b(tmp_path):
            "done\n"
            "python3 extensions/agi/bin/sensei.py wake-audit --post "
            f"{SEAT}\n"
-           "git commit -q -m x && python3 extensions/agi/bin/write.py "
-           ".agi/nodes/x.md 'set title y'")
+           "git commit -q -m x && sed -i 's/a/b/' .agi/nodes/x.md")
     graph, tr = _write_root(tmp_path, [("Bash", cmd)])
     code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
     assert code == 0

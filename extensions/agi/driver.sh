@@ -229,7 +229,7 @@ iter_run() {
   echo "=== iter $n_display @ $ts ===" | tee -a "$LOG"
 
   # 1a. (retired, goal:g7.16.1.4.1 W-G) GOALS.md is no longer rendered: the owner
-  #     retired it 2026-09-29 17:3xZ. Goals are read by id through write.py;
+  #     retired it 2026-09-29 17:3xZ. Goals are read by id (sed -n on .agi/nodes/goal/<id>.md);
   #     emit_metrics below still prints the node count (the floor never goes blind).
 
   # 1. Refresh nodes/ from build-site (idempotent rebuild)

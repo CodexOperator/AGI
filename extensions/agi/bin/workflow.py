@@ -351,7 +351,7 @@ def _load_geometry_node(project_root: Path) -> dict:
     if not path.is_file():
         raise WorkflowsNodeError(
             f"missing node file {path} — the workflow-harness resolution node. "
-            "It is a `config` node a kid cannot `write.py create`; the prime "
+            "It is a `config` node a kid cannot create; the prime "
             "owns it. Until it lands, workflow.py refuses to guess a harness "
             "(no hardcoded default)")
     text = path.read_text(encoding="utf-8")
@@ -999,7 +999,7 @@ def _resolve_pi_model(cfg: dict, stage: dict, args: dict,
     tier = stage.get("tier") or _tier_for_role(role)
     row = adapters.ladder_role_row(roles, tier, role)
     if row is not None and (row.get("model") or "").strip():
-        # the ladder row IS the one source: a write.py on the ladder changes
+        # the ladder row IS the one source: an edit of the ladder changes
         # this stage's model without touching harnesses.pi.models.
         return row["model"].strip()
     pi_models = adapters.harness_block(cfg, "pi").get("models") or {}
@@ -1700,9 +1700,10 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict,
     route = (
         "WORKFLOW ROUTE CONTRACT:\n"
         "Use the viewport and brief above as the graph context for this stage. "
-        "If this stage produces a graph node or report, write it only through "
-        "`python3 extensions/agi/bin/write.py`; never hand-edit a node or "
-        "payload. A read-only stage remains read-only.\n"
+        "If this stage produces a graph node or report, write it as a plain "
+        "file edit (skill agi-node-write section 1) and run "
+        "`python3 extensions/agi/bin/links.py schema` before the commit. "
+        "A read-only stage remains read-only.\n"
     )
     return f"{brief.stdout.rstrip()}\n\n{viewport.stdout.rstrip()}\n\n{route}"
 

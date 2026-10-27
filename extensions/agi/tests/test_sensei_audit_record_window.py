@@ -48,8 +48,8 @@ FT = [
      "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} "
             "--record latest"},
     {"label": "facts",
-     "cmd": "python3 extensions/agi/bin/write.py config:rotations "
-            "'read body 37:46'"},
+     "cmd": "python3 extensions/agi/bin/node_read.py config:rotations "
+            "section facts"},
 ]
 
 
@@ -107,8 +107,7 @@ def _write_graph(tmp_path: Path, genless=True):
         "- F1 (gen: by hand)\n", encoding="utf-8")
 
     a = _transcript(graph / "pred_a.jsonl",
-                    [("Bash", "python3 extensions/agi/bin/write.py "
-                              ".agi/nodes/handoff.md 'replace body 5:9 -'")])
+                    [("Bash", "sed -i 's/old/new/' .agi/nodes/handoff.md")])
     b = _transcript(graph / "pred_b.jsonl",
                     [("Bash", "tmux capture-pane -t thought-master -p "
                               "| tail -20"),

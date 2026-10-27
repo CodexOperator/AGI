@@ -80,7 +80,7 @@ Prime/SM reading, each item traceable to a line above or in the sources:
 | (pi parents -> kids) | per seat, several at once |
 
 ## Stand up / take down (skill agi-post)
-Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'`, ONE call (Prime / owner), read back by verification.py `formation`.
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = edit `active:` in config:formations to `doc:l4-formation-2-texas-two-step`, ONE edit (Prime / owner), read back by verification.py `formation`.
 ## Status
 
 Ran. Ordered 2026-09-09 in the L4-I plan session (goal:g7.16.2); first split round measured 2026-09-10 (goal:g7.16.2); parallel rounds from 2026-09-10 (goal:g7.16.2, "go for parallel rounds"). Ended as a formation 2026-09-12 22:2xZ when the owner ordered the helper pulled down and the Sanctuary Master stood up (doc:l4-owner-decisions L725) — the point went on answering to the Prime direct with no helper, and the helper post was re-seated as director-review at 23:0xZ (L729, L731). Season 2 throughout. The predecessor is doc:l4-formation-1-prime-only; the successor doc:l4-formation-3-hybrid-gradual-expansion.
