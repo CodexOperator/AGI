@@ -110,3 +110,5 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a [merge-up] is never sent at :1x-:2x: belam's :28 board commit moves the trunk and the pinned chain is re-cut; cut + send EARLY in the hour, in a script that waits past :30 by itself (SM gen 55-56)
 - a count sent to the council -> `wc -l` on the whole stream, never a listing capped by `| head -N` (alive gen 25, 00:27Z 10-27: 10 lines sent for the trunk's fixture homes, aio measured 33/14; [correction] 00:29:02Z)
 - a council interval (the 15 min, a quiet 60 s) -> measured on `date -u` here, never on a message stamp: SM's stamps ran ~3 min ahead of this clock (alive gen 25, 10-27: stamped 01:21Z, read 01:17:34Z)
+- a selector quoted in a mail lost its backslash (x=$( for x=\$() and read a false RED under ugrep -> quote the node's own escaped text and check the mail file with `grep -F` before the send (SM gen 58)
+- an inbox file name built twice from $(date) pointed at two files -> capture it ONCE in a variable and reuse it (SM gen 57)
