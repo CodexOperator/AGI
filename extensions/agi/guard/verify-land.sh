@@ -95,7 +95,48 @@ EOD
 printf '%s\n' "$ad"|cut -f1|while IFS= read -r p;do [ -z "$p" ]||printf '%s\n' "$dl"|grep -qxF -- "$p"||echo "admitted but not deleted: $p";done
 [ "$du" = 0 ]||hold D
 git diff $B $L > "$S/$N.diff"; git log --format=%B $B..$L > "$S/$N.msg"
-python3 "$A" check --diff-file "$S/$N.diff"; a=$?;echo "anon-diff=$a";[ $a = 0 ]||hold anon-diff
+# FIXTURE CLASS (c) (council 3/3 alive 18:25:50Z 10-26; belam's [hold] 18:15Z on L177+L178): a PINNED fixture user's `/home/<name>` in an ADDED line of a file under
+# extensions/agi/tests/ is ONE named WARN, not a HOLD. The class is decided by the diff's `+++ b/` PATH, never by the line's content; the allowlist is BASE's
+# `.agi/config.json` anonymize.fixture_homes (a RULES path; never TIP's, so a land cannot add its own name); every other hit -- an unpinned /home/<x>, passwd or not,
+# a real passwd home, anything outside tests/ -- stays for `anonymize.py check` and HOLDs. FAIL CLOSED: an unreadable / empty / malformed cell, or a passwd read that
+# errors or is empty, pins NOTHING (every hit HOLDs); a pinned name that is ALSO a passwd home of this box is dropped (HOLD). The substitution runs on a COPY of the diff.
+# The tokens are paths.py's HOME_RE, the ONE home-path regex literal (config:census home-path-code-literal-regex; never a second one, split or not): ONLY a token
+# `/home/<pinned>` with no word character after it becomes the placeholder (the count is of substitutions, never of tokens); every other token stays.
+# The step failing (paths unimportable, any crash) = the unfiltered diff + ONE named `unread` line: nothing is pinned, every hit HOLDs.
+git show "$B:.agi/config.json" > "$S/$N.cfg" 2>/dev/null
+python3 -I - "$S/$N.diff" "$S/$N.cfg" "$S/$N.anon.diff" "$A" <<'P' || { echo "anon-diff fixture class: unread (the step failed): nothing pinned, every hit HOLDs";cp "$S/$N.diff" "$S/$N.anon.diff";}
+import json,os,pwd,re,sys
+diff,cfg,out,anon=sys.argv[1:5]
+sys.path.insert(0,os.path.dirname(os.path.abspath(anon)))    # paths.py sits beside the anonymize.py that judges this diff
+import paths
+def pinned():
+    try:
+        names=json.load(open(cfg)).get('anonymize',{}).get('fixture_homes')
+        names=[n for n in names if isinstance(n,str) and re.fullmatch(r'[A-Za-z0-9_-]+',n)] if isinstance(names,list) else []
+        if os.environ.get('VL_PASSWD'):    # the lane's seam: a passwd-format file standing in for this box's
+            dirs={l.split(':')[5] for l in open(os.environ['VL_PASSWD']) if l.count(':')>=5}
+        else:
+            dirs={p.pw_dir for p in pwd.getpwall()}
+        if not names or not dirs: return []
+        return [n for n in names if '/home/'+n not in dirs]
+    except Exception: return []
+names=pinned()
+text=open(diff,errors='replace').read().split('\n')
+cur,hits,res=None,{},[]
+def fixture(m):     # one paths.HOME_RE token (also ~/, $HOME, expanduser: those stay)
+    t=m.group(0)
+    if t[:6]!='/home/' or t[6:] not in names or re.match(r'\w',m.string[m.end():]): return t
+    hits[cur]=hits.get(cur,0)+1;return '<fixture-home>'
+for l in text:
+    if l.startswith('diff --git '): cur=None
+    elif l.startswith('+++ '): cur=l[6:] if l.startswith('+++ b/') else None
+    elif names and cur and cur.startswith('extensions/agi/tests/') and l.startswith('+') and not l.startswith('+++'):
+        l=paths.HOME_RE.sub(fixture,l)
+    res.append(l)
+open(out,'w').write('\n'.join(res))
+for f,k in sorted(hits.items()): print('anon-diff WARN (fixture class): pinned /home/<'+'|'.join(names)+'> x%d in %s'%(k,f))
+P
+python3 "$A" check --diff-file "$S/$N.anon.diff"; a=$?;echo "anon-diff=$a";[ $a = 0 ]||hold anon-diff
 python3 "$A" check --text "$(grep -v -x -E 'Co-Authored-By: Claude (Opus|Sonnet|Haiku|Fable) [0-9]+\.[0-9]+ <noreply@anthropic\.com>' "$S/$N.msg")" >/dev/null; a=$?;em=$(grep -o -E '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$S/$N.msg" | sort -u | tr '\n' ' ')
 echo "anon-msg=$a emails: $em";[ $a = 0 ]||hold anon-msg   # C4 (council 22:05:25Z) + C5 (22:16:14Z): the message minus EXACTLY the co-author trailer (model family + N.N only, so no ip hides in it) must anonymize clean
 [ -z "$(printf '%s\n' $em | grep -vx 'noreply@''anthropic.com')" ]||hold msg-email   # the co-author line is the one address a land message carries
