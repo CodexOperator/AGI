@@ -2,8 +2,8 @@
 # host-act-encryption-town.t.sh: the REHEARSAL of extensions/agi/guard/host-act-encryption-town.sh (ROOT=<scratch>, no systemd, no root): step 0 + the act + the rollback + the per-post move, on a scratch MAIN holding the REAL geometry. One ok/FAIL line per case; exit = FAIL count. ACT=<script copy> runs a mutant.
 umask 022;T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=$(cd "$(dirname "$0")/../../.." && pwd);ACT=${ACT:-$R0/extensions/agi/guard/host-act-encryption-town.sh};GEO=$R0/.agi/nodes/.geometry
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-# a mutant/fixture edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal is a counted FAIL, never a green row
-chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture-anchor-not-found $3 matched nothing";f=$((f+1));};:;}
+# a mutant/fixture edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
 sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_COMMITTER_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_EMAIL;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
@@ -91,7 +91,7 @@ ok e4-projection-is-the-hconf-dropin-not-the-wants-link "[ $re4 != 0 ]&&grep -q 
 run env PIN=$PIN2 sh $ACT move 'bad name'>/dev/null 2>$T/e3.err;ok e3-a-bad-post-name-is-refused "[ \$? != 0 ]"
 # ---- S2a (goal:g7.16.1.11.44.8, council 09:20Z 10-16): the act lives in `agi.sh host`; the old script's `act` is ONE delegating line. Each row has its mutant (one edit on the code under test; the row passes only when the clean property BREAKS) ----
 AGI=${AGI:-$R0/extensions/agi/bin/agi.sh}
-rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&{ echo "FAIL rep-anchor-not-found rep anchor not found: [$1]";f=$((f+1));};}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&{ echo "FAIL fixture: rep matched nothing: $1";exit 99;};}
 backups(){ ls -d $X/var/backups/agi-act-* 2>/dev/null|wc -l|tr -d ' ';}
 # the `act)` branch of the old script (condition 1): exactly the one exec line, no step of its own left in it
 onebranch(){ b=$(sed -n '/^act)/,/^move)/p' $1|sed '$d');[ "$(echo "$b"|wc -l|tr -d ' ')" = 1 ]&&echo "$b"|grep -qx 'act)exec sh "$(dirname "$0")/../bin/agi.sh" host;;'&&! echo "$b"|grep -q 'setfacl\|install\|put\|systemctl\|printf\|mkdir';}
@@ -277,17 +277,17 @@ mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "">$T/g1.ou
 ok g1-the-backup-step-of-a-re-run-with-0-absent-files-says-so-and-prints-nothing-on-stderr "grep -q ' 0 absent files' $T/g1.out&&! grep -q 'cannot open' $T/g1.err"
 rep '$(cat $B/absent 2>/dev/null|wc -l|tr -d " ") absent files' '$(wc -l <$B/absent 2>/dev/null||echo 0) absent files';mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "" $T/mut.sh>$T/g2.out 2>$T/g2.err
 ok g2-mutant-the-old-redirect-prints-cannot-open-on-stderr-RED "grep -q 'cannot open' $T/g2.err"
-# r3 (the census): rep() and chg() fail closed; the old print-only shapes are the mutants
-x=$(f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
-ok rep-a-matchless-anchor-fails-closed 'echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=1"'
-x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for [$1]";};f=0;rep 'NO-SUCH-ANCHOR-XYZ' q;echo "f=$f")
-ok rep-mutant-the-comment-only-branch-is-RED '! echo "$x"|grep -q "^FAIL rep-anchor-not-found"&&echo "$x"|grep -qx "f=0"'
-printf a >$T/c1;printf a >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a drifted literal";echo "f=$f")
-ok chg-a-matchless-edit-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted literal matched nothing"&&echo "$x"|grep -qx "f=1"'
-printf b >$T/c2;x=$(f=0;chg $T/c1 $T/c2 "a live literal";echo "f=$f")
-ok chg-an-edit-that-changed-bytes-is-silent '[ "$x" = "f=0" ]'
-printf 'a\n' >$T/c1;x=$(f=0;sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo "f=$f")
-ok sedc-a-sed-i-that-matches-nothing-fails-closed 'echo "$x"|grep -q "^FAIL fixture-anchor-not-found a drifted sed -i matched nothing"&&echo "$x"|grep -qx "f=1"'
-x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};f=0;sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo "f=$f")
-ok sedc-mutant-the-bare-sed-i-is-RED '[ "$x" = "f=0" ]'
+# r3/r4 (the census, council (A)): rep, chg and sedc EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it
+x=$(rep 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok rep-a-matchless-anchor-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: rep matched nothing: NO-SUCH-ANCHOR-XYZ" ]'
+x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for [$1]";};rep 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok rep-mutant-the-guard-dropped-is-RED '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: rep"&&echo "$x"|grep -qx AFTER'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok chg-a-matchless-edit-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok chg-an-edit-that-changed-bytes-is-silent '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf 'a\n' >$T/c1;x=$(sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo AFTER);rc=$?
+ok sedc-a-sed-i-that-matches-nothing-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted sed -i" ]'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo AFTER);rc=$?
+ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
 echo "host-act-encryption-town: $f FAIL";exit $f
