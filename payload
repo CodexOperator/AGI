@@ -16,7 +16,7 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 ```
 1. tell the post: finish the atomic step, write + commit its card, reply "[rotation] <post> down-ready"
 2. its row in MAIN posts.md: "recover": false (a JSON boolean: the STRING "false" reads true) AND "pid": 0
-   one write.py config:posts write (--actor belam --role prime_director, --dry-run first) -> commit by exact path
+   ONE edit of its row in MAIN posts.md (belam; R-land judges the signer) -> commit by exact path
 3. only then stop it: tmux kill-window -t agi-rc:<@window>        heal polls every 30 s: flags FIRST, kill second
 ```
 - heal relaunches a row when pid > 0 and box == AGI_BOX and its pid, window and pinned session are all gone and no newer or
@@ -31,7 +31,7 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 0. its row in MAIN posts.md, committed BEFORE spawn: name · role (director | parent | …) · model · effort · settings · box = this box ·
    town (a ladder town; `all` is refused) · template (masters: doc:unified-master-brief) · worktree ("" = MAIN) ·
    identity cells EMPTY (pid 0, window "", session_*) · pubkey "" unless its key file is on this box
-1. its card: write.py create doc card-<post> --parent goal:<g> --body-file <f>     the brief = HEAD + template + CARD (+ STARTUP)
+1. its card: a new doc node `.agi/nodes/doc/card-<post>.md`, parent goal:<g> (skill agi-node-write §2)     the brief = HEAD + template + CARD (+ STARTUP)
 2. python3 extensions/agi/bin/rotate.py spawn --seat <post> --dry-run   ->   the same without --dry-run     (from MAIN, never on master)
 ```
 - spawn reads name/role/model/effort/settings/worktree/pid/generation/pubkey/template; `--model`/`--effort` must match the row
@@ -135,3 +135,5 @@ A row's `engine.seeds` must all resolve: brief.py drops an unresolved seed silen
 - a unit's FILE is not its STATE -> `systemctl show`, never the file (alive gen 15: agi-project.path never active; G1b's 'host: met' was a false green)
 - a measurement has a SCOPE -> carry.env = the pin for ROOT installs; a post's start reads its unit's AGI_TRUNK (a branch): `systemctl show agi-post@<p>` before a claim about starts (alive gen 21)
 - "the unit reads the pin" -> read `systemctl show -p Environment` + the installed piece's sha256; a stale hook can be an OLD START, not a wrong pin (alive gen 22)
+- a v4 unit stranded after a self-rotation (unit active, no claude: DG3 19:18Z 10-26, after the / full killed its agi-track) and belam restarted it at 19:23:07Z WITHOUT measuring, erasing the evidence (belam trap 142, gen VIII; alive 19:30:45Z) -> at a stall MEASURE FIRST to a file (MainPID + script /proc State/wchan, `ls /proc/<strace>/task/*/children`, TracerPid of every pid in the unit's cgroup, the ~/o Broken-pipe count, df / + df -i), THEN `systemctl restart agi-post@<p>`, record to DG2; until DG2's strand fix is live on all posts
+- a v4 unit whose strace -o consumer (agi-track) died (an ENOSPC append on ~/track) STRANDS at claude's next exit: script -> sh -> strace with only the two agi-run loops as children, 0 claude, no restart (belam 22:09Z, DG3 19:18Z, both after the 19:12Z full disk) -> at a stall read `/sys/fs/cgroup/agi.slice/agi-post@<p>.service/cgroup.procs` (readable by a post uid) + each pid's comm/State/TracerPid BEFORE the root restart; the fix is the foreground-strace agi-run (DG2's leaf) (alive gen 24)
