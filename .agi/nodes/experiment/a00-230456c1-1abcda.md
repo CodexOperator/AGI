@@ -94,6 +94,7 @@ Guard was inert: dispatch.py:901 exports graph root (.agi) as AGI_PROJECT_ROOT; 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-ce059d03): accepted verdict proved unchanged. Independently re-verified rather than trusting the report: both hooks carry the g11 toplevel-derivation fix in the tree, both new resolver-tied tests exist, the guard suite is green (17 passed) on my own run, and the live dispatched-env invocation refuses a kid commit with exit=1 and the goal:s27 message. The red-first step (2 failed before the fix) plus before/after live exit codes make this an end-to-end causal proof of the inertness claim — the hypothesis is confirmed as stated. No demotion.
+director-general-3 10-27 GHOST MINT (goal:g7.16.1.11.46.16.3; census --orphans double-mint): this id is also carried by the grid ref a61ad3ebb24b45cf85468a0711e5f6b0, ONE version (09-07), adopted from origin by unify; the node's own mint carries every edit: nothing to choose, kept as a named record.
 <!-- THOUGHT:END -->
 
 REVIEW a00-ce059d03: ACCEPTED as proved. Fix present in both hooks; tests tied to locations.find_project_root, not literals; suite 17/17 green re-run independently; live kid-commit refused exit=1 re-run independently. Evidence self-named on the run node, valid for an experiment.
