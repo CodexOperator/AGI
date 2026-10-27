@@ -10,14 +10,17 @@ for x in pi claude strace jq python3;do command -v $x >/dev/null||{ echo "FAIL i
 sect agi-infer>$T/infer;sect agi-lane>$T/lane;[ -s $T/infer ]&&[ -s $T/lane ]||{ echo "FAIL extract: agi-infer $(wc -c<$T/infer) B, agi-lane $(wc -c<$T/lane) B";exit 99;}
 INFER=$T/infer;LANE=$T/lane
 KP=sk-an;KP=${KP}t;K="${KP}-api03-LANECANARY0123"
-rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $3>$T/mut.$4;cmp -s $3 $T/mut.$4&&echo "# NO EDIT for [$1]";}
+# a helper that rewrites a COPY later rows run on fails closed (goal:g7.16.1.11.13.6, council (A) 10-26 22:17Z): ONE named line, exit 99, no ok row after it.
+# fx NAME BEFORE AFTER LITERAL: the edit changed 0 bytes. fxn NAME GOT WANT LITERAL: a count the edit must reach (where 0 changed bytes can be right: the live cell may already hold the value).
+fx(){ cmp -s "$2" "$3"&&{ echo "FAIL fixture: $1 matched nothing: $4";exit 99;};:;}
+fxn(){ [ "$2" = "$3" ]||{ echo "FAIL fixture: $1 matched nothing: $4 ($2 of $3)";exit 99;};}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $3>$T/mut.$4;fx rep $3 $T/mut.$4 "$1";}
 # --- the cells: a scratch main repo whose secrets.md carries three test ids (and an option-B lane in a second commit)
 M=$T/main;mkdir -p $M/.agi/nodes/.geometry;$G -C $M init -q
-sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": "wrkspc_BATCH111"/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": "wrkspc_KIDS2222"/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": "wrkspc_COUNCIL333"/' $R0/.agi/nodes/.geometry/secrets.md>$M/.agi/nodes/.geometry/secrets.md
-# fail closed: the three fixture ids must be IN the scratch cells, whatever the live cells hold (empty or filled), else every row below would read the live ids
-nfx=$(grep -c '"workspace": "wrkspc_\(BATCH111\|KIDS2222\|COUNCIL333\)"' $M/.agi/nodes/.geometry/secrets.md);[ "$nfx" = 3 ]||{ echo "FAIL fixture: $nfx of 3 fixture workspace cells in the scratch secrets.md";exit 99;}
+sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": "wrkspc_BATCH111"/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": "wrkspc_KIDS2222"/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": "wrkspc_COUNCIL333"/' $R0/.agi/nodes/.geometry/secrets.md>$M/.agi/nodes/.geometry/secrets.md;fxn fixture-id-sed $(grep -c '"workspace": "wrkspc_\(BATCH111\|KIDS2222\|COUNCIL333\)"' $M/.agi/nodes/.geometry/secrets.md) 3 "the three fixture workspace cells in the scratch secrets.md"
+# (above) fail closed: the three fixture ids must be IN the scratch cells, whatever the live cells hold (empty or filled), else every row below would read the live ids
 $G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm ids >/dev/null 2>&1;TR=$($G -C $M rev-parse HEAD)
-sed -e '/^  agi-council:/s/"workspace": "wrkspc_COUNCIL333"/"scoped_key": "claude-council"/' $M/.agi/nodes/.geometry/secrets.md>$T/optb;cp $T/optb $M/.agi/nodes/.geometry/secrets.md;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm optb >/dev/null 2>&1;TB=$($G -C $M rev-parse HEAD)
+sed -e '/^  agi-council:/s/"workspace": "wrkspc_COUNCIL333"/"scoped_key": "claude-council"/' $M/.agi/nodes/.geometry/secrets.md>$T/optb;fx optb-sed $M/.agi/nodes/.geometry/secrets.md $T/optb "agi-council wrkspc_COUNCIL333 -> scoped_key";cp $T/optb $M/.agi/nodes/.geometry/secrets.md;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm optb >/dev/null 2>&1;TB=$($G -C $M rev-parse HEAD)
 mkdir -p $T/cred;printf %s "$K">$T/cred/claude-sp;printf %s "$K">$T/cred/claude-council
 # --- the capture endpoint: every request's path + lowercased headers, one JSON per line; 200 + [DONE] for a chat call, 401 otherwise
 cat >$T/srv.py<<'XX2'
@@ -57,7 +60,7 @@ ok "v-a-pi-provider-has-the-header-and-the-bang-cat-key [$(TAG=x lane pi agi-kid
 ok "v-a-no-verb-prints-a-key-byte canary hits in all four: $(for v in id header pi claude;do TAG=x lane $v agi-kids;done|grep -c LANECANARY)" '[ "$(for v in id header pi claude;do TAG=x lane $v agi-kids;done|grep -c LANECANARY)" = 0 ]'
 ok "v-b-option-B-lane-sends-no-header-and-names-its-own-file header out [$(LT=$TB TAG=x lane header agi-council)] rc, pi: $(LT=$TB TAG=x lane pi agi-council|jq -c '.providers["claude-lane"]|[.headers,.apiKey]')" '[ -z "$(LT=$TB TAG=x lane header agi-council)" ]&&[ "$(LT=$TB TAG=x lane pi agi-council|jq -c ".providers[\"claude-lane\"]|[.headers,.apiKey]")" = "[null,\"!cat \$CREDENTIALS_DIRECTORY/claude-council\"]" ]'
 ok "v-c-an-unknown-lane-is-rc-2 rc $(TAG=x lane id agi-nope >/dev/null 2>&1;echo $?)" '[ "$(TAG=x lane id agi-nope >/dev/null 2>&1;echo $?)" = 2 ]'
-cp $M/.agi/nodes/.geometry/secrets.md $T/keep;sed -e '/^  agi-kids:/s/"workspace": "wrkspc_KIDS2222"/"workspace": ""/' $T/keep>$M/.agi/nodes/.geometry/secrets.md;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm empty >/dev/null 2>&1;TE=$($G -C $M rev-parse HEAD)
+cp $M/.agi/nodes/.geometry/secrets.md $T/keep;sed -e '/^  agi-kids:/s/"workspace": "wrkspc_KIDS2222"/"workspace": ""/' $T/keep>$M/.agi/nodes/.geometry/secrets.md;fx v-c-sed $T/keep $M/.agi/nodes/.geometry/secrets.md "agi-kids wrkspc_KIDS2222 -> empty";$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm empty >/dev/null 2>&1;TE=$($G -C $M rev-parse HEAD)
 ok "v-c-an-empty-workspace-cell-is-rc-3-and-says-whose-act rc $(LT=$TE TAG=x lane id agi-kids >/dev/null 2>&1;echo $?)" '[ "$(LT=$TE TAG=x lane id agi-kids >/dev/null 2>&1;echo $?)" = 3 ]&&LT=$TE TAG=x lane id agi-kids 2>&1|grep -q "owner makes the workspace"'
 [ -z "$LH_STOP" ]||{ echo "lane-header: $f FAIL (stopped after the fixture rows)";exit $f;}
 # ================= the fronts, clean
@@ -89,15 +92,15 @@ ok "m4-MUTANT-the-old-default-replaces-the-callers-key-RED (a) auth [$(got ma2 a
 # ================= the fixture is INDEPENDENT of the live cells (council 10-26: the lane went red on the trunk when the live cells were filled). Each row runs a COPY of this file against a SCRATCH root whose
 # secrets.md holds DECOY ids (the live file is never read), stopped after the fixture rows (LH_STOP), in seconds. A mutant is one or two edits of the copy.
 FR=$T/fr;FE=$T/fe;mkdir -p $FR/.agi/nodes/.geometry $FE/.agi/nodes/.geometry;cp $R0/.agi/nodes/.geometry/engine*.md $FR/.agi/nodes/.geometry/;cp $R0/.agi/nodes/.geometry/engine*.md $FE/.agi/nodes/.geometry/
-sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY1"/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY2"/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY3"/' $R0/.agi/nodes/.geometry/secrets.md>$FR/.agi/nodes/.geometry/secrets.md
-sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": ""/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": ""/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": ""/' $R0/.agi/nodes/.geometry/secrets.md>$FE/.agi/nodes/.geometry/secrets.md
-[ "$(grep -c '"workspace": "wrkspc_LIVEDECOY' $FR/.agi/nodes/.geometry/secrets.md)" = 3 ]&&[ "$(grep -c '"workspace": ""' $FE/.agi/nodes/.geometry/secrets.md)" = 3 ]||{ echo "FAIL fixture: the decoy roots were not built";exit 99;}
+sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY1"/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY2"/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY3"/' $R0/.agi/nodes/.geometry/secrets.md>$FR/.agi/nodes/.geometry/secrets.md;fxn decoy-filled-sed $(grep -c '"workspace": "wrkspc_LIVEDECOY' $FR/.agi/nodes/.geometry/secrets.md) 3 "the three decoy workspace cells"
+sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": ""/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": ""/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": ""/' $R0/.agi/nodes/.geometry/secrets.md>$FE/.agi/nodes/.geometry/secrets.md;fxn decoy-empty-sed $(grep -c '"workspace": ""' $FE/.agi/nodes/.geometry/secrets.md) 3 "the three empty workspace cells"
 SELF=$R0/extensions/agi/tests/lane-header.t.sh
-lhcopy(){ python3 - "$SELF" "$@" <<'P'
+lhcopy(){ python3 - "$SELF" "$@" <<'P'||exit 99
 import sys
 s=open(sys.argv[1]).read();out=sys.argv[2];pr=sys.argv[3:]
 for x,y in zip(pr[0::2],pr[1::2]):
-    assert x in s,"mutant target absent: "+x[:40]; s=s.replace(x,y,1)
+    if x not in s: print("FAIL fixture: lhcopy matched nothing: "+x[:60]); sys.exit(99)
+    s=s.replace(x,y,1)
 open(out,"w").write(s)
 P
 }
@@ -113,15 +116,46 @@ SEDC='s/"workspace": "[^"]*"/"workspace": "wrkspc_COUNCIL333"/';SEDCO='s/"worksp
 # (1)+(3): the empty-only sed back WITH the guard -> the lane stops at the fixture step, never reading the live ids
 lhcopy $T/lh.m5.sh "$SEDB" "$SEDBO" "$SEDK" "$SEDKO" "$SEDC" "$SEDCO"
 lhrun $FR $T/lh.m5.sh
-ok "g-b-guard-the-empty-only-sed-with-the-guard-stops-at-the-fixture rc $lhrc (want 99): $(grep -m1 '^FAIL fixture' $T/lh.out|cut -c1-70)" '[ $lhrc = 99 ]&&grep -q "^FAIL fixture: 0 of 3" $T/lh.out'
+ok "g-b-guard-the-empty-only-sed-with-the-guard-stops-at-the-fixture rc $lhrc (want 99): $(grep -m1 '^FAIL fixture' $T/lh.out|cut -c1-70)" '[ $lhrc = 99 ]&&grep -qx "FAIL fixture: fixture-id-sed matched nothing: the three fixture workspace cells in the scratch secrets.md (0 of 3)" $T/lh.out&&[ "$(grep -c '^ok' $T/lh.out)" = 0 ]'
 # (1) MUTANT and (3) MUTANT: the empty-only sed back AND the guard dropped -> the lane runs on the live ids and reads RED (the 8 FAIL), never green
-lhcopy $T/lh.m6.sh "$SEDB" "$SEDBO" "$SEDK" "$SEDKO" "$SEDC" "$SEDCO" '[ "$nfx" = 3 ]||' 'true||'
+lhcopy $T/lh.m6.sh "$SEDB" "$SEDBO" "$SEDK" "$SEDKO" "$SEDC" "$SEDCO" 'fxn fixture-id-sed $(' 'true fixture-id-sed $(' 'fx optb-sed ' 'true optb-sed ' 'fx v-c-sed ' 'true v-c-sed '
 lhrun $FR $T/lh.m6.sh
 ok "g-c-MUTANT-empty-only-sed-and-no-guard-reads-RED rc $lhrc (want >0 and not 99), FAIL lines $lhfail, live ids echoed $lhdecoy" '[ $lhrc -gt 0 ]&&[ $lhrc != 99 ]&&[ $lhfail -ge 1 ]'
 # (2) MUTANT: the v-c empty cell fed the live file instead of the fixture's own commit -> the cell is never emptied, v-c reads RED
-lhcopy $T/lh.m7.sh '"workspace": ""/'"'"' $T/keep>' '"workspace": ""/'"'"' $R0/.agi/nodes/.geometry/secrets.md>'
+lhcopy $T/lh.m7.sh 's/"workspace": "wrkspc_KIDS2222"/"workspace": ""/' 's/"workspace": "wrkspc_NOMATCH"/"workspace": ""/'
 lhrun $FR $T/lh.m7.sh
-ok "g-d-MUTANT-v-c-fed-the-live-file-reads-RED rc $lhrc, FAIL lines $lhfail: $(grep -m1 '^FAIL v-c' $T/lh.out|cut -c1-60)" '[ $lhrc -ge 1 ]&&grep -q "^FAIL v-c-an-empty-workspace-cell" $T/lh.out'
+ok "g-d-v-c-sed-matching-nothing-exits-99 rc $lhrc (want 99): $(grep -m1 '^FAIL' $T/lh.out|cut -c1-90)" '[ $lhrc = 99 ]&&grep -qx "FAIL fixture: v-c-sed matched nothing: agi-kids wrkspc_KIDS2222 -> empty" $T/lh.out&&[ "$(tail -1 $T/lh.out)" = "FAIL fixture: v-c-sed matched nothing: agi-kids wrkspc_KIDS2222 -> empty" ]'
+# the same with v-c's fx dropped: the cell is never emptied and v-c itself reads RED (the guard's mutant)
+lhcopy $T/lh.m8.sh '"workspace": ""/'"'"' $T/keep>' '"workspace": ""/'"'"' $R0/.agi/nodes/.geometry/secrets.md>' 'fx v-c-sed ' 'true v-c-sed '
+lhrun $FR $T/lh.m8.sh
+ok "g-d-MUTANT-v-c-fed-the-live-file-without-its-guard-reads-RED rc $lhrc, FAIL lines $lhfail: $(grep -m1 '^FAIL v-c' $T/lh.out|cut -c1-60)" '[ $lhrc -ge 1 ]&&[ $lhrc != 99 ]&&grep -q "^FAIL v-c-an-empty-workspace-cell" $T/lh.out'
+# optb-sed: its literal made unmatchable -> exit 99 on its one line, no ok row after it; its guard dropped -> v-b reads RED
+lhcopy $T/lh.m9.sh 's/"workspace": "wrkspc_COUNCIL333"/"scoped_key"' 's/"workspace": "wrkspc_NOMATCH"/"scoped_key"'
+lhrun $FR $T/lh.m9.sh
+ok "g-e-optb-sed-matching-nothing-exits-99 rc $lhrc: $(grep -m1 '^FAIL' $T/lh.out|cut -c1-90)" '[ $lhrc = 99 ]&&grep -qx "FAIL fixture: optb-sed matched nothing: agi-council wrkspc_COUNCIL333 -> scoped_key" $T/lh.out&&[ "$(grep -c "^ok" $T/lh.out)" = 0 ]'
+lhcopy $T/lh.m10.sh 's/"workspace": "wrkspc_COUNCIL333"/"scoped_key"' 's/"workspace": "wrkspc_NOMATCH"/"scoped_key"' 'fx optb-sed ' 'true optb-sed '
+lhrun $FR $T/lh.m10.sh
+ok "g-e-MUTANT-optb-sed-guard-dropped-reads-RED rc $lhrc (want >0, not 99): $(grep -m1 '^FAIL v-b' $T/lh.out|cut -c1-60)" '[ $lhrc -ge 1 ]&&[ $lhrc != 99 ]&&grep -q "^FAIL v-b-option-B" $T/lh.out'
+# lhcopy: a mutant copy whose target is gone EXITS 99 with its one line (never a lane that runs on with a missing copy); the old python assert is its guard-dropped mutant
+NOL=$(printf 'no-%s-here' such);x=$(lhcopy $T/lh.zz.sh "$NOL" 'y';echo AFTER);rc=$?
+ok "l-lhcopy-matching-nothing-exits-99-with-one-named-line rc $rc: $(echo "$x"|tr '\n' '|'|cut -c1-90)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: lhcopy matched nothing: $NOL" ]'
+x=$(lhcopy(){ python3 - "$SELF" "$@" <<'P'
+import sys
+s=open(sys.argv[1]).read();out=sys.argv[2];pr=sys.argv[3:]
+for x,y in zip(pr[0::2],pr[1::2]):
+    assert x in s,"mutant target absent: "+x[:40]; s=s.replace(x,y,1)
+open(out,"w").write(s)
+P
+};lhcopy $T/lh.zz.sh "$NOL" 'y' 2>/dev/null;echo AFTER);rc=$?
+ok "l-MUTANT-lhcopy-guard-dropped-the-old-assert-reads-RED rc $rc, $(echo "$x"|tr '\n' '|') (want rc 0 and AFTER: the lane ran on)" '[ $rc = 0 ]&&[ "$x" = AFTER ]'
+# rep (the leaf's site, 4 calls): a literal that matches nothing EXITS 99 with ONE named line, no ok row after it; the old print-only rep is the guard-dropped mutant
+x=$(rep 'a literal no piece holds' 'x' $INFER zz;echo AFTER);rc=$?
+ok "r-rep-matching-nothing-exits-99-with-one-named-line rc $rc (want 99): $(echo "$x"|tr '\n' '|'|cut -c1-100)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: rep matched nothing: a literal no piece holds" ]'
+x=$(rep 'if $w!="" then' 'if false then' $LANE zz;echo AFTER);rc=$?
+ok "r-rep-an-edit-that-changes-bytes-is-silent rc $rc: $(echo "$x"|tr '\n' '|')" '[ $rc = 0 ]&&[ "$x" = AFTER ]'
+x=$(fx(){ cmp -s "$2" "$3"&&echo "# NO EDIT for [$4]";};rep 'a literal no piece holds' 'x' $INFER zz;echo AFTER);rc=$?
+ok "r-MUTANT-rep-guard-dropped-reads-RED (the trunk's print-only rep): rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-90) (want rc 0, AFTER, no FAIL line: the clean row exits 99)" '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture"&&echo "$x"|grep -qx AFTER'
+ok "r-every-rep-call-runs-through-fx calls $(grep -c "^rep '" $SELF) (want 4), rep defs with fx $(grep -c '^rep(){ .*;fx rep ' $SELF) (want 1)" '[ "$(grep -c "^rep '"'"'" $SELF)" = 4 ]&&[ "$(grep -c "^rep(){ .*;fx rep " $SELF)" = 1 ]'
 # ================= NEGATIVE (leaf falsifier 3)
 n=$($G -C $R0 grep -c 'ANTHROPIC_API_KEY=' -- .agi/nodes/.geometry 2>/dev/null|awk -F: '{s+=$NF}END{print s+0}')
 ok "n-no-geometry-node-sets-ANTHROPIC_API_KEY hits $n (want 0)" '[ "$n" = 0 ]'
