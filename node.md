@@ -560,7 +560,7 @@ for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
 
 ### sysusers.conf (51 B)
 ~~~ini
-u agi-alive - - <home>
+u agi-alive - - /var/lib/agi/alive
 m agi-alive agi
 ~~~
 
