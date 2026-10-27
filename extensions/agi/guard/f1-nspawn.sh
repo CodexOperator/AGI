@@ -227,7 +227,7 @@ mutants(){ vic=$(echo $EXPECT|tr ' ' '\n'|grep -vx belam|head -1)
  else rec mut.town "not-run: anchor not found exactly once";fi
  restore_agsh||rec fail "mutant town: agi.sh not restored"
  # (b) stop leaves a cron line: the cron remove dropped; the town must NOT end clean
- step mutant-stop;if patch_agsh "$AGSH" '$CR remove --root "$MAIN" --user $u||die "[crons] remove failed for $u"' ':';then
+ step mutant-stop;if patch_agsh "$AGSH" 'CRU remove --root "$MAIN" --user $u||die "[crons] remove failed for $u"' ':';then
   cap mstop3 sh "$AGSH" stop;rc=$?;mk=$(marked_sum);rec mut.stop.reads "rc=$rc marked-after=$mk"
   if [ $rc != 0 ]||[ "$mk" != 0 ];then rec mut.stop red;else rec mut.stop "GREEN: stop rc 0 and marked 0";fi
  else rec mut.stop "not-run: anchor not found exactly once";fi
