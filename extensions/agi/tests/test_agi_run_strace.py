@@ -8,7 +8,7 @@ needs_strace = pytest.mark.skipif(not shutil.which("strace"), reason="strace abs
 
 
 def _line():
-    m = re.search(r"^exec strace .*$", WRAP.read_text(), re.M)
+    m = re.search(r"^(?:exec )?strace .*$", WRAP.read_text(), re.M)
     assert m, "agi-run strace line not found"
     return m.group(0)
 

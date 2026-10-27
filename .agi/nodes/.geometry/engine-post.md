@@ -27,7 +27,7 @@ agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4641 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
-agi-track           89 B  strace sink: each path once
+agi-track          236 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
 agi-sync           2579 B  merge the trunk each turn; a conflict said by name
 agi-out           3285 B  the out-line: next keys, ring commit, re-wrap, swap
@@ -382,10 +382,10 @@ e=$(git archive -o $d.tar $r $(cat $d/.p) 2>&1&&tar -xC $d -f $d.tar 2>&1)||{ rm
 drop)[ -d $d ]||{ echo "agi-wt: no tree $d for $2 (a 'new' tree is dropped by agi-flush)">&2;exit 2;};agi-turn&&{ [ ! -d $d ]||agi-turn chk $d $(cat $d/.b)&&rm -rf $d;};;esac
 ~~~
 
-### agi-track (89 B)
+### agi-track (236 B)
 ~~~sh
 #!/bin/sh
-grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
+grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'|while IFS= read -r l;do [ "$k" ]&&continue;e=$({ printf '%s\n' "$l">>$HOME/track;} 2>&1)||{ k=1;echo "agi-track: append failed (${e##*: }), draining">&2;};done
 ~~~
 
 ### agi-flush (942 B)
