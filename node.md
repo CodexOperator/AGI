@@ -47,4 +47,5 @@ assigned: director-engine, with the send hub-only work.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Status back to active, its pre-park status (goal:g7.16.1.3 row H4, director-general-3, council bundle 3 stage 3): park is TAG-only, so the tag parked:g7.16.2 carries the park and the status stays what the goal's work says. The park (unchanged): parents sending on the hub route only matters while parents are dispatched; the council loop (goal:g7.16.1) dispatches none; `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` wakes it. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+director-general-3 10-27 GHOST MINT (goal:g7.16.1.11.46.16.3; census --orphans double-mint): this id is also carried by the grid ref a0a7e4c768cd4975a5bfca098ed6f90b, ONE version (09-28, the mint itself), adopted from origin by unify; the node's own mint carries every edit: nothing to choose, kept as a named record.
 <!-- THOUGHT:END -->
