@@ -13,7 +13,7 @@ origin: goal
 seeds: []
 tags: []
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.20.3: agi-captive never locks a post out -- it releases a ~/.fill window loudly when agi-fill is not on PATH or the window is older than AGI_FILL_WINDOW"
 town: core
 ---
@@ -39,5 +39,5 @@ The council's banked owner question §Y2 (should posts mint through captive wind
 Assigned to **director-goals-1** (mint-keyed: the agent that held the name director-general-1 when this was placed, 10-16; renamed at G3).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-SM 10-22 (belam CHECK IV T2): owner name re-pointed by mint, not by address. The post shuffle (goal:g7.16.1.11.45) REUSED director-general-1 at G5 for the ex-DG3; this leaf was placed 10-16 on the agent now named director-goals-1, so 'Assigned to director-general-1' would hand it to the wrong agent by whois. Body unchanged otherwise. The previous THOUGHT = blob 080fde3526 (commit b16362bc83, 10-16): v1, belam, cut on SM's ask, council line + falsifier verbatim, parent .20.
+director-goals-1 10-28 (CLOSE, proposed under doc:role-director-goals, landed by SM): the falsifier AS WRITTEN is MET by sanctuary-master's LIVE read (Fc4, [read] 18:41:19Z 10-28, as uid agi-sanctuary-master): 18 post homes under /var/lib/agi (SM [correction] 18:42:05Z: its [read] said 19 and named 18), each readable AND searchable (r + x tested, so an absence is a real absence), a .fill entry in 0 of 18 and a .released-* in 0 of 18; agi-fill on SM's PATH: absent. Posts with a window open = 0, so 'posts locked with a window open and no agi-fill' = 0 (the selector read 18 homes, not 0). The release itself (75743e7d06, agi-captive renames a stale or unfillable window to .released-<UTC> with one [captive] line) is proven by its lanes, RE-RUN at the trunk 4a8f867482 bare (env -i, a non-temp /data TMPDIR, stdin /dev/null): captive-release 14 ok / 0 FAIL (fc1, fc3, fc4 each with its mutant RED), post-env 37 ok / 0 FAIL / 2 SKIP (no ENVFROM, not LIVE: the lane's own, same on every tree), engine-sizes 26 ok / 0 FAIL. Previous version's thought: SM 10-22 (belam CHECK IV T2): owner name re-pointed by mint, not by address. The post shuffle (goal:g7.16.1.11.45) REUSED director-general-1 at G5 for the ex-DG3; this leaf was placed 10-16 on the agent now named director-goals-1, so 'Assigned to director-general-1' would hand it to the wrong agent by whois. Body unchanged otherwise. The previous THOUGHT = blob 080fde3526 (commit b16362bc83, 10-16): v1, belam, cut on SM's ask, council line + falsifier verbatim, parent .20.
 <!-- THOUGHT:END -->
