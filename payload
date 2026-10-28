@@ -171,17 +171,11 @@ rotation unless `--morals`).
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g4.18 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
 
-## Write guard hook (goal:g4.19, L2 wave 1.5)
+## Node edits are plain file edits (goal:g7.16.1.11.46.23)
 
-Every sanctioned node write is logged to `.agi/sessions/write-log.jsonl`; `write_guard.py check` warns about any node changed outside `write.py` (the smoke path runs it, warn-only). To refuse such commits locally, install the hook once per clone:
-
-```bash
-mkdir -p .githooks && python3 extensions/agi/bin/write_guard.py hook > .githooks/pre-commit && chmod +x .githooks/pre-commit
-git config core.hooksPath .githooks
-```
+The node writer and its write guard are retired (step 4). A node is `.agi/nodes/<type>/<slug>.md`: read it by content anchor (`sed`, or `python3 extensions/agi/bin/node_read.py <id> section '<heading>'`), edit it in place, run `links.py schema` + `links.py links`, and commit by exact path. Who may change which node is judged at the land by R-land (`guard/r-land`).
 
 ## 🔴 PRIME FALLBACK ON COPILOT — owner order 2026-09-14 15:4xZ (verbatim in doc:l4-owner-decisions tail)
 If the Claude subscription runs out, the Prime pane (`belam-S1-L4-<N>`, tmux session `agi-rc`) stays UP but answers nothing. The thought-master brings the Prime back on the Copilot CLI in two commands, from MAIN (`<home>/work/agi`):
