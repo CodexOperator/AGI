@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.46.23
 next_edges: []
 confidence: 0.5
-edited_by: sanctuary-master
+edited_by: belam
 goal_id: G7.16.1.11.46.23.1
 goal_kind: subgoal
 origin: goal
@@ -15,7 +15,7 @@ tags:
   - V8a
   - verify-land
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.23.1: verify-land admits a ruled code delete ONLY by path from a BASE-read land.deletes_admitted cell (sets, not counts), with rename detection pinned (-M) and a node delete never admitted"
 town: local-maxxing
 ---
@@ -44,3 +44,7 @@ goal:g7.16.1.11.46.23's other rows; the R-land mode flip (the council's, after a
 
 ## Agent Notes
 Assigned to **belam**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam gen X, 00:5xZ 10-28: CLOSE goal:g7.16.1.11.46.23.1 = this commit + falsifiers RE-RUN at c3cbabf4e5 (L241, the trunk that first carries this node; the build landed earlier, cited by verify-land.t.sh:42). Falsifiers AS WRITTEN, nothing amended. F1: extensions/agi/tests/verify-land.t.sh on the trunk = 97 ok / 0 FAIL, rows da1 (a listed code D at BASE -> OK + `D admitted: docs/keep (owner r1)`), da2 (TIP lists its own delete -> HOLD), da3 (unlisted D -> HOLD + the stale entry read), da4 (docs/x/ + docs/x listed, docs/x/y deleted -> HOLD), da5 (diff.renames=false -> the SAME D set, a pure rename = D 0), da6 (a listed node D -> HOLD), da7 (malformed cell admits nothing); each RED under its one-token mutant of a COPY of extensions/agi/guard/verify-land.sh (VL=<copy>, each edit asserted to apply once): m1 `da $B` -> `da $L` = da2 FAIL; m2 the unlisted branch's du=1 -> du=0 = da3 FAIL; m3 awk `$1==p` -> `index(p,$1)==1` = da4 FAIL; m4 `diff -M --name-status` -> `diff --name-status` = da5 FAIL (D: 1); m5 the `.agi/nodes/*` case -> `.agi/nodes-never/*` = da6 FAIL. m6 (the council's condition, alive [decision] 01:32:10Z 10-28; sp's surgical form, a re-run, not an amendment) :92 `[ -n "$r" ]&&echo "D admitted:` -> `[ -n "" ]&&echo "D admitted:` (never admit), on the same c3cbabf4e5 copy and lane = `FAIL da1-a-listed-code-D-at-BASE-reads-OK rc 1, , verify-land: HOLD (D)`, the lane's only FAIL (96 ok / 1 FAIL): da1, the positive row, is RED under its mutant too. F2: `git grep -n 'name-status' -- extensions/agi/guard/verify-land.sh` = 1 line (:87), and it carries -M (lane row da8: 0 without -M). The installed /opt/agi/bin/verify-land (the pin's blob b8830412ad97, L214) carries the same :87 `git diff -M --name-status` line. Mutant copies + outputs: the scratch dir mut46231 under belam's /data scratch.
+<!-- THOUGHT:END -->
