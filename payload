@@ -162,4 +162,17 @@ got=$(for m in dm pg nest held same fresh;do for w in commit split;do par $m $w;
 ok "i17-parity-commit-all-and-split-against-one-verdict-table got: $got (fresh, the declared difference: commit --all wrote n6: $(grep -c "^$NS/$(mn 6) " $T/par-fresh-commit.after))" '[ "$got" = "$TABLE " ]&&grep -q "^$NS/$(mn 6) " $T/par-fresh-commit.after'
 got=$(for m in dm pg nest held same fresh;do for w in commit split;do if [ $w = split ];then par $m $w '            else:                                         # A17: a land is gated' '            elif False:                                   # A17: a land is gated';else par $m $w;fi;done;done|tr '\n' ' ')
 ok "m-one-guard-cut-in-one-writer-only-reads-RED split's live-payload guard cut (commit --all untouched): the table reads $got (want the declared table, so a differing cell = caught)" '[ "$got" != "$TABLE " ]&&echo "$got"|grep -q "pg:split=yy"'
+# A19 (alive; PLACED ON slice (c)): a split version body carries goal:g2.7's Parent-Mint-Id lines, read from the GATED tree's blob and resolved through
+# its view: a parent by id (idea:n4), a parent written as a mint id (n5's, named by its address), one with no gated node (UNRESOLVED, never fabricated);
+# mutants (applied AFTER the last checkout: the fixture tracks bin/): the trailer dropped -> no line; the view never read -> every parent UNRESOLVED
+a19(){ cp_ $1;shift;$G -C $P checkout -q --detach $GT
+ printf -- "---\nid: idea:n1\nmint_id: %s\ntype: idea\nstatus: active\nparents:\n  - idea:n4\n  - %s\n  - goal:g\n---\n# node\none-v3\n" $(mn 1) $(mn 5) >$P/.agi/nodes/idea/n1.md
+ $G -C $P commit -qam a19;$G -C $P update-ref $GT HEAD;$G -C $P checkout -q --detach $TR
+ while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;grid split --base $TR --gated $GT --write >$T/$OUT.out 2>&1;$G -C $P log -1 --format=%B $NS/$(mn 1) >$T/$OUT.body;}
+OUT=a19;a19 a19;a19=$?
+ok "a19-a-split-version-carries-the-g2.7-parent-lines rc $a19: $(grep -c '^Parent-Mint-Id:' $T/a19.body) line(s), then Split-Land" '[ $a19 = 0 ]&&grep -qx "Parent-Mint-Id: $(mn 4) idea:n4" $T/a19.body&&grep -qx "Parent-Mint-Id: $(mn 5) idea:n5" $T/a19.body&&grep -qx "Parent-Mint-Id: UNRESOLVED goal:g" $T/a19.body&&[ "$(sed -n 3p $T/a19.body)" = "Parent-Mint-Id: $(mn 4) idea:n4" ]&&sed -n 6p $T/a19.body|grep -q "^Split-Land: "'
+OUT=a19m;a19 a19m '            trailer = split_parent_trailer(it["body"], view)' '            trailer = None'
+ok "m-the-split-trailer-dropped-reads-RED n1's version has no Parent-Mint-Id line (want 3, so their absence = caught)" '! grep -q "^Parent-Mint-Id:" $T/a19m.body&&grep -q "^Split-Land: " $T/a19m.body'
+OUT=a19v;a19 a19v '        ms = by_id.get(p, [])' '        ms = []'
+ok "m-the-gated-view-never-read-reads-RED every parent reads UNRESOLVED (want idea:n4 resolved, so its absence = caught)" '! grep -q "^Parent-Mint-Id: $(mn 4) idea:n4" $T/a19v.body&&grep -q "^Parent-Mint-Id: UNRESOLVED idea:n4" $T/a19v.body'
 echo "land-split: $nrows rows";echo "land-split: $f FAIL";[ $f = 0 ]
