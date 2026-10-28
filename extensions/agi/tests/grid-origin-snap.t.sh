@@ -442,4 +442,29 @@ ok "m-anchor-cut-reads-RED without the '^' a quote-prefixed line counts as a rul
 obr uMS11 '    if rulings[record] != sha:' '    if False:'
 rule $RR;printf 'banked %s %s bytes unseen: node.md\n' $(mintn 5) $uo_5 >>$P/.agi/sessions/unify/$RR;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
 ok "m-pin-compare-cut-reads-RED without the hash compare the row appended after the ruling is WRITTEN: m5 has $(um 5 %P|wc -w|tr -d ' ') parents (want 1)" '[ "$(um 5 %P|wc -w|tr -d " ")" = 2 ]'
+# --- goal:g7.16.1.11.46.16.4 (self-perpetuating 23:12:04Z, 3/3 alive 23:16:27Z): an OWN-WRITE mirror tip -- our own pushed version the live ref then moved past --
+# reads GREEN only when the mirror tip O ITSELF is on the live tip L's first-parent chain AND O..L carries 0 merges; a FOREIGN O reached only through a second parent
+# stays RED; every rev-list rc != 0 is `unread`, RED by name (a rev-list git cannot read prints 0 lines, and 0 lines is never 0 merges).
+#  m1 own write (pushed x, live moved on to y) | m3 foreign: origin forced to f, live took f in as a SECOND parent only
+ow(){ cp_ $1 base;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ x=$(mk $P 1 active own1 $(sha $NS/$(mintn 1)));$G -C $P update-ref $NS/$(mintn 1) $x;push $x $(mintn 1) >/dev/null
+ fo=$(mk $P 3 active foreign3 $c0_3);$G -C $P push -q -f $REM $fo:refs/grid/node/$(mintn 3) >/dev/null 2>&1;snap >/dev/null 2>&1;snap >/dev/null 2>&1
+ y=$(mk $P 1 active own1b $x);$G -C $P update-ref $NS/$(mintn 1) $y;z=$(mk $P 3 active took3 $(sha $NS/$(mintn 3)) $fo);$G -C $P update-ref $NS/$(mintn 3) $z
+ grid unify --check --into refs/grid --legacy $SNAP >$T/$OW.c 2>&1;}
+OW=ow1;ow ow1
+ok "w1-an-own-write-mirror-tip-reads-GREEN m1's mirror tip is our pushed x, on y's first-parent chain, 0 merges: no RED on m1; the foreign m3 (2nd parent only) RED by name: $(grep RED $T/ow1.c|cut -c1-120|tr '\n' '|')" '[ "$(sha $SNAP/node/$(mintn 1))" = "$x" ]&&! grep -q "RED $(mintn 1)" $T/ow1.c&&grep -q "RED $(mintn 3) (no merge commit takes the live tip as its first parent)" $T/ow1.c'
+OW=owM1;ow owM1 '    return None if otip in chain.stdout.split() and not merges.stdout.strip() else ""' '    return None if _is_ancestor(root, otip, ltip) is True else ""'
+ok "m-own-write-bare-ancestor-reads-RED the whole test cut to a bare ancestor test (each half alone keeps m3 RED: a 2nd-parent-only O always leaves the merge that took it in inside O..L): the foreign m3 reads GREEN (want RED, so no RED line = caught)" '! grep -q "RED $(mintn 3)" $T/owM1.c'
+OW=ow2;ow ow2 '    merges = git_try(root, "rev-list", "--merges", f"{otip}..{ltip}")' '    merges = git_try(root, "rev-list", "--merges", f"{otip}..nosuchrev")'
+ok "w2-a-merges-walk-that-fails-is-unread a --merges rev-list that git cannot read (rc 128, 0 lines) reads m1 RED as unread, never 0 merges: $(grep "RED $(mintn 1)" $T/ow2.c|cut -c1-120)" 'grep -q "RED $(mintn 1) (unread: rev-list --merges rc 128)" $T/ow2.c'
+OW=owM2;ow owM2 '    merges = git_try(root, "rev-list", "--merges", f"{otip}..{ltip}")' '    merges = git_try(root, "rev-list", "--merges", f"{otip}..nosuchrev")' '        if res.returncode != 0:
+            return f"unread: rev-list {what}' '        if False:
+            return f"unread: rev-list {what}'
+ok "m-own-write-rc-cut-reads-RED the rc check cut: the failed walk reads as 0 merges and m1 GREEN (want unread, so no RED line on m1 = caught)" '! grep -q "RED $(mintn 1)" $T/owM2.c'
+# a mirror ref at a MISSING object (the loose ref file names a sha the object store does not hold): RED `unread` by name, never 'not an ancestor'
+owx(){ OW=$1;ow "$@";echo 1234567890abcdef1234567890abcdef12345678 >$P/.git/$SNAP/node/$(mintn 2);grid unify --check --into refs/grid --legacy $SNAP >$T/$1.c 2>&1;}
+owx ow3
+ok "w3-a-mirror-ref-at-a-missing-object-is-unread m2's mirror ref names an absent object: RED unread by name: $(grep "RED $(mintn 2)" $T/ow3.c|cut -c1-120)" 'grep -q "RED $(mintn 2) (unread: an ancestry or count read failed)" $T/ow3.c'
+owx owM3 '        if any(a is None for a in ancestors) or any(c.returncode != 0 for c in counts):' '        if False:'
+ok "m-missing-object-folded-reads-RED the unread split cut: m2 reads under the old 'not an ancestor' name (want unread, so that name = caught)" 'grep -q "RED $(mintn 2) (an old tip is not an ancestor of the new tip)" $T/owM3.c'
 echo "grid-origin-snap: $nrows rows";echo "grid-origin-snap: $f FAIL";[ $f = 0 ]
