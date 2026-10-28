@@ -62,7 +62,7 @@ ok "m-ref-tip-read-for-every-mint-reads-RED (the false-refusal control) reading 
 cp_ m3;mut $P/extensions/agi/bin/grid.py '        elif v["tip_ids"].get(m, MINTED_THIS_RUN.get(m)) == node_id:' '        elif False:'
 rm $P/.agi/nodes/idea/n2.md;$G -C $P add -A;$G -C $P commit -qm drop-n2;node $P new idea:n2 5;grid commit --all >$T/m3.out 2>&1
 ok "m-file-read-only-reads-RED a check that reads only files lets a ghost's id be taken again (mint 5 has a ref: $(refs $NS/$(mintn 5)|wc -l|tr -d ' '))" '[ -n "$(refs $NS/$(mintn 5))" ]'
-cp_ m4;mut $P/extensions/agi/bin/grid.py '    for m in sorted(v["refs"].keys() | MINTED_THIS_RUN.keys()):' '    for m in sorted(v["refs"].keys() | MINTED_THIS_RUN.keys() | v["files"].keys()):'
+cp_ m4;mut $P/extensions/agi/bin/grid.py '    pool = v["refs"].keys() | MINTED_THIS_RUN.keys()' '    pool = v["refs"].keys() | MINTED_THIS_RUN.keys() | v["files"].keys()'
 node $P aa idea:n9 6;node $P bb idea:n9 7;grid commit --all >$T/m4.out 2>&1
 ok "m-unminted-files-count-as-holders-reads-RED if a file with no ref counted as holding its id, BOTH new files at idea:n9 would be refused (refs for mints 6 and 7: $(refs $NS/$(mintn 6) $NS/$(mintn 7)|wc -l|tr -d ' '), want 1 = green)" '[ -z "$(refs $NS/$(mintn 6))" ]'
 echo "grid-double-mint: $nrows rows";echo "grid-double-mint: $f FAIL";[ $f = 0 ]
