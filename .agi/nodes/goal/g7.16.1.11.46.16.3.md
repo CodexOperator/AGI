@@ -24,7 +24,7 @@ goal:g7.16.1.11.46.16 (closing at 429da99277) CARRIES 'double_mints 5 -> 10' and
 
 ## Target end-state
 - Each of the ten carries ONE THOUGHT line on its live node naming its ghost mint and why it is kept (the 09-29 five already do, rows (3) of the census-orphans decision); nothing is rewritten, no ref is deleted or renamed.
-- goal:g7.33.9: the owner's pick between the node's one version and the ghost's five is BANKED (card-belam §6) with both texts' diff named; until the owner rules, it stays a named double mint.
+- goal:g7.33.9: RULED by the owner 10-28, option (a) (the OWNER block below): g7.33.9 stays the trunk's TEMPLATE-MAX goal (mint 186661f2be, its links unchanged); the origin ghost 65a8f6499c (5 versions) stays a NAMED reading in the grid history, never a live goal; nothing deleted. Its GHOST MINT line names the ruling.
 - The malformed ref name refs/grid/node/hyp/a00-1467544f-chain-600hop stays COUNTED as one of the ten double mints (the census code is not changed); its node's ghost line names the malformed name.
 
 ## Invariants
@@ -35,7 +35,12 @@ goal:g7.16.1.11.46.16 (closing at 429da99277) CARRIES 'double_mints 5 -> 10' and
 1. `grid.py census --rev <trunk>` prints `double_mints=10`, and `census --orphans` lists double-mint rows whose LAST-ID column (the id the census PRINTS) is EXACTLY these ten: goal:g7.31.3.3.1 · goal:g7.31.3.3.2 · goal:g7.31.3.3.3 · goal:g7.31.3.3.4 · goal:g7.31.3.3.5 · goal:g7.32.5 · experiment:a00-db75bb99-6d7472 · experiment:a00-230456c1-1abcda · goal:g7.33.9 · hyp:a00-1467544f-chain-600hop (printed `hyp:`, its node file .agi/nodes/hypothesis/a00-1467544f-chain-600hop.md); a new id = RED. And for each of the ten, its node file (the file whose `id:` line is that printed id) must EXIST at the rev (`git cat-file -e <rev>:<path>`) BEFORE its grep counts -- absent = `unread <id>`, RED by name, never a 0 -- and then carry a `GHOST MINT` THOUGHT line naming its ghost: 10 of 10 at the close; 5 of 10 on the trunk at the build cut = RED.
 2. Negative: `grid.py census` prints `unclassified=0`, and no double mint outside the named set appears after this leaf lands.
 
-## goal:g7.33.9, the owner's pick: the node's mint 186661f2be (1 version, 10-08) -> the ghost 65a8f6499c (5 versions, 09-28), node.md
+## OWNER 2026-10-28 02:3xZ, verbatim (owner chunk c:a3defee383b8)
+"a is fine yes"
+
+To belam in chat, 2026-10-28T02:31:38Z, answering SM's [owner-q] 23:1xZ 10-27 (via belam) on goal:g7.33.9: option (a) = g7.33.9 stays the trunk's TEMPLATE-MAX goal; the ghost's 5 versions stay a NAMED reading in the grid history, never a live goal (relayed by SM 02:41Z, belam [decision] 02:3xZ).
+
+## goal:g7.33.9, the owner's pick (RULED (a), above): the node's mint 186661f2be (1 version, 10-08) -> the ghost 65a8f6499c (5 versions, 09-28), node.md
 ```diff
 diff --git a/node.md b/node.md
 index c4a5c1ff02..d5da9c1a30 100644
@@ -134,7 +139,7 @@ index c4a5c1ff02..d5da9c1a30 100644
 ```
 
 ## Out of scope
-goal:g7.16.1.11.46.16 (closing) · goal:g7.16.1.11.46.16.1 (complete: the commit-path refusal) · goal:g7.16.1.11.46.16.2 (the owner-batch scope) · the owner's pick for goal:g7.33.9 (banked, not this leaf's to make)
+goal:g7.16.1.11.46.16 (closing) · goal:g7.16.1.11.46.16.1 (complete: the commit-path refusal) · goal:g7.16.1.11.46.16.2 (the owner-batch scope) · the owner's pick for goal:g7.33.9 (RULED (a) 10-28; applied here, never made here)
 
 ## Agent Notes
 Assigned to **director-general-3**.
@@ -142,4 +147,5 @@ Assigned to **director-general-3**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-3 10-27 22:3xZ: minted on self-perpetuating's placement note (via SM 22:2xZ): ONE leaf for the class, its falsifier = the census's double_mints equals the named set, each resolved or ruled (sp's recommendation). Node only; the THOUGHT lines and the bank row come in its build.
 BUILD (director-general-3 10-27 22:4xZ, SM [placed] 22:3xZ: the mint carried in): a GHOST MINT THOUGHT line on the five nodes that had none (goal:g7.32.5, experiment:a00-db75bb99-6d7472, experiment:a00-230456c1-1abcda, goal:g7.33.9, hypothesis:a00-1467544f-chain-600hop), the 09-29 five already carry theirs; goal:g7.33.9's diff in the section above, for the owner's pick SM banked. Nothing rewritten, no ref touched. RE-WORDED before the build (all-is-one's pre-read 22:32:42Z: the Target's 'name the malformed ref as a reading' contradicted falsifier 1's count of 10): that Target line is replaced by 'stays counted' (no census code change, the smaller scope), so one text, one count: double_mints = the named 10. RE-CUT 1 (self-perpetuating 22:45:36Z via SM 22:46Z): falsifier 1 names the ids the census PRINTS (the malformed one is `hyp:`, its file under hypothesis/) and requires each node file to EXIST at the rev before its grep counts (an absent path is `unread <id>`, never a 0: git grep over an absent path reads like a missing line).
+OWNER'S PICK APPLIED (director-general-3 10-28 02:5xZ, SM [relay] 02:41Z): option (a), owner chunk c:a3defee383b8. The Target's g7.33.9 line now reads RULED; the OWNER block carries the words verbatim; goal:g7.33.9's GHOST MINT line names the ruling. Nothing rewritten in g7.33.9's body, no ref touched, the ghost stays counted (falsifier 1's ten unchanged). With this, each of the ten is resolved on its node or ruled.
 <!-- THOUGHT:END -->
