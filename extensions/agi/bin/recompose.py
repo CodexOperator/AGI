@@ -12,9 +12,14 @@ The view is composed from three sets, each printed with its size:
                    bytes the tip's `payload` blob; a payload the tip lacks reads as retired only when the trunk lacks it too.
   * CARRIED paths -- every other trunk path, taken from the trunk as is.
 A trunk node path no grid ref composes, a ref git cannot read, or a payload the grid cannot place is `unread <name>`, rc 1:
-never a diff 0, never filled from the trunk. A ref whose path is not a trunk node path (never landed, an orphan) or that
-the map names never-composed (a ghost) is counted and named, never written. A tip AHEAD of the trunk composes the TIP
-(the grid is the source) and is printed by mint. `--write` points the VIEW ref at a parentless commit of the composed
+never a diff 0, never filled from the trunk. A ref the map names never-composed (a ghost) is counted and named, never written.
+goal:g7.16.1.11.46.18 G1b-2 (rows 5-7): MEMBERSHIP comes from the grid (T11): a ref whose path is not a trunk node path is
+counted and named, and must carry a `<mint> never-landed` map row, else `unread <mint>` (a dropped live node is a +row in a
+reviewed map diff, never a silent diff 0); a never-landed row whose mint composes a live path is unread too. A tip whose
+node.md differs from the trunk's composes the TIP (the grid is the source) and is AHEAD only when the trunk's blob is an
+EARLIER version on that mint's ref, else BEHIND (trunk bytes not on the grid) (T12); both rc 1. The map is FROZEN (T13):
+every PATH row and never-composed row on its tip is on its FIRST grid version, an added one is unread; never-landed rows
+are the only kind a later version may add (U2 as corrected), and T11 governs them. `--write` points the VIEW ref at a parentless commit of the composed
 tree; the view ref lives outside every namespace a land, a box or the grid owns (VIEW_FORBIDDEN). Nothing else is written.
 """
 from __future__ import annotations
@@ -120,23 +125,15 @@ def view_ref_problem(ref: str) -> str | None:
     return None
 
 
-def legacy_map(tips: dict[str, str], blobs: dict[str, bytes | None]) -> tuple[dict[str, str], set[str], str | None]:
-    """The frozen legacy map, read from ITS OWN grid tip (the node whose id is LEGACY_MAP_ID): its ONE `## rows` section, up to
-    the next heading or the THOUGHT block, holds the rows; every non-blank line there is a row, `<mint> <path>` (a legacy path) or `<mint> never-composed` (a ghost), the mint any grid ref name
-    (31-hex and `hyp/...` names exist). Returns (paths, ghosts, problem)."""
-    hits = [m for m, b in blobs.items() if b is not None and frontmatter(b).get("id") == LEGACY_MAP_ID]
-    if not hits:
-        return {}, set(), None
-    if len(hits) > 1:
-        return {}, set(), f"{len(hits)} grid refs carry {LEGACY_MAP_ID}: {' '.join(sorted(hits))}"
-    paths: dict[str, str] = {}
-    ghosts: set[str] = set()
-    text = blobs[hits[0]].decode("utf-8", errors="replace")
+def map_rows(text: str) -> tuple[list[tuple[str, str]], str | None]:
+    """The `(mint, where)` rows of a legacy-map node.md: its ONE `## rows` section, up to the next heading or the THOUGHT block;
+    every non-blank line there is a row (one that does not parse is a problem, never skipped)."""
     end = text.find("\n---\n", 4) if text.startswith("---\n") else -1
     body = (text[end + 5:] if end > 0 else "").splitlines()
     at = [i for i, ln in enumerate(body) if ln.startswith("## rows")]
     if len(at) != 1:
-        return {}, set(), f"{LEGACY_MAP_ID} carries {len(at)} '## rows' sections (exactly one holds the rows)"
+        return [], f"{LEGACY_MAP_ID} carries {len(at)} '## rows' sections (exactly one holds the rows)"
+    rows = []
     for line in body[at[0] + 1:]:
         if line.startswith("#") or line.startswith("<!--"):
             break                                           # the row region ends at the next heading or the THOUGHT block
@@ -145,23 +142,64 @@ def legacy_map(tips: dict[str, str], blobs: dict[str, bytes | None]) -> tuple[di
         # every other body line IS a row: one that does not parse is never skipped (a skipped row would compose nothing there)
         m = re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9/._-]*) (\S+)", line.strip())
         if not m:
-            return {}, set(), f"{LEGACY_MAP_ID} body line {line.strip()[:60]!r} is not '<mint> <path|never-composed>'"
-        mint, where = m.groups()
-        if mint in paths or mint in ghosts:
-            return {}, set(), f"{LEGACY_MAP_ID} names mint {mint} twice"
+            return [], f"{LEGACY_MAP_ID} body line {line.strip()[:60]!r} is not '<mint> <path|never-composed|never-landed>'"
+        rows.append((m.group(1), m.group(2)))
+    return rows, None
+
+
+MEMBERSHIP = ("never-composed", "never-landed")
+
+
+def legacy_map(tips: dict[str, str], blobs: dict[str, bytes | None]) -> tuple[dict[str, str], set[str], set[str], str | None, str | None]:
+    """The frozen legacy map, read from ITS OWN grid tip (the node whose id is LEGACY_MAP_ID): its ONE `## rows` section, up to
+    the next heading or the THOUGHT block, holds the rows; every non-blank line there is a row, `<mint> <path>` (a legacy path) or `<mint> never-composed` (a ghost), the mint any grid ref name
+    (31-hex and `hyp/...` names exist); `<mint> never-landed` is a MEMBERSHIP row (T11). Returns (paths, ghosts, never_landed,
+    the map's mint, problem)."""
+    hits = [m for m, b in blobs.items() if b is not None and frontmatter(b).get("id") == LEGACY_MAP_ID]
+    if not hits:
+        return {}, set(), set(), None, None
+    if len(hits) > 1:
+        return {}, set(), set(), None, f"{len(hits)} grid refs carry {LEGACY_MAP_ID}: {' '.join(sorted(hits))}"
+    paths: dict[str, str] = {}
+    member: dict[str, set[str]] = {k: set() for k in MEMBERSHIP}
+    rows, problem = map_rows(blobs[hits[0]].decode("utf-8", errors="replace"))
+    if problem:
+        return {}, set(), set(), None, problem
+    for mint, where in rows:
+        if mint in paths or any(mint in s for s in member.values()):
+            return {}, set(), set(), None, f"{LEGACY_MAP_ID} names mint {mint} twice"
         if mint not in tips:
-            return {}, set(), f"{LEGACY_MAP_ID} names mint {mint}, which has no grid ref"
-        if where == "never-composed":
-            ghosts.add(mint)
+            return {}, set(), set(), None, f"{LEGACY_MAP_ID} names mint {mint}, which has no grid ref"
+        if where in MEMBERSHIP:
+            member[where].add(mint)
             continue
         if not is_node_path(where) or where.startswith(".agi/nodes/deprecated/"):
-            return {}, set(), f"{LEGACY_MAP_ID} row {mint}: {where} is not a LIVE-form node path (deprecated/ comes from status)"
+            return {}, set(), set(), None, f"{LEGACY_MAP_ID} row {mint}: {where} is not a LIVE-form node path (deprecated/ comes from status)"
         if where == live_path(frontmatter(blobs[mint] or b"")):
-            return {}, set(), f"{LEGACY_MAP_ID} row {mint}: {where} is the derived path (a map row must be needed)"
+            return {}, set(), set(), None, f"{LEGACY_MAP_ID} row {mint}: {where} is the derived path (a map row must be needed)"
         paths[mint] = where
     if len(set(paths.values())) != len(paths):
-        return {}, set(), f"{LEGACY_MAP_ID} names one path for two mints"
-    return paths, ghosts, None
+        return {}, set(), set(), None, f"{LEGACY_MAP_ID} names one path for two mints"
+    return paths, member["never-composed"], member["never-landed"], hits[0], None
+
+
+def frozen_problems(tip: str, rows_now: dict[str, str]) -> tuple[list[str], str | None]:
+    """T13 (sp 05:50:03Z) + U2 as corrected (sp [correction] 07:55:06Z, 3/3 alive 07:56:52Z): every PATH row and every
+    never-composed row on the map's tip is on the map's FIRST grid version (the root of its first-parent chain); an added or
+    re-pointed one = `row added after the freeze <mint>`; a removed row is legal. never-landed rows are the ONLY kind a later
+    version may add (T11 governs them), so T11's freeze version passes. A ghost row is frozen because a ghost mint is dropped
+    before any claim and never reaches T11's no-live-path check: an added ghost row would bypass T11."""
+    r = git("rev-list", "--first-parent", tip)
+    first = r.stdout.decode().split()[-1:] if r.returncode == 0 else []
+    if not first:
+        return [], f"the first grid version of {LEGACY_MAP_ID} (rev-list {tip[:12]} rc {r.returncode})"
+    blob = cat_batch([f"{first[0]}:node.md"])[0]
+    rows, problem = map_rows((blob or b"").decode("utf-8", errors="replace"))
+    if blob is None or problem:
+        return [], f"the first grid version {first[0][:12]} of {LEGACY_MAP_ID} ({problem or 'no node.md'})"
+    at_first = {(m, w) for m, w in rows if w != "never-landed"}
+    return [f"unread {m} (row added after the freeze {m}: {LEGACY_MAP_ID} row {m} {w} is not on its first grid version "
+            f"{first[0][:12]})" for m, w in sorted(rows_now.items()) if (m, w) not in at_first], None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -206,7 +244,11 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     mints = sorted(tips)
     # a ref at a missing / non-commit object is unread BY NAME (T3), never a node that is simply absent
-    kinds = git("cat-file", "--batch-check", inp=("\n".join(tips[m] for m in mints) + "\n").encode()).stdout.decode().splitlines()
+    kc = git("cat-file", "--batch-check", inp=("\n".join(tips[m] for m in mints) + "\n").encode())
+    kinds = kc.stdout.decode().splitlines()
+    if kc.returncode != 0 or len(kinds) != len(mints):     # N1: a short or failed read never zips into a shorter set
+        say(f"unread (cat-file --batch-check over {len(mints)} grid tips: rc {kc.returncode}, {len(kinds)} line(s))")
+        return 1
     readable = []
     for m, k in zip(mints, kinds):
         if not k.endswith("missing") and k.split()[1:2] == ["commit"]:
@@ -219,10 +261,16 @@ def main(argv: list[str] | None = None) -> int:
         if nodemd[m] is None:
             unread.append(f"unread {m} (its grid tip {tips[m][:12]} carries no node.md)")
 
-    lmap, ghosts, problem = legacy_map(tips, nodemd)
+    lmap, ghosts, never, map_mint, problem = legacy_map(tips, nodemd)
     if problem:
         say(f"unread ({problem})")
         return 1
+    if map_mint is not None:                                # T13: the map is read from its grid tip, its path rows frozen
+        added, problem = frozen_problems(tips[map_mint], {**lmap, **{m: "never-composed" for m in ghosts}})
+        if problem:
+            say(f"unread ({problem})")
+            return 1
+        unread.extend(added)
 
     # bind every readable mint to the ONE path its bytes (or the map) name
     claim: dict[str, list[str]] = {}
@@ -241,10 +289,18 @@ def main(argv: list[str] | None = None) -> int:
     for p, ms in claim.items():
         if p not in node_paths:
             no_live.extend(ms)                              # never landed / an orphan: counted + named, never written
+            # T11: membership from the GRID, never from the trunk listing: a ref with no live path is named by a never-landed
+            # row, else it is a node the trunk dropped (or a new ref after the freeze): unread by mint
+            unread.extend(f"unread {m} (no live path {p} and no '{m} never-landed' row in {LEGACY_MAP_ID})"
+                          for m in ms if m not in never)
         elif len(ms) > 1:
             unread.append(f"unread {p} (claimed by {len(ms)} grid refs: {' '.join(sorted(ms))})")
         else:
             composed[p] = ms[0]
+    for m in sorted(never):                                 # T11: a never-landed row is REMOVED in the land that lands its node
+        p = next((q for q, x in composed.items() if x == m), None)
+        if p is not None:
+            unread.append(f"unread {m} (a '{m} never-landed' row in {LEGACY_MAP_ID}, but it composes the live path {p})")
     for p in sorted(node_paths - set(composed)):
         if not any(p == q for q, ms in claim.items() if len(ms) > 1):
             unread.append(f"unread {p} (no grid ref composes this node path; never filled from the trunk)")
@@ -276,23 +332,32 @@ def main(argv: list[str] | None = None) -> int:
     say(f"sets: node {len(composed)} composed of {len(node_paths)} trunk node paths, payload {len(pay)} "
         f"(+{retired} retired, absent on both sides), carried {len(carried)} (from the trunk as is)")
     say(f"refs: {len(tips)} under {NODE_NS}; {len(no_live)} with no live path, {len(ghosts)} never-composed (map), "
-        f"{len(lmap)} placed by the legacy map; none of these written")
+        f"{len(lmap)} placed by the legacy map, {len(never)} never-landed (map); none of these written")
     for m in sorted(no_live):                               # WHOLE (alive 05:20:25Z (b)): a drop is a count change + a new name
         say(f"  no live path {m}")
 
     # the composed tree: carried entries as the trunk has them, node + payload entries from the grid
     entries = [(ptree[p][0], ptree[p][1], p) for p in carried]
-    ahead = []
+    differ = []
     nodesha = dict(zip(composed, batch_sha([f"{tips[m]}:node.md" for m in composed.values()])))
     for p, m in composed.items():
         entries.append(("100644", nodesha[p], p))
         if nodesha[p] != ptree[p][1]:
-            ahead.append((m, p))
+            differ.append((m, p))
     for p, (m, sha) in pay.items():
         mode = git("ls-tree", tips[m], "payload").stdout.decode().split()[0]
         entries.append((mode, sha, p))
-    for m, p in ahead:
-        say(f"  AHEAD {m} {p}: the grid tip {tips[m][:12]} is composed (the trunk's blob differs)")
+    # T12 (sp 05:50:03Z): AHEAD only when the trunk's blob is an EARLIER version on that mint's ref; the history is walked for
+    # these candidates only (blob != the trunk's), never for every ref (aio's nit)
+    for m, p in sorted(differ):
+        r = git("rev-list", tips[m])
+        hist = r.stdout.decode().split() if r.returncode == 0 else []
+        if not hist:
+            unread.append(f"unread {m} (rev-list {tips[m][:12]} rc {r.returncode}: its history is not readable)")
+        elif ptree[p][1] in set(batch_sha([f"{c}:node.md" for c in hist])):
+            say(f"  AHEAD {m} {p}: the grid tip {tips[m][:12]} is composed (the trunk's blob is an earlier version on its ref)")
+        else:
+            say(f"  BEHIND {m} {p} (trunk bytes not on the grid): the grid tip {tips[m][:12]} is composed")
 
     with tempfile.TemporaryDirectory() as d:
         env = {**os.environ, "GIT_INDEX_FILE": os.path.join(d, "index")}
@@ -308,9 +373,11 @@ def main(argv: list[str] | None = None) -> int:
         say(f"unread (diff-tree rc {diff.returncode})")
         return 1
     lines = diff.stdout.decode().splitlines()
-    say(f"diff vs the trunk {trunk[:10]}: {len(lines)} path(s)")
+    say(f"diff vs the trunk {trunk[:10]}: {len(lines)} path(s)" + (f" (first 20 of {len(lines)})" if len(lines) > 20 else ""))
     for ln in lines[:20]:
         say(f"  {ln}")
+    if len(unread) > 20:                                    # N2: a cut list says it is cut
+        say(f"unread lines (first 20 of {len(unread)}):")
     for u in unread[:20]:
         print(f"  {u}")
     if unread:

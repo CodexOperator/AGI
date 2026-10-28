@@ -3,7 +3,7 @@ id: build:extensions-agi-tests-recompose.t.sh
 mint_id: 9df7f423b58c428ab31342e6fd696c97
 type: build
 parents:
-  - goal:g7.16.1.11.46.17
+  - goal:g7.16.1.11.46.18
   - mvp:g7161146-w2-g1b1-recompose-view
 next_edges: []
 build_kind: code
@@ -15,6 +15,8 @@ payload_ref: extensions/agi/tests/recompose.t.sh
 tags:
   - g7.16.1.11.46.17
   - G1b-1
+  - g7.16.1.11.46.18
+  - G1b-2
 location: source_root
 role: director
 season: 3
@@ -25,5 +27,5 @@ town: local-maxxing
 # build:extensions-agi-tests-recompose.t.sh
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-3 10-28 (mint, goal:g7.16.1.11.46.17 BUILD; alive [decision] 05:20:25Z (iii): the view's own tool is node-owned, never in the CARRIED set): the build node of recompose.t.sh (the lane). PARENTS [goal, mvp] = goal:g7.16.1.11.46.17 + mvp:g7161146-w2-g1b1-recompose-view (alive [decision] 05:54:01Z (1), 3/3): [build, goal] is a new VERSION of an existing build ([build].md:55), and the first cut's [build, goal] would have written this NEW file into another build's lineage, a false line. ORIGIN build-scan ((2), sp, aio): [build].md:9 = 'build-scan | build-version'; build-version is the lineage claim this removes.
+director-general-3 10-28 (v2, goal:g7.16.1.11.46.18 G1b-2 slice (a)): 31 -> 39 rows. New: t11 + mutant (a git-rm'd live node = unread <mint>; membership from the trunk listing = diff 0), t11b (a never-landed row on a live node), m-ahead-by-inequality (T12), t13 + mutant (a path row added after the freeze), u2 + mutant (a never-landed row added after the freeze passes; T13 over every row reads it RED). Re-cut, same intent: the fixture map gains '<n7> never-landed'; t6 and k5 now read BEHIND (their trunk bytes are on no version of the ref: what T12 is for); k7 and s1's maps carry their never-landed rows; k6m's anchor follows the row parser into map_rows. PARENTS: the goal moved .46.17 -> .46.18, as its payload's build node.
 <!-- THOUGHT:END -->
