@@ -2472,7 +2472,10 @@ def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[s
             continue
         ancestors = [_is_ancestor(root, t, ntip) for t in (ltip, otip) if t]
         counts = [git_try(root, "rev-list", "--count", t) for t in (ltip, otip, ntip) if t]
-        if any(a is not True for a in ancestors) or any(c.returncode != 0 for c in counts):
+        if any(a is None for a in ancestors) or any(c.returncode != 0 for c in counts):
+            bad.append(f"{m} (unread: an ancestry or count read failed)")    # a ref at a missing object, never folded into 'not an ancestor'
+            continue
+        if any(a is not True for a in ancestors):
             bad.append(f"{m} (an old tip is not an ancestor of the new tip)")
             continue
         c = [int(x.stdout) for x in counts]
@@ -2490,6 +2493,13 @@ def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[s
             continue     # is early, so a pre-write tip that already carries a unify merge (a late snapshot) never takes this exit
         if lns == ORIGIN_SNAP_NS:
             why = _check_unrelated(root, ltip, ntip, seen, owner)
+            if why is None:
+                good += 1
+                continue
+            if why:
+                bad.append(f"{m} ({why})")
+                continue
+            why = _own_write_tip(root, ltip, ntip)
             if why is None:
                 good += 1
                 continue
@@ -2597,6 +2607,18 @@ def _tree_sha(root: Path, rev: str) -> str | None:
     res = git_try(root, "rev-parse", "--verify", "-q", f"{rev}^{{tree}}")
     sha = res.stdout.strip()
     return sha if res.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", sha) else None
+
+
+def _own_write_tip(root: Path, otip: str, ltip: str) -> str | None:
+    """goal:g7.16.1.11.46.16.4: an origin-snap mirror tip that is OUR OWN pushed version the live ref then moved past. None = sound: the mirror tip
+    ITSELF is on the live tip's first-parent chain and `otip..ltip` carries 0 merges (only our own appends); "" = not one (fall through: a FOREIGN tip,
+    reached only through a second parent, stays RED); else `unread` -- a rev-list git could not read prints 0 lines, and 0 lines is never 0 merges."""
+    chain = git_try(root, "rev-list", "--first-parent", ltip)
+    merges = git_try(root, "rev-list", "--merges", f"{otip}..{ltip}")
+    for what, res in (("--first-parent", chain), ("--merges", merges)):
+        if res.returncode != 0:
+            return f"unread: rev-list {what} rc {res.returncode}"
+    return None if otip in chain.stdout.split() and not merges.stdout.strip() else ""
 
 
 def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None",
