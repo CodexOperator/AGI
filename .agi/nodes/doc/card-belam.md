@@ -173,7 +173,7 @@ L187-L211: verify-land OK on each landed sha (L197: exactly `HOLD (home)`, lande
 |---|---|---|---|---|
 | 3.1 | "retire the python; only keygen/hashing left?" | src:doc | leaf:goal:g7.16.1.11.46.15 (W2 L122) | lap124501 |
 | 3.2 | "one spawn/dispatch path; pull setting" | src:doc | leaf:goal:g7.16.1.11.46.21 (W2 L122) | lap124501 |
-| 3.3 | "grid monolith, node = branch, post = slice; spiders under council; red-team" | src:doc | leaf:goal:g7.16.1.11.46.18 (W2 L122) | lap124501 |
+| 3.3 | "grid monolith, node = branch, post = slice; spiders under council; red-team" | src:doc | leaf:goal:g7.16.1.11.46.27 (G1b-3; was .46.18 W2 L122, council M2 10-28) | lap124501 | chunks: c:fa1f2270c388 |
 | 3.4 | "MCP single surface; pane; mixed harnesses; fifo fallback" | src:doc | target:§26 | lap124501 |
 | 3.5 | "mint id per post and kid; inherit director's slot; different login" | src:doc | leaf:goal:g7.16.1.11.46.19 (W2 L122) | lap124501 |
 | 3.6 | "full plugin" | src:doc | target:§28 | lap124501 |
@@ -205,7 +205,7 @@ L187-L211: verify-land OK on each landed sha (L197: exactly `HOLD (home)`, lande
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
 | a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.23 (W2 L122) | lap124501 |
-| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.18 (W2 L122) | lap124501 |
+| a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.27 (G1b-3; was .46.18 W2 L122, council M2 10-28) | lap124501 | chunks: c:283928988f4c |
 
 **added 10-25 (owner 18:4xZ) — not a brainstorm throw: unregistered in the trajectory on purpose**
 | # | atom (owner ask, short) | source | state | lap |
