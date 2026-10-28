@@ -7,7 +7,7 @@ nonce per call, so the FIXED `--ring-sig` values a caller passes never matched
 the canonical bytes the gate built. Kids A/B/C proved the bytes and the ring
 assemble; this kid D adds the SEAM that makes them usable out-of-process:
 
-  1. `--ring-fresh "<ts>|<nonce>"` on dispatch.py / verification.py / write.py
+  1. `--ring-fresh "<ts>|<nonce>"` on dispatch.py / verification.py (the node writer's seam retired with it, goal:g7.16.1.11.46.23 step 4)
      pins the EXACT `_fresh` the gate builds, so a signer computes the SAME
      canonical bytes.
   2. `--ring-fields` on each prints the exact fields + canonical bytes the
@@ -43,7 +43,6 @@ sys.path.insert(0, str(SRC))
 
 import dispatch  # noqa: E402
 import verification  # noqa: E402
-import write  # noqa: E402
 import seatsig  # noqa: E402
 from seatsig import get, register, Scheme  # noqa: E402
 from seatsig import rings  # noqa: E402
@@ -155,8 +154,7 @@ def _run(fn, argv):
     with redirect_stdout(ctx.out), redirect_stderr(ctx.err):
         try:
             rc = {"dispatch": dispatch.main,
-                  "verification": verification.main,
-                  "write": write.main}[fn]()
+                  "verification": verification.main}[fn]()
         except SystemExit as exc:
             rc = exc.code if exc.code is not None else 0
     return rc, ctx.out.getvalue(), ctx.err.getvalue()
@@ -358,88 +356,3 @@ def _stub_run_level(monkeypatch):
 # ---------------------------------------------------------------------------
 # WRITE path --ring-gate semantics / --ring-fresh / --ring-fields / --dry-run
 # ---------------------------------------------------------------------------
-
-def test_D_write_ring_fields_print_sign_admit(tmp_path):
-    """D/E: write.py `--ring-fields --ring-fresh T|N` prints the exact
-    config-write canonical; the test parses it, signs, and the corresponding
-    `set` run is ADMITTED (written) and the nonce recorded."""
-    root = _ring_root(tmp_path)
-    fresh = _fresh()
-    rc, out, _ = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--ring-fields",
-        "--ring-fresh", fresh, "--root", str(tmp_path)])
-    assert rc == 0, out
-    canon = _canonical_hex(out)
-    sigs = _sigs(canon, ["alice", "bob"])
-    rc, out, err = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--ring-fresh", fresh,
-        "--ring-sig", sigs[0], "--ring-sig", sigs[1],
-        "--actor", "director1", "--role", "prime", "--root", str(tmp_path)])
-    assert rc == 0, out + err
-    assert "updated" in out
-    assert _ledger(root).exists()
-
-
-def test_B_write_replay_refused(tmp_path):
-    """B/E: the same T|N a SECOND real write is REFUSED in the write gate as
-    a replayed nonce, naming the nonce; nothing further persists."""
-    root = _ring_root(tmp_path)
-    fresh = _fresh()
-    rc, out, _ = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--ring-fields",
-        "--ring-fresh", fresh, "--root", str(tmp_path)])
-    canon = _canonical_hex(out)
-    sigs = _sigs(canon, ["alice", "bob"])
-    args = ["config:posts", 'set posts [{"name": "x"}]', "--ring-fresh", fresh,
-            "--ring-sig", sigs[0], "--ring-sig", sigs[1],
-            "--actor", "director1", "--role", "prime", "--root", str(tmp_path)]
-    rc, _, _ = _run("write", args)
-    assert rc == 0
-    rc2, out2, err2 = _run("write", args)
-    assert rc2 == 2
-    assert "replayed nonce" in (out2 + err2)
-    assert fresh.split("|", 1)[1] in (out2 + err2)
-
-
-def test_A_write_changed_field_refused(tmp_path):
-    """A/E: change the set value (one byte) and keep the same signature ->
-    the write is REFUSED on the quorum (the signed bytes cover the value)."""
-    root = _ring_root(tmp_path)
-    fresh = _fresh()
-    rc, out, _ = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--ring-fields",
-        "--ring-fresh", fresh, "--root", str(tmp_path)])
-    canon = _canonical_hex(out)
-    sigs = _sigs(canon, ["alice", "bob"])
-    rc, out, err = _run("write", [
-        "config:posts", 'set posts [{"name": "y"}]', "--ring-fresh", fresh,
-        "--ring-sig", sigs[0], "--ring-sig", sigs[1],
-        "--actor", "director1", "--role", "prime", "--root", str(tmp_path)])
-    assert rc == 2
-    assert "rung 2 multisig ring" in (out + err)
-
-
-def test_C_write_dry_run_no_ledger(tmp_path):
-    """C/E: write `--dry-run` with a valid quorum returns before the write
-    gate -- no ledger file appears. A following real run then ADMITS (the
-    nonce was never burned by the dry run)."""
-    root = _ring_root(tmp_path)
-    fresh = _fresh()
-    rc, out, _ = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--ring-fields",
-        "--ring-fresh", fresh, "--root", str(tmp_path)])
-    canon = _canonical_hex(out)
-    sigs = _sigs(canon, ["alice", "bob"])
-    rc, _, err = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--dry-run",
-        "--ring-fresh", fresh, "--ring-sig", sigs[0], "--ring-sig", sigs[1],
-        "--actor", "director1", "--role", "prime", "--root", str(tmp_path)])
-    assert rc == 0
-    assert not _ledger(root).exists()
-    # real run with the same T|N -> still fresh (dry run never burned it)
-    rc, out, err = _run("write", [
-        "config:posts", 'set posts [{"name": "x"}]', "--ring-fresh", fresh,
-        "--ring-sig", sigs[0], "--ring-sig", sigs[1],
-        "--actor", "director1", "--role", "prime", "--root", str(tmp_path)])
-    assert rc == 0, (out + err)
-    assert "updated" in out

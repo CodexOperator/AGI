@@ -783,6 +783,15 @@ def test_w3a_verify_still_exits_zero_on_a_tiny_project(tmp_path):
     assert _w3_view(_w3_project(tmp_path), "--verify")[0] == 0
 
 
+def _body_slice(root, node_id, rng):
+    """Body lines A..B (1-based, inclusive) of a node file: the read the retired node writer's `read body A:B` did."""
+    import node_writer
+    text = node_writer.find_node_file(root, node_id).read_text(encoding="utf-8")
+    body = text.split("\n---\n", 1)[1] if text.startswith("---") else text
+    a, b = (int(x) for x in rng.split(":"))
+    return "\n".join(body.splitlines()[a - 1:b])
+
+
 # --- bundle 4 W3c (director-general-2) --------------------------------------
 # hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
 # the render's --range is replace's coordinates, so `read N:M` -> `replace N:M`
@@ -790,9 +799,8 @@ def test_w3a_verify_still_exits_zero_on_a_tiny_project(tmp_path):
 @pytest.mark.xfail(strict=True, reason="goal:g4.18.7.1: RED until the render's --range is built (bundle 4 W3c)")
 @pytest.mark.parametrize("rng", ["1:3", "4:5", "7:9"])
 def test_w3c_the_render_range_is_the_replace_coordinates(tmp_path, rng):
-    import write
     root = _w3_project(tmp_path)
-    want = write._slice_range(write._read_body_text(root, "goal:x"), rng)
+    want = _body_slice(root, "goal:x", rng)   # the oracle was the node writer's slice (retired, step 4): body lines A..B, 1-based
     rc, out = _w3_view(root, "--node", "goal:x", "--range", rng, "--emit", "llm")
     assert rc == 0 and all(ln in out for ln in want.splitlines() if ln.strip())
     assert all((s in out) == (s in want) for s in ("BODY-ONE", "ROW-TWO"))  # only that slice

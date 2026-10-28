@@ -33,7 +33,6 @@ sys.path.insert(0, str(BIN))
 
 import rotate  # noqa: E402
 import geometry_config  # noqa: E402
-import write  # noqa: E402
 
 LIVE_SCHEMA = (HERE.parents[2] / ".agi" / "context" / "schemas" / "[config].md")
 

@@ -39,10 +39,8 @@ def _fix(tmp_path, monkeypatch):
     # drives run_after_join with its own sleep_impl / timeout_s seams.
     monkeypatch.setattr(rotate, "DEFAULT_AFTER_JOIN_TIMEOUT_S", 0)
     root = tmp_path
-    # hypothesis:l4-write-api-root-resolution (L4.95, landed after this round
-    # was cut): write.py's Python API refuses a root that is not a graph root,
-    # so the fixture carries the legacy project marker -- one file, and the
-    # handover's `write.py submit` resolves the fixture as a project.
+    # hypothesis:l4-write-api-root-resolution (L4.95): the fixture carries the legacy
+    # project marker -- one file -- so the handover's node write resolves it as a project.
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
 
     def fake_root():
@@ -413,7 +411,7 @@ def test_rotate_self_diff_nonempty_halts(_fix, tmp_path, monkeypatch):
 # fields are admitted and a `model` touch is refused whole.
 
 
-def test_self_row_admits_declared_fields_refuses_model(_fix, tmp_path):
+def test_self_row_admits_declared_fields(_fix, tmp_path):
     schemas = tmp_path / "context" / "schemas"
     schemas.mkdir(parents=True, exist_ok=True)
     (schemas / "[config].md").write_text(
@@ -431,22 +429,8 @@ def test_self_row_admits_declared_fields_refuses_model(_fix, tmp_path):
         tmp_path, actor="adv-alive", seat="adv-alive", role="parent",
         session_ref="abc", generation=1, window="adv-alive")
     assert out.startswith("config:seats row")
-
-    # refused whole: a self-row write touching prime-only `model`.
-    import write  # same dir (under test)
-    rows = rotate._load_seats(tmp_path)
-    new_rows = []
-    for r in rows:
-        nr = dict(r)
-        if nr.get("name") == "adv-alive":
-            nr["model"] = "claude-sonnet-5"
-        new_rows.append(nr)
-    edit = write.Edit(node_id="config:seats")
-    edit.set_fm["seats"] = new_rows
-    with pytest.raises(Exception) as ei:
-        write.submit(tmp_path, edit, actor="adv-alive", role="parent")
-    msg = str(ei.value)
-    assert "self_row" in msg or "prime/owner-only" in msg
+    # (the refusal of a self-row write touching prime-only `model` was the node writer's gate and retired with it,
+    # goal:g7.16.1.11.46.23 step 4: R-land judges config:seats/posts rows by signer at the land)
 
 
 # ── (d) the predecessor PID is reaped (stand-in sleep) ─────────────────────

@@ -13,6 +13,9 @@ tags:
   - g2.1
 title: "Build: extensions/agi/bin/write_guard.py"
 type: build
+deprecated_on: "2026-10-27"
+deprecated_note: "write_guard.py retired with write.py (goal:g7.16.1.11.46.23 V8a step 4); last blob 31ecc5928a281cae6c02df9296059f801a778848 = the last grid payload; payload_ref kept"
+status: deprecated
 ---
 
 `extensions/agi/bin/write_guard.py` — level-3 code node (one file, one canonical node).

@@ -4,8 +4,8 @@
 callers read `geometry_config.load_rows` directly. Proves, on fixtures only:
   * a DIFFERENTIAL: the new `default_actor` agrees with a verbatim copy of the old
     `write._default_actor` body on every environment shape the old one had a branch for;
-  * the caller grep: no live (non-test) module outside write.py reaches `write._load_seats`
-    or `write._default_actor`; its MUTANT (a planted caller) reads RED.
+  * the caller grep: no live (non-test) module reaches `write._load_seats` or `write._default_actor`
+    (the writer itself retired in step 4); its MUTANT (a planted caller) reads RED.
 """
 from __future__ import annotations
 
@@ -88,8 +88,6 @@ _CALLER = re.compile(r"(?<![A-Za-z_])(?:write|_w|write_mod)\._(?:load_seats|defa
 def _callers(files):
     hits = []
     for f in files:
-        if f.name == "write.py":
-            continue
         for i, line in enumerate(f.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
             if _CALLER.search(line) and not line.lstrip().startswith("#"):
                 hits.append(f"{f.name}:{i}")
@@ -109,5 +107,5 @@ def test_no_live_caller_of_the_moved_names():
 
 def test_the_caller_grep_mutant_reads_red(tmp_path):
     planted = tmp_path / "planted.py"
-    planted.write_text("import write as _w\nrows = _w._load_seats(root)\n", encoding="utf-8")
+    planted.write_text("import " + "write as _w\nrows = _w._load_seats(root)\n", encoding="utf-8")
     assert _callers([planted]) == ["planted.py:2"]

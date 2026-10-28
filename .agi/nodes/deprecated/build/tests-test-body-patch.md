@@ -13,6 +13,9 @@ tags:
   - g2.1
 title: "Build: extensions/agi/tests/test_body_patch.py"
 type: build
+deprecated_on: "2026-10-27"
+deprecated_note: "test_body_patch.py retired with write.py (its body_patch verb; goal:g7.16.1.11.46.23 V8a step 4); last blob ffe13bfa980065ccc3906f98a9b98107f460c665 = the last grid payload; payload_ref kept"
+status: deprecated
 ---
 
 `extensions/agi/tests/test_body_patch.py` — level-3 code node (one file, one canonical node).

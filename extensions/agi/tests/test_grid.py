@@ -1240,7 +1240,7 @@ def test_checkout_materializes_payloads_for_editing(project, engine):
 
 def test_non_default_location_payload_resolves_through_locations(project, engine):
     """goal:g6.1 arrow stays for the default tree; a payload recorded under a
-    non-default `location:` key must resolve where `write.py create --payload`
+    non-default `location:` key must resolve where a payload create
     put it — the location-aware path — not silently fail because the grid only
     beheld staged/engine. Blinded before the fix (both return None for this
     key); this locks the green leg in as a permanent regression test."""
@@ -1260,7 +1260,7 @@ def test_non_default_location_payload_resolves_through_locations(project, engine
 def test_non_default_location_does_not_resolve_to_staged_or_engine(project, engine):
     """A non-default location is authoritative: a payload present in the
     staged checkout but absent at the declared base must NOT resolve — the
-    base the author recorded dominates, so grid and write.py agree."""
+    base the author recorded dominates, so grid and the payload writer agree."""
     import json
     cfg = project / "agi-tree.config.json"
     cfg.write_text(json.dumps({"locations": {"docset": "docsets"}}))

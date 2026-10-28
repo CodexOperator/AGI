@@ -4,7 +4,7 @@ gate (verification._ring_gate_refusal) answer "no ring, admit" when they COULD N
 Both read the rings cell with a non-strict seatsig.rings.load_rings inside `except Exception: ring = None`
 and then `return None` (admit): a REAL load failure (a rings file the uid cannot read, a corrupt one, one
 whose value is not a list, one whose m is not a number, a seatsig.rings that will not import) must return a
-REFUSAL LINE that names the ring and the error class. Real failures, as lane D's write.py rows use, never a
+REFUSAL LINE that names the ring and the error class. Real failures, as lane D's rows used, never a
 stub of ring_by_name. The intended admits are the controls: a ring the geometry does not name, an absent cell.
 NOTE for the builder: load_rings itself degrades an unreadable or unparseable cell to [], so an except-split
 in the gates alone cannot see a mode-000 or a corrupt file: use load_rings(strict=True) or look at the cell.

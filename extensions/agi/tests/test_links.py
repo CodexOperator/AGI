@@ -851,26 +851,22 @@ def test_w2a_a_bak_is_no_carrier_and_a_retired_node_resolves_live_first(project)
     assert tuple(links.resolve_mint(project, _W2A_MINT)) == ("goal:g9.0", "T", "deprecated")
 
 
-# SM 102 105: every exit of `links.py mint` and write.py's mint target, by rc:
-# found 0 · unknown 1 (links) / 2 (write) · two live carriers 2 · a grep that
-# cannot look 2 with a named line, never a traceback.
+# SM 102 105: every exit of `links.py mint`, by rc: found 0 · unknown 1 · two live
+# carriers 2 · a grep that cannot look 2 with a named line, never a traceback.
+# (The node writer's mint target, the other caller, retired with it, goal:g7.16.1.11.46.23 step 4.)
 def test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep(project, monkeypatch, capsys):
-    import write
     fm = [f"mint_id: {_W2A_MINT}", "type: hypothesis", 'title: "T"', "status: active"]
     _node(project, "hypothesis:h1", ['id: "hypothesis:h1"'] + fm, "b\n")
     root = ["--root", str(project)]
     assert links.main(["mint", _W2A_MINT] + root) == 0
     assert links.main(["mint", "e" * 32] + root) == 1
-    assert write.main(["e" * 32, "note x"] + root) == 2
     _node(project, "hypothesis:h2", ['id: "hypothesis:h2"'] + fm, "b\n")
     assert links.main(["mint", _W2A_MINT] + root) == 2
-    assert write.main([_W2A_MINT, "note x"] + root) == 2
     capsys.readouterr()
 
     monkeypatch.setenv("GIT_CONFIG_PARAMETERS", "bogus")   # real git, exit 128
     assert links.main(["mint", _W2A_MINT] + root) == 2
-    assert write.main([_W2A_MINT, "note x"] + root) == 2
-    assert capsys.readouterr().err.count("mint lookup could not look") == 2
+    assert capsys.readouterr().err.count("mint lookup could not look") == 1
 
 
 # hypothesis:one-per-read-mint-index-carries-type: ONE grep per read, frontmatter
@@ -936,15 +932,15 @@ def test_sm123_to_127_the_index_reads_like_yaml_and_hides_no_node(project, capsy
     links.mint_index(project)   # 126: named, and once per process, never per read
     assert capsys.readouterr().err.count(f"noid.md: mint_id {'6' * 32} but no id -- not indexed") == 1
 
-def test_w2a_one_resolver_def_and_links_and_write_call_it():
+def test_w2a_one_resolver_def_and_links_calls_it():
     import re
     src = {p.name: p.read_text() for p in BIN.glob("*.py")}
     defs = [n for n, s in src.items()
             if re.search(r"^def resolve_mint\(", s, re.M)]
     assert len(defs) == 1, f"one resolver, one def: {defs}"
-    callers = [n for n in ("links.py", "write.py")
+    callers = [n for n in ("links.py",)
                if "resolve_mint(" in src[n].replace("def resolve_mint(", "")]
-    assert callers == ["links.py", "write.py"], callers
+    assert callers == ["links.py"], callers
 
 
 # --- bundle 4 W2c (director-general-2)

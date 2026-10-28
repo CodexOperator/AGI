@@ -21,10 +21,6 @@ from pathlib import Path
 
 STAMP_DIRNAME = "seats"
 
-#: Set in the env of an ENGINE-INTERNAL write that runs AFTER a rotation wrote the seat's card, so its stamp
-#: cannot re-stale the card it just wrote (conjunct 1's measured hazard).
-INTERNAL_ENV = "AGI_LAST_ACT_INTERNAL"
-
 #: The env keys an act's seat is resolved from, in order. AGI_AGENT_ID comes
 #: FIRST: a spawned agent's env carries the dispatching seat's inherited
 #: AGI_POST, so resolving the post first stamped the DIRECTOR for a kid's act
@@ -83,12 +79,9 @@ def env_seat(explicit: str | None = None) -> str:
 
 
 def touch_env(root, explicit: str | None = None) -> str:
-    """Stamp the ACTING seat from the flag/env, SKIPPED when the invocation is
-    engine-internal (`INTERNAL_ENV`): the closeout's own `note` write runs
-    AFTER the rotation wrote the card, so a stamp there would re-stale it.
-    Returns the seat stamped ('' when skipped or unnamed). Never raises (P7)."""
-    if os.environ.get(INTERNAL_ENV):
-        return ""
+    """Stamp the ACTING seat from the flag/env. (The engine-internal skip went with the closeout `note`
+    write it guarded, which retired with the node writer, goal:g7.16.1.11.46.23 step 4.)
+    Returns the seat stamped ('' when unnamed). Never raises (P7)."""
     seat = env_seat(explicit)
     if seat:
         touch(root, seat)

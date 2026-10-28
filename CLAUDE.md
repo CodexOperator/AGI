@@ -125,4 +125,3 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 | `python3 extensions/agi/bin/envfile.py --check` | goal:g1.8 — required keys present, forbidden absent |
 | `python3 extensions/agi/bin/crons.py show` | the crontab the graph declares |
 | `python3 extensions/agi/bin/viewport.py --live` / `--emit llm` / `--emit both` | the live graph · what a kid is handed · both from ONE stream |
-| `python3 extensions/agi/bin/write.py` | goal:g4.18 — named node operations (skill `agi-node-write`) |
