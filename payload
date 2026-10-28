@@ -2,7 +2,7 @@
 node and the git history is the record. Design: doc:rse-d1-nest v3 (alive); the reader is `extensions/agi/bin/nest.py`
 (`nest.py slice|log REV N`, read-only), the check is `links.nest_unresolved(root)`.
 
-Everything runs against the BUILD's files at the tree under test (nest.py, links.py, metrics.py, write.py and the
+Everything runs against the BUILD's files at the tree under test (nest.py, links.py, metrics.py, node_writer.py and the
 schemas of that tree), never a copy of the doc's text: NEST_PY=<file> points the reader rows at a candidate, and the
 rest follows this file's own tree. Every git row runs in a throwaway repo (tmp_path, one per case); nothing touches a
 live ref. Without a nest.py every reader row FAILS (it does not skip): RED today is `nest.py does not exist`.
@@ -447,7 +447,7 @@ def test_l_the_metrics_cell_is_zero_when_nothing_dangles(tmp_path):
     assert m.get("nest_unresolved") == "0", m
 
 
-# --- D1.1 / D1.2: a collapse through the real writer ---
+# --- D1.1 / D1.2: a collapse through the real writer (node_writer.update_node: the node writer script retired, step 4) ---
 def test_d11_d12_the_writer_collapses_with_exactly_one_tracked_file_changed_and_the_count_holds(tmp_path):
     root = _scratch_root(tmp_path)
     for nid in ("a", "b"):
@@ -462,8 +462,8 @@ def test_d11_d12_the_writer_collapses_with_exactly_one_tracked_file_changed_and_
     before = _metrics(root).get("node_count")
     env = dict(repo.env, HOME=str(tmp_path / "hm"), AGI_POST="dg2-falsifier")
     (tmp_path / "hm").mkdir()
-    r = subprocess.run([sys.executable, str(BIN / "write.py"), "goal:a", "set nest subtree"], cwd=root.parent, env=env,
-                       capture_output=True, text=True)
+    code = "import sys, node_writer as w; r = w.update_node(sys.argv[1], 'goal:a', set_fm={'nest': 'subtree'}); print(r.status); sys.exit(0 if r.status == w.UPDATED else 1)"
+    r = subprocess.run([sys.executable, "-c", code, str(root)], cwd=str(BIN), env=env, capture_output=True, text=True)
     assert r.returncode == 0, r.stdout + r.stderr
     changed = repo.g("diff", "--name-only", base).split()                       # committed or not: tracked files vs base
     assert changed == [".agi/nodes/goal/a.md"], changed
