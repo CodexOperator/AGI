@@ -1149,7 +1149,10 @@ def double_mint_holder(root: Path, mint: str, node_id: str, files: dict[str, set
     only for a mint with no file in that view. A mint carries its id only once it HAS a ref (or this run created it), so of
     two new files with one id the first processed is minted and the second is refused."""
     v = _dm_view(root, files, key)
-    for m in sorted(v["refs"].keys() | MINTED_THIS_RUN.keys()):
+    pool = v["refs"].keys() | MINTED_THIS_RUN.keys()
+    if key != "worktree":    # a TREE view (a split writes nothing between prepares): a file-only NEW mint holds its id too (A16)
+        pool |= v["files"].keys()
+    for m in sorted(pool):
         if m == mint:
             continue
         if m in v["files"]:

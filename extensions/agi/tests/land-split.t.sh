@@ -99,6 +99,13 @@ gt u4 "$U4";$G -C $P checkout -q --detach $TR;OUT=u4;sp;u4=$?
 ok "u4-the-double-mint-view-is-the-gated-tree a renumber + a new mint at the vacated id: rc $u4, both written (M1 v2, M6 v1), judged by the gated tree while the checkout sits at the base" '[ $u4 = 0 ]&&moved 1&&grep -q "^$NS/$(mn 6) " $T/u4.after'
 gt u4m "$U4";$G -C $P checkout -q --detach $TR;mut $P/extensions/agi/bin/grid.py '                                                    dm_files=view, dm_key=("tree", g))' '                                                    dm_files=None, dm_key="worktree")';OUT=u4m;sp
 ok "m-the-view-from-the-checkout-reads-RED the view taken from the checkout at base: M6 refused as a double mint (want both written, so the refusal = caught)" 'grep -q "unread $(mn 6) .agi/nodes/idea/n1-new.md (double mint" $T/u4m.out'
+# A16's gated-tree half (sp [word] 08:51:29Z, decision 3/3 alive 08:55:55Z): TWO NEW mints (n6, n7) for one FRESH id in ONE land -> both unread, nothing written;
+# mutant: file-only mints left out of the tree view's holders -> both written
+FR="nd .agi/nodes/idea/n6.md idea:nx 6 idea active '' six;nd .agi/nodes/idea/n7.md idea:nx 7 idea active '' seven;$E4"
+gt fr "$FR";OUT=fr;sp;fr=$?
+ok "a16b-two-new-mints-for-one-fresh-id-are-unread rc $fr: $(grep -c 'double mint: idea:nx' $T/fr.out) unread double-mint line(s), refs before == after" '[ $fr = 1 ]&&grep -q "unread $(mn 6) .agi/nodes/idea/n6.md (double mint: idea:nx is already carried by mint $(mn 7)" $T/fr.out&&grep -q "unread $(mn 7) .agi/nodes/idea/n7.md (double mint: idea:nx is already carried by mint $(mn 6)" $T/fr.out&&cmp -s $T/fr.before $T/fr.after'
+gt frm "$FR";mut $P/extensions/agi/bin/grid.py '        pool |= v["files"].keys()' '        pass';OUT=frm;sp
+ok "m-file-only-mints-not-holders-reads-RED the tree view's holders without the file-only mints: n6 and n7 both WRITTEN (want nothing written, so the refs = caught)" 'grep -q "^$NS/$(mn 6) " $T/frm.after&&grep -q "^$NS/$(mn 7) " $T/frm.after'
 # I18 (aio) THE VIEW'S CACHE is keyed by the view: ONE process judges the worktree view (M6 for idea:n1 -> held by M1) then a gated view where M1 is idea:n1b -> no holder
 i18(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done
  (cd $P&&python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import grid;r=grid.find_project_root();grid.apply_storage_trunk(r)
@@ -138,10 +145,11 @@ ok "m-a-nest-read-without-its-rc-check-reads-RED the nest rc check cut: the unre
 # I17 (aio) PARITY: five cases through BOTH commit --all (the checkout at the gated commit) and split --write, against ONE declared verdict table:
 # cell = <case node's ref moved><the other node's (n1) ref moved>: commit --all refuses / skips / holds the case node (a live payload gone = WARN + written,
 # cron) and writes the other; split reads unread and writes NOTHING; unchanged = no version in either, the other written
-TABLE="dm:commit=ny dm:split=nn pg:commit=yy pg:split=nn nest:commit=ny nest:split=nn held:commit=ny held:split=nn same:commit=ny same:split=ny"
+# fresh = TWO new mints for one fresh id, a DECLARED DIFFERENCE, not parity (aio 08:52:27Z): commit --all first wins (n6 written, n7 refused, cron); split writes nothing
+TABLE="dm:commit=ny dm:split=nn pg:commit=yy pg:split=nn nest:commit=ny nest:split=nn held:commit=ny held:split=nn same:commit=ny same:split=ny fresh:commit=ny fresh:split=nn"
 E1="nd .agi/nodes/idea/n1.md idea:n1 1 idea active '' one-v2"
 par(){ m=$1;w=$2;shift 2;cp_ par-$m-$w;$G -C $P checkout -q --detach $TR
- case $m in dm) c=6;ed="nd .agi/nodes/idea/n6.md idea:n1 6 idea active '' six;$E1";;pg) c=3;ed="nd .agi/nodes/build/b3.md build:b3 3 build active 'payload_ref: src/p3.txt\n' three-v2;git rm -q src/p3.txt;$E1";;
+ case $m in dm) c=6;ed="nd .agi/nodes/idea/n6.md idea:n1 6 idea active '' six;$E1";;fresh) c=7;ed="nd .agi/nodes/idea/n6.md idea:nx 6 idea active '' six;nd .agi/nodes/idea/n7.md idea:nx 7 idea active '' seven;$E1";;pg) c=3;ed="nd .agi/nodes/build/b3.md build:b3 3 build active 'payload_ref: src/p3.txt\n' three-v2;git rm -q src/p3.txt;$E1";;
   *) c=4;ed="$E4;$E1";;esac
  (cd $P&&eval "$ed");$G -C $P add -A;$G -C $P commit -qm par;$G -C $P update-ref $GT HEAD
  case $m in nest) t4=$($G -C $P rev-parse $NS/$(mn 4)^{tree});rm -f $P/.git/objects/$(echo $t4|cut -c1-2)/$(echo $t4|cut -c3-);;
@@ -150,8 +158,8 @@ par(){ m=$1;w=$2;shift 2;cp_ par-$m-$w;$G -C $P checkout -q --detach $TR
  while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done
  OUT=par-$m-$w;if [ $w = commit ];then cm;else $G -C $P checkout -q --detach $TR;sp;fi
  a=n;moved $c&&a=y;b=n;moved 1&&b=y;echo "$m:$w=$a$b";}
-got=$(for m in dm pg nest held same;do for w in commit split;do par $m $w;done;done|tr '\n' ' ')
-ok "i17-parity-commit-all-and-split-against-one-verdict-table got: $got" '[ "$got" = "$TABLE " ]'
-got=$(for m in dm pg nest held same;do for w in commit split;do if [ $w = split ];then par $m $w '            else:                                         # A17: a land is gated' '            elif False:                                   # A17: a land is gated';else par $m $w;fi;done;done|tr '\n' ' ')
+got=$(for m in dm pg nest held same fresh;do for w in commit split;do par $m $w;done;done|tr '\n' ' ')
+ok "i17-parity-commit-all-and-split-against-one-verdict-table got: $got (fresh, the declared difference: commit --all wrote n6: $(grep -c "^$NS/$(mn 6) " $T/par-fresh-commit.after))" '[ "$got" = "$TABLE " ]&&grep -q "^$NS/$(mn 6) " $T/par-fresh-commit.after'
+got=$(for m in dm pg nest held same fresh;do for w in commit split;do if [ $w = split ];then par $m $w '            else:                                         # A17: a land is gated' '            elif False:                                   # A17: a land is gated';else par $m $w;fi;done;done|tr '\n' ' ')
 ok "m-one-guard-cut-in-one-writer-only-reads-RED split's live-payload guard cut (commit --all untouched): the table reads $got (want the declared table, so a differing cell = caught)" '[ "$got" != "$TABLE " ]&&echo "$got"|grep -q "pg:split=yy"'
 echo "land-split: $nrows rows";echo "land-split: $f FAIL";[ $f = 0 ]
