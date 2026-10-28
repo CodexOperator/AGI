@@ -46,6 +46,7 @@ Usage:
                                     # written to PATH with its recorded mode
   grid.py checkout --all [--dir D]  # materialize payloads into <project>/payloads/
                                     # — the staged copy an author edits (goal:g6.1)
+  grid.py split --base B --gated G [--write]   # a land: one grid commit per changed node (goal:g7.16.1.11.46.18)
   grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
   grid.py migrate-trunk [--from NS] [--to NS]   # move every ref onto NS (the
                                     # configured grid.storage_trunk when --to is
@@ -1612,6 +1613,166 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             print(f"grid: {len(DOUBLE_MINT_REFUSED)} new mint(s) refused (the id is already carried by another mint)", file=sys.stderr)
         if UPDATE_REF_FAILURES or LEGACY_HELD or DOUBLE_MINT_REFUSED:   # goal:g4.13.1 N1: the run went on; it is not clean
             sys.exit(1)
+    finally:
+        if lock is not None:
+            lock.release()
+
+
+SPLIT_HELD: list[str] = []
+
+
+def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], list[str]]:
+    """The changed nodes of the land base..gated, read from the two trees only (no checkout): every node file the gated tree
+    adds or modifies, and every node whose `payload_ref` path changed (its payload is NODE-owned, goal:g6.3). Each item is
+    {mint, id, path, node (blob sha), payload (mode, sha) | None}. A node path deleted with no gated file of the same mint
+    (retire, never delete), a node file with an id and no mint_id, or two gated files of one mint = an unread line."""
+    unread: list[str] = []
+    res = git_try(root, "diff-tree", "-r", "-z", "--no-renames", "--no-commit-id", base, gated)
+    if res.returncode != 0:
+        return [], [f"unread (diff-tree {base[:12]} {gated[:12]} rc {res.returncode})"]
+    parts = res.stdout.split("\0")
+    changed: dict[str, str] = {}                          # path -> status letter
+    for i in range(0, len(parts) - 1, 2):
+        changed[parts[i + 1]] = parts[i].split()[-1]
+    is_node = lambda q: q.startswith(".agi/nodes/") and q.endswith(".md")
+    lst = git_try(root, "ls-tree", "-r", "-z", "--full-tree", gated)
+    if lst.returncode != 0:
+        return [], [f"unread (ls-tree {gated[:12]} rc {lst.returncode})"]
+    tree: dict[str, tuple[str, str]] = {}                 # path -> (mode, sha) in the gated tree
+    for e in lst.stdout.split("\0"):
+        if e:
+            meta, q = e.split("\t", 1)
+            mode, _, sha = meta.split()
+            tree[q] = (mode, sha)
+    # the node blobs to read: every gated node file when a non-node path changed (a payload can be anyone's), else the changed ones
+    other = [q for q in changed if not is_node(q)]
+    want = [q for q in tree if is_node(q)] if other else [q for q, st in changed.items() if st != "D" and is_node(q)]
+    want += [q for q, st in changed.items() if st == "D" and is_node(q)]
+    out = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"], capture_output=True,
+                         input="".join(f"{base if changed.get(q) == 'D' else gated}:{q}\n" for q in want).encode())
+    if out.returncode != 0:
+        return [], [f"unread (cat-file --batch over {len(want)} node blob(s) rc {out.returncode})"]
+    text: dict[str, str] = {}
+    pos = 0
+    for q in want:
+        nl = out.stdout.find(b"\n", pos)
+        head = out.stdout[pos:nl].split()
+        if len(head) != 3:
+            unread.append(f"unread {q} (its blob is not readable)")
+            pos = nl + 1
+            continue
+        size = int(head[2])
+        text[q] = out.stdout[nl + 1:nl + 1 + size].decode("utf-8", "replace")
+        pos = nl + 1 + size + 1
+    items: dict[str, dict] = {}
+    gated_mints: dict[str, str] = {}
+    for q, body in text.items():
+        if changed.get(q) == "D":
+            continue
+        ii, mi = ID_RE.search(body), MINT_ID_RE.search(body)
+        if not ii:
+            continue                                      # not a node (no id): carried, never versioned
+        if not mi:
+            unread.append(f"unread {q} ({ii.group(1)} has no mint_id)")
+            continue
+        if mi.group(1) in gated_mints and gated_mints[mi.group(1)] != q:
+            unread.append(f"unread {q} (mint {mi.group(1)} is also {gated_mints[mi.group(1)]})")
+            continue
+        gated_mints[mi.group(1)] = q
+        pr, loc = PAYLOAD_REF_RE.search(body), LOCATION_RE.search(body)
+        pref = pr.group(1) if pr and (not loc or loc.group(1) in ("source_root", "repo_root")) else None
+        if q in changed or (pref and pref in changed):
+            items[mi.group(1)] = {"mint": mi.group(1), "id": ii.group(1), "path": q, "node": tree[q][1],
+                                  "payload": tree.get(pref) if pref else None}
+    for q, st in changed.items():
+        if st == "D" and is_node(q) and q in text:
+            mi = MINT_ID_RE.search(text[q])
+            if mi and mi.group(1) not in gated_mints:
+                unread.append(f"unread {q} (deleted with no gated file of its mint {mi.group(1)}: retire, never delete)")
+    return [items[m] for m in sorted(items)], unread
+
+
+def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 120) -> int:
+    """goal:g7.16.1.11.46.18 G1b-2 (A14 + I14): a land is a SPLIT. One grid commit per changed node of base..gated on its
+    `mint_node_ref` (the builder), under GridLock, each ref moved by a CAS on the tip read once at the start; a tip that
+    moved since (grid_sync's `commit --all`, a single-file commit) is a `held merge` row for that mint: that node is not
+    written, never a whole-tree merge, rc 1. An unreadable input or a change the split cannot place prints `unread` and
+    writes NOTHING (rc 1). Without --write the plan is printed and nothing is written."""
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return 1
+    ensure_repo(root)
+    problem = legacy_config_problem(root)
+    if problem:
+        print(f"split: unread ({problem}); nothing written")
+        return 1
+    revs = []
+    for name in (base, gated):
+        r = git_try(root, "rev-parse", "-q", "--verify", f"{name}^{{commit}}")
+        if r.returncode != 0:
+            print(f"split: unread ({name} does not name a commit); nothing written")
+            return 1
+        revs.append(r.stdout.strip())
+    b, g = revs
+    print(f"split: base {b} gated {g}")
+    items, unread = _split_plan(root, b, g)
+    if unread:
+        for u in unread:
+            print(f"  {u}")
+        print(f"split: {len(unread)} unread; nothing written")
+        return 1
+    SPLIT_HELD.clear()
+    lock = GridLock(root, lock_wait) if write else None
+    if lock is not None:
+        lock.acquire()
+    try:
+        global LEGACY_TIPS
+        LEGACY_TIPS = None
+        refs = [mint_node_ref(it["mint"]) for it in items]
+        res = git_try(root, "for-each-ref", "--format=%(refname) %(objectname)", *refs) if refs else None
+        if res is not None and res.returncode != 0:
+            print(f"split: unread (for-each-ref over {len(refs)} ref(s) rc {res.returncode}); nothing written")
+            return 1
+        read = dict(x.split() for x in res.stdout.splitlines()) if res is not None else {}   # the tips, read ONCE
+        written = same = 0
+        for it, ref in zip(items, refs):
+            tip = read.get(ref)
+            lines = f"{GIT_MODE_REGULAR} blob {it['node']}\t{NODE_ENTRY}\n"
+            if it["payload"]:
+                lines += f"{it['payload'][0]} blob {it['payload'][1]}\t{PAYLOAD_ENTRY}\n"
+            if tip:
+                nest = git_try(root, "ls-tree", tip, "--", "nest").stdout.strip()
+                if nest:                                  # a collapse's nest/ is carried forward unedited
+                    lines += nest + "\n"
+            held = legacy_unmerged(root, ref, tip)
+            if held:
+                print(f"  held legacy {it['mint']} {it['path']} (the read-only {held} is not in its history)")
+                SPLIT_HELD.append(ref)
+                continue
+            tree = git(root, "mktree", input_text=lines)
+            if tip and git(root, "rev-parse", f"{tip}^{{tree}}", check=False) == tree:
+                same += 1                                 # already on the grid (a version records change, not time)
+                continue
+            n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
+            if not write:
+                print(f"  plan v{n} {it['mint']} {it['path']}")
+                continue
+            msg = f"v{n} {it['id']}\n\nSplit-Land: {g}\nSplit-Base: {b}\n"
+            commit = git(root, "commit-tree", tree, *(["-p", tip] if tip else []), "-m", msg)
+            cas = git_try(root, "update-ref", ref, commit, tip or "")
+            if cas.returncode != 0:                       # I14: never a second write, never a merge of the whole tree
+                now = ref_tip(root, ref)
+                print(f"  held merge {it['mint']} {it['path']} (its tip moved since it was read: "
+                      f"{(tip or 'absent')[:12]} -> {(now or 'absent')[:12]}; this node not written)")
+                SPLIT_HELD.append(ref)
+                continue
+            written += 1
+            print(f"  v{n} {it['mint']} {it['path']}")
+        verb = "grid commit(s) written" if write else "grid commit(s) planned (no --write: nothing written)"
+        planned = len(items) - same - len(SPLIT_HELD)
+        print(f"split: {len(items)} changed node(s); {written if write else planned} {verb}, {same} already on the grid, "
+              f"{len(SPLIT_HELD)} held")
+        return 1 if SPLIT_HELD else 0
     finally:
         if lock is not None:
             lock.release()
@@ -3424,6 +3585,11 @@ def main() -> None:
     ce.add_argument("--rev", default="HEAD")
     ce.add_argument("--orphans", action="store_true",
                     help="list every orphan as `<mint> <last id> <versions> <class>` (double-mint | never-landed | unclassified)")
+    sp = sub.add_parser("split", help="goal:g7.16.1.11.46.18 -- a land as one grid commit per changed node of BASE..GATED (CAS; a moved tip = held merge)")
+    sp.add_argument("--base", required=True)
+    sp.add_argument("--gated", required=True)
+    sp.add_argument("--write", action="store_true")
+    sp.add_argument("--lock-wait", type=int, default=120)
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
     sub.add_parser("push-changed", help="push only changed grid tips in bounded batches")
@@ -3476,6 +3642,8 @@ def main() -> None:
         sys.exit(cmd_origin_snap(root, args.remote, args.lap))
     elif args.cmd == "census":
         sys.exit(cmd_census(root, args.rev, args.orphans))
+    elif args.cmd == "split":
+        sys.exit(cmd_split(root, args.base, args.gated, args.write, args.lock_wait))
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "push-changed":

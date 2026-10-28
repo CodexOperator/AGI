@@ -3,8 +3,9 @@
 # sh + git + python3 on a SCRATCH repo. The fixture trunk refs/heads/posts/belam carries:
 #   carried README.md src/a.txt | n1 idea (plain) | n2 idea DEPRECATED (deprecated/idea/) | b3 build + payload src/p3.txt | b4 build DEPRECATED, payload retired
 #   (absent on both sides) | t5 a LEGACY path (.agi/nodes/task/t-005-long-name.md for task:t-005, placed by the map) | the map config:legacy-paths
-# and the grid also holds g6 (a GHOST: a second ref carrying idea:n1, named never-composed by the map) and n7 (never landed: no live path).
-# Every mutant (m-*) must read RED.
+# and the grid also holds g6 (a GHOST: a second ref carrying idea:n1, named never-composed by the map) and n7 (never landed: no live path,
+# named by the map's '<mint> never-landed' row: goal:g7.16.1.11.46.18 T11, membership from the grid). Rows 5-7 of .46.18 (T11-T13, U2) are
+# the t11*/t12*/t13*/u2* rows below. Every mutant (m-*) must read RED.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;nrows=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin}
 ok(){ nrows=$((nrows+1));if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
@@ -29,7 +30,8 @@ mkfix(){ P=$1;rm -rf $P;mkdir -p $P/extensions/agi;$G init -q $P;cp -r $BIN $P/e
  B4=$(nd build:b4 $(mn 4) build deprecated 'payload_ref: gone.txt\n' four);T5=$(nd task:t-005 $(mn 5) task active '' five);G6=$(nd idea:n1 $(mn 6) idea active '' ghost)
  N7=$(nd idea:n7 $(mn 7) idea active '' never);MAP=$(nd config:legacy-paths $(mn 8) config active '' "## rows
 $(mn 5) .agi/nodes/task/t-005-long-name.md
-$(mn 6) never-composed")
+$(mn 6) never-composed
+$(mn 7) never-landed")
  B3=$(printf '%b' "$B3");B4=$(printf '%b' "$B4")
  put README.md readme;put src/a.txt aaa;put src/p3.txt PAY3;put .agi/nodes/idea/n1.md "$N1";put .agi/nodes/deprecated/idea/n2.md "$N2";put .agi/nodes/build/b3.md "$B3"
  put .agi/nodes/deprecated/build/b4.md "$B4";put .agi/nodes/task/t-005-long-name.md "$T5";put .agi/nodes/.geometry/legacy-paths.md "$MAP"
@@ -64,7 +66,7 @@ ok "m-deprecated-into-the-live-dir-reads-RED a retired node composed into the li
 # T6 (falsifier 1's mutant): one node's grid commit dropped, its blob differing from its parent's -> the tree differs, RED, the mint printed
 cp_ t6;x=$($G -C $P rev-parse $NS/$(mn 1));y=$(gc $(gt "$(nd idea:n1 $(mn 1) idea active '' one)") $(gc $(gt "$(nd idea:n1 $(mn 1) idea active '' one-v0)")));$G -C $P update-ref $NS/$(mn 1) $y;rc >/dev/null 2>&1;g6a=$?
 $G -C $P update-ref $NS/$(mn 1) $($G -C $P rev-parse $y^);rc >$T/t6.out 2>&1;t6=$?
-ok "t6-a-dropped-grid-commit-reads-RED with its own blob in place rc $g6a (GREEN); its last commit dropped (the parent's blob differs) rc $t6, the path and mint named: $(grep -E 'AHEAD|M	' $T/t6.out|head -1|cut -c1-90)" '[ $g6a = 0 ]&&[ $t6 = 1 ]&&grep -q "AHEAD $(mn 1) .agi/nodes/idea/n1.md" $T/t6.out'
+ok "t6-a-dropped-grid-commit-reads-RED with its own blob in place rc $g6a (GREEN); its last commit dropped (the trunk's blob is on no version of the ref: BEHIND, .46.18 T12) rc $t6, the path and mint named: $(grep -E 'BEHIND|M	' $T/t6.out|head -1|cut -c1-90)" '[ $g6a = 0 ]&&[ $t6 = 1 ]&&grep -q "BEHIND $(mn 1) .agi/nodes/idea/n1.md (trunk bytes not on the grid)" $T/t6.out'
 # T7: the view ref lives outside refs/heads/posts/, refs/box/, refs/held/ and refs/grid/
 cp_ t7;for v in refs/heads/posts/x refs/box/a/b refs/held/a/b refs/grid/v/node/x;do rc --view $v --write >$T/t7.$$.out 2>&1||echo "$v $?";done >$T/t7.out
 ok "t7-the-view-ref-is-refused-in-the-four-namespaces each of refs/heads/posts/, refs/box/, refs/held/, refs/grid/<v>/node/ refused rc 1, nothing written; the default $VIEW matches none" '[ $(grep -c " 1$" $T/t7.out) = 4 ]&&[ -z "$($G -C $P for-each-ref refs/grid/v refs/box refs/held refs/heads/posts/x)" ]'
@@ -94,15 +96,15 @@ cp_ k4;put .agi/nodes/task/t-009-another-long-name.md "$(nd task:t-009 $(mn 9) t
 $G -C $P update-ref $NS/$(mn 9) $(gc $(gt "$(nd task:t-009 $(mn 9) task active '' nine)"));rc >$T/k4.out 2>&1;k4=$?
 ok "k4-a-NEW-non-derivable-node-is-unread a node minted after the map at a non-derivable path is never placed: rc $k4, its path unread, its ref with no live path" '[ $k4 = 1 ]&&grep -q "unread .agi/nodes/task/t-009-another-long-name.md (no grid ref composes" $T/k4.out'
 cp_ k5;put .agi/nodes/.geometry/legacy-paths.md "$(nd config:legacy-paths $(mn 8) config active '' 'map (the trunk edit)')";$G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm edit;$G -C $P update-ref $TR HEAD;rc >$T/k5.out 2>&1;k5=$?
-ok "k5-the-map-is-read-from-its-grid-tip a trunk edit of the map file (no grid version) is AHEAD-of-trunk in reverse: the view composes the grid's map, so the trunk's file differs (rc $k5) and t5 is still placed" '[ $k5 = 1 ]&&grep -q "AHEAD $(mn 8)" $T/k5.out&&grep -q "1 placed by the legacy map" $T/k5.out'
+ok "k5-the-map-is-read-from-its-grid-tip a trunk edit of the map file (no grid version): the view composes the grid's map, so the trunk's file differs (rc $k5), BEHIND (its bytes are on no grid version, .46.18 T12), and t5 is still placed" '[ $k5 = 1 ]&&grep -q "BEHIND $(mn 8) .agi/nodes/.geometry/legacy-paths.md (trunk bytes not on the grid)" $T/k5.out&&grep -q "1 placed by the legacy map" $T/k5.out'
 # a map row is never skipped: an unparseable body line is unread; a mint that is not 32 hex (31-hex mints exist) is placed like any other
 cp_ k6;$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "## rows
 $(mn 5) .agi/nodes/task/t-005-long-name.md
 $(mn 6) never-composed
 a stray line in the body")"));rc >$T/k6.out 2>&1;k6=$?
 ok "k6-an-unparseable-map-line-is-unread rc $k6 (never skipped)" '[ $k6 = 1 ]&&grep -q "body line .a stray line in the body. is not" $T/k6.out'
-cp_ k6m;mut $P/extensions/agi/bin/recompose.py "            return {}, set(), f\"{LEGACY_MAP_ID} body line" "            continue
-            return {}, set(), f\"{LEGACY_MAP_ID} body line";$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "## rows
+cp_ k6m;mut $P/extensions/agi/bin/recompose.py "            return [], f\"{LEGACY_MAP_ID} body line" "            continue
+            return [], f\"{LEGACY_MAP_ID} body line";$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "## rows
 $(mn 5) .agi/nodes/task/t-005-long-name.md
 $(mn 6) never-composed
 a stray line in the body")"));rc >$T/k6m.out 2>&1;k6m=$?
@@ -111,6 +113,7 @@ cp_ k7;s31=a00dc51bea8483af1000000000000ff;T31=$(nd task:t-031 $s31 task active 
 $G -C $P update-ref $NS/$s31 $(gc $(gt "$T31"));$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "## rows
 $(mn 5) .agi/nodes/task/t-005-long-name.md
 $(mn 6) never-composed
+$(mn 7) never-landed
 $s31 .agi/nodes/task/t-031-short-mint.md")"));rc >$T/k7.out 2>&1;k7=$?
 ok "k7-a-31-hex-mint-row-is-placed the live repo carries 31-hex mints (a00dc51bea8483af1000000000000ff): its row places its path: 2 placed by the map, no unread line (rc $k7 = the map tip AHEAD of the trunk only)" 'grep -q "2 placed by the legacy map" $T/k7.out&&! grep -q "^  unread" $T/k7.out&&[ "$(grep -c "^recompose:   [ADM]	" $T/k7.out)" = 1 ]&&grep -q "M	.agi/nodes/.geometry/legacy-paths.md" $T/k7.out'
 # (i) aio 05:20:25Z: a PATH row is LIVE-form; deprecated/ comes from status. Retire the mapped t5 THROUGH node_writer.retire_node -> it composes at
@@ -133,7 +136,8 @@ ok "m-derivation-without-NODE_HOME-reads-RED the type dir spelled a second time 
 # ref names after refs/grid/node/ are taken VERBATIM, a slash included (refs/grid/node/hyp/a00-1467544f-chain-600hop is live): a slashed ghost row is admitted, a slashed never-landed ref printed whole
 cp_ sl;$G -C $P update-ref $NS/hyp/g-slash $(gc $(gt "$(nd idea:n1 hyp/g-slash idea active '' slashghost)"));$G -C $P update-ref $NS/hyp/n-slash $(gc $(gt "$(nd idea:n-slash hyp/n-slash idea active '' slashnever)"))
 $G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$($G -C $P show $TR:.agi/nodes/.geometry/legacy-paths.md)
-hyp/g-slash never-composed"));printf '%s\nhyp/g-slash never-composed\n' "$($G -C $P show $TR:.agi/nodes/.geometry/legacy-paths.md)" >$P/.agi/nodes/.geometry/legacy-paths.md;$G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm sl;$G -C $P update-ref $TR HEAD
+hyp/g-slash never-composed
+hyp/n-slash never-landed"));printf '%s\nhyp/g-slash never-composed\nhyp/n-slash never-landed\n' "$($G -C $P show $TR:.agi/nodes/.geometry/legacy-paths.md)" >$P/.agi/nodes/.geometry/legacy-paths.md;$G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm sl;$G -C $P update-ref $TR HEAD
 $G -C $P update-ref $NS/$(mn 8) $(gc $($G -C $P rev-parse HEAD:.agi/nodes/.geometry/legacy-paths.md|xargs -I{} printf '100644 blob {}\tnode.md\n'|$G -C $P mktree));rc >$T/sl.out 2>&1;sl=$?
 ok "s1-slashed-ref-names-are-taken-verbatim rc $sl: the slashed ghost row admitted (2 never-composed), the slashed never-landed ref printed whole as 'no live path hyp/n-slash'" '[ $sl = 0 ]&&grep -q "2 never-composed (map)" $T/sl.out&&grep -q "no live path hyp/n-slash$" $T/sl.out'
 # sp 05:21:35Z: the trunk's one QUOTED id + mint_id node composes at its derived path
@@ -146,4 +150,35 @@ ok "m-quotes-kept-reads-RED quotes kept in the id: the quoted node's path unread
 cp_ k8;$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "prose with no rows heading
 $(mn 5) .agi/nodes/task/t-005-long-name.md")"));rc >$T/k8.out 2>&1;k8=$?
 ok "k8-a-map-without-ONE-rows-section-is-unread rc $k8: no '## rows' heading = unread, never 0 rows" '[ $k8 = 1 ]&&grep -q "carries 0 .## rows. sections" $T/k8.out'
+# goal:g7.16.1.11.46.18 row 5, T11 (sp 05:17:22Z + 05:16:17Z): MEMBERSHIP from the grid. `git rm` one live node file on the trunk -> unread <its mint>,
+# never a silent diff 0; mutant: membership read from the trunk listing (a ref with no live path tolerated) -> diff 0
+t11(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/recompose.py "$1" "$2";shift 2;done
+ $G -C $P rm -q .agi/nodes/idea/n1.md;$G -C $P commit -qm drop;$G -C $P update-ref $TR HEAD;rc >$T/$OUT.out 2>&1;}
+OUT=t11;t11 t11;t11=$?
+ok "t11-a-dropped-live-node-is-unread-by-mint n1's file git-rm'd on the trunk: rc $t11, 'unread $(mn 1) (no live path ...)', never diff 0 alone" '[ $t11 = 1 ]&&grep -q "unread $(mn 1) (no live path .agi/nodes/idea/n1.md and no .$(mn 1) never-landed. row" $T/t11.out'
+OUT=t11m;t11 t11m '                          for m in ms if m not in never)' '                          for m in ms if False)';t11m=$?
+ok "m-membership-from-the-trunk-listing-reads-RED the never-landed check cut: the dropped node reads diff 0, rc $t11m (want unread rc 1, so rc 0 = caught)" '[ $t11m = 0 ]&&grep -q "diff vs the trunk [0-9a-f]*: 0 path(s)" $T/t11m.out'
+cp_ t11b;$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "## rows
+$(mn 5) .agi/nodes/task/t-005-long-name.md
+$(mn 6) never-composed
+$(mn 7) never-landed
+$(mn 2) never-landed")"));rc >$T/t11b.out 2>&1;t11b=$?
+ok "t11b-a-never-landed-row-on-a-live-node-is-unread n2 (live, deprecated/) named never-landed: rc $t11b (as k3: the row is removed in the land that lands its node)" '[ $t11b = 1 ]&&grep -q "unread $(mn 2) (a .$(mn 2) never-landed. row in config:legacy-paths, but it composes the live path .agi/nodes/deprecated/idea/n2.md)" $T/t11b.out'
+# row 6, T12 (sp 05:50:03Z): AHEAD only when the trunk's blob is an EARLIER version on the mint's ref (t2), else BEHIND (t6, k5); mutant: label by inequality alone
+cp_ t12m;mut $P/extensions/agi/bin/recompose.py '        elif ptree[p][1] in set(batch_sha([f"{c}:node.md" for c in hist])):' '        elif True:';$G -C $P update-ref $NS/$(mn 1) $(gc $(gt "$(nd idea:n1 $(mn 1) idea active '' one-v0)"));rc >$T/t12m.out 2>&1
+ok "m-ahead-by-inequality-alone-reads-RED n1's ref at a version that never held the trunk's bytes is labelled AHEAD (want BEHIND, so AHEAD = caught)" 'grep -q "AHEAD $(mn 1)" $T/t12m.out&&! grep -q BEHIND $T/t12m.out'
+# row 7, T13 (sp 05:50:03Z) + U2 (sp 07:18:02Z): the map's PATH rows are frozen at its FIRST grid version; membership rows are not path rows.
+# A second map version (parent = the first) adds ROW; n9 = a node minted after the map at a non-derivable path, with its ref.
+mv(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/recompose.py "$1" "$2";shift 2;done;x=$($G -C $P rev-parse $NS/$(mn 8))
+ $G -C $P update-ref $NS/$(mn 9) $(gc $(gt "$(nd task:t-009 $(mn 9) task active '' nine)"))
+ $G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$($G -C $P show $x:node.md)
+$ROW") $x);rc >$T/$OUT.out 2>&1;}
+ROW="$(mn 9) .agi/nodes/task/t-009-late.md";OUT=t13;mv t13;t13=$?
+ok "t13-a-path-row-added-after-the-freeze-is-unread a second map version adds one PATH row: rc $t13, 'row added after the freeze $(mn 9)'" '[ $t13 = 1 ]&&grep -q "unread $(mn 9) (row added after the freeze $(mn 9):" $T/t13.out'
+OUT=t13m;mv t13m '        unread.extend(added)' '        pass';t13m=$?
+ok "m-freeze-check-cut-reads-RED the added path row is admitted: no 'row added after the freeze' line, rc $t13m (want the unread line, so its absence = caught)" '! grep -q "row added after the freeze" $T/t13m.out'
+ROW="$(mn 9) never-landed";OUT=u2;mv u2;u2=$?
+ok "u2-a-membership-row-added-after-the-freeze-passes a second map version adds '$(mn 9) never-landed' (T11's freeze version): rc $u2, diff 0 besides the map's own AHEAD path, no unread" '! grep -q "^  unread" $T/u2.out&&grep -q "AHEAD $(mn 8)" $T/u2.out&&[ "$(grep -c "^recompose:   [ADM]	" $T/u2.out)" = 1 ]'
+OUT=u2m;mv u2m '    at_first = {(m, w) for m, w in rows if w not in MEMBERSHIP}' '    at_first = {(m, w) for m, w in rows}' '            f"{first[0][:12]})" for m, w in sorted(rows_now.items()) if (m, w) not in at_first], None' '            f"{first[0][:12]})" for m, w in sorted(rows_now.items()) + [(m, "never-landed") for m in sorted(nl)] if (m, w) not in at_first], None' 'def frozen_problems(tip: str, rows_now: dict[str, str]) -> tuple[list[str], str | None]:' 'def frozen_problems(tip: str, rows_now: dict[str, str], nl=()) -> tuple[list[str], str | None]:' '        added, problem = frozen_problems(tips[map_mint], lmap)' '        added, problem = frozen_problems(tips[map_mint], lmap, never)';u2m=$?
+ok "m-freeze-over-all-rows-reads-RED T13 over EVERY row: T11's own never-landed freeze row reads 'row added after the freeze' (want it admitted, so the line = caught)" 'grep -q "unread $(mn 9) (row added after the freeze $(mn 9)" $T/u2m.out'
 echo "recompose: $nrows rows";echo "recompose: $f FAIL";[ $f = 0 ]
