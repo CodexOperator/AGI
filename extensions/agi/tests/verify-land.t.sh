@@ -106,6 +106,19 @@ ok "m-home-unread-not-held-reads-RED hb3's disagreement passes the home step: $(
 hmut "print(line)
 " "";run m $LD_m $BASE $GT_m;SELF=
 ok "m-home-reading-line-dropped-reads-RED h4's run prints $(grep -c '^post homes: \|^home-unread: ' $T/o) reading line(s)" '[ "$(grep -c "^post homes: \|^home-unread: " $T/o)" = 0 ]&&grep -q "^home hits" $T/o'
+# the D block's two placed rows (council placement alive 18:45:32Z 10-28, U-b): (ro) an R OUT of .agi/nodes/ HOLDs by name, an R into deprecated/ does not;
+# (nr) the D read's rc: a git that fails ONLY that read (a PATH shim) prints `D: unread` and HOLDs D. Each with its mutant (as SELF, via hmut)
+dab rout '[]';BASE=$DA;gate ro 'git -C $R mv .agi/nodes/doc/n.md docs/n.md';LD_ro=$LD;GT_ro=$GT;BASE=$B0;CARRY=$T/carry-rout.env;run ro $LD_ro $DA $GT_ro;CARRY=
+ok "ro1-an-R-OUT-of-the-graph-HOLDS-by-name rc $rc, $(grep '^R out of the graph' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "R out of the graph: .agi/nodes/doc/n.md -> docs/n.md (a node: retire into .agi/nodes/deprecated/, never move out)" $T/o&&v|grep -q "HOLD (.*D"'
+BASE=$DA;gate rp 'mkdir -p $R/.agi/nodes/deprecated/doc;git -C $R mv .agi/nodes/doc/n.md .agi/nodes/deprecated/doc/n.md';BASE=$B0;CARRY=$T/carry-rout.env;run rp $LD $DA $GT;CARRY=
+ok "ro2-an-R-into-deprecated-is-a-retire-and-reads-OK rc $rc, $(grep -o '^D: [0-9]*' $T/o), R-out lines $(grep -c '^R out' $T/o), $(v)" '[ $rc = 0 ]&&grep -q "^D: 0 " $T/o&&! grep -q "^R out" $T/o&&[ "$(v)" = "verify-land: OK" ]'
+mkdir -p $T/gshim;printf '%s\n' '#!/bin/sh' 'for a;do [ "$a" = --name-status ]&&{ echo "fatal: shim" >&2;exit 128;};done' 'exec /usr/bin/git "$@"' >$T/gshim/git;chmod 755 $T/gshim/git
+gate nr 'echo z >$R/docs/z';LD_nr=$LD;GT_nr=$GT;XPATH=$T/gshim:$T/bin:/usr/bin:/bin run nr $LD_nr $BASE $GT_nr
+ok "nr1-a-failed-name-status-read-is-D-unread-and-HOLDS rc $rc, $(grep '^D: ' $T/o), $(v)" '[ $rc = 1 ]&&grep -qx "D: unread (git diff -M --name-status rc 128)" $T/o&&v|grep -q "HOLD (.*D"'
+hmut '[ -z "$ro" ]||{' '[ -n "$ro" ]||{';CARRY=$T/carry-rout.env;run ro $LD_ro $DA $GT_ro;CARRY=;SELF=
+ok "m-ro-not-held-reads-RED ro1's R out passes the D block: R-out lines $(grep -c '^R out' $T/o), $(v)" '! grep -q "^R out" $T/o&&! v|grep -q "HOLD (.*D"'
+hmut 'nr=$?;' 'nr=0;';XPATH=$T/gshim:$T/bin:/usr/bin:/bin run nr $LD_nr $BASE $GT_nr;SELF=
+ok "m-nr-rc-unread-reads-RED nr1's failed read prints $(grep '^D: ' $T/o|cut -c1-20)" 'grep -q "^D: 0 " $T/o&&! grep -q "^D: unread" $T/o&&! v|grep -q "HOLD (.*D"'
 gate e 'echo b2 >$R/docs/b2';LE=$(g commit-tree -S -p $BASE -p $GT -m "land e
 leak: someone@""example.org" $(g rev-parse $LD^{tree}));g update-ref refs/held/sanctuary-master/e $LE;run e $LE $BASE $GT
 ok "h5-a-stray-email-in-the-message-HOLDS rc $rc, $(grep -o 'emails: .*' $T/o), $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*msg-email"'
