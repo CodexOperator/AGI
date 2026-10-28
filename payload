@@ -79,7 +79,6 @@ hit	extensions/agi/tests/test_season_report.py	fixture	*	a scratch repo's own re
 hit	extensions/agi/tests/test_season_rollover_global.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_send.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_success_metrics.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
-hit	extensions/agi/tests/test_town_mint_final.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_towns.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_trunk_sync.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	skills/agi-master-gate/SKILL.md	prose	*	skill text
