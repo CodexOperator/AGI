@@ -760,7 +760,11 @@ def parse_parents(path: Path) -> list[str]:
     additive provenance, never a value a caller should treat as load-bearing
     for correctness.
     """
-    text = path.read_text(encoding="utf-8")
+    return parents_from_text(path.read_text(encoding="utf-8"))
+
+
+def parents_from_text(text: str) -> list[str]:
+    """`parse_parents` over a node's TEXT (a disk file or a blob of a gated tree: split's A19 trailer reads the blob)."""
     fm_end = text.find("\n---", 3)
     fm_text = text[:fm_end] if fm_end != -1 else text
 
@@ -869,6 +873,27 @@ def build_parent_mint_trailer(path: Path, id_index: dict[str, Path], resolve=Non
         parent_mint = parse_mint_id(parent_path) if parent_path is not None else None
         token = parent_mint if parent_mint else "UNRESOLVED"
         lines.append(f"Parent-Mint-Id: {token} {parent_id}")
+    return "\n".join(lines)
+
+
+def split_parent_trailer(body: str, view: dict[str, set[str]]) -> str | None:
+    """goal:g7.16.1.11.46.18 A19: goal:g2.7's `Parent-Mint-Id: <mint> <parent id>` lines for a SPLIT version, read from the
+    node's blob in the GATED tree and resolved through that tree's view {mint: ids}, never the checkout (U4: a land is judged
+    by the tree it lands). A parent written as a mint id is named by its address when the view carries exactly one;
+    UNRESOLVED (never a fabricated id) when the gated tree has no node of that id, or two."""
+    parents = parents_from_text(body)
+    if not parents:
+        return None
+    by_id: dict[str, list[str]] = {}
+    for m, ids in view.items():
+        for i in ids:
+            by_id.setdefault(i, []).append(m)
+    lines = []
+    for p in parents:
+        if re.fullmatch(r"[0-9a-f]{32}", p) and len(view.get(p, ())) == 1:
+            p = next(iter(view[p]))
+        ms = by_id.get(p, [])
+        lines.append(f"Parent-Mint-Id: {ms[0] if len(ms) == 1 else 'UNRESOLVED'} {p}")
     return "\n".join(lines)
 
 
@@ -1731,7 +1756,7 @@ def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], dict[str
                 unread.append(f"unread {q} (live {ii.group(1)}: its payload_ref {pref} names no path in the gated tree)")
                 continue
         items[mi.group(1)] = {"mint": mi.group(1), "id": ii.group(1), "path": q, "node": tree[q][1],
-                              "payload": tree.get(pref) if pref else None}
+                              "payload": tree.get(pref) if pref else None, "body": body}
     for (rev, q), body in text.items():
         if rev == base:
             mi = MINT_ID_RE.search(body)
@@ -1824,7 +1849,9 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
                 planned += 1
                 print(f"  plan v{n} {it['mint']} {it['path']}")
                 continue
-            cas = write_version(root, ref, read.get(ref), tree, f"v{n} {it['id']}\n\nSplit-Land: {g}\nSplit-Base: {b}\n")
+            trailer = split_parent_trailer(it["body"], view)  # A19: goal:g2.7's lines, from the gated tree
+            cas = write_version(root, ref, read.get(ref), tree,
+                                f"v{n} {it['id']}\n\n" + (trailer + "\n" if trailer else "") + f"Split-Land: {g}\nSplit-Base: {b}\n")
             if cas.returncode != 0:                       # I14: never a second write, never a merge of the whole tree
                 now = ref_tip(root, ref)
                 print(f"  held merge {it['mint']} {it['path']} (its tip moved since it was read: "
