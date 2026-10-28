@@ -84,9 +84,14 @@ try: v=json.load(sys.stdin).get("land",{}).get("deletes_admitted",[])
 except Exception: sys.exit(1)
 ok=isinstance(v,list) and all(isinstance(e,dict) and isinstance(e.get(k),str) and e[k] and "\t" not in e[k] and "\n" not in e[k] for e in v for k in ("path","ruling"))
 print("".join(e["path"]+"\t"+e["ruling"]+"\n" for e in v),end="") if ok else sys.exit(1)';}
-ns=$(git diff -M --name-status $B $L);nd=$(printf '%s\n' "$ns"|grep -c '^D');echo "D: $nd  files: $(printf '%s\n' "$ns"|tr '\t\n' ' ')"
+# the D read's rc is READ (council placement 18:45:32Z 10-28): a failed diff is `D: unread` and HOLDs D, never an empty set read as `D: 0`
+ns=$(git diff -M --name-status $B $L);nr=$?;if [ $nr != 0 ];then echo "D: unread (git diff -M --name-status rc $nr)";ns=;du=1;else
+nd=$(printf '%s\n' "$ns"|grep -c '^D');echo "D: $nd  files: $(printf '%s\n' "$ns"|tr '\t\n' ' ')";du=0;fi
 ad=$(da $B)||{ echo "deletes_admitted unread at BASE $(echo $B|cut -c1-10): nothing admitted";ad=;}
-dl=$(printf '%s\n' "$ns"|sed -n 's/^D\t//p');du=0
+dl=$(printf '%s\n' "$ns"|sed -n 's/^D\t//p')
+# an R OUT of the graph (source under .agi/nodes/, destination outside it) HOLDs by name: a node leaves only by a retire, an R into .agi/nodes/deprecated/
+ro=$(printf '%s\n' "$ns"|awk -F'\t' '$1~/^R/&&index($2,".agi/nodes/")==1&&index($3,".agi/nodes/")!=1{print $2" -> "$3}')
+[ -z "$ro" ]||{ printf '%s\n' "$ro"|sed 's/^/R out of the graph: /;s/$/ (a node: retire into .agi\/nodes\/deprecated\/, never move out)/';du=1;}
 while IFS= read -r p;do [ -n "$p" ]||continue;r=$(printf '%s\n' "$ad"|awk -F'\t' -v p="$p" '$1==p{print $2;exit}')
   case $p in .agi/nodes/*) echo "D not admitted: $p (a node: retire, never delete)";du=1;continue;;esac
   [ -n "$r" ]&&echo "D admitted: $p ($r)"||{ echo "D not admitted: $p";du=1;};done <<EOD
