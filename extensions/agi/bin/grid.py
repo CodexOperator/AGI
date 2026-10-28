@@ -2457,7 +2457,7 @@ def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Sna
 
 
 def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[str, str],
-                 seen: "_TrunkSeen | None" = None, owner: "set[tuple[str, str]] | None" = None) -> tuple[int, list[str]]:
+                 seen: "_TrunkSeen | None" = None, owner: "_OwnerView | None" = None) -> tuple[int, list[str]]:
     """The per-mint falsifier of G1a-T, read-only. `before` is the verb's OWN earliest pre-write snapshot.
     Per mint: the live tip and the snapshot's old tip are ancestors of the new tip, `rev-list --count` new
     >= max(old), and the merge commit that took the live tip as its first parent (a) carries the live tip's
@@ -2600,7 +2600,7 @@ def _tree_sha(root: Path, rev: str) -> str | None:
 
 
 def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None",
-                     owner: "set[tuple[str, str]] | None" = None) -> str | None:
+                     owner: "_OwnerView | None" = None) -> str | None:
     """`--check` for a pair `_unify_one` merged as an UNRELATED ROOT: None = sound, "" = this pair is not one (fall through to the ordinary
     check), else why it is RED. The merge is found by its SECOND parent (origin's tip) and its `Unify-Unrelated` trailer; it must carry the tree of
     its FIRST parent (the live tip it took in), and the class is judged AGAIN on that first parent (origin's tip is inside ntip's history now, so
@@ -2626,8 +2626,21 @@ def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None"
             return "the unrelated-root merge does not carry the live tree" + ("; a written tip carries a home-path literal" if added else "")
         if added:
             return "a written tip carries a home-path literal"
-        if by_owner:    # the owner's ruling, not the byte test: only a stamped owner-batch row naming this merge for this origin tip, of a pair once banked
-            return None if (ltip, merge) in (owner or set()) else "an owner-batch merge no stamped owner-batch record names"
+        if by_owner:    # the owner's ruling, not the byte test: every link of the chain is its own RED (goal:g7.16.1.11.46.16.2 R2)
+            rec = next((x.split(":", 1)[1].strip() for x in body.splitlines() if x.startswith("Unify-Record:")), "")
+            if owner is None or (ltip, merge) not in owner.rows:
+                return "an owner-batch merge no stamped owner-batch record names"
+            if (rec, ltip) not in owner.banked:
+                return f"an owner-batch merge for an origin tip its record {rec or '(no Unify-Record)'} did not bank"
+            if owner.rulings is None:
+                return f"owner rulings unread at {owner.trunk}"
+            if rec not in owner.rulings:
+                return f"an owner-batch merge under a record no owner ruling names ({rec})"
+            if owner.rulings[rec] is None:
+                return f"an owner-batch merge under a record whose rulings pin different bytes ({rec})"
+            if owner.sha.get(rec) != owner.rulings[rec]:
+                return f"an owner-batch merge under a record that is not the bytes the owner ruled ({rec})"
+            return None
         cls, why = _unrelated_class(root, ltip, first, seen)
         if cls in (None, "unread"):
             return f"the unrelated-root merge is outside the class ({why})"
@@ -2639,12 +2652,67 @@ def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None"
 OWNER_CLASS = "owner-batch/live"
 
 
-def _owner_records(root: Path) -> set[tuple[str, str]]:
-    """{(origin tip, written merge)} of every stamped `owner-batch/live` row whose origin tip some stamped record BANKED: the owner
-    ruled the banked batch, so a row for a pair nobody banked holds nothing at `--check`."""
-    rows = [x.split() for rec in sorted(_unify_dir(root).glob("*.classes")) for x in rec.read_text().splitlines()]
-    banked = {r[2] for r in rows if len(r) >= 3 and r[0] == "banked"}
-    return {(r[2], r[3]) for r in rows if len(r) == 4 and r[0] == OWNER_CLASS and r[2] in banked}
+#: the ONE line an owner ruling carries (goal:g7.16.1.11.46.16.2 R1), at column 0 of a doc node under .agi/nodes/doc: `owner-batch-ruling: <record>`
+RULING_KEY = "owner-batch-ruling"
+
+
+#: a ruling is a doc node BY NAME: a card, a review or a THOUGHT that quotes the line is not one (self-perpetuating 21:36:33Z 10-27)
+RULING_GLOB = ":(glob).agi/nodes/doc/owner-ruling-*.md"    # the GATE's own literal (land.rules_paths): `*` never crosses `/`
+
+
+def _owner_rulings(root: Path, trunk: str) -> dict[str, str | None] | None:
+    """{record: the sha256 its ruling PINS} of every record an owner RULED, read from a COMMIT: the anchored two-token line
+    `^owner-batch-ruling: <record> sha256:<64 hex>$` in a ruling node BY NAME (`RULING_GLOB`) in the TREE of `trunk` (a signed land carries it),
+    never the working tree and never the sessions dir, so a file dropped on the box rules nothing. Each ruling node names ONE record (a node with
+    two such lines rules none); two ruling nodes that pin ONE record to DIFFERENT bytes map it to None (they disagree: unread by name, never "any
+    one matches"). None = git could not say."""
+    res = git_try(root, "grep", "-E", f"^{RULING_KEY}: [^ ]+ sha256:[0-9a-f]{{64}}$", trunk, "--", RULING_GLOB)
+    if res.returncode == 1:
+        return {}
+    if res.returncode != 0:
+        return None
+    per: dict[str, list[str]] = {}
+    for x in res.stdout.splitlines():    # `<trunk>:<path>:<line>`
+        path, _, line = x[len(trunk) + 1:].partition(f":{RULING_KEY}: ")
+        per.setdefault(path, []).append(line.strip())
+    out: dict[str, str | None] = {}
+    for v in per.values():
+        if len(v) != 1:
+            continue
+        rec, sha = v[0].split(" sha256:")
+        out[rec] = sha if out.get(rec, sha) == sha else None
+    return out
+
+
+def _read_record(path: Path) -> tuple[str, list[list[str]]] | None:
+    """ONE read of a stamped record: (sha256 of its bytes, its rows) from the SAME buffer, so an append between a hash and a second open cannot
+    slip past the ruling's pin. None = unreadable."""
+    import hashlib
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    return hashlib.sha256(data).hexdigest(), [x.split() for x in data.decode("utf-8", "replace").splitlines()]
+
+
+class _OwnerView:
+    """What `--check` judges an `Unify-Owner` merge against: the stamped owner rows {(origin tip, merge)}, the {(record, origin tip)} each
+    stamped record BANKED (keyed BY RECORD, never pooled: alive 22:47:08Z), each record's sha256 as read, and the records an owner ruled at
+    `trunk` with the bytes each ruling pins (None = unread)."""
+
+    def __init__(self, root: Path, trunk: str) -> None:
+        self.banked, self.rows, self.sha = set(), set(), {}
+        for rec in sorted(_unify_dir(root).glob("*.classes")):
+            got = _read_record(rec)
+            if got is None:
+                continue
+            self.sha[rec.name] = got[0]
+            for r in got[1]:
+                if len(r) >= 3 and r[0] == "banked":
+                    self.banked.add((rec.name, r[2]))
+                elif len(r) == 4 and r[0] == OWNER_CLASS:
+                    self.rows.add((r[2], r[3]))
+        self.trunk, self.rulings = trunk, _owner_rulings(root, trunk)
 
 
 class _OwnerStamp:
@@ -2674,9 +2742,11 @@ class _OwnerStamp:
     def add(self, mint: str, live: str, otip: str, commit: str) -> None:
         if self.path is None:
             self._open()
-        res = git_try(self.root, "diff", "--no-color", live, otip)
+        res = git_try(self.root, "diff", "--no-color", "--binary", live, otip)    # --binary: a binary path is SAVED, not 'Binary files differ'
         body = (res.stdout.splitlines() if res.returncode == 0 else
                 [f"diff unread: {(res.stderr.strip().splitlines() or ['git diff rc ' + str(res.returncode)])[0]}"])
+        if not body:    # read, and printed nothing: say so, never an empty body
+            body = ["diff empty: trees equal"]
         for path, text in ((self.path.with_suffix(".batch"), f"== {mint} origin {otip} live {live}\n   owner rule: tree = LIVE, origin's tip kept "
                             f"as the 2nd parent of {commit}\n" + "".join(f"   {x}\n" for x in body)),
                            (self.path, f"{OWNER_CLASS} {mint} {otip} {commit}\n")):
@@ -2686,7 +2756,7 @@ class _OwnerStamp:
                 os.fsync(f.fileno())
 
 
-def _unify_owner_batch(root: Path, ns: str, record: str, write: bool) -> int:
+def _unify_owner_batch(root: Path, ns: str, record: str, write: bool, trunk: str = "HEAD") -> int:
     """goal:g7.16.1.11.46.16, the OWNER's ruling of the banked batch (10-27, belam relaying the owner: "Sounds good" to "keep the live
     version for all 40 and save origin's differing version in a stamped record"): the SELECTOR is the `banked` rows of ONE stamped record
     `<record>` (a `.classes` file under `_unify_dir`, by name). Per selected mint: origin's tip must still be the one the record banked
@@ -2698,10 +2768,25 @@ def _unify_owner_batch(root: Path, ns: str, record: str, write: bool) -> int:
     if "/" in record or not record.endswith(".classes") or not (_unify_dir(root) / record).is_file():
         print(f"grid unify: unread (--owner-batch names no stamped record: {record!r}; a `.classes` file name under {_unify_dir(root).name}/)")
         return 1
-    rows = [x.split() for x in (_unify_dir(root) / record).read_text().splitlines()]
+    got = _read_record(_unify_dir(root) / record)    # ONE read: the hash the ruling pins and the rows selected come from the same bytes
+    if got is None:
+        print(f"grid unify: unread (record {record} cannot be read)")
+        return 1
+    sha, rows = got
     picked = [(r[1], r[2]) for r in rows if len(r) >= 3 and r[0] == "banked"]
     if not picked:
         print(f"grid unify: unread (record {record} banks no pair)")
+        return 1
+    rulings = _owner_rulings(root, trunk)    # goal:g7.16.1.11.46.16.2 R1: only a record an owner RULED, read from the trunk's commit
+    if rulings is None or record not in rulings:
+        print(f"grid unify: unread ({'owner rulings unread' if rulings is None else 'no owner ruling names ' + record} at {trunk}; "
+              f"a ruling is ONE `{RULING_KEY}: <record> sha256:<hex>` line in a {RULING_GLOB} node the trunk carries)")
+        return 1
+    if rulings[record] is None:
+        print(f"grid unify: unread (the rulings for {record} at {trunk} pin different bytes)")
+        return 1
+    if rulings[record] != sha:
+        print(f"grid unify: unread (record {record} is not the bytes the owner ruled at {trunk}: sha256 {sha[:16]} != {rulings[record][:16]})")
         return 1
     if write:
         why = _origin_quiet(root)
@@ -2794,7 +2879,7 @@ def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD",
         if check or ORIGIN_SNAP_NS not in listing:
             print(f"grid unify: unread (--owner-batch reads {ORIGIN_SNAP_NS} only, and never with --check)")
             return 1
-        return _unify_owner_batch(root, ns, owner_batch, write)
+        return _unify_owner_batch(root, ns, owner_batch, write, trunk)
     if check:
         snaps = sorted(_unify_dir(root).glob("*.refs"))
         if not snaps:
@@ -2812,7 +2897,7 @@ def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD",
         rc = 0
         bad_mints: set[str] = set()
         seen = _TrunkSeen(root, trunk) if ORIGIN_SNAP_NS in listing else None
-        owner = _owner_records(root)
+        owner = _OwnerView(root, trunk)
         for lns, names in listing.items():
             good, bad = _unify_check(root, ns, lns, names, before, seen, owner)
             print(f"grid unify check: unified {good}/{len(names)} ({lns} -> {ns})")
