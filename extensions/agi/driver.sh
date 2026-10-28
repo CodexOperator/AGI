@@ -284,8 +284,7 @@ iter_run() {
   # goal:g4.3 said before this was traced; that module is reached through
   # `chain_engine/queries.py` instead.
 
-  # 4b. Write guard: detect unsanctioned node edits (warn only, non-fatal)
-  python3 "$PLUGIN_ROOT/bin/write_guard.py" check 2>&1 | tee -a "$LOG" || true
+  # 4b. (the write guard retired with the node writer, goal:g7.16.1.11.46.23 step 4: a node is a plain file; R-land judges who changed it)
 
   # 4c. Grid coverage: tracked engine code file with no payload_ref and no
   # declared exclusion (hypothesis:l3-engine-files-outside-the-grid). Warn

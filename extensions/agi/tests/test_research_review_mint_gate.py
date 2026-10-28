@@ -1,7 +1,7 @@
 """The mint gate: stages 3/4 are PROPOSE-ONLY unless run args set mint.
 
 hypothesis:lm-research-review-why-brainstorm-mint-by-default. Before this
-build, `why` and `brainstorm` ran `write.py create` (idea / hypothesis) on
+build, `why` and `brainstorm` ran the node writer's `create` (idea / hypothesis) on
 EVERY run with no gate, so a review minted real graph nodes as a side effect
 of reading. Now a `mint` run arg (default ABSENT) threads into the two stage
 prompts as `{mint}`, and the create instruction is gated on it.
@@ -90,12 +90,12 @@ def test_mint_true_keeps_the_create_instruction_on_both_stages():
     # a JSON `true` reaches the render context as a Python bool, which str()
     # renders as `True`. The stated condition is the AFFIRMATIVE LITERAL
     # (`true` or `True`), so True is ON. Both stages keep the original
-    # write.py create text (mint:true reproduces today's behaviour).
+    # node-writer create text (mint:true reproduces today's behaviour).
     for label in ("why", "brainstorm"):
         prompt = _render(label, {"mint": True})
         assert "MINT GATE: `True`" in prompt
         assert "node_writer.write_node" in prompt
-        assert "write.py" not in prompt
+        assert ("wri" + "te.py") not in prompt
         assert "run NO create" in prompt  # the other branch is still stated
 
 

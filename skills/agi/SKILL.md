@@ -55,7 +55,6 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/season.py {status,judge,rollover}` | Season lifecycle: plan/report counts, judgment stamps, rollover (`ladder:ladder`) |
 | `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
 | `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
-| `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
 | `bin/workflow.py run <name> [--harness pi\|claude-code] [--dry-run]` | **LEGACY route (goal:g5.33); still the live mur runner** |
 | `bin/workflow.py register <name> --script <path> [--from-run <dir>]` | Land an inline script as a registered manifest pair as it runs |
 | `bin/workflow.py list` / `validate` | Enumerate the registry / check the agi-*.js↔*.json invariant |
@@ -203,8 +202,8 @@ Five morals anchor the graph. Every node has a path to one.
 `moral:love` (lateral, grounded_in: moral:faith), `moral:empathy` (crossing),
 `moral:antifragility` (dynamics), `moral:beauty` (form) — under
 `.agi/nodes/moral/`. Type `moral` is the only parentless type (cap 5).
-`write_guard.py check` detects unsanctioned writes; a `moral:*` edit not signed by the owner is refused at review
-(`written_by: owner`).
+A `moral:*` edit not signed by the owner is refused at review
+(`written_by: owner`; R-land's W section judges it at the land).
 
 **Five questions (owner's wording, verbatim):**
 1. **faith** — Did every role play its part and trust every other model to play theirs?
@@ -744,5 +743,4 @@ npx gitnexus query "<concept>" --repo <home>/work/agi
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g4.18 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->

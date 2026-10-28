@@ -41,8 +41,8 @@ ALL = (set(EDGES) | set(AUDIT) | set(SILENT)) | {"belam"}
 def _rotations_md(alerts: bool) -> str:
     if not alerts:
         return "---\nid: config:rotations\ntype: config\n---\n"
-    # the exact ONE write.py `set alerts {…}` line the Prime writes at
-    # merge-up: a single bare-flow mapping (write.py nests nothing). yaml
+    # the exact ONE `alerts: {…}` cell the Prime writes at merge-up: a single
+    # bare-flow mapping (nothing nested). yaml
     # loads `alerts: {...}` as a native dict; `_load_alerts` also accepts a
     # quoted-JSON str cell defensively (like `rotate_defaults`).
     matrix = json.dumps({
@@ -187,30 +187,26 @@ def test_after_join_type_seam_to_silent_never_fires(tmp_path):
         f"silent successor pane must receive no typed input: {typed}")
     assert sent == [], f"silent successor must receive no dm: {sent}"
 
-def test_real_write_py_emitted_str_shape_still_routes(tmp_path):
-    """P4 regression - the matrix must survive the SHAPE write.py ACTUALLY
-    writes. The Prime runs `write.py config:rotations 'set alerts
-    {audit:[...],edges:{...},silent:[...]}'`; _coerce keeps that unquoted-key
-    flow map as a STR (only pure JSON parses), node_writer._render_value then
+def test_the_emitted_str_shape_still_routes(tmp_path):
+    """P4 regression - the matrix must survive the SHAPE the node writer wrote
+    (the cells already on the trunk keep it after the writer retired, step 4):
+    the unquoted-key flow map {audit:[...],edges:{...},silent:[...]} stayed a
+    STR (only pure JSON parsed), node_writer._render_value then
     QUOTES it, and yaml reads the cell back as a string with unquoted keys.
     json.loads rejects that exact string and the matrix used to be read as
     absent -> broadcast. _load_alerts must fall back to yaml.safe_load, which
     parses this spelling. Routes through the REAL _coerce->_render_value->
     yaml.safe_load round-trip, never a hand-written YAML map."""
     import yaml as _yaml
-    from agi.bin import write as _write, node_writer as _nw
+    from agi.bin import node_writer as _nw
     from agi.bin import rotate as _rot
     shipped = ("{audit:[master-sensei],"
                "edges:{belam:[sanctuary-director,sanctuary-helper]},"
                "silent:[stream-master]}")
-    coerced = _write._coerce(shipped)
-    assert isinstance(coerced, str), (
-        "write.py must keep the flow map a STR (P4): got "
-        + type(coerced).__name__)
-    rendered = "\n".join(_nw._render_value("alerts", coerced))
+    rendered = "\n".join(_nw._render_value("alerts", shipped))
     cell = _yaml.safe_load(rendered)["alerts"]
     assert isinstance(cell, str) and cell.startswith("{"), repr(cell)
-    # put that exact write.py-emitted string cell on a scratch rotations node,
+    # put that exact emitted string cell on a scratch rotations node,
     # then parse the matrix through _load_alerts -> _derive_receivers.
     geom = tmp_path / "nodes" / ".geometry"
     geom.mkdir(parents=True, exist_ok=True)

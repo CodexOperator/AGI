@@ -128,9 +128,8 @@ def test_registry_rows_read_through_hierarchy_single_reader(tmp_path, monkeypatc
 
 
 def test_no_engine_write_imports():
-    """The status reader must import neither write.py nor node_writer (gate)."""
+    """The status reader must not import node_writer (gate; the node writer script retired, step 4)."""
     src = (Path(__file__).resolve().parent.parent / "bin" / "hierarchy.py").read_text()
-    assert "import write" not in src
     assert "import node_writer" not in src
 
 def test_seat_status_py_is_retired():

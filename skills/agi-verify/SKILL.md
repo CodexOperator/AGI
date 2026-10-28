@@ -18,7 +18,7 @@ python3 extensions/agi/bin/commands.py run verify
 | links | `broken=0` (`links.py links`) |
 | smoke / node-count | active + deprecated never dropped (`driver.sh --smoke --max-iters 1`); stamped only on the integration branch |
 | viewport-verify | one render, two readers (goal:g2.19) |
-| write-guard · dispatch-help · budget · anonymize · seat-model · node-dirs | each tool's own invariant |
+| dispatch-help · budget · anonymize · seat-model · node-dirs | each tool's own invariant |
 | bin-suite-fresh | a bin/*.py is newer than the last suite run → the SUITE is owed (known FAIL until a suite window runs) |
 
 `links.py links` can exceed 580 s (exit 124) at load 8-9: run it on a quiet box, or leave it to the lander (thought-master 10-09).

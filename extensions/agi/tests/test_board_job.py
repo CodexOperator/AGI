@@ -1,7 +1,7 @@
 """goal:g7.16.1.11.42 (option E, council 3/3 15:07Z, C1-C6): the board job's commit is G, made in the seat's own uid,
 and the human uid's one step lands only the job's own commits.
 
-Real git, a real ssh signing key + allowed-signers file, a stand-in writer (what metrics_cell.py/write.py do: one
+Real git, a real ssh signing key + allowed-signers file, a stand-in writer (what metrics_cell.py does: one
 commit with the exact subject). MUTANTS are source copies of board_job.py edited with a replace that must change the
 text; each must break the row it names (the assertion the REAL file passes fails on it).
 """
@@ -17,8 +17,8 @@ from pathlib import Path
 import pytest
 
 SRC = Path(__file__).resolve().parents[1] / "bin" / "board_job.py"
-SUBJECT = "write.py: town:local-maxxing (belam)"
-WRITER = ["sh", "-c", 'date +%s%N > .agi/cell.txt && git add -A && git commit -q -m "write.py: town:local-maxxing (belam)"']
+SUBJECT = "board: town:local-maxxing (belam)"
+WRITER = ["sh", "-c", 'date +%s%N > .agi/cell.txt && git add -A && git commit -q -m "board: town:local-maxxing (belam)"']
 
 pytestmark = pytest.mark.skipif(not shutil.which("ssh-keygen"), reason="ssh-keygen is needed to sign")
 
@@ -954,12 +954,12 @@ def test_fd3b_a_hand_merge_whose_resolution_edits_the_path_never_reaches_the_x_t
     assert f"{merge[:7]} refused: (m) the tree is not the clean merge" in box.notice.read_text()
 
 
-def test_v8a_3a_the_subject_the_job_commits_under_is_board_and_the_retired_one_still_lands():
-    """metrics_cell now commits `board: <node> (<actor>)` (node_commit); the commits the retired writer made
-    (`write.py: town:...`) that are still unlanded at the cutover stay landable. Anything else is not the job's."""
+def test_v8a_step4_the_subject_is_board_only_the_retired_writers_is_dropped():
+    """metrics_cell commits `board: <node> (<actor>)` (node_commit). The retired writer's subject (its newest
+    commit landed 10-26 05Z) was DROPPED in step 4, with this row: it no longer matches. Anything else is not the job's."""
     import board_job
     assert board_job.SUBJECT_RE.match("board: town:local-maxxing (belam)")
-    assert board_job.SUBJECT_RE.match("write.py: town:local-maxxing (belam)")
+    assert not board_job.SUBJECT_RE.match("wri" + "te.py: town:local-maxxing (belam)")      # the retired writer's subject is DROPPED (step 4)
     assert not board_job.SUBJECT_RE.match("board: doc:card-belam (belam)")          # a node outside town: is not the board's
     assert not board_job.SUBJECT_RE.match("board: town:local-maxxing (belam) + a hand edit")
     assert not board_job.SUBJECT_RE.match("notes: town:local-maxxing (belam)")

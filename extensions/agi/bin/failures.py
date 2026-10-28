@@ -15,9 +15,8 @@ Closed failure categories (one row per event, per agent):
 - overclaim          `iter-*/review/results.json` reports `overclaims>0`
 - broken_frontmatter write-log.jsonl `operation=="repair-frontmatter"`
 - session_limit      output.log's last line is a subscription-limit result
-- wrong_file         output.log shows a `write_guard` `WARN unsanctioned
-                     write:` — the agent hand-edited a node instead of
-                     routing the edit through the sanctioned writer
+(wrong_file, which read the write guard's `WARN unsanctioned write:` line, retired with the guard,
+goal:g7.16.1.11.46.23 step 4: an old ledger row carrying it is data now.)
 - no_build_probe_only agent.json `verdict=="pending"` at done
 
 `unadmitted` slots never count — no agent ran, there is no dir to read.
@@ -62,7 +61,6 @@ CATEGORIES = (
     "overclaim",
     "broken_frontmatter",
     "session_limit",
-    "wrong_file",
     "no_build_probe_only",
 )
 
@@ -76,7 +74,6 @@ DEFAULT_LEDGER = "failure-ledger.json"
 DEFAULT_RATES = "failure-rates.json"
 
 _ERR_MSG = re.compile(r"EVIDENCE-GATE REJECTED")
-_WARN_MSG = re.compile(r"WARN unsanctioned write:\s+(\S+)")
 _MODEL_RE = re.compile(r"--model\s+['\"]?([^'\"\s]+)")
 _ROLE_RE = re.compile(r"You are (PARENT|parent|KID|kid|agent)\b", re.IGNORECASE)
 
@@ -167,14 +164,12 @@ def _iteration_rows(root: Path, iter_id) -> list[dict]:
         if str(rec.get("verdict") or "").strip().lower() == "pending":
             emit("no_build_probe_only", "verdict pending at done")
 
-        # rejected / wrong_file / session_limit from output.log
+        # rejected / session_limit from output.log
         olog = adir / "output.log"
         if olog.exists():
             text = olog.read_text(encoding="utf-8", errors="replace")
             if _ERR_MSG.search(text):
                 emit("rejected", "EVIDENCE-GATE REJECTED")
-            for m in _WARN_MSG.finditer(text):
-                emit("wrong_file", m.group(1))
             lim = _scan_session_limit(olog)
             if lim:
                 emit("session_limit", lim)

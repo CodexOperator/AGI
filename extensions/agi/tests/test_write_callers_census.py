@@ -6,9 +6,8 @@ path built from a name (a constant for it, the filename as a string, a trailing 
 Scope: extensions/, skills/, src/, .agi/nodes/.geometry/, CLAUDE.md, QUICKSTART.md (tracked files; node history and deprecated/ are history).
 
 THE ROW: the census of the WHOLE tree must EQUAL ALLOWED, BY PATH (an exact set, never a count: one converted for one left
-behind nets 0). ALLOWED is the retiring commit's (step 4) set: the writer script and its guard themselves, the tests of write.py, the
-three COMMANDS table rows + commands.md, two stream_master corpus strings, and tests that name the script as TEXT. A new caller in any
-other file reads RED here; step 4 shrinks ALLOWED to the empty set as it retires the rest.
+behind nets 0). ALLOWED is the two stream_master blocklist literals (below): step 4 retired the writer script, its
+guard, its tests, the COMMANDS rows and every exec line, so any other file with a caller reads RED here, naming the path.
 """
 import subprocess
 import re
@@ -50,79 +49,15 @@ def census(root: Path) -> list[str]:
     return sorted(out)
 
 
-# the retiring commit's allowed set, BY PATH (the 3b re-cut's message names the same 68 paths)
+# STEP 4 (the retiring commit, goal:g7.16.1.11.46.23) shrank the allowed set from 68 paths to these two: the writer
+# script, its guard, its tests, the COMMANDS rows and every exec line are gone. The two left carry the script's name as
+# an injection-BLOCKLIST literal (text an attacker feeds the stream relay, not a caller; dropping it would loosen a
+# filter for no gain): the falsifier-1 exclusion, named in the goal's THOUGHT.
 ALLOWED_CODE = [
-    '.agi/nodes/.geometry/commands.md',
-    'CLAUDE.md',
-    'QUICKSTART.md',
-    'extensions/agi/bin/' + _W + '.py',
-    'extensions/agi/bin/write_guard.py',
     'extensions/agi/src/stream_master/corpus.py',
     'extensions/agi/src/stream_master/relay.py',
-    'skills/agi/SKILL.md',
 ]
-ALLOWED_TESTS = [
-    'extensions/agi/tests/agi-turn.t.sh',
-    'extensions/agi/tests/graph-metrics.t.sh',
-    'extensions/agi/tests/prereq-notice.t.sh',
-    'extensions/agi/tests/skills-truth.t.sh',
-    'extensions/agi/tests/test_board_job.py',
-    'extensions/agi/tests/test_body_patch.py',
-    'extensions/agi/tests/test_box_identity.py',
-    'extensions/agi/tests/test_brief.py',
-    'extensions/agi/tests/test_cli_done_kid_ceiling.py',
-    'extensions/agi/tests/test_commands.py',
-    'extensions/agi/tests/test_commands_manifest.py',
-    'extensions/agi/tests/test_failures.py',
-    'extensions/agi/tests/test_foreign_refusal_durability.py',
-    'extensions/agi/tests/test_formation_readback.py',
-    'extensions/agi/tests/test_graphweb.py',
-    'extensions/agi/tests/test_grid.py',
-    'extensions/agi/tests/test_hierarchy_seats.py',
-    'extensions/agi/tests/test_links.py',
-    'extensions/agi/tests/test_links_refs_outside.py',
-    'extensions/agi/tests/test_nest.py',
-    'extensions/agi/tests/test_post_rename.py',
-    'extensions/agi/tests/test_rename_post.py',
-    'extensions/agi/tests/test_research_review_mint_gate.py',
-    'extensions/agi/tests/test_resolve_old_sha.py',
-    'extensions/agi/tests/test_retire_place.py',
-    'extensions/agi/tests/test_ring_cli_seam.py',
-    'extensions/agi/tests/test_ring_gates_strict.py',
-    'extensions/agi/tests/test_rings.py',
-    'extensions/agi/tests/test_rotate.py',
-    'extensions/agi/tests/test_rotate_handover.py',
-    'extensions/agi/tests/test_rotate_startup.py',
-    'extensions/agi/tests/test_rotate_verb.py',
-    'extensions/agi/tests/test_rotation_alerts.py',
-    'extensions/agi/tests/test_rotation_record.py',
-    'extensions/agi/tests/test_skills_first_turn_entry.py',
-    'extensions/agi/tests/test_stream_master_blind_measure.py',
-    'extensions/agi/tests/test_thought_hygiene.py',
-    'extensions/agi/tests/test_town_cell_write.py',
-    'extensions/agi/tests/test_town_mint.py',
-    'extensions/agi/tests/test_town_mint_final.py',
-    'extensions/agi/tests/test_town_mint_lines.py',
-    'extensions/agi/tests/test_untrusted_lane.py',
-    'extensions/agi/tests/test_v8a_actor_seats.py',
-    'extensions/agi/tests/test_verification.py',
-    'extensions/agi/tests/test_veto_fail_closed.py',
-    'extensions/agi/tests/test_viewport.py',
-    'extensions/agi/tests/test_workflow.py',
-    'extensions/agi/tests/test_write.py',
-    'extensions/agi/tests/test_write_actor_rows.py',
-    'extensions/agi/tests/test_write_answers_file.py',
-    'extensions/agi/tests/test_write_build_kind.py',
-    'extensions/agi/tests/test_write_commit_busy_index.py',
-    'extensions/agi/tests/test_write_dotted_key.py',
-    'extensions/agi/tests/test_write_guard.py',
-    'extensions/agi/tests/test_write_master_sensei.py',
-    'extensions/agi/tests/test_write_ring_cli.py',
-    'extensions/agi/tests/test_write_schema_checked.py',
-    'extensions/agi/tests/test_write_self_row.py',
-    'extensions/agi/tests/test_write_sub.py',
-    'extensions/agi/tests/test_write_veto_gate.py',
-]
+ALLOWED_TESTS = []
 ALLOWED = sorted(ALLOWED_CODE + ALLOWED_TESTS)
 
 

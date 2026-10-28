@@ -287,7 +287,7 @@ def _declared_subcommands(script: Path) -> set[str] | None:
     `sub.add_parser("commit")` (grid.py, crons.py),
     `add_argument("action", choices=[...])` (provisioning.py, links.py), and a
     module-level `SUBCOMMANDS = (...)` for a script that dispatches by hand
-    rather than through argparse (write_guard.py).
+    rather than through argparse (the retired write guard was the first).
 
     The third style was added at merge-up 3. It is a widening, NOT a
     loosening: `None` -- the script declares nothing at all -- is still a
@@ -334,9 +334,9 @@ def _declared_subcommands(script: Path) -> set[str] | None:
 def test_every_declared_command_accepts_its_own_subcommand():
     """The file existing is not the command working, and the gap is real.
 
-    On 2026-09-03 `write.py` was renamed to `links.py` and a new `write.py`
-    took its place. `links` and `schema` were declared as `write.py links` /
-    `write.py schema`, and both broke instantly — but the existence test above
+    On 2026-09-03 the old node writer script was renamed to `links.py` and a new one
+    took its place. `links` and `schema` were still declared as that script's
+    `links` / `schema`, and both broke instantly — but the existence test above
     stayed green the whole time, because it only asks whether *a file by that
     name* exists, and one did. It was the wrong file.
 
@@ -455,10 +455,12 @@ def test_pass_through_flags_reach_the_command_not_the_router():
     """🔴 `agi write <id> <script> --dry-run` died on
     `unrecognized arguments: --dry-run` — the router eating its passenger's
     mail. Fixed with `--` before the extras and `--root` before the verb.
+    (`agi write` retired with the node writer, goal:g7.16.1.11.46.23 step 4: the same router row is driven
+    here through `view-llm`, whose passengers `--anchor <id> --depth 0` must reach viewport.py.)
     """
-    proc = _agi("write", "goal:g9.7", "set status active", "--dry-run")
+    proc = _agi("view-llm", "--anchor", "goal:g1", "--depth", "0")
     assert proc.returncode == 0, proc.stderr
-    assert "goal:g9.7" in proc.stdout
+    assert "anchor=goal:g1 depth=0" in proc.stdout
     assert "unrecognized" not in (proc.stdout + proc.stderr)
 
 
@@ -467,7 +469,7 @@ def test_the_view_commands_are_declared_in_the_graph():
     """The owner asked for two views: the human one with spiders, and the one
     an LLM actually receives. Both are commands, so both are discoverable."""
     table = commands.load(REAL_ROOT)
-    for name in ("view", "view-llm", "write"):
+    for name in ("view", "view-llm"):
         assert name in table, f"`agi {name}` is not declared"
     assert "--live" in table["view"].argv, "the human view is the live one"
     assert "llm" in table["view-llm"].argv

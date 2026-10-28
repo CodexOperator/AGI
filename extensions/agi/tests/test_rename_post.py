@@ -309,7 +309,7 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
 
 def test_apply_never_writes_config(tmp_path):
     """Round NEVER writes config: posts.md (the row surface) is unchanged by
-    apply; row cells are printed as write.py lines, not edited."""
+    apply; row cells are printed as edit lines, not edited."""
     _geo(tmp_path, rows=[{"name": "old"}])
     posts = tmp_path / "nodes" / ".geometry" / "posts.md"
     before = posts.read_bytes()

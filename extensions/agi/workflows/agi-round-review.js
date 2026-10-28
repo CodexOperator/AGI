@@ -37,7 +37,7 @@ const GLOBAL_SCHEMA = {
     diff_stat_tail: { type: 'string' },
     links_broken: { type: 'integer' },
     links_line: { type: 'string' },
-    guard_output: { type: 'string', description: 'write_guard.py check output, empty if silent' },
+    guard_output: { type: 'string', description: 'always empty: the write guard retired with the node writer (goal:g7.16.1.11.46.23 step 4); the field stays for the record shape' },
     suite_passed: { type: 'integer' },
     suite_failed: { type: 'integer' },
     suite_skipped: { type: 'integer' },
@@ -59,7 +59,7 @@ const globalPrompt = `${RULES}
 Global checks for agi round iter-${iter}, in this order, from ${ROOT} (each is read-only or writes only derived files the round loop expects):
 1. git status --short  (all lines) and git diff --stat | tail -1
 2. python3 extensions/agi/bin/links.py links   -> the line with 'resolved' and 'broken'; broken count
-3. python3 extensions/agi/bin/write_guard.py check  -> capture all output (empty = silent = good)
+3. (the write guard retired with the node writer: report guard_output as the empty string)
 4. python3 extensions/agi/bin/commands.py run tests  -> the pytest summary line: passed/failed/skipped counts and failing test ids if any (takes ~2 min)
 5. Untracked files: classify each; report as unexpected anything that is not a new node file under .agi/nodes/ and not a file under extensions/ skills/ src/ tests.
 Return the numbers exactly as printed.`

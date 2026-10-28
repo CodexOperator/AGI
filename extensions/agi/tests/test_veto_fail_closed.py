@@ -1,10 +1,10 @@
 """G-FRZ FAILS CLOSED (goal:g7.16.1.11.13.2, DG1 18:21Z + goals v3 ebbbc40be8 + the writer list's F3; DG2 writes the rows FIRST, DG4 builds).
 
-The frozen-prime veto guards seven gated acts. Today five of them read the veto cell NON-strict (a MISSING or MALFORMED cell reads as a FREE tree with no exception) and swallow every other error under an `except Exception: pass`; the config-row gate of write.py does the same; the publish check of rotate.py lets an ImportError through. After the build EVERY site reads strict and EVERY failure to read or judge the veto is HELD BY NAME carrying the cause, and nothing is pushed / merged / written:
+The frozen-prime veto guards seven gated acts. Today five of them read the veto cell NON-strict (a MISSING or MALFORMED cell reads as a FREE tree with no exception) and swallow every other error under an `except Exception: pass`; the config-row gate of the node writer did the same (retired with it, step 4); the publish check of rotate.py lets an ImportError through. After the build EVERY site reads strict and EVERY failure to read or judge the veto is HELD BY NAME carrying the cause, and nothing is pushed / merged / written:
 
   S1 `_make_closeout_seams()["merge_up"]` (rotate.py:9520)      S2 `_make_closeout_seams()["push"]` (:9644)       S3 `_push_season_branch` (:10832)
   S4 `_stops_push` when the branch is a TRUNK (:19208)           S5 `_rotate_human_gate` for ANOTHER post (:19616)  S6 `_publish_row_to_authority` ImportError arm (:10979)
-  S7 write.py's config-row edit gate OUTSIDE self_row (:1921-1927).
+  (S7, the node writer's config-row edit gate, retired with the writer, goal:g7.16.1.11.46.23 step 4.)
 
 Causes, each a row per site: the cell MISSING · MALFORMED (unparsable) · `active_gates` not a list · `seatsig.veto.read` raising ValueError · `seatsig.veto.is_frozen` raising ValueError (a healthy cell) · `from seatsig import veto` raising ImportError. A well-formed FREE cell proceeds exactly as today (the side effect happens); a FROZEN cell holds with the HELD text as today. Rows w/ a raising cause also require the exception TEXT in the held line. F3: `_grid_commit` (:9616) and `_button_down` (:12557) report the retired no-op honestly and a real failure as a failure, never `grid committed`. Negative: the lying comment is gone and no veto read lacks `strict=True` (rotate.py:19601's best-effort active_gate lookup is exempt BY NAME).
 
@@ -29,7 +29,6 @@ sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(EXT / "agi" / "src"))
 
 from agi.bin import rotate  # noqa: E402
-import write  # noqa: E402
 import node_writer  # noqa: E402
 from seatsig import veto  # noqa: E402
 
@@ -86,7 +85,7 @@ def arm(monkeypatch, cause: str) -> str:
     return "free"
 
 
-# ---- the seven sites: each runner returns (held: bool, text: str, effects: list of argv-tuples that pushed / merged) ----
+# ---- the six live sites (S7 retired with the node writer): each runner returns (held: bool, text: str, effects: list of argv-tuples that pushed / merged) ----
 
 def _fake_closeout(monkeypatch, g, calls):
     monkeypatch.setattr(rotate, "_shared_graph_root", lambda r: g)
@@ -155,32 +154,8 @@ def site_publish(monkeypatch, g):
     return "HELD" in out, out, ([] if "HELD" in out else [("past-the-gate",)])
 
 
-def site_write(monkeypatch, g):
-    """write.py's gate: a config:seats edit by the OWNER (not a seated self_row writer) in a project whose graph root is `g`."""
-    import json
-    rows = [{"name": "belam", "role": "prime_director", "model": "claude-opus-5", "session_ref": "aca130", "generation": 0, "window": ""}]
-    g.mkdir(parents=True, exist_ok=True)
-    sd = g / "context" / "schemas"
-    sd.mkdir(parents=True, exist_ok=True)
-    (g / "config.json").write_text("{}")
-    live = ROOT / ".agi" / "context" / "schemas" / "[config].md"
-    (sd / "[config].md").write_text(live.read_text(encoding="utf-8") if live.exists() else "---\nname: config\nwritten_by: [owner, prime_director]\nself_row: {list_key: seats, match_key: name, fields: [session_ref, generation, window]}\n---\n")
-    body = "\n".join(f"  - {r!r}" for r in rows)
-    seats = g / "nodes" / ".geometry" / "seats.md"
-    seats.write_text("---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\ntype: config\nparents:\n  - goal:g17\nseats:\n" + body + "\n---\n\n# config:seats\n\nfixture body\n")
-    before = seats.read_bytes()
-    new = [dict(rows[0], role="director")]
-    e = write.Edit("config:seats")
-    write.verb_set(e, "seats", json.dumps(new))
-    try:
-        write.submit(g, e, actor="owner", role="owner")
-    except write.EditError as exc:
-        return True, str(exc), ([("wrote",)] if seats.read_bytes() != before else [])
-    return False, "", ([("wrote",)] if seats.read_bytes() != before else [])
-
-
 SITES = {"merge_up": site_merge_up, "push": site_push, "push_season_branch": site_push_season_branch, "stops_push_trunk": site_stops_push_trunk,
-         "rotate_other": site_rotate_other, "publish": site_publish, "write_config_row": site_write}
+         "rotate_other": site_rotate_other, "publish": site_publish}
 
 
 def has_cause_text(cause: str, text: str) -> bool:
@@ -278,12 +253,12 @@ def _src(name: str) -> str:
     return (BIN / name).read_text(encoding="utf-8")
 
 
-@pytest.mark.parametrize("name", ["rotate.py", "write.py"])
+@pytest.mark.parametrize("name", ["rotate.py"])
 def test_the_lying_comment_is_gone(name):
     assert "a broken veto cell never" not in _src(name), f"{name} still says a broken veto cell never un-gates / gates silently / frees-silent"
 
 
-@pytest.mark.parametrize("name", ["rotate.py", "write.py"])
+@pytest.mark.parametrize("name", ["rotate.py"])
 def test_every_veto_read_and_judgement_is_strict(name):
     """Every `_veto.read(` / `is_frozen(` call carries `strict=True` or a `geom=` taken from a strict read; the ONE exemption BY NAME is rotate.py's best-effort `active_gate(_veto.read(_groot), "prime")` lookup inside the frozen branch."""
     text = _src(name)
@@ -308,7 +283,7 @@ def test_every_veto_read_and_judgement_is_strict(name):
 STALE_FAIL_OPEN = re.compile(r"fail[- ]open(?:[\s#]+)on(?:[\s#]+)a(?:[\s#]+)broken(?:[\s#]+)veto(?:[\s#]+)cell", re.IGNORECASE)
 
 
-@pytest.mark.parametrize("name", ["rotate.py", "write.py"])
+@pytest.mark.parametrize("name", ["rotate.py"])
 def test_the_stale_fail_open_comment_is_gone(name):
     """`Fail-open on a broken veto cell` occurs 0 times in the module (also when a rewrite re-wraps it across a comment line break or changes its case): the seams it described now fail CLOSED."""
     text = _src(name)
