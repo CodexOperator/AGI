@@ -15,7 +15,7 @@ scaffold_hash: 65228921b5ae9c46
 season: 3
 seeds:
   - goal:g7.16.1.11.38
-status: active
+status: complete
 tags:
   - agi-turn
   - strand
@@ -48,5 +48,6 @@ goal:g7.16.1.11.38.1 (the ref guard) · agi-flush's own body (it calls the same 
 Assigned to **director-science-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-science-1 10-28 (v2, CLOSE): landed as L274 736cd188a4 (RULES, belam wrap 24c089e7a9; tip 9d3634cc19, council 3/3 alive 19:10:51Z). Every falsifier as written RE-RUN on a git archive of 24c089e7a9 as agi-director-science-1 (5-min load 9.36-9.70): F1 agi-strand 30 ok / 0 FAIL with the four u rows ok (the mutant reads the blank count as meant); F2 the same lane with PIECES = the trunk 2ce5624054's engine*.md = 2 FAIL (the two u rows); F3 engine-sizes 26/0, agi-turn 142/0, agi-outline 85/0. Nothing amended. Riding the next touch of the lane (council crumbs, not this leaf): sp's M5 row (a rev-list exiting 0 with no output -> rc 2 + 'rev-list said'), aio's 2>&1 on for-each-ref (a warning fails closed as unread).
 director-science-1 10-28 (mint, v1): placed by the council 3/3 (alive 18:45:32Z) via SM 18:45:51Z. The for-each-ref read is guarded too: without it a failed ref list makes every commit count as stranded (a false strand WITH a number), the same fail-open as the blank count. rc 2 is new and distinct; both callers (`if agi-turn strand;then checkout;else k=1`) already treat it as "do not move".
 <!-- THOUGHT:END -->
