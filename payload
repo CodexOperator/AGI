@@ -23,8 +23,10 @@ post_branch, loop_branch; grammar: parse, the predicates, a plain import). An AL
 classed by a row whose match names f: its later `_g(` calls are not grepped, so that row is the reading.
 I-M1: that class is CHECKED against FN_CLASS (every public def of branches.py at the rev): a row whose class is not what the called
 or imported function returns = `bad-module-class` ('prose' holds only on a line starting '#', '*' or a backtick); a public def FN_CLASS
-does not name = `unmapped branches.<fn>`; A-N6: a call the line builds into a remote name (`origin/{...` or `"origin/" +` right
-before it) owes `remote`; a call to a name branches.py does not define (a local dict) is left to its row.
+does not name = `unmapped branches.<fn>`; A-N6 + A2: a call the line builds into a remote name (`origin/{...`, or a quoted
+`origin/` + in either quote, each also as refs/remotes/origin/, right before it) owes `remote`; U1: `from <pkg> import branches` owes grammar
+like `import branches`; a docstring opener (three quotes) is a prose start (A1). LIMIT: a remote name built on an EARLIER line (a variable
+holding 'origin/') is not read; a call to a name branches.py does not define (a local dict) is left to its row.
 LIMIT: a reader that names no ref at all (the main checkout's files, HEAD) is outside by construction; it follows posts/<P> by ff. A name DERIVED through
 branches.py is caught at its call (MODULE) only: a call through a name bound by assignment (`f = branches.season_main`) or getattr, and
 the `_g(` calls of an aliased import, are not grepped (the import row is their reading).
@@ -147,7 +149,7 @@ def cmd_repo(rev: str, table: str) -> int:
         if mod:                                          # I-M1 (1): the row's class must be what the called / imported function returns
             want = module_classes(text, defs)
             stripped = text.strip()
-            if want and row[1] not in want and not (row[1] == "prose" and stripped[:1] in ("#", "*", "`")):
+            if want and row[1] not in want and not (row[1] == "prose" and prose_start(stripped)):
                 bad.append(f"bad-module-class {path}:{num} (row {table}:{row[3]} says {row[1]}, branches.py returns {'|'.join(sorted(want))})")
         if row[1] == "family" and (re.search(LITERAL, text) or re.search(TRUNK_COMPOSED, text)):
             family.append((path, num, text))
@@ -170,6 +172,15 @@ def cmd_repo(rev: str, table: str) -> int:
     return 1 if bad else 0
 
 
+#: A-N6 + A2 (alive 13:53:50Z): the remote BUILD right before a call: origin/{.. or a quoted 'origin/' + (either quote), each with or without refs/remotes/
+REMOTE_BUILD = r"""(?:refs/remotes/)?origin/\{[^}]*$|["'](?:refs/remotes/)?origin/["']\s*\+\s*$"""
+
+
+def prose_start(stripped: str) -> bool:
+    """I-M1's prose escape + A1 (alive 13:53:50Z): a comment, a doc bullet, a backtick, or a docstring opener (three quotes, either kind)."""
+    return stripped[:1] in ("#", "*", "`") or stripped[:3] in ('"""', "'''")
+
+
 def module_classes(text: str, defs: set[str]) -> set[str]:
     """I-M1: the classes a module hit's line owes (FN_CLASS of each branches.py def it calls or imports; a plain import = grammar).
     A call to a name that is not a def of branches.py (rotate.py's local dict `branches`) owes nothing: its row stands (I-M1 (3))."""
@@ -181,12 +192,14 @@ def module_classes(text: str, defs: set[str]) -> set[str]:
         # A-N6 = I-M1r (alive, sp 12:19Z): a call whose result the line BUILDS into a remote name reads a remote ref; the strip form
         # (ref[len("origin/"):]) is not a build and keeps FN_CLASS
         before = text[:c.start()]
-        out.add("remote" if re.search(r'origin/\{[^}]*$|"origin/"\s*\+\s*$', before) else FN_CLASS[fn])
+        out.add("remote" if re.search(REMOTE_BUILD, before) else FN_CLASS[fn])
     fns: list[str] = []
     m = re.match(r"\s*from\s+branches\s+import\s+(.*)", text)
     if m:
         fns += re.findall(r"([A-Za-z_][A-Za-z0-9_]*)(?:\s+as\s+[A-Za-z_][A-Za-z0-9_]*)?\s*(?:,|$|#)", m.group(1).split("#")[0] + ",")
     elif re.match(r"\s*import\s+branches\b", text):
+        return {"grammar"}
+    elif re.match(r"\s*from\s+\S+\s+import\s+(.*,\s*)?branches\b", text):   # U1 (sp p2): the package form of the plain import
         return {"grammar"}
     return out | {FN_CLASS[f] for f in fns if f in defs and f in FN_CLASS}
 
