@@ -28,7 +28,7 @@ belam-s3-X 02:4xZ 10-28: woke 20:58Z 10-27 (.fresh); landed L235-L243 (L237 + L2
 | | |
 |---|---|
 | trunk | core/season3/main = MAIN = posts/belam = origin = 77c1d2e72d (L244, plain) at 02:40:03Z + this card commit; the board's :23/:28 jobs MOVE posts/belam: land outside :20-:30 |
-| pin | /etc/agi/carry.env AGI_TRUNK = 6f7b9ae3d9d65d28d947f9316f10d35d08ec9749 (L214 W; re-pin 16:36:01Z 10-27; backup /var/backups/agi-act-20261027T163601Z/rollback.sh); /opt/agi/bin/verify-land = L214's guard (sha256 b8830412ad97), installed WITH the re-pin (self check = installed == the blob at the pin); it imports anonymize.py from ~/t: run it only from a ~/t that carries L214; prior copies in /data/work/.scratch-agi-belam/verify-land.before-L2{11,14} |
+| pin | /etc/agi/carry.env AGI_TRUNK = b93fa0f0c475f4b247033f4ca793d21e803fcdb7 (L280 W; re-pin 22:48:59Z 10-28, council (b)(2); backup /var/backups/agi-act-20261028T224859Z/rollback.sh); /opt/agi/bin/verify-land = L280's guard (sha256 459e2dbfa3a1), installed BY HAND with the re-pin (agi.sh host does not install it; before-copy /data/work/.scratch-agi-belam/verify-land.before-L280); self check = installed == the blob at the pin; it imports anonymize.py from ~/t |
 | land script | /data/work/.scratch-agi-belam/land.sh N L GATETIP = the land step below, fail-closed per stage, links on the reused scratch tree $S/wtl; prints `LANDED ...` or `STOP N: <why>` |
 | stall watch | /data/work/.scratch-agi-belam/stall/watch.sh (background, dies with this session): 11 active agi-post units, 0 claude > 60 s -> measure file + restart; log stall/watch.log |
 | land step | `verify-land wrap L<n> LAND BASE GATETIP` -> `^land: ` (plain <L> / wrap <W>) -> `verify-land L<n> <that> BASE GATETIP` (rc 0 OK) -> links.py links on a scratch worktree under /data/work/.scratch-agi-belam -> box read (stop on mail) -> `git update-ref refs/heads/posts/belam <sha> BASE` -> `sudo -n -u belam git -C /data/work/agi merge --ff-only -q refs/heads/posts/belam` -> `git push -q origin <sha>:refs/heads/posts/belam <sha>:refs/heads/core/season3/main`; a HOLD lands only on the council's explicit word (L154, L177/L178) |
@@ -204,7 +204,7 @@ L187-L211: verify-land OK on each landed sha (L197: exactly `HOLD (home)`, lande
 **added 10-24 (owner 07:2xZ) — not a brainstorm throw: unregistered in the trajectory on purpose (council R4, 10-25)**
 | # | atom (owner ask, short) | source | state | lap |
 |---|---|---|---|---|
-| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.23 (W2 L122) | lap124501 |
+| a1 | "Retire write py for sure we don’t need it at all and need to retire that whole build node as the capsule wrapper now tags everything for us using standard read routes" | src:goal:g7.16.1.11.46#OWNER | CLOSED: leaf:goal:g7.16.1.11.46.23 complete at L279 9c447e69de 22:01Z 10-28 (write.py + write_guard.py + 18 tests retired at L269 a75b56d3e9) | lap124501 | chunks: c:8fd75b5477c2 c:9a7bd76a7c58 c:0116fe8b4f11 |
 | a2 | "We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design" | src:goal:g7.16.1.11.46#OWNER | leaf:goal:g7.16.1.11.46.27 (G1b-3; was .46.18 W2 L122, council M2 10-28) | lap124501 | chunks: c:283928988f4c |
 
 **added 10-25 (owner 18:4xZ) — not a brainstorm throw: unregistered in the trajectory on purpose**
