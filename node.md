@@ -1418,6 +1418,21 @@ manifest:
     purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans split into double_mints + never_landed + unclassified, each from one git command; --orphans lists them; unread or an unclassified orphan rc 1)
     side_effects: read
     proposable: true
+  grid.py:split:
+    cli: grid.py
+    verb: split
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - split
+    args:
+      - {"name": "base", "type": "str", "required": true, "choices": []}
+      - {"name": "gated", "type": "str", "required": true, "choices": []}
+      - {"name": "write", "type": "bool", "required": false, "choices": []}
+      - {"name": "lock_wait", "type": "int", "required": false, "choices": []}
+    reason: "graph-write: --write adds ONE grid commit per changed node of BASE..GATED on that mint's grid ref, named by grid.py's builder (CAS per node under GridLock; a moved tip = a held merge row, rc 1; never a delete); the land path of goal:g7.16.1.11.46.18 G1b-2, not wired into any land until its slice (c). The bare form is a dry run."
+    side_effects: graph-write
+    proposable: false
   grid.py:commit:
     cli: grid.py
     verb: commit
