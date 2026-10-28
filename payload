@@ -100,7 +100,7 @@ def grep_live(groot: Path, needle: str, *, retired: bool = False
 
 def parked_tag(goal: str) -> str:
     """goal:g1.31.5.2 (n84) -- the ONE spelling of the park tag `parked:<goal>`;
-    the carrier grep and write.py's unpark filter both call it."""
+    the carrier grep calls it (the node writer's unpark filter, its other caller, retired with the writer)."""
     return f"parked:{goal}"
 
 
