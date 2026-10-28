@@ -56,7 +56,10 @@ def offenders(files, ids):
     bad = []
     for f in files:
         for line, r in strict_reasons(Path(f).read_text(encoding="utf-8")):
-            if r is None or "RED until" not in r:
+            if r is None:   # an f-string, a call, an imported name: unread is an offender, never a skip (council fix-forward, alive 20:54:18Z 10-27)
+                bad.append(f"{Path(f).name}:{line}: reason unread")
+                continue
+            if "RED until" not in r:
                 continue
             m = SHAPE.match(r)
             if not m or f"goal:{m.group(1)}" not in ids:
@@ -84,3 +87,13 @@ def test_mutant_a_seat_named_reason_is_RED(tmp_path):
                  '@pytest.mark.xfail(strict=True, reason="goal:g4.18.7.1: RED until "\n    "x is built")\ndef test_c(): pass\n')
     bad = offenders([f], _ids())
     assert [b.split(":")[1] for b in bad] == ["3", "5"], bad
+
+
+def test_mutant_an_unreadable_reason_is_RED_by_name(tmp_path):
+    f = tmp_path / "test_u.py"
+    f.write_text('import pytest\nfrom x import SEAT\n'
+                 '@pytest.mark.xfail(strict=True, reason=f"RED until {SEAT} builds it")\ndef test_a(): pass\n'
+                 '@pytest.mark.xfail(strict=True, reason=SEAT)\ndef test_b(): pass\n'
+                 '@pytest.mark.xfail(strict=True)\ndef test_c(): pass\n')
+    assert offenders([f], _ids()) == ["test_u.py:3: reason unread", "test_u.py:5: reason unread",
+                                      "test_u.py:7: reason unread"]
