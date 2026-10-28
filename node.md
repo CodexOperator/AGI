@@ -3,6 +3,7 @@ id: build:bin-grid
 mint_id: 0c772dbafc4845e7ad419180519d4243
 type: build
 parents:
+  - goal:g7.16.1.11.46.18
   - idea:engine-grid
 build_kind: code
 confidence: 1.0
@@ -487,4 +488,6 @@ stops someone from running `grid.py cron install` and getting a second,
 unmanaged set of lines scheduling every job alongside `crons.py`'s managed
 block. That double-scheduling risk is a real residual, not something this
 change closes.
+director-general-3 10-28 (goal:g7.16.1.11.46.18 G1b-2 slice (a), alive's A14 + aio's I14, council 3/3 07:20:16Z): `grid.py split` (cmd_split + _split_plan): a land as one grid commit per changed node of BASE..GATED, read from the two trees only; the ref from mint_node_ref, under GridLock, one CAS per node on the tip read once; a CAS miss = `held merge <mint> <path>`, rc 1, never a whole-tree merge; a delete without a retire, an id without mint_id, one mint at two paths = unread, nothing written. PARENTS gain the goal ([goal, idea], [build].md 2026-09-05: a census-parented node gains the goal that motivated a version). Not yet on any land path: slice (c) is the one real land. goal:g7.16.1.11.13's C1 re-pinned + TABLE row W15 in the same tip.
+director-general-3 10-28 (same tip, council 3/3 alive [decision] 08:38:11Z): commit_file's body split into prepare_version + write_version, the ONE per-version helper commit_file and split both call (U5); the double-mint view is an argument, its cache keyed by the view (U4, I18); split judges a land by the gated tree, refuses a live payload gone (A17) and an unreadable nest (A18), and runs every prepare before the first write. commit_file's messages, verdicts and C1 text unchanged.
 <!-- THOUGHT:END -->
