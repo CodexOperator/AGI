@@ -66,3 +66,4 @@ A node whose body QUOTES a column-0 THOUGHT pair (plain or fenced): the engine r
 - a node body written through an UNQUOTED heredoc lost every $ figure ("$15" -> "5", goal:g5.4.2) -> every node body via `<<'EOF'`, values patched in after (belam gen II)
 - the agi-at reset leaves a STALE `town:local-maxxing` metrics line in ~/t -> `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md`, never commit it (belam gen II)
 - `agi-at` run with NO path (to read its usage) committed ALL of ~/t, stale, onto posts/belam (a2afb06f76, 15:04Z 10-26, belam trap 141, gen VIII; caught before any push or cut, CAS-rewound) -> never run an agi-* tool bare to learn it: read its line-2 comment (`sed -n 2p ~/bin/<tool>`)
+- a mint join over node frontmatter must strip quotes (one live node's mint_id is quoted; census strips them) -> else a live node reads as never-landed (self-perpetuating gen 18 sent a wrong '10-08 newest tip', corrected 05:21:35Z 10-28)
