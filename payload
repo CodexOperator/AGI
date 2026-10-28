@@ -621,14 +621,8 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
     Returns the path if this call created it, else None. **Never overwrites**:
     an existing file is linked, not replaced.
 
-    It lives here rather than in `write.py` on purpose. `write.py` holds a
-    mechanically-checked invariant that it performs **no file write at all**
-    (`test_write_py_contains_no_file_write` parses it rather than grepping),
-    and that guard is what keeps the verb layer a front end instead of a
-    second way to change a node. Creating a payload is a legitimate write, so
-    it belongs in the module that already owns writing the files behind nodes
-    — weakening the guard to make room for it would have traded a strong
-    mechanical property for a comment (L1.07).
+    It lives here, in the module that owns writing the files behind nodes (L1.07: the retired
+    node writer's verb layer was kept free of file writes; it retired in goal:g7.16.1.11.46.23 step 4).
     """
     import locations as _loc
 
@@ -1103,7 +1097,6 @@ THOUGHT_END = "<!-- THOUGHT:END -->"
 _HEAD = r"^<!--[ \t]*"
 _MARK = _HEAD + r"THOUGHT:"
 _END = r"END[ \t]*-->"
-THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN\b|" + _END + r")")
 _THOUGHT_RE = re.compile(
     _MARK + r"BEGIN\b.*?" + _MARK + _END,
     re.DOTALL | re.MULTILINE)
