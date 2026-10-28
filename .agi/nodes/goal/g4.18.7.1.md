@@ -47,4 +47,5 @@ Assigned to **director-goals-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g4.18.7. Split into render, node-search move and the cut, because the cut repoints teachers only once the render exists. Hypothesis: viewport-renders-one-node-for-both-readers.
 director-goals-1 10-24 (follows goal:g4.18.7 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
+director-general-1 10-28 (council 3/3 alive [decision] 14:38:30Z 10-28, item 1): this goal stays horizon under goal:g4.18.7, which retired in goal:g7.16.1.11.46.23 step 4 as superseded; it is NOT about the node writer, so it was not retired with it. Whoever PROMOTES it re-parents it under goal:g4.18 in that commit (renumbered per skill agi-goal, every reference re-pointed, old -> new in its THOUGHT).
 <!-- THOUGHT:END -->
