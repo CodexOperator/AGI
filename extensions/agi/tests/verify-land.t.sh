@@ -295,4 +295,14 @@ ok "m-allowlist-from-TIP-reads-RED a land that adds its own name gets anon-diff=
 # f12 (all-is-one P3 00:05:18Z 10-27): the step's ONE source (paths.HOME_RE) UNIMPORTABLE -> the unfiltered diff HOLDs, NAMED (a guard copy whose sys.path misses paths.py; as SELF, so `self` holds too)
 vmut "sys.path.insert(0,os.path.dirname(os.path.abspath(anon)))" "sys.path.insert(0,'/nonexistent')";run fa $LD_fa $BASE $GT_fa;SELF=
 ok "f12-an-UNIMPORTABLE-paths-HOLDS-NAMED rc $rc, $(grep '^anon-diff fixture class' $T/o|cut -c1-90), $(v)" '[ $rc = 1 ]&&grep -qx "anon-diff fixture class: unread (the step failed): nothing pinned, every hit HOLDs" $T/o&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
+# --- goal:g7.16.1.11.46.16.2 (alive [decision] 21:38:30Z 10-27, aio's optional term): an owner-ruling node is a RULES path, so every ruling lands through belam's wrap.
+# The base carries the LIVE repo's land.rules_paths (with the glob, as this land puts it); the mutant base drops ONLY the glob
+rpbase(){ n=$1;drop=$2;g checkout -q --detach $BASE;python3 -I -c 'import json,sys;l=json.load(open(sys.argv[1]))["land"]["rules_paths"];l=[x for x in l if x!=sys.argv[3]];c=json.load(open(sys.argv[2]));c["land"]["rules_paths"]=l;open(sys.argv[2],"w").write(json.dumps(c))' $R0/.agi/config.json $R/.agi/config.json "$drop";g add -A;g commit -qm "base $n";eval "BASE_$n=$(g rev-parse HEAD)";printf 'AGI_TRUNK=%s\n' $(g rev-parse HEAD) >$T/carry-$n.env;g checkout -q --detach;}
+RG=':(glob).agi/nodes/doc/owner-ruling-*.md';rpbase rg -;rpbase rgm "$RG"
+ok "or0-the-live-rules_paths-carries-the-ruling-glob" 'python3 -I -c "import json,sys;sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1]))[\"land\"][\"rules_paths\"] else 1)" $R0/.agi/config.json "$RG"'
+orl(){ sw $1 gate $2 'mkdir -p $R/.agi/nodes/doc;printf "owner-batch-ruling: x.classes\n" >$R/.agi/nodes/doc/owner-ruling-x.md';CARRY=$T/carry-$3.env;run $2 $LD $1 $GT;CARRY=;}
+orl $BASE_rg orA rg
+ok "or1-a-land-adding-an-owner-ruling-node-is-RULES: landed plain it HOLDS wrap-missing rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
+orl $BASE_rgm orB rgm
+ok "or2-mutant-the-glob-dropped-reads-plain: the same land on a base without the glob is NOT RULES (rc $rc, no wrap-missing), so the glob alone makes a ruling a RULES land" '! v|grep -q "wrap-missing"'
 echo "verify-land: $f FAIL";exit $f

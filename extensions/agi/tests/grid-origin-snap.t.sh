@@ -185,6 +185,10 @@ ok "u9-check-prints-the-same-class-line-and-an-anonymize-count --check: $(grep -
 # --- OB (the owner's ruling 10-27, goal:g7.16.1.11.46.16 route (a)): `unify --owner-batch <record>` writes every BANKED pair of ONE stamped record as tree = LIVE,
 # first parent the live tip, origin's tip the 2nd: the push is a fast-forward of origin's ref (never a force), origin's version stays in the history and in a stamped .batch
 RN=$(basename $R);UD=$P/.agi/sessions/unify
+# goal:g7.16.1.11.46.16.2 R1: a record is writable only when a ruling NODE BY NAME, COMMITTED at the trunk, names it (one anchored line)
+rl(){ printf '%s sha256:%s' "$1" "$(sha256sum $P/.agi/sessions/unify/$1 2>/dev/null|cut -c1-64)";}
+rule(){ mkdir -p $P/.agi/nodes/doc;printf -- '---\nid: doc:owner-ruling-%s\n---\n%s: %s\n' "$(echo $1|tr . -)" owner-batch-ruling "$(rl $1)" >$P/.agi/nodes/doc/owner-ruling-$(echo $1|tr . -).md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm "ruling $1" >/dev/null;}
+rule $RN
 obw(){ for i in 23 24 27 28;do eval l=\$ul_$i o=\$uo_$i;w=$(sha $NS/$(mintn $i));[ "$(um $i %P)" = "$l $o" ]&&tl $i $l&&$G -C $P log -1 --format=%B $w|grep -q "^Unify-Owner: $o$"&&$G -C $P merge-base --is-ancestor $o $w||return 1;done;}
 grid unify --into refs/grid --legacy $SNAP --owner-batch $RN >$T/ob0.out 2>&1;ob0=$?
 ok "ob0-the-selector-runs-dry the record's 4 banked pairs (m23 m24 m27 m28) are selected, nothing written: $(grep 'selected' $T/ob0.out|cut -c1-190) rc $ob0" '[ $ob0 = 0 ]&&grep -q "selected 4 banked pair(s): 4 merged, 0 unchanged, 0 conflict, 0 unread" $T/ob0.out&&[ "$(sha $NS/$(mintn 23))" = "$ul_23" ]&&[ "$(sha $NS/$(mintn 28))" = "$ul_28" ]'
@@ -198,7 +202,7 @@ n0=$(ls $UD/*.classes|wc -l);grid unify --into refs/grid --legacy $SNAP --owner-
 ok "ob4-a-second-write-moves-nothing rc $ob4: $(grep 'selected' $T/ob4.out|cut -c1-160), no new record" '[ $ob4 = 0 ]&&grep -q "0 merged, 4 unchanged, 0 conflict, 0 unread" $T/ob4.out&&[ "$(ls $UD/*.classes|wc -l)" = $n0 ]&&obw'
 grid unify --check --into refs/grid --legacy $SNAP >$T/ob5.out 2>&1;ob5=$?
 ok "ob5-check-reads-the-owner-merges-GREEN --check: the only REDs are m5 m26 (merge-base pairs nobody ruled): $(grep -c '^  RED' $T/ob5.out) RED, $(grep classes $T/ob5.out|cut -c1-170)" '[ $ob5 = 1 ]&&[ "$(grep -c "^  RED" $T/ob5.out)" = 2 ]&&grep -q "RED $(mintn 5) " $T/ob5.out&&grep -q "RED $(mintn 26) " $T/ob5.out&&grep -q "owner-batch tree=live 4" $T/ob5.out'
-printf 'banked %s %s bytes unseen: node.md\nbanked %s %s bytes unseen: node.md\n' $(mintn 99) $uo_23 $(mintn 24) $uo_21 >$UD/zz-ob-unread.classes
+printf 'banked %s %s bytes unseen: node.md\nbanked %s %s bytes unseen: node.md\n' $(mintn 99) $uo_23 $(mintn 24) $uo_21 >$UD/zz-ob-unread.classes;rule zz-ob-unread.classes
 grid unify --into refs/grid --legacy $SNAP --owner-batch zz-ob-unread.classes --write >$T/ob6.out 2>&1;ob6=$?
 ok "ob6-an-unreadable-pair-is-named-never-skipped a record banking m99 (no ref) and m24 at a tip origin does not hold: rc $ob6, UNREAD m99 and CONFLICT m24 (origin moved) named, nothing written" '[ $ob6 = 1 ]&&grep -q "UNREAD $(mintn 99) " $T/ob6.out&&grep -q "CONFLICT $(mintn 24) (origin moved" $T/ob6.out&&grep -q "0 merged, 0 unchanged, 1 conflict, 1 unread" $T/ob6.out&&obw'
 grid unify --into refs/grid --legacy $SNAP --owner-batch no-such.classes >$T/ob7.out 2>&1;ob7=$?
@@ -212,7 +216,7 @@ ok "ob8-an-owner-merge-no-record-names-is-RED m26 hand-written with an Unify-Own
 # --- OB re-cut (sp 20:28:34Z, aio 20:28:58Z): (a) origin's version SAVED whole: the .batch is `git diff live origin` over EVERY path, uncapped;
 # (b) each pair stamped right after its compare-and-swap (a run that dies between two pairs leaves the written one recorded); (c) an unreadable diff is ONE named line
 big40(){ r=$(mkd 2026-10-20T00:00:00Z $P 40 active live40);$G -C $P update-ref $NS/$(mintn 40) $r;push $(mkd 2020-01-01T00:00:00Z $P 40 active "$(seq 1 200|sed 's/^/origin line /')") $(mintn 40) >/dev/null;snap >/dev/null 2>&1;snap >/dev/null 2>&1
- printf 'banked %s %s bytes unseen: payload@src/p28.txt\nbanked %s %s bytes unseen: node.md\n' $(mintn 28) $(sha $SNAP/node/$(mintn 28)) $(mintn 40) $(sha $SNAP/node/$(mintn 40)) >$P/.agi/sessions/unify/zz-ob-a.classes;}
+ printf 'banked %s %s bytes unseen: payload@src/p28.txt\nbanked %s %s bytes unseen: node.md\n' $(mintn 28) $(sha $SNAP/node/$(mintn 28)) $(mintn 40) $(sha $SNAP/node/$(mintn 40)) >$P/.agi/sessions/unify/zz-ob-a.classes;rule zz-ob-a.classes;}
 oba(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;big40
  grid unify --into refs/grid --legacy $SNAP --owner-batch zz-ob-a.classes --write >$T/oba.out 2>&1;echo $? >$T/oba.rc;OBA=$(ls -t $P/.agi/sessions/unify/*.batch|head -1);}
 oba uOA
@@ -229,26 +233,84 @@ def cas(*a):
     return real_cas(*a)
 def gt(root,*a,**k):
     if f=="diffunread" and a and a[0]=="diff": return subprocess.CompletedProcess(a,128,"","fatal: simulated unreadable object\n")
+    if f=="buildfail" and a and a[0]=="commit-tree": return subprocess.CompletedProcess(a,128,"","fatal: simulated unbuildable merge\n")
     return real_gt(root,*a,**k)
 grid._cas,grid.git_try=cas,gt
+if f=="diestamp":
+    def add(*a): raise SystemExit(9)     # the run dies AFTER the 1st compare-and-swap, BEFORE its stamp
+    grid._OwnerStamp.add=add
 sys.argv=["grid.py"]+sys.argv[2:]
 grid.main()
 PY
 );}
-obd(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;RD=$(basename $(ls $P/.agi/sessions/unify/*.classes))
+obd(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;RD=$(basename $(ls $P/.agi/sessions/unify/*.classes));rule $RD
  gx die unify --into refs/grid --legacy $SNAP --owner-batch $RD --write >$T/obd.out 2>&1;echo $? >$T/obd.rc;OD=$(ls -t $P/.agi/sessions/unify/*.classes|head -1)
  OW=;for i in 23 24 27 28;do [ "$(um $i %P|wc -w|tr -d ' ')" = 2 ]&&OW="$OW $i";done;}
 obd uOD
 ok "ob10-a-death-between-two-pairs-leaves-the-written-one-stamped the run dies (rc $(cat $T/obd.rc)) after ONE pair's write: written m$(echo $OW|tr -d ' '), its owner row in $(basename $OD) names its commit" '[ "$(cat $T/obd.rc)" = 9 ]&&[ "$(echo $OW|wc -w|tr -d " ")" = 1 ]&&[ "$OD" != "$P/.agi/sessions/unify/$RD" ]&&grep -q "^owner-batch/live $(mintn $(echo $OW|tr -d " ")) .* $(sha $NS/$(mintn $(echo $OW|tr -d " ")))$" $OD'
 grid unify --into refs/grid --legacy $SNAP --owner-batch $RD --write >$T/obd2.out 2>&1;obd2=$?
 ok "ob10b-a-re-run-finishes-the-batch rc $obd2: $(grep selected $T/obd2.out|cut -c1-150)" '[ $obd2 = 0 ]&&grep -q "3 merged, 1 unchanged, 0 conflict, 0 unread" $T/obd2.out'
-obc(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;RC=$(basename $(ls $P/.agi/sessions/unify/*.classes))
+obc(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1;RC=$(basename $(ls $P/.agi/sessions/unify/*.classes));rule $RC
  gx diffunread unify --into refs/grid --legacy $SNAP --owner-batch $RC --write >$T/obc.out 2>&1;echo $? >$T/obc.rc;OC=$(ls -t $P/.agi/sessions/unify/*.batch|head -1);}
 obc uOC
 ok "ob11-an-unreadable-diff-is-one-named-line with git diff failing, the 4 pairs are still written (rc $(cat $T/obc.rc)) and each .batch entry holds ONE 'diff unread: <reason>' line, never an empty body" '[ "$(cat $T/obc.rc)" = 0 ]&&[ "$(grep -c "^   diff unread: fatal: simulated unreadable object$" $OC)" = 4 ]&&[ "$(grep -c "^== " $OC)" = 4 ]'
+# --- goal:g7.16.1.11.46.16.2: the SCOPE (only a ruled record), the --check chain (each link RED by its own name), and the four 3/3 notes
+obr(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ RR=$(basename $(ls $P/.agi/sessions/unify/*.classes));for i in 5 23 26;do eval "uo_$i=$(sha $SNAP/node/$(mintn $i))";done;}
+one(){ [ "$(um 23 %P|wc -w|tr -d ' ')" = "$1" ];}
+obr uOR
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r1.out 2>&1;r1=$?
+ok "s1-a-record-no-ruling-names-is-unread rc $r1: $(cut -c1-130 $T/r1.out), 0 written" '[ $r1 = 1 ]&&grep -q "no owner ruling names $RR at HEAD" $T/r1.out&&one 1'
+printf -- '---\nid: doc:owner-ruling-wt\n---\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-wt.md 2>/dev/null||{ mkdir -p $P/.agi/nodes/doc;printf -- '---\nid: doc:owner-ruling-wt\n---\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-wt.md;}
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r2.out 2>&1;r2=$?
+ok "s2-an-UNCOMMITTED-ruling-rules-nothing a ruling node in the working tree only (never committed): rc $r2, unread, 0 written (self-perpetuating 21:35:34Z)" '[ $r2 = 1 ]&&grep -q "no owner ruling names" $T/r2.out&&one 1'
+rm -f $P/.agi/nodes/doc/owner-ruling-wt.md;printf -- '---\nid: doc:card-x\n---\nquoted: the line below\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/card-x.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm "a card quoting the line" >/dev/null
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r3.out 2>&1;r3=$?
+ok "s3-a-card-that-QUOTES-the-line-rules-nothing doc:card-x at the trunk carries the exact line, no ruling node: rc $r3, unread, 0 written (self-perpetuating 21:36:33Z)" '[ $r3 = 1 ]&&grep -q "no owner ruling names" $T/r3.out&&one 1'
+printf -- '---\nid: doc:owner-ruling-two\n---\nowner-batch-ruling: %s\nowner-batch-ruling: other.classes sha256:%064d\n' "$(rl $RR)" 0 >$P/.agi/nodes/doc/owner-ruling-two.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm "a ruling naming two records" >/dev/null
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r4.out 2>&1;r4=$?
+ok "s4-a-ruling-names-ONE-record a ruling node with two ruling lines rules neither: rc $r4, unread, 0 written" '[ $r4 = 1 ]&&grep -q "no owner ruling names" $T/r4.out&&one 1'
+mkdir -p $P/.agi/nodes/doc/owner-ruling-a;printf -- '---\nid: doc:owner-ruling-nested\n---\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-a/b.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm "a NESTED ruling node" >/dev/null
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r4b.out 2>&1;r4b=$?
+ok "s11-a-NESTED-owner-ruling-a/b.md-rules-nothing (the gate's :(glob) never matches it, so the reader must not either; sp 22:42:55Z): rc $r4b, unread, 0 written" '[ $r4b = 1 ]&&grep -q "no owner ruling names" $T/r4b.out&&one 1'
+printf -- '---\nid: doc:owner-ruling-quoted\n---\nquoted:owner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-quoted.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm "a ruling node whose only line is a quote" >/dev/null
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r4c.out 2>&1;r4c=$?
+ok "s12-the-line-is-ANCHORED a ruling node whose ONLY line is 'quoted:owner-batch-ruling: RR': rc $r4c, unread, 0 written (sp's crumb)" '[ $r4c = 1 ]&&grep -q "no owner ruling names" $T/r4c.out&&one 1'
+printf -- '---\nid: doc:owner-ruling-pin2\n---\nowner-batch-ruling: %s sha256:%064d\n' $RR 0 >$P/.agi/nodes/doc/owner-ruling-pin2.md;rule $RR;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r4d.out 2>&1;r4d=$?
+ok "s4b-two-rulings-pinning-ONE-record-to-DIFFERENT-bytes-rule-nothing (aio's crumb): rc $r4d, $(cut -c1-110 $T/r4d.out), 0 written" '[ $r4d = 1 ]&&grep -q "pin different bytes" $T/r4d.out&&one 1'
+$G -C $P rm -q .agi/nodes/doc/owner-ruling-pin2.md;$G -C $P commit -qm "drop the disagreeing ruling" >/dev/null
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r5.out 2>&1;r5=$?
+ok "s5-a-RULED-record-writes rc $r5: $(grep selected $T/r5.out|cut -c1-120)" '[ $r5 = 0 ]&&grep -q "4 merged, 0 unchanged, 0 conflict, 0 unread" $T/r5.out&&one 2'
+fg(){ x=$(sha $NS/$(mintn $1));w=$($G -C $P commit-tree $x^{tree} -p $x -p $2 -m "unify vX forged
+
+Unify-Owner: $2
+Unify-Class: owner-batch/live
+Unify-Record: $3");$G -C $P update-ref $NS/$(mintn $1) $w $x;echo $w;}
+w26=$(fg 26 $uo_26 $RR);printf 'owner-batch/live %s %s %s\n' $(mintn 26) $uo_26 $w26 >$P/.agi/sessions/unify/zz-forge.classes
+w5=$(fg 5 $uo_5 zz-unruled.classes);printf 'banked %s %s bytes unseen: node.md\nbanked %s %s bytes unseen: node.md\nowner-batch/live %s %s %s\n' $(mintn 5) $uo_5 $(mintn 26) $uo_26 $(mintn 5) $uo_5 $w5 >$P/.agi/sessions/unify/zz-unruled.classes
+grid unify --check --into refs/grid --legacy $SNAP >$T/r6.out 2>&1
+ok "s6-check-names-each-missing-link m26 (a stamped owner row under the RULED record, its origin tip banked ONLY by ANOTHER (unruled) record: alive's per-record key) and m5 (banked + stamped, a record no ruling names) are RED by their own names; the 4 ruled merges GREEN" 'grep -q "RED $(mintn 26) (an owner-batch merge for an origin tip its record $RR did not bank)" $T/r6.out&&grep -q "RED $(mintn 5) (an owner-batch merge under a record no owner ruling names (zz-unruled.classes))" $T/r6.out&&! grep -q "RED $(mintn 23)" $T/r6.out'
+obr uOB;rule $RR;gx buildfail unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r7.out 2>&1;r7=$?
+ok "s7-a-merge-commit-that-cannot-be-built-is-UNREAD-by-its-own-name rc $r7, 4 'could not be built' lines, no 'compare-and-swap' line, 0 written (all-is-one)" '[ $r7 = 1 ]&&[ "$(grep -c "(the merge commit could not be built: fatal: simulated unbuildable merge; nothing written)" $T/r7.out)" = 4 ]&&! grep -q "compare-and-swap" $T/r7.out&&one 1'
+obr uOS;rule $RR;gx diestamp unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r8.out 2>&1;r8=$?;grid unify --check --into refs/grid --legacy $SNAP >$T/r8c.out 2>&1
+ok "s8-a-death-between-a-CAS-and-its-stamp-is-RED-at-check the run dies (rc $r8) after m23's compare-and-swap, before its stamp: --check names m23 'no stamped owner-batch record names' (SM)" '[ $r8 = 9 ]&&one 2&&grep -q "RED $(mintn 23) (an owner-batch merge no stamped owner-batch record names)" $T/r8c.out'
+obr uOP;rule $RR;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1;printf 'banked %s %s bytes unseen: node.md\n' $(mintn 5) $uo_5 >>$P/.agi/sessions/unify/$RR
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/r13.out 2>&1;r13=$?;grid unify --check --into refs/grid --legacy $SNAP >$T/r13c.out 2>&1
+ok "s13-the-ruling-PINS-the-records-bytes a banked row (m5) appended to the ruled record after the ruling: the writer rc $r13, unread by name, m5 untouched; --check names m23 'not the bytes the owner ruled' (sp 22:48:48Z)" '[ $r13 = 1 ]&&grep -q "is not the bytes the owner ruled" $T/r13.out&&[ "$(um 5 %P|wc -w|tr -d " ")" = 1 ]&&grep -q "RED $(mintn 23) (an owner-batch merge under a record that is not the bytes the owner ruled ($RR))" $T/r13c.out'
+obx(){ mkun $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
+ lb=$(printf '\000\001\002live41\377' |$G -C $P hash-object -w --stdin);ob=$(printf '\000\003\004origin41\376'|$G -C $P hash-object -w --stdin);nm=$(nodemdb 41 active text41 bin/p41 |$G -C $P hash-object -w --stdin)
+ lt=$(printf '100644 blob %s\tnode.md\n100644 blob %s\tpayload\n' $nm $lb|$G -C $P mktree);ot=$(printf '100644 blob %s\tnode.md\n100644 blob %s\tpayload\n' $nm $ob|$G -C $P mktree)
+ $G -C $P update-ref $NS/$(mintn 41) $(echo l41|GIT_COMMITTER_DATE=2026-10-20T00:00:00Z $G -C $P commit-tree $lt);push $(echo o41|GIT_COMMITTER_DATE=2020-01-01T00:00:00Z $G -C $P commit-tree $ot) $(mintn 41) >/dev/null
+ t42=$(printf '100644 blob %s\tnode.md\n' $(nodemd 42 active same42|$G -C $P hash-object -w --stdin)|$G -C $P mktree)
+ $G -C $P update-ref $NS/$(mintn 42) $(echo l42|GIT_COMMITTER_DATE=2026-10-20T00:00:00Z $G -C $P commit-tree $t42);push $(echo o42|GIT_COMMITTER_DATE=2020-01-01T00:00:00Z $G -C $P commit-tree $t42) $(mintn 42) >/dev/null;snap >/dev/null 2>&1;snap >/dev/null 2>&1
+ printf 'banked %s %s bytes unseen: payload@bin/p41\nbanked %s %s bytes unseen: node.md\n' $(mintn 41) $(sha $SNAP/node/$(mintn 41)) $(mintn 42) $(sha $SNAP/node/$(mintn 42)) >$P/.agi/sessions/unify/zz-ox.classes;rule zz-ox.classes
+ grid unify --into refs/grid --legacy $SNAP --owner-batch zz-ox.classes --write >$T/ox.out 2>&1;echo $? >$T/ox.rc;OX=$(ls -t $P/.agi/sessions/unify/*.batch|head -1);}
+obx uOX
+ok "s9-a-binary-path-is-saved-whole m41's binary payload differs: rc $(cat $T/ox.rc), the .batch carries a 'GIT binary patch' (sp)" '[ "$(cat $T/ox.rc)" = 0 ]&&grep -q "^   GIT binary patch" $OX&&! grep -q "Binary files" $OX'
+ok "s10-a-diff-that-prints-nothing-is-named m42 (live already at origin's tree): its .batch entry is ONE 'diff empty: trees equal' line (alive)" 'awk "/^== $(mintn 42) /{f=1;next} /^== /{f=0} f" $OX|grep -c . |grep -qx 2&&awk "/^== $(mintn 42) /{f=1;next} /^== /{f=0} f" $OX|grep -q "^   diff empty: trees equal$"'
 obm(){ mkun $1;mut $P/extensions/agi/bin/grid.py "$2" "$3";snap >/dev/null 2>&1;snap >/dev/null 2>&1;grid unify --into refs/grid --legacy $SNAP --write >/dev/null 2>&1
  for i in 23 24 27 28;do eval "uo_$i=$(sha $SNAP/node/$(mintn $i))";eval "ul_$i=$(sha $NS/$(mintn $i))";done
- grid unify --into refs/grid --legacy $SNAP --owner-batch $(basename $(ls $P/.agi/sessions/unify/*.classes)) --write >$T/$1.w 2>&1;echo $? >$T/$1.rc;grid unify --check --into refs/grid --legacy $SNAP >$T/$1.c 2>&1;}
+ rule $(basename $(ls $P/.agi/sessions/unify/*.classes));grid unify --into refs/grid --legacy $SNAP --owner-batch $(basename $(ls $P/.agi/sessions/unify/*.classes)) --write >$T/$1.w 2>&1;echo $? >$T/$1.rc;grid unify --check --into refs/grid --legacy $SNAP >$T/$1.c 2>&1;}
 # the walk fails -> every pair CONFLICT, ONE named line, nothing written
 mkun uF;snap >/dev/null 2>&1;snap >/dev/null 2>&1;ulf=$(sha $NS/$(mintn 22));grid unify --into refs/grid --legacy $SNAP --write --trunk refs/heads/no-such-trunk >$T/uf.out 2>&1;uf=$?
 ok "u10-an-unread-trunk-set-fails-closed with the trunk ref unreadable m22 (whose bytes ARE live's own) is NOT merged: rc $uf, the line 'trunk blob set unread' printed $(grep -c 'trunk blob set unread' $T/uf.out) time(s)" '[ $uf = 1 ]&&[ "$(sha $NS/$(mintn 22))" = "$ulf" ]&&[ "$(grep -c "trunk blob set unread" $T/uf.out)" = 1 ]&&[ "$(um 21 %P|wc -w|tr -d " ")" = 1 ]'
@@ -333,10 +395,10 @@ ok "m-owner-live-dropped-reads-RED a forced ref (the written tip drops the live 
 obm uM3 '                tally["unread"] += 1
                 named.append(f"  UNREAD {mint}' '                tally["unchanged"] += 1; continue
                 named.append(f"  UNREAD {mint}'
-printf 'banked %s %s bytes unseen: node.md\n' $(mintn 99) $uo_23 >$P/.agi/sessions/unify/zz-ob-unread.classes
+printf 'banked %s %s bytes unseen: node.md\n' $(mintn 99) $uo_23 >$P/.agi/sessions/unify/zz-ob-unread.classes;rule zz-ob-unread.classes
 grid unify --into refs/grid --legacy $SNAP --owner-batch zz-ob-unread.classes >$T/uM3.u 2>&1;um3=$?
 ok "m-owner-unread-skipped-reads-RED an unreadable pair folded into unchanged: rc $um3, no UNREAD line (want rc 1 + the line, so rc 0 = caught)" '[ $um3 = 0 ]&&! grep -q UNREAD $T/uM3.u'
-oba uMA '        res = git_try(self.root, "diff", "--no-color", live, otip)' '        res = git_try(self.root, "diff", "--no-color", f"{live}:node.md", f"{otip}:node.md")' '        body = (res.stdout.splitlines() if' '        body = (res.stdout.splitlines()[:150] if'
+oba uMA '"diff", "--no-color", "--binary", live, otip)' '"diff", "--no-color", f"{live}:node.md", f"{otip}:node.md")' '        body = (res.stdout.splitlines() if' '        body = (res.stdout.splitlines()[:150] if'
 ok "m-owner-batch-capped-nodemd-diff-reads-RED the old node.md-only diff capped at 150 lines: origin's payload line or its 200th line is missing from the .batch" '! { grep -q "^   +PAY28" $OBA&&grep -q "^   +origin line 200$" $OBA;}'
 obd uMD '                stamp.add(mint, ntip, otip, res.stdout.strip())    # stamped NOW' '                _DEFERRED.append((mint, ntip, otip, res.stdout.strip()))    # stamped NOW' '        if stamp.path is not None:
             print(f"grid unify: record {stamp.path.name}' '        for _d in _DEFERRED: stamp.add(*_d)
@@ -346,4 +408,38 @@ _DEFERRED = []'
 ok "m-owner-stamp-after-the-loop-reads-RED stamping once after the loop: the run that dies after one write leaves it UNSTAMPED (no new owner record)" '[ "$(echo $OW|wc -w|tr -d " ")" = 1 ]&&! grep -q "^owner-batch/live " $OD'
 obc uMC '        body = (res.stdout.splitlines() if res.returncode == 0 else' '        body = (res.stdout.splitlines() if True else'
 ok "m-owner-diff-unread-as-empty-reads-RED a failed diff folded into an empty body: no 'diff unread' line" '[ "$(grep -c "diff unread" $OC)" = 0 ]'
+obr uMS1 '    rulings = _owner_rulings(root, trunk)    # goal:g7.16.1.11.46.16.2 R1' '    rulings = {record: sha}    # MUTANT: every record ruled'
+grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
+ok "m-ruling-check-cut-reads-RED with the ruling check cut an UNRULED record writes: m23 has $(um 23 %P|wc -w|tr -d ' ') parents (want 1)" 'one 2'
+obr uMS2 '    res = git_try(root, "grep", "-E", f"^{RULING_KEY}: [^ ]+ sha256:[0-9a-f]{{64}}$", trunk, "--", RULING_GLOB)' '    res = git_try(root, "grep", "--untracked", "-E", f"^{RULING_KEY}: [^ ]+ sha256:[0-9a-f]{{64}}$", "--", RULING_GLOB); trunk = ""'
+mkdir -p $P/.agi/nodes/doc;printf -- '---\nid: doc:owner-ruling-wt\n---\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-wt.md;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
+ok "m-working-tree-ruling-reads-RED a reader that opens the WORKING TREE takes the uncommitted ruling and writes: m23 has $(um 23 %P|wc -w|tr -d ' ') parents (want 1)" 'one 2'
+obr uMS3 'trunk, "--", RULING_GLOB)' 'trunk, "--", ".agi/nodes/doc")'
+mkdir -p $P/.agi/nodes/doc;printf -- '---\nid: doc:card-x\n---\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/card-x.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm card >/dev/null;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
+ok "m-every-doc-node-a-ruling-reads-RED a grep over EVERY doc node takes a card's quote as a ruling and writes: m23 has $(um 23 %P|wc -w|tr -d ' ') parents (want 1)" 'one 2'
+obr uMS4 '            if (rec, ltip) not in owner.banked:' '            if ltip not in {t for _, t in owner.banked}:'
+rule $RR;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1;w26=$(fg 26 $uo_26 $RR);printf 'owner-batch/live %s %s %s\n' $(mintn 26) $uo_26 $w26 >$P/.agi/sessions/unify/zz-forge.classes;printf 'banked %s %s bytes unseen: node.md\n' $(mintn 26) $uo_26 >$P/.agi/sessions/unify/zz-unruled.classes
+grid unify --check --into refs/grid --legacy $SNAP >$T/ms4.out 2>&1
+ok "m-banked-pooled-reads-RED a POOLED banked set (every record's rows) reads the forged m26 GREEN: its tip is banked by the unruled record, not by the record its merge names" '! grep -q "RED $(mintn 26) " $T/ms4.out'
+obr uMS5 '                if res.returncode != 0:
+                    tally["unread"] += 1' '                if False:
+                    tally["unread"] += 1'
+rule $RR;gx buildfail unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >$T/ms5.out 2>&1
+ok "m-build-failure-as-a-lost-CAS-reads-RED folded into the compare-and-swap name: no 'could not be built' line" '! grep -q "could not be built" $T/ms5.out'
+obr uMS6 '            if owner is None or (ltip, merge) not in owner.rows:' '            if False:'
+rule $RR;gx diestamp unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1;grid unify --check --into refs/grid --legacy $SNAP >$T/ms6.out 2>&1
+ok "m-stamp-check-cut-reads-RED without the stamped-row check the unstamped m23 reads GREEN at --check" 'one 2&&! grep -q "RED $(mintn 23) " $T/ms6.out'
+obx uMS7 '"--no-color", "--binary", live, otip)' '"--no-color", live, otip)'
+ok "m-binary-dropped-reads-RED without --binary the .batch says 'Binary files ... differ' and saves no bytes" '! grep -q "^   GIT binary patch" $OX'
+obx uMS8 '            body = ["diff empty: trees equal"]' '            body = []'
+ok "m-empty-diff-as-empty-body-reads-RED the empty diff written as an empty body: no 'diff empty' line" '! grep -q "diff empty" $OX'
+obr uMS9 'RULING_GLOB = ":(glob).agi/nodes/doc/owner-ruling-*.md"' 'RULING_GLOB = ".agi/nodes/doc/owner-ruling-*.md"'
+mkdir -p $P/.agi/nodes/doc/owner-ruling-a;printf -- '---\nid: doc:owner-ruling-nested\n---\nowner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-a/b.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm nested >/dev/null;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
+ok "m-glob-magic-cut-reads-RED without :(glob) the reader's '*' crosses '/' and takes the NESTED node as a ruling: m23 has $(um 23 %P|wc -w|tr -d ' ') parents (want 1)" 'one 2'
+obr uMS10 '"grep", "-E", f"^{RULING_KEY}: [^ ]+ sha256:' '"grep", "-E", f"{RULING_KEY}: [^ ]+ sha256:'
+mkdir -p $P/.agi/nodes/doc;printf -- '---\nid: doc:owner-ruling-quoted\n---\nquoted:owner-batch-ruling: %s\n' "$(rl $RR)" >$P/.agi/nodes/doc/owner-ruling-quoted.md;$G -C $P add .agi/nodes/doc >/dev/null 2>&1;$G -C $P commit -qm quoted >/dev/null;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
+ok "m-anchor-cut-reads-RED without the '^' a quote-prefixed line counts as a ruling: m23 has $(um 23 %P|wc -w|tr -d ' ') parents (want 1)" 'one 2'
+obr uMS11 '    if rulings[record] != sha:' '    if False:'
+rule $RR;printf 'banked %s %s bytes unseen: node.md\n' $(mintn 5) $uo_5 >>$P/.agi/sessions/unify/$RR;grid unify --into refs/grid --legacy $SNAP --owner-batch $RR --write >/dev/null 2>&1
+ok "m-pin-compare-cut-reads-RED without the hash compare the row appended after the ruling is WRITTEN: m5 has $(um 5 %P|wc -w|tr -d ' ') parents (want 1)" '[ "$(um 5 %P|wc -w|tr -d " ")" = 2 ]'
 echo "grid-origin-snap: $nrows rows";echo "grid-origin-snap: $f FAIL";[ $f = 0 ]

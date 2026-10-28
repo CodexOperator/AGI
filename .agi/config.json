@@ -441,5 +441,5 @@
   },
   "prereq_notice": {"notice_lag_red_min": 60},
   "merge_gate": {"review_paths": ["extensions/", "skills/", "src/", ".agi/config.json", ".agi/nodes/.geometry/", ".github/"]},
-  "land": {"rules_paths": [".agi/context/schemas/", ".agi/nodes/.geometry/", ".github/", ":(glob).gitattributes", ":(glob)**/.gitattributes", "skills/agi-master-gate/", ".agi/config.json", "extensions/agi/guard/", "CLAUDE.md", "AGENTS.md", "QUICKSTART.md"], "why": "council 3/3 alive 06:06:56Z 10-26 (owner ruling (1) 05:0xZ: belam SIGNS the RULES land = the WRAP): ONE list of git pathspecs read from BASE by SM gate, verify-land and the wrap; it names ITSELF (a shrink is RULES and wraps); absent / empty / unparsable = every land wraps (L4)"}
+  "land": {"rules_paths": [".agi/context/schemas/", ".agi/nodes/.geometry/", ".github/", ":(glob).gitattributes", ":(glob)**/.gitattributes", "skills/agi-master-gate/", ".agi/config.json", "extensions/agi/guard/", ":(glob).agi/nodes/doc/owner-ruling-*.md", "CLAUDE.md", "AGENTS.md", "QUICKSTART.md"], "why": "council 3/3 alive 06:06:56Z 10-26 (owner ruling (1) 05:0xZ: belam SIGNS the RULES land = the WRAP): ONE list of git pathspecs read from BASE by SM gate, verify-land and the wrap; it names ITSELF (a shrink is RULES and wraps); absent / empty / unparsable = every land wraps (L4)"}
 }
