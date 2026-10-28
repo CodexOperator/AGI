@@ -645,12 +645,11 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     """Replace the bytes of an existing payload from `source`. Never creates.
 
     The other half of `ensure_payload`, and here for the same reason: a payload
-    write is a real file write, and `write.py` holds a mechanically-checked
-    invariant that it performs none (`test_edit_py_contains_no_file_write`).
-    Editing the file behind a build node was the last node operation with no
-    named command — `goal:g13.1`'s whole complaint — so it lands in the module
-    that already owns writing the files behind nodes rather than weakening the
-    guard that keeps the verb layer a front end.
+    write is a real file write, so it lives in the module that owns writing the
+    files behind nodes (`goal:g13.1`: editing the file behind a build node was the
+    last node operation with no named command). The retired node writer's verb
+    layer was kept free of file writes for this; it retired in goal:g7.16.1.11.46.23
+    step 4.
 
     Returns `(path, changed)`. Refuses rather than guesses:
 
@@ -681,13 +680,10 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     new = data
     if dest.read_bytes() == new:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes
-        # re-log IS a sanction. An explicit payload verb on bytes that
-        # already match must record the (mint_id, sha256) write_guard keys on,
-        # or the guard's own hint (`write.py <id> payload <path>`) can never
-        # clear the state it reports: L3.27 measured 5 WARNs after 5
-        # successful re-logs because this branch logged nothing. Keep
-        # `changed=False` (the 'unchanged' message stays) but log the
-        # attempted payload write all the same.
+        # write is still logged with its (mint_id, sha256), `changed=False`,
+        # kept for audit. Its one reader that keyed on it, the write guard
+        # (L3.27: 5 unclearable WARNs when this branch logged nothing),
+        # retired at L269; no live reader keys on this line since.
         _log_extra = dict(log_extra) if log_extra else {}
         _log_write(root, "replace_payload", str(ref), dest,
                    mint_id=mint_id,
