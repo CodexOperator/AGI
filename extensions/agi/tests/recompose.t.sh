@@ -59,7 +59,7 @@ ok "m-node-bytes-from-the-trunk-reads-RED composing node bytes from the trunk hi
 cp_ t3;mkdir -p $P/.git/$NS;echo 1234567890abcdef1234567890abcdef12345678 >$P/.git/$NS/$(mn 2);rc >$T/t3.out 2>&1;t3=$?
 ok "t3-a-ref-at-a-missing-object-is-unread n2's ref names an absent object: rc $t3, 'unread $(mn 2) (its grid ref ... not a readable commit)'" '[ $t3 = 1 ]&&grep -q "unread $(mn 2) (its grid ref $NS/$(mn 2) names 1234567890ab, not a readable commit)" $T/t3.out'
 cp_ t3m;mut $P/extensions/agi/bin/recompose.py '        if not k.endswith("missing") and k.split()[1:2] == ["commit"]:' '        if True:';mkdir -p $P/.git/$NS;echo 1234567890abcdef1234567890abcdef12345678 >$P/.git/$NS/$(mn 2);rc >$T/t3m.out 2>&1
-ok "m-ref-kind-check-cut-reads-RED without the object check the missing ref is never named as one (want 'not a readable commit', so its absence = caught)" '! grep -q "not a readable commit" $T/t3m.out'
+ok "m-ref-kind-check-cut-reads-RED without the object check the missing ref is never named as one (want 'not a readable commit', so its absence = caught)" '! grep -q "not a readable commit" $T/t3m.out&&grep -q "^recompose: diff vs the trunk " $T/t3m.out'
 # T4: a retired node recomposes into .agi/nodes/deprecated/<type>/ (g0 holds n2 and b4 there); mutant: the deprecated/ prefix dropped
 cp_ t4m;mut $P/extensions/agi/bin/recompose.py '    return live.replace(".agi/nodes/", ".agi/nodes/deprecated/", 1) if fm.get("status") == "deprecated" else live' '    return live';rc >$T/t4m.out 2>&1;t4m=$?
 ok "m-deprecated-into-the-live-dir-reads-RED a retired node composed into the live type dir: rc $t4m, n2's deprecated/ path unread (want diff 0, so rc 1 = caught)" '[ $t4m = 1 ]&&grep -q "unread .agi/nodes/deprecated/idea/n2.md" $T/t4m.out'
@@ -78,7 +78,7 @@ ok "t8-one-trunk-sha-orphans-counted-ghost-named the trunk sha printed once, 1 r
 cp_ t9;$G -C $P update-ref $NS/$(mn 3) $(gc $(gt "$(printf '%b' "$(nd build:b3 $(mn 3) build active 'payload_ref: src/p3.txt\n' three)")"));rc >$T/t9.out 2>&1;t9=$?
 ok "t9-a-payload-dropped-from-its-tip-is-unread b3's tip without its payload, the trunk holding src/p3.txt: rc $t9, unread $(mn 3)" '[ $t9 = 1 ]&&grep -q "unread $(mn 3) (its tip carries no payload, but the trunk has src/p3.txt)" $T/t9.out'
 cp_ t9m;mut $P/extensions/agi/bin/recompose.py '            if ref in ptree:' '            if False:';$G -C $P update-ref $NS/$(mn 3) $(gc $(gt "$(printf '%b' "$(nd build:b3 $(mn 3) build active 'payload_ref: src/p3.txt\n' three)")"));rc >$T/t9m.out 2>&1
-ok "m-payload-carried-from-the-trunk-reads-RED a dropped payload counted as retired: no unread line on $(mn 3) (want one, so none = caught)" '! grep -q "unread $(mn 3)" $T/t9m.out'
+ok "m-payload-carried-from-the-trunk-reads-RED a dropped payload counted as retired: no unread line on $(mn 3) (want one, so none = caught)" '! grep -q "unread $(mn 3)" $T/t9m.out&&grep -q "^recompose: diff vs the trunk " $T/t9m.out'
 # the legacy map: read from ITS grid tip; a ghost with no map row, a duplicate row, a needless row, a new non-derivable node -> unread
 cp_ k1;$G -C $P update-ref $NS/$(mn 8) $(gc $(gt "$(nd config:legacy-paths $(mn 8) config active '' "## rows
 $(mn 5) .agi/nodes/task/t-005-long-name.md")"));rc >$T/k1.out 2>&1;k1=$?
@@ -176,7 +176,7 @@ $ROW") $x);rc >$T/$OUT.out 2>&1;}
 ROW="$(mn 9) .agi/nodes/task/t-009-late.md";OUT=t13;mv t13;t13=$?
 ok "t13-a-path-row-added-after-the-freeze-is-unread a second map version adds one PATH row: rc $t13, 'row added after the freeze $(mn 9)'" '[ $t13 = 1 ]&&grep -q "unread $(mn 9) (row added after the freeze $(mn 9):" $T/t13.out'
 OUT=t13m;mv t13m '        unread.extend(added)' '        pass';t13m=$?
-ok "m-freeze-check-cut-reads-RED the added path row is admitted: no 'row added after the freeze' line, rc $t13m (want the unread line, so its absence = caught)" '! grep -q "row added after the freeze" $T/t13m.out'
+ok "m-freeze-check-cut-reads-RED the added path row is admitted: no 'row added after the freeze' line, rc $t13m (want the unread line, so its absence = caught)" '! grep -q "row added after the freeze" $T/t13m.out&&grep -q "^recompose: diff vs the trunk " $T/t13m.out'
 ROW="$(mn 9) never-landed";OUT=u2;mv u2;u2=$?
 ok "u2-a-membership-row-added-after-the-freeze-passes a second map version adds '$(mn 9) never-landed' (T11's freeze version): rc $u2, diff 0 besides the map's own AHEAD path, no unread" '! grep -q "^  unread" $T/u2.out&&grep -q "AHEAD $(mn 8)" $T/u2.out&&[ "$(grep -c "^recompose:   [ADM]	" $T/u2.out)" = 1 ]'
 OUT=u2m;mv u2m '    at_first = {(m, w) for m, w in rows if w != "never-landed"}' '    at_first = {(m, w) for m, w in rows}' '        added, problem = frozen_problems(tips[map_mint], {**lmap, **{m: "never-composed" for m in ghosts}})' '        added, problem = frozen_problems(tips[map_mint], {**lmap, **{m: "never-composed" for m in ghosts}, **{m: "never-landed" for m in never}})';u2m=$?
@@ -186,5 +186,5 @@ ok "m-freeze-over-all-rows-reads-RED T13 over EVERY row: T11's own never-landed 
 ROW="$(mn 9) never-composed";OUT=u2b;mv u2b;u2b=$?
 ok "u2b-a-ghost-row-added-after-the-freeze-is-unread a second map version adds '$(mn 9) never-composed' for a fresh ref with no live path: rc $u2b, 'row added after the freeze $(mn 9)'" '[ $u2b = 1 ]&&grep -q "unread $(mn 9) (row added after the freeze $(mn 9):" $T/u2b.out'
 OUT=u2bm;mv u2bm '        added, problem = frozen_problems(tips[map_mint], {**lmap, **{m: "never-composed" for m in ghosts}})' '        added, problem = frozen_problems(tips[map_mint], lmap)';u2bm=$?
-ok "m-freeze-over-path-rows-only-reads-RED T13 over PATH rows only: the added ghost row passes with no unread line, rc $u2bm (want 'row added after the freeze', so its absence = caught; T11 is bypassed)" '! grep -q "row added after the freeze" $T/u2bm.out&&! grep -q "^  unread" $T/u2bm.out'
+ok "m-freeze-over-path-rows-only-reads-RED T13 over PATH rows only: the added ghost row passes with no unread line, rc $u2bm (want 'row added after the freeze', so its absence = caught; T11 is bypassed)" '! grep -q "row added after the freeze" $T/u2bm.out&&! grep -q "^  unread" $T/u2bm.out&&grep -q "^recompose: diff vs the trunk " $T/u2bm.out'
 echo "recompose: $nrows rows";echo "recompose: $f FAIL";[ $f = 0 ]

@@ -198,7 +198,7 @@ def frozen_problems(tip: str, rows_now: dict[str, str]) -> tuple[list[str], str 
     if blob is None or problem:
         return [], f"the first grid version {first[0][:12]} of {LEGACY_MAP_ID} ({problem or 'no node.md'})"
     at_first = {(m, w) for m, w in rows if w != "never-landed"}
-    return [f"unread {m} (row added after the freeze {m}: {LEGACY_MAP_ID} path row {w} is not on its first grid version "
+    return [f"unread {m} (row added after the freeze {m}: {LEGACY_MAP_ID} row {m} {w} is not on its first grid version "
             f"{first[0][:12]})" for m, w in sorted(rows_now.items()) if (m, w) not in at_first], None
 
 

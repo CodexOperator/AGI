@@ -21,9 +21,9 @@ The view (extensions/agi/bin/recompose.py, goal:g7.16.1.11.46.17) reads this nod
 a deprecated/ path, or a row the derivation already gives = unread, rc 1.
 
 FROZEN (council 3/3, alive [decision] 05:20:25Z 10-28): a PATH row is never ADDED; it is REMOVED in the land that moves its node to its derived path. A node minted
-after this map at a non-derivable path is never placed (unread by name). The path rows are checked against this node's FIRST grid version
-(T13): an added or re-pointed path row = unread 'row added after the freeze'. never-composed / never-landed rows are MEMBERSHIP rows, not path rows:
-a never-landed row is ADDED only by name in a .geometry (RULES, belam-wrapped) land and REMOVED in the land that lands its node.
+after this map at a non-derivable path is never placed (unread by name). PATH rows and never-composed rows are checked against this
+node's FIRST grid version (T13 + U2 as corrected, 3/3 alive 07:56:52Z): an added or re-pointed one = unread 'row added after the freeze'; never-landed
+rows are the ONLY kind a later version may add: ADDED only by name in a .geometry (RULES, belam-wrapped) land, REMOVED in the land that lands its node.
 
 ## rows (621: 312 path rows + 10 never-composed at f4ed405a73; 299 never-landed at 804752481c, goal:g7.16.1.11.46.18 T11)
 b7e4f0a91c2d4e8fa63b5d7c8e1f2a04 .agi/nodes/.geometry/commands.md
