@@ -79,7 +79,7 @@ def test_done_refuses_a_kid_past_2x_with_no_rebrief_request(tmp_path,
                                                            monkeypatch, capsys):
     """81 production lines / 40 ceiling, the node carries no rebrief_request ->
    rc 2, NOTHING written (the node keeps its verdict-less frontmatter), and
-   the exact write.py line is printed."""
+   the exact node-writer line is printed."""
     cli = _load_cli()
     graph, args = _kid_done_project(tmp_path)
     monkeypatch.setattr(cli, "_find_root", lambda: graph)

@@ -27,7 +27,6 @@ sys.path.insert(0, str(BIN))
 import boxes  # noqa: E402
 import rotate  # noqa: E402
 import geometry_config  # noqa: E402
-import write  # noqa: E402
 
 # The LIVE schema bytes, so the grant under test is the real one, not a copy.
 LIVE_SCHEMA = (Path(__file__).resolve().parents[3] / ".agi" /

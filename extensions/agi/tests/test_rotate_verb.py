@@ -214,7 +214,7 @@ def test_flag_parity_rotate_is_rotate_self_superset():
 def test_closeout_default_from_rotate_defaults_map(tmp_path, monkeypatch):
     """cmd_rotate reads the closeout boolean PER ROLE from the top-level
     rotate_defaults.closeout map -- true, false, or absent -- never from
-    templates.<role>.rotate_defaults (the per-template cell write.py cannot
+    templates.<role>.rotate_defaults (the per-template cell the retired node writer could not
     nest on config:rotations)."""
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
     _stops_card(tmp_path, "prime", "close out the round")

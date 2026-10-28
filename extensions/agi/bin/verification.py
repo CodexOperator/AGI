@@ -11,7 +11,7 @@ THROUGH `commands.py` from `command:commands`
 (`.agi/nodes/.geometry/commands.md`) — never argv written literally here.
 
 Levels (`--level quick|rotation|full`, default `rotation`):
-  quick    = links + write-guard + anonymize   (pre-commit set; the GOALS.md round trip retired, W-G)
+  quick    = links + anonymize   (pre-commit set; the GOALS.md round trip retired, W-G; write-guard retired with write.py, goal:g7.16.1.11.46.23 step 4)
   rotation = quick + smoke + viewport-verify + dispatch-help + budget
   full     = rotation + schema + credentials + secrets + crons
 NO level runs pytest. `--suite` is OPT-IN and ORTHOGONAL to level: it adds the
@@ -31,7 +31,6 @@ tool exists to catch (H0/H0b: 29k nodes lost).
 from __future__ import annotations
 
 import argparse
-import atexit
 import hashlib
 import json
 import os
@@ -67,10 +66,10 @@ SUITE_TIMEOUT = 1800
 #: How each level is composed. Names are COMMAND NAMES resolved through
 #: `commands.py` against the node — never argv written here.
 LEVELS: dict[str, list[str]] = {
-    "quick": ["links", "write-guard"],
-    "rotation": ["links", "write-guard",
+    "quick": ["links"],
+    "rotation": ["links",
                  "smoke", "viewport-verify", "dispatch-help", "budget"],
-    "full": ["links", "write-guard",
+    "full": ["links",
              "smoke", "viewport-verify", "dispatch-help", "budget",
              "schema", "credentials", "secrets", "crons"],
 }
@@ -1045,42 +1044,6 @@ def suite_lock_holder(groot: Path) -> int | None:
     return holder
 
 
-_INFLIGHT: list = []   # g1315131: this process's in-flight markers (the retired write.py's), sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
-
-
-def inflight_clear(only=None) -> None:
-    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
-    for f in list(_INFLIGHT if only is None else only):
-        f.unlink(missing_ok=True)
-        _INFLIGHT.remove(f)
-
-
-atexit.register(inflight_clear)
-
-
-def inflight_mark(groot, paths) -> list:
-    """Record `paths` BEFORE their bytes move; return THIS call's markers."""
-    d = Path(groot) / "sessions" / "write-inflight"
-    d.mkdir(parents=True, exist_ok=True)
-    mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}"
-            for k in {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}]
-    for f in mine:
-        f.write_text("")
-    _INFLIGHT.extend(mine)
-    return mine
-
-
-def inflight_peers(groot, paths) -> list:
-    """The LIVE peer pids with a write in flight on `paths`; a pid that is not an int > 0, or is dead, is stale: removed."""
-    ks, live = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}, []
-    for f in (Path(groot) / "sessions" / "write-inflight").glob("*.*"):
-        k, pid = (f.name.split(".") + [""])[:2]
-        pid = int(pid) if pid.isdecimal() else 0
-        if k in ks and pid != os.getpid():
-            live.append(pid) if 0 < pid < 2**31 and _pid_alive(pid) else f.unlink(missing_ok=True)
-    return live
-
-
 def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     """A plain lock file holding the holder's pid, stale-broken by a dead pid.
 
@@ -1602,8 +1565,9 @@ def check_formation(groot: Path) -> CheckResult:
         hits = [(i, f) for i, f, _ in rotation_record.grep_live(groot, "parked: formation")]
         live = [(i, f) for i, f in hits if i.split(":")[0] in ("goal", "hypothesis")]
         goal = str(table[active] or "")
-        # rows parked for the ACTIVE formation's own goal are awake: `set active`
-        # drops that tag (write.py) while the rows stay, so they never FAIL here
+        # rows parked for the ACTIVE formation's own goal are awake: they never FAIL here; a carrier
+        # still tagged for it is listed as `wake <id>` (the node writer's `set active` hook that dropped
+        # the tag retired with the writer, goal:g7.16.1.11.46.23 step 4: the post drops it by hand)
         rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace"))) - {goal}) for i, f in hits}
         tagged = {g: {c for c, _, _ in rotation_record.parked_carriers(groot, g)}
                   for g in {g for gs in rows.values() for g in gs}}

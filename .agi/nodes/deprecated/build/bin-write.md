@@ -18,6 +18,9 @@ tags:
   - code
 thought_session: sanctuary-director-genVI
 title: "Build: extensions/agi/bin/write.py"
+deprecated_on: "2026-10-27"
+deprecated_note: "write.py retired (goal:g7.16.1.11.46.23 V8a step 4); last blob a49c64c9d3c72eef980a2c0581bbe37a674d05ad = the last grid payload; payload_ref kept"
+status: deprecated
 ---
 # build:bin-write
 

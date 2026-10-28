@@ -89,7 +89,7 @@ newrepo;leaf dep - active;commit dep;seed;leaf n1 director-goals-1 active goal:d
 ok "r7a-a-leaf-whose-needs-is-still-active-sends-0 rc $rc, spool $a (want 0)" '[ $rc = 0 ]&&[ "$a" = 0 ]'
 leaf dep - complete;commit "dep complete";step;b=$(nsp);ok "r7b-and-sends-1-when-it-completes rc $rc, spool $b (want 1)" '[ $rc = 0 ]&&[ "$b" = 1 ]'
 printf 'x\n' >>$R/.agi/nodes/goal/n1.md;commit "touch n1";step;ok "r7c-and-never-again-on-a-later-move spool $(nsp) (want 1)" '[ "$(nsp)" = 1 ]'
-# ---- r8: a needs: id that names no node is refused at mint (spawn_gate, which write.py create and grow.py both run)
+# ---- r8: a needs: id that names no node is refused at mint (spawn_gate, which grow.py runs; the retired node writer's create ran it too)
 python3 - "$BIN" "$R0" >$T/o8 2>&1 <<'XX'
 import sys;sys.path.insert(0,sys.argv[1]);import spawn_gate as g;from pathlib import Path
 rules=g.load_spawn_rules(Path(sys.argv[2]).joinpath(".agi",*g.SCHEMAS_SUBDIR),root=Path(sys.argv[2])/".agi")

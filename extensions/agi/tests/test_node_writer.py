@@ -1812,3 +1812,16 @@ def test_r3_canonicalize_keeps_a_quoted_string_number(tmp_path):
     out = nw._serialize_node(nw.render_frontmatter(fm.frontmatter), fm.body)
     back = fmr._parse_md(out, ".md", True).frontmatter
     assert back == fm.frontmatter and back["ver"] == "0.8" and back["flag"] == "yes" and back["nil"] == "null", out
+
+
+# goal:g7.16.1.11.46.23 step 4 (self-perpetuating 14:12:33Z 10-28): ensure_payload's only direct test went with
+# the node writer's tests; grid.py calls it, so it keeps a row here. Creates the empty payload ONCE, never overwrites.
+def test_ensure_payload_creates_once_and_never_overwrites(project):
+    made = nw.ensure_payload(project, "extensions/x/new.py")
+    assert made is not None and made.is_file() and made.read_text() == ""
+    made.write_text("kept bytes\n")
+    assert nw.ensure_payload(project, "extensions/x/new.py") is None
+    assert made.read_text() == "kept bytes\n", "an existing payload is linked, never replaced"
+    absolute = project / "abs.txt"
+    absolute.write_text("abs\n")
+    assert nw.ensure_payload(project, str(absolute)) is None and absolute.read_text() == "abs\n"

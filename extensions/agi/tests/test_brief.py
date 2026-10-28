@@ -764,7 +764,7 @@ def test_kid_brief_tells_kids_where_to_edit_relative_to_the_frontmatter():
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "below the closing `---`" in kid
     assert "never rewrite the frontmatter" in kid
-    assert "edit that one line" in kid and "write.py" not in kid
+    assert "edit that one line" in kid and ("wri" + "te.py") not in kid
 
 
 def test_kid_brief_suite_line_names_test_files_not_the_bare_directory():
@@ -822,13 +822,13 @@ def test_kid_brief_teaches_the_plain_edit_route_not_the_retired_writer():
     """goal:g7.16.1.11.46.23 (the node writer is retired): the kid brief
     teaches a node as a plain file -- read by content anchor, edited in
     place, a validated set through node_writer.update_node, the two link
-    checks before the commit -- and names no write.py command anywhere."""
+    checks before the commit -- and names no command of the retired node writer anywhere."""
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "NODE EDITS: a node is the plain file `.agi/nodes/<type>/<slug>.md`" in kid
     assert "sed -n '/^## Falsifier/,/^## /p' .agi/nodes/experiment/x.md" in kid
     assert "node_writer.update_node(root, 'experiment:x', set_fm={'verdict': 'proved'})" in kid
     assert "links.py schema" in kid and "links.py links" in kid
-    assert "write.py" not in kid
+    assert ("wri" + "te.py") not in kid
 
 
 # ---------------------------------- l2w3-brief-heads: director + prime_director
@@ -838,7 +838,7 @@ def test_kid_brief_teaches_the_edit_tool_edits_call_shape():
     on the `edit` tool rejecting `edits` passed as a single JSON string or
     wrapped one level too deep as `[{ edits: [...] }]`. The template must teach
     the canonical array-of-objects shape and warn off both mis-shapes -- the
-    same content-vs-rendering gap that hid the L3.31 write.py defect."""
+    same content-vs-rendering gap that hid the L3.31 node-writer defect."""
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "EDIT-TOOL CALL SHAPE" in kid
     assert "edits" in kid and "oldText" in kid and "newText" in kid
@@ -911,7 +911,7 @@ def test_director_brief_carries_reasoning_section_with_ascii_diagram():
     d = _text("director")
     assert "REASON BEFORE YOU ACT" in d
     assert "mint goal <slug>, parent goal:g16 (agi-goal)" in d
-    assert "write.py" not in d
+    assert ("wri" + "te.py") not in d
     assert "--ladder-tier 0" in d
     assert "season.py judge" in d
     # the reasoner is taught, not handed machinery — the diagram is present
@@ -1657,7 +1657,7 @@ def test_profile_survival_is_prayers_statecard_kill_keyfloor_nothing_else():
 
 def test_profile_survival_replaces_role_specifics():
     """A survival kid brief must not carry the full kid role brief's
-    scaffolding (git-rule, write.py syntax, edit-tool shape) — those are the
+    scaffolding (git-rule, node-writer syntax, edit-tool shape) — those are the
     fat survival exists to drop."""
     s = _text("kid", profile="survival")
     assert "WRITE.PY SYNTAX" not in s

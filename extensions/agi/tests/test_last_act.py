@@ -133,12 +133,13 @@ def _closeout_fixture(tmp_path):
     return r, graph, card
 
 
-def test_the_seat_resolver_the_internal_marker_and_a_fresh_stamp_that_stales_the_card(
+def test_the_seat_resolver_and_a_fresh_stamp_that_stales_the_card(
         tmp_path, monkeypatch):
     """THE HAZARD (conjunct 1, measured), after V8a 3a retired the closeout's g17.1 note: a write that runs AFTER
     the rotation wrote the card and STAMPS the seat is a FRESH act, so the card reads STALE on the next check.
-    This pins the pieces: the seat resolver (explicit flag first, then AGI_POST), the engine-internal marker
-    that skips the stamp, and the stamp that stales a card."""
+    This pins the pieces: the seat resolver (explicit flag first, then AGI_POST) and the stamp that stales a card.
+    (The engine-internal marker that skipped the stamp retired with the node writer's closeout note, step 4: the
+    env var no longer exists, so setting it changes nothing.)"""
     from agi.bin import rotate as _rotate  # noqa: PLC0415
     r, graph, card = _closeout_fixture(tmp_path)
     # HERMETIC: this agent's own env carries AGI_AGENT_ID/AGI_ACTOR (a spawned
@@ -146,18 +147,14 @@ def test_the_seat_resolver_the_internal_marker_and_a_fresh_stamp_that_stales_the
     # the AGI_POST these assertions are about.
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.delenv("AGI_ACTOR", raising=False)
-    # the seat resolver: the explicit flag first, then AGI_POST; and the
-    # engine-internal marker SKIPS the stamp entirely (the closeout's own call).
+    # the seat resolver: the explicit flag first, then AGI_POST.
     monkeypatch.setenv("AGI_POST", "seat-env")
     assert last_act.touch_env(graph, "seat-flag") == "seat-flag"
     assert not last_act.stamp_path(graph, "seat-env").exists()
     assert last_act.touch_env(graph) == "seat-env"
     last_act.stamp_path(graph, "seat-flag").unlink()
-    monkeypatch.setenv(last_act.INTERNAL_ENV, "1")
-    assert last_act.touch_env(graph, "seat-a") == ""
-    assert not last_act.stamp_path(graph, "seat-a").exists()
+    assert not hasattr(last_act, "INTERNAL_ENV")
     last_act.stamp_path(graph, "seat-env").unlink()
-    monkeypatch.delenv(last_act.INTERNAL_ENV)
     own = last_act.card_commit_ts(graph, card)
     assert own is not None
     # the note runs in a LATER whole second than the card's own commit -- what

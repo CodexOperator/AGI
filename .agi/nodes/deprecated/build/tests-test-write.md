@@ -18,6 +18,9 @@ tags:
   - code
 thought_session: sanctuary-director-genVI
 title: "Build: extensions/agi/tests/test_write.py"
+deprecated_on: "2026-10-27"
+deprecated_note: "test_write.py retired with write.py (goal:g7.16.1.11.46.23 V8a step 4); last blob db109e1d89102840cb8e65db8d3c8751943f2611 = the last grid payload; payload_ref kept"
+status: deprecated
 ---
 # build:tests-test-write
 

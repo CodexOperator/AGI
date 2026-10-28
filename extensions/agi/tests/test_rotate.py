@@ -12,6 +12,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from agi.bin import geometry_config
 from tests.veto_cell import write_free_veto  # noqa: E402
 from agi.bin import brief
 
@@ -946,8 +947,7 @@ def test_successor_row_write_stores_session_label(tmp_path):
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=2, window="w")
     assert "session_label=s1" in out
-    import write as w
-    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert own["session_label"] == "s1"
 
 
@@ -964,15 +964,14 @@ def test_successor_row_write_writes_generation_for_non_prime(tmp_path):
     out = rotate._successor_row_write(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=2, window="w")
-    import write as w
-    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert own["generation"] == 2, own
     assert "generation=2" in out
 
     out_p = rotate._successor_row_write(
         graph, actor="belam", seat="belam", role="prime_director",
         session_ref="y", generation=7, window="belam-S1-L4-VII")
-    prime = next(r for r in w._load_seats(graph)
+    prime = next(r for r in geometry_config.load_rows(graph)
                  if r.get("name") == "belam")
     assert prime["generation"] == 7, prime
     assert "generation=7" in out_p
@@ -1122,8 +1121,7 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
         session_ref="x", generation=2, window="",
         key_rotation=kr)
     assert "config:seats row" in out and "s1" in out
-    import write as w
-    rows_after = w._load_seats(graph)
+    rows_after = geometry_config.load_rows(graph)
     own = next(r for r in rows_after if r.get("name") == "s1")
     assert own["pubkey"] == kr["successor_pub"]
     assert own["key_history"] == existing_hist + [kr["retired"]]
@@ -1156,8 +1154,7 @@ def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=3, window="", key_rotation=fresh)
     assert "config:seats row" in out, out
-    import write as w
-    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert own["key_history"] == existing_hist + [fresh["retired"]]
     assert own["key_history"][-1]["fp"] == "fp-new"
     # (b) idempotence on the fp: the deliberate retry is a no-op.
@@ -1166,7 +1163,7 @@ def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
     rotate._successor_row_write(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=3, window="", key_rotation=again)
-    own2 = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own2 = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert len(own2["key_history"]) == len(own["key_history"])
 
 
@@ -1205,8 +1202,7 @@ def test_key_history_survives_a_rename_boundary_key_rotation(tmp_path):
         role="director", session_ref="", generation=10, window="@NEW",
         row_seat="sensei-director", key_rotation=kr)
     assert "config:seats row" in out, out
-    import write as w
-    rows_after = w._load_seats(graph)
+    rows_after = geometry_config.load_rows(graph)
     # the boundary never renames the seats row; no phantom new-named row.
     assert not [r for r in rows_after
                 if r.get("name") == "director-sanctuary"], rows_after
@@ -4213,7 +4209,7 @@ def test_rotate_self_record_names_rotated_ack_after_rotation(
     # CLAUSE 9 (goal:g15.25): a refused spawn-row write FAILS LOUD (record
     # `refused`, rc non-zero) and aborts the rotation BEFORE the ack-file
     # rotation. So this fixture must make the s6.1 row write SUCCEED — the
-    # graph-root marker write.py's API demands (L4.95) + a [config].md schema
+    # graph-root marker the row write's API demands (L4.95) + a [config].md schema
     # declaring the self_row fields the writer emits (mirrors
     # test_rotate_handover's `_fix`), else the rotation halts at the refusal
     # and there is no ack to rotate — exactly the silent-stale failure the
@@ -10538,11 +10534,10 @@ def test_b4_w1b2_no_second_posts_parser_in_rotate():
 # The ONE row write (goal:g4.18.5.2's commit -- one gate, one write, one
 # `git commit -- <path>`) is a MODULE-LEVEL function, so the spy is a
 # `monkeypatch.setattr` on the module attribute: a path that reaches it by
-# attribute lookup at call time (as every rotate function does, via its local
-# `import write as _w`) is caught.
+# attribute lookup at call time is caught.
 #
 # Its NAME is a CONTRACT, not a guess. goal:g4.18.5.3 Falsifier 1 declares it:
-# `write.ONE_ROW_WRITE`. The guard's FIRST assertion is that the attribute
+# `ONE_ROW_WRITE` (first on the node writer, which retired in goal:g7.16.1.11.46.23 step 4; now on rotate). The guard's FIRST assertion is that the attribute
 # exists, so a re-point published under any other name fails LOUDLY, naming
 # itself, instead of leaving behind a strict-xfail that can never go green.
 #
@@ -10563,18 +10558,13 @@ _ONE_ROW_WRITE = "ONE_ROW_WRITE"
 
 
 def _one_row_write_module():
-    """The module object that OWNS the seam -- the same one rotate resolves at
-    call time through its local `import write as _w`. Asserts it is a sibling
-    of rotate in ONE tree: the suite can end up with two module objects for one
-    file (the tests import `from agi.bin import rotate` while rotate imports
-    bare `write`), and patching the wrong copy measures nothing at all."""
-    mod = sys.modules.get("write")
-    if mod is None:
-        import write as mod_          # noqa: PLC0415 -- the import IS the test
-        mod = mod_
-    assert Path(mod.__file__).parent == Path(rotate.__file__).parent, (
-        f"write is loaded from {mod.__file__} but rotate from "
-        f"{rotate.__file__} -- two trees; the spy would patch the wrong one")
+    """The module object that OWNS the seam. goal:g7.16.1.11.46.23 step 4 retired the node writer this seam was
+    first contracted on (`write.ONE_ROW_WRITE`, never shipped there); rotate's config:posts commit paths write the
+    row through rotate's own `_write_identity_cells`, so the seam's home is now rotate itself (named in
+    goal:g4.18.5.3's THOUGHT). Asserts it is the rotate module these tests drive (one tree, one module object)."""
+    mod = sys.modules.get(rotate.__name__) or rotate
+    assert Path(mod.__file__) == Path(rotate.__file__), (
+        f"the seam module is loaded from {mod.__file__} but rotate from {rotate.__file__} -- two trees")
     return mod
 
 
@@ -10852,7 +10842,7 @@ def test_a_wrong_named_seam_is_refused_by_the_contract(tmp_path, monkeypatch):
 def test_a_path_that_bypasses_the_contract_still_fails_after_the_re_point(
         tmp_path, monkeypatch):
     """The other half, and the one that must survive the landing. ONCE
-    `write.ONE_ROW_WRITE` exists, a path that keeps its own hand-rolled
+    `ONE_ROW_WRITE` exists, a path that keeps its own hand-rolled
     `_write_row`-style commit is no longer stopped by the missing attribute --
     the contract exists and is simply bypassed. It must still be caught, and
     caught on the COUNT (0 calls), which is the assertion that means something
