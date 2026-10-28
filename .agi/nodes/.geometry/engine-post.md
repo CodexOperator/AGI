@@ -25,7 +25,7 @@ agi-atomize       4146 B  box mail -> verbatim card atoms (wake path, model)
 agi-mem           19689 B  chat tap -> own 0700 store; tap, at
 agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
-agi-turn           4641 B  a signed commit per changed node tree
+agi-turn           4839 B  a signed commit per changed node tree
 agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track          236 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
@@ -298,7 +298,7 @@ except BaseException as e:print("[spawn-gate-broken] spawn_gate.py: "+repr(e)[:1
 sys.exit(b)
 ~~~
 
-### agi-turn (4641 B)
+### agi-turn (4839 B)
 ~~~sh
 #!/bin/sh
 # agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (its report-mode `Scope:` lines become trailers of the commit; a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (agi-brief calls it first; agi-meter right after the rotation line) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
@@ -306,7 +306,8 @@ cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l $x.s
 c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
 [ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
 { [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;}
-[ "$1" = strand ]&&{ git symbolic-ref -q HEAD>/dev/null&&exit;h=$(git rev-parse -q --verify HEAD)||exit 0;n=$({ echo $h;git for-each-ref --format='^%(objectname)' refs/heads refs/remotes refs/archive refs/tags;}|git rev-list --count --stdin);[ $n = 0 ]&&exit
+[ "$1" = strand ]&&{ git symbolic-ref -q HEAD>/dev/null&&exit;h=$(git rev-parse -q --verify HEAD)||exit 0;u(){ m="[strand] $P: strand unread: $(echo "$1"|head -1)";echo "$m">&2;agi-notice add "$m";exit 2;}
+ r=$(git for-each-ref --format='^%(objectname)' refs/heads refs/remotes refs/archive refs/tags 2>&1)||u "$r";n=$(printf '%s\n%s\n' $h "$r"|git rev-list --count --stdin 2>&1)||u "$n";case $n in ''|*[!0-9]*)u "rev-list said '$n'";;esac;[ $n = 0 ]&&exit
  m="[strand-refused] $P: HEAD $(git rev-parse --short $h) carries $n commit(s) on no ref: HEAD left where it is, nothing moved; put them on posts/$P through agi-at";echo "$m">&2;agi-notice add "$m";exit 1;}
 [ "$1" = purge ]&&{ d=${2%/};m=${d##*/};c $d $(cat $d/.b 2>/dev/null||git rev-parse $b);[ $? = 0 ]&&{ rm -rf $d;exit;};a=refs/archive/$P/$m;o=$(git rev-parse -q --verify $a||:)
  t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-removal -f -- . ':!.p' ':!.b'&&n=$(git write-tree)&&e=$(echo "$P: kept $m"|git commit-tree -S -p $t ${o:+-p $o} $n)&&git update-ref $a $e "$o"&&s="whole tree committed to $a"||s="NOT SAVED: the ref write failed";echo "[kept] $m: ${l:-unreadable}: $s">&2;exit 1;}
