@@ -165,4 +165,32 @@ OUT=a6m1;a6m a6m1 '"remote" if re.search(' '"remote" if False and re.search('
 ok "m-the-remote-prefix-rule-cut-reads-RED cli.py's built origin/ line owes alias, its remote row is bad-module-class (want every hit classed, so this red = caught)" 'grep -q "bad-module-class extensions/agi/bin/cli.py:[0-9]* (row $TB:[0-9]* says remote, branches.py returns alias)" $T/a6m1.out'
 OUT=a6m2;a6m a6m2 ', before) else FN_CLASS[fn])' ', before) or "origin/" in text else FN_CLASS[fn])'
 ok "m-origin-anywhere-reads-RED the strip form in send.py owes remote, its alias row is bad-module-class (want alias kept, so this red = caught)" 'grep -q "bad-module-class extensions/agi/bin/send.py:[0-9]* (row $TB:[0-9]* says alias, branches.py returns remote)" $T/a6m2.out'
+# CRUMBS (alive [decision] 13:53:50Z: A1 A2, sp [approve] 13:50:41Z: U1 U2), each a plant + its mutant
+# pl <file line> <row match> <row class>: append a line to board_job.py and a row for it, then apply mutants "$@"; run the census
+pl(){ cp_ $OUT;printf '%s\n' "$1" >>$P/extensions/agi/bin/board_job.py;printf 'hit\textensions/agi/bin/board_job.py\t%s\t%s\tplanted\n' "$3" "$2" >>$P/$TB;shift 3;while [ $# -ge 2 ];do mut $P/$CB "$1" "$2";shift 2;done;$G -C $P add -A;$G -C $P commit -qm pl;cen >$T/$OUT.out 2>&1;}
+# A1: a docstring opener is a prose start
+D1='"""docs: branches.season_main(3) is the season main"""'
+OUT=a1;pl "$D1" 'docs: branches.season_main(' prose;a1=$?
+ok "a1-a-docstring-line-under-a-prose-row-is-classed rc $a1: no bad-module-class for board_job.py" '[ $a1 = 0 ]&&! grep -q "bad-module-class extensions/agi/bin/board_job.py" $T/a1.out&&grep -q "every hit classed" $T/a1.out'
+OUT=a1m;pl "$D1" 'docs: branches.season_main(' prose '") or stripped[:3] in (' '") or False and stripped[:3] in ('
+ok "m-the-docstring-opener-cut-reads-RED the docstring line owes alias (want classed, so bad-module-class = caught)" 'grep -q "bad-module-class extensions/agi/bin/board_job.py:[0-9]* (row $TB:[0-9]* says prose, branches.py returns alias)" $T/a1m.out'
+# A2: the single-quoted and the refs/remotes/origin/ builds owe remote
+S2="_r = 'origin/' + branches.season_main(3)";R2="_q = \"refs/remotes/origin/\" + branches.season_main(3)"
+OUT=a2;pl "$S2" "'origin/' + branches.season_main(" remote;a2=$?
+ok "a2-a-single-quoted-origin-build-owes-remote rc $a2: the remote row holds" '[ $a2 = 0 ]&&grep -q "every hit classed" $T/a2.out'
+OUT=a2r;pl "$R2" '"refs/remotes/origin/" + branches.season_main(' remote;a2r=$?
+ok "a2r-a-refs-remotes-origin-build-owes-remote rc $a2r: the remote row holds" '[ $a2r = 0 ]&&grep -q "every hit classed" $T/a2r.out'
+OUT=a2m;pl "$S2" "'origin/' + branches.season_main(" remote 'REMOTE_BUILD, before)' 'REMOTE_BUILD.split("|")[0].replace("(?:refs/remotes/)?", ""), before)'
+ok "m-the-remote-widening-cut-reads-RED the single-quoted build owes alias again, its remote row is bad-module-class (want remote, so this red = caught)" 'grep -q "bad-module-class extensions/agi/bin/board_job.py:[0-9]* (row $TB:[0-9]* says remote, branches.py returns alias)" $T/a2m.out'
+# U1: 'from <pkg> import branches' owes grammar
+OUT=u1g;pl 'from agi import branches' 'from agi import branches' remote;u1g=$?
+ok "u1g-a-package-import-under-a-remote-row-is-bad-module-class rc $u1g: $(grep 'bad-module-class extensions/agi/bin/board_job.py' $T/u1g.out|cut -c1-100)" '[ $u1g = 1 ]&&grep -q "bad-module-class extensions/agi/bin/board_job.py:[0-9]* (row $TB:[0-9]* says remote, branches.py returns grammar)" $T/u1g.out'
+OUT=u1gm;pl 'from agi import branches' 'from agi import branches' remote '    elif re.match(r"\s*from\s+\S+\s+import\s+(.*,\s*)?branches\b", text):' '    elif False:'
+ok "m-that-form-returns-empty-reads-RED the package import passes as remote (sp p2: want bad-module-class, so 'every hit classed' = caught)" '! grep -q bad-module-class $T/u1gm.out&&grep -q "every hit classed" $T/u1gm.out'
+# U2: branches.py gone at the rev with module hits to class = unread branches.py, rc 1
+u2(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/$CB "$1" "$2";shift 2;done;$G -C $P rm -q extensions/agi/bin/branches.py;$G -C $P commit -qm u2;cen >$T/$OUT.out 2>&1;}
+OUT=u2;u2 u2;u2=$?
+ok "u2-branches-py-gone-is-unread rc $u2: $(grep 'unread branches.py' $T/u2.out|cut -c1-100)" '[ $u2 = 1 ]&&grep -q "unread branches.py (0 public defs at [0-9a-f]*, [1-9][0-9]* module hit(s) to class)" $T/u2.out'
+OUT=u2m;u2 u2m '    if module and not defs:' '    if False:'
+ok "m-the-unread-branches-check-cut-reads-RED no unread line names branches.py (want unread, so its absence = caught)" '! grep -q "unread branches.py" $T/u2m.out&&grep -q "census: [0-9]* files scanned" $T/u2m.out'
 echo "reader-census: $nrows rows";echo "reader-census: $f FAIL";[ $f = 0 ]

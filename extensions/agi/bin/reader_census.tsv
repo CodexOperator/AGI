@@ -148,3 +148,4 @@ hit	extensions/agi/bin/verification.py	grammar	import branches	the module import
 hit	extensions/agi/bin/verification.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
 hit	extensions/agi/hooks/agent-git/pre-commit	prose	# through branches.loop_branch() (season	a comment / docstring naming the function (U-b3)
 extra	/data/work/.scratch-agi-belam/land.sh	posts	belam's land CAS (belam 11:0xZ): reads refs/heads/posts/belam (:6 + :20), its CAS on the ref (:21); its reference-transaction hook is a homes-listing row already
+hit	extensions/agi/tests/test_branch_spelling_grep.py	prose	'season/s3',	test data: the exact PINNED entry for reader_census.py's own match patterns (route (a) RE-PIN, alive [decision] 15:53:35Z)
