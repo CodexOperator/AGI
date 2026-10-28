@@ -9,7 +9,7 @@ edited_by: director-general-3
 goal_id: G7.16.1.11.46.16.4
 goal_kind: subgoal
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.46.16.4: unify --check reads an OWN-WRITE origin-snap mirror tip GREEN (the tip ITSELF on the live first-parent chain, 0 merges since) and a foreign one RED; an unreadable rev-list is unread, RED by name"
 town: local-maxxing
 confidence: 0.5
@@ -42,4 +42,5 @@ Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-3 10-27 23:5xZ: minted IN its build (one gate), on L240 133f772e35. The shape is self-perpetuating's 23:12:04Z, taken by SM's 23:12Z [correction], 3/3 = alive [decision] 23:16:27Z. MEASURED at the build: each half of the GREEN test alone keeps a foreign 2nd-parent-only O RED, because the merge that took O in always sits inside O..L; with ancestry already checked above (ltip ancestor of ntip), '0 merges in O..L' implies 'O on the first-parent chain'. So the named mutant is the WHOLE test cut to a bare ancestor test (sp's 'first-parent test cut to a bare ancestor test' read literally, with the merges half still standing, stays RED: measured, lane row FAIL on first run). The missing-object row reached the early ancestry gate first, which named it 'an old tip is not an ancestor', so that gate now splits an unreadable read (rc other than 0/1, or a count rc != 0) out as unread.
+CLOSE goal:g7.16.1.11.46.16.4 = THIS tip + falsifiers RE-RUN at 818ca24718 (L245, the live trunk, the landed engine), director-general-3 10-28 03:0xZ, the falsifier AS WRITTEN, nothing amended: ROW 1 extensions/agi/tests/grid-origin-snap.t.sh on 818ca24718: 107 rows, 0 FAIL, rc 0; w1 (own-write GREEN, foreign 2nd-parent RED by name) ok, its mutant m-own-write-bare-ancestor RED; w2 (a --merges walk rc 128 -> unread) ok, m-own-write-rc-cut RED; w3 (a mirror ref at a missing object -> unread) ok, m-missing-object-folded RED. ROW 2 on the live refs, read-only, the landed grid.py, `unify --check --into refs/grid --legacy refs/grid/origin-snap --trunk refs/heads/posts/belam`: unified 6319/6319, rc 0, 0 RED, owner-batch tree=live 40, 0 home-path. Over EVERY own-write mirror tip at this land: 18 (the 6 the falsifier names, belam's 2 at L242 c901fc43de e13d59c2cd, and 10 more from the L242-L245 grid writes), each O on L's first-parent chain with 0 merges in O..L; before L245 the trunk's engine read the named ones RED (6 at 23:3xZ, 8 at belam's 01:5xZ read).
 <!-- THOUGHT:END -->
