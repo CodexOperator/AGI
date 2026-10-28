@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "extensions" / "agi" / "bin"))
 import links  # noqa: E402
 
 SHAPE = re.compile(r"^goal:(\S+): RED until ")
+STRICT_UNREAD = object()   # strict= is not a literal: the decorator cannot be read as strict or not
 
 
 def _value(node, names):
@@ -32,7 +33,8 @@ def _value(node, names):
 
 
 def strict_reasons(src):
-    """(line, reason) of every `xfail(strict=True, reason=...)` in `src`."""
+    """(line, reason) of every `xfail(strict=True, reason=...)` in `src`; a
+    `strict=` that is not a literal (strict=S) yields (line, STRICT_UNREAD)."""
     tree = ast.parse(src)
     names = {}
     for n in tree.body:
@@ -45,6 +47,9 @@ def strict_reasons(src):
         if not (isinstance(n, ast.Call) and getattr(n.func, "attr", None) == "xfail"):
             continue
         kw = {k.arg: k.value for k in n.keywords}
+        if "strict" in kw and not isinstance(kw["strict"], ast.Constant):
+            out.append((n.lineno, STRICT_UNREAD))   # council crumb (sp, L262): never a silent skip
+            continue
         if not (isinstance(kw.get("strict"), ast.Constant) and kw["strict"].value is True):
             continue
         r = _value(kw["reason"], names) if "reason" in kw else None
@@ -56,6 +61,9 @@ def offenders(files, ids):
     bad = []
     for f in files:
         for line, r in strict_reasons(Path(f).read_text(encoding="utf-8")):
+            if r is STRICT_UNREAD:
+                bad.append(f"{Path(f).name}:{line}: strict unread")
+                continue
             if r is None:   # an f-string, a call, an imported name: unread is an offender, never a skip (council fix-forward, alive 20:54:18Z 10-27)
                 bad.append(f"{Path(f).name}:{line}: reason unread")
                 continue
@@ -74,7 +82,7 @@ def _ids():
 def test_every_red_until_reason_names_a_goal_of_this_graph():
     files = sorted(TESTS.glob("test_*.py"))
     assert len(files) > 100
-    reasons = [r for f in files for _, r in strict_reasons(f.read_text(encoding="utf-8")) if r and "RED until" in r]
+    reasons = [r for f in files for _, r in strict_reasons(f.read_text(encoding="utf-8")) if isinstance(r, str) and "RED until" in r]
     assert len(reasons) >= 9, reasons
     assert offenders(files, _ids()) == []
 
@@ -97,3 +105,11 @@ def test_mutant_an_unreadable_reason_is_RED_by_name(tmp_path):
                  '@pytest.mark.xfail(strict=True)\ndef test_c(): pass\n')
     assert offenders([f], _ids()) == ["test_u.py:3: reason unread", "test_u.py:5: reason unread",
                                       "test_u.py:7: reason unread"]
+
+
+def test_mutant_a_non_literal_strict_is_RED_by_name(tmp_path):
+    f = tmp_path / "test_s.py"
+    f.write_text('import pytest\nS = True\n'
+                 '@pytest.mark.xfail(strict=S, reason=f"RED until {S}")\ndef test_a(): pass\n'
+                 '@pytest.mark.xfail(strict=False, reason="RED until a seat")\ndef test_b(): pass\n')
+    assert offenders([f], _ids()) == ["test_s.py:3: strict unread"]
