@@ -3,7 +3,8 @@
 # writes ONE grid commit per changed node of B..G on refs/grid/node/<mint> (grid.py's builder mint_node_ref, under GridLock), each ref moved by a CAS on
 # the tip it read; a tip that moved since = a `held merge` row for that mint, that node not written, rc 1. The recomposed tree (recompose.py) == the
 # gated tree. sh + git + python3 on a SCRATCH repo (the grid-double-mint.t.sh recipe). The fixture: n1 idea MODIFIED, n2 RETIRED (moved to deprecated/),
-# n3 a build whose PAYLOAD alone changed, n5 a NEW node, n4 untouched, README.md carried: k = 4 changed nodes. Every mutant (m-*) must read RED.
+# n3 a build whose PAYLOAD alone changed, n5 a NEW node, n4 untouched, README.md carried: k = 4 changed nodes. The same-tip amend (council 3/3 alive
+# [decision] 08:38:11Z) adds A16, U4, I18, A17, A18 + U5 and I17's parity table (commit --all vs split). Every mutant (m-*) must read RED.
 T=$(mktemp -d);trap 'kill $HP 2>/dev/null;rm -rf $T' 0;f=0;nrows=0;HP=;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin}
 ok(){ nrows=$((nrows+1));if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_TRUNK
@@ -59,7 +60,7 @@ i14(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1"
  chmod +x $P/.git/hooks/reference-transaction;grid split --base $TR --gated $GT --write >$T/$OUT.out 2>&1;}
 OUT=i14;i14 i14;i14=$?;C=$(cat $T/i14.C)
 ok "i14-a-moved-tip-is-a-held-merge-row split rc $i14; n2's ref moved under it by the hook: $(grep 'held merge' $T/i14.out|cut -c1-120); n2's ref still = the concurrent version, n1 n3 n5 written" '[ $i14 = 1 ]&&[ -e $T/i14.hooked ]&&grep -q "held merge $(mn 2) .agi/nodes/deprecated/idea/n2.md (its tip moved since it was read" $T/i14.out&&[ "$($G -C $P rev-parse $NS/$(mn 2))" = "$C" ]&&grep -q "3 grid commit(s) written, 0 already on the grid, 1 held" $T/i14.out'
-OUT=i14m;i14 i14m '            cas = git_try(root, "update-ref", ref, commit, tip or "")' '            cas = git_try(root, "update-ref", ref, commit)';C=$(cat $T/i14m.C)
+OUT=i14m;i14 i14m '    res = git_try(root, "update-ref", ref, commit, tip or "")' '    res = git_try(root, "update-ref", ref, commit)';C=$(cat $T/i14m.C)
 ok "m-a-ref-write-without-old-reads-RED no <old>: the concurrent version C is LOST (not in n2's history) (want it kept, so lost = caught)" '[ -e $T/i14m.hooked ]&&! $G -C $P merge-base --is-ancestor $C $NS/$(mn 2)'
 # --- A14 (alive): the split is grid.py's, under GridLock: a held lock stops it (rc 2, nothing written); mutant: no lock -> it writes under a held lock
 a14(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done
@@ -78,4 +79,79 @@ OUT=d1;dl d1;d1=$?
 ok "d1-a-deleted-node-is-unread-and-nothing-is-written n4's file deleted in the land: rc $d1, 'unread .agi/nodes/idea/n4.md (deleted ... retire, never delete)', no ref moved" '[ $d1 = 1 ]&&grep -q "unread .agi/nodes/idea/n4.md (deleted with no gated file of its mint $(mn 4): retire, never delete)" $T/d1.out&&cmp -s $T/d1.before $T/d1.after'
 OUT=d1m;dl d1m '            if mi and mi.group(1) not in gated_mints:' '            if False:';d1m=$?
 ok "m-delete-check-cut-reads-RED the deleted node passes and the other 4 nodes are written, rc $d1m (want unread + nothing written, so moved refs = caught)" '! cmp -s $T/d1m.before $T/d1m.after'
+# ===== the same-tip amend (council 3/3, alive [decision] 08:38:11Z): split and commit_file are ONE per-version helper (prepare_version + write_version)
+# gt <name> <edit cmds...>: a fresh copy whose GATED commit = the base + the edits (run in its checkout); the copy is left checked out at the GATED commit
+gt(){ cp_ $1;shift;$G -C $P checkout -q --detach $TR;(cd $P&&eval "$*");$G -C $P add -A;$G -C $P commit -qm gated2;$G -C $P update-ref $GT HEAD;}
+moved(){ [ "$(grep "^$NS/$(mn $1) " $T/$OUT.before)" != "$(grep "^$NS/$(mn $1) " $T/$OUT.after)" ];}
+sp(){ refs >$T/$OUT.before;grid split --base $TR --gated $GT --write >$T/$OUT.out 2>&1;r=$?;refs >$T/$OUT.after;return $r;}
+cm(){ refs >$T/$OUT.before;grid commit --all >$T/$OUT.out 2>&1;r=$?;refs >$T/$OUT.after;return $r;}
+E4="nd .agi/nodes/idea/n4.md idea:n4 4 idea active '' four-v2"
+# A16 (alive) DOUBLE MINT: a NEW mint (n6) for the taken id idea:n1 -> unread, nothing written; mutant: the check cut -> the second ref written
+gt dm "nd .agi/nodes/idea/n6.md idea:n1 6 idea active '' six;$E4";OUT=dm;sp;dm=$?
+ok "a16-a-new-mint-for-a-taken-id-is-unread rc $dm: $(grep 'double mint' $T/dm.out|cut -c1-110), no ref moved" '[ $dm = 1 ]&&grep -q "unread $(mn 6) .agi/nodes/idea/n6.md (double mint: idea:n1 is already carried by mint $(mn 1)" $T/dm.out&&cmp -s $T/dm.before $T/dm.after'
+gt dmm "nd .agi/nodes/idea/n6.md idea:n1 6 idea active '' six;$E4";mut $P/extensions/agi/bin/grid.py '        if other:
+            return "double-mint", tree, 0, other' '        if False:
+            return "double-mint", tree, 0, other';OUT=dmm;sp
+ok "m-a-split-without-the-double-mint-check-reads-RED the check cut: the second mint for idea:n1 is WRITTEN (want unread, so its ref = caught)" 'grep -q "^$NS/$(mn 6) " $T/dmm.after'
+# U4 (sp) A16's VIEW = the GATED tree: the land renumbers n1 (M1) idea:n1 -> idea:n1b AND adds a NEW idea:n1 (M6): split writes both; mutant: the view from the checkout at base -> M6 refused
+U4="nd .agi/nodes/idea/n1.md idea:n1b 1 idea active '' renumbered;nd .agi/nodes/idea/n1-new.md idea:n1 6 idea active '' six"
+gt u4 "$U4";$G -C $P checkout -q --detach $TR;OUT=u4;sp;u4=$?
+ok "u4-the-double-mint-view-is-the-gated-tree a renumber + a new mint at the vacated id: rc $u4, both written (M1 v2, M6 v1), judged by the gated tree while the checkout sits at the base" '[ $u4 = 0 ]&&moved 1&&grep -q "^$NS/$(mn 6) " $T/u4.after'
+gt u4m "$U4";$G -C $P checkout -q --detach $TR;mut $P/extensions/agi/bin/grid.py '                                                    dm_files=view, dm_key=("tree", g))' '                                                    dm_files=None, dm_key="worktree")';OUT=u4m;sp
+ok "m-the-view-from-the-checkout-reads-RED the view taken from the checkout at base: M6 refused as a double mint (want both written, so the refusal = caught)" 'grep -q "unread $(mn 6) .agi/nodes/idea/n1-new.md (double mint" $T/u4m.out'
+# I18 (aio) THE VIEW'S CACHE is keyed by the view: ONE process judges the worktree view (M6 for idea:n1 -> held by M1) then a gated view where M1 is idea:n1b -> no holder
+i18(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done
+ (cd $P&&python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import grid;r=grid.find_project_root();grid.apply_storage_trunk(r)
+a=grid.double_mint_holder(r,'$(mn 6)','idea:n1');b=grid.double_mint_holder(r,'$(mn 6)','idea:n1',{'$(mn 1)':{'idea:n1b'},'$(mn 6)':{'idea:n1'}},('tree','g'))
+print('worktree',a and a[0]);print('gated',b and b[0])") >$T/$OUT.out 2>&1;}
+OUT=i18;i18 i18
+ok "i18-one-process-two-views-two-verdicts $(tr '\n' ' ' <$T/i18.out)" 'grep -q "^worktree $(mn 1)$" $T/i18.out&&grep -q "^gated None$" $T/i18.out'
+OUT=i18m;i18 i18m '    if key in _DM_CACHE:
+        return _DM_CACHE[key]' '    if _DM_CACHE:
+        return next(iter(_DM_CACHE.values()))'
+ok "m-the-unkeyed-cache-reads-RED the cache keyed by nothing: the gated verdict = the worktree's ($(tr '\n' ' ' <$T/i18m.out)) (want two verdicts, so one = caught)" 'grep -q "^gated $(mn 1)$" $T/i18m.out'
+# A17 (alive) LIVE PAYLOAD GONE: a live build edited + its payload file deleted -> unread, nothing written; mutant: the check cut -> written with node.md only
+PG="nd .agi/nodes/build/b3.md build:b3 3 build active 'payload_ref: src/p3.txt\n' three-v2;git rm -q src/p3.txt;$E4"
+gt pg "$PG";OUT=pg;sp;pg=$?
+ok "a17-a-live-payload-gone-is-unread rc $pg: $(grep 'payload_ref' $T/pg.out|cut -c1-110), no ref moved" '[ $pg = 1 ]&&grep -q "unread .agi/nodes/build/b3.md (live build:b3: its payload_ref src/p3.txt names no path in the gated tree)" $T/pg.out&&cmp -s $T/pg.before $T/pg.after'
+gt pgm "$PG";mut $P/extensions/agi/bin/grid.py '            else:                                         # A17: a land is gated' '            elif False:                                   # A17: a land is gated';OUT=pgm;sp
+ok "m-a-split-without-the-payload-check-reads-RED the check cut: b3's version written with node.md only (want unread, so its moved ref = caught)" 'moved 3'
+# A18 (alive) + U5 (sp) NEST + ORDER: a failing nest read on the LAST node in sort order (n4: its tip's root tree object deleted) -> unread, refs before == after;
+# mutants: the nest check cut (A18) -> written; the all-or-nothing check cut (U5: a refusal met after a write) -> the earlier node's ref moved
+nst(){ gt $1 "nd .agi/nodes/idea/n1.md idea:n1 1 idea active '' one-v2;$E4";shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done
+ t4=$($G -C $P rev-parse $NS/$(mn 4)^{tree});rm -f $P/.git/objects/$(echo $t4|cut -c1-2)/$(echo $t4|cut -c3-);sp;}
+OUT=u5;nst u5;u5=$?
+ok "u5-a-refusal-on-the-last-node-writes-nothing n4's nest read fails (ls-tree rc 128): rc $u5, $(grep 'nest entry' $T/u5.out|cut -c1-90), refs before == after (n1, earlier in sort order, NOT written)" '[ $u5 = 1 ]&&grep -q "unread $(mn 4) .agi/nodes/idea/n4.md (the nest entry of its tip is unreadable" $T/u5.out&&cmp -s $T/u5.before $T/u5.after'
+OUT=u5m;nst u5m '        if unread:
+            for u in unread:
+                print(f"  {u}")
+            print(f"split: unread {len(unread)}; nothing written")
+            return 1
+        # WRITE' '        if False:
+            return 1
+        # WRITE'
+ok "m-a-refusal-after-a-write-reads-RED the all-or-nothing check cut (prepare and write interleaved): n1, before n4 in sort order, is WRITTEN (want refs unmoved, so n1 moved = caught)" 'moved 1'
+OUT=a18m;nst a18m '        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            return "nest", tree, 0, None' '        if False:
+            return "nest", tree, 0, None'
+ok "m-a-nest-read-without-its-rc-check-reads-RED the nest rc check cut: the unreadable nest reads as none and n4 is written (want unread, so moved = caught)" 'moved 4'
+# I17 (aio) PARITY: five cases through BOTH commit --all (the checkout at the gated commit) and split --write, against ONE declared verdict table:
+# cell = <case node's ref moved><the other node's (n1) ref moved>: commit --all refuses / skips / holds the case node (a live payload gone = WARN + written,
+# cron) and writes the other; split reads unread and writes NOTHING; unchanged = no version in either, the other written
+TABLE="dm:commit=ny dm:split=nn pg:commit=yy pg:split=nn nest:commit=ny nest:split=nn held:commit=ny held:split=nn same:commit=ny same:split=ny"
+E1="nd .agi/nodes/idea/n1.md idea:n1 1 idea active '' one-v2"
+par(){ m=$1;w=$2;shift 2;cp_ par-$m-$w;$G -C $P checkout -q --detach $TR
+ case $m in dm) c=6;ed="nd .agi/nodes/idea/n6.md idea:n1 6 idea active '' six;$E1";;pg) c=3;ed="nd .agi/nodes/build/b3.md build:b3 3 build active 'payload_ref: src/p3.txt\n' three-v2;git rm -q src/p3.txt;$E1";;
+  *) c=4;ed="$E4;$E1";;esac
+ (cd $P&&eval "$ed");$G -C $P add -A;$G -C $P commit -qm par;$G -C $P update-ref $GT HEAD
+ case $m in nest) t4=$($G -C $P rev-parse $NS/$(mn 4)^{tree});rm -f $P/.git/objects/$(echo $t4|cut -c1-2)/$(echo $t4|cut -c3-);;
+  held) echo '{"grid":{"storage_trunk":"refs/grid","legacy_namespaces":["refs/grid/lm"]}}' >$P/.agi/config.json;$G -C $P update-ref refs/grid/lm/node/$(mn 4) $(echo legacy|$G -C $P commit-tree $($G -C $P rev-parse $NS/$(mn 4)^{tree}));;
+  same) o4=$($G -C $P rev-parse $NS/$(mn 4));nt=$(printf '100644 blob %s\tnode.md\n' $($G -C $P rev-parse $GT:.agi/nodes/idea/n4.md)|$G -C $P mktree);$G -C $P update-ref $NS/$(mn 4) $(echo v2|$G -C $P commit-tree $nt -p $o4);;esac
+ while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done
+ OUT=par-$m-$w;if [ $w = commit ];then cm;else $G -C $P checkout -q --detach $TR;sp;fi
+ a=n;moved $c&&a=y;b=n;moved 1&&b=y;echo "$m:$w=$a$b";}
+got=$(for m in dm pg nest held same;do for w in commit split;do par $m $w;done;done|tr '\n' ' ')
+ok "i17-parity-commit-all-and-split-against-one-verdict-table got: $got" '[ "$got" = "$TABLE " ]'
+got=$(for m in dm pg nest held same;do for w in commit split;do if [ $w = split ];then par $m $w '            else:                                         # A17: a land is gated' '            elif False:                                   # A17: a land is gated';else par $m $w;fi;done;done|tr '\n' ' ')
+ok "m-one-guard-cut-in-one-writer-only-reads-RED split's live-payload guard cut (commit --all untouched): the table reads $got (want the declared table, so a differing cell = caught)" '[ "$got" != "$TABLE " ]&&echo "$got"|grep -q "pg:split=yy"'
 echo "land-split: $nrows rows";echo "land-split: $f FAIL";[ $f = 0 ]

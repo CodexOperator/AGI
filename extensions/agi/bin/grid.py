@@ -1047,7 +1047,9 @@ LEGACY_HELD: list[str] = []
 DOUBLE_MINT_REFUSED: list[str] = []
 #: mints whose ref this run created (they carry their id from then on); the per-run view cache; reset per run.
 MINTED_THIS_RUN: dict[str, str] = {}
-_DM_CACHE: dict | None = None
+#: the double-mint views, KEYED by the view (I18, all-is-one 08:37:09Z): "worktree" = the checkout commit --all versions,
+#: ("tree", <sha>) = a gated tree a split judges; one process that runs both never judges one by the other's view
+_DM_CACHE: dict = {}
 #: {legacy ref: tip}, read ONCE per run by one `for-each-ref` whose rc is checked (R4): an absent ref
 #: and a failed rev-parse can no longer look alike. None = not loaded yet.
 LEGACY_TIPS: dict[str, str] | None = None
@@ -1088,16 +1090,17 @@ def legacy_unmerged(root: Path, ref: str, tip: str | None) -> str | None:
     return None
 
 
-def _dm_view(root: Path) -> dict:
-    """The per-run read the double-mint refusal needs, built ONCE and only when a new mint is about to be created:
+def _dm_view(root: Path, files: dict[str, set[str]] | None = None, key="worktree") -> dict:
+    """The per-run read the double-mint refusal needs, built ONCE per VIEW (`key`) and only when a new mint is about to be
+    created (goal:g7.16.1.11.46.18 U4: the VIEW is an argument: `files` None = the checkout on disk, which commit --all
+    versions; a split hands the GATED tree's {mint: ids}; `bad` lists the mints whose ref tip has no node.md blob):
     `files` {mint: {ids its FILE names}} over the commit's own view (every node file under nodes/, deprecated/ too),
     `refs` {mint: tip} for every mint with a ref in the one namespace, and `tip_ids` {mint: the id its ref TIP names}
     for the refs whose mint has NO file in the view (ghosts, never-landed): the only mints read from a tip."""
-    global _DM_CACHE
-    if _DM_CACHE is not None:
-        return _DM_CACHE
-    files: dict[str, set[str]] = {}
-    for p in iter_node_files(root):
+    if key in _DM_CACHE:
+        return _DM_CACHE[key]
+    view, files = files, {}
+    for p in (iter_node_files(root) if view is None else []):
         try:
             text = p.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
@@ -1105,12 +1108,15 @@ def _dm_view(root: Path) -> dict:
         mi, ii = MINT_ID_RE.search(text), ID_RE.search(text)
         if mi and ii:
             files.setdefault(mi.group(1), set()).add(ii.group(1))
+    if view is not None:
+        files = view
     res = git_try(root, "for-each-ref", f"{REF_NS}/node", "--format=%(objectname) %(refname)")
     if res.returncode != 0:
         sys.exit(f"grid: unread (for-each-ref {REF_NS}/node failed: {res.stderr.strip()[:120]}); nothing written")
     refs = {x.split()[1][len(REF_NS) + 6:]: x.split()[0] for x in res.stdout.splitlines() if len(x.split()) == 2}
     loose = {m: t for m, t in refs.items() if m not in files}
     tip_ids: dict[str, str] = {}
+    bad: list[str] = []
     if loose:
         out = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"],
                              input="".join(f"{t}:{NODE_ENTRY}\n" for t in loose.values()).encode(), capture_output=True)
@@ -1121,6 +1127,7 @@ def _dm_view(root: Path) -> dict:
             nl = out.stdout.find(b"\n", pos)
             head = out.stdout[pos:nl].split() if nl >= 0 else []
             if len(head) != 3 or head[1] != b"blob":
+                bad.append(m)                             # commit --all reads no holder here; a split reads it as unread
                 pos = nl + 1 if nl >= 0 else len(out.stdout)
                 continue
             size = int(head[2])
@@ -1129,18 +1136,19 @@ def _dm_view(root: Path) -> dict:
             ii = ID_RE.search(body)
             if ii:
                 tip_ids[m] = ii.group(1)
-    _DM_CACHE = {"files": files, "refs": refs, "tip_ids": tip_ids}
-    return _DM_CACHE
+    _DM_CACHE[key] = {"files": files, "refs": refs, "tip_ids": tip_ids, "bad": bad}
+    return _DM_CACHE[key]
 
 
-def double_mint_holder(root: Path, mint: str, node_id: str) -> tuple[str, str] | None:
+def double_mint_holder(root: Path, mint: str, node_id: str, files: dict[str, set[str]] | None = None,
+                       key="worktree") -> tuple[str, str] | None:
     """goal:g7.16.1.11.46.16 (the leaf of the census-orphans decision, alive 07:42:38Z 10-26): when a NEW `<ns>/node/<mint>`
     ref is about to be created, the OTHER mint that already carries `node_id`, as `(mint, where)`, else None.
     Where another mint's id is READ: from its FILE in the commit's own view (so a renumber that lands `g7.1 (M1) -> g7.2`
     and `a NEW g7.1 (M2)` in one commit never refuses M2, whatever order the files are processed in); from its ref TIP
     only for a mint with no file in that view. A mint carries its id only once it HAS a ref (or this run created it), so of
     two new files with one id the first processed is minted and the second is refused."""
-    v = _dm_view(root)
+    v = _dm_view(root, files, key)
     for m in sorted(v["refs"].keys() | MINTED_THIS_RUN.keys()):
         if m == mint:
             continue
@@ -1150,6 +1158,55 @@ def double_mint_holder(root: Path, mint: str, node_id: str) -> tuple[str, str] |
         elif v["tip_ids"].get(m, MINTED_THIS_RUN.get(m)) == node_id:
             return m, "its ref tip (no node file)"
     return None
+
+
+def prepare_version(root: Path, ref: str, tip: str | None, tree: str, node_id: str, mint: str | None, *,
+                    dm_files: dict[str, set[str]] | None = None, dm_key="worktree") -> tuple[str, str, int, object]:
+    """PREPARE, the first half of the ONE per-version helper (goal:g7.16.1.11.46.18 U5; A14 read whole: commit_file, which
+    grid_sync's commit --all runs, and `split` both call it): every read and every refusal for one version of `ref`, writing
+    nothing. Returns (verdict, tree, n, why): `held` (a legacy tip not in this ref's history; why = that ref), `double-mint`
+    (a NEW mint whose id another mint carries in the VIEW; why = (mint, where)), `nest` (the tip's nest/ unreadable or not a
+    non-empty tree of trees), `unchanged`, or `ok` with the tree (a collapse's nest/ carried) and the version number."""
+    held = legacy_unmerged(root, ref, tip)
+    if held:
+        return "held", tree, 0, held
+    if tip is None and mint and ref == mint_node_ref(mint):    # a MINT ref only: the legacy node-id-keyed refs are not mints
+        other = double_mint_holder(root, mint, node_id, dm_files, dm_key)
+        if other:
+            return "double-mint", tree, 0, other
+    if tip:
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
+        # a non-empty tree of trees; anything else skips THIS node and the run goes on
+        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
+        ent = er.stdout.strip()
+        built = None
+        if er.returncode == 0 and ent:
+            head = ent.split("\t")[0].split()
+            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
+            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
+            if rows and all(r.split()[1] == "tree" for r in rows):
+                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
+                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            return "nest", tree, 0, None
+        if ent:
+            tree = built.stdout.strip()
+        old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
+        if old_tree == tree:
+            return "unchanged", tree, 0, None
+    # --first-parent: a collapse's members are extra parents, not versions
+    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
+    return "ok", tree, n, None
+
+
+def write_version(root: Path, ref: str, tip: str | None, tree: str, message: str) -> "subprocess.CompletedProcess[str]":
+    """WRITE, the second half (U5): the commit and ONE compare-and-swap of `ref` on `tip`, the tip PREPARE read; it re-reads
+    nothing else. A refusal is the caller's to name (commit_file: skip; split: a held merge row)."""
+    parent = ["-p", tip] if tip else []
+    commit = git(root, "commit-tree", tree, *parent, "-m", message)
+    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
+    res = git_try(root, "update-ref", ref, commit, tip or "")
+    return res
 
 
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
@@ -1179,50 +1236,27 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
         return None
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
-    held = legacy_unmerged(root, ref, tip)
-    if held:    # goal:g7.16.1.11.46.16: a version written now would fork from the live history
-        print(f"hold (the read-only {held} is not in this ref's history; "
+    mint = parse_mint_id(path)
+    verdict, tree, n, why = prepare_version(root, ref, tip, tree, node_id, mint)
+    if verdict == "held":    # goal:g7.16.1.11.46.16: a version written now would fork from the live history
+        print(f"hold (the read-only {why} is not in this ref's history; "
               f"`grid.py unify --write` first): {ref}", file=sys.stderr)
         LEGACY_HELD.append(ref)
         return None
-    mint = parse_mint_id(path)
-    if tip is None and mint and ref == mint_node_ref(mint):    # a MINT ref only: the legacy node-id-keyed refs are not mints
-        other = double_mint_holder(root, mint, node_id)
-        if other:    # a second mint for an id that is taken: the file is left for review, nothing is written
-            print(f"refuse (double mint: {node_id} is already carried by mint {other[0]} ({other[1]}); "
-                  f"this file's mint is {mint}; the file is left for review): {path}", file=sys.stderr)
-            DOUBLE_MINT_REFUSED.append(ref)
-            return None
-    if tip:
-        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
-        # a non-empty tree of trees; anything else skips THIS node and the run goes on
-        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
-        ent = er.stdout.strip()
-        built = None
-        if er.returncode == 0 and ent:
-            head = ent.split("\t")[0].split()
-            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
-            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
-            if rows and all(r.split()[1] == "tree" for r in rows):
-                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
-                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
-        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
-            print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
-                  f"trees; the ref is untouched): {ref}", file=sys.stderr)
-            return None
-        if ent:
-            tree = built.stdout.strip()
-        old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
-        if old_tree == tree:
-            return None  # unchanged — versions record change, not time
-    # --first-parent: a collapse's members are extra parents, not versions
-    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
-    parent = ["-p", tip] if tip else []
+    if verdict == "double-mint":    # a second mint for an id that is taken: the file is left for review, nothing is written
+        print(f"refuse (double mint: {node_id} is already carried by mint {why[0]} ({why[1]}); "
+              f"this file's mint is {mint}; the file is left for review): {path}", file=sys.stderr)
+        DOUBLE_MINT_REFUSED.append(ref)
+        return None
+    if verdict == "nest":
+        print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
+              f"trees; the ref is untouched): {ref}", file=sys.stderr)
+        return None
+    if verdict == "unchanged":
+        return None  # unchanged — versions record change, not time
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
-    commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
-    res = git_try(root, "update-ref", ref, commit, tip or "")
+    res = write_version(root, ref, tip, tree, message)
     if res.returncode == 0 and tip is None and (parse_mint_id(path) or "") and ref == mint_node_ref(parse_mint_id(path)):
         MINTED_THIS_RUN[parse_mint_id(path)] = node_id
     if res.returncode != 0:
@@ -1553,8 +1587,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         LEGACY_HELD.clear()
         DOUBLE_MINT_REFUSED.clear()
         MINTED_THIS_RUN.clear()
-        global _DM_CACHE
-        _DM_CACHE = None
+        _DM_CACHE.clear()
         payloads = 0
         payload_missing = 0
         payload_retired = 0
@@ -1619,17 +1652,21 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
 
 
 SPLIT_HELD: list[str] = []
+STATUS_RE = re.compile(r'^status:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 
 
-def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], list[str]]:
+def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], dict[str, set[str]], int, list[str]]:
     """The changed nodes of the land base..gated, read from the two trees only (no checkout): every node file the gated tree
     adds or modifies, and every node whose `payload_ref` path changed (its payload is NODE-owned, goal:g6.3). Each item is
-    {mint, id, path, node (blob sha), payload (mode, sha) | None}. A node path deleted with no gated file of the same mint
-    (retire, never delete), a node file with an id and no mint_id, or two gated files of one mint = an unread line."""
+    {mint, id, path, node (blob sha), payload (mode, sha) | None}. Also returns the GATED tree's double-mint view
+    {mint: ids} over EVERY gated node file (U4: the land is judged by the tree it lands, never by a checkout) and the count
+    of retired nodes whose payload is absent (counted apart, A17). Unread: a node path deleted with no gated file of the
+    same mint (retire, never delete), a node file with an id and no mint_id, two gated files of one mint, a blob that
+    cannot be read, a LIVE node whose payload_ref names no path in the gated tree (A17)."""
     unread: list[str] = []
     res = git_try(root, "diff-tree", "-r", "-z", "--no-renames", "--no-commit-id", base, gated)
     if res.returncode != 0:
-        return [], [f"unread (diff-tree {base[:12]} {gated[:12]} rc {res.returncode})"]
+        return [], {}, 0, [f"unread (diff-tree {base[:12]} {gated[:12]} rc {res.returncode})"]
     parts = res.stdout.split("\0")
     changed: dict[str, str] = {}                          # path -> status letter
     for i in range(0, len(parts) - 1, 2):
@@ -1637,37 +1674,37 @@ def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], list[str
     is_node = lambda q: q.startswith(".agi/nodes/") and q.endswith(".md")
     lst = git_try(root, "ls-tree", "-r", "-z", "--full-tree", gated)
     if lst.returncode != 0:
-        return [], [f"unread (ls-tree {gated[:12]} rc {lst.returncode})"]
+        return [], {}, 0, [f"unread (ls-tree {gated[:12]} rc {lst.returncode})"]
     tree: dict[str, tuple[str, str]] = {}                 # path -> (mode, sha) in the gated tree
     for e in lst.stdout.split("\0"):
         if e:
             meta, q = e.split("\t", 1)
             mode, _, sha = meta.split()
             tree[q] = (mode, sha)
-    # the node blobs to read: every gated node file when a non-node path changed (a payload can be anyone's), else the changed ones
-    other = [q for q in changed if not is_node(q)]
-    want = [q for q in tree if is_node(q)] if other else [q for q, st in changed.items() if st != "D" and is_node(q)]
-    want += [q for q, st in changed.items() if st == "D" and is_node(q)]
+    # every gated node blob (the double-mint view needs them all), and the base blob of each deleted node path
+    want = [(gated, q) for q in tree if is_node(q)] + [(base, q) for q, st in changed.items() if st == "D" and is_node(q)]
     out = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"], capture_output=True,
-                         input="".join(f"{base if changed.get(q) == 'D' else gated}:{q}\n" for q in want).encode())
+                         input="".join(f"{rev}:{q}\n" for rev, q in want).encode())
     if out.returncode != 0:
-        return [], [f"unread (cat-file --batch over {len(want)} node blob(s) rc {out.returncode})"]
-    text: dict[str, str] = {}
+        return [], {}, 0, [f"unread (cat-file --batch over {len(want)} node blob(s) rc {out.returncode})"]
+    text: dict[tuple[str, str], str] = {}
     pos = 0
-    for q in want:
+    for w in want:
         nl = out.stdout.find(b"\n", pos)
         head = out.stdout[pos:nl].split()
-        if len(head) != 3:
-            unread.append(f"unread {q} (its blob is not readable)")
+        if len(head) != 3 or head[1] != b"blob":
+            unread.append(f"unread {w[1]} (its blob at {w[0][:12]} is not readable)")
             pos = nl + 1
             continue
         size = int(head[2])
-        text[q] = out.stdout[nl + 1:nl + 1 + size].decode("utf-8", "replace")
+        text[w] = out.stdout[nl + 1:nl + 1 + size].decode("utf-8", "replace")
         pos = nl + 1 + size + 1
     items: dict[str, dict] = {}
+    view: dict[str, set[str]] = {}
     gated_mints: dict[str, str] = {}
-    for q, body in text.items():
-        if changed.get(q) == "D":
+    retired_gone = 0
+    for (rev, q), body in text.items():
+        if rev != gated:
             continue
         ii, mi = ID_RE.search(body), MINT_ID_RE.search(body)
         if not ii:
@@ -1675,29 +1712,40 @@ def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], list[str
         if not mi:
             unread.append(f"unread {q} ({ii.group(1)} has no mint_id)")
             continue
+        view.setdefault(mi.group(1), set()).add(ii.group(1))
         if mi.group(1) in gated_mints and gated_mints[mi.group(1)] != q:
             unread.append(f"unread {q} (mint {mi.group(1)} is also {gated_mints[mi.group(1)]})")
             continue
         gated_mints[mi.group(1)] = q
-        pr, loc = PAYLOAD_REF_RE.search(body), LOCATION_RE.search(body)
+        pr, loc, st = PAYLOAD_REF_RE.search(body), LOCATION_RE.search(body), STATUS_RE.search(body)
         pref = pr.group(1) if pr and (not loc or loc.group(1) in ("source_root", "repo_root")) else None
-        if q in changed or (pref and pref in changed):
-            items[mi.group(1)] = {"mint": mi.group(1), "id": ii.group(1), "path": q, "node": tree[q][1],
-                                  "payload": tree.get(pref) if pref else None}
-    for q, st in changed.items():
-        if st == "D" and is_node(q) and q in text:
-            mi = MINT_ID_RE.search(text[q])
+        if not (q in changed or (pref and pref in changed)):
+            continue
+        if pref and pref not in tree:
+            if st and st.group(1) == "deprecated":
+                retired_gone += 1                         # a retired node's payload is retired with it (counted apart)
+            else:                                         # A17: a land is gated, not cron: a live payload gone fails closed
+                unread.append(f"unread {q} (live {ii.group(1)}: its payload_ref {pref} names no path in the gated tree)")
+                continue
+        items[mi.group(1)] = {"mint": mi.group(1), "id": ii.group(1), "path": q, "node": tree[q][1],
+                              "payload": tree.get(pref) if pref else None}
+    for (rev, q), body in text.items():
+        if rev == base:
+            mi = MINT_ID_RE.search(body)
             if mi and mi.group(1) not in gated_mints:
                 unread.append(f"unread {q} (deleted with no gated file of its mint {mi.group(1)}: retire, never delete)")
-    return [items[m] for m in sorted(items)], unread
+    return [items[m] for m in sorted(items)], view, retired_gone, unread
 
 
 def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 120) -> int:
-    """goal:g7.16.1.11.46.18 G1b-2 (A14 + I14): a land is a SPLIT. One grid commit per changed node of base..gated on its
-    `mint_node_ref` (the builder), under GridLock, each ref moved by a CAS on the tip read once at the start; a tip that
-    moved since (grid_sync's `commit --all`, a single-file commit) is a `held merge` row for that mint: that node is not
-    written, never a whole-tree merge, rc 1. An unreadable input or a change the split cannot place prints `unread` and
-    writes NOTHING (rc 1). Without --write the plan is printed and nothing is written."""
+    """goal:g7.16.1.11.46.18 G1b-2 (A14 + I14 + U5): a land is a SPLIT. One grid commit per changed node of base..gated on
+    its `mint_node_ref` (the builder), under GridLock, through the ONE per-version helper commit_file uses
+    (prepare_version + write_version). EVERY prepare runs before the FIRST write, against the tips read once: a failed read
+    or any refusal (double mint judged by the GATED tree's view, a live payload gone, a nest unreadable, a legacy hold) is
+    `unread` and NOTHING is written, rc 1. The write half re-reads nothing but the CAS: a tip that moved since it was read
+    (grid_sync's `commit --all`, a single-file commit) is a `held merge` row for that mint, that node not written, never a
+    whole-tree merge, rc 1, the earlier nodes written (I19: exactly two non-clean outcomes, the summary names which; slice
+    (c)'s land check reads a held merge as NOT landed). Without --write the plan is printed and nothing is written."""
     if grid_retired(root):
         print(RETIRED_LINE)
         return 1
@@ -1715,11 +1763,11 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
         revs.append(r.stdout.strip())
     b, g = revs
     print(f"split: base {b} gated {g}")
-    items, unread = _split_plan(root, b, g)
+    items, view, retired_gone, unread = _split_plan(root, b, g)
     if unread:
         for u in unread:
             print(f"  {u}")
-        print(f"split: {len(unread)} unread; nothing written")
+        print(f"split: unread {len(unread)}; nothing written")
         return 1
     SPLIT_HELD.clear()
     lock = GridLock(root, lock_wait) if write else None
@@ -1734,44 +1782,58 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
             print(f"split: unread (for-each-ref over {len(refs)} ref(s) rc {res.returncode}); nothing written")
             return 1
         read = dict(x.split() for x in res.stdout.splitlines()) if res is not None else {}   # the tips, read ONCE
-        written = same = 0
+        # PREPARE, every node, before any write (U5)
+        prepared = []
         for it, ref in zip(items, refs):
-            tip = read.get(ref)
             lines = f"{GIT_MODE_REGULAR} blob {it['node']}\t{NODE_ENTRY}\n"
             if it["payload"]:
                 lines += f"{it['payload'][0]} blob {it['payload'][1]}\t{PAYLOAD_ENTRY}\n"
-            if tip:
-                nest = git_try(root, "ls-tree", tip, "--", "nest").stdout.strip()
-                if nest:                                  # a collapse's nest/ is carried forward unedited
-                    lines += nest + "\n"
-            held = legacy_unmerged(root, ref, tip)
-            if held:
-                print(f"  held legacy {it['mint']} {it['path']} (the read-only {held} is not in its history)")
-                SPLIT_HELD.append(ref)
+            built = git_try(root, "mktree", input_text=lines)
+            if built.returncode != 0:
+                unread.append(f"unread {it['mint']} {it['path']} (its tree could not be built)")
                 continue
-            tree = git(root, "mktree", input_text=lines)
-            if tip and git(root, "rev-parse", f"{tip}^{{tree}}", check=False) == tree:
+            verdict, tree, n, why = prepare_version(root, ref, read.get(ref), built.stdout.strip(), it["id"], it["mint"],
+                                                    dm_files=view, dm_key=("tree", g))
+            if verdict == "held":
+                unread.append(f"unread {it['mint']} {it['path']} (held: the read-only {why} is not in its history)")
+            elif verdict == "double-mint":
+                unread.append(f"unread {it['mint']} {it['path']} (double mint: {it['id']} is already carried by mint "
+                              f"{why[0]} ({why[1]}))")
+            elif verdict == "nest":
+                unread.append(f"unread {it['mint']} {it['path']} (the nest entry of its tip is unreadable or not a "
+                              f"non-empty tree of trees)")
+            prepared.append((it, ref, verdict, tree, n))
+        dmv = _DM_CACHE.get(("tree", g))                  # built only when a NEW mint was judged; U4: its unread tips fail closed
+        bad = dmv["bad"] if dmv else []
+        unread += [f"unread {m} (its grid tip carries no node.md blob: the double-mint view cannot read its id)" for m in bad]
+        if unread:
+            for u in unread:
+                print(f"  {u}")
+            print(f"split: unread {len(unread)}; nothing written")
+            return 1
+        # WRITE: the commit and ONE CAS per node; nothing else is read
+        written = same = planned = 0
+        for it, ref, verdict, tree, n in prepared:
+            if verdict == "unchanged":
                 same += 1                                 # already on the grid (a version records change, not time)
                 continue
-            n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
             if not write:
+                planned += 1
                 print(f"  plan v{n} {it['mint']} {it['path']}")
                 continue
-            msg = f"v{n} {it['id']}\n\nSplit-Land: {g}\nSplit-Base: {b}\n"
-            commit = git(root, "commit-tree", tree, *(["-p", tip] if tip else []), "-m", msg)
-            cas = git_try(root, "update-ref", ref, commit, tip or "")
+            cas = write_version(root, ref, read.get(ref), tree, f"v{n} {it['id']}\n\nSplit-Land: {g}\nSplit-Base: {b}\n")
             if cas.returncode != 0:                       # I14: never a second write, never a merge of the whole tree
                 now = ref_tip(root, ref)
                 print(f"  held merge {it['mint']} {it['path']} (its tip moved since it was read: "
-                      f"{(tip or 'absent')[:12]} -> {(now or 'absent')[:12]}; this node not written)")
+                      f"{(read.get(ref) or 'absent')[:12]} -> {(now or 'absent')[:12]}; this node not written)")
                 SPLIT_HELD.append(ref)
                 continue
             written += 1
             print(f"  v{n} {it['mint']} {it['path']}")
         verb = "grid commit(s) written" if write else "grid commit(s) planned (no --write: nothing written)"
-        planned = len(items) - same - len(SPLIT_HELD)
         print(f"split: {len(items)} changed node(s); {written if write else planned} {verb}, {same} already on the grid, "
-              f"{len(SPLIT_HELD)} held")
+              f"{len(SPLIT_HELD)} held, {retired_gone} retired payload(s) absent with their node; "
+              + (f"held merge {len(SPLIT_HELD)}: NOT landed" if SPLIT_HELD else "clean"))
         return 1 if SPLIT_HELD else 0
     finally:
         if lock is not None:
