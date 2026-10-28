@@ -348,6 +348,26 @@ def pytest_cmdline_main(config):
         raise pytest.UsageError(REFUSAL_REASON)
 
 
+#: goal:g1.43.2 -- the throwaway identity every test runs under (council
+#: [decision] alive 07:42:34Z 10-28, 676f5d177e).
+THROWAWAY_GIT_IDENTITY = {
+    "GIT_AUTHOR_NAME": "agi-test", "GIT_AUTHOR_EMAIL": "agi-test@invalid",
+    "GIT_COMMITTER_NAME": "agi-test", "GIT_COMMITTER_EMAIL": "agi-test@invalid",
+}
+
+
+@pytest.fixture(autouse=True)
+def _throwaway_git_identity(monkeypatch):
+    """goal:g1.43.2 (goal:g1.43 row 22): a fixture that commits without
+    setting user.name/user.email used to borrow the RUNNER's identity, so a
+    hermetic run (GIT_CONFIG_GLOBAL=/dev/null, no GIT_AUTHOR_*) read those rows
+    RED ('Please tell me who you are'). ONE place sets a throwaway identity, so
+    the next new test file cannot repeat it. A test of the MISSING-identity path
+    must `monkeypatch.delenv` these four itself, or this fixture masks it."""
+    for k, v in THROWAWAY_GIT_IDENTITY.items():
+        monkeypatch.setenv(k, v)
+
+
 @pytest.fixture(autouse=True)
 def _no_real_tmux(monkeypatch):
     """hypothesis:l4-conftest-tmux-guard — project-wide tmux guard, widened
