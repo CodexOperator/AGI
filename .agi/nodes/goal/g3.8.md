@@ -16,12 +16,12 @@ scaffold_hash: 1666961e76fb943a
 season: 2
 seeds:
   - goal:g3
-status: active
+status: complete
 tags:
   - council
   - metrics
   - g3
-title: "G3.8: the old metrics are read again -- one cron job as belam runs metrics.py and success_metrics.py and writes ONE graph_metrics cell on the town node; metrics.py refuses a root with no nodes/; success_metrics null counters named or fed"
+title: "G3.8: the old metrics are read again -- one cron job as belam runs metrics.py and success_metrics.py and writes ONE metrics_line cell on the town node (AMENDED at the close: was 'graph_metrics'); metrics.py refuses a root with no nodes/; success_metrics null counters named or fed"
 town: core
 ---
 # goal:g3.8
@@ -33,7 +33,7 @@ goal:g3: the owner asked on 10-07 14:4xZ for the old metrics back ("a bunch of m
 "Also I know we used to have a bunch of metrics and stats we tracked with then python files. Can we bring those back? We don't have to rewrite them as scripts in this season just the next."
 
 ## Target end-state
-- ONE cron job, run as belam (the uid that reads every uid's files), runs metrics.py and success_metrics.py and writes the numbers as ONE frontmatter CELL `graph_metrics` on town:local-maxxing (replaced whole by one writer; the town node's existing trajectory_standin entry 'metrics: HEAD + KV' is left alone; council design alive 10-07 15:08Z, doc:rse-aa1-boxes AA1.S: hourly at :23, `success_metrics.py --line | write.py set graph_metrics`, nulls NAMED on the line); the cadence lives in the graph (`.agi/nodes/.geometry/crons.md`), applied by `crons.py apply`.
+- (AMENDED at the close: the built cell is `metrics_line` and the job runs as agi-belam, the Prime's own uid that signs the board commit, goal:g7.16.1.11.42 option E, council 3/3 15:07Z 10-11, crons.md `metrics_cell`; it reads only MAIN's graph, not other uids' files, and the 6 UNMEASURED nulls have no source or counter yet, not an access gap. The original text: ) ONE cron job, run as belam (the uid that reads every uid's files), runs metrics.py and success_metrics.py and writes the numbers as ONE frontmatter CELL `graph_metrics` on town:local-maxxing (replaced whole by one writer; the town node's existing trajectory_standin entry 'metrics: HEAD + KV' is left alone; council design alive 10-07 15:08Z, doc:rse-aa1-boxes AA1.S: hourly at :23, `success_metrics.py --line | write.py set graph_metrics`, nulls NAMED on the line); the cadence lives in the graph (`.agi/nodes/.geometry/crons.md`), applied by `crons.py apply`.
 - metrics.py given a root with no nodes/ REFUSES (non-zero exit, one reason line); today it prints all-zero METRIC lines and exits 0.
 - Each of success_metrics.py's 6 null metrics is either given a live counter or named as unmeasured with its reason on the line; none reads as a number it does not have.
 
@@ -42,8 +42,8 @@ goal:g3: the owner asked on 10-07 14:4xZ for the old metrics back ("a bunch of m
 - Progress numbers live on the town node only, never on a goal or a card.
 
 ## Falsifier
-1. `python3 extensions/agi/bin/crons.py show` lists the metrics job; the `graph_metrics` cell on town:local-maxxing holds the node_count and the success metrics' values (or their named nulls); `python3 extensions/agi/bin/metrics.py` on a root with no nodes/ exits non-zero.
-2. Negative: `git grep -n 'metrics.py' -- .agi/nodes/.geometry/crons.md` finds the job exactly once; no second writer of the cell (one `graph_metrics` key on the town node).
+1. `python3 extensions/agi/bin/crons.py show` lists the metrics job; (AMENDED at the close: the cell is built as `metrics_line`, see the THOUGHT) the `metrics_line` cell on town:local-maxxing holds the node_count and the success metrics' values (or their named nulls); `python3 extensions/agi/bin/metrics.py` on a root with no nodes/ exits non-zero.
+2. Negative: `git grep -n 'metrics.py' -- .agi/nodes/.geometry/crons.md` finds the job exactly once; no second writer of the cell (one `metrics_line` key on the town node, and no `graph_metrics` key).
 
 ## Out of scope
 telemetry_rollup.py's missing caller (named, decided by its own round) · seat_status.py's spawn-budget lock warning · the shell rewrite of any metric (season 3) · goal:g3.2 / g3.5 (what new metrics to invent).
@@ -52,6 +52,5 @@ telemetry_rollup.py's missing caller (named, decided by its own round) · seat_s
 Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-10-07 15:5xZ: active = worked now (lanes brief to DG2 sent 15:5xZ; design alive AA1.S: cron graph_metrics hourly :23 as belam, success_metrics.py --line, metrics.py refuses a root with no nodes/).
-director-goals-1 10-24 (council 06:40Z line 4 (aio's finding, alive verified): `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage. The director names were RE-USED on 10-21/22 (posts.md: director-goals-1 was director-general-1; director-general-1 is the ex-director-general-3), and this line was first written before 2026-10-21, to the post now named director-goals-1. Status unchanged; the leaf was not named as moved on purpose.)
+director-goals-1 10-28 (CLOSE, proposed under doc:role-director-goals; placed by the council 3/3, alive [decision] 18:45:32Z): the metrics are read again. THE CELL NAME, reconciled: the target and falsifier named `graph_metrics`; the job was BUILT (AA1.S, goal:g7.16.1.11.42 option E) writing the cell `metrics_line` on town:local-maxxing through board_job.py + metrics_cell.py as agi-belam, hourly at :23 (crons.md `metrics_cell`; `graph_metrics_land` at :28 is the ff, no writer). F1 and F2 now name `metrics_line`; the TITLE and the Target's first bullet are marked '(AMENDED at the close)' too (council 3/3, alive [view] 19:05:27Z: a false line on a complete node is fixed before it lands), the bullet naming the uid as built (agi-belam, option E) instead of 'the uid that reads every uid's files'. Selector counts (own57): as written, `^graph_metrics:` on the town node = 0 (vacuous: it could never pass); amended, `^metrics_line:` = 1 and `^graph_metrics:` = 0. The property (ONE cell, ONE writer, the numbers and the named nulls) is unchanged; SM's gate certifies that on the two texts. Falsifiers RE-RUN at 2ce5624054: F1 `crons.py show` (run from MAIN /data/work/agi: it refuses a linked worktree by design) lists the job (its line 22: board_job.py ... metrics_cell.py ... town:local-maxxing metrics_line ... success_metrics.py --line); the cell holds node_count=6026 (written 18:26Z 10-28) with the graph numbers and the success metrics, every null NAMED (avg_tokens_per_turn, hierarchy_tokens_per_hour, overview_accuracy_vs_last_season, subscription_tokens_per_season, vision_adherence_score, openrouter_subscription_spend_ratio = UNMEASURED(<reason>)); `metrics.py <root with no nodes/>` exits 2 with one ERR line. F2 `git grep -n 'metrics.py' -- crons.md` = 1 (the job's success_metrics.py); one `metrics_line` key, no second writer. Previous version's thought: 10-07 15:5xZ: active = worked now (lanes brief to DG2 sent 15:5xZ; design alive AA1.S: cron graph_metrics hourly :23 as belam, success_metrics.py --line, metrics.py refuses a root with no nodes/). director-goals-1 10-24 (council 06:40Z line 4 (aio's finding, alive verified): `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage. The director names were RE-USED on 10-21/22 (posts.md: director-goals-1 was director-general-1; director-general-1 is the ex-director-general-3), and this line was first written before 2026-10-21, to the post now named director-goals-1. Status unchanged; the leaf was not named as moved on purpose.)
 <!-- THOUGHT:END -->
