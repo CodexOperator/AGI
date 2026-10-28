@@ -1,0 +1,150 @@
+# reader_census.tsv -- goal:g7.16.1.11.46.18 slice (b), falsifier 2: the class of every hit `reader_census.py repo` finds (council 3/3 alive [decision] 10:07:47Z).
+# hit<TAB>path<TAB>class<TAB>match (`*` or a substring of the line; the FIRST matching row wins)<TAB>why.  Classes: posts | alias | remote | prose | fixture | family.
+# home<TAB>name<TAB>not-in-the-boot-set<TAB>why: a homes-root entry the census may not list.   extra<TAB>glob<TAB>class<TAB>why: an out-of-repo reader beside the homes.
+home	retired	not-in-the-boot-set	mode 0700 root: the retired posts' homes, no post uid lists it (sp B1)
+extra	/data/work/gate-sm/*.sh	posts	SM's gate scripts (gsend.sh [r1p], lap.sh, lap-resume.sh, gateNNN.sh) read refs/heads/posts/belam (SM 10:02:02Z)
+extra	/data/work/gate-sm/tmp/*/cut.sh	posts	SM's per-cut scripts read refs/heads/posts/belam
+hit	.agi/nodes/.geometry/crons.md	prose	*	why_user / why_box cell text; the board job reads posts/<P> through board_job.py (classed there)
+hit	.agi/nodes/.geometry/engine-capsule.md	posts	*	capsule `post P` selects refs/heads/posts/<P> into a pack
+hit	.agi/nodes/.geometry/engine-post.md	prose	# reference-transaction	the ref guard's comment
+hit	.agi/nodes/.geometry/engine-post.md	posts	*	the post pieces read and move refs/heads/posts/$P (agi-at, agi-turn, agi-strand, agi-sync, the ref guard, agi-out); :346 the guard also names the alias
+hit	.agi/nodes/.geometry/key-authority.md	remote	authority_ref:	the signer authority ref, origin/season3/main
+hit	.agi/nodes/.geometry/key-authority.md	prose	*	the node's THOUGHT
+hit	.agi/nodes/.geometry/posts.md	prose	sanctuary-master gen 44 06:28:17Z	the node's THOUGHT
+hit	.agi/nodes/.geometry/posts.md	alias	*	each post row's engine 'trunk' cell names the alias core/season3/main
+hit	extensions/agi/bin/agi.sh	posts	*	agi.sh start reads a post's card commit time on refs/heads/posts/$p
+hit	extensions/agi/bin/board_job.py	posts	ref = f"refs/heads/posts/{post}"	the board job's ff + commit read and CAS posts/<post>
+hit	extensions/agi/bin/board_job.py	prose	[board] posts/{post} carries	message
+hit	extensions/agi/bin/board_job.py	prose	[no-branch] posts/{post}	message (x2)
+hit	extensions/agi/bin/board_job.py	prose	[board] MAIN and posts/{post}	message
+hit	extensions/agi/bin/board_job.py	prose	posts/{post} not landed	message
+hit	extensions/agi/bin/board_job.py	prose	[raced] posts/{post}	message (x2)
+hit	extensions/agi/bin/board_job.py	prose	[raced] the push to posts/{post}	message
+hit	extensions/agi/bin/board_job.py	prose	board: posts/{post}	message
+hit	extensions/agi/bin/branches.py	alias	return f"season{n}/main"	the season main (the alias family) builder
+hit	extensions/agi/bin/branches.py	family	*	season<n>/posts/<name>, loops, town season branches: the branch grammar
+hit	extensions/agi/bin/cli.py	alias	f"season{gs}/main"	the global season main (alias) read at runtime
+hit	extensions/agi/bin/cli.py	family	*	a town's season main (season<g>/<town>/season<t>/main)
+hit	extensions/agi/bin/reader_census.py	prose	*	this census: its patterns and docstring
+hit	extensions/agi/bin/reader_census.tsv	prose	*	this census's table
+hit	extensions/agi/bin/recompose.py	prose	The trunk (default	docstring
+hit	extensions/agi/bin/recompose.py	prose	#: a view ref	comment
+hit	extensions/agi/bin/recompose.py	posts	*	--trunk default refs/heads/posts/belam; VIEW_FORBIDDEN refuses a view ref under refs/heads/posts/
+hit	extensions/agi/bin/rotate.py	family	*	season<n>/posts/<seat> post-branch names (rename, prepare)
+hit	extensions/agi/bin/season_report.py	alias	*	matches the previous season's main (season<n-1>/main) in the heads listing
+hit	extensions/agi/bin/success_metrics.py	prose	f"season{cmp_season}_value"	a metrics key season<n>_value, not a ref
+hit	extensions/agi/guard/box-move.sh	posts	*	prints posts/$P's short sha after a move
+hit	extensions/agi/guard/f1-nspawn.sh	prose	# the repo:	comment
+hit	extensions/agi/guard/f1-nspawn.sh	alias	*	the harness trunk ref refs/heads/core/season3/main (F1_TRUNKREF), in the container's own clone
+hit	extensions/agi/guard/post-move-checks.sh	prose	refs-left (council	comment
+hit	extensions/agi/guard/post-move-checks.sh	posts	*	refs-left: no refs/heads/posts/<OLD> after a move
+hit	extensions/agi/tests/aa3-lanes.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-out-states.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-outline.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-refguard.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-seal.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-strand.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-town.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-turn.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/capsule.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/f1-nspawn.t.sh	alias	TB=core/season3/main	a LIVE read: the blast leg runs box town up on MAIN with AGI_TRUNK = the alias core/season3/main
+hit	extensions/agi/tests/f1-nspawn.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/fixtures/cli_wait_base_cli.py.txt	prose	*	test data (a captured listing / report / cli.py copy), no git read
+hit	extensions/agi/tests/fixtures/cli_wait_pre_round_cli.py.txt	prose	*	test data (a captured listing / report / cli.py copy), no git read
+hit	extensions/agi/tests/fixtures/season_report/doc-season-3-report.md	prose	*	test data (a captured listing / report / cli.py copy), no git read
+hit	extensions/agi/tests/fixtures/season_report/heads-20261015T1941Z.txt	prose	*	test data (a captured listing / report / cli.py copy), no git read
+hit	extensions/agi/tests/grow-scope-report.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/land-split.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/mem-horizon.t.sh	alias	merge-base HEAD core/season3/main	a LIVE read: falsifier 2's base = the merge-base of the real repo ($R0) with the alias core/season3/main
+hit	extensions/agi/tests/mem-horizon.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/post-env.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/prereq-notice.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/recompose.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_board_job.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_board_notices.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_branch_reshuffle_v3.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_branches.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_brief.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_commands_manifest.py	prose	*	a reason string naming recompose.py
+hit	extensions/agi/tests/test_dispatch.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_p1_ab.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_post_move_checks.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_prereq_notice_trunk.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_r_land.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_rotate.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_rotate_autopsy.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_rotate_prepare.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_rotate_startup.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_season_report.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_season_rollover_global.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_send.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_success_metrics.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_town_mint_final.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_towns.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_trunk_sync.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	skills/agi-master-gate/SKILL.md	prose	*	skill text
+hit	skills/agi-merge-pass/SKILL.md	prose	*	skill text
+hit	skills/agi-node-write/SKILL.md	prose	*	skill text
+hit	skills/agi-post/SKILL.md	prose	*	skill text
+hit	skills/agi-review/SKILL.md	prose	*	skill text
+hit	skills/agi-rotate/SKILL.md	prose	*	skill text
+hit	skills/agi-send/SKILL.md	prose	*	skill text
+hit	skills/agi-verify/SKILL.md	prose	*	skill text
+hit	extensions/agi/tests/reader-census.t.sh	fixture	*	the census lane: planted readers in scratch repos it builds on mktemp
+# U-b3 + U-b3b + A-N5 (council 3/3, 11:1xZ): MODULE hits, one row per file x branches.py function; a module hit is never classed by a `*` row
+hit	extensions/agi/bin/cli.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/cli.py	grammar	branches.parse(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/cli.py	remote	return f"origin/{branches.season_main(	a remote name BUILT around the call (origin/ + the derived main): reads the remote-tracking ref (A-N6) (U-b3)
+hit	extensions/agi/bin/cli.py	alias	branches.season_main(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/cli.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/cli.py	alias	branches.derive_names(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/cli.py	remote	branches.mirror_ref(	a mirror ref (pushed), derived through branches.py (U-b3)
+hit	extensions/agi/bin/cli.py	family	branches.post_branch(	a post / loop branch, derived through branches.py (U-b3)
+hit	extensions/agi/bin/cli.py	prose	* not branches.is_remote_visible(name)	a comment / docstring naming the function (U-b3)
+hit	extensions/agi/bin/cli.py	grammar	branches.is_remote_visible(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/cli.py	alias	branches.merge_target(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/cli.py	grammar	branches.assert_remote_visible(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/dispatch.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/dispatch.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/dispatch.py	remote	origin/{town_branch or branches.season_main(	a remote name BUILT around the call (origin/ + the derived main): reads the remote-tracking ref (A-N6) (U-b3)
+hit	extensions/agi/bin/dispatch.py	remote	(origin/{branches.season_main(	a remote name BUILT around the call (origin/ + the derived main): reads the remote-tracking ref (A-N6) (U-b3)
+hit	extensions/agi/bin/dispatch.py	alias	branches.season_main(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/dispatch.py	grammar	branches.parse(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/dispatch.py	alias	branches.merge_target(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/dispatch.py	family	branches.loop_branch(	a post / loop branch, derived through branches.py (U-b3)
+hit	extensions/agi/bin/grid.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/grid.py	grammar	branches.is_legal_branch(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/heal.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/heal.py	grammar	branches.parse(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/heal.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/heal.py	remote	origin/{branches.season_main(	a remote name BUILT around the call (origin/ + the derived main): reads the remote-tracking ref (A-N6) (U-b3)
+hit	extensions/agi/bin/p1_ab.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/p1_ab.py	remote	"origin/" + branches.derive_names(	a remote name BUILT around the call (origin/ + the derived main): reads the remote-tracking ref (A-N6) (U-b3)
+hit	extensions/agi/bin/prereq_notice.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/prereq_notice.py	alias	branches.derive_names(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/rotate.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/rotate.py	prose	`branches.ref_candidates(branch)` return	a comment / docstring naming the function (U-b3)
+hit	extensions/agi/bin/rotate.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/rotate.py	grammar	branches.parse(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/rotate.py	remote	branches.mirror_ref_for_branch(	a mirror ref (pushed), derived through branches.py (U-b3)
+hit	extensions/agi/bin/rotate.py	remote	branches.mirror_and_prove(	a mirror ref (pushed), derived through branches.py (U-b3)
+hit	extensions/agi/bin/rotate.py	alias	branches.merge_target(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/rotate.py	grammar	branches.is_legal_branch(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/rotate.py	grammar	branches.is_remote_visible(	reads the branch grammar, returns no ref name (U-b3)
+hit	extensions/agi/bin/rotate.py	prose	branches.values(	a local dict named branches, not the module (U-b3)
+hit	extensions/agi/bin/rotate.py	prose	branches.get(	a local dict named branches, not the module (U-b3)
+hit	extensions/agi/bin/rotate.py	remote	branches.mirror_ref(	a mirror ref (pushed), derived through branches.py (U-b3)
+hit	extensions/agi/bin/season.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/season.py	alias	branches.season_main(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/season.py	remote	branches.mirror_and_prove(	a mirror ref (pushed), derived through branches.py (U-b3)
+hit	extensions/agi/bin/season.py	alias	branches.derive_names(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/send.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/send.py	remote	"origin/" + branches.season_main(	a remote name BUILT around the call (origin/ + the derived main): reads the remote-tracking ref (A-N6) (U-b3)
+hit	extensions/agi/bin/send.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/success_metrics.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/success_metrics.py	alias	branches.derive_names(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/bin/towns.py	alias	import derive_names as	an ALIASED import of derive_names: its later calls are not grepped, so this row is their reading; returns a season / town-season main (the alias family), derived through branches.py (A-N5) (U-b3)
+hit	extensions/agi/bin/verification.py	grammar	import branches	the module import itself; its calls are classed by function (U-b3)
+hit	extensions/agi/bin/verification.py	alias	branches.ref_candidates(	returns a season / town-season main (the alias family), derived through branches.py (U-b3)
+hit	extensions/agi/hooks/agent-git/pre-commit	prose	# through branches.loop_branch() (season	a comment / docstring naming the function (U-b3)
+extra	/data/work/.scratch-agi-belam/land.sh	posts	belam's land CAS (belam 11:0xZ): reads refs/heads/posts/belam (:6 + :20), its CAS on the ref (:21); its reference-transaction hook is a homes-listing row already
