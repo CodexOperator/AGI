@@ -2080,7 +2080,7 @@ def _claim_node(root: Path, node_id: str, session_id: str, force: bool = False) 
             tmp = node_file.with_suffix(".md.tmp")
             tmp.write_text(new_content)
             tmp.rename(node_file)
-            # Log this sanctioned write so write_guard recognises it
+            # Log the write: the write log is read by failures.py and success_metrics.py (the write guard that also read it retired with the node writer, goal:g7.16.1.11.46.23 step 4)
             node_writer.log_write(root, "claim_node", node_id, node_file,
                                   new_content,
                                   extra={"session": session_id})
