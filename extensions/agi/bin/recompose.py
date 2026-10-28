@@ -18,8 +18,8 @@ counted and named, and must carry a `<mint> never-landed` map row, else `unread 
 reviewed map diff, never a silent diff 0); a never-landed row whose mint composes a live path is unread too. A tip whose
 node.md differs from the trunk's composes the TIP (the grid is the source) and is AHEAD only when the trunk's blob is an
 EARLIER version on that mint's ref, else BEHIND (trunk bytes not on the grid) (T12); both rc 1. The map is FROZEN (T13):
-every PATH row on its tip is on its FIRST grid version, an added one is unread; never-landed / never-composed rows are
-membership rows, not path rows, so a version that adds them passes (U2). `--write` points the VIEW ref at a parentless commit of the composed
+every PATH row and never-composed row on its tip is on its FIRST grid version, an added one is unread; never-landed rows
+are the only kind a later version may add (U2 as corrected), and T11 governs them. `--write` points the VIEW ref at a parentless commit of the composed
 tree; the view ref lives outside every namespace a land, a box or the grid owns (VIEW_FORBIDDEN). Nothing else is written.
 """
 from __future__ import annotations
@@ -184,9 +184,11 @@ def legacy_map(tips: dict[str, str], blobs: dict[str, bytes | None]) -> tuple[di
 
 
 def frozen_problems(tip: str, rows_now: dict[str, str]) -> tuple[list[str], str | None]:
-    """T13 (sp 05:50:03Z) + U2: every PATH row on the map's tip is on the map's FIRST grid version (the root of its first-parent
-    chain); an added or re-pointed path row = `row added after the freeze <mint>`; a removed row is legal. Membership rows
-    (never-composed / never-landed) are not path rows and are never checked here, so T11's freeze version passes."""
+    """T13 (sp 05:50:03Z) + U2 as corrected (sp [correction] 07:55:06Z, 3/3 alive 07:56:52Z): every PATH row and every
+    never-composed row on the map's tip is on the map's FIRST grid version (the root of its first-parent chain); an added or
+    re-pointed one = `row added after the freeze <mint>`; a removed row is legal. never-landed rows are the ONLY kind a later
+    version may add (T11 governs them), so T11's freeze version passes. A ghost row is frozen because a ghost mint is dropped
+    before any claim and never reaches T11's no-live-path check: an added ghost row would bypass T11."""
     r = git("rev-list", "--first-parent", tip)
     first = r.stdout.decode().split()[-1:] if r.returncode == 0 else []
     if not first:
@@ -195,7 +197,7 @@ def frozen_problems(tip: str, rows_now: dict[str, str]) -> tuple[list[str], str 
     rows, problem = map_rows((blob or b"").decode("utf-8", errors="replace"))
     if blob is None or problem:
         return [], f"the first grid version {first[0][:12]} of {LEGACY_MAP_ID} ({problem or 'no node.md'})"
-    at_first = {(m, w) for m, w in rows if w not in MEMBERSHIP}
+    at_first = {(m, w) for m, w in rows if w != "never-landed"}
     return [f"unread {m} (row added after the freeze {m}: {LEGACY_MAP_ID} path row {w} is not on its first grid version "
             f"{first[0][:12]})" for m, w in sorted(rows_now.items()) if (m, w) not in at_first], None
 
@@ -264,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
         say(f"unread ({problem})")
         return 1
     if map_mint is not None:                                # T13: the map is read from its grid tip, its path rows frozen
-        added, problem = frozen_problems(tips[map_mint], lmap)
+        added, problem = frozen_problems(tips[map_mint], {**lmap, **{m: "never-composed" for m in ghosts}})
         if problem:
             say(f"unread ({problem})")
             return 1
