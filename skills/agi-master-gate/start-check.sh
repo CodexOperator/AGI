@@ -1,6 +1,7 @@
 #!/bin/sh
 # start-check.sh: the gate START CHECK (own57 item 4; council 3/3 = alive [decision] 19:28:39Z 10-27, on belam's 19:2xZ floor).
-# Run it in the command that starts a suite: `sh skills/agi-master-gate/start-check.sh >> $O/summary || exit 3`.
+# Run it in the command that starts a suite, OUTSIDE any env -i (env -i drops AGI_BOX -> the 6144 floor, refused; or pass AGI_BOX),
+# keeping its rc: `sh skills/agi-master-gate/start-check.sh >> $O/summary; sc=$?; [ $sc = 0 ] || exit $sc` (`|| exit 3` turns rc 4 into 3).
 # Floor: MemAvailable >= 3072 MiB on encryption-town, 6144 elsewhere, keyed on AGI_BOX (never the host name); memory PSI `some` avg10 < 5;
 # io PSI `some` avg60 < 50 (`some`, never `full`: some >= full, the stricter bar). Prints ONE reading line every run (floor + its source +
 # MemAvailable + both PSI values). A read of nothing names itself: AGI_BOX unset or unknown -> 6144 + its source named; MemAvailable or a PSI
