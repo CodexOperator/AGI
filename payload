@@ -199,18 +199,18 @@ def test_an_inline_end_marker_inside_the_real_block_does_not_close_it():
 
 # --- goal:g7.16.1.2.7 · hypothesis:node-writer-owns-the-thought-marker-strings
 # (council bundle 2, director-general-2). Strict xfail: RED on the trunk at
-# ef73dec71 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spelled them;
+# ef73dec71 -- snapshot-goals.py:258/:260 and the node writer (retired, step 4) spelled them;
 # green since director-general-3's build (node_writer.THOUGHT_BEGIN/END).
 def test_the_marker_strings_live_in_node_writer_only():
     nw = _nw()
     assert nw.THOUGHT_BEGIN.startswith("<!-- THOUGHT:BEGIN") and nw.THOUGHT_END == "<!-- THOUGHT:END -->"
-    for name in ("snapshot-goals.py", "write.py"):
+    for name in ("snapshot-goals.py",):
         text = (BIN / name).read_text(encoding="utf-8")
         assert "<!-- THOUGHT:BEGIN" not in text and "<!-- THOUGHT:END" not in text, name
 
 
 @pytest.fixture()
-def project(tmp_path: Path) -> Path:   # the throwaway `.agi/` graph test_write.py builds (one hypothesis node)
+def project(tmp_path: Path) -> Path:   # a throwaway `.agi/` graph (one hypothesis node)
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
@@ -232,21 +232,16 @@ def project(tmp_path: Path) -> Path:   # the throwaway `.agi/` graph test_write.
     "> <!-- THOUGHT:BEGIN -->\n> quoted review evidence\n> <!-- THOUGHT:END -->"])
 @pytest.mark.parametrize("tail", ["\n\nafter the quote\n", "\n"])
 def test_g131_12_thought_on_a_quoted_only_body_adds_one_block_and_keeps_the_quote(project, quote, tail):
-    import write
+    # (the `thought` verb's CLI half retired with the node writer, goal:g7.16.1.11.46.23 step 4; the rule lives in
+    # node_writer.replace_thought, which every writer of a THOUGHT block calls)
     node = project / "nodes/hypothesis/h1.md"
     body = "\n# h1\n\n## Review\n\n" + quote + tail
     node.write_text(node.read_text().split("\n---\n", 1)[0] + "\n---\n" + body)
     assert node_writer.thought_blocks(body) == [] and node_writer.extract_thought(body) is None
-    before, root = node.read_text(), ["--root", str(project)]
-    assert write.main(["hypothesis:h1", "thought the new reason", "--dry-run"] + root) == 0
-    assert node.read_text() == before
-    assert write.main(["hypothesis:h1", "thought the new reason"] + root) == 0
-    after = write._read_body_text(project, "hypothesis:h1")
-    blocks = node_writer.thought_blocks(after)
-    assert len(blocks) == 1 and "the new reason" in blocks[0], after
-    assert after.count(quote) == 1 and after.index(quote) < after.index(blocks[0]), after
-    assert after.count("quoted review evidence") == 1
-    assert ("after the quote" in after) == (tail != "\n"), after
-    block = f"{node_writer.THOUGHT_BEGIN}\nv\n{node_writer.THOUGHT_END}"
-    out = node_writer.replace_thought(body, block)   # the reviewer's pure-function probe
-    assert out.count(quote) == 1 and node_writer.thought_blocks(out) == [block]
+    block = f"{node_writer.THOUGHT_BEGIN}\nthe new reason\n{node_writer.THOUGHT_END}"
+    out = node_writer.replace_thought(body, block)
+    blocks = node_writer.thought_blocks(out)
+    assert blocks == [block], out
+    assert out.count(quote) == 1 and out.index(quote) < out.index(blocks[0]), out
+    assert out.count("quoted review evidence") == 1
+    assert ("after the quote" in out) == (tail != "\n"), out
