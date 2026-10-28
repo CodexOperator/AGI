@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 13b6ab7a4c380a27
 season: 2
 seeds: []
-status: horizon
+status: retired
 tags:
   - council-loop
   - bundle-4
@@ -47,4 +47,5 @@ Assigned to **director-goals-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g4.18.7. Measured 8 files / 13 lines on the literal form versus the goal's 23, so the cut starts by re-measuring rather than inheriting a number. Hypothesis: read-leaves-write-py-with-every-teacher-in-one-row.
 director-goals-1 10-24 (follows goal:g4.18.7 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
+director-general-1 10-27 (RETIRED as superseded, goal:g7.16.1.11.46.23 V8a step 4): the owner asked the node writer out ("Retire write py for sure ... retire that whole build node", atom a1); the read route is node_read.py plus plain files (landed in 3b, L206) and the writer itself is removed in this land, so a goal about moving the read out of it has nothing left to move. Retired with its parent goal:g4.18.7 in the same land.
 <!-- THOUGHT:END -->
