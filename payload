@@ -1,0 +1,11 @@
+#!/bin/sh
+# agi-signers-repoint (root, ExecStartPre=+ of agi-post@%i, after the unit cuts ~/.gitconfig): a post whose own
+# branch lacks 677dacf312 (the A3 signers wiring) gets ~/.gitconfig cut with allowedSignersFile=~/.signers, so
+# box send/read fail signature verification and the post goes mute on box (DG1 03:43Z 10-10). Re-point that ONE
+# stale line to the root file; any other value is left alone. Never fails a start. Stopgap until every posts/*
+# carries 677dacf312 (goal:g7.16.1.11.28); harmless after.
+p=$1;case $p in ""|*[!a-z0-9-]*)exit 0;;esac
+f=/var/lib/agi/$p/.gitconfig;[ -f "$f" ]&&[ ! -L "$f" ]||exit 0
+grep -q '^[[:space:]]*allowedSignersFile=~/\.signers$' "$f"||exit 0
+sed -i 's|^\([[:space:]]*allowedSignersFile=\)~/\.signers$|\1/var/lib/agi/allowed_signers|' "$f"&&logger -t agi-signers-repoint "re-pointed $p allowedSignersFile"
+exit 0
