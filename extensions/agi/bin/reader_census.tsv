@@ -30,6 +30,7 @@ hit	extensions/agi/bin/reader_census.tsv	prose	*	this census's table
 hit	extensions/agi/bin/recompose.py	prose	The trunk (default	docstring
 hit	extensions/agi/bin/recompose.py	prose	#: a view ref	comment
 hit	extensions/agi/bin/recompose.py	posts	*	--trunk default refs/heads/posts/belam; VIEW_FORBIDDEN refuses a view ref under refs/heads/posts/
+hit	extensions/agi/bin/rotate.py	posts	return f"posts/{name}", ""	the out push's pushing-seat branch: the config:posts prime_director row's posts/<name> (goal:g7.16.1.11.46.28)
 hit	extensions/agi/bin/rotate.py	family	*	season<n>/posts/<seat> post-branch names (rename, prepare)
 hit	extensions/agi/bin/season_report.py	alias	*	matches the previous season's main (season<n-1>/main) in the heads listing
 hit	extensions/agi/bin/success_metrics.py	prose	f"season{cmp_season}_value"	a metrics key season<n>_value, not a ref
@@ -74,6 +75,7 @@ hit	extensions/agi/tests/test_r_land.py	fixture	*	a scratch repo's own ref (the 
 hit	extensions/agi/tests/test_rotate.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_rotate_autopsy.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_rotate_prepare.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/test_rotate_post_push_skip.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_rotate_startup.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_season_report.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_season_rollover_global.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)

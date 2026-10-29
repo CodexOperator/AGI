@@ -19255,6 +19255,26 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
                                  f"load ({_seats_refused})" if _seats_refused else ""))
 
 
+def _pushing_seat_branch(root: Path) -> tuple[str | None, str]:
+    """goal:g7.16.1.11.46.28: the branch of the ONE seat that pushes a post
+    branch to origin -- `posts/<name>` of the config:posts row whose role is
+    prime_director -- and '' as the reason; (None, reason) when the rows do
+    not read or name zero or several such rows. Never raises."""
+    try:
+        rows = _load_seats(root)
+    except Exception as exc:  # noqa: BLE001
+        return None, f"config:posts unread: {exc}"
+    pr = [r for r in rows if isinstance(r, dict)
+          and r.get("role") == "prime_director"]
+    if len(pr) != 1:
+        return None, (f"{len(pr)} config:posts rows with role prime_director, "
+                      f"want 1")
+    name = str(pr[0].get("name") or "").strip()
+    if not name:
+        return None, "the prime_director row has no name"
+    return f"posts/{name}", ""
+
+
 def _stops_push(root: Path, label: str = "stops") -> str | None:
     """goal:g15.25 line (3) -- push the branch a rotate-out commit landed on.
     Returns None on success (one push line printed to stderr) or a NAMING
@@ -19321,6 +19341,22 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
         print(f"{label} push: OK -- {_info['ref']} <- {_info['sha']} "
               f"(proved_by ls-remote)", file=sys.stderr)
         return None
+    # goal:g7.16.1.11.46.28 (alive [decision] 23:50:53Z 10-28): a posts/<post>
+    # branch that is NOT the pushing seat's never reaches origin (goal:g15.25:
+    # a post branch is local-only; branches.parse does not know posts/<post>,
+    # so it has no mirror ref). Keyed on the SEAT: the config:posts row whose
+    # role is prime_director names the one branch that pushes, never on a
+    # missing github helper (that is the pushing seat's own loud refusal).
+    if branch.startswith("posts/"):
+        _pusher, _why = _pushing_seat_branch(root)
+        if _pusher is None:
+            print(f"{label} push: pushing seat unread ({_why}); the head push "
+                  f"is attempted", file=sys.stderr)
+        elif branch != _pusher:
+            print(f"{label} push: SKIPPED -- {branch} is not the pushing "
+                  f"seat's branch ({_pusher}, config:posts role "
+                  f"prime_director); it stays local", file=sys.stderr)
+            return None
     try:
         push = subprocess.run(["git", "-C", str(top), "push", "origin",
                                branch], capture_output=True, text=True,
