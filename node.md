@@ -22,7 +22,7 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
    prompt ──▶ agi-meter: at the line: card, .fresh, kill ──▶ Restart = a FRESH successor
    turn end ──▶ agi-turn: one signed commit per node tree · ~/t = a read view · mail = a turn
    stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ next brief sees it · a write of carry.env re-runs agi-project
-   harness: claude --remote-control <p> (hooks native; the owner's app lists it) · pi + cccc.ts · agi-kid
+   harness: claude --remote-control <p> (hooks native; the owner's app lists it) · pi + cccc.ts · agi-in
    tick: project(graph) == observe(body)? equal = alive · differ = start its OWN unit + a drift commit
    start: PSI admission; .fresh = a new session, else -c resumes · work: plain paths in ~/t; inbox, budget, records resolve to MAIN · a dropped row is unlinked
    ZYGOTE = this read (map · sect · agi-project · agi-gate) ──sect @REV──▶ EXPANSION: config:engine-post · config:engine-wrap · config:engine-grow · config:engine-root
