@@ -378,6 +378,48 @@ def intake_segment(root: Path) -> str:
     return "intake: " + (" ".join(parts) if parts else "none")
 
 
+ATOMIZE_AGE = 86400   # agi-atomize's own age bound (AGI_ATOMIZE_AGE): an older message is skipped and COUNTED by the run (P-e), never read
+
+
+def unatomized_segment(root: Path) -> str:
+    """goal:g7.16.1.11.46.3 P-d (council 3/3 05:26Z 10-24; V2, alive [decision] 14:20:53Z 10-31): `unatomized: <n>` = box commits to a
+    post older than ONE lap (and inside the atomizer's age bound) with no refs/atomized/<post>/<sha> marker. It keys on the GATE CELL
+    atomize_live, never credits_live: while the cell reads a value other than true it reads `unatomized: off`; an unread cell (git show rc != 0)
+    or an absent key is `unatomized: UNMEASURED(cell unread: ...)` / `UNMEASURED(cell absent: ...)`, never off (T3) (a count there grows by design, so it is never
+    red and never silent); a count > 0 with the cell true is `unatomized: RED <n> (<post>=<k> ...)`: a drifted wake string or a dead
+    caller. AGI_TRUNK names the trunk ref (the board cron: the engine's own); a git that cannot look is UNMEASURED, named."""
+    try:
+        repo = locations.repo_root(Path(root))
+        trunk = os.environ.get("AGI_TRUNK") or _trunk_ref()
+        g = lambda *a: subprocess.run(["git", "-C", str(repo), *a], capture_output=True, text=True, timeout=60)  # noqa: E731
+        sec = g("show", f"{trunk}:.agi/nodes/.geometry/secrets.md")
+        if sec.returncode:   # T3 (sp; alive [decision] 16:31:36Z 10-31): a cell that cannot be read is named, never `off`
+            return f"unatomized: UNMEASURED(cell unread: git show rc {sec.returncode})"
+        cell = re.search(r"^atomize_live:\s*(\S+)", sec.stdout, re.M)
+        if not cell:
+            return "unatomized: UNMEASURED(cell absent: no atomize_live key)"
+        if cell.group(1) != "true":
+            return "unatomized: off"
+        refs = g("for-each-ref", "--format=%(refname)", "refs/box")
+        if refs.returncode:
+            return f"unatomized: UNMEASURED(source failed: git for-each-ref rc {refs.returncode})"
+        hi = int(os.environ.get("AGI_ATOMIZE_AGE") or ATOMIZE_AGE)
+        now, per = int(time.time()), {}
+        for ref in refs.stdout.split():
+            post = ref.rsplit("/", 1)[1]
+            for row in g("log", "--format=%H %ct", ref).stdout.split("\n"):
+                if not row:
+                    continue
+                sha, ct = row.split()
+                age = now - int(ct)
+                if LAP_SECONDS < age <= hi and g("rev-parse", "-q", "--verify", f"refs/atomized/{post}/{sha}").returncode:
+                    per[post] = per.get(post, 0) + 1
+        n = sum(per.values())
+        return f"unatomized: RED {n} (" + " ".join(f"{k}={v}" for k, v in sorted(per.items())) + ")" if n else "unatomized: 0"
+    except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
+        return f"unatomized: UNMEASURED(source failed: {_reason(exc)})"
+
+
 _LEAF_STATE = re.compile(r"^leaf:(?:goal:)?(g[0-9][0-9.]*)")
 
 
@@ -500,9 +542,10 @@ def make_line(root: Path) -> str:
     seg = trajectory_segment(root)
     line = f"{line} {seg}" if seg else line
     line = f"{line} | {intake_segment(root)}"   # goal:g7.16.1.11.46.5: `| intake:` follows the success block directly
+    line = f"{line} | {unatomized_segment(root)}"   # goal:g7.16.1.11.46.3 P-d
     seg = p1_segment(root)
     line = f"{line} {seg}" if seg else line
-    # ORDER (goal:g7.16.1.11.46.12): graph | success | trajectory | intake | [p1] | notices. NO test pins a position (council 04:23Z): each segment is counted by its key
+    # ORDER (goal:g7.16.1.11.46.12): graph | success | trajectory | intake | unatomized | [p1] | notices. NO test pins a position (council 04:23Z): each segment is counted by its key
     return f"{line} | {_notices(root)}"
 
 
@@ -515,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="print ONE TRAJECTORY line for the throw ingested into POST's card §7, no write")
     ap.add_argument("--throws", default="", metavar="HEADING_PREFIX",
                     help="with --trajectory: count only the rows under the card's **<prefix>...** sections")
+    ap.add_argument("--unatomized", action="store_true", help="print ONE `unatomized:` segment (goal:g7.16.1.11.46.3 P-d), no write")
     ap.add_argument("--json", action="store_true", help="print JSON, no write")
     ap.add_argument("--diff", action="store_true", help="include the season diff")
     args = ap.parse_args(argv)
@@ -524,6 +568,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.line:
         print(make_line(root))
+        return 0
+    if args.unatomized:
+        print(unatomized_segment(root))
         return 0
     if args.trajectory:
         print(trajectory_line(root, *args.trajectory, throws=args.throws))
