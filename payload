@@ -36,7 +36,7 @@ CONFIRMED / REFUTED / UNCHECKED into `$O/out/verify.json`. Its first word is CLE
 
 ## 4 · Mechanical REDs (the caller, never an agent)
 Full anonymize with `.env` (`anonymize.py check --root <MAIN> --diff-file F`, as a uid that reads `.env`) ·
-deletions by mint_id · `links.py links` = 0 broken. A RED blocks; residues go to ONE leaf goal (skill agi-goal).
+deletions by mint_id · `links.py links` = 0 broken · C1 + C6 over the ADDED lines of any range under extensions/, src/ or .agi/nodes/.geometry: the 'C1 judged by whether the new code WRITES a ref' trap line, any hit = test_grid_writers.py before the word (lp28, 10-29: all three seats approved four 'refs/grid' literals in a .geometry THOUGHT; GATE412's grid-writers read C6 RED, 5 failed). A RED blocks; residues go to ONE leaf goal (skill agi-goal).
 
 ## Traps
 | trap | rule |
