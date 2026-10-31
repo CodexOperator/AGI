@@ -89,6 +89,12 @@ mut $WT 's/= open ]||echo/!= closed ]||echo/' $T/m6 reach-default-open
 ok m6-reach-defaulting-open-pulls-RED "mutant: CX rc $(Q=$T/m6 W x1 $CX goal:x), CR rc $(Q=$T/m6 W x1 $CR goal:x) (rc wants 3 3)" '[ "$(Q=$T/m6 W x1 $CX goal:x)" != 3 ]&&[ "$(Q=$T/m6 W x1 $CR goal:x)" != 3 ]'
 mut $PIECE 's/W=$(mktemp -d)||{ echo "unread: no scratch dir";exit 1;};/W=$(mktemp -d);/' $T/m9 scratch-guard-dropped
 (export PATH=$T/nomk:$PATH;P=$T/m9 L $CN m9 "q");ok m9-the-scratch-guard-dropped-launches-RED "mutant: $(n) launch(es) (r10 wants 0)" '[ $(n) != 0 ]'
+# r11 (RE-CUT 2, alive [decision] 15:12:32Z): the -m flow arm's scratch dir: mktemp stubbed to fail for the whole call -> rc 1, the unread line on STDERR, 0 launches, no output file
+mkdir -p $H/t/extensions/agi/workflows;printf '{"name":"fl1","stages":[{"label":"one","prompt":"P1"}]}\n'>$H/t/extensions/agi/workflows/fl1.json;$G -C $H/t add -A;$G -C $H/t commit -qm fl1
+FM(){ : >$LOG;(export PATH=$T/nomk:$PATH;sh ${P:-$PIECE} -m fl1 '{}' >$T/o 2>$T/e;echo $? >$T/rc);}
+FM;ok r11-the-flow-arm-without-a-scratch-dir-is-unread "rc $(cat $T/rc) (want 1), stderr [$(cat $T/e)], $(n) launch(es) (want 0), output files $(find $H/s/fl1 -name 'o.*' 2>/dev/null|wc -l) (want 0)" '[ $(cat $T/rc) = 1 ]&&grep -qx "unread: no scratch dir" $T/e&&[ $(n) = 0 ]&&[ $(find $H/s/fl1 -name "o.*" 2>/dev/null|wc -l) = 0 ]'
+mut $PIECE 's/W=$(mktemp -d)||{ echo "unread: no scratch dir">\&2;exit 1;};git archive/W=$(mktemp -d);git archive/' $T/m10 flow-scratch-guard-dropped
+P=$T/m10 FM;ok m10-the-flow-scratch-guard-dropped-launches-RED "mutant: $(n) launch(es) (r11 wants 0)" '[ $(n) != 0 ]'
 mkdir -p $T/r7/.agi/nodes;cp -r $R0/.agi/nodes/.geometry $T/r7/.agi/nodes/;printf '\n### agi-kid (2 B)\n~~~sh\nx\n~~~\n'>>$T/r7/.agi/nodes/.geometry/engine-wrap.md
 ok m7-the-fence-re-added-RED "mutant tree: $(fence $T/r7) fence(s) (n1 wants 0)" '[ $(fence $T/r7) != 0 ]'
 grep -v 'agi-in <capsule>' $R0/skills/agi-dispatch/SKILL.md>$T/m8;cmp -s $T/m8 $R0/skills/agi-dispatch/SKILL.md&&{ echo "FAIL fixture: mutant m8 removed nothing";exit 99;}

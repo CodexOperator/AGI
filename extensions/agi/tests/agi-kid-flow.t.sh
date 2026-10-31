@@ -4,7 +4,7 @@
 # `box send POST "handoff ..."` (`box` on PATH, stubbed here), the invoker is $AGI_POST with its repo at ~/t (HEAD = its tip: manifests live at extensions/agi/workflows/<name>.json, goals at .agi/nodes/goal/<id>.md),
 # the result ref lands in ~/t as refs/spawn/<manifest>/<sha256(ARGS)[:12]> (ARGS = the bytes of the 2nd argument). Where a runner keeps its phase outputs / markers is NOT pinned (a black box).
 # PIECE = the file under test (default: `sect agi-kid` from .geometry/engine-wrap.md of ROOT); a mutation = PIECE=<edited copy>. One ok/FAIL line per case; exit = number of FAILs.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};CEIL=${CEIL:-3439}
+T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};CEIL=${CEIL:-3484}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$PIECE" ]||{ sect agi-in>$T/piece;PIECE=$T/piece;}
 [ -s $PIECE ]||{ echo "FAIL extract: agi-in $(wc -c<$PIECE) B";exit 99;}
@@ -123,7 +123,7 @@ for m in '../escape' 'a/b' '..' '.hid' 'a b' './flowfix';do l0=$(nl $LOG);s1=$(s
 done
 # --- bounds
 sz=$(wc -c<$PIECE)
-ok "bytes the piece is <= $CEIL B ($sz B; the ceiling is 3,439 B: DG1's 2,052 (W-1's 2,040 + AGI_POST=\$k, goal:g7.16.1.11.24) + agi-in's pack + capsule arms, goal:g7.16.1.11.46.21)" '[ $sz -le $CEIL ]'
+ok "bytes the piece is <= $CEIL B ($sz B; the ceiling is 3,484 B: DG1's 2,052 (W-1's 2,040 + AGI_POST=\$k, goal:g7.16.1.11.24) + agi-in's pack + capsule arms, goal:g7.16.1.11.46.21)" '[ $sz -le $CEIL ]'
 ok "bytes-sh the piece parses as POSIX sh" 'dash -n $PIECE 2>/dev/null||sh -n $PIECE'
 ok "no-python the runner needs no python" '! grep -qi python $PIECE'
 echo "agi-kid-flow: $f FAIL"
