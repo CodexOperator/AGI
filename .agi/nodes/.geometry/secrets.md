@@ -31,6 +31,7 @@ locations:
       - {"extensions/agi/bin/envfile.py :": "resolve"}
 credits_live: true
 atomize_live: false
+summary_live: false
 doppler: {"project": "agi", "config": "dev"}
 lanes:
   agi-batch: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-batch.service"}
@@ -179,3 +180,8 @@ lane units that carry `LoadCredential=claude-sp`. The owner flips it; it ships f
 runs, forks `agi-atomize wake` only when it reads `atomize_live: true` here; anything else logs ONE named line in ~/.atomize.log and makes no
 request. It ships false and stays false until the council's P-a..P-e terms have landed (council 3/3 05:26Z 10-24; this cell: alive [decision]
 14:17:17Z 10-31, D1: credits_live had been true since 10-25 while every post's wake ran live against a closed port).
+
+`summary_live` gates the memory compactor (goal:g7.16.1.11.46.25, M9) on its OWN cell, never on `credits_live` (alive [decision]
+14:17:17Z 10-31, D3): `agi-mem compact` sends its ONE request to the real endpoint only when it reads `summary_live: true` here;
+anything else (false, absent, unreadable) forces agi-infer's URL to AGI_MEM_STUB (default a dead local port), so no model call is spent. It
+ships false and stays false until the council flips it.
