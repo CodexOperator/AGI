@@ -26,7 +26,7 @@ agi-mem           19689 B  chat tap -> own 0700 store; tap, at
 agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
 agi-turn           4838 B  a signed commit per changed node tree
-agi-wt            2105 B  a node's tiny RAM tree: pull; drop = turn + purge
+agi-wt            2172 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track          236 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
 agi-sync           2579 B  merge the trunk each turn; a conflict said by name
@@ -369,15 +369,15 @@ echo "$L"|while read o n r;do [ "$r" ]||f "unparsed input"
 done||exit 1
 ~~~
 
-### agi-wt (2105 B)
+### agi-wt (2172 B)
 ~~~sh
 #!/bin/sh
-# agi-wt pull ID [REV] (under AGI_CAPSULE: only a pull-graph capsule pulls, and a closed or unknown reach pulls only its members + the post's card) | new PATH [PAYLOAD] | drop ID (new / pull carry NO kid guard on purpose: they write only RAM trees; every ref write is guarded in agi-at / agi-turn / agi-flush): a node's tiny tree (node + payload, ONE PATH PER LINE in .p) in RAM for the session; agi-turn versions it, drop purges it only after a proven turn
+# agi-wt pull ID [REV] (under AGI_CID, the capsule agi-in spawned a kid from; never AGI_CAPSULE, agi-out's share dir: only a pull-graph capsule pulls, and a closed or unknown reach pulls only its members + the post's card) | new PATH [PAYLOAD] | drop ID (new / pull carry NO kid guard on purpose: they write only RAM trees; every ref write is guarded in agi-at / agi-turn / agi-flush): a node's tiny tree (node + payload, ONE PATH PER LINE in .p) in RAM for the session; agi-turn versions it, drop purges it only after a proven turn
 cd ~/t;[ "$AGI_POST" ]||{ echo "agi-wt: no AGI_POST">&2;exit 5;};IFS='
 ';set -f;w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};r=${3:-posts/$AGI_POST};mkdir -p $w
 case $1 in new)n=$(basename $2 .md);case $n in ''|[!A-Za-z0-9_-]*|*[!A-Za-z0-9._-]*)echo "agi-wt: new $2: the basename [$n] must match [A-Za-z0-9_-][A-Za-z0-9._-]*">&2;exit 7;;esac;d=$w/$n;mkdir $d||exit 3;printf '%s\n' "$2" ${3:+"$3"}>$d/.p;echo $d;exit;;esac
 f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "$f" ]||exit 2;d=$w/$(git show $r:$f|sed -n 's/^mint_id: //p')
-[ "$1" = pull ]&&[ "$AGI_CAPSULE" ]&&{ C=$AGI_CAPSULE;M=$(git show refs/capsule/$C:MANIFEST)||{ echo "unread: capsule $C">&2;exit 1;}
+[ "$1" = pull ]&&[ "$AGI_CID" ]&&{ C=$AGI_CID;M=$(git show refs/capsule/$C:MANIFEST)||{ echo "unread: capsule $C">&2;exit 1;}
 case $(echo "$M"|sed -n 's/^pull //p') in graph);;*)echo "agi-wt: refused: $2: capsule $C is not pull graph (ask over box)">&2;exit 3;;esac
 [ "$(echo "$M"|sed -n 's/^reach //p')" = open ]||echo "$M"|grep -q "^member ${d##*/} "||[ "$f" = .agi/nodes/doc/card-$AGI_POST.md ]||{ echo "agi-wt: refused: $2 outside closed reach $C">&2;exit 3;};}
 case $1 in pull)[ -d $d ]&&{ echo $d;exit;};[ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;}
