@@ -138,12 +138,45 @@ X
 mk py;for i in 1 2 3 4 5 6 7 8;do msg sm "message $i: build the widget now";done;i=1;while [ $i -le 30 ];do reply $i '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';i=$((i+1));done;echo 1 >$D/q/sleep;TO=4;AT $D/mpx;rc=$?;TO=;rm -f $D/q/sleep;n1=$(natom);sleep 2
 ok "m-commit-after-both-loops-RED the mutant committing only after both loops is killed (rc $rc) with $n1 marked (0): the killed-run lane catches it" '[ $rc = 124 ]&&[ $n1 = 0 ]&&! cmp -s $D/mpx $PC'
 rp $D/mpf<<'X'
-if [ -z "$cs" ]&&[ "$(git rev-parse -q --verify HEAD)" = $t ]
+ else [ "$cs" ]||fw $t $nc;t=$nc;
 @@
-if false&&[ "$(git rev-parse -q --verify HEAD)" = $t ]
+ else t=$nc;
 X
 mk pq;for i in 1 2 3 4 5 6 7 8;do msg sm "message $i: build the widget now";done;i=1;while [ $i -le 30 ];do reply $i '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';i=$((i+1));done;echo 1 >$D/q/sleep;TO=4;AT $D/mpf;TO=;rm -f $D/q/sleep;n1=$(natom);sleep 2
 ok "m-no-follow-per-commit-RED the mutant without the per-commit follow leaves ~/t at the run's start tip after the kill ($n1 marked, working card $(rows) rows): the killed-run lane catches it" '[ $n1 -ge 1 ]&&[ "$(git rev-parse HEAD)" != "$(git rev-parse posts/p)" ]&&[ $(rows) = 0 ]&&! cmp -s $D/mpf $PC'
+# --- R1 (goal:g7.16.1.11.46.3.1, alive [decision] 17:33:14Z 10-31): the ONE follow fw, checked step by step, tested at the end of EVERY run, card-only ranges
+# (a) a failed HEAD CAS (HEAD.lock held) after the card write + update-index -> card=kept, the CAS named
+mk ra;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';: >.git/HEAD.lock;AT;rm -f .git/HEAD.lock
+ok "r1a-failed-head-cas-named HEAD.lock held: the commit lands on posts/p, the follow's HEAD CAS fails and the status names it (card=kept: ... HEAD CAS ... failed)" 'marked&&grep -q "card=kept: the follow.s HEAD CAS .* failed" $D/.atomize.status'
+rp $D/mra<<'X'
+git update-ref --no-deref HEAD $2 $1||{ cs="kept: the follow's HEAD CAS $1 -> $2 failed (rc $?)";return 1;};}
+@@
+git update-ref --no-deref HEAD $2 $1;}
+X
+mk rb2;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';: >.git/HEAD.lock;AT $D/mra;rm -f .git/HEAD.lock
+ok "m-cas-rc-unread-RED the mutant that does not read the CAS rc never names the failed CAS: the r1a lane catches it" '! grep -q "HEAD CAS" $D/.atomize.status 2>/dev/null&&! cmp -s $D/mra $PC'
+rm -f $D/.atomize.status
+# (b) aio's probe: ~/t detached at posts/p~1 (one atomize commit behind), card untouched, a wake with nothing new -> the end test follows
+mk rc;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT;git checkout -q --detach posts/p~1;c1=$(calls);AT
+ok "r1b-end-test-follows detached at posts/p~1, card untouched, a wake with nothing new (calls $c1 -> $(calls)): HEAD == posts/p, the working card shows the atom, card=ok" '[ "$(calls)" = $c1 ]&&[ "$(git rev-parse HEAD)" = "$(git rev-parse posts/p)" ]&&[ $(rows) = 1 ]&&grep -q "card=ok" $D/err'
+rp $D/mrb<<'X'
+fl;if [ -z "$cs" ];then h=$(git rev-parse -q --verify HEAD)
+@@
+fl;if false;then h=$(git rev-parse -q --verify HEAD)
+X
+mk rd;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT;git checkout -q --detach posts/p~1;AT $D/mrb
+ok "m-no-end-test-RED the mutant without the end test leaves ~/t at posts/p~1 with an atom-less card and reads card=ok: the r1b lane catches it" '[ "$(git rev-parse HEAD)" != "$(git rev-parse posts/p)" ]&&[ $(rows) = 0 ]&&grep -q "card=ok" $D/err&&! cmp -s $D/mrb $PC'
+# (c) sp's condition: HEAD one behind, the commit between touches ANOTHER path -> card=kept, HEAD unmoved
+mk re;echo other >other.txt;git add other.txt;git -c commit.gpgsign=false commit -qm other;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;h0=$(git rev-parse HEAD);AT
+ok "r1c-other-path-not-followed posts/p's last commit touches other.txt: HEAD unmoved, card=kept named, other.txt not in the worktree" '[ "$(git rev-parse HEAD)" = $h0 ]&&grep -q "card=kept: ~/t is not at .* changes a path other than the card" $D/.atomize.status&&[ ! -e other.txt ]'
+rp $D/mrc<<'X'
+&&[ "$(git diff --name-only $1 $2)" = "$cp" ]||{
+@@
+||{
+X
+mk rf;echo other >other.txt;git add other.txt;git -c commit.gpgsign=false commit -qm other;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;h0=$(git rev-parse HEAD);AT $D/mrc
+ok "m-path-test-cut-RED the mutant without the card-only test follows across other.txt's commit (HEAD moved, other.txt missing from the worktree while HEAD has it): the r1c lane catches it" '[ "$(git rev-parse HEAD)" != $h0 ]&&[ ! -e other.txt ]&&! cmp -s $D/mrc $PC'
+rm -f $D/.atomize.status
 mk pz;for i in 1 2 3;do msg sm "message $i: build the widget now";done;AGI_ATOMIZE_SOFT=0 AT;unset AGI_ATOMIZE_SOFT
 ok "pa-deferred-named a soft deadline already passed: 0 requests, nothing marked, deferred=3 in the run line and the status" '[ "$(calls)" = 0 ]&&[ $(natom) = 0 ]&&grep -q "deferred=3" $D/err&&grep -q "deferred=3" $D/.atomize.status'
 rm -f $D/.atomize.status
