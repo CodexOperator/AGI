@@ -40,6 +40,16 @@ python3 extensions/agi/bin/dispatch.py <project_root> <iter_n> --tier parent \
 - A director dispatches from ITS OWN worktree; live parents ≤ the cap cell its master names (local-maxxing: `values.local_maxxing.de_live_parents`), ≤ 5 kids each.
 - A CORRECTIVE is cut from the round's own loop tip: `git worktree add -b de-base-<N> .agi/worktrees/de-base-<N> <loop tip>`, dispatch from there with `--orders <file> --from <post>` (kids get an empty `.git`: "merge the loop branch first" never works). The whole corrective flow — verdict read, triage, the orders on the node: skill `agi-corrective`.
 
+## 2b · Spawn a kid: `agi-in <capsule>` (goal:g7.16.1.11.46.21)
+The ONE kid spawn verb is `agi-in <capsule> <kid> <prompt>`. The capsule's MANIFEST cell `pull` picks the class, so no K1/K2 code path is chosen by hand:
+```
+agi-in pack <attach> list <mint>.. --pull graph|director|none [--reach closed|open] [--at <mint>] [--atoms <ARGS.json>]   # the one writer of the spawn lines (capsule pack takes no --pull)
+agi-in <cid> <kid> "<prompt>"    # graph | director: a pi kid (own HOME + tree, AGI_CAPSULE)   none: ONE request, no tools, no tree
+agi-in -m <flow> '<ARGS json>'   # a flow, as before
+```
+- A pull-director kid's `agi-wt pull` is refused: it asks over box. A closed reach (or no reach line, or an unknown one) pulls only the capsule's members and the kid's own card. Any other `pull` value, or a capsule that fails verify, prints `unread` and launches nothing.
+- PARENT spawns stay on dispatch.py (§2). agi-in spawns kids only.
+
 ## 3 · Kids and rebriefs (F31)
 A parent that answers a kid's `rebrief_request` in-node dms its director the answer line
 (kid id, N/C, proceed-with-N | cut) BEFORE the kid resumes. A kid past 2× its budget with no such dm in your
