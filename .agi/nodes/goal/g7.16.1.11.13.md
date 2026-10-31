@@ -208,6 +208,7 @@ extensions/agi/bin/cli.py:4682:    """Byte source of truth for the refs/grid nam
 extensions/agi/bin/cli.py:5904:            # mur-52 residue 2b: the refs/grid IDENTICAL|CHANGED summary
 extensions/agi/bin/cli.py:5911:            print("refs/grid: IDENTICAL before/after --apply "
 extensions/agi/bin/cli.py:6388:        print(f"refs/grid: {same} before/after --apply (expected IDENTICAL)")
+extensions/agi/bin/grid_stale.py:41:NS = "refs/grid/node"
 extensions/agi/bin/level3.py:327:# payloads out of `refs/grid/node/<mint-id>`, and grid.py is the one definition
 extensions/agi/bin/level3.py:822:        # `refs/grid/node/*`. Measured 2026-08-25: editing README.md and
 extensions/agi/bin/level3.py:1137:    # doc's history is invisible to `refs/grid/node/*` — see the comment in
@@ -227,6 +228,7 @@ extensions/agi/guard/sanctuary-watch:176:- Never pass --allow-branch to grid.py;
 extensions/agi/src/graph_core/identity.py:138:# are case-sensitive (refs/grid/node/<id>), but case-insensitive filesyste
 extensions/agi/src/graph_core/identity.py:379:# | Keys | `refs/grid/node/<mint-id>` | addressing, zoom, prefixes |
 ```
+C6 + extensions/agi/bin/grid_stale.py:41 (goal:g7.16.1.11.20.4, director-general-1 10-31): a READER constant, the namespace of one `for-each-ref` and the `<tip>:node.md` reads; no ref is written, pushed or fetched through it (C1-C5 and C7-C9 do not move).
 C7 every fetch consumer
 ```
 $ git grep -nE '"fetch"|fetch -q|git fetch( |")|git -C [^ ]+ fetch' -- extensions src .agi/nodes/.geometry ':!extensions/agi/tests' ':!*.js' ':!*.json' ':!extensions/**/*.md' | cut -c1-120
