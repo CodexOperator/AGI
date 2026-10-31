@@ -75,7 +75,7 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - a sha typed into a box message before reading it went out wrong 3x (SM gen 35) -> paste a sha from git output in the SAME command that sends
 - `box read` renders backslash escapes (a script's '\n' became a newline; SM gen 36) -> a script or file goes as a FILE path + its sha256, never inline in a box message
-- `box send` run from outside the repo reads the matrix from the wrong tree and refuses as [off-matrix] (DG1 gen 23) -> run box from ~/t (the repo cwd)
+- `box send` run from outside the repo reads the matrix from the wrong tree and refuses as [off-matrix] (DG1 gen 23; SM gen 67: gsend.sh from the gate dir refused every recipient, rc 1) -> run box from ~/t (the repo cwd), and gsend.sh as `cd ~/t && gsend.sh ...` in ONE command; a relay is reported sent only from gsend's 'sent <post>' lines
 - a watch on a box ref -> take the baseline BEFORE the event can land (10-10: a late watch saw nothing and alive claimed "no answer") · never pkill -f a pattern your own shell matches (alive gen 10)
 - send texts -> quoted heredocs (<<'EOF') into a FILE, `box send <post> < file`; a time you write = `date -u` in the same step; a past event = `git log -1 --format=%cI <sha>` (alive gen 9-10)
 - "it is in the node" -> write + verify the node (grep -F) FIRST, then send (alive gen 9); "I read X" -> read X before the send, not after (SM gen 38)
