@@ -2,7 +2,7 @@
 # agi-in.t.sh: goal:g7.16.1.11.46.21 U3 (doc:brainstorm-unify §3, §24): ONE kid spawn verb, `agi-in <capsule> <kid> <prompt>`, the capsule's MANIFEST `pull` picks the class; `agi-wt pull` honours its `reach`.
 # sh + git + jq + ssh-keygen only, scratch HOME, throwaway key, a STUB pi (logs one line per launch), no network, no root, 0 USD. One ok/FAIL line per case; exit = number of FAILs; 99 = the fixture itself is broken.
 # PIECE = agi-in under test (default: `sect agi-in` of ROOT's .geometry), WT = agi-wt (default: `sect agi-wt`). A mutant row runs an edited copy and passes only when the clean row's condition is FALSE for it.
-# Rows: r1-r3 one launch per pull value · r4-r7 the reach arm of agi-wt · r8 an unreadable capsule · r9 atoms round-trip · r10 no scratch dir · rb an unknown pull · rc a missing / unknown reach · rd pack refuses bad values · n1 n2 the repo bytes (F2).
+# Rows: r1-r3 one launch per pull value · r4-r7 the reach arm of agi-wt · r8 an unreadable capsule · r9 atoms round-trip · r10 r11 no scratch dir · rp a post's AGI_CAPSULE is not a pull capsule · rb an unknown pull · rc a missing / unknown reach · rd pack refuses bad values · n1 n2 the repo bytes (F2).
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$PIECE" ]||{ sect agi-in>$T/agi-in;PIECE=$T/agi-in;};[ -n "$WT" ]||{ sect agi-wt>$T/agi-wt;WT=$T/agi-wt;}
@@ -14,7 +14,7 @@ ssh-keygen -q -t ed25519 -N '' -f $H/.ssh/id_ed25519 -C inv>/dev/null;echo "inv@
 printf '[user]\n\tname=inv\n\temail=inv@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[gpg "ssh"]\n\tallowedSignersFile=%s\n[safe]\n\tdirectory=*\n' $H/.ssh/id_ed25519 $T/allowed>$H/.gitconfig
 cat >$T/bin/pi<<'XX'
 #!/bin/sh
-echo "launch|$*|post=$AGI_POST|cap=$AGI_CAPSULE|home=$HOME|git=$(git rev-parse --is-inside-work-tree 2>/dev/null||echo no)">>$LOG
+echo "launch|$*|post=$AGI_POST|cap=$AGI_CID|home=$HOME|git=$(git rev-parse --is-inside-work-tree 2>/dev/null||echo no)">>$LOG
 XX
 printf '#!/bin/sh\ncat %s/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"\n' $R0>$T/bin/sect;chmod +x $T/bin/*
 export GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null HOME=$H PATH=$T/bin:$PATH LOG RUNTIME_DIRECTORY=$T/run AGI_ALLOWED=$T/allowed AGI_KID_MODEL=stub AGI_TRUNK=HEAD AGI_WT_HOLD=101   # the disk hold is not under test here
@@ -36,18 +36,21 @@ ok r0-pack-writes-the-spawn-lines "CG's MANIFEST reads pull graph + reach closed
 L(){ : >$LOG;sh ${P:-$PIECE} "$@" >$T/o 2>$T/e;echo $? >$T/rc;}
 n(){ grep -c '^launch|' $LOG;}
 L $CG g1 "do g";G1=$(cat $LOG)
-ok r1-pull-graph-launches-ONE-pi-kid "1 launch (got $(n)) as post g1 in its own tree, carrying AGI_CAPSULE=CG, --skill + cccc.ts" '[ $(n) = 1 ]&&echo "$G1"|grep -q "post=g1|cap=$CG|home=$H/k/g1|git=true"&&echo "$G1"|grep -q -- "--skill skills -e"&&[ -d $H/k/g1/t ]'
+ok r1-pull-graph-launches-ONE-pi-kid "1 launch (got $(n)) as post g1 in its own tree, carrying AGI_CID=CG, --skill + cccc.ts" '[ $(n) = 1 ]&&echo "$G1"|grep -q "post=g1|cap=$CG|home=$H/k/g1|git=true"&&echo "$G1"|grep -q -- "--skill skills -e"&&[ -d $H/k/g1/t ]'
 L $CD d1 "do d";D1=$(cat $LOG)
-ok r2-pull-director-launches-ONE-pi-kid "1 launch (got $(n)) as post d1, AGI_CAPSULE=CD" '[ $(n) = 1 ]&&echo "$D1"|grep -q "post=d1|cap=$CD|home=$H/k/d1|git=true"'
+ok r2-pull-director-launches-ONE-pi-kid "1 launch (got $(n)) as post d1, AGI_CID=CD" '[ $(n) = 1 ]&&echo "$D1"|grep -q "post=d1|cap=$CD|home=$H/k/d1|git=true"'
 L $CN n1 "one question";N1=$(cat $LOG)
 ok r3-pull-none-is-ONE-request-no-tools-no-tree "1 launch (got $(n)) with --no-tools, no --skill, no repo, no kid home" '[ $(n) = 1 ]&&echo "$N1"|grep -q -- "--no-tools -p one question"&&! echo "$N1"|grep -q -- "--skill"&&echo "$N1"|grep -q "git=no"&&[ ! -d $H/k/n1 ]'
-# reach: agi-wt pull under AGI_CAPSULE, as the kid
-W(){ (cd $T;AGI_POST=$1 AGI_CAPSULE=$2 AGI_WT=$T/wt-$1-$3 sh ${Q:-$WT} pull $3 >$T/wo 2>$T/we;echo $? >$T/wrc);cat $T/wrc;}
+# reach: agi-wt pull under AGI_CID, as the kid
+W(){ (cd $T;AGI_POST=$1 AGI_CID=$2 AGI_WT=$T/wt-$1-$3 sh ${Q:-$WT} pull $3 >$T/wo 2>$T/we;echo $? >$T/wrc);cat $T/wrc;}
 ok r4-closed-reach-pulls-a-member "goal:b is a member of CG: rc $(W g1 $CG goal:b) (want 0)" '[ $(W g1 $CG goal:b) = 0 ]&&[ -f $T/wt-g1-goal:b/$M2/.agi/nodes/goal/b.md ]'
 ok r5-closed-reach-refuses-a-non-member-by-name "goal:x is not a member: rc $(W g1 $CG goal:x) (want 3), stderr [$(cat $T/we)]" '[ $(W g1 $CG goal:x) = 3 ]&&grep -qx "agi-wt: refused: goal:x outside closed reach $CG" $T/we&&[ ! -d $T/wt-g1-goal:x/$M3 ]'
 ok r6-closed-reach-pulls-the-posts-own-card "doc:card-g1 under CG as g1: rc $(W g1 $CG doc:card-g1) (want 0)" '[ $(W g1 $CG doc:card-g1) = 0 ]'
 ok r7-pull-director-pulls-nothing "goal:b (a member) under CD: rc $(W d1 $CD goal:b) (want 3), stderr [$(cat $T/we)]" '[ $(W d1 $CD goal:b) = 3 ]&&grep -q "capsule $CD is not pull graph (ask over box)" $T/we'
 ok r7b-open-reach-pulls-any-mint "goal:x under CO: rc $(W o1 $CO goal:x) (want 0)" '[ $(W o1 $CO goal:x) = 0 ]'
+# rp (L313 trunk red, sp 17:31:00Z): a POST's unit sets AGI_CAPSULE=capsule (agi-out's share dir, engine-post.md agi-out) and no AGI_CID: agi-wt is not under any capsule
+PW(){ (cd $T;env -u AGI_CID AGI_POST=$1 AGI_CAPSULE=capsule AGI_WT=$T/wp-$1-$2 sh ${Q:-$WT} pull $2 >$T/wo 2>$T/we;echo $? >$T/wrc);cat $T/wrc;}
+ok rp-a-post-with-agi-outs-AGI_CAPSULE-pulls-its-own-card "AGI_CAPSULE=capsule, no AGI_CID, no refs/capsule/capsule: doc:card-g1 rc $(PW g1 doc:card-g1) (want 0), goal:x rc $(PW g1 goal:x) (want 0)" '[ $(PW g1 doc:card-g1) = 0 ]&&[ $(PW g1 goal:x) = 0 ]&&[ -f $T/wp-g1-doc:card-g1/$M4/.agi/nodes/doc/card-g1.md ]'
 # unreadable
 B=99999999999999999999999999999999;L $B u1 "x"
 ok r8-an-unreadable-capsule-is-unread-rc-1-no-launch "a CID with no ref: rc $(cat $T/rc) (want 1), [$(cat $T/o)], $(n) launch(es)" '[ $(cat $T/rc) = 1 ]&&grep -qx "unread: capsule $B" $T/o&&[ $(n) = 0 ]'
@@ -79,7 +82,7 @@ ok m1-reach-forced-open-pulls-the-non-member-RED "mutant rc $(Q=$T/m1 W g1 $CG g
 mut $PIECE 's/case $(echo "$M"|sed -n .s\/^pull \/\/p.) in/case graph in/' $T/m2 pull-ignored
 P=$T/m2 L $CN m2 "q";ok m2-pull-ignored-launches-a-kid-for-none-RED "mutant: $(n) launch(es), [$(cat $LOG)]" '! grep -q -- "--no-tools" $LOG'
 P=$T/m2 L $CU m2b "q";ok m2b-pull-ignored-launches-on-an-unknown-pull-RED "mutant: $(n) launch(es) (rb wants 0)" '[ $(n) != 0 ]'
-mut $PIECE 's/AGI_CAPSULE=$c exec pi/AGI_CAPSULE=$c pi $K -p again<\/dev\/null;exec pi/' $T/m3 second-launch
+mut $PIECE 's/AGI_CID=$c exec pi/AGI_CID=$c pi $K -p again<\/dev\/null;exec pi/' $T/m3 second-launch
 P=$T/m3 L $CG m3 "q";ok m3-a-second-launch-per-call-RED "mutant: $(n) launch(es) (r1 wants 1)" '[ $(n) != 1 ]'
 mut $PIECE 's/echo "unread: capsule $c";exit 1/echo "unread: capsule $c";exit 0/' $T/m4 unread-exits-0
 P=$T/m4 L $B m4 "q";ok m4-the-unread-exiting-0-RED "mutant rc $(cat $T/rc) (r8 wants 1)" '[ $(cat $T/rc) != 1 ]'
@@ -95,6 +98,8 @@ FM(){ : >$LOG;(export PATH=$T/nomk:$PATH;sh ${P:-$PIECE} -m fl1 '{}' >$T/o 2>$T/
 FM;ok r11-the-flow-arm-without-a-scratch-dir-is-unread "rc $(cat $T/rc) (want 1), stderr [$(cat $T/e)], $(n) launch(es) (want 0), output files $(find $H/s/fl1 -name 'o.*' 2>/dev/null|wc -l) (want 0)" '[ $(cat $T/rc) = 1 ]&&grep -qx "unread: no scratch dir" $T/e&&[ $(n) = 0 ]&&[ $(find $H/s/fl1 -name "o.*" 2>/dev/null|wc -l) = 0 ]'
 mut $PIECE 's/W=$(mktemp -d)||{ echo "unread: no scratch dir">\&2;exit 1;};git archive/W=$(mktemp -d);git archive/' $T/m10 flow-scratch-guard-dropped
 P=$T/m10 FM;ok m10-the-flow-scratch-guard-dropped-launches-RED "mutant: $(n) launch(es) (r11 wants 0)" '[ $(n) != 0 ]'
+mut $WT 's/\[ "$AGI_CID" \]&&{ C=$AGI_CID;/[ "$AGI_CAPSULE" ]\&\&{ C=$AGI_CAPSULE;/' $T/m11 keyed-on-AGI_CAPSULE
+ok m11-the-clause-keyed-on-AGI_CAPSULE-again-RED "mutant: a post's own card rc $(Q=$T/m11 PW g1 doc:card-g1) (rp wants 0)" '[ "$(Q=$T/m11 PW g1 doc:card-g1)" != 0 ]'
 mkdir -p $T/r7/.agi/nodes;cp -r $R0/.agi/nodes/.geometry $T/r7/.agi/nodes/;printf '\n### agi-kid (2 B)\n~~~sh\nx\n~~~\n'>>$T/r7/.agi/nodes/.geometry/engine-wrap.md
 ok m7-the-fence-re-added-RED "mutant tree: $(fence $T/r7) fence(s) (n1 wants 0)" '[ $(fence $T/r7) != 0 ]'
 grep -v 'agi-in <capsule>' $R0/skills/agi-dispatch/SKILL.md>$T/m8;cmp -s $T/m8 $R0/skills/agi-dispatch/SKILL.md&&{ echo "FAIL fixture: mutant m8 removed nothing";exit 99;}
