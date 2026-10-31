@@ -5,7 +5,7 @@ type: config
 parents:
   - goal:g7.16.1.11.46.17
 next_edges: []
-edited_by: director-general-3
+edited_by: sanctuary-master
 locations: {}
 season: 3
 status: active
@@ -25,7 +25,7 @@ after this map at a non-derivable path is never placed (unread by name). PATH ro
 node's FIRST grid version (T13 + U2 as corrected, 3/3 alive 07:56:52Z): an added or re-pointed one = unread 'row added after the freeze'; never-landed
 rows are the ONLY kind a later version may add: ADDED only by name in a .geometry (RULES, belam-wrapped) land, REMOVED in the land that lands its node.
 
-## rows (621: 312 path rows + 10 never-composed at f4ed405a73; 299 never-landed at 804752481c, goal:g7.16.1.11.46.18 T11)
+## rows (649: 312 path rows + 10 never-composed at f4ed405a73; 327 never-landed = 299 at 804752481c + 28 by name at the 28-refs land, goal:g7.16.1.11.46.18 T11)
 b7e4f0a91c2d4e8fa63b5d7c8e1f2a04 .agi/nodes/.geometry/commands.md
 dc4da698f3f94dbc83a0c2233b2a8b94 .agi/nodes/.geometry/crons.md
 0e5025a7e24f4e459c30e50d82b8060e .agi/nodes/.geometry/formations/council-loop.md
@@ -349,6 +349,7 @@ a61ad3ebb24b45cf85468a0711e5f6b0 never-composed
 d1a9759d1ed64a12bd85c0fe18b1636a never-composed
 hyp/a00-1467544f-chain-600hop never-composed
 00e0df77ba254c9483fd8538a8097e10 never-landed
+0348990729f94c4cacdfe36f74b1f63d never-landed
 03c7427880064522892b233d5c611a87 never-landed
 03ef3747448945ccbf1fd92c8573ec02 never-landed
 043aa9dde7f24d07896c56f2da93bd73 never-landed
@@ -357,6 +358,7 @@ hyp/a00-1467544f-chain-600hop never-composed
 0614648dac7440e1870bfd571e6242a8 never-landed
 06211b946b1d4774a357c9607926ba1f never-landed
 068a7e941a8747f8a0f120b20afc58ef never-landed
+069e6c41ba21428c800ef9f72d935fa4 never-landed
 07f23807852945a6b2252a26e386fd9d never-landed
 07f6141e06fe44979bf4cd5fb959dd20 never-landed
 0a9606e5dae24dfca611dd392a979050 never-landed
@@ -381,9 +383,12 @@ hyp/a00-1467544f-chain-600hop never-composed
 19c2d8bdf4cc425b9ab56ce17e38e712 never-landed
 19d06b95629d41c1b0bba19b4692a312 never-landed
 1a784abed1aa49f181a9a47a8d9c6ffe never-landed
+1b15c714f4ab43c6a0ec1c2a80ecb2dd never-landed
 1d8c594bb0ce44f682d64e6ded4710da never-landed
 1f71c5e5879841cca005a5821ee76a20 never-landed
 215cc0e2efee4bca8549adf297a5fe9b never-landed
+22ca25afe7204148a2e4333534d1cc7a never-landed
+24063bf296164f178d6f8b49a4fa2464 never-landed
 2471d48fef264c369e87dcb15ec3a3d7 never-landed
 24e611b64a254b808f01fca3f8bb7d39 never-landed
 26baf91dbe1947e8abfab1dec998f3ed never-landed
@@ -406,6 +411,7 @@ hyp/a00-1467544f-chain-600hop never-composed
 3b18927bcf784330883f8ef8612203ab never-landed
 3c918ec1a5bc4d39a406e2ce2b46cc2c never-landed
 3d3fc4ab4bf04c0ebba19d688072b297 never-landed
+3de8c7c81e9d440e85650229b75ea097 never-landed
 3ea6d7f0b6a646178b2463d471f26508 never-landed
 3f5fe93768934d9caf4d0e09bd190541 never-landed
 3fc7abe6f8cd4947b48f2e9920ecfe8f never-landed
@@ -428,6 +434,8 @@ hyp/a00-1467544f-chain-600hop never-composed
 4b37010b1bd642379597d3f139e7e7a1 never-landed
 4c0c78139d6542be90fbdb895ae5376a never-landed
 4c47810d78644e1aa4eaf20aa435f31c never-landed
+4c7cab03ed4a41a7bdb43978083088f2 never-landed
+4da93ac95706440fb1c695b937d7989b never-landed
 4e4be8a95b8e4ced9d8102f066ed5fad never-landed
 4ecebff761674ace95d474047713ab8a never-landed
 4fb1b7ee79d649519c28edf0d1e5ae66 never-landed
@@ -441,11 +449,14 @@ hyp/a00-1467544f-chain-600hop never-composed
 5876c1a648724c0da874f624e3ba625e never-landed
 5973262bec5a406bb20aab02cc54b836 never-landed
 5989d31078d349e2a3b6597c1d36fe6a never-landed
+5a24f0f5515f4037852a54ec4ead62f1 never-landed
 5a3ca9b03d8b46ba925693dc96aa7f76 never-landed
 5abc0194a2a147858652988b9f5c2732 never-landed
 5b9d5e2d0374477cb009b85935331d09 never-landed
+5cdc6e6c770c404998ac18f36368c847 never-landed
 5ec3355a155e4171925af9ea0ece04af never-landed
 5fd06325dc6c467d8f18bb64ce5859e5 never-landed
+600f1ea7bf3a413a8d974a7298f608a7 never-landed
 60f1c63640584c92bf9fafebeca39979 never-landed
 62f51d070f6648fd8ab8fb089d113130 never-landed
 63bf798ebbb846cd92a9619e412d040c never-landed
@@ -467,6 +478,7 @@ hyp/a00-1467544f-chain-600hop never-composed
 6e1bbdf7dbc342f7bcaac18a3a31e5fa never-landed
 6e3b609966c144fa9d215ec0c85124ea never-landed
 6f701773ec9140d59d164e869a89866d never-landed
+6f900e057dd44a5bb606bd538517e709 never-landed
 7086edec53f24b68bfb9f63117fd7f2d never-landed
 727cdf6f86f540e18d8ce9cb652a1c08 never-landed
 72dc34899d684466a5d72d4b824a88b0 never-landed
@@ -521,15 +533,18 @@ hyp/a00-1467544f-chain-600hop never-composed
 98fd09185a6445228f045aa5f2ffc841 never-landed
 9ac203760ca7467fa60bc65148627372 never-landed
 9b4545500fc641eba720b8633a468e33 never-landed
+9be2953441d14c6e8ad2c9925c18e554 never-landed
 9dcddb19ed3d4b76b653f010019ee709 never-landed
 9de79cb4565f4ea684b4ad4c04cb56e8 never-landed
 9eec8fd06aaa4337a7f59dc80ca8627f never-landed
 9eee852ab464428ea04d0ac43939c531 never-landed
+a06d9ed95d55451386dd7d1d486864fe never-landed
 a0aa698350ad4b698aad79707edb1f89 never-landed
 a1c7886e33154fe7ae770a8849b5eece never-landed
 a2bb9bca0ea84fbba6e73e1ba08d9b2b never-landed
 a3a494f022e74357b81be8c3cb02013b never-landed
 a3a76b6bb5e5458b8bfa713f12f51989 never-landed
+a4b3430c53404048b6b7bd2dfcb2ced4 never-landed
 a4e868e006d84458a0be3d66f41dc476 never-landed
 a56cab3087d946809a88f96afe86ca13 never-landed
 a63010ae3eb748b2936b21dc9ed954a5 never-landed
@@ -551,24 +566,29 @@ b3cb0d8c1935418780e2ce5cfae8a067 never-landed
 b4729786cd254498b685ae5d4ad71912 never-landed
 b6727952fc004db6b359c9bee5221dc1 never-landed
 b697d973ed724fadbad37988d557d7d7 never-landed
+b7f5e8f771f64ccf9543687afb6533b7 never-landed
 b875ae45f04f49449370b3084cdb265f never-landed
 b8884ebf9bcc46dc9c99ed02b092c9ce never-landed
 b9dff30a85d14dab94c2f94a445e9340 never-landed
 baba0b4171eb4a358fa916c170422c04 never-landed
 bb4eebc9e040496c824d8f2a7482f036 never-landed
 bb55ea0f11c34535ae942ca96a912708 never-landed
+bcf72d744ba146a48c0157115f83a802 never-landed
 bd0d8081076640bd8db504bbe7dddbe7 never-landed
 be453b77d1ae439bbc50989f8645ab18 never-landed
 bebbb295dbb4423297795ca26b84a9ff never-landed
 becdf5ac331148da92c8aab7fd9e5a33 never-landed
 bed22d1fadf54d28aeee8347e6fb7ac7 never-landed
 bf3f4360c087488ab13fcbf9f790c5e3 never-landed
+bf63d0d85fc24230b3b6847c544acc98 never-landed
 bf6d57f208a9475ba670c984681c6fdf never-landed
+c0a3809f289e45ffb79d19ef00e0f6e9 never-landed
 c0b21907176542acaaf4e759a19929b6 never-landed
 c0f588d008694be1af74a288caba284f never-landed
 c0ff1ed060854b56a4fb5cb6b7101a67 never-landed
 c10bd987088240d3a94137dd4207d38c never-landed
 c13adf88088b46299d3cb15deb8aee6a never-landed
+c2898244cbd84f20b8185fd22d72b94c never-landed
 c28d452a5e094b118e06f313eba1b103 never-landed
 c3a252fb31264913b0cc09d0ebe71718 never-landed
 c57f5aacc9da485794e87c0ee2889ea8 never-landed
@@ -580,6 +600,7 @@ cada2d5ebba1411ab35343db1104dfbf never-landed
 cb2a3b71e4654fcd96da26e78ab6bb22 never-landed
 cb868aa8b53644479a5f877486d46081 never-landed
 cba78470815f4f88b38f9643cc5d8147 never-landed
+cc98532f99bc45189672565544f3ee04 never-landed
 cd1796fdd5714864b4710af33de1a3e2 never-landed
 cd2b0f5f83d04f2487d69b8e27907f2b never-landed
 cd41fb88207d4dd9a035b2f1e750c68c never-landed
@@ -599,7 +620,9 @@ d5f27ef053c04cb5a322e618c95981be never-landed
 d62b6c50f0b4498eb9bf9ccc253f7d70 never-landed
 d6ea397024394aacbe97a6e26c8fc0e0 never-landed
 d701299420d9481a80cc48bfc85af3e4 never-landed
+d80593a728bb44bf8c279cf82b9132fd never-landed
 dc37a1c8db114cfaa7c0f851c638f756 never-landed
+ddd7f3dc068d4c98a7042a07cd09edbb never-landed
 df003f042a784f5b8a11be92e9660a1a never-landed
 df2152cb11554b128d579a109ba3964f never-landed
 dfa3fd0ca8aa434dae0651aaebcd00ba never-landed
@@ -620,6 +643,7 @@ e7173103474840dbafc1922dc2f331e0 never-landed
 e8511e3820274b32baae0febf10f513c never-landed
 e9ec94544c7a4965969e51cd69d2c457 never-landed
 ea50b86bb59541f9b7a908b89e23b856 never-landed
+ea897b0ac5b9429d81aeea4e9346546a never-landed
 ead95b9880cb4ab2abdad646e7e21092 never-landed
 ec0863d5f1cd48bba5f21981efe78ed9 never-landed
 ec7798370ff04e3c9c8025e38449142f never-landed
@@ -637,8 +661,12 @@ f3caacec188c4027b2e98d77b534a8c9 never-landed
 f4838deb10344b7b81d58822cf33a4a5 never-landed
 f519a39bac954cc4a0ac55893d9fa1fb never-landed
 f5823144c7ed462d9f47a7f387a08730 never-landed
+f5c3a71803d445b0ac1598fa23de66f3 never-landed
 f69047b270284e31adb55d5f7db0a2fb never-landed
+f833bcacf7df48ae8703821964595736 never-landed
 f9023c463b9d4c37a7f77a3497461acc never-landed
+fa92514b2d7545c4815e2972bd3893c4 never-landed
+fae0cd7d44014f76ab35184f1a5118ed never-landed
 fb1dfa7ed46e4042b22c7c50470aff5b never-landed
 fbe3b5fc48e74d97923164d39a38398e never-landed
 fbf6dda34d5445408e7dc54195d91e0f never-landed
@@ -649,5 +677,5 @@ ff11516fc67b45dbb4209cb967ec2280 never-landed
 ffaa9994b3514bbcb4ca0972825a2abb never-landed
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-3 10-28 (v2, goal:g7.16.1.11.46.18 G1b-2 slice (a), T11 + U2, council 3/3 alive [decision] 07:20:16Z): the 299 never-landed MEMBERSHIP rows, one per grid ref with no live path, read by recompose.py at the trunk 804752481c (+ the board commit c7333a535c, no node path changed) = grid.py census never_landed 299; every path row and never-composed row of v1 is unchanged (T13: the path rows stay on the first grid version). Until this version is on the map's grid ref, recompose reads the 299 as unread by mint (T11 fails closed).
+sanctuary-master 10-29 (v3, goal:g7.16.1.11.46.18 falsifier 5 / T11's named route; council (a), alive [decision] 03:51:05Z on the 28 refs, aio [word] 03:43:15Z, sp [word] 03:48:48Z, belam [word] 03:4xZ): +28 never-landed rows BY NAME, the only row kind a later version may add (the FROZEN rule above). The 28 are grid refs with no live path written in 02:37:12Z-02:37:23Z 10-29 by alive's whole-grid-namespace fetch from a worktree on the main store (its L295 grid check; 498 refs fetched, these 28 in the local-maxxing grid namespace, adopted into the node grid namespace by belam's 03:00 'grid unify --write'); their tips are old 10-04/10-05 kid and director nodes that never landed. Each verified at the cut: its node grid ref exists and equals its local-maxxing ref, no live or deprecated node carries the mint_id, no row named it before. Without them every land's recompose read 'unread 28' (L297's GRID NOT LANDED). The other 470 fetched refs sit in namespaces unify never adopts (belam: leave them). Falsifier: THIS land's GRID line, whose split wrote config:legacy-paths (that ref's tip node.md == this blob) before its recompose ran, reads 327 never-landed (map) and NO unread for these 28 ('diff vs the trunk <T10>: 0 path(s)', or N > 0 named for a cause outside the 28), and the next land's the same; 299 never-landed (map) = the map not versioned, never a pass (sp [word] 03:51:34Z).
 <!-- THOUGHT:END -->
