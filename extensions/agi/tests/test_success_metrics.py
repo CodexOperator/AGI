@@ -234,3 +234,86 @@ def test_a_ladder_without_current_season_leaves_the_notices_unmeasured_never_a_g
         got = None
     assert got is None, got
     assert success_metrics._notices(tmp_path).startswith("notices: UNMEASURED(source failed:")
+
+
+# ---- goal:g7.16.1.11.46.3 P-d: `unatomized:` keys on the GATE CELL atomize_live, never credits_live (V2, alive 14:20:53Z 10-31) ----
+def _unatomized_repo(tmp_path, cell, credits="true", age_h=5, marked=False):
+    import os  # noqa: PLC0415
+    r = tmp_path / "r"
+    g = r / ".agi" / "nodes" / ".geometry"
+    g.mkdir(parents=True)
+    (g / "secrets.md").write_text(f"---\nid: config:secrets\ncredits_live: {credits}\n" + (f"atomize_live: {cell}\n" if cell else "") + "---\n")
+    run = lambda *a, **k: subprocess.run(["git", "-C", str(r), *a], check=True, capture_output=True, text=True, **k)  # noqa: E731
+    run("init", "-q", ".")
+    run("config", "core.hooksPath", "/dev/null")   # a post uid's global hooksPath runs the ref guard on refs/box/sm/* (the census pin)
+    run("-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "add", "-A")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "commit", "-qm", "x")
+    import time as _t  # noqa: PLC0415
+    when = f"@{int(_t.time()) - age_h * 3600} +0000"
+    env = dict(os.environ, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when)
+    tree = run("hash-object", "-w", "-t", "tree", "/dev/null").stdout.strip()
+    c = subprocess.run(["git", "-C", str(r), "commit-tree", tree, "-m", "hello"], check=True, capture_output=True, text=True, env=env).stdout.strip()
+    run("update-ref", "refs/box/sm/p", c)
+    if marked:
+        run("update-ref", "refs/atomized/p/" + c, c)
+    return r
+
+
+def _unatomized(r, monkeypatch):
+    monkeypatch.setenv("AGI_TRUNK", "HEAD")
+    monkeypatch.delenv("AGI_ATOMIZE_AGE", raising=False)
+    return success_metrics.unatomized_segment(r / ".agi")
+
+
+def test_unatomized_reads_off_while_the_gate_cell_is_false_even_with_credits_live_true(tmp_path, monkeypatch):
+    assert _unatomized(_unatomized_repo(tmp_path, "false"), monkeypatch) == "unatomized: off"
+
+
+def test_unatomized_names_an_absent_cell_UNMEASURED_never_off(tmp_path, monkeypatch):
+    """T3 (alive [decision] 16:31:36Z 10-31, all three seats): an ABSENT atomize_live key is named, not off."""
+    assert _unatomized(_unatomized_repo(tmp_path, None), monkeypatch) == "unatomized: UNMEASURED(cell absent: no atomize_live key)"
+
+
+def test_unatomized_names_an_unread_cell_UNMEASURED_never_off(tmp_path, monkeypatch):
+    """T3 (sp's term): AGI_TRUNK at a missing ref with the cell true: git show fails, the segment names its rc."""
+    r = _unatomized_repo(tmp_path, "true")
+    monkeypatch.setenv("AGI_TRUNK", "refs/heads/no-such-ref")
+    monkeypatch.delenv("AGI_ATOMIZE_AGE", raising=False)
+    assert success_metrics.unatomized_segment(r / ".agi") == "unatomized: UNMEASURED(cell unread: git show rc 128)"
+
+
+def test_unatomized_mutant_without_the_rc_check_reads_an_unread_cell_off(tmp_path, monkeypatch):
+    """The mutant: the rc check cut -> an unread cell falls through to the empty-stdout path (`cell absent`), never the unread form, so the
+    unread row above is RED on it."""
+    import inspect  # noqa: PLC0415
+    src = inspect.getsource(success_metrics.unatomized_segment)
+    old = "        if sec.returncode:"
+    assert old in src
+    ns = dict(success_metrics.__dict__)
+    exec(compile(src.replace(old, "        if False:"), "m", "exec"), ns)
+    r = _unatomized_repo(tmp_path, "true")
+    monkeypatch.setenv("AGI_TRUNK", "refs/heads/no-such-ref")
+    got = ns["unatomized_segment"](r / ".agi")
+    assert got == "unatomized: UNMEASURED(cell absent: no atomize_live key)", got
+
+
+def test_unatomized_counts_an_unmarked_message_older_than_a_lap_RED_with_the_cell_true(tmp_path, monkeypatch):
+    assert _unatomized(_unatomized_repo(tmp_path, "true"), monkeypatch) == "unatomized: RED 1 (p=1)"
+
+
+def test_unatomized_a_marked_message_or_one_inside_the_lap_or_past_the_age_bound_is_not_counted(tmp_path, monkeypatch):
+    assert _unatomized(_unatomized_repo(tmp_path / "a", "true", marked=True), monkeypatch) == "unatomized: 0"
+    assert _unatomized(_unatomized_repo(tmp_path / "b", "true", age_h=1), monkeypatch) == "unatomized: 0"
+    assert _unatomized(_unatomized_repo(tmp_path / "c", "true", age_h=30), monkeypatch) == "unatomized: 0"
+
+
+def test_unatomized_mutant_keyed_on_credits_live_reads_a_false_RED(tmp_path, monkeypatch):
+    import inspect  # noqa: PLC0415
+    src = inspect.getsource(success_metrics.unatomized_segment)
+    old = r'cell = re.search(r"^atomize_live:\s*(\S+)"'
+    assert old in src
+    ns = dict(success_metrics.__dict__)
+    exec(compile(src.replace(old, r'cell = re.search(r"^credits_live:\s*(\S+)"'), "m", "exec"), ns)
+    monkeypatch.setenv("AGI_TRUNK", "HEAD")
+    r = _unatomized_repo(tmp_path, "false")
+    assert ns["unatomized_segment"](r / ".agi") == "unatomized: RED 1 (p=1)", "the mutant reads credits_live: the off row catches it"

@@ -19,9 +19,9 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-brief         1369 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter         2355 B  past rotate_pct: out-line; tap chat; read: atomize
+agi-meter         2765 B  past rotate_pct: out-line; tap chat; read: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
-agi-atomize       4146 B  box mail -> verbatim card atoms (wake path, model)
+agi-atomize       9003 B  box mail -> verbatim card atoms (wake path, model)
 agi-mem           19689 B  chat tap -> own 0700 store; tap, at
 agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
@@ -42,7 +42,7 @@ observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-frontier       460 B  each active goal runs its falsifier
 agi-first-start  1394 B  pieces BASE..TIP changes: a post's next-start diff
-box               2904 B  mail: signed ref per send; belam's town blast
+box               2935 B  mail: signed ref per send; belam's town blast
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -76,13 +76,13 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (2355 B)
+### agi-meter (2765 B)
 ~~~sh
 #!/bin/sh
-# FIRST the rotation line (Claude Code kills a UserPromptSubmit hook at 30 s, and the line is the only thing that rotates a post: belam 14:2xZ 10-26); then the notice and the tap (bounded: `timeout -k 2 15`, so the hook's total wall time is bounded by construction, and a killed tap prints ONE `[mem] tap unread` line, never a silent drop); `agi-atomize wake` (26 s, stdout NEVER used) runs in the BACKGROUND under a flock held by the child, its output and failure line in ~/.atomize.log, so the hook returns in seconds
+# FIRST the rotation line (Claude Code kills a UserPromptSubmit hook at 30 s, and the line is the only thing that rotates a post: belam 14:2xZ 10-26); then the notice and the tap (bounded: `timeout -k 2 15`, so the hook's total wall time is bounded by construction, and a killed tap prints ONE `[mem] tap unread` line, never a silent drop); `agi-atomize wake` (26 s, stdout NEVER used) runs in the BACKGROUND under a flock held by the child, its output and failure line in ~/.atomize.log, so the hook returns in seconds (the last wake's ~/.atomize.status is printed + removed inside W, under the lock, so a wake still running cannot write between the cat and the rm: alive 16:31:36Z 10-31)
 j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID"
-ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;r=$?;case $r in 124|137)echo "[mem] tap unread (killed at 15 s)";;125|126|127)echo "[mem] tap not run (rc $r)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)al=$(git -C "$(readlink -f "${AGI_T:-$HOME/t}")" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^atomize_live: *//p'|head -1);if [ "$al" != true ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: atomize_live is ${al:-unreadable}, no request">>~/.atomize.log;else o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ (agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;fi;;esac;:
+ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;r=$?;case $r in 124|137)echo "[mem] tap unread (killed at 15 s)";;125|126|127)echo "[mem] tap not run (rc $r)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)al=$(git -C "$(readlink -f "${AGI_T:-$HOME/t}")" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^atomize_live: *//p'|head -1);if [ "$al" != true ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: atomize_live is ${al:-unreadable}, no request">>~/.atomize.log;[ "$al" ]||agi-notice add "[atomize] atomize_live unreadable on ${AGI_TRUNK:-trunk}: the wake stays off $(date +%Y%m%d)" 2>/dev/null;else o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ [ -s ~/.atomize.status ]&&{ echo "[atomize] last wake: $(cat ~/.atomize.status)";rm -f ~/.atomize.status;};(agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;fi;;esac;:
 ~~~
 
 ### agi-at (1129 B)
@@ -142,29 +142,44 @@ where)[ $# -ge 1 ]||d "where WORDS";h=$(agi-mem find "$*");[ "$h" ]||{ echo "no 
 *)d "add | close | move | grandfather | red | derive [check] | where WORDS";;esac
 ~~~
 
-### agi-atomize (4146 B)
+### agi-atomize (9003 B)
 ~~~sh
 #!/bin/sh
-# agi-atomize [wake]: `wake` = the call agi-meter (the UserPromptSubmit hook) makes on the prompt "mail: box read": credits_live not true on the trunk -> ONE named skip line appended to ~/.atomize.log and NOTHING on stdout (a hook'"'"'s stdout enters the post'"'"'s context), no model call, exit 0; true -> the run below under timeout 45, stderr to ~/.atomize.log. The WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing (the next wake retries); a live run ends by stamping ~/.atomize.last (the time agi-atom derive check measures `owner chunks still ?` against)
-set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P
-[ "$1" = wake ]&&{ c=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^credits_live: *//p'|head -1);[ "$c" = true ]||{ echo "$(date -u +%FT%TZ) [atomize] skipped: credits_live is ${c:-unreadable}, no model call">>$HOME/.atomize.log;exit 0;};exec timeout 45 "$(readlink -f "$0")" 2>>$HOME/.atomize.log;}
-W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0
+# agi-atomize [wake]: `wake` = the call agi-meter (the UserPromptSubmit hook) makes on the prompt "mail: box read" once the gate cell atomize_live is true: credits_live not true on the trunk -> ONE named skip line appended to ~/.atomize.log and NOTHING on stdout (a hook'"'"'s stdout enters the post'"'"'s context), no model call, exit 0; true -> the run below under timeout AGI_ATOMIZE_TIMEOUT (45), stderr to ~/.atomize.log. The WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing and leaves the card as it was (the next wake retries); a live run ends by stamping ~/.atomize.last (the time agi-atom derive check measures `owner chunks still ?` against)
+# P-a..P-e (council 3/3 05:26Z 10-24; the transport term, alive [decision] 14:17:17Z 10-31 D2): P-b the atoms go onto the COMMITTED card of posts/P (a temp index from its tip, commit-tree -S, then the branch CAS and every marker of that commit in ONE `update-ref --stdin` transaction: T1, alive [decision] 16:31:36Z 10-31), never the working file, ONE commit per message as it is cut (T4: a run killed at its bound keeps what it committed; a soft deadline AGI_ATOMIZE_SOFT (30) below the bound leaves the rest unread, counted deferred=<n>); a lost CAS marks nothing and reads [raced] only when the branch DID move, any other failed step names itself (T7); ~/t's detached view follows EACH commit as it lands (inside fl) only when its card is untouched, else the edit stays and is named (aio 17:18:32Z: a killed run's commits are followed too). P-c every sender passes `box ok FROM` (box's own matrix) and its signature, else ONE named line and the commit is NOT marked (T2: box read holds neither, and box ok cannot tell an unread posts.md from a no): counted each run, the age bound ends the retry, never a model request. P-e the run line counts what it skipped (the age window is ONE `rev-list --since-as-filter` per box ref (--max-age stops its walk at the first older commit: aio 17:18:32Z); skipped-age = the aged commits (`--min-age`) with NO marker, filtered by the run's ONE marker list: never a per-commit walk, never an atomized message counted: sp 16:43:33Z, alive 17:16:15Z 10-31); skipped-age is NOT a status trigger (T5: P-d reds an unmarked message older than a lap before it ages out). A transport failure (agi-infer rc != 0 with no reply) ends the RUN at once. Anything a post should hear (rc, refused, skipped, off-matrix, unsigned, transport, a kept card edit) goes to ~/.atomize.status, which the NEXT wake prints once; a clean run leaves no status
+set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P;S=$HOME/.atomize.status
+[ "$1" = wake ]&&{ c=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^credits_live: *//p'|head -1);[ "$c" = true ]||{ echo "$(date -u +%FT%TZ) [atomize] skipped: credits_live is ${c:-unreadable}, no model call">>$HOME/.atomize.log;exit 0;};timeout ${AGI_ATOMIZE_TIMEOUT:-45} "$(readlink -f "$0")" 2>>$HOME/.atomize.log;r=$?;[ $r = 0 ]||[ -s $S ]||echo "$(date -u +%FT%TZ) rc=$r: the run did not finish (124 = its timeout); the messages it committed stay on posts/$P, marked and followed; the rest is read at the next wake">$S;exit $r;}
+W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0;pk=0;n=0;rf=0;sa=0;df=0;om=0;us=0;tp=;fe=;cs=;s0=$(date +%s);: >$W/mk;git for-each-ref --format='%(refname:lstrip=3)' $M>$W/am
+B=refs/heads/posts/$P;t=$(git rev-parse -q --verify $B)||{ echo "[atomize] no $B: nothing read">&2;exit 5;}
+cp=$(readlink -f "$T/.agi/sessions/quorum/$P.md"|sed "s|^$T/||");git show $t:$cp>$W/card 2>/dev/null||{ echo "[atomize] $cp is not on $B: nothing read">&2;exit 5;}
 ids=$(grep -rlE "Assigned to \*\*$P\*\*" .agi/nodes/goal 2>/dev/null|xargs -r grep -l '^status: active$'|sed 's|.*/||;s|\.md$||'|tr '\n' ' ')
 printf '%s' '{"type":"object","properties":{"kind":{"enum":["ask","fyi","report"]},"atoms":{"type":"array","items":{"type":"object","properties":{"slice":{"type":"string"},"target":{"type":"string"}},"required":["slice","target"]}}},"required":["kind","atoms"]}'>$W/s
-go(){ { printf 'Cut this message into atoms. kind: ask (it asks the recipient to do something), fyi (nothing to do), report (numbers). Only an ask has atoms: each atom is {slice, target}, a VERBATIM, non-overlapping slice of the message (never reworded, no | and no newline in a slice), target = one of the leaf ids below, idea, decision, or ?. Reply as JSON only.\nleaf ids: %s\n--- message\n' "$ids";cat $W/b;}|AGI_INFER_SCHEMA=$W/s ${AGI_ATOMIZE_INFER:-agi-infer} $1>$W/r;}
+go(){ : >$W/r;{ printf 'Cut this message into atoms. kind: ask (it asks the recipient to do something), fyi (nothing to do), report (numbers). Only an ask has atoms: each atom is {slice, target}, a VERBATIM, non-overlapping slice of the message (never reworded, no | and no newline in a slice), target = one of the leaf ids below, idea, decision, or ?. Reply as JSON only.\nleaf ids: %s\n--- message\n' "$ids";cat $W/b;}|AGI_INFER_SCHEMA=$W/s ${AGI_ATOMIZE_INFER:-agi-infer} $1>$W/r;x=$?;[ $x = 0 ]||[ -s $W/r ]||{ tp="$c (rc $x)";return 1;};return $x;}
 ck(){ k=$(jq -er '.kind' $W/r 2>/dev/null)||return 1;case $k in fyi|report):>$W/a;return 0;;ask);;*)return 1;;esac
  jq -r '.atoms[]|.slice+"\t"+.target' $W/r>$W/a 2>/dev/null&&[ -s $W/a ]||return 1;cut -f1 $W/a>$W/l;case $(cat $W/l) in *"	"*)return 1;;esac
  awk 'NR==FNR{b=b $0 "\n";next}{p=index(b,$0);if(p==0||$0=="")x=1;print p+0,p+length($0)-1}END{exit x}' $W/b $W/l>$W/p&&sort -n $W/p|awk 'NR>1&&$1<=e{x=1}{e=$2}END{exit x}';}
-for r in $(git for-each-ref --format='%(refname)' refs/box|grep "/$P$");do f=${r#refs/box/};f=${f%/*}
- for c in $(git rev-list --reverse $r);do git rev-parse -q --verify $M/$c>/dev/null&&continue;[ $(($(date +%s)-$(git log -1 --format=%ct $c))) -le ${AGI_ATOMIZE_AGE:-86400} ]||continue
-  git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||continue;git log -1 --format=%B $c|grep -v '^>'>$W/b;grep -q '[^[:space:]]' $W/b&&! grep -q '^\[town\]' $W/b||{ git update-ref $M/$c $c "";continue;}
-  rm -f $W/a1;go ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}&&ck||{ echo "[atomize] $c: no usable reply from ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}, nothing marked">&2;continue;}
+fl(){ [ -s $W/mk ]||return 0;m=$(git ls-tree $t -- "$cp"|cut -d' ' -f1);if ! bl=$(git hash-object -w $W/card)||! nt=$(export GIT_INDEX_FILE=$W/i;git read-tree $t&&git update-index --cacheinfo ${m:-100644},$bl,"$cp"&&git write-tree);then e="the card tree failed"
+ elif nc=$(echo "$P: atomize $pk atom(s) into $cp"|git commit-tree -S -p $t $nt);x=$?;[ $x != 0 ];then e="commit-tree -S failed rc $x"
+ elif ! { echo start;echo "update $B $nc $t";while read -r h;do echo "create $M/$h $h";done<$W/mk;echo commit;}|git update-ref --stdin >/dev/null 2>$W/ue;then [ "$(git rev-parse -q --verify $B)" = $t ]&&e="the ref transaction failed ($(head -1 $W/ue))"||e="[raced] $B moved under the run"
+ else ob=$(git rev-parse $t:"$cp");if [ -z "$cs" ]&&[ "$(git rev-parse -q --verify HEAD)" = $t ]&&[ "$(git hash-object "$cp" 2>/dev/null)" = $ob ]&&[ "$(git ls-files -s -- "$cp"|cut -d' ' -f2)" = $ob ];then cat $W/card>"$cp";git update-index --cacheinfo ${m:-100644},$bl,"$cp";git update-ref --no-deref HEAD $nc $t
+ else cs="kept: ~/t's $cp has an uncommitted edit or ~/t is not at $B; the atoms are on $B only, your next agi-at of the card must keep them";fi;t=$nc;add=$((add+pk));pk=0;: >$W/mk;return 0;fi
+ echo "[atomize] $e: nothing of $(wc -l <$W/mk) message(s) marked, the next wake retries">&2;rf=$((rf+$(wc -l <$W/mk)));pk=0;: >$W/mk;git show $t:"$cp">$W/card;fe=1;return 1;}
+for r in $(git for-each-ref --format='%(refname)' refs/box|grep "/$P$");do [ "$tp$fe" ]&&break;f=${r#refs/box/};f=${f%/*}
+ ag=$(($(date +%s)-${AGI_ATOMIZE_AGE:-86400}));ma=--since-as-filter=@$ag;sa=$((sa+$(git rev-list --min-age=$((ag-1)) $r|grep -cvxF -f $W/am)))
+ for c in $(git rev-list --reverse $ma $r);do git rev-parse -q --verify $M/$c>/dev/null&&continue;[ $(($(date +%s)-s0)) -lt ${AGI_ATOMIZE_SOFT:-30} ]||{ df=$((df+1));continue;}
+  git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[atomize] $c: not signed by $f, no atom (not marked)">&2;us=$((us+1));continue;}
+  box ok $f||{ echo "[atomize] $c: $f -> $P is off the matrix (box ok), no atom (not marked)">&2;om=$((om+1));continue;}
+  n=$((n+1));git log -1 --format=%B $c|grep -v '^>'>$W/b;grep -q '[^[:space:]]' $W/b&&! grep -q '^\[town\]' $W/b||{ git update-ref $M/$c $c "";continue;}
+  rm -f $W/a1;go ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}&&ck||{ [ "$tp" ]&&break;echo "[atomize] $c: no usable reply from ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}, nothing marked">&2;rf=$((rf+1));continue;}
   grep -q "	[?]$" $W/a&&cp $W/a $W/a1&&go ${AGI_ATOMIZE_MODEL2:-claude-sonnet-5-5}&&ck||{ [ ! -s $W/a1 ]||cp $W/a1 $W/a;}
-  ok=1;while IFS='	' read -r s t;do t=${t#goal:};if [ -f .agi/nodes/goal/$t.md ];then t=target:goal:$t;else case $t in idea|decision)t=target:$t;;*)t=target:?;;esac;fi
-   agi-atom add "$s" src:$c "$t">/dev/null||{ ok=;break;};add=1;done<$W/a
-  [ "$ok" ]&&git update-ref $M/$c $c ""||echo "[atomize] $c: an atom was refused, the commit is not marked">&2;done;done
+  [ "$tp" ]&&break;cp $W/card $W/c0;ok=1;k=0;while IFS='	' read -r s g;do g=${g#goal:};if [ -f .agi/nodes/goal/$g.md ];then g=target:goal:$g;else case $g in idea|decision)g=target:$g;;*)g=target:?;;esac;fi
+   AGI_ATOM_CARD=$W/card agi-atom add "$s" src:$c "$g">/dev/null||{ ok=;break;};k=$((k+1));done<$W/a
+  if [ -z "$ok" ];then cp $W/c0 $W/card;rf=$((rf+1));echo "[atomize] $c: an atom was refused, the commit is not marked">&2;elif [ $k = 0 ];then git update-ref $M/$c $c "";else echo $c>>$W/mk;pk=$((pk+k));fl||break 2;fi;done;done
+fl;cs=${cs:-ok}
+l="read=$n atoms=$add refused=$rf skipped-age=$sa deferred=$df off-matrix=$om unsigned=$us transport=${tp:-none}";echo "$(date -u +%FT%TZ) [atomize] $l card=$cs">&2
+if [ "$tp" ]||[ $rf != 0 ]||[ $df != 0 ]||[ $om != 0 ]||[ $us != 0 ]||[ "$cs" != ok ];then echo "$(date -u +%FT%TZ) $l card=$cs">$S;else rm -f $S;fi
+[ "$tp" ]&&exit 3
 date -u +%FT%TZ>${AGI_ATOMIZE_LAST:-$HOME/.atomize.last}
-[ $add = 0 ]||exec ${AGI_ATOM_COMMIT:-agi-at} "$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/$P.md}"|sed "s|^$T/||")"
 ~~~
 
 ### agi-mem (19689 B)
@@ -508,10 +523,10 @@ s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\n' ' ');echo "FIRST-ST
 [ -z "$s" -o -z "$3" ]&&exit 0;grep -qi '^first-start: *[^ ]' $3||{ echo "REFUSED: $1..$2 changes ${s}self-installing piece(s); add a first-start: line (what each post kind gains and loses at its next start)";exit 1;}
 ~~~
 
-### box (2904 B)
+### box (2935 B)
 ~~~sh
 #!/bin/sh
-# box send TO <msg | box read | box n | box carry HUB POST.. | box town up|down SHA (belam only): mail = signed commits on refs (doc:radically-simple-engine §AA1)
+# box send TO <msg | box read | box n | box ok FROM | box carry HUB POST.. | box town up|down SHA (belam only): mail = signed commits on refs (doc:radically-simple-engine §AA1)
 # out refs/box/P/TO (only P) · in refs/box/*/P · held refs/held/P/FROM (only P) · unread = in --not held
 P=${AGI_POST:?};m=refs/box
 # the matrix: a and b mail iff their levels differ by <= 1; level = rows up to owner, an inert row (no harness) counts 0
@@ -528,6 +543,7 @@ read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=$
   git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[refused] $f $c";break;}
   b=$(git log -1 --format=%B $c);case $b in "[town]"*)[ $f = belam ]&&[ "$(printf '%s\n' "$b"|wc -l)" = 1 ]&&printf '%s\n' "$b"|grep -qxE '\[town\] (up|down) [0-9a-f]{40}'||{ echo "[town-dropped] $r $c">&2;[ $1 = n ]||git update-ref $h $c;continue;};;*)[ $j = 1 ]||{ echo "[off-matrix] $f";break;};;esac
   [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$b";git update-ref $h $c;done;done;;
+ok)a ${2:?} $P;;
 carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";done;git -c transfer.fsckObjects=1 fetch -q $h "$m/*:$m/*" $x;;
 esac
 ~~~
