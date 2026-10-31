@@ -160,22 +160,64 @@ rm -f $D/.atomize.status
 mk rc;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT;git checkout -q --detach posts/p~1;c1=$(calls);AT
 ok "r1b-end-test-follows detached at posts/p~1, card untouched, a wake with nothing new (calls $c1 -> $(calls)): HEAD == posts/p, the working card shows the atom, card=ok" '[ "$(calls)" = $c1 ]&&[ "$(git rev-parse HEAD)" = "$(git rev-parse posts/p)" ]&&[ $(rows) = 1 ]&&grep -q "card=ok" $D/err'
 rp $D/mrb<<'X'
-fl;if [ -z "$cs" ];then h=$(git rev-parse -q --verify HEAD)
+[ "$h" = "$tb" ]&&return 0;
 @@
-fl;if false;then h=$(git rev-parse -q --verify HEAD)
+return 0;
 X
 mk rd;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT;git checkout -q --detach posts/p~1;AT $D/mrb
-ok "m-no-end-test-RED the mutant without the end test leaves ~/t at posts/p~1 with an atom-less card and reads card=ok: the r1b lane catches it" '[ "$(git rev-parse HEAD)" != "$(git rev-parse posts/p)" ]&&[ $(rows) = 0 ]&&grep -q "card=ok" $D/err&&! cmp -s $D/mrb $PC'
+ok "m-no-catch-up-RED the mutant with no catch-up (cu a no-op) leaves ~/t at posts/p~1 with an atom-less card and reads card=ok: the r1b lane catches it" '[ "$(git rev-parse HEAD)" != "$(git rev-parse posts/p)" ]&&[ $(rows) = 0 ]&&grep -q "card=ok" $D/err&&! cmp -s $D/mrb $PC'
 # (c) sp's condition: HEAD one behind, the commit between touches ANOTHER path -> card=kept, HEAD unmoved
 mk re;echo other >other.txt;git add other.txt;git -c commit.gpgsign=false commit -qm other;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;h0=$(git rev-parse HEAD);AT
-ok "r1c-other-path-not-followed posts/p's last commit touches other.txt: HEAD unmoved, card=kept named, other.txt not in the worktree" '[ "$(git rev-parse HEAD)" = $h0 ]&&grep -q "card=kept: ~/t is not at .* changes a path other than the card" $D/.atomize.status&&[ ! -e other.txt ]'
+ok "r1c-other-path-not-followed posts/p's last commit touches other.txt: HEAD unmoved, card=kept named, other.txt not in the worktree" '[ "$(git rev-parse HEAD)" = $h0 ]&&grep -q "card=kept: [0-9a-f]*\.\.[0-9a-f]* changes a path other than the card" $D/.atomize.status&&[ ! -e other.txt ]'
 rp $D/mrc<<'X'
-&&[ "$(git diff --name-only $1 $2)" = "$cp" ]||{
+ [ "$(git diff --name-only $1 $2)" = "$cp" ]||{ cs="kept: $1..$2 changes a path other than the card$k";return 1;};
 @@
-||{
+ 
 X
 mk rf;echo other >other.txt;git add other.txt;git -c commit.gpgsign=false commit -qm other;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;h0=$(git rev-parse HEAD);AT $D/mrc
 ok "m-path-test-cut-RED the mutant without the card-only test follows across other.txt's commit (HEAD moved, other.txt missing from the worktree while HEAD has it): the r1c lane catches it" '[ "$(git rev-parse HEAD)" != $h0 ]&&[ ! -e other.txt ]&&! cmp -s $D/mrc $PC'
+# --- R2 (goal:g7.16.1.11.46.3.1 reopened, alive [decision] 18:29:23Z 10-31)
+# (i) the card write goes through a sibling temp + mv: a write that fails (a git shim: ulimit -f 4 = 2048 B for a `git show` whose stdout is inside ~/t, i.e. the follow's write, never the run's read into its scratch dir; the card 6000 B) leaves the working card FROM's blob, named, no temp left
+mkdir -p $D/uf;printf '#!/bin/sh\ncase "$1" in show)case $(readlink /proc/$$/fd/1) in "$AGI_T"/*)ulimit -f 4;;esac;;esac\nexec %s "$@"\n' $(command -v git)>$D/uf/git;chmod +x $D/uf/git
+mk rw;yes 'a long card line for the size limit row' 2>/dev/null|head -c 6000 >>$C;git add $C;git -c commit.gpgsign=false commit -qm big;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;b0=$(git rev-parse HEAD:$CP);OP=$PATH;PATH=$D/uf:$PATH;AT;PATH=$OP
+ok "r2i-card-write-atomic the follow's card write fails under the ulimit -f 4 shim: the working card is byte-equal to FROM's blob, card=kept names the card write, no temp left" '[ "$(git hash-object $C)" = $b0 ]&&grep -q "card=kept: the follow.s card write failed" $D/.atomize.status&&[ ! -e .agi/sessions/quorum/.p.md.atomize ]'
+rp $D/mrw<<'X'
+git show $2:"$cp">"$tf"&&mv -f "$tf" "$cp"||{ x=$?;rm -f "$tf";
+@@
+git show $2:"$cp">"$cp"||{ x=$?;
+X
+mk rx;yes 'a long card line for the size limit row' 2>/dev/null|head -c 6000 >>$C;git add $C;git -c commit.gpgsign=false commit -qm big;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;b0=$(git rev-parse HEAD:$CP);OP=$PATH;PATH=$D/uf:$PATH;AT $D/mrw;PATH=$OP
+ok "m-direct-redirect-RED the mutant writing the card by a direct redirect leaves a partial card ($(wc -c <$C) B, neither FROM's nor TO's): the r2i lane catches it" '[ "$(git hash-object $C)" != $b0 ]&&[ $(wc -c <$C) -lt 6000 ]&&! cmp -s $D/mrw $PC'
+rm -f $D/.atomize.status
+# (ii) a COMMITTING run that starts behind: ~/t at posts/p~1 + a NEW message -> caught up BEFORE the first commit, both atoms in the working card, card=ok
+mk rg;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT;git checkout -q --detach posts/p~1;msg sm 'Please fix the red test.';reply 2 '{"kind":"ask","atoms":[{"slice":"fix the red test","target":"g1.2"}]}';AT
+ok "r2ii-committing-run-starts-behind ~/t at posts/p~1 + a new ask: HEAD == posts/p, both atoms in the working card ($(rows) rows), card=ok" '[ "$(git rev-parse HEAD)" = "$(git rev-parse posts/p)" ]&&[ $(rows) = 2 ]&&grep -q "card=ok" $D/err'
+rp $D/mrg<<'X'
+}
+cu
+for r in
+@@
+}
+for r in
+X
+mk rh;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT;git checkout -q --detach posts/p~1;msg sm 'Please fix the red test.';reply 2 '{"kind":"ask","atoms":[{"slice":"fix the red test","target":"g1.2"}]}';AT $D/mrg
+ok "m-start-catch-up-cut-RED the mutant without the catch-up before the first commit ends behind posts/p, card=kept: the r2ii lane catches it" '[ "$(git rev-parse HEAD)" != "$(git rev-parse posts/p)" ]&&grep -q "card=kept" $D/err&&! cmp -s $D/mrg $PC'
+rm -f $D/.atomize.status
+# (ii) + (c): one behind across an other-path commit + a NEW message -> card=kept, HEAD unmoved, other.txt untouched; the atom is on posts/p
+mk ri;echo other >other.txt;git add other.txt;git -c commit.gpgsign=false commit -qm other;git update-ref refs/heads/posts/p HEAD;git checkout -q --detach HEAD~1;h0=$(git rev-parse HEAD);msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';AT
+ok "r2ii-c-other-path-with-a-new-message one behind across other.txt's commit + a new ask: HEAD unmoved, other.txt not in the worktree, card=kept named for the range, the atom on posts/p" '[ "$(git rev-parse HEAD)" = $h0 ]&&[ ! -e other.txt ]&&grep -q "card=kept: [0-9a-f]*\.\.[0-9a-f]* changes a path other than the card" $D/.atomize.status&&git show posts/p:$CP|grep -qF "| a1 |"'
+rm -f $D/.atomize.status
+# the END test: posts/p gains a card-only commit DURING a run that commits nothing (an fyi) -> the run ends followed
+printf '#!/bin/sh\nagi-infer "$@";r=$?;cd "$AGI_T";b=$({ git show refs/heads/posts/p:%s;echo "RACED CARD LINE";}|git hash-object -w --stdin);i=$(mktemp);rm -f $i;nt=$(GIT_INDEX_FILE=$i git read-tree refs/heads/posts/p&&GIT_INDEX_FILE=$i git update-index --cacheinfo 100644,$b,%s&&GIT_INDEX_FILE=$i git write-tree);rm -f $i;c=$(git -c user.name=r -c user.email=r@r commit-tree -p refs/heads/posts/p $nt -m race2 </dev/null);git update-ref refs/heads/posts/p $c;exit $r\n' $CP $CP>$D/race2;chmod +x $D/race2
+mk rj;msg sm 'Just so you know: all is well.';reply 1 '{"kind":"fyi","atoms":[]}';export AGI_ATOMIZE_INFER=$D/race2;AT;unset AGI_ATOMIZE_INFER
+ok "r1b-end-test-follows-a-mid-run-card-commit posts/p gains a card-only commit during an fyi run: HEAD == posts/p, the working card shows the raced line, card=ok" '[ "$(git rev-parse HEAD)" = "$(git rev-parse posts/p)" ]&&grep -q "RACED CARD LINE" $C&&grep -q "card=ok" $D/err'
+rp $D/mrj<<'X'
+fl;[ "$cs" ]||cu;
+@@
+fl;
+X
+mk rk;msg sm 'Just so you know: all is well.';reply 1 '{"kind":"fyi","atoms":[]}';export AGI_ATOMIZE_INFER=$D/race2;AT $D/mrj;unset AGI_ATOMIZE_INFER
+ok "m-no-end-test-RED the mutant without the end test ends behind posts/p with card=ok: the mid-run lane catches it" '[ "$(git rev-parse HEAD)" != "$(git rev-parse posts/p)" ]&&grep -q "card=ok" $D/err&&! cmp -s $D/mrj $PC'
 rm -f $D/.atomize.status
 mk pz;for i in 1 2 3;do msg sm "message $i: build the widget now";done;AGI_ATOMIZE_SOFT=0 AT;unset AGI_ATOMIZE_SOFT
 ok "pa-deferred-named a soft deadline already passed: 0 requests, nothing marked, deferred=3 in the run line and the status" '[ "$(calls)" = 0 ]&&[ $(natom) = 0 ]&&grep -q "deferred=3" $D/err&&grep -q "deferred=3" $D/.atomize.status'
