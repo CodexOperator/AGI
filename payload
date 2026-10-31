@@ -44,7 +44,7 @@ python3 extensions/agi/bin/dispatch.py <project_root> <iter_n> --tier parent \
 The ONE kid spawn verb is `agi-in <capsule> <kid> <prompt>`. The capsule's MANIFEST cell `pull` picks the class, so no K1/K2 code path is chosen by hand:
 ```
 agi-in pack <attach> list <mint>.. --pull graph|director|none [--reach closed|open] [--at <mint>] [--atoms <ARGS.json>]   # the one writer of the spawn lines (capsule pack takes no --pull)
-agi-in <cid> <kid> "<prompt>"    # graph | director: a pi kid (own HOME + tree, AGI_CAPSULE)   none: ONE request, no tools, no tree
+agi-in <cid> <kid> "<prompt>"    # graph | director: a pi kid (own HOME + tree, AGI_CID)   none: ONE request, no tools, no tree
 agi-in -m <flow> '<ARGS json>'   # a flow, as before
 ```
 - A pull-director kid's `agi-wt pull` is refused: it asks over box. A closed reach (or no reach line, or an unknown one) pulls only the capsule's members and the kid's own card. Any other `pull` value, or a capsule that fails verify, prints `unread` and launches nothing.
