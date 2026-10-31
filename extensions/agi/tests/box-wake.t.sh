@@ -187,7 +187,7 @@ mkdir -p $T/binK;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/bi
 printf '#!/bin/sh\n[ "$1" = n ]&&[ "$AGI_POST" = "$(cat %s/who)" ]&&echo from-someone\nexit 0\n' $T >$T/binK/box;chmod +x $T/binK/box
 # r9 p40-p43 (RETIRED, goal:g7.16.1.11.32): they modelled a KID whose env carried AGI_POST=<parent> AND the retired variable =<kid>, with cccc.ts choosing it over AGI_POST. cccc.ts no longer reads it (it polls with the inherited env and the box piece needs AGI_POST) and goal:g7.16.1.11.37 retired it from the engine, so a row that sets it tests nothing that runs. The kid's env is taken FROM agi-kid's own text below (p44/p45), the one place it is built.
 # ---- goal:g7.16.1.11.24 (belam-s2-II 02:4xZ 10-10): the kid env is TAKEN FROM agi-kid's own text, never hand-written -- the words of its `exec pi` line that read AGI_*=$k, $k = kid9. The cccc.ts poll in that env asks `box n` as the KID: a box that answers ONLY for the parent 'alive' wakes it 0 times; one that answers for 'kid9' wakes it once
-[ -n "$AGIKID" ]||{ sect agi-kid>$T/agi-kid;AGIKID=$T/agi-kid;}
+[ -n "$AGIKID" ]||{ sect agi-in>$T/agi-kid;AGIKID=$T/agi-kid;}
 grep 'exec pi' $AGIKID|tr ' ' '\n'|grep -E '^AGI_[A-Z_]+=\$k$'|sed 's/\$k/kid9/'>$T/kidenv;KENV=$(cat $T/kidenv)
 reset;echo alive >$T/who;start p44 cccc $KENV PATH=$T/binK:$PATH;wt 2.5;k5=$(wakes p44);stop
 reset;echo kid9 >$T/who;start p45 cccc $KENV PATH=$T/binK:$PATH;wk p45 1;wt 1;k6=$(wakes p45);stop
