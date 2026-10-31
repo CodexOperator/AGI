@@ -33,8 +33,11 @@ def _value(node, names):
 
 
 def strict_reasons(src):
-    """(line, reason) of every `xfail(strict=True, reason=...)` in `src`; a
-    `strict=` that is not a literal (strict=S) yields (line, STRICT_UNREAD)."""
+    """(line, reason) of every `xfail(strict=True, reason=...)` in `src`. A
+    decorator whose strictness cannot be read yields (line, STRICT_UNREAD):
+    a `strict=` that is not a bool literal (strict=S, strict=1, which pytest
+    takes as strict), a `**` splat (its keyword has no name), and an xfail
+    reached through a bare name bound to `<...>.xfail` (xf = pytest.mark.xfail)."""
     tree = ast.parse(src)
     names = {}
     for n in tree.body:
@@ -42,13 +45,24 @@ def strict_reasons(src):
             v = _value(n.value, names)
             if v is not None:
                 names[n.targets[0].id] = v
+    aliases = {t.id for a in ast.walk(tree) if isinstance(a, ast.Assign)
+               and isinstance(a.value, ast.Attribute) and a.value.attr == "xfail"
+               for t in a.targets if isinstance(t, ast.Name)}
     out = []
     for n in ast.walk(tree):
-        if not (isinstance(n, ast.Call) and getattr(n.func, "attr", None) == "xfail"):
+        if not isinstance(n, ast.Call):
+            continue
+        if isinstance(n.func, ast.Name) and n.func.id in aliases:
+            out.append((n.lineno, STRICT_UNREAD))   # (c) a bare-name xfail (alive, L286)
+            continue
+        if getattr(n.func, "attr", None) != "xfail":
+            continue
+        if any(k.arg is None for k in n.keywords):
+            out.append((n.lineno, STRICT_UNREAD))   # (a) xfail(**K) (sp, L286)
             continue
         kw = {k.arg: k.value for k in n.keywords}
-        if "strict" in kw and not isinstance(kw["strict"], ast.Constant):
-            out.append((n.lineno, STRICT_UNREAD))   # council crumb (sp, L262): never a silent skip
+        if "strict" in kw and not (isinstance(kw["strict"], ast.Constant) and isinstance(kw["strict"].value, bool)):
+            out.append((n.lineno, STRICT_UNREAD))   # strict=S (sp, L262); (b) strict=1 (aio, L286): never a silent skip
             continue
         if not (isinstance(kw.get("strict"), ast.Constant) and kw["strict"].value is True):
             continue
@@ -113,3 +127,17 @@ def test_mutant_a_non_literal_strict_is_RED_by_name(tmp_path):
                  '@pytest.mark.xfail(strict=S, reason=f"RED until {S}")\ndef test_a(): pass\n'
                  '@pytest.mark.xfail(strict=False, reason="RED until a seat")\ndef test_b(): pass\n')
     assert offenders([f], _ids()) == ["test_s.py:3: strict unread"]
+
+
+def test_mutant_a_splat_a_non_bool_strict_and_a_bare_name_xfail_are_RED_by_name(tmp_path):
+    """The council's three crumb shapes on L286 (alive [decision] 22:19:14Z 10-28),
+    one case each; each was skipped in silence before this row."""
+    f = tmp_path / "test_k.py"
+    f.write_text('import pytest\nK = dict(strict=True, reason="RED until a seat")\n'
+                 'xf = pytest.mark.xfail\n'
+                 '@pytest.mark.xfail(**K)\ndef test_a(): pass\n'
+                 '@pytest.mark.xfail(strict=1, reason="RED until a seat")\ndef test_b(): pass\n'
+                 '@xf(strict=True, reason="RED until a seat")\ndef test_c(): pass\n'
+                 '@pytest.mark.xfail(strict=False, reason="RED until a seat")\ndef test_d(): pass\n')
+    assert offenders([f], _ids()) == ["test_k.py:4: strict unread", "test_k.py:6: strict unread",
+                                      "test_k.py:8: strict unread"]
