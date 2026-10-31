@@ -19,7 +19,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-brief         1369 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter         2051 B  past rotate_pct: out-line; tap chat; read: atomize
+agi-meter         2355 B  past rotate_pct: out-line; tap chat; read: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
 agi-atomize       4146 B  box mail -> verbatim card atoms (wake path, model)
 agi-mem           19689 B  chat tap -> own 0700 store; tap, at
@@ -76,13 +76,13 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (2051 B)
+### agi-meter (2355 B)
 ~~~sh
 #!/bin/sh
 # FIRST the rotation line (Claude Code kills a UserPromptSubmit hook at 30 s, and the line is the only thing that rotates a post: belam 14:2xZ 10-26); then the notice and the tap (bounded: `timeout -k 2 15`, so the hook's total wall time is bounded by construction, and a killed tap prints ONE `[mem] tap unread` line, never a silent drop); `agi-atomize wake` (26 s, stdout NEVER used) runs in the BACKGROUND under a flock held by the child, its output and failure line in ~/.atomize.log, so the hook returns in seconds
 j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
 [ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID"
-ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;r=$?;case $r in 124|137)echo "[mem] tap unread (killed at 15 s)";;125|126|127)echo "[mem] tap not run (rc $r)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ (agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;;esac;:
+ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;r=$?;case $r in 124|137)echo "[mem] tap unread (killed at 15 s)";;125|126|127)echo "[mem] tap not run (rc $r)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)al=$(git -C "$(readlink -f "${AGI_T:-$HOME/t}")" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^atomize_live: *//p'|head -1);if [ "$al" != true ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: atomize_live is ${al:-unreadable}, no request">>~/.atomize.log;else o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ (agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;fi;;esac;:
 ~~~
 
 ### agi-at (1129 B)

@@ -89,7 +89,8 @@ ok "m-no-stamp-RED the mutant without the stamp line leaves no ~/.atomize.last: 
 # the meter runs agi-mem tap from PATH: the TREE's agi-mem (not an installed one: SM's finding 23:1xZ 10-25) against a tiny repo whose `trunk` ref holds a posts.md with no mem row for p, so the tap is silent by its own gate
 mkdir -p $D/me/.agi/nodes/.geometry;printf -- '---\nid: config:posts\nposts:\n  - {"name": "p", "mem": "none"}\n---\n'>$D/me/.agi/nodes/.geometry/posts.md;(cd $D/me&&git init -q .&&git config core.hooksPath /dev/null&&git add -A&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm posts&&git update-ref refs/heads/trunk HEAD)>/dev/null 2>&1;[ -s $D/bin/agi-mem ]||{ echo "FAIL inputs: no agi-mem piece";exit 99;}
 [ -n "$PIECE" ]&&cp $PC $D/bin/agi-atomize;[ -s $D/bin/agi-meter ]||{ echo "FAIL inputs: no agi-meter piece";exit 99;};chmod +x $D/bin/*
-cred(){ mkdir -p .agi/nodes/.geometry;if [ -n "$1" ];then printf 'credits_live: %s\ndoppler: x\n' "$1">.agi/nodes/.geometry/secrets.md;else printf 'doppler: x\n'>.agi/nodes/.geometry/secrets.md;fi;git add -A;git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm cred;git update-ref refs/heads/trunk HEAD;}
+# cred CREDITS: the secrets cell; AL = atomize_live (default true, so the credits rows reach agi-atomize; AL=- writes no atomize_live line)
+cred(){ mkdir -p .agi/nodes/.geometry;if [ -n "$1" ];then printf 'credits_live: %s\ndoppler: x\n' "$1">.agi/nodes/.geometry/secrets.md;else printf 'doppler: x\n'>.agi/nodes/.geometry/secrets.md;fi;[ "${AL-true}" = - ]||echo "atomize_live: ${AL-true}">>.agi/nodes/.geometry/secrets.md;git add -A;git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm cred;git update-ref refs/heads/trunk HEAD;}
 WK(){ printf '%s' "${1:-{\"prompt\":\"mail: box read\"\}}" | (cd $T;env AGI_T=$T AGI_POST=p AGI_LAP=5 HOME=$D PATH=$WKP$D/bin:$PATH AGI_ATOM_COMMIT=$D/stub AGI_ATOMIZE_AGE=99999999 AGI_TRUNK=trunk AGI_ENGINE=$D/me sh ${2:-$D/bin/agi-meter}) 2>$D/err;flock -w 60 $D/.atomize.lock true 2>/dev/null;}   # the wake runs in the BACKGROUND now (the hook returns in seconds): wait for it by the flock its child holds
 WP='{"prompt":"mail: box read"}';WKP=;rm -f $D/.atomize.log
 mk m;cred false;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';o=$(WK "$WP")
@@ -111,6 +112,14 @@ ok "m-failure-swallowed-RED an agi-meter whose call ends in ||: swallows the 124
 # mutant: agi-meter without the caller -> 0 requests -> the wake lane (wants 1) is RED
 sed '/agi-atomize wake/d' $D/bin/agi-meter>$D/mm;mk q;cred true;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';WK "$WP" $D/mm>/dev/null
 ok "m-caller-removed-RED agi-meter without the agi-atomize call makes 0 requests (calls $(calls); the wake-one-message lane wants 1): that lane catches it" '[ "$(calls)" = 0 ]&&! cmp -s $D/mm $D/bin/agi-meter'
+# --- the GATE CELL (alive [decision] 14:17:17Z 10-31, D1): agi-meter forks the wake only on atomize_live: true, whatever credits_live says
+mk g;AL=false cred true;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';rm -f $D/.atomize.log;o=$(WK "$WP")
+ok "gate-false-no-request with atomize_live false and credits_live TRUE the hook forks nothing: 0 requests, 0 rows, nothing marked, stdout empty, the log names it (out: '$o', log: $(tail -1 $D/.atomize.log 2>/dev/null|cut -d' ' -f2-), calls $(calls))" '[ -z "$o" ]&&grep -qF "[atomize] wake not run: atomize_live is false, no request" $D/.atomize.log&&[ "$(calls)" = 0 ]&&[ $(rows) = 0 ]&&! marked'
+mk h;AL=- cred true;msg sm "$M1";rm -f $D/.atomize.log;o=$(WK "$WP")
+ok "gate-absent-unreadable-no-request a secrets cell with no atomize_live line is unreadable, never live: 0 requests, the log names it (out: '$o', calls $(calls))" '[ -z "$o" ]&&grep -qF "[atomize] wake not run: atomize_live is unreadable, no request" $D/.atomize.log&&[ "$(calls)" = 0 ]'
+# mutant: the cell read dropped (the gate always open) -> with atomize_live false the stub gets the request -> the gate-false lane is RED
+sed 's/if \[ "\$al" != true \];then/if false;then/' $D/bin/agi-meter>$D/mg;mk i;AL=false cred true;msg sm "$M1";reply 1 '{"kind":"ask","atoms":[{"slice":"build the widget now","target":"g1.2"}]}';WK "$WP" $D/mg>/dev/null
+ok "m-gate-read-dropped-RED an agi-meter that never reads atomize_live sends the request with the cell false (calls $(calls); the gate-false lane wants 0)" '[ "$(calls)" = 1 ]&&! cmp -s $D/mg $D/bin/agi-meter'
 # --- negative (falsifier 2): the box piece carries no model call
 n=$(awk '/^### box /{f=1;next} /^### /{f=0} f' $R0/.agi/nodes/.geometry/engine-post.md|grep -c atomiz)
 ok "box-body-names-no-atomiz the box piece's body names no atomiz* (got $n)" '[ "$n" = 0 ]'
