@@ -13,16 +13,17 @@ town: core
 
 EXPANSION of config:engine: the capsule verbs (goal:g7.16.1.11.44, doc:g716111-44-capsule-pack): ONE signed ref refs/capsule/CID carries a graph slice or a post's refs; its bundle moves it; pack · out · verify · in · regrow · repoint (capsule move is not built)
 Read only through `sect capsule [REV] | sh -s -- VERB ARGS` (a post's extraction loop skips this node: its glob is engine.md engine-[pw]*.md, so no post gains or loses a piece when this file changes). Run it in the repo that holds the refs: AGI_POST packs as <post>@agi, AGI_ALLOWED is the ring, AGI_TRUNK the repo's trunk.
-MANIFEST `atoms:` section (SPEC only, goal:g7.16.1.11.46.4; U3 in wave 2 fills it from the pack route, the capsule piece does not read it yet): a line `atoms:` then one line per moved atom, `  <atom id> <src> <slice sha12>`: the id, src and sha that `agi-atom move` wrote into the flow's ARGS json (`.atoms[]`), so a receiver re-derives each slice's sha12 from the ARGS and an atom is in the pack OR on a card, never both.
+MANIFEST spawn lines (goal:g7.16.1.11.46.21, doc:brainstorm-unify §3/§24): `pack` copies the env AGI_MF's lines that read `scope|reach|at|pull <v>`, `atoms:` or `  <atom line>` after `base` (no other line passes; unset = none, so every older pack is byte-equal). Their only writer is `agi-in pack` (it checks the values); agi-in and agi-wt read them, chk never does: `scope <hex>` · `reach closed|open` (absent or unknown = closed) · `at <mint>` · `pull graph|director|none` (agi-in launches nothing on any other value).
+MANIFEST `atoms:` section (spec goal:g7.16.1.11.46.4; written by `agi-in pack --atoms ARGS.json`, goal:g7.16.1.11.46.21; verify does not read it): a line `atoms:` then one line per moved atom, `  <atom id> <src> <slice sha12>`: the id, src and sha that `agi-atom move` wrote into the flow's ARGS json (`.atoms[]`), so a receiver re-derives each slice's sha12 from the ARGS and an atom is in the pack OR on a card, never both.
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-capsule           8041 B  signed slice ref <-> bundle: pack out verify in..
+capsule           8103 B  signed slice ref <-> bundle: pack out verify in..
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### capsule (8041 B)
+### capsule (8103 B)
 ~~~sh
 #!/bin/sh
 # capsule pack ATTACH subtree MINT|post P|list MINT.. [--ref GLOB].. [--kind slice|secret] [--encrypt none|quorum] | out CID >FILE | verify FILE|CID | in FILE | regrow CID DIR | repoint CID MINT   (doc:g716111-44-capsule-pack)
@@ -50,7 +51,7 @@ pack) a=$1;shift;W=;K=slice;E=none;L=;while [ $# -gt 0 ];do case $1 in --ref)L="
   awk -v s=$S -v r="$*" 'BEGIN{split(r,R," ")}{m[$2]=$1;f[$2]=$3;y[$2]=$4;I[$1]=$2;for(j=5;j<=NF;j++)c[$j]=c[$j]" "$2}END{if(s=="list"){for(k in R)w[I[R[k]]]=1}else{q[1]=I[R[1]];w[q[1]]=1;t=1;for(h=1;h<=t;h++){n=split(c[q[h]],z," ");for(j=1;j<=n;j++)if(!(z[j] in w)){w[z[j]]=1;q[++t]=z[j]}}}for(k in w)if(k!=""){print m[k],f[k];if(y[k]!="-")print m[k],y[k]}}' $d/tab|sort -u>$d/m0;git ls-tree -r --name-only $T|sort>$d/all;awk 'NR==FNR{a[$0]=1;next}$2 in a' $d/all $d/m0>$d/mem;[ -s $d/mem ]||die 2 "[none] no members";;
  post)case $1 in ""|*[!a-z0-9-]*)die 2 "[post] $1";esac;: >$d/mem;L="refs/heads/posts/$1 refs/box/$1/ refs/held/$1/ refs/archive/posts/$1* $L";;*)die 2 "[sel] subtree MINT | post P | list MINT..";;esac
  { [ -z "$L" ]||git for-each-ref --format='%(refname) %(objectname)' $L;}|grep -v '^refs/capsule/'|sort -u>$d/ref;c=${CID:-$(tr -d - </proc/sys/kernel/random/uuid)}
- { echo capsule 1;echo cid $c;echo kind $K;echo attach $a;echo encrypt $E;echo packer $P@agi;echo base $(git rev-parse $T);sed 's/^/member /' $d/mem;sed 's/^/ref /' $d/ref;printf 'not %s\n' "ram-trees uncommitted" "untracked-mints no tree entry" "host-files outside the repo" "crontabs outside the repo" "refs/stash a two-part ref cannot ride a bundle" "refs/remotes the target fetches its own";}>$d/MANIFEST
+ { echo capsule 1;echo cid $c;echo kind $K;echo attach $a;echo encrypt $E;echo packer $P@agi;echo base $(git rev-parse $T);echo "$AGI_MF"|grep -E '^((scope|reach|at|pull) |atoms:$|  )';sed 's/^/member /' $d/mem;sed 's/^/ref /' $d/ref;printf 'not %s\n' "ram-trees uncommitted" "untracked-mints no tree entry" "host-files outside the repo" "crontabs outside the repo" "refs/stash a two-part ref cannot ride a bundle" "refs/remotes the target fetches its own";}>$d/MANIFEST
  { printf '100644 %s\tMANIFEST\n' $(git hash-object -w $d/MANIFEST);while read m f;do printf '100644 %s\t%s\n' $(git rev-parse $T:$f) $f;done<$d/mem;}|GIT_INDEX_FILE=$d/x git update-index --add --index-info&&t=$(GIT_INDEX_FILE=$d/x git write-tree)&&\
  n=$(GIT_AUTHOR_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_NAME=$P GIT_COMMITTER_EMAIL=$P@agi git commit-tree -S -m "capsule $c" $t)&&git update-ref refs/capsule/$c $n ""&&echo $c;;
 out) c=$1;m32 $c||die 2 "[cid] $c";chk "$(git rev-parse --git-dir)" $c;M=$(git show refs/capsule/$c:MANIFEST);b=$(echo "$M"|sed -n 's/^base //p');K=;R=$(echo "$M"|sed -n 's/^ref \(.*\) \(.*\)/\1/p')

@@ -11,7 +11,7 @@ T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname 
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;}
-[ -n "$AGIKID" ]||{ sect agi-kid>$T/agi-kid;AGIKID=$T/agi-kid;}
+[ -n "$AGIKID" ]||{ sect agi-in>$T/agi-kid;AGIKID=$T/agi-kid;}
 [ -n "$UNITFILE" ]||UNITFILE=$GEO/engine-root.md
 [ -s $BOX ]&&[ -s $AGIKID ]&&[ -s $UNITFILE ]||{ echo "FAIL extract: box $(wc -c<$BOX) agi-kid $(wc -c<$AGIKID) unit $(wc -c<$UNITFILE)";exit 99;}
 unitenv(){ grep -m1 '^Environment=.*AGI_POST=%i' $UNITFILE|sed 's/^Environment=//'|tr ' ' '\n'|grep -v '^PATH='|sed "s/%i/$1/g";}
