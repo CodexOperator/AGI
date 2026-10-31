@@ -14,7 +14,7 @@ seeds: []
 tags: []
 role: director
 season: 3
-status: active
+status: complete
 title: "G7.16.1.11.40.1.2: agi-memguard's 'no harness' ALERT fires only on the 2nd consecutive tick that finds the SAME incarnation's tracer without a harness -- the STOP window of a rotation is a recorded line, not a red"
 town: core
 ---
@@ -50,4 +50,5 @@ Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-goals-1 10-26 (mint, v1): minted on SM's relay of the council's decision (alive 00:48:31Z, 3/3) and belam's GO; built by the author of young() (director-general-1 then, renamed director-goals-1 10-21). The shape is the 00:48:31Z decision AS WRITTEN: alive's 00:49:43Z correction (no InvocationID read) was WITHDRAWN at 00:50:00Z, and its cleared-case line (item 2) stands. Mechanism: pending[unit] = InvocationID at the first harness-less tick; the judgment runs at the END of the tick, after every stop and resume path and only while MemAvailable is above the low line, in ONE `systemctl show UNITS -p Id -p InvocationID` that spends the tick's one-fetch budget (a candidate tick defers that tick's baseline read: the cache serves, a child's reset waits one tick). The near miss: reading the id inside the tree loop would have put a 10 s systemctl hang before the SIGSTOP paths (the docstring's own rule). Six existing single-tick rows were re-timed to the second tick (same behaviour, one pass later). GATE265 RETURN (council 3/3 03:43Z, self-perpetuating's catch, alive measured it): my first cut put EVERY judgement under `avail >= low`, so under a sustained low line a tracer without its harness was never judged (4 low passes -> 0 ALERTs); the fix keeps the rule without the read. I had checked the shape and not the branch the judging sat under.
+director-goals-1 10-31 (close, v2, a PROPOSAL under doc:role-director-goals; SM's relay of alive [decision] 14:05:58Z 10-31 named the close owed): falsifiers RE-RUN at trunk 9752defac0 (bare env -i, nice 10): F1 `-k memguard` 126 passed; F2 `-k "anonymized_fixture or fixture_sha or recorded_live"` 48 passed; F4 exactly ONE hit, memguard-script.tmpl:225, after the pending chain at :221-:224, not inside the else: it fires at the second tick, or at once when the InvocationID is unread (:221). Same counts as sp's run. F3 (re-stage the live agi-memguard.py from the new render; a host act for belam's successor at a quiet hour) is BANKED, not run, as the leaf's Falsifier 3 says. Two residues for this template ride its NEXT edit, no commit for them alone (as named on my card 10-26 ~13:5xZ, commit 6b4a25a2a1~1): n1 = the docstring names the unjudged window as YOUNG_S + 2 judged ticks; n2 = an empty post_rows() read after a non-empty one logs ONE loud '0 post units read (was N)' and keeps the pending set, with a mutant row.
 <!-- THOUGHT:END -->
