@@ -30,6 +30,7 @@ locations:
     declared_in:
       - {"extensions/agi/bin/envfile.py :": "resolve"}
 credits_live: true
+atomize_live: false
 doppler: {"project": "agi", "config": "dev"}
 lanes:
   agi-batch: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-batch.service"}
@@ -173,3 +174,8 @@ this file (it names the line number and the count, never the line).
 `credits_live: false` is the kill cell (the shape of `crons_live`): at its next tick `agi-cred` removes `/etc/credstore/claude-sp` and restarts the
 lane units that carry `LoadCredential=claude-sp`. The owner flips it; it ships false. `doppler` names the Doppler project and config `agi-cred` reads
 `CLAUDE_CONSOLE_SP_KEY` from; the config is empty until the owner names it, and an empty cell writes nothing.
+
+`atomize_live` gates the atomizer's wake (goal:g7.16.1.11.46.3) on its OWN cell, never on `credits_live`: agi-meter, the one caller every post
+runs, forks `agi-atomize wake` only when it reads `atomize_live: true` here; anything else logs ONE named line in ~/.atomize.log and makes no
+request. It ships false and stays false until the council's P-a..P-e terms have landed (council 3/3 05:26Z 10-24; this cell: alive [decision]
+14:17:17Z 10-31, D1: credits_live had been true since 10-25 while every post's wake ran live against a closed port).

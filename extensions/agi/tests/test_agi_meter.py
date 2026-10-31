@@ -11,7 +11,8 @@ def piece(name):
     return re.search(rf"^### {name} .*?\n~~~\w*\n(.*?)^~~~", (GEO / "engine-post.md").read_text(), re.S | re.M)[1]
 
 
-def run(tmp_path, lines, hook=None, window=1000, trunk="HEAD", atomize=None, notice=None, sh_text=None, timeout=None, mem=None):
+def run(tmp_path, lines, hook=None, window=1000, trunk="HEAD", atomize=None, notice=None, sh_text=None, timeout=None, mem=None,
+        atomize_live="true"):
     sh = tmp_path / "m.sh"
     sh.write_text(piece("agi-meter") if sh_text is None else sh_text)
     tr = tmp_path / "t.jsonl"
@@ -33,10 +34,14 @@ def run(tmp_path, lines, hook=None, window=1000, trunk="HEAD", atomize=None, not
         g = eng / ".agi" / "nodes" / ".geometry"
         g.mkdir(parents=True)
         (g / "posts.md").write_text('---\nid: config:posts\nposts:\n  - {"name": "p", "mem": "none"}\n---\n')
+        # the atomize GATE CELL (alive [decision] 14:17:17Z 10-31, D1): the meter forks the wake only on atomize_live: true, read
+        # from AGI_T's trunk secrets.md; the wake rows open it, None writes no line (the gate reads 'unreadable')
+        if atomize_live is not None:
+            (g / "secrets.md").write_text(f"---\nid: config:secrets\natomize_live: {atomize_live}\n---\n")
         for c in (["init", "-q", "."], ["config", "core.hooksPath", "/dev/null"], ["add", "-A", ".agi"],
                   ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "commit", "-qm", "x"]):
             subprocess.run(["git", "-C", str(eng)] + c, check=True, capture_output=True)
-    env = dict(os.environ, AGI_WINDOW=str(window), AGI_ROTATE_PCT="50", AGI_ENGINE=str(eng), AGI_TRUNK=trunk,
+    env = dict(os.environ, AGI_WINDOW=str(window), AGI_ROTATE_PCT="50", AGI_ENGINE=str(eng), AGI_TRUNK=trunk, AGI_T=str(eng),
                AGI_POST="p", HOME=str(tmp_path), PATH=f"{stubs}:{os.environ.get('PATH', '')}")
     return subprocess.run(["sh", str(sh)], input=j, env=env, capture_output=True, text=True, timeout=timeout)
 
@@ -294,3 +299,23 @@ def test_y_mutant_the_125_126_127_branch_dropped_is_silent_RED(tmp_path):
     assert old in text
     r = run(tmp_path, [U(100), SYS], {"prompt": "hello"}, sh_text=text.replace(old, "").replace("agi-mem tap", "agi-mem-none tap"))
     assert "[mem] tap not run" not in r.stdout, "the mutant is silent about a tap that cannot run (row w catches it)"
+
+
+# ---- the atomize GATE CELL (alive [decision] 14:17:17Z 10-31, D1): closed -> no fork, ONE named line, stdout empty ----
+@pytest.mark.parametrize("cell,shown", [("false", "false"), (None, "unreadable")])
+def test_z_a_closed_gate_cell_forks_no_wake_and_names_it(tmp_path, cell, shown):
+    r = run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, atomize="echo woke >$HOME/woke\n", atomize_live=cell)
+    time.sleep(0.5)
+    log = (tmp_path / ".atomize.log").read_text()
+    assert r.stdout == "" and not (tmp_path / "woke").exists(), r.stdout
+    assert f"[atomize] wake not run: atomize_live is {shown}, no request" in log, log
+
+
+def test_z_mutant_the_gate_read_dropped_forks_the_wake_RED(tmp_path):
+    text = piece("agi-meter")
+    old = 'if [ "$al" != true ];then'
+    assert old in text
+    run(tmp_path, [U(100), SYS], {"prompt": "mail: box read"}, atomize="echo woke >$HOME/woke\n", atomize_live="false",
+        sh_text=text.replace(old, "if false;then"))
+    subprocess.run(["flock", "-w", "10", str(tmp_path / ".atomize.lock"), "true"], check=True)
+    assert (tmp_path / "woke").exists(), "the mutant forks the wake with the cell false (test_z_a_closed_gate catches it)"
