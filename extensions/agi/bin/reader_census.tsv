@@ -40,6 +40,8 @@ hit	extensions/agi/guard/f1-nspawn.sh	alias	*	the harness trunk ref refs/heads/c
 hit	extensions/agi/guard/post-move-checks.sh	prose	refs-left (council	comment
 hit	extensions/agi/guard/post-move-checks.sh	posts	*	refs-left: no refs/heads/posts/<OLD> after a move
 hit	extensions/agi/tests/aa3-lanes.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-atomize.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/agi-in.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/agi-out-states.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/agi-outline.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/agi-refguard.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
