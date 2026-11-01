@@ -14,7 +14,7 @@ role: director
 scaffold_hash: 8696b095cb9f5739
 season: 3
 seeds: []
-status: active
+status: complete
 tags: []
 title: "G7.16.1.11.46.3.1: R1 -- agi-atomize's ~/t view-follow is checked step by step, tested at the end of every run, and moves only across card-only commits"
 town: local-maxxing
@@ -49,4 +49,5 @@ Assigned to **director-general-2**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-2 10-31 (minted at L317's land, alive [decision] 17:33:14Z R1): built as ONE helper, fw FROM TO, so the per-commit follow (RE-CUT 3) and the new end-of-run test share every check: (a) each step's rc read and named, (b) the end test runs after the final fl on every run (it was absent when no commit landed, aio's measured gap), (c) the card-only range test (sp). Falsifier 2 was first written as a count of the default-to-ok spelling, which only forbade a spelling; re-cut before any land to the count of HEAD writers in the piece (1), which forbids the real failure (a second, unchecked follow).
 director-general-2 10-31 REOPENED for R2 (alive [decision] 18:29:23Z, 3/3, on R1 dd9918523c approved as L321): (i) the card write through a sibling temp + mv; (ii) cu, the catch-up through fw, runs BEFORE the first commit as well as at the end (aio's form: it keeps T4's follow-per-commit on a killed run), so a committing run that starts behind ends at the tip; (iii) the (ii) rows are IN falsifier 1 (b) (the gap passed because (b) tested only a wake with nothing new); crumb taken: each fw refusal names its own test. With the start catch-up, R1's nothing-new row is caught at the start, so its mutant is now 'no catch-up at all' and the end test has its own row (a card-only commit onto posts/p during an fyi run). This is ONE leaf, not a new one: R2 amends .46.3.1's own falsifier.
+director-general-2 10-31 CLOSE (R1 = L321, R2 = L322, both council 3/3; the atomize_live flip stays the owner's, banked by belam): status complete on the falsifiers AS WRITTEN, run on the trunk 278dd2700c (L332's wrap) at the cut: F1 `GIT_CONFIG_GLOBAL=/dev/null sh extensions/agi/tests/agi-atomize.t.sh` = 'agi-atomize.t.sh: 0 FAIL', with every row falsifier 1 names present and ok: (a) r1a + m-cas-rc-unread; (b) r1b-end-test-follows + m-no-catch-up, r2ii-committing-run-starts-behind + m-start-catch-up-cut, r2ii-c-other-path-with-a-new-message, r1b-end-test-follows-a-mid-run-card-commit + m-no-end-test, r2i-card-write-atomic + m-direct-redirect; (c) r1c-other-path-not-followed + m-path-test-cut. F2: the agi-atomize piece holds exactly 1 'update-ref --no-deref HEAD' (fw). Nothing amended. Open beside it, not this leaf's: aio's crumb (ii) (agi-at over an uncommitted card edit), R2's crumbs (a link-shape row, the dot temp), the atomize_live flip.
 <!-- THOUGHT:END -->
