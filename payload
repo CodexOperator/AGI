@@ -107,3 +107,4 @@ Every re-mur: `workflow.py run merge-up-review --harness pi-free` -- EXPLICIT (b
 The card's chain row gets the new tip (`<chain> <N> LIVE`). On harvest: agi-dispatch §5 traps → mur over `<prev tip>..<new tip>` only
 (skill agi-workflow) → back to §2. A chain merges only at its LAST cleared tip, in the order the card names.
 A chain whose merge-tree vs the trunk HEAD is rc 1: merge the trunk INTO the loop branch in its worktree (keep both CORRECTIVE sections, the newer THOUGHT), re-test, re-gate (DG3 chain landing conflicts).
+A re-cut on a MOVED trunk: cut from the trunk tree + your files by exact path, each after `git diff --quiet <your base> <trunk> -- <file>` reads 0 (the stale posts copy: agi-review :127) (DG2 10-31).
