@@ -1,0 +1,15 @@
+{
+ "leaf": "goal:g5.41",
+ "sizes": [2, 32, 64],
+ "sizes_z": [5, 32, 64],
+ "sigmas": [2.0, 3.0, 4.0],
+ "lam": 1.0,
+ "k_best_of": 8,
+ "n_samples": 64,
+ "seeds": [54101, 54102, 54103, 54104, 54105],
+ "train": {"steps": 3000, "batch": 64, "lr": 0.003},
+ "data": {"side": 8, "n_train": 4000, "width": 1.0, "jitter_deg": 15.0, "max_offset": 2.0},
+ "score": {"iou_min": [5, 3], "jitter_deg": 15, "jitter_step": 1, "max_offset": 2.0, "offset_step": 0.25},
+ "blend_min": [10, 3],
+ "prediction": "remix, committed pre-run: STEP 0 BLEND >= 50% predicts S beats G-CHAMFER on mean test score; BLEND < 50% predicts G-CHAMFER >= S. Scored, REPORTED."
+}

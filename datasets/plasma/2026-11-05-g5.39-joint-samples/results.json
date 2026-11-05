@@ -1,0 +1,2057 @@
+{
+ "leaf": "goal:g5.39",
+ "n_templates": 2108,
+ "numpy": "2.5.4",
+ "params": {
+  "data": {
+   "jitter_deg": 15.0,
+   "max_offset": 2.0,
+   "n_train": 4000,
+   "side": 8,
+   "width": 1.0
+  },
+  "k_best_of": 8,
+  "leaf": "goal:g5.39",
+  "n_samples": 64,
+  "score": {
+   "iou_min": [
+    5,
+    3
+   ],
+   "jitter_deg": 15,
+   "jitter_step": 1,
+   "max_offset": 2.0,
+   "offset_step": 0.25
+  },
+  "seeds": [
+   53901,
+   53902,
+   53903,
+   53904,
+   53905
+  ],
+  "sigmas": [
+   0.3,
+   1.0,
+   2.0
+  ],
+  "sizes": [
+   2,
+   32,
+   64
+  ],
+  "taus": [
+   0.25,
+   0.5,
+   1.0,
+   2.0
+  ],
+  "train": {
+   "batch": 64,
+   "lr": 0.003,
+   "steps": 3000
+  }
+ },
+ "seeds": [
+  {
+   "M1": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": -0.0,
+       "score": -0.0,
+       "valid": 1.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.5
+    }
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "P": {
+    "0.3": {
+     "test": {
+      "coverage": 0.8647869792568111,
+      "cues": [
+       {
+        "coverage": 0.9182958340544894,
+        "score": 0.04304511722130419,
+        "valid": 0.046875
+       },
+       {
+        "coverage": 0.8112781244591328,
+        "score": 0.0507048827786958,
+        "valid": 0.0625
+       }
+      ],
+      "score": 0.046875,
+      "valid": 0.0546875
+     },
+     "val": {
+      "coverage": 0.4591479170272447,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.015625
+       },
+       {
+        "coverage": 0.9182958340544894,
+        "score": 0.04304511722130419,
+        "valid": 0.046875
+       }
+      ],
+      "score": 0.021522558610652096,
+      "valid": 0.03125
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.6465798502295381,
+      "cues": [
+       {
+        "coverage": 0.5435644431995964,
+        "score": 0.06794555539994955,
+        "valid": 0.125
+       },
+       {
+        "coverage": 0.74959525725948,
+        "score": 0.16397396252551125,
+        "valid": 0.21875
+       }
+      ],
+      "score": 0.11595975896273039,
+      "valid": 0.171875
+     },
+     "val": {
+      "coverage": 1.0,
+      "cues": [
+       {
+        "coverage": 1.0,
+        "score": 0.1875,
+        "valid": 0.1875
+       },
+       {
+        "coverage": 1.0,
+        "score": 0.25,
+        "valid": 0.25
+       }
+      ],
+      "score": 0.21875,
+      "valid": 0.21875
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.9750807275049453,
+      "cues": [
+       {
+        "coverage": 0.9957274520849256,
+        "score": 0.2022571387047505,
+        "valid": 0.203125
+       },
+       {
+        "coverage": 0.954434002924965,
+        "score": 0.11930425036562063,
+        "valid": 0.125
+       }
+      ],
+      "score": 0.16078069453518556,
+      "valid": 0.1640625
+     },
+     "val": {
+      "coverage": 0.9126098466367946,
+      "cues": [
+       {
+        "coverage": 0.9798687566511527,
+        "score": 0.18372539187209114,
+        "valid": 0.1875
+       },
+       {
+        "coverage": 0.8453509366224364,
+        "score": 0.14529469223198127,
+        "valid": 0.171875
+       }
+      ],
+      "score": 0.1645100420520362,
+      "valid": 0.1796875
+     }
+    }
+   },
+   "T": {
+    "0.25": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "0.5": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.015625
+       },
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.015625
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.015625
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    }
+   },
+   "n_params": 2208,
+   "seed": 53901
+  },
+  {
+   "M1": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "P": {
+    "0.3": {
+     "test": {
+      "coverage": 0.4854752972273344,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.015625
+       },
+       {
+        "coverage": 0.9709505944546688,
+        "score": 0.075855515191771,
+        "valid": 0.078125
+       }
+      ],
+      "score": 0.0379277575958855,
+      "valid": 0.046875
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.046875
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0234375
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.9376605553538246,
+      "cues": [
+       {
+        "coverage": 0.9940302114769566,
+        "score": 0.17084894259760192,
+        "valid": 0.171875
+       },
+       {
+        "coverage": 0.8812908992306927,
+        "score": 0.13770170300479573,
+        "valid": 0.15625
+       }
+      ],
+      "score": 0.15427532280119882,
+      "valid": 0.1640625
+     },
+     "val": {
+      "coverage": 0.6500224216483541,
+      "cues": [
+       {
+        "coverage": 0.6500224216483541,
+        "score": 0.1218792040590664,
+        "valid": 0.1875
+       },
+       {
+        "coverage": 0.6500224216483541,
+        "score": 0.0609396020295332,
+        "valid": 0.09375
+       }
+      ],
+      "score": 0.0914094030442998,
+      "valid": 0.140625
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.9406331842844045,
+      "cues": [
+       {
+        "coverage": 0.9852281360342515,
+        "score": 0.21551865475749252,
+        "valid": 0.21875
+       },
+       {
+        "coverage": 0.8960382325345574,
+        "score": 0.22400955813363935,
+        "valid": 0.25
+       }
+      ],
+      "score": 0.21976410644556593,
+      "valid": 0.234375
+     },
+     "val": {
+      "coverage": 0.9671513797880589,
+      "cues": [
+       {
+        "coverage": 0.954434002924965,
+        "score": 0.23860850073124126,
+        "valid": 0.25
+       },
+       {
+        "coverage": 0.9798687566511527,
+        "score": 0.18372539187209114,
+        "valid": 0.1875
+       }
+      ],
+      "score": 0.21116694630166621,
+      "valid": 0.21875
+     }
+    }
+   },
+   "T": {
+    "0.25": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "0.5": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    }
+   },
+   "n_params": 2208,
+   "seed": 53902
+  },
+  {
+   "M1": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": -0.0,
+       "score": -0.0,
+       "valid": 1.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.5
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "P": {
+    "0.3": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.015625
+       },
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.03125
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0234375
+     },
+     "val": {
+      "coverage": 0.8647869792568111,
+      "cues": [
+       {
+        "coverage": 0.9182958340544894,
+        "score": 0.04304511722130419,
+        "valid": 0.046875
+       },
+       {
+        "coverage": 0.8112781244591328,
+        "score": 0.0507048827786958,
+        "valid": 0.0625
+       }
+      ],
+      "score": 0.046875,
+      "valid": 0.0546875
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.9705526806870144,
+      "cues": [
+       {
+        "coverage": 0.9798687566511527,
+        "score": 0.18372539187209114,
+        "valid": 0.1875
+       },
+       {
+        "coverage": 0.961236604722876,
+        "score": 0.1952511853343342,
+        "valid": 0.203125
+       }
+      ],
+      "score": 0.18948828860321265,
+      "valid": 0.1953125
+     },
+     "val": {
+      "coverage": 0.9376605553538246,
+      "cues": [
+       {
+        "coverage": 0.8812908992306927,
+        "score": 0.13770170300479573,
+        "valid": 0.15625
+       },
+       {
+        "coverage": 0.9940302114769566,
+        "score": 0.17084894259760192,
+        "valid": 0.171875
+       }
+      ],
+      "score": 0.15427532280119882,
+      "valid": 0.1640625
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.9809047717576251,
+      "cues": [
+       {
+        "coverage": 0.9819407868640977,
+        "score": 0.291513671100279,
+        "valid": 0.296875
+       },
+       {
+        "coverage": 0.9798687566511527,
+        "score": 0.18372539187209114,
+        "valid": 0.1875
+       }
+      ],
+      "score": 0.23761953148618506,
+      "valid": 0.2421875
+     },
+     "val": {
+      "coverage": 0.9692173792942242,
+      "cues": [
+       {
+        "coverage": 0.9927744539878083,
+        "score": 0.3102420168711901,
+        "valid": 0.3125
+       },
+       {
+        "coverage": 0.9456603046006401,
+        "score": 0.16253536485323503,
+        "valid": 0.171875
+       }
+      ],
+      "score": 0.23638869086221254,
+      "valid": 0.2421875
+     }
+    }
+   },
+   "T": {
+    "0.25": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "0.5": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.4591479170272447,
+      "cues": [
+       {
+        "coverage": 0.9182958340544894,
+        "score": 0.04304511722130419,
+        "valid": 0.046875
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.021522558610652096,
+      "valid": 0.0234375
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    }
+   },
+   "n_params": 2208,
+   "seed": 53903
+  },
+  {
+   "M1": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "P": {
+    "0.3": {
+     "test": {
+      "coverage": 0.4056390622295664,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.8112781244591328,
+        "score": 0.0507048827786958,
+        "valid": 0.0625
+       }
+      ],
+      "score": 0.0253524413893479,
+      "valid": 0.03125
+     },
+     "val": {
+      "coverage": 0.5,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.015625
+       },
+       {
+        "coverage": 1.0,
+        "score": 0.0625,
+        "valid": 0.0625
+       }
+      ],
+      "score": 0.03125,
+      "valid": 0.0390625
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.9706938783427829,
+      "cues": [
+       {
+        "coverage": 0.9957274520849256,
+        "score": 0.2022571387047505,
+        "valid": 0.203125
+       },
+       {
+        "coverage": 0.9456603046006401,
+        "score": 0.16253536485323503,
+        "valid": 0.171875
+       }
+      ],
+      "score": 0.18239625177899277,
+      "valid": 0.1875
+     },
+     "val": {
+      "coverage": 0.9798250013715831,
+      "cues": [
+       {
+        "coverage": 0.9709505944546688,
+        "score": 0.227566545575313,
+        "valid": 0.234375
+       },
+       {
+        "coverage": 0.9886994082884974,
+        "score": 0.24717485207212436,
+        "valid": 0.25
+       }
+      ],
+      "score": 0.2373706988237187,
+      "valid": 0.2421875
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.9517619850443705,
+      "cues": [
+       {
+        "coverage": 0.9182958340544894,
+        "score": 0.21522558610652096,
+        "valid": 0.234375
+       },
+       {
+        "coverage": 0.9852281360342515,
+        "score": 0.21551865475749252,
+        "valid": 0.21875
+       }
+      ],
+      "score": 0.21537212043200674,
+      "valid": 0.2265625
+     },
+     "val": {
+      "coverage": 0.9583054495276544,
+      "cues": [
+       {
+        "coverage": 0.9456603046006401,
+        "score": 0.16253536485323503,
+        "valid": 0.171875
+       },
+       {
+        "coverage": 0.9709505944546688,
+        "score": 0.151711030383542,
+        "valid": 0.15625
+       }
+      ],
+      "score": 0.1571231976183885,
+      "valid": 0.1640625
+     }
+    }
+   },
+   "T": {
+    "0.25": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "0.5": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    }
+   },
+   "n_params": 2208,
+   "seed": 53904
+  },
+  {
+   "M1": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": -0.0,
+       "score": -0.0,
+       "valid": 1.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.5
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": -0.0,
+       "score": -0.0,
+       "valid": 1.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.5
+    }
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "0.3": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "1.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    },
+    "2.0": {
+     "coverage": 0.0,
+     "cues": [
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      },
+      {
+       "coverage": 0.0,
+       "score": 0.0,
+       "valid": 0.0
+      }
+     ],
+     "score": 0.0,
+     "valid": 0.0
+    }
+   },
+   "P": {
+    "0.3": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.046875
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0234375
+     },
+     "val": {
+      "coverage": 0.5,
+      "cues": [
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.03125
+       },
+       {
+        "coverage": 1.0,
+        "score": 0.03125,
+        "valid": 0.03125
+       }
+      ],
+      "score": 0.015625,
+      "valid": 0.03125
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.5,
+      "cues": [
+       {
+        "coverage": 1.0,
+        "score": 0.09375,
+        "valid": 0.09375
+       },
+       {
+        "coverage": -0.0,
+        "score": -0.0,
+        "valid": 0.140625
+       }
+      ],
+      "score": 0.046875,
+      "valid": 0.1171875
+     },
+     "val": {
+      "coverage": 0.8220263165626553,
+      "cues": [
+       {
+        "coverage": 0.9940302114769566,
+        "score": 0.17084894259760192,
+        "valid": 0.171875
+       },
+       {
+        "coverage": 0.6500224216483541,
+        "score": 0.1218792040590664,
+        "valid": 0.1875
+       }
+      ],
+      "score": 0.14636407332833415,
+      "valid": 0.1796875
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.8464393446710156,
+      "cues": [
+       {
+        "coverage": 0.9709505944546688,
+        "score": 0.227566545575313,
+        "valid": 0.234375
+       },
+       {
+        "coverage": 0.7219280948873623,
+        "score": 0.11280126482615035,
+        "valid": 0.15625
+       }
+      ],
+      "score": 0.17018390520073168,
+      "valid": 0.1953125
+     },
+     "val": {
+      "coverage": 0.9854724082446875,
+      "cues": [
+       {
+        "coverage": 0.9798687566511527,
+        "score": 0.18372539187209114,
+        "valid": 0.1875
+       },
+       {
+        "coverage": 0.9910760598382222,
+        "score": 0.13937007091475,
+        "valid": 0.140625
+       }
+      ],
+      "score": 0.16154773139342057,
+      "valid": 0.1640625
+     }
+    }
+   },
+   "T": {
+    "0.25": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "0.5": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "1.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    },
+    "2.0": {
+     "test": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     },
+     "val": {
+      "coverage": 0.0,
+      "cues": [
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       },
+       {
+        "coverage": 0.0,
+        "score": 0.0,
+        "valid": 0.0
+       }
+      ],
+      "score": 0.0,
+      "valid": 0.0
+     }
+    }
+   },
+   "n_params": 2208,
+   "seed": 53905
+  }
+ ]
+}
