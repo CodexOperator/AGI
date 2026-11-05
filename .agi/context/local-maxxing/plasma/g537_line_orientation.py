@@ -16,20 +16,28 @@ CLASSES = 4  # 0, 45, 90, 135 degrees
 
 
 # ---------------------------------------------------------------- data
-def make_lines(rng, n, side, width, px_noise, jitter_deg, max_offset):
-    """n images side x side: one line of class k at angle 45k +- jitter, offset from centre."""
-    y = rng.integers(0, CLASSES, size=n)
+def make_lines(rng, n, side, width, px_noise, jitter_deg, max_offset, y=None):
+    """n images side x side: one line of class k at angle 45k +- jitter, offset from centre.
+    y given (goal:g5.39 reuses this): the classes are taken, not drawn; px_noise 0 draws nothing."""
+    if y is None:
+        y = rng.integers(0, CLASSES, size=n)
     ang = np.deg2rad(45.0 * y + rng.uniform(-jitter_deg, jitter_deg, size=n))
     off = rng.uniform(-max_offset, max_offset, size=n)
+    img = render(ang, off, side, width)
+    if px_noise > 0:
+        img += rng.normal(0.0, px_noise, size=img.shape)
+    return img.reshape(n, side * side), y
+
+
+def render(ang, off, side, width):
+    """clean binary lines: angle ang (radians, y up), offset off along the normal; (n, side, side)."""
     c = (side - 1) / 2.0
     yy, xx = np.mgrid[0:side, 0:side]
     px, py = xx - c, c - yy  # pixel centres, y up
     # distance of each pixel centre to the line through (off * normal) with direction ang
     nx, ny = -np.sin(ang), np.cos(ang)
     d = np.abs(px[None] * nx[:, None, None] + py[None] * ny[:, None, None] - off[:, None, None])
-    img = (d <= width / 2.0).astype(np.float64)
-    img += rng.normal(0.0, px_noise, size=img.shape)
-    return img.reshape(n, side * side), y
+    return (d <= width / 2.0).astype(np.float64)
 
 
 # ---------------------------------------------------------------- net
