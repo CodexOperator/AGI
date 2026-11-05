@@ -10,6 +10,8 @@ season: 3
 title: "Mutation score, run 1: of 14 runnable landed proved checks, 13 killed by their mutant and 1 survived (H-F1 RED); 2 not runnable; H-F2 VOID (0 arm swaps); M1-M3 as stated (goal:g5.40)"
 town: local-maxxing
 verdict: disproved
+evidence_runs:
+  - experiment:mutation-score-16-landed-proved-checks-g5-40-run-1
 confidence: 0.9
 ---
 

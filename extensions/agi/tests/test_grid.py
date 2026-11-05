@@ -5,6 +5,7 @@ import functools
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -2123,13 +2124,13 @@ def test_single_file_commit_lock_mutant_reads_red(guard_project, monkeypatch):
     """The row's mutant (goal:g1.43 row 26): a grid.py whose single-file commit TAKES the
     lock is caught by the same count (1, not 0), under any load."""
     src = BIN.read_text()
-    a = "    if do_all and not session:\n        lock = GridLock(root, lock_wait)"
+    a = "    if do_all and not session:\n        lock = GridLock(root, lock_wait, taker=\"commit --all\")"
     assert src.count(a) == 1
     mut = importlib.util.module_from_spec(importlib.util.spec_from_loader("grid_lock_mutant", loader=None))
     mut.__dict__["__file__"] = str(BIN)
     sys.modules["grid_lock_mutant"] = mut
     try:
-        exec(compile(src.replace(a, "    if not session:\n        lock = GridLock(root, lock_wait)"), str(BIN), "exec"), mut.__dict__)
+        exec(compile(src.replace(a, "    if not session:\n        lock = GridLock(root, lock_wait, taker=\"commit --all\")"), str(BIN), "exec"), mut.__dict__)
         n = _count_lock_acquires(monkeypatch, mut)
         f = guard_project / "nodes" / "idea" / "x.md"
         mut.cmd_commit(guard_project, [str(f)], do_all=False, session=None, lock_wait=5)
@@ -2255,6 +2256,122 @@ def _hold_grid_lock_at(lock, seconds):
     t = threading.Thread(target=_hold, daemon=True)
     t.start()
     return t
+
+
+# --------------- goal:g7.16.1.11.20.5 -- a refusal names taker + holder ----
+
+def _split_project(tmp_path):
+    """A G11 project inside a git repo with two commits, so cmd_split's
+    rev-parse + plan pass and it reaches GridLock."""
+    agi = _make_g11_project(tmp_path)
+    root = agi.parent
+    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t",
+               GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+    for argv in (["init", "-q"], ["add", "-A"], ["commit", "-qm", "a"],
+                 ["commit", "-q", "--allow-empty", "-m", "b"]):
+        subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null",
+                        *argv], check=True, env=env, capture_output=True)
+    return grid.find_project_root(agi)
+
+
+def _hold_with_record(lock, record, seconds=5):
+    t = _hold_grid_lock_at(lock, seconds)
+    with open(lock, "w") as f:   # a second fd: the flock stays held
+        f.write(record)
+    return t
+
+
+def test_grid_lock_holder_a_split_refusal_names_split_not_commit(tmp_path, capsys):
+    # term (a): a taker OTHER than commit. Today's constant 'commit --all'
+    # (or the split site's label dropped) is the mutant this row reads RED.
+    graph = _split_project(tmp_path)
+    _hold_with_record(graph / "sessions" / ".grid.lock",
+                      "4100771 unify --write 2026-11-05T10:30:01Z")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_split(graph, "HEAD~1", "HEAD", write=True, lock_wait=1)
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert "grid: split could not acquire the grid lock" in err, err
+    assert "commit --all" not in err, err
+    assert "held by 4100771 unify --write since 2026-11-05T10:30:01Z, " in err, err
+
+
+def test_grid_lock_holder_a_a_unify_refusal_names_unify_write(tmp_path, capsys, monkeypatch):
+    # term (a), the mint's 1(a) second half (alive 18:53:34Z): cmd_unify --write
+    # under a held lock names ITS OWN label. Only the wait is shortened (the
+    # site hardcodes 120 s); the label still comes from the call site.
+    graph = _split_project(tmp_path)
+    root = graph.parent
+    head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                          check=True, capture_output=True, text=True).stdout.strip()
+    subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null",
+                    "update-ref", f"refs/legacy-t/node/{MINT_X}", head], check=True)
+    monkeypatch.setattr(grid, "LEGACY_NS", ["refs/legacy-t"])
+    monkeypatch.setattr(grid, "legacy_config_problem", lambda r: None)
+    real = grid.GridLock
+    monkeypatch.setattr(grid, "GridLock",
+                        lambda r, w, taker="commit --all": real(r, 1, taker=taker))
+    _hold_with_record(graph / "sessions" / ".grid.lock",
+                      "2104592 commit --all 2026-11-05T10:30:00Z")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_unify(graph, write=True)
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert "grid: unify --write could not acquire the grid lock" in err, err
+    assert "held by 2104592 commit --all since 2026-11-05T10:30:00Z, " in err, err
+
+
+def test_grid_lock_holder_b_an_empty_record_says_so(tmp_path, capsys):
+    # term (b): the holder truncates before it writes, so a waiter can read
+    # an EMPTY file; the refusal names that case, never a bare 'held by'.
+    agi = _make_g11_project(tmp_path)
+    graph = grid.find_project_root(agi)
+    _hold_with_record(graph / "sessions" / ".grid.lock", "")
+    with pytest.raises(SystemExit):
+        grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)
+    err = capsys.readouterr().err
+    assert "(holder record empty)" in err and "held by" not in err, err
+
+
+def test_grid_lock_holder_c_the_record_round_trips(tmp_path, capsys):
+    # a held lock's file reads '<pid> <taker> <UTC>'; a waiter names it + age
+    agi = _make_g11_project(tmp_path)
+    graph = grid.find_project_root(agi)
+    holder = grid.GridLock(graph, 1, taker="unify owner-batch")
+    holder.acquire()
+    try:
+        rec = (graph / "sessions" / ".grid.lock").read_text()
+        pid, *taker, at = rec.split()
+        assert pid == str(os.getpid()) and taker == ["unify", "owner-batch"], rec
+        assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", at), rec
+        waiter = grid.GridLock(graph, 1, taker="commit --all")
+        with pytest.raises(SystemExit):
+            waiter.acquire()
+    finally:
+        holder.release()
+    err = capsys.readouterr().err
+    assert "grid: commit --all could not acquire the grid lock" in err, err
+    assert f"held by {pid} unify owner-batch since {at}, " in err, err
+    assert re.search(r", \d+ s\) within 1s", err), err
+
+
+def test_grid_lock_holder_d_a_legacy_pid_only_record_reads(tmp_path, capsys):
+    agi = _make_g11_project(tmp_path)
+    graph = grid.find_project_root(agi)
+    _hold_with_record(graph / "sessions" / ".grid.lock", "485677")
+    with pytest.raises(SystemExit):
+        grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)
+    assert "(held by 485677 (legacy record))" in capsys.readouterr().err
+
+
+def test_grid_lock_holder_every_call_site_names_its_taker():
+    # the four takers (grid.py cmd_commit, cmd_split, _unify_owner_batch,
+    # cmd_unify) each pass their own label; none falls back to the default
+    src = Path(grid.__file__).read_text()
+    sites = re.findall(r"GridLock\(root, [^)]*\)", src)
+    assert len(sites) == 4, sites
+    assert sorted(re.search(r'taker="([^"]+)"', x).group(1) for x in sites) \
+        == ["commit --all", "split", "unify --write", "unify owner-batch"]
 
 
 # --------------- goal:g14.14.7 -- storage trunk is config-declared --------

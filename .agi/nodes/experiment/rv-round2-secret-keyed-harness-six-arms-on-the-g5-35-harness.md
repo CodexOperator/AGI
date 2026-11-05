@@ -10,6 +10,8 @@ season: 3
 title: "RV harness round 2 (DH.1): secret-keyed draws, 200 distinct targets; null 44/200, seed-reader 34/200, position-0 judge 40/200 inside chance; salt-planted, seed-reader on the public-keyed harness, position-0 judge unshuffled each 200/200 RED (goal:g5.35)"
 town: local-maxxing
 verdict: proved
+evidence_runs:
+  - experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness
 confidence: 0.95
 ---
 

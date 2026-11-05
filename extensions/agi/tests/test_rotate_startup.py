@@ -91,7 +91,7 @@ def test_producing_refusal_allows_shipped_commands():
         "python3 extensions/agi/bin/rotate.py whois --seat {seat} --record latest",
         "python3 extensions/agi/bin/send.py whois {succ_ref} --claim {seat}",
         "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3",
-        "python3 extensions/agi/bin/send.py read {seat}",
+        "python3 extensions/agi/bin/rotate.py box-unread --post {seat} --repo {repo}",
         "python3 extensions/agi/bin/spawn_budget.py status; "
         "python3 extensions/agi/bin/provisioning.py status | head -4",
     ]
@@ -2851,3 +2851,175 @@ def test_prime_row_authority_mutant_the_constant_back_is_red(monkeypatch, tmp_pa
     exec(mut, ns)
     ns["_prime_row_authority"](root)
     assert seen[0] != "origin/season3/main"
+
+
+# --- goal:g7.16.1.11.27.1: the wake brief prints no false memory -----------
+# Real box mail in a tmp repo: SSH-signed commits on refs/box/<F>/<P>, read
+# by the same `for F@agi with` check the box script uses.
+
+ROTATIONS = (Path(__file__).resolve().parents[3]
+             / ".agi" / "nodes" / ".geometry" / "rotations.md")
+
+
+def _git(repo, *a, env=None):
+    return subprocess.run(["git", "-C", str(repo), *a], check=True,
+                          capture_output=True, text=True, env=env).stdout.strip()
+
+
+@pytest.fixture
+def box_repo(tmp_path):
+    key = tmp_path / "k"
+    subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f",
+                    str(key)], check=True)
+    signers = tmp_path / "signers"
+    signers.write_text("sm@agi " + (tmp_path / "k.pub").read_text())
+    repo = tmp_path / "r"
+    _git(tmp_path, "init", "-q", str(repo))
+    # an empty hooks dir: the box's global ref-guard refuses a "peer's"
+    # refs/box update in ANY repo, this tmp fixture included
+    (tmp_path / "nohooks").mkdir()
+    for k, v in (("gpg.format", "ssh"), ("user.signingkey", str(key)),
+                 ("gpg.ssh.allowedSignersFile", str(signers)),
+                 ("core.hooksPath", str(tmp_path / "nohooks"))):
+        _git(repo, "config", k, v)
+    env = dict(os.environ, GIT_AUTHOR_NAME="sm", GIT_AUTHOR_EMAIL="sm@agi",
+               GIT_COMMITTER_NAME="sm", GIT_COMMITTER_EMAIL="sm@agi",
+               GIT_COMMITTER_DATE="2026-11-05T12:00:00+00:00")
+    tree = _git(repo, "hash-object", "-w", "-t", "tree", "/dev/null")
+    c = subprocess.run(["git", "-C", str(repo), "commit-tree", "-S", tree],
+                       input="[note] one\n", capture_output=True, text=True,
+                       env=env, check=True).stdout.strip()
+    _git(repo, "update-ref", "refs/box/sm/p", c)
+    return repo, c
+
+
+def _inbox_names_unread(out: str) -> bool:
+    """The falsifier's reading of an inbox row: it names the sender, the
+    count and the time, and never says empty."""
+    return ("sm: 1, newest 2026-11-05T12:00:00" in out
+            and "empty" not in out)
+
+
+def _inbox_cmd(template: str) -> str:
+    import yaml
+    data = yaml.safe_load(ROTATIONS.read_text(encoding="utf-8").split("---", 2)[1])
+    rows = data["templates"][template]["startup"]["first_turn"]
+    return next(r["cmd"] for r in rows if r["label"] == "inbox")
+
+
+def test_wake_memory_a_one_unread_message_is_named_with_its_time(box_repo, capsys):
+    repo, _ = box_repo
+    rc = rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(repo)))
+    out = capsys.readouterr().out
+    assert rc == 0 and _inbox_names_unread(out), out
+
+
+@pytest.mark.parametrize("template", ["director", "prime_director"])
+def test_wake_memory_a_both_templates_read_the_box(template):
+    cmd = _inbox_cmd(template)
+    assert "rotate.py box-unread --post {seat}" in cmd, cmd
+    assert "send.py" not in cmd
+    assert rotate._producing_refusal(cmd) is None
+
+
+def test_wake_memory_b_held_mail_is_not_unread_and_nothing_is_consumed(box_repo, capsys):
+    repo, c = box_repo
+    held = lambda: subprocess.run(  # noqa: E731
+        ["git", "-C", str(repo), "for-each-ref", "refs/held/"],
+        capture_output=True, text=True).stdout
+    assert held() == ""
+    rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(repo)))
+    assert held() == "", "the reader moved a held ref (it consumed)"
+    capsys.readouterr()
+    _git(repo, "update-ref", "refs/held/p/sm", c)
+    before = held()
+    rc = rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(repo)))
+    out = capsys.readouterr().out
+    assert rc == 0 and "sm:" not in out, out
+    # sp 13:45:15Z: 0 unread is ONE positive line with a time, never silence
+    assert _zero_unread_line_ok(out), out
+    assert held() == before
+
+
+def _zero_unread_line_ok(out: str) -> bool:
+    return ("): none; newest box ref 2026-11-05T12:00:00" in out
+            and len(out.strip().splitlines()) == 1)
+
+
+def test_wake_memory_b_an_unsigned_commit_is_not_counted(box_repo, capsys):
+    repo, c = box_repo
+    tree = _git(repo, "hash-object", "-w", "-t", "tree", "/dev/null")
+    env = dict(os.environ, GIT_AUTHOR_NAME="x", GIT_AUTHOR_EMAIL="sm@agi",
+               GIT_COMMITTER_NAME="x", GIT_COMMITTER_EMAIL="sm@agi")
+    u = subprocess.run(["git", "-C", str(repo), "commit-tree", "-p", c, tree],
+                       input="forged\n", capture_output=True, text=True,
+                       env=env, check=True).stdout.strip()
+    _git(repo, "update-ref", "refs/box/sm/p", u)
+    rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(repo)))
+    out = capsys.readouterr().out
+    assert "sm: 1," in out and "REFUSED (not signed for sm@agi)" in out, out
+
+
+def test_wake_memory_c_an_unreadable_signers_file_is_a_failed_read(box_repo, capsys):
+    # sp 14:19:40Z: with no signers file the VERIFIER read nothing; that is
+    # 'unread: <its line>' rc 2, never '0 message(s)' + a REFUSED sender.
+    repo, _ = box_repo
+    _git(repo, "config", "gpg.ssh.allowedSignersFile", str(repo / "absent"))
+    rc = rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(repo)))
+    out = capsys.readouterr().out
+    assert rc == 2 and out.startswith("unread: ") and "REFUSED" not in out, out
+
+
+def test_wake_memory_b_newest_orders_by_instant_not_text(box_repo, capsys):
+    # alive 14:12:41Z: a text max over %cI orders right only on one offset.
+    # tm's 12:30+01:00 (11:30Z) is EARLIER than sm's 12:00+00:00 but sorts
+    # later as text; with both held, the 0-unread line must name sm's time.
+    repo, c = box_repo
+    signers = Path(_git(repo, "config", "gpg.ssh.allowedSignersFile"))
+    signers.write_text(signers.read_text()
+                       + signers.read_text().replace("sm@agi", "tm@agi", 1))
+    env = dict(os.environ, GIT_AUTHOR_NAME="tm", GIT_AUTHOR_EMAIL="tm@agi",
+               GIT_COMMITTER_NAME="tm", GIT_COMMITTER_EMAIL="tm@agi",
+               GIT_COMMITTER_DATE="2026-11-05T12:30:00+01:00")
+    tree = _git(repo, "hash-object", "-w", "-t", "tree", "/dev/null")
+    t = subprocess.run(["git", "-C", str(repo), "commit-tree", "-S", tree],
+                       input="[note] tm\n", capture_output=True, text=True,
+                       env=env, check=True).stdout.strip()
+    _git(repo, "update-ref", "refs/box/tm/p", t)
+    _git(repo, "update-ref", "refs/held/p/sm", c)
+    _git(repo, "update-ref", "refs/held/p/tm", t)
+    rc = rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(repo)))
+    out = capsys.readouterr().out
+    assert rc == 0 and "newest box ref 2026-11-05T12:00:00+00:00" in out, out
+
+
+def test_wake_memory_c_no_post_says_why(capsys):
+    rc = rotate.cmd_box_unread(SimpleNamespace(seat="", repo="."))
+    out = capsys.readouterr().out
+    assert rc == 2 and out.startswith("unread: ") and "empty" not in out
+
+
+def test_wake_memory_c_outside_the_repo_says_why(tmp_path, capsys):
+    rc = rotate.cmd_box_unread(SimpleNamespace(seat="p", repo=str(tmp_path)))
+    out = capsys.readouterr().out
+    assert rc == 2 and out.startswith("unread: ") and "not a git repository" in out
+
+
+def test_wake_memory_c_rc0_with_stderr_is_a_failed_read_not_no_mail():
+    # sp [note] 11:58:31Z 11-05: outside the repo `box n` exits 0 with only a
+    # stderr line. A reader that branches on rc alone reads that as no mail.
+    def run(argv, **kw):
+        return _Proc(rc=0, out="", err="fatal: not a git repository")
+    rows, _, reason = rotate._box_unread("/x", "p", run=run)
+    assert rows == [] and reason == "fatal: not a git repository"
+
+
+def test_wake_memory_d_an_old_record_prints_its_age():
+    from datetime import datetime, timezone
+    now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+    sfx = rotate._record_age_suffix("dg1.20260930T120000Z.json", now=now)
+    assert sfx == " (age 36d 0h; none since the v5 out)", sfx
+    assert rotate._record_age_suffix("dg1.20261102T060000Z.json", now=now) \
+        == " (age 3d 6h)"
+    assert rotate._record_age_suffix("dg1.json", now=now) == " (age unknown)"
+

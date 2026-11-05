@@ -1462,6 +1462,21 @@ manifest:
     purpose: rotate.py bootstrap-block
     side_effects: graph-write
     proposable: true
+  rotate.py:box-unread:
+    cli: rotate.py
+    verb: box-unread
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/rotate.py
+      - box-unread
+      - "--seat"
+      - <seat>
+    args:
+      - {"name": "seat", "type": "str", "required": true, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: rotate.py box-unread
+    side_effects: read
+    proposable: true
   rotate.py:handoff:
     cli: rotate.py
     verb: handoff
