@@ -19,7 +19,7 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Opus 5.5 · director under thought-master (TM) · goal:g5.36 (r9 less-is-more) · tree ~/t (detached read view; commits via agi-at) · branch posts/director-thought-1 · box belam-gpu (local-town) · trunk core/season3/main
+director-thought-1 · v5 post · Opus 5.5 · director under thought-master (TM) · goal:g5.36 (r9 less-is-more) · tree ~/t (detached read view; commits via agi-at) · branch posts/director-thought-1 · box local-town · trunk core/season3/main
 
 ## §0 State
 ```

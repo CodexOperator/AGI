@@ -24,7 +24,7 @@ verdict: disproved
 **Pre-run commit `f533da2a1a`** (falsifier + mutant in the hypothesis node, params.json sha256 `b8fdafc5...1fd6`, script, tests, cell), BEFORE any run. Results commit: the commit carrying this node.
 
 ## Environment (disclosed)
-- Box belam-gpu (local-town), CPU. Private venv `/data/scratch/director-thought-1/venv` (965 MB < 5 GiB, read before install): torch `2.14.0+cpu` (wheel `torch-2.14.0+cpu-cp313-cp313-manylinux_2_28_x86_64.whl`, 196253940 B, sha256 `160e1bc4...6e95`), numpy `2.5.4` (sha256 `6ffa0766...62c0`), pytest 8.4.2 + pyyaml (the repo conftest imports yaml). **Deviation:** numpy 2.5.4, not the 1.26.4 of the 10-10 run (system python is 3.13, which 1.26.4 has no wheel for); every number here is a float64 lstsq on a CPU float32 forward pass.
+- Box local-town, CPU. Private venv `/data/scratch/director-thought-1/venv` (965 MB < 5 GiB, read before install): torch `2.14.0+cpu` (wheel `torch-2.14.0+cpu-cp313-cp313-manylinux_2_28_x86_64.whl`, 196253940 B, sha256 `160e1bc4...6e95`), numpy `2.5.4` (sha256 `6ffa0766...62c0`), pytest 8.4.2 + pyyaml (the repo conftest imports yaml). **Deviation:** numpy 2.5.4, not the 1.26.4 of the 10-10 run (system python is 3.13, which 1.26.4 has no wheel for); every number here is a float64 lstsq on a CPU float32 forward pass.
 - Gate: MemAvailable 13.5 GB, memory PSI full avg60 0.00; ONE python process, threads 1, `ulimit -v 3145728` (3 GiB), `timeout 1320`, wall cap 1200 s; wall 22.6 s. 0 USD.
 
 ## Results (`datasets/osc-band/2026-11-05-neuron-period-cut/results.json`, sha256 `2dd333ec...672a`; params sha256 at launch = final)
