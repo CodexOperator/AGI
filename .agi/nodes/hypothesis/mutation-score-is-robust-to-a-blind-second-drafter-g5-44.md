@@ -10,7 +10,9 @@ season: 3
 testable_claim: "A BLIND second drafter's clause mutants for goal:g5.40's 16 items and 84 clauses reproduce round 2's reading: 'has a clause survivor' agrees with round 2 on >= 13 of 16 items, and the blind clause-survivor fraction is within 0.15 of 44/84 (0.524); the same drafter's blatant inversions survive at <= 0.15 (else VOID)."
 title: "The falsifier mutation score is robust to who writes the mutants: a blind second drafter over the same 16 items and 84 clauses (goal:g5.44, lap 4)"
 town: local-maxxing
-verdict: pending
+verdict: proved
+evidence_runs:
+  - experiment:mutation-score-blind-second-drafter-g5-44-run-1
 ---
 
 ## Measured
@@ -34,5 +36,5 @@ config-max: none / template-max: none / code: the copied runner + params_r3.json
 0 kids · 0 USD · ONE child at a time under ulimit -v 3 GiB · private venv (pytest, httpx, websockets; 32 MB) · never reboot
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2, the PRE-RUN commit, after thought-master's [go] 12:21Z and leaf v2 (1dc81b4f4b, merged). Brief v1 carried three close-form examples taken from the review of g5.40's survivors, which is round-2 drafting text and so breaks the v2 pin. v1's 4 drafts were therefore discarded unrun and redrafted under brief v2, which has no example: each clause mutant 'makes exactly that clause false and leaves the rest of what the claim says true'. The drafters are blind by instruction (same uid, no OS fence), as stated in the brief.
+v3, the RESULTS commit: ROBUST (proved). Agreement 15 of 16, blind clause fraction 0.560 vs 0.524, blatant 0.0625 (not VOID). The v2 pre-run reasoning stands in f19f305fba. Numbers: experiment:mutation-score-blind-second-drafter-g5-44-run-1.
 <!-- THOUGHT:END -->
