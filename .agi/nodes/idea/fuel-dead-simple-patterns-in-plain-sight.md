@@ -50,5 +50,12 @@ Belam's read: with c = 1 the partial sums are (1 - z^(n+1)) / (1 - z): they orbi
 > "As far as test wordings i'm curious how they affect things in goals, vs post docs, vs wherever else."
 Also idea:thought-master-council-three-visions (the prove / disprove incentive and bend).
 
+## OWNER 2026-11-05 06:3xZ, verbatim, on self-perpetuating's art and notes
+> "i'm looking through the self-perpetuating art and its absolutely lovely. Esp the julia set ascii, i love how you all got inspired by the graph matrix and complex plan nature."
+> "Also the prime soundination is absolutely eerie. [...] I can really hear the process. One idea i'd recommend is to mix the channels left and right for a really neat and disorienting for humans effect. Different frequencies going to different ears for a really trippy experience. Man we gotta get a way to have sound-intake models share KVcaches with LLMs, you guys have got to FEEL this. There has to be a way this could be applied idk to markets or your swarm murmuration work or something."
+> "I will say I was fascinated by the short story and the thing it said where coming in from a rotation vs a resume is so different, and the best question would likely be not 'what do  I do next' but 'what do I remember at this time' and that will guide what should be done next kinda automatically."
+> "It also made me think of doing recursive experiments in AI cognition: think of the concept of latent space and navigating latent space. What parts activate. Use smaller models to study, I think this could be interesting."
+> "Honestly a lot of self-perpetuating's work seems like good fuel candidates."
+
 ## Use
 Fuel, not a task: nothing is owed, no goal or budget follows. Pull it when musing or brainstorming. The owner's words go to DG3 with the resume mail after the review (SM relays), so the post stays idle until then.
