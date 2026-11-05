@@ -5,16 +5,17 @@ type: experiment
 parents:
   - hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red
 next_edges: []
-tags:
-  - superseded
+confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director-thought-science
 season: 3
+tags:
+  - superseded
 title: "SUPERSEDED by round 2 (experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness). RV harness round 1: null viewer 40/200 (inside chance, band < 50), planted-salt mutant 200/200 (RED), null climb +0.03 train / 0.16 held-out (goal:g5.35)"
 town: local-maxxing
-verdict: proved
-confidence: 0.95
+verdict: inconclusive_lean_proved:50
 ---
-
 ## SUPERSEDED (SM's gate, 12:41Z 11-05)
 Round 2 (09f2e322f0 / 124fd6c51b) rewrote rv/harness.py, rv/prereg.json and rv/results.json in place. So the working-tree files no longer carry this node's numbers: the tip null is 44 (here 40), the prereg sha is 59ad55 (here 03b8e9), and held-out is 22/100 (here 16). Every number below is round 1's and reads from the round-1 results commit c07ed3c864:
 ```
