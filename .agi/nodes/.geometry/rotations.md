@@ -187,7 +187,7 @@ rather than in the same window. The resolution must run BEFORE any side effect
 - F22 -> skill agi-send (§2); F28 -> skill agi-rotate (§3).
 - F27 -> skill agi-rotate (§1): rotate at f >= 0.47, never on r.
 - F19+F8+F18+F20 -> skill agi-rotate (§3): floor wake 0 / out 1, your wake acts NONE - never ps, tmux, status or ack by hand.
-- F23 -> skill agi-rotate (§2): EMPTY/AMBIGUOUS where-it-stops refused, STALE is not.
+- F23 -> skill agi-rotate (§2): never leave where-it-stops EMPTY/AMBIGUOUS (nothing refuses it in the v5 out); a STALE one is still written.
 - F26+F14 -> skill agi-rotate (§2): never merge origin by hand, never rebase.
 - F25+F3 -> skill agi-send (§1): a post name is not a session token; `send.py whois <token>` resolves a session_ref or session_name. F10+F11 -> skill agi-send (§3).
 - F24+F4 -> skill agi-node-write (§1); F17+F21 -> skill agi-node-write (§2).
@@ -195,9 +195,8 @@ rather than in the same window. The resolution must run BEFORE any side effect
 - F7 -> skill agi-merge-pass (§4) + agi-verify (§2).
 - F1 -> skill agi-rotate (§3).
 - F13 UN-MIGRATED (owner 09-12; .env is MAIN-root only, never a literal home path): the `account` entry was dropped; g15-18 is the open code half. Spend checked by hand, one command, from any worktree: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' "$(git rev-parse --path-format=absolute --git-common-dir)/../.env" | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H "Authorization: Bearer $K"`.
-- F16 -> skill agi-rotate (§2): never ran `-h`/`--dry-run` by hand before rotating; the pre-flight runs inside - run it ONCE and emit the tokens it prints, never `-h`.
 - F12 UN-MIGRATED: judge a first_turn entry in-process; `None` = allowed.
-- RETIRED, numbers only: F2 (-> F3), F15 (-> F6), F18 (-> the F19 line), F6. UN-MIGRATED.
+- RETIRED, numbers only: F2 (-> F3), F15 (-> F6), F18 (-> the F19 line), F6, F16 (rotate.py's pre-flight: rotate.py is not the out, retired with goal .46.28, owner 11-01). UN-MIGRATED.
 
 ## steps
 
