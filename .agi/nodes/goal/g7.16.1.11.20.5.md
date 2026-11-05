@@ -15,7 +15,7 @@ role: director
 scaffold_hash: 10a9378b9c34b165
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - council
   - grid
@@ -59,5 +59,5 @@ ACT 2 (a crons.md schedule or wait change; its own leaf after N holder lines) ·
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-05 19:0xZ v2, in the BUILD RE-CUT 1, on alive's RETURN 18:53:34Z (SM [view] 18:5xZ backing it): falsifier 1(a) named a cmd_unify row the first build lacked; the build now has it (a real refusal at cmd_unify --write). No falsifier text changed. Term (c) reworded to the council's reading: N = 5 is the trigger for the council's ACT 2 read, not an automatic branch (alive, SM AGREE). v1 (the mint 4ceef8b2ce, 18:4xZ): terms (a)-(d) from alive's [decision] 18:32:43Z; N = 5 and the labels mine; in git history.
+11-05 19:5xZ v3, CLOSE: status active -> complete on the falsifiers AS WRITTEN, run on an export of the live trunk 7c772e3c36 (L372, gate tip ff23d562f2, council 3/3, GATE504 GREEN, b-7 (a) 3/3 alive [decision] 19:42:07Z), load5 3.39: (1) test_grid.py -k grid_lock_holder 6 passed; (2) test_grid.py whole 169 passed and land-split.t.sh 30 rows 0 FAIL (term d's readers unchanged); (3) the old 'commit --all' f-string literal 0 hits in grid.py. No other byte changed. ACT 2 stays out of scope and unplaced: the council reads N = 5 holder-naming refusal lines first (term c, a trigger). v2 (BUILD RE-CUT 1): the cmd_unify row + term (c) as a trigger; v1 (the mint 4ceef8b2ce); both in git history.
 <!-- THOUGHT:END -->
