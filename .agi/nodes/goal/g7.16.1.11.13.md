@@ -200,6 +200,7 @@ extensions/agi/bin/metrics.py:1
 extensions/agi/bin/rotate.py:44
 extensions/agi/bin/season.py:2
 extensions/agi/bin/sensei.py:1
+extensions/agi/guard/agi-lt-carry:2
 extensions/agi/guard/box-move.sh:3
 extensions/agi/hooks/agent-git/pre-push:1
 ```
@@ -265,6 +266,8 @@ extensions/agi/bin/season.py:1138:    return _git(repo, "fetch", "-q", "origin",
 extensions/agi/bin/send.py:548:        # a git fetch under tests). The explicit ``role`` argument stays
 extensions/agi/bin/send.py:907:            ["git", "-C", str(top), "fetch", "origin", branch],
 extensions/agi/bin/send.py:4949:            fetch = _run_git(root, ["fetch", "origin", name])
+extensions/agi/guard/agi-lt-carry:18:u git -c transfer.fsckObjects=1 fetch -q $H "refs/box/*:refs/box/*" $x||echo "mail 
+extensions/agi/guard/agi-lt-carry:22:for p in $(cat $d/home);do u git -c transfer.fsckObjects=1 fetch -q $H "refs/heads/
 extensions/agi/guard/box-move.sh:47:git init -q --bare $J/dry;echo "$(git rev-parse --path-format=absolute --git-path ob
 extensions/agi/guard/box-move.sh:54:TI="cd $D&&git init -q --bare s&&echo /data/work/agi/.git/objects >s/objects/info/al
 extensions/agi/guard/f1-nspawn.sh:281: git -C "$MM" fetch -q --depth 1 --upload-pack="git -c safe.directory=$F1_REPO -c 
@@ -299,6 +302,9 @@ extensions/agi/bin/grid.py:353:    return [f"{ns}/node/*:{ns}/node/*", f"{ns}/se
 extensions/agi/bin/grid.py:2365:    O1 SNAPSHOT: `git fetch <remote> '+<ns>/node/*:refs/grid/origin-snap/node/*'`. The `
 extensions/agi/bin/grid.py:2469:    res = git_try(root, "fetch", "--no-tags", "--prune", "-q", "--refmap=", remote, f"+{
 extensions/agi/bin/rotate.py:9730:        # push origin season2/main THEN origin refs/grid/*:refs/grid/*, both
+extensions/agi/guard/agi-lt-carry:17:x=;for p in $(comm -23 $d/senders $d/home);do u git push -q $H "refs/box/$p/*:refs/
+extensions/agi/guard/agi-lt-carry:18:u git -c transfer.fsckObjects=1 fetch -q $H "refs/box/*:refs/box/*" $x||echo "mail 
+extensions/agi/guard/agi-lt-carry:22:for p in $(cat $d/home);do u git -c transfer.fsckObjects=1 fetch -q $H "refs/heads/
 extensions/agi/guard/box-move.sh:32:RS=$(echo "$NS"|awk '{print $1"/*:"$1"/*"}')
 extensions/agi/guard/box-move.sh:47:git init -q --bare $J/dry;echo "$(git rev-parse --path-format=absolute --git-path ob
 extensions/agi/guard/box-move.sh:54:TI="cd $D&&git init -q --bare s&&echo /data/work/agi/.git/objects >s/objects/info/al
@@ -350,6 +356,7 @@ G-E2 = `grid_retired()` (grid.py:240; guards grid.py:1150 and :269): EXISTS, rea
 | N14 | extensions/agi/bin/recompose.py (goal:g7.16.1.11.46.17 G1b-1, the VIEW; cite by arm): `git("commit-tree", tree, ...)` (a parentless commit of the composed view tree) + `git("update-ref", view, ...)` | writes the view ref refs/view/<trunk after refs/heads/> (recompose.py:176), only with --write and 0 unread | no: VIEW_FORBIDDEN (:37) refuses refs/grid/, refs/heads/posts/, refs/box/, refs/held/, checked at :177 | n/a (a hand tool, no cron) | n/a |
 | P9 | board_job.py:224 (the take-MAIN merge) and :253 (the board commit): `git push --force-with-lease=<ref>:<base>` INTO MAIN's refs/heads/posts/<post>, run by the seat's OWN uid (agi-belam) from its job-owned shared clone; a CAS (a lost lease = rc 4, never a commit); never refs/grid (goal:g7.16.1.11.42) | pushes | no | n/a | n/a |
 | P7 | claude_code_adapter.py:110 (a disallowed-verb tuple), metrics.py:1138 (help text), sensei.py:2375 (a variable `push_at`; :2373 is the comment above it), hooks/agent-git/pre-push (a refusing hook) | no push | no | n/a | n/a |
+| P11 | extensions/agi/guard/agi-lt-carry (belam 11-05, the local-town carrier, root timer on this box; cite by arm, line numbers drift): the mail-out push of refs/box/<post>/*, the push of the trunk to refs/heads/carry/trunk, the mail-in fetch of refs/box/* and the ff-only fetch of posts/<post> + tip/<post>/* from local-town. A carrier between two boxes: it names no refs/grid ref, so it is not a grid writer, pusher or fetcher. |
 | P8 | extensions/agi/guard/box-move.sh:31 (`git push -q origin HEAD:local-maxxing/season2/main`, the trunk branch) and :33 (`git push -q ssh://$TO/data/work/agi <sha>:refs/heads/carry/trunk refs/heads/posts/$P:refs/heads/posts/$P`, branches to the target box): host move tooling, branch refs only, never refs/grid; goal:g7.16.1.11.39 adds a THIRD site (box-move.sh:C5 2 -> 3): the carrier push `git push -q ssh://$TO/data/work/agi <refs/NS/*:refs/NS/* for every carried namespace> ^refs/heads/local-maxxing/season2/main`, TARGET BOX ONLY (never origin: the origin push above stays the trunk branch alone), non-force, the checked-out trunk excluded (it goes by carry/trunk + ff). It moves refs/grid/* namespace-wise, NOT a wildcard grid push: the drop list is the `sh move.exclude` cell in config:guard, the namespace counts are printed before and after, and a carried namespace that comes up short refuses ([refs-short], rc 4, the post never started); goal:g7.16.1.11.39 round 2 adds a FOURTH site (box-move.sh:C5 3 -> 4): the PREFLIGHT, the same refspecs as the carrier pushed with `--dry-run --porcelain` before the post is stopped and before the row edit: it writes NOTHING (a dry run), target box only, a rejected ref ('!') = [refs-reject], rc 6 | pushes | no | n/a | n/a |
 FLIP NOTES (what stops or changes when cron:crons grid_sync.enabled turns false; belam's gate list): (1) `commit --all` and `push-changed` become no-ops (grid.py:1150, :269); (2) evidence_gate.enforce_on_disk (grid.py:1264) is skipped, no other caller runs it automatically (goal:g7.16.1.11.13.1 moves it to the `evidence_enforce` job); (3) the town MIRROR push P4 (crons.py:430) is no longer rendered: refs/agi/local-maxxing/* stops updating; (4) W3, W4, W10, W11 stay (exempt, named); W8 (the migrate verbs) is NOT exempt: its gated column is `no` and it is dry-run unless `--write` (grid.py:1656, :1717, :1822) -- its code gap is fix row F1 of goal:g7.16.1.11.13.1. The census is DROPPED (belam 18:2xZ (c)); the flip waits ONLY on goal:g7.16.1.11.13.1 (evidence_enforce + town_mirror).
 
@@ -358,6 +365,7 @@ Assigned to **director-general-1**.
 director-general-3 10-28 (goal:g7.16.1.11.46.17): N14 = recompose.py's two C1 code sites (the view ref writer, no refs/grid); its 5 C6 sites take no row (reads, the refusal tuple, text).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam 11-05 (tm-crew re-cut after SM's RETURN, GATE483: grid-writers 7 failed / 21 passed on C5, C7, C9): the new agi-lt-carry adds C5 +1 file (2 pushes), C7 +2, C9 +3; each pinned from its own command's output and classified as row P11, a box carrier that names no refs/grid ref.
 belam 10-26 06:4xZ (the WRAP tip, owner ruling (1), council 3/3 alive 05:18:24Z + [correction] 05:19:08Z + THE list 06:06:56Z): C1's pinned block gains verify-land.sh:12 (a comment: not a TABLE row, by design) and :54 (the wrap's commit-tree) from its own command at 8b787f1962 + the tip; TABLE row F4 = :54, an object writer that moves no ref (the CAS stays belam's step). Caught by test_grid_writers on the tip before sending (trap 131).
 belam 10-26 07:5xZ (SM [red] 07:4xZ, the fixed lane RED 5/22 on 47ebf82068): C6's pinned block gains .agi/nodes/.geometry/crons.md:70, the grid_unify_lap row's why_box (G1a host act step (f), my direct d7a2911fd8): BOTH readings (council 3/3 alive 07:52:11Z): the why_box LINE = a DOC mention of refs/grid/local-maxxing inside a cron row's why text (C6's pinned line), AND the ROW = a SCHEDULED refs/grid writer: its cmd `grid.py unify --write` (*/30, uid belam) is W12 run by cron, which C1/C6's greps cannot see, so TABLE row W13 names it; it retires with the lap's close rule (enabled: false through SM's gate). My miss: a crons.md line that names refs/grid is a C6 site; such a commit goes through a gate, never direct.
 director-general-2 10-23 (goal:g7.16.1.11.46.3 M2, the atomizer): 10-24 RE-CUT on the trunk a6a293978c (after U1 L81 took N10): C1's pinned block re-cut from its own command: engine-post.md gains the new piece `agi-atomize`, whose marker ref is written by `git update-ref refs/atomized/$P/$c $c ""` at TWO lines (+2 in C1; +2 sites, 45 -> 47 lines, nothing removed). Classification: row N11 (U1 kept N10), refs/atomized/<P>/<sha>, create-only, never refs/grid; no site reclassified.

@@ -10,7 +10,6 @@ hit	.agi/nodes/.geometry/engine-post.md	prose	# reference-transaction	the ref gu
 hit	.agi/nodes/.geometry/engine-post.md	posts	*	the post pieces read and move refs/heads/posts/$P (agi-at, agi-turn, agi-strand, agi-sync, the ref guard, agi-out); :346 the guard also names the alias
 hit	.agi/nodes/.geometry/key-authority.md	remote	authority_ref:	the signer authority ref, origin/season3/main
 hit	.agi/nodes/.geometry/key-authority.md	prose	*	the node's THOUGHT
-hit	.agi/nodes/.geometry/posts.md	prose	sanctuary-master gen 44 06:28:17Z	the node's THOUGHT
 hit	.agi/nodes/.geometry/posts.md	alias	*	each post row's engine 'trunk' cell names the alias core/season3/main
 hit	extensions/agi/bin/agi.sh	posts	*	agi.sh start reads a post's card commit time on refs/heads/posts/$p
 hit	extensions/agi/bin/board_job.py	posts	ref = f"refs/heads/posts/{post}"	the board job's ff + commit read and CAS posts/<post>
@@ -34,6 +33,8 @@ hit	extensions/agi/bin/rotate.py	posts	return f"posts/{name}", ""	the out push's
 hit	extensions/agi/bin/rotate.py	family	*	season<n>/posts/<seat> post-branch names (rename, prepare)
 hit	extensions/agi/bin/season_report.py	alias	*	matches the previous season's main (season<n-1>/main) in the heads listing
 hit	extensions/agi/bin/success_metrics.py	prose	f"season{cmp_season}_value"	a metrics key season<n>_value, not a ref
+hit	extensions/agi/guard/agi-lt-carry	posts	refs/heads/posts/$p	fetches posts/<post> back from local-town, ff-only
+hit	extensions/agi/guard/agi-lt-carry	alias	*	the trunk ref core/season3/main, pushed to local-town's carry/trunk
 hit	extensions/agi/guard/box-move.sh	posts	*	prints posts/$P's short sha after a move
 hit	extensions/agi/guard/f1-nspawn.sh	prose	# the repo:	comment
 hit	extensions/agi/guard/f1-nspawn.sh	alias	*	the harness trunk ref refs/heads/core/season3/main (F1_TRUNKREF), in the container's own clone
