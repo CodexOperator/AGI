@@ -34,7 +34,7 @@ next: thought-master's reply (close, or the next leaf).
 - g5.46 merges ee6b839a41 + 59786ae919 · pre-run 29b9084b23 · results c6a3e3de09
 
 ## 🔴 Where it stops
-Evidence fix: TM's [ack-fix] 20:16Z, mine (672a898dea) rides TM's re-cut 61abbc396e (dry-run 0) to SM; g5.43/g5.46 (e4a99b3c6d) ride the next regular merge-up. Waiting on TM's reply to the g5.46 [complete]. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
+Evidence fix LANDED: L374 5ba578905e (belam 20:35Z) carries 672a898dea; g5.39 / g5.41 read disproved with evidence_runs on trunk. g5.43/g5.46 fix (e4a99b3c6d) rides the next regular merge-up. Waiting on TM's reply to the g5.46 [complete]. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
 
 ## §4 Traps
 - a decisive verdict (proved / disproved) needs evidence_runs that RESOLVE: mint an experiment node per run (it cites itself, payload_ref = results.json) and cite it from the hypothesis IN THE SAME TURN; dry-run `evidence_gate.enforce_on_disk(<tree>/.agi, dry_run=True)` before any [complete] (belam [red] 20:07Z, L364).
