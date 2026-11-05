@@ -311,11 +311,11 @@ def test_rendered_brief_reaches_argv_never_discarded():
 
 
 def test_no_rendered_brief_still_carries_the_context_path():
-    """Back-compat: with no render in hand the argv keeps its old shape
-    (`-p <context_file>`), so nothing that reads the stub argv moves."""
+    """Back-compat: with no render in hand the prompt is the context path,
+    behind the measured headless flag (`--single <context_file>`)."""
     argv = grok.build_command(
         harness=HARNESS, tier="kid", context_file="/tmp/ctx.md")
-    assert argv[-2:] == ["-p", "/tmp/ctx.md"]
+    assert argv[-2:] == ["--single", "/tmp/ctx.md"]
 
 
 def test_empty_render_and_empty_context_refuse_by_name():
@@ -352,3 +352,102 @@ def test_restart_with_both_inputs_empty_degrades_to_none(monkeypatch, tmp_path):
                        agent_id="a00-test", iter_n=1, sess_dir=sess,
                        scaffold=None, target="goal:g17.14.1")
     assert pid is None
+
+
+# ------------------------------------- measured argv parity (goal:g7.31.1.1)
+#: The recorded `grok-bot --help`, read from the GRAPH (council (G), SM's
+#: amend: every parity row reads a graph file, never a box binary).
+MEASURED_DOC = Path(".agi") / "nodes" / "doc" / "grok-bot-help-measured.md"
+
+#: The landed adapter path falsifier 2 greps (`goal:g7.31.1.1`).
+ADAPTER_PATH = (Path("extensions") / "agi" / "bin" / "adapters"
+                / "grok_bot_adapter.py",)
+
+
+def _measured_help(doc: Path) -> str:
+    """The fenced block under `### grok-bot --help`. An absent file, an absent
+    heading or an empty block REFUSES (AssertionError), so a lost
+    measurement is a RED row, never a vacuous pass."""
+    assert doc.is_file(), f"measured --help absent: {doc}"
+    text = doc.read_text(encoding="utf-8")
+    head = "### grok-bot --help\n```\n"
+    assert head in text, f"no '### grok-bot --help' block in {doc}"
+    block = text.split(head, 1)[1].split("\n```", 1)[0]
+    assert block.strip(), f"empty measured --help in {doc}"
+    return block
+
+
+def _declared_flags(help_text: str) -> set[str]:
+    """Every `-x` / `--long` an option line of the help declares."""
+    import re
+    flags = set()
+    for m in re.finditer(r"^\s+(?:(-\w), )?(--[\w-]+)", help_text, re.M):
+        flags.update(f for f in m.groups() if f)
+    return flags
+
+
+def _flags_in(argv: list[str]) -> list[str]:
+    return [a for a in argv[1:] if a.startswith("-")]
+
+
+def _stub_p_hits(root: Path, paths=ADAPTER_PATH) -> tuple[int, int]:
+    """(files scanned, files holding the old stub's argv token `"-p"`)."""
+    files = [root / p for p in paths if (root / p).is_file()]
+    hits = [f for f in files if '"-p"' in f.read_text(encoding="utf-8")]
+    return len(files), len(hits)
+
+
+def test_measured_help_is_recorded_in_the_graph():
+    """Falsifier 1's measurement exists and holds the flags the argv uses."""
+    flags = _declared_flags(_measured_help(_project_root() / MEASURED_DOC))
+    assert {"--single", "-p", "--model", "-m"} <= flags
+
+
+def test_every_argv_flag_is_declared_by_the_measured_help():
+    """Falsifier 1: the argv, with and without a model, carries ONLY flags the
+    recorded help declares, and its prompt follows `--single`."""
+    flags = _declared_flags(_measured_help(_project_root() / MEASURED_DOC))
+    for harness in (HARNESS, {"adapter": "grok_bot"}):
+        argv = grok.build_command(harness=harness, tier="kid",
+                                  context_file="/tmp/ctx.md",
+                                  rendered_brief="BRIEF")
+        used = _flags_in(argv)
+        assert used and set(used) <= flags, (used, sorted(flags))
+        assert argv[argv.index("--single") + 1] == "BRIEF"
+
+
+def test_an_absent_or_empty_measurement_reads_red(tmp_path):
+    """sp's amend: the parity rows cannot pass on a lost measurement."""
+    with pytest.raises(AssertionError):
+        _measured_help(tmp_path / "absent.md")
+    empty = tmp_path / "empty.md"
+    empty.write_text("### grok-bot --help\n```\n\n```\n", encoding="utf-8")
+    with pytest.raises(AssertionError):
+        _measured_help(empty)
+
+
+def test_a_flag_the_help_does_not_declare_reads_red():
+    """Mutant row: a guessed flag is caught by the parity check."""
+    flags = _declared_flags(_measured_help(_project_root() / MEASURED_DOC))
+    assert "--guessed-flag" not in flags
+    assert not set(_flags_in(["bin", "--guessed-flag", "x"])) <= flags
+
+
+def test_the_stub_p_token_is_gone_from_the_landed_adapter_path(capsys):
+    """Falsifier 2: grep the landed adapter path for the old stub's lone `-p`
+    argv token. The file count is printed and 0 files scanned FAILS, so a
+    moved adapter cannot pass the grep by scanning nothing."""
+    scanned, hits = _stub_p_hits(_project_root())
+    print(f"stub -p grep: {scanned} file(s) scanned, {hits} hit(s)")
+    assert scanned > 0, "0 files scanned: the adapter path moved"
+    assert hits == 0
+
+
+def test_the_stub_p_grep_reads_red_on_a_planted_token(tmp_path):
+    """Mutant row for the grep: a planted `"-p"` reads as a hit, and an empty
+    tree reads 0 files scanned."""
+    planted = tmp_path / ADAPTER_PATH[0]
+    planted.parent.mkdir(parents=True)
+    planted.write_text('ARGV = ["bin", "-p", prompt]\n', encoding="utf-8")
+    assert _stub_p_hits(tmp_path) == (1, 1)
+    assert _stub_p_hits(tmp_path / "nothing") == (0, 0)

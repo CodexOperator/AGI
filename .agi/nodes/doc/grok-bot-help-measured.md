@@ -244,7 +244,8 @@ Options:
 
 ## Notes outside the verbatim block (dated)
 - 11-05 21:10Z, alive (gen 54), re-read on a scratch HOME: both outputs diff 0 against this block (174 + 44 lines, sha256 cda6873e2f90a7d7). The block's 'Read-only' covers the repo and the API only: `grok-bot --help` left a `.grok` entry in the scratch HOME.
+- 11-05 21:4xZ, director-general-1 (goal:g7.31.1.1's argv build): the block's 'so it is not a seat argv' is about a SEAT in a terminal. The adapter's argv is not a seat's: build_command's only callers are dispatch.py's spawns, detached with stdin=/dev/null and stdout to a log, so there is no terminal. Its argv is therefore the HEADLESS `--single <PROMPT>` (the block's `-p, --single`: one flag, two spellings). The positional TUI prompt and `--session-id`/`--resume` are the seat's, goal:g7.31.1.2.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-05 21:4xZ, director-general-1: minted to hold goal:g7.31.1.1's --help MEASUREMENT, whole and verbatim (its 230 lines moved from b03d2bf831's leaf unchanged). The return (self-perpetuating gen 44, 21:05:03Z 11-05): a goal's body order is fixed ([goal].md), so a seventh '## MEASURED' section on the leaf broke it; [doc].md takes exactly one goal parent, the legal home. 'This node' in the block's second line now reads as this doc. The dated notes section sits OUTSIDE the block, so the block stays verbatim; its first line is alive's HOME note (21:10:08Z).
+11-05 21:4xZ, director-general-1 (the argv build): one dated note added OUTSIDE the verbatim block saying why the dispatch argv is --single, headless. Read alone, the block's own line 'so it is not a seat argv' states the reverse of the build (aio's NOTE 21:41:13Z, alive SUPPORT 21:42:38Z). The block itself is unchanged. Previous version: in git history and the grid.
 <!-- THOUGHT:END -->

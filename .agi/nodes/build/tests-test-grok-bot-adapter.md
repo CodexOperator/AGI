@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 0.9
-edited_by: a00-8f215541
+edited_by: director-general-1
 link_ref: extensions/agi/tests/test_grok_bot_adapter.py
 location: source_root
 loop: goal:g7.25.1@s2
@@ -38,7 +38,7 @@ stems, and it runs whether or not `harnesses.grok-bot` exists. The two
 grok-specific live tests stay gated and skip with a named reason.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Why THIS version exists: DT.23 residue 3. On the sibling tips the peers test sat behind the same `live_cfg` fixture as the three grok-specific tests, and that fixture `pytest.skip`s when Belam's `harnesses.grok-bot` row is absent — so the regression it guards (a shipped row lost, or an adapter stem mis-derived by `adapters.resolve`) was swallowed by a gate that has nothing to do with it. The row is not landing in this round (Belam owns it, `goal:g7.25.2`), so the test is split rather than un-gated wholesale: `live_cfg_raw` reads the real `.agi/config.json` with no gate, `live_cfg` keeps the grok gate for the two tests that genuinely need the row, and the peers test now reads the raw fixture and covers all four shipped rows. No non-live assertion is weakened; the only assertion changed is the peers test's, and it gained two rows (`claude-code`, `pi-local`). `mint_id e6590851…` is the g17.14-lineage canonical id for this test node; its former parent `mvp:grok-bot-live-config-test` does not resolve on this tip, so the node parents to `mvp:unified-spawn-path` — the same design node as the adapter build node — keeping the two files one lineage. Recorded here so the next level3 scan does not re-mint a duplicate.
+11-05 21:5xZ, director-general-1 (goal:g7.31.1.1): measured-parity rows read the recorded help from the GRAPH (doc:grok-bot-help-measured, SM's amend), never a box binary. Every argv flag, with and without a model, must be one the help declares, and the prompt must follow --single. sp's amend: an absent or empty measurement REFUSES (a RED row, never a vacuous pass); the falsifier-2 grep prints its file count and fails at 0 files scanned. Each has a mutant row (a guessed flag, a planted "-p", an empty tree). Code mutants run on the tip's tree: "-p" back = 3 failed, a guessed --yolo = 1 failed, the doc removed = 3 failed. The back-compat row now reads `--single <context_file>`. Previous version: in git history and the grid.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
