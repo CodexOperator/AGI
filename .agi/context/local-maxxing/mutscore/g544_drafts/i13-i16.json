@@ -1,0 +1,346 @@
+{
+ "i13": {
+  "clauses": [
+   {
+    "clause": "every other row ... unknown ... still mints exactly as before (default True)",
+    "file": "extensions/agi/bin/adapters/pi_adapter.py",
+    "edits": [
+     [
+      "return harness.get(\"credential\") != \"none\"",
+      "return harness.get(\"credential\", \"none\") != \"none\""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the default-mint direction is a runtime return value of needs_credential; it must be evaluated on an unmarked row",
+    "why": "an absent credential cell now defaults to 'none', so openrouter/fake/unknown/provider-less rows stop minting; the explicit pi-local credential:none row still returns False and any other explicit value still mints"
+   },
+   {
+    "clause": "needs_credential deciding from the HARNESS ROW, not the provider name",
+    "file": "extensions/agi/bin/adapters/pi_adapter.py",
+    "edits": [
+     [
+      "return harness.get(\"credential\") != \"none\"",
+      "return harness.get(\"provider\") != \"local-town\""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "which field the predicate reads is only observable when needs_credential runs",
+    "why": "the predicate now keys on the provider name; pi-local (provider local-town) still gets False and openrouter/fake/unknown rows still get True, but a row carrying credential:none with another provider would now mint"
+   },
+   {
+    "clause": "the pi-local row gets it",
+    "file": ".agi/config.json",
+    "edits": [
+     [
+      "\"provider\": \"local-town\",\n      \"credential\": \"none\",",
+      "\"provider\": \"local-town\","
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "the clause is about the bytes of the committed config row, true or false without running any code",
+    "why": "removes the credential:none cell from harnesses.pi-local, so the allowlist cell no longer sits on that row; the predicate and every other row are unchanged"
+   },
+   {
+    "clause": "no other row does",
+    "file": ".agi/config.json",
+    "edits": [
+     [
+      "\"provider\": \"openrouter\",\n      \"thinking\": \"medium\",",
+      "\"provider\": \"openrouter\",\n      \"credential\": \"none\",\n      \"thinking\": \"medium\","
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "the clause is about which config rows carry the cell, a static property of the file",
+    "why": "adds credential:none to the openrouter pi row as well, so pi-local is no longer the only row with the cell; pi-local keeps its cell and the predicate is unchanged"
+   },
+   {
+    "clause": "dry-run prints no minting line",
+    "file": "extensions/agi/bin/dispatch.py",
+    "edits": [
+     [
+      "if issuing and adapters.needs_credential(dispatch_harness):\n        print(f\"credentials: minting per spawn",
+      "if issuing:\n        print(f\"credentials: minting per spawn"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the banner is printed only when dispatch's dry-run/startup path executes",
+    "why": "the 'minting per spawn' banner is printed for every issuing dispatch, including --harness pi-local; the real mint site at the spawn loop and needs_credential are untouched"
+   },
+   {
+    "clause": "a real kid has no OPENROUTER_API_KEY in env",
+    "file": "extensions/agi/bin/adapters/__init__.py",
+    "edits": [
+     [
+      "env.pop(provisioning.RUNTIME_KEY_VAR, None)",
+      "env.get(provisioning.RUNTIME_KEY_VAR, None)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the env strip happens only when a child env is built for a credential-none row",
+    "why": "drop_unneeded_credential no longer removes the inherited OPENROUTER_API_KEY (RUNTIME_KEY_VAR) from a credential-none child env, so a pi-local kid inherits it; no key is minted for it and the banner stays gated"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/adapters/pi_adapter.py",
+   "edits": [
+    [
+     "return harness.get(\"credential\") != \"none\"",
+     "return True"
+    ]
+   ],
+   "count_check": 1,
+   "why": "needs_credential returns True for every row, so pi-local mints a key, prints the banner and keeps OPENROUTER_API_KEY in its env"
+  }
+ },
+ "i14": {
+  "clauses": [
+   {
+    "clause": "(and `-h`)",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "if \"-h\" in argv or \"--help\" in argv:",
+      "if \"--help\" in argv:"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "-h handling is only observable when _parse_args runs on ['-h']",
+    "why": "-h is no longer recognised and falls through to the unknown-flag SystemExit (non-zero); --help still prints usage to stdout and exits 0"
+   },
+   {
+    "clause": "answers `--help`",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "if \"-h\" in argv or \"--help\" in argv:",
+      "if \"-h\" in argv:"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "--help handling is only observable when _parse_args runs on ['--help']",
+    "why": "--help is no longer recognised and hits 'unknown flag: --help' (non-zero); -h still prints usage and exits 0"
+   },
+   {
+    "clause": "with a usage text on stdout",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "\"interface.  Any other flag is an error.\\n\"\n        )",
+      "\"interface.  Any other flag is an error.\\n\",\n            file=sys.stderr,\n        )"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "where the usage goes is only observable when the help branch executes",
+    "why": "the usage text is printed to stderr instead of stdout; the branch still exits 0 and unknown flags still exit non-zero (sys is already imported)"
+   },
+   {
+    "clause": "and exit 0",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "raise SystemExit(0)",
+      "raise SystemExit(2)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the exit code is only observable when the help branch executes",
+    "why": "help still prints the usage on stdout but exits 2 instead of 0"
+   },
+   {
+    "clause": "while every other unknown flag still exits non-zero",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "raise SystemExit(\"unknown flag: %s\" % a)",
+      "print(\"unknown flag: %s\" % a, file=sys.stderr); raise SystemExit(0)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause concerns the unknown-flag branch, which runs only when an unknown flag is passed",
+    "why": "an unknown flag still reports itself but now exits 0; --help/-h behaviour is unchanged"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/ws_raw.py",
+   "edits": [
+    [
+     "if \"-h\" in argv or \"--help\" in argv:",
+     "if False:"
+    ]
+   ],
+   "count_check": 1,
+   "why": "the help branch is dead, so --help and -h both exit 1 with 'unknown flag' and no usage on stdout"
+  }
+ },
+ "i15": {
+  "clauses": [
+   {
+    "clause": "Every decisive verdict",
+    "file": "extensions/agi/bin/evidence_gate.py",
+    "edits": [
+     [
+      "r\"\"\"^verdict:[ \\t]*[\"']?(proved|disproved)[\"']?[ \\t]*(?:#.*)?$\"\"\",",
+      "r\"\"\"^verdict:[ \\t]*[\"']?(proved)[\"']?[ \\t]*(?:#.*)?$\"\"\","
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the pre-filter decides which files the commit-path gate inspects; only observable when enforce_on_disk runs",
+    "why": "the commit-path pre-filter only matches 'proved', so a hand-written unevidenced 'disproved' passes grid commit undemoted; unevidenced proved is still demoted and writer paths are untouched"
+   },
+   {
+    "clause": "carries evidence_runs>=1",
+    "file": "extensions/agi/bin/evidence_gate.py",
+    "edits": [
+     [
+      "    if isinstance(value, (bool, int)):\n        return 0",
+      "    if isinstance(value, (bool, int)):\n        return int(value)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the count is computed when normalize_evidence_runs runs on a node's evidence_runs",
+    "why": "a bare integer/bool attestation (evidence_runs: 3) now counts as that many resolved runs, so a decisive verdict citing no real run passes as evidenced; a node citing nothing at all is still demoted"
+   },
+   {
+    "clause": "or is demoted",
+    "file": "extensions/agi/bin/evidence_gate.py",
+    "edits": [
+     [
+      "delta = {k: stamped[k] for k in (\"verdict\", \"demoted_from\", \"demote_reason\")}",
+      "delta = {k: stamped[k] for k in (\"demoted_from\", \"demote_reason\")}"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the demotion write happens only when enforce_on_disk finds an unevidenced decisive node on the commit path",
+    "why": "the commit-path gate still finds and stamps demoted_from/demote_reason but no longer rewrites verdict:, so the unevidenced 'proved' stays decisive at the commit"
+   },
+   {
+    "clause": "that reaches a commit ... regardless of write path (plain file write)",
+    "file": "extensions/agi/bin/grid.py",
+    "edits": [
+     [
+      "    if not session:\n        demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)",
+      "    if False:\n        demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about the gate running on grid commit --all; it must execute on that path",
+    "why": "grid commit no longer calls the evidence gate, so a plain file write reaches a commit ungated; the writer paths (cli.py done, post_wire) still apply_gate"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/evidence_gate.py",
+   "edits": [
+    [
+     "    if runs >= 1:\n        return res",
+     "    if runs >= 0:\n        return res"
+    ]
+   ],
+   "count_check": 1,
+   "why": "apply_gate returns every decisive verdict unchanged whatever its evidence, so no unevidenced proved/disproved is ever demoted on any path"
+  }
+ },
+ "i16": {
+  "clauses": [
+   {
+    "clause": "no forward-pointing source_files",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "            bool(fm.get(\"source_files\"))\n            or bool(fm.get(\"payload_ref\"))",
+      "            bool(fm.get(\"payload_ref\"))"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "forward evidence is evaluated only when _mvp_forward_violations runs over an mvp",
+    "why": "source_files no longer counts as forward evidence, so an mvp naming source_files with a verification-language body is classed backward; payload_ref and build children still count"
+   },
+   {
+    "clause": "no forward-pointing ... build",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "            or bool(fm.get(\"payload_ref\"))\n            or nid in build_parents\n",
+      "            or bool(fm.get(\"payload_ref\"))\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "forward evidence is evaluated only when _mvp_forward_violations runs over an mvp",
+    "why": "a build child naming the mvp no longer counts as forward evidence; source_files/payload_ref still do"
+   },
+   {
+    "clause": "body describes a finished change",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "        if _BACKWARD_MVP_RE.search(parts[2]):\n            backward.add(nid)",
+      "        backward.add(nid)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the body check runs only inside _mvp_forward_violations",
+    "why": "the body language test is dropped: every mvp with no forward evidence is classed backward, finished-change body or not"
+   },
+   {
+    "clause": "excluded from scoring_mvp_count",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "            if nid in backward_mvp_ids:\n                backward_mvp += 1\n            else:\n                scoring_mvp += 1",
+      "            if nid in backward_mvp_ids:\n                backward_mvp += 1\n            scoring_mvp += 1"
+     ],
+     [
+      "outcome_coverage(attr[\"scoring_mvp_count\"],",
+      "outcome_coverage(attr[\"scoring_mvp_count\"] - attr[\"backward_mvp_count\"],"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the counting happens in goal_attribution/compute when a backward mvp is present",
+    "why": "a backward mvp is now counted in scoring_mvp_count too, while outcome_coverage subtracts backward_mvp_count so coverage is still not raised"
+   },
+   {
+    "clause": "does not raise outcome_coverage",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "outcome_coverage(attr[\"scoring_mvp_count\"],",
+      "outcome_coverage(attr[\"scoring_mvp_count\"] + attr[\"backward_mvp_count\"],"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "outcome_coverage is computed in compute() over the corpus",
+    "why": "scoring_mvp_count still excludes the backward mvp, but outcome_coverage adds backward_mvp_count back into its numerator, so a backward mvp raises coverage"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/metrics.py",
+   "edits": [
+    [
+     "if nid in backward_mvp_ids:",
+     "if False:"
+    ]
+   ],
+   "count_check": 1,
+   "why": "no mvp is ever treated as backward in scoring: every backward mvp counts in scoring_mvp_count, raises outcome_coverage, and backward_mvp_count stays 0"
+  }
+ }
+}

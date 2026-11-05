@@ -1,0 +1,336 @@
+{
+ "i01": {
+  "clauses": [
+   {
+    "clause": "the write lands on disk",
+    "file": "extensions/agi/bin/write.py",
+    "edits": [
+     [
+      "        _pre = _pre_dirty(root, edit.node_id, edit)   # goal:g1.31.5.1.3: BEFORE the write\n        res = submit(root, edit, actor=args.actor, session=args.session,\n                     role=args.role, ring_fresh=_fresh)\n",
+      "        _pre = _pre_dirty(root, edit.node_id, edit)   # goal:g1.31.5.1.3: BEFORE the write\n        _nf = node_writer.find_node_file(root, edit.node_id)\n        _pb = Path(_nf).read_bytes() if _nf and Path(_nf).exists() else None\n        res = submit(root, edit, actor=args.actor, session=args.session,\n                     role=args.role, ring_fresh=_fresh)\n        if _pre and _pb is not None:\n            Path(_nf).write_bytes(_pb)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the write CLI does at run time when the hand-edit branch is taken",
+    "why": "when the node was already dirty, main() restores the pre-write bytes after submit, so the write never lands on disk; the hand edit stays, still uncommitted, still refused by name with exit 3"
+   },
+   {
+    "clause": "stays UNCOMMITTED",
+    "file": "extensions/agi/bin/write.py",
+    "edits": [
+     [
+      "    if laundered:\n",
+      "    if laundered and not git(\"add\", \"--\", *paths).returncode and not git(\"commit\", \"-q\", \"-m\", msg, \"--\", *paths).returncode:\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the write CLI does at run time when the hand-edit branch is taken",
+    "why": "the laundered branch first adds and commits the paths (hand edit included) and then still returns the by-name refusal and True, so it exits 3 over a write that IS committed"
+   },
+   {
+    "clause": "refused BY NAME",
+    "file": "extensions/agi/bin/write.py",
+    "edits": [
+     [
+      "        return (f\"commit refused: {' '.join(laundered)} was already dirty against HEAD \"",
+      "        return (f\"commit refused: a path was already dirty against HEAD \""
+     ],
+     [
+      "f\"/ index.lock exhaustion left it), its `git commit -- <paths>` is in: {recover} (never auto-committed)\"), True",
+      "f\"/ index.lock exhaustion left it), commit it by hand (never auto-committed)\"), True"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the write CLI does at run time when the hand-edit branch is taken",
+    "why": "the refusal still happens (exit 3, uncommitted, on disk) but its message no longer names the path, neither in the head nor in the recover line"
+   },
+   {
+    "clause": "exit `EXIT_UNCOMMITTED` == 3",
+    "file": "extensions/agi/bin/write.py",
+    "edits": [
+     [
+      "        if _unc:\n            return EXIT_UNCOMMITTED\n    return 1 if res.status == node_writer.REJECTED else 0",
+      "        if _unc:\n            return 1\n    return 1 if res.status == node_writer.REJECTED else 0"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the write CLI does at run time when the hand-edit branch is taken",
+    "why": "the edit-path main() exits 1 instead of EXIT_UNCOMMITTED (3) on the refusal; the refusal, its message and the uncommitted state are unchanged"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/write.py",
+   "edits": [
+    [
+     "    laundered = [p for p in paths if os.path.abspath(p) in pre_dirty]\n",
+     "    laundered = []\n"
+    ]
+   ],
+   "count_check": 1,
+   "why": "the pre-dirty check never fires: a hand edit to the written node rides into the write's commit and the write exits 0"
+  }
+ },
+ "i02": {
+  "clauses": [
+   {
+    "clause": "threading the caller s own cfg into _run_stage_proc",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "                view=view, cap=cap, cfg=cfg)",
+      "                view=view, cap=cap)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the threading is a property of the live _run_stage_pi -> _run_stage_proc call; it only matters when that caller runs",
+    "why": "_run_stage_pi stops passing its cfg down; _run_stage_proc still accepts and forwards a cfg when one is given"
+   },
+   {
+    "clause": "sees the caller s dict by identity",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n",
+      "        cmd = mem_cap.wrap_argv(cmd, cap, dict(cfg) if cfg is not None else None)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "identity is observed only when the seam's wrap call actually runs",
+    "why": "the seam hands wrap_argv a shallow COPY: every cell is still read with the same values, but the object is not the caller's dict"
+   },
+   {
+    "clause": "read the declared values.memcap cells exactly as dispatch.py does",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n",
+      "        _prev = os.environ.setdefault(\"AGI_MEMCAP_CACHE\", os.devnull)\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n        if _prev == os.devnull:\n            os.environ.pop(\"AGI_MEMCAP_CACHE\", None)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the cell read happens inside the stage seam's wrap call",
+    "why": "around the stage seam's wrap call only, AGI_MEMCAP_CACHE (which outranks the values.memcap cells) points the probe cache at os.devnull, so the stage seam ignores the declared probe_cache_dir_name/probe_cache_file while dispatch.py still honours them; the cfg is still passed by identity and the child is still wrapped"
+   },
+   {
+    "clause": "shipped defaults unchanged when the cell is absent",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n",
+      "        if cfg is None:\n            cfg = {}\n        if isinstance(cfg.get(\"values\", {}), dict):\n            cfg.setdefault(\"values\", {}).setdefault(\"memcap\", {\"probe_cache_dir_name\": \"agi-stage-cache\"})\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the default/absent-cell behaviour is decided in the seam's wrap call",
+    "why": "when no values.memcap cell is declared (or no cfg is held) the seam plants a non-default probe_cache_dir_name, so the stage no longer gets the shipped defaults; a declared cell is untouched and a held cfg is still the same object"
+   },
+   {
+    "clause": "the stage still dying of its cap",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n",
+      "        mem_cap.wrap_argv(cmd, cap, cfg)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "cap death is a run-time property of the launched stage child",
+    "why": "the seam still calls wrap_argv with the caller's cfg (identity, cells, defaults all unchanged) but discards the wrapped argv, so the child launches uncapped and a runaway does not die of the cap"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/workflow.py",
+   "edits": [
+    [
+     "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)\n",
+     "        cmd = mem_cap.wrap_argv(cmd, cap)\n"
+    ]
+   ],
+   "count_check": 1,
+   "why": "the stage seam drops the cfg it holds: wrap_argv sees None, every declared values.memcap cell is ignored on stage launches"
+  }
+ },
+ "i03": {
+  "clauses": [
+   {
+    "clause": "a per-TREE process bound",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n                \"--property=MemorySwapMax=0\", \"--\", *argv]",
+      "                \"--property=MemorySwapMax=0\", \"--\", \"prlimit\",\n                f\"--nproc={resolve_tasks_max(cfg)}\", \"--\", *argv]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about the argv wrap_argv builds and what that scope does when the wrapped child runs",
+    "why": "the process bound moves from the scope's TasksMax (per tree) to prlimit --nproc (RLIMIT_NPROC, per USER) inside the same argv; a bound still exists, from the same cell, default unchanged, fan-outs past it still refused"
+   },
+   {
+    "clause": "on the SAME scope as `MemoryMax` (one bound, one scope, one argv)",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n                \"--property=MemorySwapMax=0\", \"--\", *argv]",
+      "                \"--property=MemorySwapMax=0\", \"--\",\n                \"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=TasksMax={resolve_tasks_max(cfg)}\", \"--\", *argv]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about the argv wrap_argv builds and what that scope does when the wrapped child runs",
+    "why": "TasksMax is carried by a SECOND nested scope while MemoryMax stays on the outer one: still a per-tree bound that refuses a fan-out, but no longer on the same scope"
+   },
+   {
+    "clause": "a fan-out past that bound is REFUSED (cannot fan out processes past the box's bound)",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n                \"--property=MemorySwapMax=0\", \"--\", *argv]",
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n                \"--property=MemorySwapMax=0\", \"--\",\n                \"systemd-run\", \"--user\", \"--scope\", \"-q\", \"--\", *argv]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "refusal is only observable when the wrapped child forks under the real scope",
+    "why": "the bounded scope (TasksMax + MemoryMax, same argv) is kept, but the child is re-launched into a fresh unbounded user scope, so its fan-out escapes the bound and is not refused"
+   },
+   {
+    "clause": "the unwrapped path (`cap is None`) is byte-for-byte unchanged",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "    if cap is None:\n        return argv\n",
+      "    if cap is None:\n        return [\"env\", *argv]\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about the argv returned when cap is None",
+    "why": "cap is None now returns a different argv (prefixed by env) - same behaviour, not the same bytes or object; the wrapped path is untouched"
+   },
+   {
+    "clause": "a config with no cell still gets a shipped default",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+      "                *([f\"--property=TasksMax={resolve_tasks_max(cfg)}\"] if \"tasks_max\" in _spawn_block(cfg) else []),\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about the argv wrap_argv builds and what that scope does when the wrapped child runs",
+    "why": "a config without spawn.tasks_max gets NO TasksMax on the scope instead of the shipped default; a config with the cell still gets its bound on the same scope"
+   },
+   {
+    "clause": "the fallback that cannot enforce it says so by name rather than by silence",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds ADDRESS SPACE per\n    # process and NOTHING about the tree's width -- RLIMIT_NPROC is per-USER,\n    # so a per-tree process cap has no prlimit spelling. A box without a\n    # usable systemd-run still fans out unbounded; the fix is the systemd\n    # path, not a second limit here.\n",
+      ""
+     ],
+     [
+      "#: growing. RLIMIT_NPROC cannot express this (it is per-USER, not per-tree),\n#: so the prlimit fallback carries NO process bound -- see `wrap_argv`.\n",
+      "#: growing.\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "the naming is in-tree source text (the NAMED RESIDUAL comment), not a run-time path",
+    "why": "both places that name the prlimit fallback's missing per-tree bound are deleted; the fallback's argv is unchanged, so it now lacks the bound silently"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/mem_cap.py",
+   "edits": [
+    [
+     "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+     ""
+    ]
+   ],
+   "count_check": 1,
+   "why": "the wrapped scope carries no TasksMax at all: a round's kid can fan out processes without any per-tree bound"
+  }
+ },
+ "i04": {
+  "clauses": [
+   {
+    "clause": "takes the SAME `{project_root}` seam",
+    "file": "extensions/agi/workflows/agi-round-review.js",
+    "edits": [
+     [
+      "const ROOT = (args && args.project_root) || '.'",
+      "const ROOT = (args && args.repo_root) || '.'"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the .js script resolves ROOT to when the workflow runs",
+    "why": "agi-round-review.js still declares a ROOT seam and carries no literal, but reads a DIFFERENT arg (repo_root), not the project_root seam the .json half uses"
+   },
+   {
+    "clause": "the .js half of each workflow pair",
+    "file": "extensions/agi/workflows/agi-trove-survey.js",
+    "edits": [
+     [
+      "const ROOT = (args && args.project_root) || '.'",
+      "const ROOT = '.'"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the .js script resolves ROOT to when the workflow runs",
+    "why": "agi-trove-survey.js no longer takes any arg seam (ROOT is the bare cwd), so not EACH .js half takes it; no literal reappears and the other halves are unchanged"
+   },
+   {
+    "clause": "a zero-literal guard can then cover BOTH halves of every registered pair",
+    "file": "extensions/agi/tests/test_workflow_template_seam_js.py",
+    "edits": [
+     [
+      "    hits = [p.name for p in sorted(WF.glob(\"*.js\")) if STALE in p.read_text(encoding=\"utf-8\")]",
+      "    hits = [p.name for p in sorted(WF.glob(\"*.json\")) if STALE in p.read_text(encoding=\"utf-8\")]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "the clause is about what the in-tree guard covers, not about a run-time path",
+    "why": "the clause is about the guard itself (so the test file is the artifact): the zero-literal guard now scans only the .json halves and no longer covers the .js half"
+   },
+   {
+    "clause": "a run started in a git worktree stops pointing its readers at the main checkout",
+    "file": "extensions/agi/workflows/agi-merge-up-review.js",
+    "edits": [
+     [
+      "const ROOT = (args && args.project_root) || '.'",
+      "const ROOT = (args && args.project_root) || '.' ? String((args && args.project_root) || '.').replace(/\\/\\.claude\\/worktrees\\/[^\\/]+\\/?$/, '') || '.' : '.'"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the clause is about what the .js script resolves ROOT to when the workflow runs",
+    "why": "agi-merge-up-review.js still takes the same project_root seam (the seam line prefix is intact, no literal), but strips a trailing .claude/worktrees/<name> from it, so a run started in a worktree points its readers back at the main checkout"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/workflows/agi-round-review.js",
+   "edits": [
+    [
+     "const ROOT = (args && args.project_root) || '.'",
+     "const ROOT = '/srv/agi/main-checkout'"
+    ]
+   ],
+   "count_check": 1,
+   "why": "agi-round-review.js ignores the project_root seam and points every reader at one fixed absolute checkout path"
+  }
+ }
+}
