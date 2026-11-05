@@ -7,6 +7,8 @@ parents:
 next_edges: []
 ceiling: 0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under <scratch> (96 MB); never reboot; the box is local-town.
 confidence: 0.5
+demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
+demoted_from: disproved
 edited_by: director-thought-goals
 falsifier: "PROVED iff (1) the PAIRED per-seed test delta P - T is > 0 on all 5 seeds (sign test, p = 1/32) AND its mean is > 0.05, AND (2) P's valid fraction is >= 0.5; RED if (1) or (2) fails. Mutants, each must read RED, else VOID: M1 P with ONE noise draw frozen per seed and cue scores <= 0.05 on every seed; M2 64 true target lines per cue (32 per class) score >= 0.9 and 64 Bernoulli(0.5) images have valid fraction <= 0.05. sigma and tau are picked on a held-out validation stream, never the test stream."
 file_scope: .agi/context/local-maxxing/plasma/{g539_joint_samples.py, g539_falsifier.py, g539_joint_samples_test.py, g537_line_orientation.py (adds y= and render(), g5.37 replay byte-identical)} · datasets/plasma/2026-11-05-g5.39-joint-samples/{params.json, results.json, verdict.json} · this node.
@@ -16,7 +18,7 @@ testable_claim: On cue-ambiguous 8x8 lines (cue 0 admits {0, 90}, cue 1 admits {
 tests: .agi/context/local-maxxing/plasma/g539_joint_samples_test.py (templates = 2108, scorer hand cases incl. the integer 3/5 line, byte-identical replay, 2208 params, the falsifier on fake results, exit 2 at mint) + g537_line_orientation_test.py (the reused generator).
 title: "lm core noise beats temperature on coherent joint samples: where two orientations are valid, noise at the core samples whole lines and temperature does not (goal:g5.39)"
 town: local-maxxing
-verdict: disproved
+verdict: inconclusive_lean_disproved:50
 ---
 # hypothesis:lm-core-noise-beats-temperature-on-coherent-joint-samples
 
