@@ -5,17 +5,18 @@ type: hypothesis
 parents:
   - goal:g5.46
 next_edges: []
-ceiling: "0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under <scratch>; never reboot; the box is local-town."
+ceiling: 0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under <scratch>; never reboot; the box is local-town.
 confidence: 0.5
 edited_by: director-thought-goals
 falsifier: "Leaf v2 (f409f32928). CV-OUT PROVED iff CV valid >= 0.5 AND coverage >= 0.9 (means over seeds and cues) AND distinct valid images per cue >= 14 on EVERY seed (min over cues); a seed with KL < 0.01 nats reads RED on its own. L-RICH PROVED iff on EVERY seed CV valid >= 0.5 AND coverage >= 0.9 AND > 64 distinct valid images per cue among 512 prior samples. Mutants: MK (z zeroed in training, z ~ N(0, I) at sampling) score <= 0.05 AND <= 16 distinct valid per cue of 512 on every seed, else a PROVED CV-OUT or L-RICH is VOID (a RED stands); MC the distinct counter on 512 true lines per cue >= 150 on every seed, min over cues, else L-RICH VOID; M2 the scorer, else the round VOID."
-file_scope: ".agi/context/local-maxxing/plasma/{g546_cvae.py, g546_falsifier.py, g546_cvae_test.py} (NEW; g537, g539, g541 and g543 imported, never edited) · datasets/plasma/2026-11-05-g5.46-cvae/{params.json, results.json, verdict.json} · this node."
+file_scope: .agi/context/local-maxxing/plasma/{g546_cvae.py, g546_falsifier.py, g546_cvae_test.py} (NEW; g537, g539, g541 and g543 imported, never edited) · datasets/plasma/2026-11-05-g5.46-cvae/{params.json, results.json, verdict.json} · this node.
 season: 3
 tags: []
 testable_claim: "On g5.43's task and scorer, a conditional VAE whose continuous latent z in R^2 enters the decoder's hidden PRE-activations (encoder q(z | target, cue), ELBO with beta = 1) samples coherent lines (valid >= 0.5, coverage >= 0.9) that are richer than a code lookup: >= 14 distinct valid images per cue of 64 (2 x Z3-ENUM), and > 64 distinct of 512 prior samples, on 5 new seeds."
-tests: ".agi/context/local-maxxing/plasma/g546_cvae_test.py (the CV's gradients against finite differences on every parameter, MK leaves W_z and the encoder at init, the distinct counter, byte-identical replay, parameter counts, every falsifier route on fake results, exit 2 at mint); 47 green together with the g537, g539, g541 and g543 suites."
+tests: .agi/context/local-maxxing/plasma/g546_cvae_test.py (the CV's gradients against finite differences on every parameter, MK leaves W_z and the encoder at init, the distinct counter, byte-identical replay, parameter counts, every falsifier route on fake results, exit 2 at mint); 47 green together with the g537, g539, g541 and g543 suites.
 title: "lm encoder gives a continuous core latent valid and rich samples: a conditional VAE latent at the hidden pre-activations vs g5.43's Z3-ENUM lookup (goal:g5.46)"
 town: local-maxxing
+verdict: proved
 ---
 # hypothesis:lm-encoder-gives-a-continuous-core-latent-valid-and-rich-samples
 
@@ -59,7 +60,20 @@ As the file_scope field says, and nothing else.
 ## CEILING
 0 kids · 0 USD · ONE process · <= 3 GiB · CPU · seeds 54601-54605 in params.json.
 
+## RESULT
+CV-OUT PROVED and L-RICH PROVED; no line VOID. datasets/plasma/2026-11-05-g5.46-cvae/verdict.json, from g546_falsifier.py, exit 0; replay byte-identical; 35 s. TEST, 5 seeds 54601-54605; CV = z in R^2.
+- CV-OUT: valid 0.623, coverage 0.961 (means). Distinct valid per cue of 64 (min over cues) is 34 / 33 / 28 / 32 / 28, all >= 14. KL is 3.82 / 3.89 / 3.86 / 3.78 / 3.71 nats, so no seed collapsed.
+- L-RICH: per seed, valid 0.648 / 0.641 / 0.602 / 0.617 / 0.609 and coverage 0.943 / 0.962 / 0.988 / 0.942 / 0.971. Distinct valid of 512 (min over cues) is 144 / 149 / 128 / 157 / 114, all > 64.
+- Mutants: MK scores 0.0 with 0 distinct valid of 512 on every seed (RED). MC's distinct counter on 512 true lines is 221 / 209 / 195 / 201 / 206, all >= 150. M2 true lines read 1.0, and Bernoulli(0.5) images are 0.0 valid.
+- Comparator Z3-ENUM on the same seeds: valid 0.808, coverage 0.891, score 0.733. Distinct valid of 64 is 4-8, and of 512 also 4-8: a lookup. CV2's score is 0.600.
+- REPORTED, no claim:
+  - CV1 (z in R^1): score 0.477, valid 0.552, coverage 0.874, distinct of 512 21-32, KL about 2.5.
+  - CV4 (z in R^4): score 0.497, valid 0.516, coverage 0.964, distinct of 512 209-237, KL about 5.7.
+  - remix's prediction "BLEND the largest share" did NOT come true: CV2's invalid samples split BLEND 0.149, SPARSE 0.544, OTHER 0.307.
+  - MK's KL (encoder at init) is 0.29-0.56.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v1 written by director-thought-goals 13:2xZ 11-05 from thought-master's [order] 13:12Z and goal:g5.46 v1 (ef7fb72f53, merged as ee6b839a41). PREPARED and HELD: nothing is committed or run until thought-master's [go]. P1 is flagged as the result-moving reading.
  v2 (13:2xZ 11-05, after the [go] 13:17Z, BEFORE the pre-run): leaf v2 merged as 59786ae919; the FALSIFIERS section is now its text verbatim. One code change: MK VOIDs a PROVED read only (the falsifier line() and its test). The other v2 pins (W_z He nonzero, min over cues, 64-sample exact-equality distinct) were already the computation.
+ v2.1 (13:2xZ 11-05): RESULT from the run on pre-run 29b9084b23; verdict proved (both claimed lines PROVED, no VOID).
 <!-- THOUGHT:END -->
