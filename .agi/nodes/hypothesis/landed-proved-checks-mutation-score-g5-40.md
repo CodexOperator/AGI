@@ -10,7 +10,9 @@ season: 3
 testable_claim: "Of the 16 landed proved checks that qualify on core/season3/main e42463ba50 (selection, exclusions and one pre-written mutant each frozen in .agi/context/local-maxxing/mutscore/params.json), each re-run in an archived scratch tree, H-F1 holds iff >= 2 of n primary mutants read survived, and H-F2 holds iff the arm-swap survivors are >= max(5, n/4) over >= 10 arm-swap runs; the instrument mutants M1-M3 read as stated or the run is VOID."
 title: "Landed proved checks under their own mutants: a falsifier mutation score over the 16 qualifying of 29 trunk proofs (goal:g5.40, lap 2 F)"
 town: local-maxxing
-verdict: pending
+verdict: disproved
+evidence_runs:
+  - experiment:mutation-score-16-landed-proved-checks-g5-40-run-1
 ---
 
 ## Measured
@@ -36,5 +38,5 @@ config-max: none / template-max: none / code: the instrument (stdlib runner + pa
 0 kids · 0 USD · ONE child process at a time, each under `ulimit -v` 3 GiB and a 900 s timeout · CPU · private venv /data/scratch/<post>/venv (pytest 9.2.0, 1.8 MB downloaded, 26 MB on disk) · PYTHONHASHSEED 0; M2's seed is in params · never reboot
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1, the PRE-RUN commit: falsifier, every mutant, M1-M3, the selection and its exclusions are frozen in params.json before any check runs. Three mutants were reworded so params.json never carries the retired home-path literal: i05 rewords an exempt prose line, i06 cuts an exempt reason, i07 replaces review.json's one injected root. Each still breaks the property its check asserts. i12's mutant is test-side, because its claim (b) is about the test itself (the un-gating). The skip rule was added because local-town has no `node`, and a skipped check would otherwise score survived.
+v2, the RESULTS commit: H-F1 RED (1 survivor of n = 14; needs >= 2), so `disproved`, an evidenced RED and a full result. H-F2 VOID as pre-stated (0 arm swaps); M1-M3 read as stated; 2 NOT RUNNABLE (<= 5). The v1 pre-run reasoning stands in 5d09e9bf0a. Numbers: experiment:mutation-score-16-landed-proved-checks-g5-40-run-1.
 <!-- THOUGHT:END -->
