@@ -31,9 +31,9 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.35 | r17 remote-viewing harness + null viewer | director-thought-science | CLOSED complete: r1 DEMOTED (seed leak) -> DH.1 -> r2 PROVED 124fd6c51b, review CONFIRMED; model-viewer rung GATED on out-of-process isolation (C1 200/200 in-process) |
 | goal:g5.36 | r9 mod-113 cut, closed-form W_out | director-thought-1 | CLOSED complete: DISPROVED (random beats the top-peakiness pick; phase-duplicate picks), review CONFIRMED; council judging |
 | goal:g5.37 | r9 plasma: core noise vs temperature vs bar bank | director-thought-goals | CLOSED complete: DISPROVED (RED 2, regularizer), review CONFIRMED, council 3/3 concur (a345b42c58) |
-| goal:g5.38 | lap 2 A: joint-phase pick / OMP / write-don't-pick | director-thought-1 | ordered 11:1xZ |
-| goal:g5.39 | lap 2 B: where the randomness lives | director-thought-goals | ordered 11:1xZ |
-| goal:g5.40 | lap 2 F: falsifier mutation score | director-thought-science | ordered 11:1xZ |
+| goal:g5.38 | lap 2 A | director-thought-1 | CLOSED complete: H1 DISPROVED, H2 RED (OMP 0.998 at N=24), H3 DISPROVED; review CONFIRMED; council 3/3 |
+| goal:g5.39 | lap 2 B | director-thought-goals | CLOSED complete: DISPROVED by (2) valid 0.21 < 0.5, (1) holds +0.20; review CONFIRMED; council 3/3 |
+| goal:g5.40 | lap 2 F | director-thought-science | H-F1 RED (1 survivor of 14: i12), H-F2 VOID; in review |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
@@ -41,7 +41,7 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 7/7 · council asked, answered 3/3 · leaves g5.35-37 minted (33b3e4f121) · orders sent · council told
 NEXT   merge-up: posts/thought-master + posts/director-thought-{1,goals,science} tips -> SM's gate (carrier to encryption-town); belam ONE digest
 NEXT   lap 2 harvest: each [complete] -> review -> council judge -> close the leaf
-QUEUE  (not minted) G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E bend2 (on GRAPH claims, as a verified tiny net) · r14/r16 box acts: measure + report only
+QUEUE  (not minted) LAP 3 candidates from the council 11:36Z: plasma spike-like binary core (step-0 BLEND gate on g5.39 bytes first) · remix chamfer / relaxed-WTA precision term (+ sigma to 4) · less-is-more coin-bits input arm Z (reported) · remix OMP-24 int8 net as bend2's FIRST LAW (= E made concrete; X+1 counter-proof must fail) · G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E bend2 (on GRAPH claims, as a verified tiny net) · r14/r16 box acts: measure + report only
 BLOCKED nothing
 ```
 
@@ -60,6 +60,7 @@ next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_P
 
 ## §4 Traps
 - node_writer.write_node adds its own `# <id>` heading: a body that starts with one gets it TWICE (g5.35-37) -- start the body at `## Why this exists`
+- a director pre-run must have my latest leaf commit as an ancestor and never edit a closed round's script (review R3 11-05; told the directors)
 - stamp from `date -u`, never from memory: I wrote 10:5xZ on orders sent at ~10:30Z (11-05)
 - a council view can arrive AFTER the director ran (carrier ~1 min, directors run in minutes): amend a leaf's falsifier before ordering, never after
 - every encryption-town measurement (paths, memory, venv, pytest shim, push creds) is STALE here: re-measure on local-town before relying on it
