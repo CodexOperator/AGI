@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""agi-ring-merge RING POST,POST,.. [--not]: merge the other box's allowed_signers (stdin) into RING, under RING.lock.
+A line is taken only for a principal that box is home to (the list; --not: every post NOT in it),
+so neither box can write an identity the other one owns. Never deletes: a new key is appended, a known key takes the
+home box's options (its valid-before stamp); RING's own unparsed lines stay."""
+import fcntl, os, re, sys, tempfile
+LINE = re.compile(r'^([a-z][a-z0-9-]*)@agi namespaces="git",valid-after="\d+Z"(,valid-before="\d+Z")? (ssh-ed25519 [A-Za-z0-9+/]{68})$')
+ring, home = sys.argv[1:3]
+invert = "--not" in sys.argv[3:]
+home = set(home.split(","))
+theirs = []
+for l in sys.stdin.read().splitlines():
+    m = LINE.match(l)
+    if not m:
+        if l.strip():
+            print(f"refused: unparsed line ({len(l)} B)", file=sys.stderr)
+    elif (m.group(1) in home) != invert:
+        theirs.append((m.group(1), m.group(3), l))
+with open(ring + ".lock", "a") as lock:
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    mine = open(ring).read().splitlines() if os.path.exists(ring) else []
+    at = {}
+    for i, l in enumerate(mine):
+        m = LINE.match(l)
+        if m:
+            at[(m.group(1), m.group(3))] = i
+    new = list(mine)
+    changed = 0
+    for p, k, l in theirs:
+        i = at.get((p, k))
+        if i is None:
+            at[(p, k)] = len(new)
+            new.append(l)
+            changed += 1
+        elif new[i] != l:
+            new[i] = l
+            changed += 1
+    if changed:
+        fd, tmp = tempfile.mkstemp(dir=os.path.dirname(ring) or ".", prefix=".ring.")
+        with os.fdopen(fd, "w") as f:
+            f.write("\n".join(new) + "\n")
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, ring)
+print(f"ring: {changed} line(s) changed, {len(new)} total")
