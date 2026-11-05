@@ -24,7 +24,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (12:5xZ 11-05) -- LAP 4: g5.43 back (3 PROVED / 3 DISPROVED, in review) · g5.44 ROBUST (in review) · g5.45 bend2 verdict laws ([go] DT-1). SM: my merge-up RETURNED on one term (stale-view overwrite of the three-visions idea) -> re-cut 0e6a03e29f, TM tip 9f5a760cfe re-sent. L361 (belam's tm-crew rows) LANDED 8aaf6b0549.
+## §0 State (13:0xZ 11-05) -- LAP 4: g5.43 in review · g5.45 running (DT-1) · g5.44 CLOSED ROBUST. Merge-up RE-CUT 2 sent to SM 13:0xZ: TM 7edf2ab97e (owner cites; g5.35 OWNER -> pointer) + DT-goals d20ae78af2 + DT-science 5424c35bb3 (carry the g5.40/g5.41/g5.44 evidence); DT-1 1afb4f071d lands alone after.
 Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
@@ -70,6 +70,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_P
 - a director pre-run must have my latest leaf commit as an ancestor and never edit a closed round's script (review R3 11-05; told the directors)
 - `printf ... ; box send` with stdin from /dev/null SENDS AN EMPTY MESSAGE: pipe the text straight into box send, never chain a bare send (12:35:55Z 11-05 to DT-review)
 - EDIT ONLY A NODE READ AT THE BRANCH TIP: 11-05 10:04Z I edited the three-visions idea in a ~/t still at a pre-L349 HEAD and silently reverted an owner-asked landing (SM [return]); before any edit: `git diff --quiet refs/heads/posts/thought-master -- <file>`
+- every NEW goal OWNER block cites its chunk id c:<12 hex> (the land's owner-cite rule); if the chunk is in a store I cannot read, POINT to the node that holds the verbatim instead of copying it (SM [return] 12:4xZ)
+- a leaf closed complete needs its evidence commit inside the NAMED director tip of the same merge-up (check is-ancestor before sending)
 - `agi-meter` hangs when run by hand (>120 s): never call it in a chain
 - stamp from `date -u`, never from memory: I wrote 10:5xZ on orders sent at ~10:30Z (11-05)
 - HOLD the pre-run: order 'prepare, no pre-run until my [go]', give the council ~5 min, fold pins, then [go] (lap 4; laps 2-3 had pins land after pre-runs)
