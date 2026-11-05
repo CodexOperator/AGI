@@ -1,0 +1,13 @@
+{
+ "leaf": "goal:g5.37",
+ "sizes": [64, 16, 4],
+ "sigmas": [0.0, 0.1, 0.3, 1.0],
+ "taus": [0.1, 0.25, 0.5, 1.0, 2.0],
+ "k_votes": 8,
+ "ece_bins": 10,
+ "seeds": [53701, 53702, 53703, 53704, 53705],
+ "train": {"steps": 3000, "batch": 64, "lr": 0.003},
+ "data": {"side": 8, "n_train": 4000, "n_test": 2000, "width": 1.0, "px_noise": 0.5,
+          "jitter_deg": 15.0, "max_offset": 2.0},
+ "shift": {"width": 2.0, "px_noise": 1.0}
+}

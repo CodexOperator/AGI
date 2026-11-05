@@ -1,0 +1,12 @@
+{
+ "leaf": "goal:g5.39",
+ "sizes": [2, 32, 64],
+ "sigmas": [0.3, 1.0, 2.0],
+ "taus": [0.25, 0.5, 1.0, 2.0],
+ "k_best_of": 8,
+ "n_samples": 64,
+ "seeds": [53901, 53902, 53903, 53904, 53905],
+ "train": {"steps": 3000, "batch": 64, "lr": 0.003},
+ "data": {"side": 8, "n_train": 4000, "width": 1.0, "jitter_deg": 15.0, "max_offset": 2.0},
+ "score": {"iou_min": [5, 3], "jitter_deg": 15, "jitter_step": 1, "max_offset": 2.0, "offset_step": 0.25}
+}
