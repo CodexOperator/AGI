@@ -1,0 +1,5557 @@
+{
+ "leaf": "goal:g5.41",
+ "numpy": "2.5.4",
+ "params": {
+  "blend_min": [
+   10,
+   3
+  ],
+  "data": {
+   "jitter_deg": 15.0,
+   "max_offset": 2.0,
+   "n_train": 4000,
+   "side": 8,
+   "width": 1.0
+  },
+  "k_best_of": 8,
+  "lam": 1.0,
+  "leaf": "goal:g5.41",
+  "n_samples": 64,
+  "prediction": "remix, committed pre-run: STEP 0 BLEND >= 50% predicts S beats G-CHAMFER on mean test score; BLEND < 50% predicts G-CHAMFER >= S. Scored, REPORTED.",
+  "score": {
+   "iou_min": [
+    5,
+    3
+   ],
+   "jitter_deg": 15,
+   "jitter_step": 1,
+   "max_offset": 2.0,
+   "offset_step": 0.25
+  },
+  "seeds": [
+   54101,
+   54102,
+   54103,
+   54104,
+   54105
+  ],
+  "sigmas": [
+   2.0,
+   3.0,
+   4.0
+  ],
+  "sizes": [
+   2,
+   32,
+   64
+  ],
+  "sizes_z": [
+   5,
+   32,
+   64
+  ],
+  "train": {
+   "batch": 64,
+   "lr": 0.003,
+   "steps": 3000
+  }
+ },
+ "seeds": [
+  {
+   "G": {
+    "2.0": {
+     "test": {
+      "blend": 5,
+      "blend_share": 0.049019607843137254,
+      "coverage": 0.9825484463427021,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.9798687566511527,
+        "invalid": 52,
+        "n": 64,
+        "other": 8,
+        "score": 0.18372539187209114,
+        "sparse": 42,
+        "valid": 0.1875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.9852281360342515,
+        "invalid": 50,
+        "n": 64,
+        "other": 2,
+        "score": 0.21551865475749252,
+        "sparse": 45,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 102,
+      "n": 128,
+      "other": 10,
+      "score": 0.19962202331479184,
+      "sparse": 87,
+      "valid": 0.203125
+     },
+     "val": {
+      "blend": 11,
+      "blend_share": 0.1111111111111111,
+      "coverage": 0.9591479170272448,
+      "cues": [
+       {
+        "blend": 7,
+        "coverage": 0.9182958340544894,
+        "invalid": 49,
+        "n": 64,
+        "other": 3,
+        "score": 0.21522558610652096,
+        "sparse": 39,
+        "valid": 0.234375
+       },
+       {
+        "blend": 4,
+        "coverage": 1.0,
+        "invalid": 50,
+        "n": 64,
+        "other": 3,
+        "score": 0.21875,
+        "sparse": 43,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 99,
+      "n": 128,
+      "other": 6,
+      "score": 0.2169877930532605,
+      "sparse": 82,
+      "valid": 0.2265625
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 10,
+      "blend_share": 0.10101010101010101,
+      "coverage": 0.866891920108525,
+      "cues": [
+       {
+        "blend": 4,
+        "coverage": 0.954434002924965,
+        "invalid": 48,
+        "n": 64,
+        "other": 4,
+        "score": 0.23860850073124126,
+        "sparse": 40,
+        "valid": 0.25
+       },
+       {
+        "blend": 6,
+        "coverage": 0.7793498372920851,
+        "invalid": 51,
+        "n": 64,
+        "other": 2,
+        "score": 0.15830543569995478,
+        "sparse": 43,
+        "valid": 0.203125
+       }
+      ],
+      "invalid": 99,
+      "n": 128,
+      "other": 6,
+      "score": 0.19845696821559802,
+      "sparse": 83,
+      "valid": 0.2265625
+     },
+     "val": {
+      "blend": 16,
+      "blend_share": 0.15384615384615385,
+      "coverage": 0.9939338459099294,
+      "cues": [
+       {
+        "blend": 10,
+        "coverage": 0.9910760598382222,
+        "invalid": 55,
+        "n": 64,
+        "other": 3,
+        "score": 0.13937007091475,
+        "sparse": 42,
+        "valid": 0.140625
+       },
+       {
+        "blend": 6,
+        "coverage": 0.9967916319816367,
+        "invalid": 49,
+        "n": 64,
+        "other": 1,
+        "score": 0.2336230387456961,
+        "sparse": 42,
+        "valid": 0.234375
+       }
+      ],
+      "invalid": 104,
+      "n": 128,
+      "other": 4,
+      "score": 0.18649655483022304,
+      "sparse": 84,
+      "valid": 0.1875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 7,
+      "blend_share": 0.08139534883720931,
+      "coverage": 0.6315541911449497,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.2974722489192897,
+        "invalid": 45,
+        "n": 64,
+        "other": 8,
+        "score": 0.08831207389791412,
+        "sparse": 35,
+        "valid": 0.296875
+       },
+       {
+        "blend": 5,
+        "coverage": 0.9656361333706097,
+        "invalid": 41,
+        "n": 64,
+        "other": 4,
+        "score": 0.34702548543006284,
+        "sparse": 32,
+        "valid": 0.359375
+       }
+      ],
+      "invalid": 86,
+      "n": 128,
+      "other": 12,
+      "score": 0.21766877966398848,
+      "sparse": 67,
+      "valid": 0.328125
+     },
+     "val": {
+      "blend": 6,
+      "blend_share": 0.058823529411764705,
+      "coverage": 0.8176252788413028,
+      "cues": [
+       {
+        "blend": 3,
+        "coverage": 0.6500224216483541,
+        "invalid": 52,
+        "n": 64,
+        "other": 8,
+        "score": 0.1218792040590664,
+        "sparse": 41,
+        "valid": 0.1875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.9852281360342515,
+        "invalid": 50,
+        "n": 64,
+        "other": 6,
+        "score": 0.21551865475749252,
+        "sparse": 41,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 102,
+      "n": 128,
+      "other": 14,
+      "score": 0.16869892940827946,
+      "sparse": 82,
+      "valid": 0.203125
+     }
+    }
+   },
+   "GC": {
+    "2.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.29066074938185144,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.5813214987637029,
+        "invalid": 28,
+        "n": 64,
+        "other": 0,
+        "score": 0.3269933430545829,
+        "sparse": 28,
+        "valid": 0.5625
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 33,
+        "n": 64,
+        "other": 2,
+        "score": -0.0,
+        "sparse": 31,
+        "valid": 0.484375
+       }
+      ],
+      "invalid": 61,
+      "n": 128,
+      "other": 2,
+      "score": 0.16349667152729144,
+      "sparse": 59,
+      "valid": 0.5234375
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.028985507246376812,
+      "coverage": 0.6195447642862175,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.6098403047164005,
+        "invalid": 24,
+        "n": 64,
+        "other": 0,
+        "score": 0.38115019044775034,
+        "sparse": 23,
+        "valid": 0.625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.6292492238560347,
+        "invalid": 45,
+        "n": 64,
+        "other": 1,
+        "score": 0.18680836333226028,
+        "sparse": 43,
+        "valid": 0.296875
+       }
+      ],
+      "invalid": 69,
+      "n": 128,
+      "other": 1,
+      "score": 0.2839792768900053,
+      "sparse": 66,
+      "valid": 0.4609375
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 4,
+      "blend_share": 0.05333333333333334,
+      "coverage": 0.5197907177613434,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.18717625687320819,
+        "invalid": 29,
+        "n": 64,
+        "other": 1,
+        "score": 0.10236201547753572,
+        "sparse": 27,
+        "valid": 0.546875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8524051786494786,
+        "invalid": 46,
+        "n": 64,
+        "other": 3,
+        "score": 0.23973895649516586,
+        "sparse": 40,
+        "valid": 0.28125
+       }
+      ],
+      "invalid": 75,
+      "n": 128,
+      "other": 4,
+      "score": 0.17105048598635078,
+      "sparse": 67,
+      "valid": 0.4140625
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.38967491864604253,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 27,
+        "n": 64,
+        "other": 2,
+        "score": -0.0,
+        "sparse": 25,
+        "valid": 0.578125
+       },
+       {
+        "blend": 0,
+        "coverage": 0.7793498372920851,
+        "invalid": 38,
+        "n": 64,
+        "other": 1,
+        "score": 0.31661087139990957,
+        "sparse": 37,
+        "valid": 0.40625
+       }
+      ],
+      "invalid": 65,
+      "n": 128,
+      "other": 3,
+      "score": 0.15830543569995478,
+      "sparse": 62,
+      "valid": 0.4921875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 2,
+      "blend_share": 0.03278688524590164,
+      "coverage": 0.31802037279811884,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.18717625687320819,
+        "invalid": 29,
+        "n": 64,
+        "other": 2,
+        "score": 0.10236201547753572,
+        "sparse": 27,
+        "valid": 0.546875
+       },
+       {
+        "blend": 2,
+        "coverage": 0.4488644887230295,
+        "invalid": 32,
+        "n": 64,
+        "other": 0,
+        "score": 0.22443224436151474,
+        "sparse": 30,
+        "valid": 0.5
+       }
+      ],
+      "invalid": 61,
+      "n": 128,
+      "other": 2,
+      "score": 0.16339712991952524,
+      "sparse": 57,
+      "valid": 0.5234375
+     },
+     "val": {
+      "blend": 1,
+      "blend_share": 0.02040816326530612,
+      "coverage": 0.3817341316676429,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.2863969571159562,
+        "invalid": 24,
+        "n": 64,
+        "other": 0,
+        "score": 0.17899809819747262,
+        "sparse": 24,
+        "valid": 0.625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.4770713062193297,
+        "invalid": 25,
+        "n": 64,
+        "other": 3,
+        "score": 0.290715327227404,
+        "sparse": 21,
+        "valid": 0.609375
+       }
+      ],
+      "invalid": 49,
+      "n": 128,
+      "other": 3,
+      "score": 0.2348567127124383,
+      "sparse": 45,
+      "valid": 0.6171875
+     }
+    }
+   },
+   "GP": {
+    "2.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 2,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 2,
+      "valid": 0.984375
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     }
+    }
+   },
+   "M1_C": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      }
+     ],
+     "invalid": 0,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 0,
+     "valid": 1.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 128,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 128,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    }
+   },
+   "M1_S": {
+    "blend": 0,
+    "blend_share": 0.0,
+    "coverage": 0.0,
+    "cues": [
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     },
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     }
+    ],
+    "invalid": 128,
+    "n": 128,
+    "other": 0,
+    "score": 0.0,
+    "sparse": 128,
+    "valid": 0.0
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    }
+   },
+   "S": {
+    "test": {
+     "blend": 18,
+     "blend_share": 0.140625,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 9,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 3,
+       "score": 0.0,
+       "sparse": 52,
+       "valid": 0.0
+      },
+      {
+       "blend": 9,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 11,
+       "score": 0.0,
+       "sparse": 44,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 128,
+     "n": 128,
+     "other": 14,
+     "score": 0.0,
+     "sparse": 96,
+     "valid": 0.0
+    },
+    "val": {
+     "blend": 5,
+     "blend_share": 0.04065040650406504,
+     "coverage": 0.4056390622295664,
+     "cues": [
+      {
+       "blend": 1,
+       "coverage": -0.0,
+       "invalid": 63,
+       "n": 64,
+       "other": 7,
+       "score": -0.0,
+       "sparse": 55,
+       "valid": 0.015625
+      },
+      {
+       "blend": 4,
+       "coverage": 0.8112781244591328,
+       "invalid": 60,
+       "n": 64,
+       "other": 10,
+       "score": 0.0507048827786958,
+       "sparse": 46,
+       "valid": 0.0625
+      }
+     ],
+     "invalid": 123,
+     "n": 128,
+     "other": 17,
+     "score": 0.0253524413893479,
+     "sparse": 101,
+     "valid": 0.0390625
+    }
+   },
+   "SC": {
+    "test": {
+     "blend": 1,
+     "blend_share": 0.015151515151515152,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 1,
+       "coverage": -0.0,
+       "invalid": 24,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 22,
+       "valid": 0.625
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 42,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 41,
+       "valid": 0.34375
+      }
+     ],
+     "invalid": 66,
+     "n": 128,
+     "other": 2,
+     "score": 0.0,
+     "sparse": 63,
+     "valid": 0.484375
+    },
+    "val": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 23,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 23,
+       "valid": 0.640625
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 35,
+       "n": 64,
+       "other": 2,
+       "score": -0.0,
+       "sparse": 33,
+       "valid": 0.453125
+      }
+     ],
+     "invalid": 58,
+     "n": 128,
+     "other": 2,
+     "score": 0.0,
+     "sparse": 56,
+     "valid": 0.546875
+    }
+   },
+   "Z": {
+    "test": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.9849458841976693,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.978070970973496,
+       "invalid": 18,
+       "n": 64,
+       "other": 11,
+       "score": 0.7029885103872002,
+       "sparse": 7,
+       "valid": 0.71875
+      },
+      {
+       "blend": 0,
+       "coverage": 0.9918207974218425,
+       "invalid": 17,
+       "n": 64,
+       "other": 17,
+       "score": 0.7283683981066655,
+       "sparse": 0,
+       "valid": 0.734375
+      }
+     ],
+     "invalid": 35,
+     "n": 128,
+     "other": 28,
+     "score": 0.7156784542469329,
+     "sparse": 7,
+     "valid": 0.7265625
+    },
+    "val": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.8942482898866708,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.8841151220488478,
+       "invalid": 21,
+       "n": 64,
+       "other": 10,
+       "score": 0.5940148476265696,
+       "sparse": 11,
+       "valid": 0.671875
+      },
+      {
+       "blend": 0,
+       "coverage": 0.9043814577244939,
+       "invalid": 14,
+       "n": 64,
+       "other": 14,
+       "score": 0.7065480138472608,
+       "sparse": 0,
+       "valid": 0.78125
+      }
+     ],
+     "invalid": 35,
+     "n": 128,
+     "other": 24,
+     "score": 0.6502814307369152,
+     "sparse": 11,
+     "valid": 0.7265625
+    }
+   },
+   "n_params": {
+    "G": 2208,
+    "Z": 2304
+   },
+   "seed": 54101,
+   "sparse_px": 4.355625
+  },
+  {
+   "G": {
+    "2.0": {
+     "test": {
+      "blend": 8,
+      "blend_share": 0.07766990291262135,
+      "coverage": 0.9705526806870144,
+      "cues": [
+       {
+        "blend": 7,
+        "coverage": 0.961236604722876,
+        "invalid": 51,
+        "n": 64,
+        "other": 2,
+        "score": 0.1952511853343342,
+        "sparse": 42,
+        "valid": 0.203125
+       },
+       {
+        "blend": 1,
+        "coverage": 0.9798687566511527,
+        "invalid": 52,
+        "n": 64,
+        "other": 4,
+        "score": 0.18372539187209114,
+        "sparse": 47,
+        "valid": 0.1875
+       }
+      ],
+      "invalid": 103,
+      "n": 128,
+      "other": 6,
+      "score": 0.18948828860321265,
+      "sparse": 89,
+      "valid": 0.1953125
+     },
+     "val": {
+      "blend": 11,
+      "blend_share": 0.11,
+      "coverage": 0.8072540470898176,
+      "cues": [
+       {
+        "blend": 5,
+        "coverage": 0.9182958340544894,
+        "invalid": 52,
+        "n": 64,
+        "other": 6,
+        "score": 0.17218046888521676,
+        "sparse": 41,
+        "valid": 0.1875
+       },
+       {
+        "blend": 6,
+        "coverage": 0.6962122601251458,
+        "invalid": 48,
+        "n": 64,
+        "other": 3,
+        "score": 0.17405306503128645,
+        "sparse": 39,
+        "valid": 0.25
+       }
+      ],
+      "invalid": 100,
+      "n": 128,
+      "other": 9,
+      "score": 0.17311676695825162,
+      "sparse": 80,
+      "valid": 0.21875
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 5,
+      "blend_share": 0.05102040816326531,
+      "coverage": 0.9406454496153464,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 1.0,
+        "invalid": 44,
+        "n": 64,
+        "other": 5,
+        "score": 0.3125,
+        "sparse": 39,
+        "valid": 0.3125
+       },
+       {
+        "blend": 5,
+        "coverage": 0.8812908992306927,
+        "invalid": 54,
+        "n": 64,
+        "other": 4,
+        "score": 0.13770170300479573,
+        "sparse": 45,
+        "valid": 0.15625
+       }
+      ],
+      "invalid": 98,
+      "n": 128,
+      "other": 9,
+      "score": 0.22510085150239786,
+      "sparse": 84,
+      "valid": 0.234375
+     },
+     "val": {
+      "blend": 7,
+      "blend_share": 0.0673076923076923,
+      "coverage": 0.872205733898662,
+      "cues": [
+       {
+        "blend": 4,
+        "coverage": 0.8631205685666311,
+        "invalid": 50,
+        "n": 64,
+        "other": 6,
+        "score": 0.18880762437395054,
+        "sparse": 40,
+        "valid": 0.21875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8812908992306927,
+        "invalid": 54,
+        "n": 64,
+        "other": 4,
+        "score": 0.13770170300479573,
+        "sparse": 47,
+        "valid": 0.15625
+       }
+      ],
+      "invalid": 104,
+      "n": 128,
+      "other": 10,
+      "score": 0.16325466368937314,
+      "sparse": 87,
+      "valid": 0.1875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 4,
+      "blend_share": 0.0380952380952381,
+      "coverage": 0.9126098466367946,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.8453509366224364,
+        "invalid": 53,
+        "n": 64,
+        "other": 3,
+        "score": 0.14529469223198127,
+        "sparse": 50,
+        "valid": 0.171875
+       },
+       {
+        "blend": 4,
+        "coverage": 0.9798687566511527,
+        "invalid": 52,
+        "n": 64,
+        "other": 7,
+        "score": 0.18372539187209114,
+        "sparse": 41,
+        "valid": 0.1875
+       }
+      ],
+      "invalid": 105,
+      "n": 128,
+      "other": 10,
+      "score": 0.1645100420520362,
+      "sparse": 91,
+      "valid": 0.1796875
+     },
+     "val": {
+      "blend": 4,
+      "blend_share": 0.03773584905660377,
+      "coverage": 0.6923837223791514,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.4138168503036338,
+        "invalid": 52,
+        "n": 64,
+        "other": 5,
+        "score": 0.07759065943193133,
+        "sparse": 46,
+        "valid": 0.1875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.9709505944546688,
+        "invalid": 54,
+        "n": 64,
+        "other": 4,
+        "score": 0.151711030383542,
+        "sparse": 47,
+        "valid": 0.15625
+       }
+      ],
+      "invalid": 106,
+      "n": 128,
+      "other": 9,
+      "score": 0.11465084490773667,
+      "sparse": 93,
+      "valid": 0.171875
+     }
+    }
+   },
+   "GC": {
+    "2.0": {
+     "test": {
+      "blend": 4,
+      "blend_share": 0.05555555555555555,
+      "coverage": 0.4253223729805344,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.20062232431271465,
+        "invalid": 32,
+        "n": 64,
+        "other": 0,
+        "score": 0.10031116215635733,
+        "sparse": 30,
+        "valid": 0.5
+       },
+       {
+        "blend": 2,
+        "coverage": 0.6500224216483541,
+        "invalid": 40,
+        "n": 64,
+        "other": 2,
+        "score": 0.2437584081181328,
+        "sparse": 36,
+        "valid": 0.375
+       }
+      ],
+      "invalid": 72,
+      "n": 128,
+      "other": 2,
+      "score": 0.17203478513724507,
+      "sparse": 66,
+      "valid": 0.4375
+     },
+     "val": {
+      "blend": 1,
+      "blend_share": 0.015625,
+      "coverage": 0.18561616332043784,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 28,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 28,
+        "valid": 0.5625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.3712323266408757,
+        "invalid": 36,
+        "n": 64,
+        "other": 0,
+        "score": 0.1624141429053831,
+        "sparse": 35,
+        "valid": 0.4375
+       }
+      ],
+      "invalid": 64,
+      "n": 128,
+      "other": 0,
+      "score": 0.08120707145269156,
+      "sparse": 63,
+      "valid": 0.5
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 1,
+      "blend_share": 0.015384615384615385,
+      "coverage": 0.33328917899746024,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 24,
+        "n": 64,
+        "other": 1,
+        "score": -0.0,
+        "sparse": 23,
+        "valid": 0.625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.6665783579949205,
+        "invalid": 41,
+        "n": 64,
+        "other": 2,
+        "score": 0.23955159740442455,
+        "sparse": 38,
+        "valid": 0.359375
+       }
+      ],
+      "invalid": 65,
+      "n": 128,
+      "other": 3,
+      "score": 0.11977579870221228,
+      "sparse": 61,
+      "valid": 0.4921875
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.034482758620689655,
+      "coverage": 0.4005596960827339,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.15109697051711368,
+        "invalid": 18,
+        "n": 64,
+        "other": 1,
+        "score": 0.10860094755917546,
+        "sparse": 16,
+        "valid": 0.71875
+       },
+       {
+        "blend": 1,
+        "coverage": 0.6500224216483541,
+        "invalid": 40,
+        "n": 64,
+        "other": 2,
+        "score": 0.2437584081181328,
+        "sparse": 37,
+        "valid": 0.375
+       }
+      ],
+      "invalid": 58,
+      "n": 128,
+      "other": 3,
+      "score": 0.17617967783865413,
+      "sparse": 53,
+      "valid": 0.546875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 1,
+      "blend_share": 0.014084507042253521,
+      "coverage": 0.44524582010974567,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 33,
+        "n": 64,
+        "other": 1,
+        "score": -0.0,
+        "sparse": 32,
+        "valid": 0.484375
+       },
+       {
+        "blend": 1,
+        "coverage": 0.8904916402194913,
+        "invalid": 38,
+        "n": 64,
+        "other": 3,
+        "score": 0.36176222883916836,
+        "sparse": 34,
+        "valid": 0.40625
+       }
+      ],
+      "invalid": 71,
+      "n": 128,
+      "other": 4,
+      "score": 0.18088111441958418,
+      "sparse": 66,
+      "valid": 0.4453125
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.03076923076923077,
+      "coverage": 0.5555436692984534,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.16542703399626682,
+        "invalid": 23,
+        "n": 64,
+        "other": 1,
+        "score": 0.10597669365385844,
+        "sparse": 22,
+        "valid": 0.640625
+       },
+       {
+        "blend": 2,
+        "coverage": 0.9456603046006401,
+        "invalid": 42,
+        "n": 64,
+        "other": 1,
+        "score": 0.32507072970647005,
+        "sparse": 39,
+        "valid": 0.34375
+       }
+      ],
+      "invalid": 65,
+      "n": 128,
+      "other": 2,
+      "score": 0.21552371168016424,
+      "sparse": 61,
+      "valid": 0.4921875
+     }
+    }
+   },
+   "GP": {
+    "2.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 3,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 3,
+        "valid": 0.953125
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 5,
+        "n": 64,
+        "other": 1,
+        "score": -0.0,
+        "sparse": 4,
+        "valid": 0.921875
+       }
+      ],
+      "invalid": 8,
+      "n": 128,
+      "other": 1,
+      "score": 0.0,
+      "sparse": 7,
+      "valid": 0.9375
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 1,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 1,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 0.9921875
+     }
+    }
+   },
+   "M1_C": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      }
+     ],
+     "invalid": 0,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 0,
+     "valid": 1.0
+    }
+   },
+   "M1_S": {
+    "blend": 0,
+    "blend_share": 0.0,
+    "coverage": 0.0,
+    "cues": [
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     },
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     }
+    ],
+    "invalid": 128,
+    "n": 128,
+    "other": 0,
+    "score": 0.0,
+    "sparse": 128,
+    "valid": 0.0
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    }
+   },
+   "S": {
+    "test": {
+     "blend": 10,
+     "blend_share": 0.08064516129032258,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 3,
+       "coverage": -0.0,
+       "invalid": 61,
+       "n": 64,
+       "other": 5,
+       "score": -0.0,
+       "sparse": 53,
+       "valid": 0.046875
+      },
+      {
+       "blend": 7,
+       "coverage": -0.0,
+       "invalid": 63,
+       "n": 64,
+       "other": 6,
+       "score": -0.0,
+       "sparse": 50,
+       "valid": 0.015625
+      }
+     ],
+     "invalid": 124,
+     "n": 128,
+     "other": 11,
+     "score": 0.0,
+     "sparse": 103,
+     "valid": 0.03125
+    },
+    "val": {
+     "blend": 12,
+     "blend_share": 0.0967741935483871,
+     "coverage": 0.4591479170272447,
+     "cues": [
+      {
+       "blend": 7,
+       "coverage": -0.0,
+       "invalid": 63,
+       "n": 64,
+       "other": 7,
+       "score": -0.0,
+       "sparse": 49,
+       "valid": 0.015625
+      },
+      {
+       "blend": 5,
+       "coverage": 0.9182958340544894,
+       "invalid": 61,
+       "n": 64,
+       "other": 5,
+       "score": 0.04304511722130419,
+       "sparse": 51,
+       "valid": 0.046875
+      }
+     ],
+     "invalid": 124,
+     "n": 128,
+     "other": 12,
+     "score": 0.021522558610652096,
+     "sparse": 100,
+     "valid": 0.03125
+    }
+   },
+   "SC": {
+    "test": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 24,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 23,
+       "valid": 0.625
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 29,
+       "n": 64,
+       "other": 3,
+       "score": -0.0,
+       "sparse": 26,
+       "valid": 0.546875
+      }
+     ],
+     "invalid": 53,
+     "n": 128,
+     "other": 4,
+     "score": 0.0,
+     "sparse": 49,
+     "valid": 0.5859375
+    },
+    "val": {
+     "blend": 1,
+     "blend_share": 0.017857142857142856,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 1,
+       "coverage": -0.0,
+       "invalid": 25,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 24,
+       "valid": 0.609375
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 31,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 31,
+       "valid": 0.515625
+      }
+     ],
+     "invalid": 56,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 55,
+     "valid": 0.5625
+    }
+   },
+   "Z": {
+    "test": {
+     "blend": 16,
+     "blend_share": 1.0,
+     "coverage": 0.9666186325481027,
+     "cues": [
+      {
+       "blend": 8,
+       "coverage": 0.9666186325481027,
+       "invalid": 8,
+       "n": 64,
+       "other": 0,
+       "score": 0.8457913034795899,
+       "sparse": 0,
+       "valid": 0.875
+      },
+      {
+       "blend": 8,
+       "coverage": 0.9666186325481027,
+       "invalid": 8,
+       "n": 64,
+       "other": 0,
+       "score": 0.8457913034795899,
+       "sparse": 0,
+       "valid": 0.875
+      }
+     ],
+     "invalid": 16,
+     "n": 128,
+     "other": 0,
+     "score": 0.8457913034795899,
+     "sparse": 0,
+     "valid": 0.875
+    },
+    "val": {
+     "blend": 11,
+     "blend_share": 1.0,
+     "coverage": 0.9879716486665684,
+     "cues": [
+      {
+       "blend": 3,
+       "coverage": 0.9842399889605549,
+       "invalid": 3,
+       "n": 64,
+       "other": 0,
+       "score": 0.9381037394780288,
+       "sparse": 0,
+       "valid": 0.953125
+      },
+      {
+       "blend": 8,
+       "coverage": 0.9917033083725818,
+       "invalid": 8,
+       "n": 64,
+       "other": 0,
+       "score": 0.8677403948260091,
+       "sparse": 0,
+       "valid": 0.875
+      }
+     ],
+     "invalid": 11,
+     "n": 128,
+     "other": 0,
+     "score": 0.902922067152019,
+     "sparse": 0,
+     "valid": 0.9140625
+    }
+   },
+   "n_params": {
+    "G": 2208,
+    "Z": 2304
+   },
+   "seed": 54102,
+   "sparse_px": 4.3515
+  },
+  {
+   "G": {
+    "2.0": {
+     "test": {
+      "blend": 9,
+      "blend_share": 0.0989010989010989,
+      "coverage": 0.98650842335116,
+      "cues": [
+       {
+        "blend": 3,
+        "coverage": 0.9910760598382222,
+        "invalid": 46,
+        "n": 64,
+        "other": 3,
+        "score": 0.2787401418295,
+        "sparse": 40,
+        "valid": 0.28125
+       },
+       {
+        "blend": 6,
+        "coverage": 0.9819407868640977,
+        "invalid": 45,
+        "n": 64,
+        "other": 3,
+        "score": 0.291513671100279,
+        "sparse": 36,
+        "valid": 0.296875
+       }
+      ],
+      "invalid": 91,
+      "n": 128,
+      "other": 6,
+      "score": 0.2851269064648895,
+      "sparse": 76,
+      "valid": 0.2890625
+     },
+     "val": {
+      "blend": 6,
+      "blend_share": 0.061224489795918366,
+      "coverage": 0.8795794005505942,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.8960382325345574,
+        "invalid": 48,
+        "n": 64,
+        "other": 5,
+        "score": 0.22400955813363935,
+        "sparse": 42,
+        "valid": 0.25
+       },
+       {
+        "blend": 5,
+        "coverage": 0.8631205685666311,
+        "invalid": 50,
+        "n": 64,
+        "other": 4,
+        "score": 0.18880762437395054,
+        "sparse": 41,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 98,
+      "n": 128,
+      "other": 9,
+      "score": 0.20640859125379496,
+      "sparse": 83,
+      "valid": 0.234375
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 9,
+      "blend_share": 0.1,
+      "coverage": 0.8706945845784969,
+      "cues": [
+       {
+        "blend": 6,
+        "coverage": 0.8453509366224364,
+        "invalid": 42,
+        "n": 64,
+        "other": 3,
+        "score": 0.29058938446396254,
+        "sparse": 33,
+        "valid": 0.34375
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8960382325345574,
+        "invalid": 48,
+        "n": 64,
+        "other": 5,
+        "score": 0.22400955813363935,
+        "sparse": 40,
+        "valid": 0.25
+       }
+      ],
+      "invalid": 90,
+      "n": 128,
+      "other": 8,
+      "score": 0.25729947129880093,
+      "sparse": 73,
+      "valid": 0.296875
+     },
+     "val": {
+      "blend": 5,
+      "blend_share": 0.04950495049504951,
+      "coverage": 0.9294240103257784,
+      "cues": [
+       {
+        "blend": 3,
+        "coverage": 0.9957274520849256,
+        "invalid": 51,
+        "n": 64,
+        "other": 5,
+        "score": 0.2022571387047505,
+        "sparse": 43,
+        "valid": 0.203125
+       },
+       {
+        "blend": 2,
+        "coverage": 0.8631205685666311,
+        "invalid": 50,
+        "n": 64,
+        "other": 2,
+        "score": 0.18880762437395054,
+        "sparse": 46,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 101,
+      "n": 128,
+      "other": 7,
+      "score": 0.19553238153935054,
+      "sparse": 89,
+      "valid": 0.2109375
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 8,
+      "blend_share": 0.08163265306122448,
+      "coverage": 0.9446232142545792,
+      "cues": [
+       {
+        "blend": 3,
+        "coverage": 0.9182958340544894,
+        "invalid": 49,
+        "n": 64,
+        "other": 5,
+        "score": 0.21522558610652096,
+        "sparse": 41,
+        "valid": 0.234375
+       },
+       {
+        "blend": 5,
+        "coverage": 0.9709505944546688,
+        "invalid": 49,
+        "n": 64,
+        "other": 1,
+        "score": 0.227566545575313,
+        "sparse": 43,
+        "valid": 0.234375
+       }
+      ],
+      "invalid": 98,
+      "n": 128,
+      "other": 6,
+      "score": 0.22139606584091698,
+      "sparse": 84,
+      "valid": 0.234375
+     },
+     "val": {
+      "blend": 11,
+      "blend_share": 0.10784313725490197,
+      "coverage": 0.9957274520849256,
+      "cues": [
+       {
+        "blend": 3,
+        "coverage": 0.9957274520849256,
+        "invalid": 51,
+        "n": 64,
+        "other": 3,
+        "score": 0.2022571387047505,
+        "sparse": 45,
+        "valid": 0.203125
+       },
+       {
+        "blend": 8,
+        "coverage": 0.9957274520849256,
+        "invalid": 51,
+        "n": 64,
+        "other": 5,
+        "score": 0.2022571387047505,
+        "sparse": 38,
+        "valid": 0.203125
+       }
+      ],
+      "invalid": 102,
+      "n": 128,
+      "other": 8,
+      "score": 0.2022571387047505,
+      "sparse": 83,
+      "valid": 0.203125
+     }
+    }
+   },
+   "GC": {
+    "2.0": {
+     "test": {
+      "blend": 3,
+      "blend_share": 0.04838709677419355,
+      "coverage": 0.3943547953718114,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.2974722489192897,
+        "invalid": 26,
+        "n": 64,
+        "other": 2,
+        "score": 0.17662414779582825,
+        "sparse": 23,
+        "valid": 0.59375
+       },
+       {
+        "blend": 2,
+        "coverage": 0.4912373418243331,
+        "invalid": 36,
+        "n": 64,
+        "other": 3,
+        "score": 0.21491633704814572,
+        "sparse": 31,
+        "valid": 0.4375
+       }
+      ],
+      "invalid": 62,
+      "n": 128,
+      "other": 5,
+      "score": 0.19577024242198698,
+      "sparse": 54,
+      "valid": 0.515625
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.03278688524590164,
+      "coverage": 0.4437849394510714,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.38431154412649704,
+        "invalid": 24,
+        "n": 64,
+        "other": 0,
+        "score": 0.24019471507906065,
+        "sparse": 24,
+        "valid": 0.625
+       },
+       {
+        "blend": 2,
+        "coverage": 0.5032583347756457,
+        "invalid": 37,
+        "n": 64,
+        "other": 0,
+        "score": 0.21231210998347555,
+        "sparse": 35,
+        "valid": 0.421875
+       }
+      ],
+      "invalid": 61,
+      "n": 128,
+      "other": 0,
+      "score": 0.2262534125312681,
+      "sparse": 59,
+      "valid": 0.5234375
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.3364220280464271,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.4305518670104394,
+        "invalid": 30,
+        "n": 64,
+        "other": 1,
+        "score": 0.22873067934929595,
+        "sparse": 29,
+        "valid": 0.53125
+       },
+       {
+        "blend": 0,
+        "coverage": 0.24229218908241482,
+        "invalid": 39,
+        "n": 64,
+        "other": 2,
+        "score": 0.09464538636031829,
+        "sparse": 37,
+        "valid": 0.390625
+       }
+      ],
+      "invalid": 69,
+      "n": 128,
+      "other": 3,
+      "score": 0.16168803285480712,
+      "sparse": 66,
+      "valid": 0.4609375
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.02857142857142857,
+      "coverage": 0.11759669090962074,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 32,
+        "n": 64,
+        "other": 6,
+        "score": -0.0,
+        "sparse": 26,
+        "valid": 0.5
+       },
+       {
+        "blend": 2,
+        "coverage": 0.2351933818192415,
+        "invalid": 38,
+        "n": 64,
+        "other": 3,
+        "score": 0.09554731136406686,
+        "sparse": 33,
+        "valid": 0.40625
+       }
+      ],
+      "invalid": 70,
+      "n": 128,
+      "other": 9,
+      "score": 0.04777365568203343,
+      "sparse": 59,
+      "valid": 0.453125
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 1,
+      "blend_share": 0.014705882352941176,
+      "coverage": 0.5584386771875083,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.6136190195993708,
+        "invalid": 31,
+        "n": 64,
+        "other": 0,
+        "score": 0.31639730698092555,
+        "sparse": 31,
+        "valid": 0.515625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.5032583347756457,
+        "invalid": 37,
+        "n": 64,
+        "other": 6,
+        "score": 0.21231210998347555,
+        "sparse": 30,
+        "valid": 0.421875
+       }
+      ],
+      "invalid": 68,
+      "n": 128,
+      "other": 6,
+      "score": 0.26435470848220055,
+      "sparse": 61,
+      "valid": 0.46875
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.0273972602739726,
+      "coverage": 0.6274208167886726,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.6962122601251458,
+        "invalid": 32,
+        "n": 64,
+        "other": 1,
+        "score": 0.3481061300625729,
+        "sparse": 30,
+        "valid": 0.5
+       },
+       {
+        "blend": 1,
+        "coverage": 0.5586293734521992,
+        "invalid": 41,
+        "n": 64,
+        "other": 2,
+        "score": 0.2007574310843841,
+        "sparse": 38,
+        "valid": 0.359375
+       }
+      ],
+      "invalid": 73,
+      "n": 128,
+      "other": 3,
+      "score": 0.2744317805734785,
+      "sparse": 68,
+      "valid": 0.4296875
+     }
+    }
+   },
+   "GP": {
+    "2.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 3,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 3,
+        "valid": 0.953125
+       }
+      ],
+      "invalid": 3,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 3,
+      "valid": 0.9765625
+     }
+    }
+   },
+   "M1_C": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 128,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 128,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 128,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 128,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    }
+   },
+   "M1_S": {
+    "blend": 0,
+    "blend_share": 0.0,
+    "coverage": 0.0,
+    "cues": [
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     },
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     }
+    ],
+    "invalid": 128,
+    "n": 128,
+    "other": 0,
+    "score": 0.0,
+    "sparse": 128,
+    "valid": 0.0
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    }
+   },
+   "S": {
+    "test": {
+     "blend": 6,
+     "blend_share": 0.047619047619047616,
+     "coverage": 0.5,
+     "cues": [
+      {
+       "blend": 5,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 5,
+       "score": 0.0,
+       "sparse": 54,
+       "valid": 0.0
+      },
+      {
+       "blend": 1,
+       "coverage": 1.0,
+       "invalid": 62,
+       "n": 64,
+       "other": 8,
+       "score": 0.03125,
+       "sparse": 53,
+       "valid": 0.03125
+      }
+     ],
+     "invalid": 126,
+     "n": 128,
+     "other": 13,
+     "score": 0.015625,
+     "sparse": 107,
+     "valid": 0.015625
+    },
+    "val": {
+     "blend": 9,
+     "blend_share": 0.072,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 4,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 6,
+       "score": 0.0,
+       "sparse": 54,
+       "valid": 0.0
+      },
+      {
+       "blend": 5,
+       "coverage": -0.0,
+       "invalid": 61,
+       "n": 64,
+       "other": 4,
+       "score": -0.0,
+       "sparse": 52,
+       "valid": 0.046875
+      }
+     ],
+     "invalid": 125,
+     "n": 128,
+     "other": 10,
+     "score": 0.0,
+     "sparse": 106,
+     "valid": 0.0234375
+    }
+   },
+   "SC": {
+    "test": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 24,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 23,
+       "valid": 0.625
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 26,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 26,
+       "valid": 0.59375
+      }
+     ],
+     "invalid": 50,
+     "n": 128,
+     "other": 1,
+     "score": 0.0,
+     "sparse": 49,
+     "valid": 0.609375
+    },
+    "val": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 22,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 21,
+       "valid": 0.65625
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 30,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 30,
+       "valid": 0.53125
+      }
+     ],
+     "invalid": 52,
+     "n": 128,
+     "other": 1,
+     "score": 0.0,
+     "sparse": 51,
+     "valid": 0.59375
+    }
+   },
+   "Z": {
+    "test": {
+     "blend": 4,
+     "blend_share": 0.36363636363636365,
+     "coverage": 0.9533124034685224,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.9652016987500656,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": 0.9652016987500656,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 4,
+       "coverage": 0.9414231081869793,
+       "invalid": 11,
+       "n": 64,
+       "other": 0,
+       "score": 0.7796160114673422,
+       "sparse": 7,
+       "valid": 0.828125
+      }
+     ],
+     "invalid": 11,
+     "n": 128,
+     "other": 0,
+     "score": 0.8724088551087039,
+     "sparse": 7,
+     "valid": 0.9140625
+    },
+    "val": {
+     "blend": 9,
+     "blend_share": 0.8181818181818182,
+     "coverage": 0.9414402652337039,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.9992954443621548,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": 0.9992954443621548,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 9,
+       "coverage": 0.8835850861052531,
+       "invalid": 11,
+       "n": 64,
+       "other": 0,
+       "score": 0.7317188994309127,
+       "sparse": 2,
+       "valid": 0.828125
+      }
+     ],
+     "invalid": 11,
+     "n": 128,
+     "other": 0,
+     "score": 0.8655071718965337,
+     "sparse": 2,
+     "valid": 0.9140625
+    }
+   },
+   "n_params": {
+    "G": 2208,
+    "Z": 2304
+   },
+   "seed": 54103,
+   "sparse_px": 4.350125
+  },
+  {
+   "G": {
+    "2.0": {
+     "test": {
+      "blend": 3,
+      "blend_share": 0.03296703296703297,
+      "coverage": 0.9824904029658127,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.9940302114769566,
+        "invalid": 42,
+        "n": 64,
+        "other": 2,
+        "score": 0.34169788519520383,
+        "sparse": 39,
+        "valid": 0.34375
+       },
+       {
+        "blend": 2,
+        "coverage": 0.9709505944546688,
+        "invalid": 49,
+        "n": 64,
+        "other": 6,
+        "score": 0.227566545575313,
+        "sparse": 41,
+        "valid": 0.234375
+       }
+      ],
+      "invalid": 91,
+      "n": 128,
+      "other": 8,
+      "score": 0.2846322153852584,
+      "sparse": 80,
+      "valid": 0.2890625
+     },
+     "val": {
+      "blend": 5,
+      "blend_share": 0.049019607843137254,
+      "coverage": 0.9926140680171258,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.9852281360342515,
+        "invalid": 50,
+        "n": 64,
+        "other": 5,
+        "score": 0.21551865475749252,
+        "sparse": 43,
+        "valid": 0.21875
+       },
+       {
+        "blend": 3,
+        "coverage": 1.0,
+        "invalid": 52,
+        "n": 64,
+        "other": 5,
+        "score": 0.1875,
+        "sparse": 44,
+        "valid": 0.1875
+       }
+      ],
+      "invalid": 102,
+      "n": 128,
+      "other": 10,
+      "score": 0.20150932737874627,
+      "sparse": 87,
+      "valid": 0.203125
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 9,
+      "blend_share": 0.08823529411764706,
+      "coverage": 0.9926140680171258,
+      "cues": [
+       {
+        "blend": 5,
+        "coverage": 1.0,
+        "invalid": 52,
+        "n": 64,
+        "other": 4,
+        "score": 0.1875,
+        "sparse": 43,
+        "valid": 0.1875
+       },
+       {
+        "blend": 4,
+        "coverage": 0.9852281360342515,
+        "invalid": 50,
+        "n": 64,
+        "other": 3,
+        "score": 0.21551865475749252,
+        "sparse": 43,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 102,
+      "n": 128,
+      "other": 7,
+      "score": 0.20150932737874627,
+      "sparse": 86,
+      "valid": 0.203125
+     },
+     "val": {
+      "blend": 11,
+      "blend_share": 0.1111111111111111,
+      "coverage": 0.866891920108525,
+      "cues": [
+       {
+        "blend": 6,
+        "coverage": 0.7793498372920851,
+        "invalid": 51,
+        "n": 64,
+        "other": 7,
+        "score": 0.15830543569995478,
+        "sparse": 38,
+        "valid": 0.203125
+       },
+       {
+        "blend": 5,
+        "coverage": 0.954434002924965,
+        "invalid": 48,
+        "n": 64,
+        "other": 1,
+        "score": 0.23860850073124126,
+        "sparse": 42,
+        "valid": 0.25
+       }
+      ],
+      "invalid": 99,
+      "n": 128,
+      "other": 8,
+      "score": 0.19845696821559802,
+      "sparse": 80,
+      "valid": 0.2265625
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 9,
+      "blend_share": 0.09473684210526316,
+      "coverage": 0.885891269725092,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.8812908992306927,
+        "invalid": 44,
+        "n": 64,
+        "other": 4,
+        "score": 0.27540340600959146,
+        "sparse": 38,
+        "valid": 0.3125
+       },
+       {
+        "blend": 7,
+        "coverage": 0.8904916402194913,
+        "invalid": 51,
+        "n": 64,
+        "other": 6,
+        "score": 0.18088111441958418,
+        "sparse": 38,
+        "valid": 0.203125
+       }
+      ],
+      "invalid": 95,
+      "n": 128,
+      "other": 10,
+      "score": 0.22814226021458783,
+      "sparse": 76,
+      "valid": 0.2578125
+     },
+     "val": {
+      "blend": 9,
+      "blend_share": 0.0967741935483871,
+      "coverage": 0.9555351440211488,
+      "cues": [
+       {
+        "blend": 4,
+        "coverage": 0.9927744539878083,
+        "invalid": 44,
+        "n": 64,
+        "other": 4,
+        "score": 0.3102420168711901,
+        "sparse": 36,
+        "valid": 0.3125
+       },
+       {
+        "blend": 5,
+        "coverage": 0.9182958340544894,
+        "invalid": 49,
+        "n": 64,
+        "other": 5,
+        "score": 0.21522558610652096,
+        "sparse": 39,
+        "valid": 0.234375
+       }
+      ],
+      "invalid": 93,
+      "n": 128,
+      "other": 9,
+      "score": 0.2627338014888555,
+      "sparse": 75,
+      "valid": 0.2734375
+     }
+    }
+   },
+   "GC": {
+    "2.0": {
+     "test": {
+      "blend": 1,
+      "blend_share": 0.013333333333333334,
+      "coverage": 0.4681881124202873,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.4138168503036338,
+        "invalid": 28,
+        "n": 64,
+        "other": 2,
+        "score": 0.23277197829579402,
+        "sparse": 26,
+        "valid": 0.5625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.5225593745369408,
+        "invalid": 47,
+        "n": 64,
+        "other": 3,
+        "score": 0.1388048338613749,
+        "sparse": 43,
+        "valid": 0.265625
+       }
+      ],
+      "invalid": 75,
+      "n": 128,
+      "other": 5,
+      "score": 0.18578840607858446,
+      "sparse": 69,
+      "valid": 0.4140625
+     },
+     "val": {
+      "blend": 4,
+      "blend_share": 0.06779661016949153,
+      "coverage": 0.7942099466817678,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.6840384356390417,
+        "invalid": 20,
+        "n": 64,
+        "other": 1,
+        "score": 0.47027642450184115,
+        "sparse": 17,
+        "valid": 0.6875
+       },
+       {
+        "blend": 2,
+        "coverage": 0.9043814577244939,
+        "invalid": 39,
+        "n": 64,
+        "other": 2,
+        "score": 0.3532740069236304,
+        "sparse": 35,
+        "valid": 0.390625
+       }
+      ],
+      "invalid": 59,
+      "n": 128,
+      "other": 3,
+      "score": 0.4117752157127358,
+      "sparse": 52,
+      "valid": 0.5390625
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 4,
+      "blend_share": 0.0547945205479452,
+      "coverage": 0.9240267936978095,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.9456603046006401,
+        "invalid": 31,
+        "n": 64,
+        "other": 1,
+        "score": 0.48760609455970505,
+        "sparse": 30,
+        "valid": 0.515625
+       },
+       {
+        "blend": 4,
+        "coverage": 0.9023932827949789,
+        "invalid": 42,
+        "n": 64,
+        "other": 4,
+        "score": 0.310197690960774,
+        "sparse": 34,
+        "valid": 0.34375
+       }
+      ],
+      "invalid": 73,
+      "n": 128,
+      "other": 5,
+      "score": 0.3989018927602395,
+      "sparse": 64,
+      "valid": 0.4296875
+     },
+     "val": {
+      "blend": 2,
+      "blend_share": 0.025974025974025976,
+      "coverage": 0.8549324055546301,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.9456603046006401,
+        "invalid": 31,
+        "n": 64,
+        "other": 3,
+        "score": 0.48760609455970505,
+        "sparse": 27,
+        "valid": 0.515625
+       },
+       {
+        "blend": 1,
+        "coverage": 0.7642045065086203,
+        "invalid": 46,
+        "n": 64,
+        "other": 4,
+        "score": 0.21493251745554945,
+        "sparse": 41,
+        "valid": 0.28125
+       }
+      ],
+      "invalid": 77,
+      "n": 128,
+      "other": 7,
+      "score": 0.35126930600762724,
+      "sparse": 68,
+      "valid": 0.3984375
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 4,
+      "blend_share": 0.058823529411764705,
+      "coverage": 0.9302828786289209,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.974024864435752,
+        "invalid": 27,
+        "n": 64,
+        "other": 2,
+        "score": 0.5631081247519191,
+        "sparse": 24,
+        "valid": 0.578125
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8865408928220898,
+        "invalid": 41,
+        "n": 64,
+        "other": 5,
+        "score": 0.31860063335793853,
+        "sparse": 33,
+        "valid": 0.359375
+       }
+      ],
+      "invalid": 68,
+      "n": 128,
+      "other": 7,
+      "score": 0.4408543790549288,
+      "sparse": 57,
+      "valid": 0.46875
+     },
+     "val": {
+      "blend": 4,
+      "blend_share": 0.0547945205479452,
+      "coverage": 0.9136589950711522,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.9090221560878149,
+        "invalid": 27,
+        "n": 64,
+        "other": 2,
+        "score": 0.525528433988268,
+        "sparse": 24,
+        "valid": 0.578125
+       },
+       {
+        "blend": 3,
+        "coverage": 0.9182958340544894,
+        "invalid": 46,
+        "n": 64,
+        "other": 3,
+        "score": 0.25827070332782515,
+        "sparse": 40,
+        "valid": 0.28125
+       }
+      ],
+      "invalid": 73,
+      "n": 128,
+      "other": 5,
+      "score": 0.39189956865804654,
+      "sparse": 64,
+      "valid": 0.4296875
+     }
+    }
+   },
+   "GP": {
+    "2.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 2,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 2,
+        "valid": 0.96875
+       }
+      ],
+      "invalid": 2,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 2,
+      "valid": 0.984375
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 2,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 2,
+        "valid": 0.96875
+       }
+      ],
+      "invalid": 2,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 2,
+      "valid": 0.984375
+     }
+    }
+   },
+   "M1_C": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 128,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 128,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      }
+     ],
+     "invalid": 0,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 0,
+     "valid": 1.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    }
+   },
+   "M1_S": {
+    "blend": 0,
+    "blend_share": 0.0,
+    "coverage": 0.0,
+    "cues": [
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     },
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     }
+    ],
+    "invalid": 128,
+    "n": 128,
+    "other": 0,
+    "score": 0.0,
+    "sparse": 128,
+    "valid": 0.0
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    }
+   },
+   "S": {
+    "test": {
+     "blend": 5,
+     "blend_share": 0.03937007874015748,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 2,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 5,
+       "score": 0.0,
+       "sparse": 57,
+       "valid": 0.0
+      },
+      {
+       "blend": 3,
+       "coverage": -0.0,
+       "invalid": 63,
+       "n": 64,
+       "other": 4,
+       "score": -0.0,
+       "sparse": 56,
+       "valid": 0.015625
+      }
+     ],
+     "invalid": 127,
+     "n": 128,
+     "other": 9,
+     "score": 0.0,
+     "sparse": 113,
+     "valid": 0.0078125
+    },
+    "val": {
+     "blend": 10,
+     "blend_share": 0.07936507936507936,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 5,
+       "coverage": -0.0,
+       "invalid": 62,
+       "n": 64,
+       "other": 5,
+       "score": -0.0,
+       "sparse": 52,
+       "valid": 0.03125
+      },
+      {
+       "blend": 5,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 4,
+       "score": 0.0,
+       "sparse": 55,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 126,
+     "n": 128,
+     "other": 9,
+     "score": 0.0,
+     "sparse": 107,
+     "valid": 0.015625
+    }
+   },
+   "SC": {
+    "test": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 18,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 18,
+       "valid": 0.71875
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 38,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 38,
+       "valid": 0.40625
+      }
+     ],
+     "invalid": 56,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 56,
+     "valid": 0.5625
+    },
+    "val": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 17,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 16,
+       "valid": 0.734375
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 38,
+       "n": 64,
+       "other": 3,
+       "score": -0.0,
+       "sparse": 35,
+       "valid": 0.40625
+      }
+     ],
+     "invalid": 55,
+     "n": 128,
+     "other": 4,
+     "score": 0.0,
+     "sparse": 51,
+     "valid": 0.5703125
+    }
+   },
+   "Z": {
+    "test": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.9210712843020366,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.8453509366224364,
+       "invalid": 31,
+       "n": 64,
+       "other": 10,
+       "score": 0.4358840766959438,
+       "sparse": 21,
+       "valid": 0.515625
+      },
+      {
+       "blend": 0,
+       "coverage": 0.9967916319816367,
+       "invalid": 4,
+       "n": 64,
+       "other": 0,
+       "score": 0.9344921549827844,
+       "sparse": 4,
+       "valid": 0.9375
+      }
+     ],
+     "invalid": 35,
+     "n": 128,
+     "other": 10,
+     "score": 0.6851881158393641,
+     "sparse": 25,
+     "valid": 0.7265625
+    },
+    "val": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.9611758331837037,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.9340680553754911,
+       "invalid": 24,
+       "n": 64,
+       "other": 9,
+       "score": 0.583792534609682,
+       "sparse": 15,
+       "valid": 0.625
+      },
+      {
+       "blend": 0,
+       "coverage": 0.9882836109919163,
+       "invalid": 9,
+       "n": 64,
+       "other": 0,
+       "score": 0.8493062281961781,
+       "sparse": 9,
+       "valid": 0.859375
+      }
+     ],
+     "invalid": 33,
+     "n": 128,
+     "other": 9,
+     "score": 0.71654938140293,
+     "sparse": 24,
+     "valid": 0.7421875
+    }
+   },
+   "n_params": {
+    "G": 2208,
+    "Z": 2304
+   },
+   "seed": 54104,
+   "sparse_px": 4.346375
+  },
+  {
+   "G": {
+    "2.0": {
+     "test": {
+      "blend": 6,
+      "blend_share": 0.0594059405940594,
+      "coverage": 0.9978637260424628,
+      "cues": [
+       {
+        "blend": 4,
+        "coverage": 0.9957274520849256,
+        "invalid": 51,
+        "n": 64,
+        "other": 5,
+        "score": 0.2022571387047505,
+        "sparse": 42,
+        "valid": 0.203125
+       },
+       {
+        "blend": 2,
+        "coverage": 1.0,
+        "invalid": 50,
+        "n": 64,
+        "other": 5,
+        "score": 0.21875,
+        "sparse": 43,
+        "valid": 0.21875
+       }
+      ],
+      "invalid": 101,
+      "n": 128,
+      "other": 10,
+      "score": 0.21050356935237524,
+      "sparse": 85,
+      "valid": 0.2109375
+     },
+     "val": {
+      "blend": 9,
+      "blend_share": 0.08653846153846154,
+      "coverage": 0.8866900243845208,
+      "cues": [
+       {
+        "blend": 5,
+        "coverage": 0.7793498372920851,
+        "invalid": 51,
+        "n": 64,
+        "other": 4,
+        "score": 0.15830543569995478,
+        "sparse": 42,
+        "valid": 0.203125
+       },
+       {
+        "blend": 4,
+        "coverage": 0.9940302114769566,
+        "invalid": 53,
+        "n": 64,
+        "other": 2,
+        "score": 0.17084894259760192,
+        "sparse": 47,
+        "valid": 0.171875
+       }
+      ],
+      "invalid": 104,
+      "n": 128,
+      "other": 6,
+      "score": 0.16457718914877834,
+      "sparse": 89,
+      "valid": 0.1875
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 10,
+      "blend_share": 0.10416666666666667,
+      "coverage": 0.918816657341865,
+      "cues": [
+       {
+        "blend": 7,
+        "coverage": 0.9852281360342515,
+        "invalid": 50,
+        "n": 64,
+        "other": 5,
+        "score": 0.21551865475749252,
+        "sparse": 38,
+        "valid": 0.21875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8524051786494786,
+        "invalid": 46,
+        "n": 64,
+        "other": 1,
+        "score": 0.23973895649516586,
+        "sparse": 42,
+        "valid": 0.28125
+       }
+      ],
+      "invalid": 96,
+      "n": 128,
+      "other": 6,
+      "score": 0.2276288056263292,
+      "sparse": 80,
+      "valid": 0.25
+     },
+     "val": {
+      "blend": 9,
+      "blend_share": 0.09278350515463918,
+      "coverage": 0.9747260076939743,
+      "cues": [
+       {
+        "blend": 5,
+        "coverage": 1.0,
+        "invalid": 52,
+        "n": 64,
+        "other": 4,
+        "score": 0.1875,
+        "sparse": 43,
+        "valid": 0.1875
+       },
+       {
+        "blend": 4,
+        "coverage": 0.9494520153879485,
+        "invalid": 45,
+        "n": 64,
+        "other": 1,
+        "score": 0.2818685670682972,
+        "sparse": 40,
+        "valid": 0.296875
+       }
+      ],
+      "invalid": 97,
+      "n": 128,
+      "other": 5,
+      "score": 0.2346842835341486,
+      "sparse": 83,
+      "valid": 0.2421875
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 4,
+      "blend_share": 0.038461538461538464,
+      "coverage": 0.8149455891497535,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.6500224216483541,
+        "invalid": 52,
+        "n": 64,
+        "other": 8,
+        "score": 0.1218792040590664,
+        "sparse": 43,
+        "valid": 0.1875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.9798687566511527,
+        "invalid": 52,
+        "n": 64,
+        "other": 1,
+        "score": 0.18372539187209114,
+        "sparse": 48,
+        "valid": 0.1875
+       }
+      ],
+      "invalid": 104,
+      "n": 128,
+      "other": 9,
+      "score": 0.15280229796557876,
+      "sparse": 91,
+      "valid": 0.1875
+     },
+     "val": {
+      "blend": 9,
+      "blend_share": 0.09473684210526316,
+      "coverage": 0.9770055293553421,
+      "cues": [
+       {
+        "blend": 5,
+        "coverage": 0.961236604722876,
+        "invalid": 51,
+        "n": 64,
+        "other": 4,
+        "score": 0.1952511853343342,
+        "sparse": 42,
+        "valid": 0.203125
+       },
+       {
+        "blend": 4,
+        "coverage": 0.9927744539878083,
+        "invalid": 44,
+        "n": 64,
+        "other": 3,
+        "score": 0.3102420168711901,
+        "sparse": 37,
+        "valid": 0.3125
+       }
+      ],
+      "invalid": 95,
+      "n": 128,
+      "other": 7,
+      "score": 0.25274660110276215,
+      "sparse": 79,
+      "valid": 0.2578125
+     }
+    }
+   },
+   "GC": {
+    "2.0": {
+     "test": {
+      "blend": 3,
+      "blend_share": 0.041666666666666664,
+      "coverage": 0.5968590033152692,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.3533593350214213,
+        "invalid": 34,
+        "n": 64,
+        "other": 1,
+        "score": 0.16563718829129123,
+        "sparse": 33,
+        "valid": 0.46875
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8403586716091171,
+        "invalid": 38,
+        "n": 64,
+        "other": 1,
+        "score": 0.34139571034120386,
+        "sparse": 34,
+        "valid": 0.40625
+       }
+      ],
+      "invalid": 72,
+      "n": 128,
+      "other": 2,
+      "score": 0.25351644931624756,
+      "sparse": 67,
+      "valid": 0.4375
+     },
+     "val": {
+      "blend": 3,
+      "blend_share": 0.036585365853658534,
+      "coverage": 0.7925243317269968,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.7219280948873623,
+        "invalid": 39,
+        "n": 64,
+        "other": 1,
+        "score": 0.2820031620653759,
+        "sparse": 38,
+        "valid": 0.390625
+       },
+       {
+        "blend": 3,
+        "coverage": 0.8631205685666311,
+        "invalid": 43,
+        "n": 64,
+        "other": 5,
+        "score": 0.28321143656092584,
+        "sparse": 35,
+        "valid": 0.328125
+       }
+      ],
+      "invalid": 82,
+      "n": 128,
+      "other": 6,
+      "score": 0.2826072993131509,
+      "sparse": 73,
+      "valid": 0.359375
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 3,
+      "blend_share": 0.047619047619047616,
+      "coverage": 0.5360114692657536,
+      "cues": [
+       {
+        "blend": 2,
+        "coverage": 0.42200051688315315,
+        "invalid": 29,
+        "n": 64,
+        "other": 0,
+        "score": 0.23078153267047438,
+        "sparse": 27,
+        "valid": 0.546875
+       },
+       {
+        "blend": 1,
+        "coverage": 0.6500224216483541,
+        "invalid": 34,
+        "n": 64,
+        "other": 2,
+        "score": 0.304698010147666,
+        "sparse": 31,
+        "valid": 0.46875
+       }
+      ],
+      "invalid": 63,
+      "n": 128,
+      "other": 2,
+      "score": 0.2677397714090702,
+      "sparse": 58,
+      "valid": 0.5078125
+     },
+     "val": {
+      "blend": 1,
+      "blend_share": 0.012987012987012988,
+      "coverage": 0.529609080752188,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": 0.7219280948873623,
+        "invalid": 29,
+        "n": 64,
+        "other": 0,
+        "score": 0.3948044268915263,
+        "sparse": 29,
+        "valid": 0.546875
+       },
+       {
+        "blend": 1,
+        "coverage": 0.3372900666170139,
+        "invalid": 48,
+        "n": 64,
+        "other": 1,
+        "score": 0.08432251665425347,
+        "sparse": 46,
+        "valid": 0.25
+       }
+      ],
+      "invalid": 77,
+      "n": 128,
+      "other": 1,
+      "score": 0.2395634717728899,
+      "sparse": 75,
+      "valid": 0.3984375
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.24561867091216655,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 33,
+        "n": 64,
+        "other": 2,
+        "score": -0.0,
+        "sparse": 31,
+        "valid": 0.484375
+       },
+       {
+        "blend": 0,
+        "coverage": 0.4912373418243331,
+        "invalid": 36,
+        "n": 64,
+        "other": 2,
+        "score": 0.21491633704814572,
+        "sparse": 34,
+        "valid": 0.4375
+       }
+      ],
+      "invalid": 69,
+      "n": 128,
+      "other": 4,
+      "score": 0.10745816852407286,
+      "sparse": 65,
+      "valid": 0.4609375
+     },
+     "val": {
+      "blend": 1,
+      "blend_share": 0.01694915254237288,
+      "coverage": 0.3548678157050745,
+      "cues": [
+       {
+        "blend": 1,
+        "coverage": 0.18717625687320819,
+        "invalid": 29,
+        "n": 64,
+        "other": 3,
+        "score": 0.10236201547753572,
+        "sparse": 25,
+        "valid": 0.546875
+       },
+       {
+        "blend": 0,
+        "coverage": 0.5225593745369408,
+        "invalid": 30,
+        "n": 64,
+        "other": 1,
+        "score": 0.2776096677227498,
+        "sparse": 29,
+        "valid": 0.53125
+       }
+      ],
+      "invalid": 59,
+      "n": 128,
+      "other": 4,
+      "score": 0.18998584160014276,
+      "sparse": 54,
+      "valid": 0.5390625
+     }
+    }
+   },
+   "GP": {
+    "2.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     }
+    },
+    "3.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 3,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 3,
+        "valid": 0.953125
+       }
+      ],
+      "invalid": 3,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 3,
+      "valid": 0.9765625
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     }
+    },
+    "4.0": {
+     "test": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       }
+      ],
+      "invalid": 0,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 0,
+      "valid": 1.0
+     },
+     "val": {
+      "blend": 0,
+      "blend_share": 0.0,
+      "coverage": 0.0,
+      "cues": [
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 0,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 0,
+        "valid": 1.0
+       },
+       {
+        "blend": 0,
+        "coverage": -0.0,
+        "invalid": 1,
+        "n": 64,
+        "other": 0,
+        "score": -0.0,
+        "sparse": 1,
+        "valid": 0.984375
+       }
+      ],
+      "invalid": 1,
+      "n": 128,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 1,
+      "valid": 0.9921875
+     }
+    }
+   },
+   "M1_C": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 128,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 128,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 64,
+       "n": 64,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 64,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 0,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 0,
+       "valid": 1.0
+      }
+     ],
+     "invalid": 64,
+     "n": 128,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 64,
+     "valid": 0.5
+    }
+   },
+   "M1_S": {
+    "blend": 0,
+    "blend_share": 0.0,
+    "coverage": 0.0,
+    "cues": [
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     },
+     {
+      "blend": 0,
+      "coverage": 0.0,
+      "invalid": 64,
+      "n": 64,
+      "other": 0,
+      "score": 0.0,
+      "sparse": 64,
+      "valid": 0.0
+     }
+    ],
+    "invalid": 128,
+    "n": 128,
+    "other": 0,
+    "score": 0.0,
+    "sparse": 128,
+    "valid": 0.0
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MF": {
+    "2.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "3.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    },
+    "4.0": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      },
+      {
+       "blend": 0,
+       "coverage": 0.0,
+       "invalid": 1,
+       "n": 1,
+       "other": 0,
+       "score": 0.0,
+       "sparse": 1,
+       "valid": 0.0
+      }
+     ],
+     "invalid": 2,
+     "n": 2,
+     "other": 0,
+     "score": 0.0,
+     "sparse": 2,
+     "valid": 0.0
+    }
+   },
+   "S": {
+    "test": {
+     "blend": 9,
+     "blend_share": 0.072,
+     "coverage": 0.5,
+     "cues": [
+      {
+       "blend": 3,
+       "coverage": -0.0,
+       "invalid": 63,
+       "n": 64,
+       "other": 5,
+       "score": -0.0,
+       "sparse": 55,
+       "valid": 0.015625
+      },
+      {
+       "blend": 6,
+       "coverage": 1.0,
+       "invalid": 62,
+       "n": 64,
+       "other": 12,
+       "score": 0.03125,
+       "sparse": 44,
+       "valid": 0.03125
+      }
+     ],
+     "invalid": 125,
+     "n": 128,
+     "other": 17,
+     "score": 0.015625,
+     "sparse": 99,
+     "valid": 0.0234375
+    },
+    "val": {
+     "blend": 13,
+     "blend_share": 0.104,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 8,
+       "coverage": -0.0,
+       "invalid": 62,
+       "n": 64,
+       "other": 5,
+       "score": -0.0,
+       "sparse": 49,
+       "valid": 0.03125
+      },
+      {
+       "blend": 5,
+       "coverage": -0.0,
+       "invalid": 63,
+       "n": 64,
+       "other": 13,
+       "score": -0.0,
+       "sparse": 45,
+       "valid": 0.015625
+      }
+     ],
+     "invalid": 125,
+     "n": 128,
+     "other": 18,
+     "score": 0.0,
+     "sparse": 94,
+     "valid": 0.0234375
+    }
+   },
+   "SC": {
+    "test": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 15,
+       "n": 64,
+       "other": 1,
+       "score": -0.0,
+       "sparse": 14,
+       "valid": 0.765625
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 32,
+       "n": 64,
+       "other": 2,
+       "score": -0.0,
+       "sparse": 30,
+       "valid": 0.5
+      }
+     ],
+     "invalid": 47,
+     "n": 128,
+     "other": 3,
+     "score": 0.0,
+     "sparse": 44,
+     "valid": 0.6328125
+    },
+    "val": {
+     "blend": 0,
+     "blend_share": 0.0,
+     "coverage": 0.0,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 27,
+       "n": 64,
+       "other": 0,
+       "score": -0.0,
+       "sparse": 27,
+       "valid": 0.578125
+      },
+      {
+       "blend": 0,
+       "coverage": -0.0,
+       "invalid": 26,
+       "n": 64,
+       "other": 4,
+       "score": -0.0,
+       "sparse": 22,
+       "valid": 0.59375
+      }
+     ],
+     "invalid": 53,
+     "n": 128,
+     "other": 4,
+     "score": 0.0,
+     "sparse": 49,
+     "valid": 0.5859375
+    }
+   },
+   "Z": {
+    "test": {
+     "blend": 6,
+     "blend_share": 0.375,
+     "coverage": 0.9696520759563452,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.9831491282282877,
+       "invalid": 5,
+       "n": 64,
+       "other": 0,
+       "score": 0.9063406025854527,
+       "sparse": 5,
+       "valid": 0.921875
+      },
+      {
+       "blend": 6,
+       "coverage": 0.9561550236844027,
+       "invalid": 11,
+       "n": 64,
+       "other": 5,
+       "score": 0.791815878988646,
+       "sparse": 0,
+       "valid": 0.828125
+      }
+     ],
+     "invalid": 16,
+     "n": 128,
+     "other": 5,
+     "score": 0.8490782407870494,
+     "sparse": 5,
+     "valid": 0.875
+    },
+    "val": {
+     "blend": 8,
+     "blend_share": 0.34782608695652173,
+     "coverage": 0.9867280894470449,
+     "cues": [
+      {
+       "blend": 0,
+       "coverage": 0.9960383613659184,
+       "invalid": 10,
+       "n": 64,
+       "other": 0,
+       "score": 0.8404073674024937,
+       "sparse": 10,
+       "valid": 0.84375
+      },
+      {
+       "blend": 8,
+       "coverage": 0.9774178175281716,
+       "invalid": 13,
+       "n": 64,
+       "other": 5,
+       "score": 0.7788798233427617,
+       "sparse": 0,
+       "valid": 0.796875
+      }
+     ],
+     "invalid": 23,
+     "n": 128,
+     "other": 5,
+     "score": 0.8096435953726278,
+     "sparse": 10,
+     "valid": 0.8203125
+    }
+   },
+   "n_params": {
+    "G": 2208,
+    "Z": 2304
+   },
+   "seed": 54105,
+   "sparse_px": 4.355375
+  }
+ ],
+ "step": 1
+}
