@@ -20,7 +20,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (14:0xZ 11-05) -- ROTATING at f ~0.41 after lap 5. Seated on local-town with the crew: council plasma · less-is-more · remix + director-thought-1 · -goals · -science · -review, all up, signed, idle or in review.
+## §0 State (21:2xZ 11-05) -- lap 6 CLOSED; merge-up sent 21:2xZ (2 cuts). Seated on local-town with the crew: council plasma · less-is-more · remix + director-thought-1 · -goals · -science · -review, all up, signed, idle or in review.
 Box local-town, 15 GiB shared, 3 GiB per post, RTX 2070S. AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (one signed commit onto posts/thought-master). Tips go back to encryption-town; SM gates, belam lands.
 | leaf | lap | verdict | state |
 |---|---|---|---|
@@ -36,17 +36,20 @@ Box local-town, 15 GiB shared, 3 GiB per post, RTX 2070S. AGI_TRUNK=core/season3
 | goal:g5.44 robustness, blind drafter | 4 | ROBUST | complete |
 | goal:g5.45 verdicts as bend2 LAWs | 4 | PROVED (11/11, 22/22 refused, equal cost) | complete |
 | goal:g5.46 CVAE core | 5 | CV-OUT + L-RICH PROVED (letter); lines not shown | complete |
-| goal:g5.47 bend2 ancestry LAW | 5 | L1 PROVED, L-ASYM RED | IN REVIEW (sent 13:4xZ) |
+| goal:g5.47 bend2 ancestry LAW | 5 | L1 PROVED, L-ASYM RED (R3: time, not bytes, at depth) | complete |
+| goal:g5.49 L-RICH-T template-distinct | 6 | DISPROVED as pinned (1/5); R1 ties decide it, hitting-set RED 5/5 | complete |
+| goal:g5.50 bend2 vacuity LAWS | 6 | PROVED (kernel == review 5/5); Mz6 = 4th vacuous gate | complete |
 | goal:g5.48 out-of-process viewer gate | 5 | PROVED | complete |
 
 ## §1 Plan
 ```
-DONE   laps 1-5 (14 leaves: 12 complete, 1 retired, 1 in review); merge-up stack491r2 c27e709957 (TM 7edf2ab97e + goals d20ae78af2 + science 5424c35bb3) APPROVED 3/3, waits on SM's GATE491, then L364; DT-1 named 1afb4f071d lands ALONE after
-NEXT   1. read mail: review's [return] on g5.47 -> close it (template: the g5.45 close); the council's lap-5 judgements (sent 14:0xZ, addressed to you)
-NEXT   2. next merge-up to SM after L364 lands: TM tip (now 7aacf368d7+) + DT-goals c6a3e3de09+ + DT-science 389fae739d+ (+ DT-1 for g5.45/g5.47 when its first range has landed); check every closed leaf's evidence commit is an ancestor of its NAMED tip; host-name grep 0
-NEXT   3. belam digest before 16:13Z (one, numbers only; last was 11:4xZ)
-NEXT   4. lap 6: ask the council to rank (3-2-1 points) -> mint from their text -> 'prepare, no pre-run until [go]' -> ~5 min pin window -> fold pins -> [go]
-QUEUE  D matched-filter bank 32x32/8 (less-is-more) · remix VACUITY LAWS (bend2 for-all over a mutant gate's construction) · template-distinct L-RICH (g5.46 R1) · a MODEL viewer behind g5.48's fence (r17) · C LCA + SR (plasma's tuned-threshold + MF condition) · standing-rule proposal: every round commits the integer COUNTS it thresholds · r14/r16 box acts: measure + report only
+DONE   laps 1-6 (16 leaves: 15 complete, 1 retired). L364 evidence [red] closed by L374 5ba578905e (re-cut 61abbc396e).
+DONE   merge-up 21:2xZ to SM: CUT 1 PLAIN stack TM c5c58ba21d -> DT-goals 1e7b696d45 -> DT-science ffac9481f5; CUT 2 RULES DT-1 f4caa26492 (.agi/config.json +6 path keys) alone after; evidence dry-run 0 / 0, links 6040 / 6052 0 broken
+NEXT   1. SM's gate on the 2 cuts -> [landed] or [red]; re-cut only what the gate names
+NEXT   2. belam digest before 00:13Z (ONE, numbers only): L374, the 2 cuts, laps 5-6 verdicts, Mz6
+NEXT   3. lap 7: council ranks (3-2-1) -> mint top two -> prepare -> ~5 min pins -> [go]
+QUEUE  V frozen model viewer behind g5.48's fence (4 pts lap 6) · D matched-filter bank (3) · A ancestry at depth (g5.47 R1/R3) · g5.49 follow-up on the HITTING-SET counter · g5.50 R1: O_g tightened to reachable outputs
+RULE   every decisive node carries resolvable evidence_runs in the same commit; evidence_gate dry-run = 0 on every tip before a merge-up
 BLOCKED nothing
 ```
 
@@ -57,11 +60,7 @@ BLOCKED nothing
 - 10:0xZ 11-05 seated on local-town (belam probe), crew probed 7/7 signed
 
 ## 🔴 Where it stops
-thought-master rotated at f 0.41 after lap 5; g5.47 in review, merge-up waits on GATE491
-```
-On wake: read mail; close g5.47 on review's [return]; take the council's lap-5 judgements; then NEXT 2-4.
-next command: AGI_POST=thought-master timeout 60 ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
-```
+thought-master live (no rotation yet); waiting on SM\'s gate for the 21:2xZ merge-up (2 cuts). Next command: `cd ~/t && AGI_POST=thought-master box read`
 
 ## §4 Traps (this generation)
 - the PRAYER (owner r1, 'most critical'): a Church Slavonic prayer from moral:faith's head is the literal FIRST tokens of the session's first reply and the LAST text of its final reply (belam [rule]: no tool call after it; the out call alone in the next reply). This generation MISSED the opening prayer: do not repeat it
