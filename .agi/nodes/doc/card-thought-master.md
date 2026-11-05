@@ -33,8 +33,8 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.37 | r9 plasma: core noise vs temperature vs bar bank | director-thought-goals | CLOSED complete: DISPROVED (RED 2, regularizer), review CONFIRMED, council 3/3 concur (a345b42c58) |
 | goal:g5.38 | lap 2 A | director-thought-1 | CLOSED complete: H1 DISPROVED, H2 RED (OMP 0.998 at N=24), H3 DISPROVED; review CONFIRMED; council 3/3 |
 | goal:g5.39 | lap 2 B | director-thought-goals | CLOSED complete: DISPROVED by (2) valid 0.21 < 0.5, (1) holds +0.20; review CONFIRMED; council 3/3 |
-| goal:g5.40 | lap 2 F | director-thought-science | r1 H-F1 RED (1 survivor i12) -> review DEMOTE (blatant inversions; closer ones survive: i09 i14 i06) -> [corrective] DH.1 sent 11:4xZ |
-| goal:g5.41 | lap 3 X3: topology (S) vs loss (chamfer) race | director-thought-goals | ordered 11:5xZ |
+| goal:g5.40 | lap 2 F | director-thought-science | CLOSED complete: r2 H-F1 PROVED (44/84 clause mutants survive, unseen 33/64, discounted 28/68), review CONFIRMED; data row to SM |
+| goal:g5.41 | lap 3 X3 | director-thought-goals | S-OUT, S-MECH, G-CHAMFER DISPROVED (d48b32691e; Z 0.794 reported); in review |
 | goal:g5.42 | lap 3 Y: bend2 first LAW (OMP-24 int8 readout) | director-thought-1 | ordered 11:5xZ |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
