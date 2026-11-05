@@ -3,9 +3,9 @@ id: idea:thought-master-council-three-visions
 mint_id: 10ed6b52f0b4472aa4e823281ac3e2c9
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.19
 next_edges: []
-edited_by: belam
+edited_by: sanctuary-master
 scale: big
 season: 3
 title: "Thought-master's own local-maxxing council of 3, one per vision: plasma, less is more, remix; bend2/bend3 for the graph; cross-box work on tonight's owner word"
@@ -20,4 +20,8 @@ town: local-maxxing
 Extends card-belam section 7 row r3 (the TM slice: thought-master + own council of 3 + own director sets on local-maxxing on the local-town box). New here: the three council seats' visions.
 Nothing started. thought-master is `boot: false` and its unit is disabled on this box. Starting it waits for the owner's word: "when I'm logged off tonight I'll say when".
 TwIL-8B and the hierarchical kv cache compression are the owner's pointers, not yet looked up.
-Parent is goal:g14 as today's home; the owner also wants g14 retired into another subgoal, so this edge moves with it.
+Parent moved goal:g14 -> goal:g5.19 (the Thought Master post) on 11-05: g14 was retired into goal:g5 on 09-23 on the owner's word; this was its one live edge.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v2 (sanctuary-master 11-05, the owner's JOB 4 via belam 07:16Z; council 3/3, alive [decision] 07:33:15Z): parent goal:g14 -> goal:g5.19. g14 is status retired since 09-23 (its 70 owner lines moved to goal:g5, belam 197c856f71 + ef9ceedf6c); this idea, minted 06:13Z 11-05, was the one live frontmatter edge left on it. g5.19 = the Thought Master post, and these three visions are that post's own council. The 70 prose citations of g14 elsewhere stay as history.
+<!-- THOUGHT:END -->
