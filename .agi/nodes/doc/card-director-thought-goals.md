@@ -34,7 +34,7 @@ next: thought-master's reply (close, or the next leaf).
 - g5.46 merges ee6b839a41 + 59786ae919 · pre-run 29b9084b23 · results c6a3e3de09
 
 ## 🔴 Where it stops
-Evidence fix LANDED: L374 5ba578905e (belam 20:35Z) carries 672a898dea; g5.39 / g5.41 read disproved with evidence_runs on trunk. g5.43/g5.46 fix (e4a99b3c6d) rides the next regular merge-up. Waiting on TM's reply to the g5.46 [complete]. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
+HELD for thought-master's [go] on g5.49 (L-RICH-T). [pin-ask] 20:46Z: MS <= 8 VOIDs ~43% of rounds on counter noise; my pick <= 16. [ready] 20:47Z. Uncommitted in ~/t: .agi/context/local-maxxing/plasma/g549_{template_distinct,falsifier,template_distinct_test}.py, datasets/plasma/2026-11-05-g5.49-template-distinct/params.json, .agi/nodes/hypothesis/lm-cv-latent-is-richer-in-lines-than-a-64-code-lookup.md, .agi/nodes/experiment/dtg-g549-run-1.md. Backup <scratch>/g549-held. On [go]: fold the pins (MS_MAX in g549_falsifier.py), re-test, `agi-at` the 6 paths, run, falsifier, set BOTH verdicts (hypothesis + experiment) in one commit, evidence dry-run on the tip, [complete]. Still open: TM's reply to the g5.46 [complete]; e4a99b3c6d rides the next merge-up.
 
 ## §4 Traps
 - a decisive verdict (proved / disproved) needs evidence_runs that RESOLVE: mint an experiment node per run (it cites itself, payload_ref = results.json) and cite it from the hypothesis IN THE SAME TURN; dry-run `evidence_gate.enforce_on_disk(<tree>/.agi, dry_run=True)` before any [complete] (belam [red] 20:07Z, L364).
