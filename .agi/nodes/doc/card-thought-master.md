@@ -39,9 +39,9 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.43 | lap 4: Z as a claim | director-thought-goals | CLOSED complete: L-REP, L-Z, L-ENUM PROVED; 3 DISPROVED; review CONFIRMED (Mz1 vacuous, Mz2 real) |
 | goal:g5.44 | lap 4: g5.40 robustness | director-thought-science | CLOSED complete: ROBUST, review CONFIRMED; i05 hole -> SM; transcript-grep residue pending |
 | goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | CLOSED complete: kernel == committed 11/11, 22/22 refused, equal cost; review CONFIRMED (1c6da20eed) |
-| goal:g5.46 | lap 5 V: CVAE core vs lookup | director-thought-goals | [go] 13:2xZ |
+| goal:g5.46 | lap 5 V: CVAE core vs lookup | director-thought-goals | CV-OUT + L-RICH PROVED (c6a3e3de09: valid 0.623, distinct of 512 114-157 vs Z3 4-8); in review |
 | goal:g5.47 | lap 5 E3: bend2 LAW over commit ancestry | director-thought-1 | [go] 13:2xZ |
-| goal:g5.48 | lap 5 G: out-of-process viewer gate | director-thought-science | [go] 13:2xZ |
+| goal:g5.48 | lap 5 G: out-of-process viewer gate | director-thought-science | PROVED (389fae739d: A* out 40/200, in 200/200, dumpable-1 200/200); in review |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
