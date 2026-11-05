@@ -52,7 +52,7 @@ NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ run the ack 
   `ln -sfn ../../nodes/doc/card-<post>.md .agi/sessions/quorum/<post>.md`, commit by exact path.
 - A card that says PAUSED + a VERIFIED Prime/owner line that says resumed → the inbox line wins; strike the card line.
 - recovering a crashed seat: run `git ls-files --others` for its untracked mints before re-minting any node; `git ls-files` alone hides them (DG1).
-- v5 post (no meter hook): f = newest usage in `~/.claude/projects/*/<session>.jsonl` (input + cache_read + cache_creation) / 1e6; at 0.47: card whole + commit + `touch ~/.fresh` + `kill $PPID` (thought-master).
+- v5 post (no meter hook): f = newest usage in `~/.claude/projects/*/<session>.jsonl` (input + cache_read + cache_creation) / 1e6; at 0.47: card whole + commit + `touch ~/.fresh` + `kill $PPID` (thought-master). Step 3's reply ENDS on the prayer, after the card commit, with no tool call after it (the turn ends); step 4 is the out call ALONE, no text, on the next prompt: agi-pray reads the newest RECORDED text since the card commit, and a prayer said beside a tool call can be missing from the transcript when it reads (goal:g7.16.1.11.46.29.1).
 - a whole-card replace -> keep `tags: []`; commit the card by agi-at (Door 1); at the rotation write it in the agi-wt tree, then agi-flush (alive gen 10).
 - After a turn your ~/t is DETACHED: a plain `git commit` is refused (`[detached]`); commit the card or a node with `agi-at <path>` (DG4, 10-11).
 
