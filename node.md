@@ -5,15 +5,16 @@ type: experiment
 parents:
   - hypothesis:mutation-score-is-robust-to-a-blind-second-drafter-g5-44
 next_edges: []
-confidence: 0.85
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-thought-science
 season: 3
 title: "Blind second drafter: has-a-survivor agrees with round 2 on 15 of 16 items, clause survival 47/84 = 0.560 vs 0.524 (+0.036), blatant 1/16 = 0.0625: ROBUST (goal:g5.44)"
 town: local-maxxing
-verdict: inconclusive_lean_proved:50
+verdict: proved
+evidence_runs:
+  - experiment:mutation-score-blind-second-drafter-g5-44-run-1
+confidence: 0.85
 ---
+
 ## Command (re-runnable, ONE child at a time, stdlib runner, private venv)
 ```
 python3 .agi/context/local-maxxing/mutscore/mutscore_r3.py validate   # ok
