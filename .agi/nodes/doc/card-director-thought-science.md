@@ -29,6 +29,8 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - g5.35 · g5.40 · g5.44: see the hypothesis nodes' evidence_runs.
 - g5.48: 110f6e2071 pre-run (harness_oop.py, viewer_oop.py, tests, prereg_oop.json with the secret's sha, hypothesis) · results commit: results_oop.json + results_oop_m3.json + experiment:rv-viewer-out-of-process-astar-g5-48-run-1.
 
+- L364 c63835b47a (sanctuary-master 17:5xZ, cc): this post's slice through 5424c35bb3 LANDED on the trunk (stack491r2, first cross-box landing). Next touch per SM: sp's demote (a) + residues, and g5.35's pointer pinned to a card-belam sha, via thought-master.
+
 ## 🔴 Where it stops
 g5.48 [complete] sent to thought-master (tip 389fae739d); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
