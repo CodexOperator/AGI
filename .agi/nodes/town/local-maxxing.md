@@ -38,6 +38,9 @@ trajectory_throws:
 visions:
   - vision:local-maxxing
   - vision:local-maxxing-smarter
+  - vision:plasma
+  - vision:less-is-more
+  - vision:remix
   - vision:local-maxxing-together
 ---
 <!-- BODY:BEGIN -->
