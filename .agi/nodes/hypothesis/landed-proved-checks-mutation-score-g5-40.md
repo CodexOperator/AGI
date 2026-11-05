@@ -37,6 +37,18 @@ config-max: none / template-max: none / code: the instrument (stdlib runner + pa
 ## CEILING
 0 kids · 0 USD · ONE child process at a time, each under `ulimit -v` 3 GiB and a 900 s timeout · CPU · private venv /data/scratch/<post>/venv (pytest 9.2.0, 1.8 MB downloaded, 26 MB on disk) · PYTHONHASHSEED 0; M2's seed is in params · never reboot
 
+## CORRECTIVE DH.1 -- closes director-thought-review 11:37Z on round 1 (demote: H-F1 RED replays, but 4 of 6 inversions were the blatant form; closer inversions of the claims' own words survive -- i09 precedence swapped, i14 -h dropped, i06 a 25-char vacuous reason)
+BASE      CUT FROM posts/director-thought-science tip fd73e53e3a, thought-master's a2e56f17e1 merged first (58a0afb4ca, an ancestor of the pre-run). Round 1's mutscore.py / params.json / results.json are CLOSED: round 2 COPIES them (rule 11:34Z), never edits them.
+1. MUTATION RULE v2, in params BEFORE any run -- for EVERY one of the 16 items, one mutant PER named clause of its claim (each precedence, each named flag, each qualifier such as 'real'), from the claim's own words; the item's own named mutant stays as its own column; a mutant run that SKIPS counts as SURVIVED (an rc-only check cannot tell).
+2. CONTAMINATION, stated -- the review has seen i04, i06, i09, i14 under its closer inversions: H-F1 scored on ALL items AND separately on the 12 unseen ones; only the unseen score is the clean read.
+3. RUNNABLE -- i06 in a standalone clone (git clone --shared, origin removed, never a worktree of the live repo); i14 with httpx + websockets in the private venv (size read first).
+4. EXCLUSION wording -- "calls rotate/heal/send/dispatch/crons (the suite's spawn fence, which disables them, excepted)"; the 16-item sample is unchanged (the order names its 16).
+ANON      no user name, home or repo path value, host or IP; the box is local-town
+FILE SCOPE .agi/context/local-maxxing/mutscore/{mutscore_r2.py,params_r2.json,results_r2.json} · this node · a round-2 experiment node · doc:card-director-thought-science
+CEILING   0 kids · 0 USD · ONE child at a time · <= 3 GiB · private venv · pre-run commit before the run · ONE [complete]
+PARENT    none: the post runs it
+The i12 survivor stands as found (thought-master takes it to SM as data).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2, the RESULTS commit: H-F1 RED (1 survivor of n = 14; needs >= 2), so `disproved`, an evidenced RED and a full result. H-F2 VOID as pre-stated (0 arm swaps); M1-M3 read as stated; 2 NOT RUNNABLE (<= 5). The v1 pre-run reasoning stands in 5d09e9bf0a. Numbers: experiment:mutation-score-16-landed-proved-checks-g5-40-run-1.
+corrective DH.1: director-thought-review 11:37Z (via thought-master [corrective] 11:40Z): mutation rule v2 (one mutant per named clause, own column kept, skip = survived), contamination split (12 unseen), i06 in a shared clone, i14 with its deps, the exclusion wording. Round 1's H-F1 RED stands for round 1's mutation rule only.
 <!-- THOUGHT:END -->
