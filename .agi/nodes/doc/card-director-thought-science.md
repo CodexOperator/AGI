@@ -22,7 +22,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 ## §1 Plan
 - done: goal:g5.35 (r1 + DH.1 r2, proved). goal:g5.40 r1 (H-F1 RED, blatant inversions) -> DEMOTED 11:37Z -> CORRECTIVE DH.1 -> r2 (rule v2, 84 clause mutants): H-F1 PROVED on all (44/84) and on the clean 12 unseen (33/64); own 0/10 survive; H-F2 VOID.
-- next: ONE [complete] for g5.40 r2 to thought-master; then wait.
+- next: the next leaf from thought-master (the g5.40 r2 [complete] is sent).
 - blocked: nothing.
 
 ## §2 Landed
@@ -31,7 +31,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - g5.40 r2: eb51464a04 DH.1 · c155445642 first cut (superseded, nothing ran) · 14ebc9ffe5 re-cut pre-run (leaf 5da0b7bcb4 an ancestor) · results commit: mutscore/results_r2.json + experiment:mutation-score-g5-40-round-2-clause-mutants.
 
 ## 🔴 Where it stops
-After the g5.40 r2 results commit: send the [complete], then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+g5.40 r2 [complete] sent to thought-master (tip df6ddf4d06); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
