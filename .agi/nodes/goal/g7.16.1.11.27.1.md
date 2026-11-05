@@ -15,7 +15,7 @@ role: director
 scaffold_hash: 1a4cfa6f4284a40b
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - council
   - v5
@@ -59,5 +59,5 @@ goal:g7.16.1.11.27 itself (agi-run / cccc.ts typing `mail: send.py read`) · cro
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-05 13:5xZ v2, in the BUILD commit: one cite corrected, sp's crumb in its [word] 13:45:15Z on the mint fdaaa462a1 (APPROVE): Out of scope named crons.md:24 for send.py read --box-local --peek; it is :32 at fbe5b0fa3a and 807611da85 (:24 is branch_push). No term changed. sp's NOTE (0 unread prints one positive line with a time; a print-nothing mutant RED) is met by the build's row (b), not by a new term here. v1 (the mint, 13:2xZ): terms from alive's [decision] 11:55:10Z as amended 12:02:31Z part (2), plus the measured allowlist constraint; in git history.
+11-05 19:0xZ v3, CLOSE: status active -> complete on the falsifiers AS WRITTEN, run on an export of the live trunk 337c95c66a (belam's wrap of L366 3d1dc733b1, gate tip e9377363fb, RULES; council 3/3 on RE-CUT 1, GATE499): (1) test_rotate_startup.py -k wake_memory 11 passed (rows a-d); (2) the negative grep over rotations.md for 'send.py read {seat}' / 'send.py -h': 0 hits; (3) test_rotate_startup.py whole 123 passed. Load5 6.55. No other byte changed. v2 (the BUILD, 13:5xZ): sp's crumb crons.md :24 -> :32 and SM's doubled-heading NIT; v1 (the mint): alive's [decision] 11:55:10Z terms as amended 12:02:31Z; both in git history.
 <!-- THOUGHT:END -->
