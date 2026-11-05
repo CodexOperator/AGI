@@ -1,0 +1,23 @@
+#!/bin/sh
+# agi-lt-carry (root, every minute, encryption-town): what local-town's posts need from this box and back, over the wired LAN.
+# Mail both ways (box carry) · rings both ways (agi-ring-merge, each box writes only its own posts) · the trunk to L, ff-only · L's posts/ and tip/ refs back, ff-only.
+# A step that fails prints one line and the next still runs: mail must not wait on a ring.
+# Unit: Type=oneshot, ExecStart=/usr/local/sbin/agi-lt-carry, TimeoutStartSec=50. Timer: OnBootSec=2min, OnUnitInactiveSec=60, WantedBy=timers.target.
+M=/data/work/agi H=ssh://belam@10.0.0.11$M R=/var/lib/agi/allowed_signers T=core/season3/main
+SSHC="ssh -i /data/work/.sanctuary/ssh/sanctuary_ed25519 -o HostKeyAlias=rig-lab -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/data/play/shael-rig/.known_hosts -o BatchMode=yes -o ConnectTimeout=5"
+exec 8>/run/agi-lt-carry.lock;flock -n 8||exit 0
+u(){ runuser -u belam -- env -C $M GIT_SSH_COMMAND="$SSHC" AGI_POST=belam "$@";}
+l(){ runuser -u belam -- $SSHC belam@10.0.0.11 "$@";}
+d=$(mktemp -d /run/agi-lt-carry.XXXXXX)||exit 1;trap 'rm -rf $d' EXIT;chmod 755 $d
+u git show $T:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(has("harness") and .box=="local-town" and .engine.v==4)|.name'|sort>$d/home
+[ -s $d/home ]||{ echo "no local-town rows read: nothing carried";exit 1;}
+h=$(paste -sd, $d/home)
+l true||{ echo "local-town unreachable";exit 0;}
+u git for-each-ref --format='%(refname:lstrip=2)' refs/box|cut -d/ -f1|sort -u>$d/senders
+x=;for p in $(comm -23 $d/senders $d/home);do u git push -q $H "refs/box/$p/*:refs/box/$p/*"||echo "mail out $p: failed";x="$x ^refs/box/$p/*";done # the two lines of `box carry`: /opt/agi is group agi, uid belam is not
+u git -c transfer.fsckObjects=1 fetch -q $H "refs/box/*:refs/box/*" $x||echo "mail in: failed"
+l cat $R>$d/lring&&/usr/local/sbin/agi-ring-merge $R $h<$d/lring||echo "ring in: failed"
+l "sudo /usr/local/sbin/agi-ring-merge $R $h --not"<$R||echo "ring out: failed"
+u git push -q $H $T:refs/heads/carry/trunk&&l "git -C $M merge --ff-only -q carry/trunk"||echo "trunk: failed"
+for p in $(cat $d/home);do u git -c transfer.fsckObjects=1 fetch -q $H "refs/heads/posts/$p:refs/heads/posts/$p" "refs/heads/tip/$p/*:refs/heads/tip/$p/*" 2>$d/e||grep -q "couldn't find remote ref" $d/e||{ echo "posts $p: failed";head -c 300 $d/e;echo;};done
+exit 0
