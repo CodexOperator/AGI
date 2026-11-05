@@ -44,7 +44,7 @@ DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 
 DONE   [merge-up] to SM 11:4xZ: TM a2e56f17e1 · DT-1 1afb4f071d · goals e5c48feab0 · science 05c0f1ebd2 (below the demoted g5.40 r1) + the g5.40 data row; belam digest 11:4xZ (next digest before 16:13Z)
 NEXT   harvest lap 3 + g5.40 r2: [complete] -> review -> council -> close; SM's gate answer on the merge-up; next belam digest before 16:13Z
 NEXT   lap 2 harvest: each [complete] -> review -> council judge -> close the leaf
-QUEUE  (not minted) G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
+QUEUE  (not minted) LAP 4 candidates (council 12:0xZ, 3/3 converge on Z): Z as a pre-registered CLAIM on fresh seeds = plasma L-REP gate + L-ENUM / L-STATES / L-DISC, remix Mz1 frozen code + Mz2 one-code-per-step, less-is-more Z6 (6 bits, distinct >= 16) vs G at best-of-64 · remix g5.40 ROBUSTNESS run (blind second drafter; ROBUST iff items agree >= 13/16 and fraction within 0.15) · G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
 BLOCKED nothing
 ```
 
