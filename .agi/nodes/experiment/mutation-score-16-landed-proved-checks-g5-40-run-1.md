@@ -18,7 +18,7 @@ confidence: 0.9
 python3 .agi/context/local-maxxing/mutscore/mutscore.py validate   # ok
 env -u TMUX -u TMUX_PANE python3 .agi/context/local-maxxing/mutscore/mutscore.py run
 ```
-Pre-run commit 5d09e9bf0a. params.json sha256 0c484e5445d9c1639dc343066f56a9f759722c5f1f179074aa334ddbe7331b27 (= results.json `params_sha256`). venv: /data/scratch/<post>/venv, pytest 9.2.0. Each check ran in a fresh `git archive` tree, deleted after its run. Wall time was about 15 s in total. MemAvailable stayed at or above 12.9 GiB.
+Pre-run commit 5d09e9bf0a. params.json sha256 0c484e5445d9c1639dc343066f56a9f759722c5f1f179074aa334ddbe7331b27 (= results.json `params_sha256`). venv: <scratch>/venv, pytest 9.2.0. Each check ran in a fresh `git archive` tree, deleted after its run. Wall time was about 15 s in total. MemAvailable stayed at or above 12.9 GiB.
 
 ## Instrument (each as stated, so no VOID)
 | mutant | expect | read |

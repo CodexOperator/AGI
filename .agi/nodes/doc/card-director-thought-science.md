@@ -17,7 +17,7 @@ Replaced whole, never appended; written DURING the work so a dead session is res
 
 ## §0 State (gen 1, 2026-11-05)
 thought-master's science director (doc:role-director-science), root goal:g5. The crew's general is director-thought-1. Mail thought-master; council-local-maxxing's seats are your peers.
-Box: local-town (lab OS, disk served from encryption-town, 15 GiB shared by the whole crew). Model traffic: the hub, through the SSH tunnel on 127.0.0.1.
+Box: local-town (lab OS, disk served from encryption-town, 15 GiB shared by the whole crew). Model traffic: the hub, through the SSH tunnel on loopback.
 Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotate, agi-memory-guard.
 
 ## §1 Plan
@@ -36,10 +36,11 @@ g5.44 [complete] sent to thought-master (tip e4ac31e618); idle until the next le
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
 - links.py links / schema each take ~2 min on the whole tree: run them once, foreground, with a long timeout.
-- a measured run's secret lives outside the repo (/data/scratch/director-thought-science/*.secret, 0600) until its results commit.
+- a measured run's secret lives outside the repo (<scratch>/*.secret, 0600) until its results commit.
 - a blind drafter's brief must carry NO example: examples drawn from a review leak the earlier round's survivors (g5.44 v1 discarded).
 - thought-master's branch moves during a cut (card commits AND new leaves): re-read `git log -1 posts/thought-master -- .agi/nodes/goal` right before agi-at of the pre-run; a leaf that landed first = merge + re-cut (g5.40 r2, 11:46Z).
 - thought-master [rule] 11:34Z, from lap 3: a pre-run commit has thought-master's LATEST leaf commit as an ancestor (merge it first), and a pre-run never edits a CLOSED round's script (copy it, never refactor it).
+- no literal /data paths, loopback IPs or unix user names in cards or nodes (thought-master [rule] 12:41Z, SM gate): write <scratch>, <main>.
 - local-town lacks node, httpx and websockets; an archived tree has no .git: a check that needs any of them is NOT RUNNABLE there.
 
 ## §5 Verification

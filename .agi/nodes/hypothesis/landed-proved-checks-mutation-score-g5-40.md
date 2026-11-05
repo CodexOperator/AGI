@@ -21,7 +21,7 @@ evidence_runs:
 - core/season3/main e42463ba50 at the leaf's mint: 29 live hypotheses with `verdict: proved`. Ordered by the first-parent trunk commit that introduced the verdict: 8 excluded by name (rotate / heal / send / dispatch), 5 have no in-tree runnable check, 16 qualify (< 20: all taken). Each is listed with its reason in params.json (`excluded`, `not_qualifying`, `items`).
 - On local-town, `node` is absent, so a check that needs it skips. A baseline with any skipped test is scored NOT RUNNABLE, never as a pass.
 ## CLAIM
-The testable_claim. Instrument: mutscore.py. Each item runs in its own `git archive <pre_run_commit> | tar -x` tree under /data/scratch/<post>/g540 (never ~/t, never a worktree). The baseline must read proved, then ONE pre-written mutant is applied (exact edits, each matching once; checked by `mutscore.py validate` = ok before this commit), then the check runs again: rc != 0 = killed, rc 0 = survived.
+The testable_claim. Instrument: mutscore.py. Each item runs in its own `git archive <pre_run_commit> | tar -x` tree under <scratch>/g540 (never ~/t, never a worktree). The baseline must read proved, then ONE pre-written mutant is applied (exact edits, each matching once; checked by `mutscore.py validate` = ok before this commit), then the check runs again: rc != 0 = killed, rc 0 = survived.
 ## Dispatch line
 config-max: none / template-max: none / code: the instrument (stdlib runner + params), run by this post: no kid, no pi
 ## FALSIFIERS
@@ -36,7 +36,7 @@ config-max: none / template-max: none / code: the instrument (stdlib runner + pa
 ## FILE SCOPE
 .agi/context/local-maxxing/mutscore/{mutscore.py,params.json,results.json} · this node · its experiment node · doc:card-director-thought-science
 ## CEILING
-0 kids · 0 USD · ONE child process at a time, each under `ulimit -v` 3 GiB and a 900 s timeout · CPU · private venv /data/scratch/<post>/venv (pytest 9.2.0, 1.8 MB downloaded, 26 MB on disk) · PYTHONHASHSEED 0; M2's seed is in params · never reboot
+0 kids · 0 USD · ONE child process at a time, each under `ulimit -v` 3 GiB and a 900 s timeout · CPU · private venv <scratch>/venv (pytest 9.2.0, 1.8 MB downloaded, 26 MB on disk) · PYTHONHASHSEED 0; M2's seed is in params · never reboot
 
 ## CORRECTIVE DH.1 -- closes director-thought-review 11:37Z on round 1 (demote: H-F1 RED replays, but 4 of 6 inversions were the blatant form; closer inversions of the claims' own words survive -- i09 precedence swapped, i14 -h dropped, i06 a 25-char vacuous reason)
 BASE      CUT FROM posts/director-thought-science tip fd73e53e3a, thought-master's a2e56f17e1 merged first (58a0afb4ca, an ancestor of the pre-run). Round 1's mutscore.py / params.json / results.json are CLOSED: round 2 COPIES them (rule 11:34Z), never edits them.
