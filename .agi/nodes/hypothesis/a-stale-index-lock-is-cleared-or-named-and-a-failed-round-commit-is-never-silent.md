@@ -245,7 +245,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 3. Same-class stale cites left unnamed outside FILE SCOPE -- .agi/nodes/hypothesis/a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent.md:9 -- push_further cites cli.py:2406 for the non-dumpable uid-0 fd-dir exit (it is 2407-2408) and cli.py:2455 for `except OSError: continue` (it is 2452-2453) — the exact class of orders item 1; the OUTSIDE clause required it named on the round's node for the director's findings row and it was not.
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] (TMM.322)); TEXT-ONLY round: node text only
 FILE SCOPE .agi/nodes/experiment/a00-110f9e30-debcf3.md (write.py) · the kid's own node
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dedca8545 <your final tip>` on your node (an empty range is not a measurement)
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body

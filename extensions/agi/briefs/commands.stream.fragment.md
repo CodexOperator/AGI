@@ -100,7 +100,7 @@ destructive. `panic` is the one that is.
 
 Land `config:seats` with the council rows and `town` cells from
 `seats.councils.fragment.md`, and fold this `stream` group into
-`command:commands`. The exact `write.py` create/set lines are in
+`command:commands`. The exact create/set edits are in
 `experiment:a00-7f9e3d95-7b55f6`.
 
 **Code residue landed after this round, plainly named:** the commands.py

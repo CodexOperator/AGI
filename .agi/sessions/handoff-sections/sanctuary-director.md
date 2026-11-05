@@ -17,7 +17,7 @@ wholesale, read THAT. This slice is the ledger.
 
 **L4.06** proved — the write-log records WHO, through the EXISTING `extra` hook, no second
 logging path. Proved itself on a live write: my own review note appended
-`"actor": "sanctuary-director"`. **L4.39** proved — `dispatch` exports `AGI_SEAT` at all
+`"actor": "sanctuary-director"`. **L4.39** proved — `dispatch` exports `AGI_[retired]` at all
 three sites with one precedence rule. **L4.05** proved — `links.py roles` prints the
 COVERAGE GAP: 18 types, **1 declares `written_by`, 17 do not**. A violations-only report
 would have printed "0 violations" and been true while 477 experiments sat unfalsifiable; the

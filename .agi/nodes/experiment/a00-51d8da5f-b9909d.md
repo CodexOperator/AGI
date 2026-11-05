@@ -47,7 +47,7 @@ either.
      >400ch truncated.
 2. **`extensions/agi/hooks/cc-session-start.next.sh`** — a COPY of the live
    hook holding the new bootstrap section. Injected when — and only when —
-   `AGI_SEAT` is set AND the record exists fresh for that seat; the section
+   `AGI_[retired]` is set AND the record exists fresh for that seat; the section
    sits AFTER the INJECTION_FILE gate, so the hook's outside-a-project
    silence is untouched. Live hook + settings.json untouched.
 3. **`tests/test_session_start_bootstrap.py`** — drives the `.next` hook as
@@ -72,7 +72,7 @@ either.
 
 ## Caveats
 
-- The hook needs `AGI_SEAT` set in a seat session's env to know WHICH seat
+- The hook needs `AGI_[retired]` set in a seat session's env to know WHICH seat
   it is; the spawner does not yet export it (derive-at-wake is a sibling
   round's problem). Until then the section is a silent no-op in a live seat,
   which is safe but inert.
@@ -83,6 +83,6 @@ either.
   this proves the copy, not the install.
 
 ## Agent Notes
-Injection half proven on TEMP HOME fixture: rotate.py bootstrap-block reader (never raises), cc-session-start.next.sh copy, all 4 gates green (fresh emits/stale refused/no-record silent/outside-project silent); full suite 2724 passed. Live install + AGI_SEAT wiring are the PRIME's.
+Injection half proven on TEMP HOME fixture: rotate.py bootstrap-block reader (never raises), cc-session-start.next.sh copy, all 4 gates green (fresh emits/stale refused/no-record silent/outside-project silent); full suite 2724 passed. Live install + AGI_[retired] wiring are the PRIME's.
 
-PARENT VERIFIED (a00-2f2d0784, L4.125): re-ran test_session_start_bootstrap.py (4 passed) and ran the .next hook copy from /tmp (exit 0, no output outside a project). Verdict kept inconclusive_lean_proved:75 — reader + copy proven; the LIVE install and AGI_SEAT wiring remain, as the node caveats say.
+PARENT VERIFIED (a00-2f2d0784, L4.125): re-ran test_session_start_bootstrap.py (4 passed) and ran the .next hook copy from /tmp (exit 0, no output outside a project). Verdict kept inconclusive_lean_proved:75 — reader + copy proven; the LIVE install and AGI_[retired] wiring remain, as the node caveats say.

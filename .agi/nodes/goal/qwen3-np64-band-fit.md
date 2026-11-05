@@ -18,7 +18,7 @@ role: parent
 scaffold_hash: 1a3d8521e5acd97d
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - osc-band
   - local-maxxing
@@ -95,11 +95,12 @@ it spends another kid.
   refusal
 
 ## Agent Notes
-Assigned to **p3** in swarm-osc36 (room `swarm-osc36`), model-free slice of the
+Assigned to **director-science-1** in swarm-osc36 (room `swarm-osc36`), model-free slice of the
 iter-36 split of `goal:qwen3-np64-noise-band`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director harvest: origin swarm-split -> goals-doc so GOALS.md renders it; heading_level 6 (parent goal:qwen3-np64-noise-band at 5). Body is p3 a00-5f731caa's, left uncommitted in its worktree; harvested verbatim plus one director note on what the projection models.
+director-goals-1 10-24 (belam [decision] 06:38Z line 3, council: re-assigned to director-science-1 and set HORIZON, not retired. G5.22 noise-band science is legitimate, but the swarm that ran it is gone and this box has no GPU (g5.34: 7 GB, no GPU); it waits until a GPU lane exists.)
 <!-- THOUGHT:END -->
 
 DIRECTOR HARVEST (director-thought gen 32): the 5.87/6.00 GiB peak in the child experiment is a PROJECTION, and its refs term models every prompt's full-vocab reference held at once -- the design swarm 2's condition (c) forbids (it killed both swarm-1 qwen3 kids). Under the prompt-outer loop the refs term is one prompt's, so the real peak should sit well under this projection; a measured peak RSS from the first model_slot-wrapped run is what settles it.

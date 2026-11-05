@@ -2,7 +2,7 @@
 """season.py — season lifecycle: status, judge, rollover.
 
 Reads the ladder node for tiers, current_season, and caps. Every write goes
-through write.py (shell out), never a direct file write.
+through node_commit.land (node_writer.update_node + a by-exact-path commit), never a bare file write.
 
 Subcommands:
   status                          — per-tier plan/report counts, ratios, cost
@@ -58,9 +58,6 @@ from spawn_gate import (  # noqa: E402
 
 #: The ladder node path, relative to the graph root.
 LADDER_NODE_REL = Path("nodes") / ".geometry" / "ladder.md"
-
-#: write.py path (we shell out, never write files directly).
-WRITE_PY = Path(__file__).resolve().parent / "write.py"
 
 #: send.py path — judge --quorum shells `send.py audience prime ...` on a
 #: deadlock (hypothesis:l3w4-quorum-reviews).
@@ -250,38 +247,39 @@ def _collect_stats(root: Path, tiers: list[Tier], season: int) -> list[TierStats
     return [stats[k] for k in sorted(stats)]
 
 
-def _shell_out_write(root: Path, node_id: str,
-                     set_fm: dict | None = None,
-                     note: str | None = None,
-                     actor: str = "season.py",
-                     session: str = "season") -> int:
-    """Call write.py to modify a node. Returns exit code."""
-    script_parts = []
-    if set_fm:
-        for k, v in set_fm.items():
-            if isinstance(v, dict):
-                import json
-                v = json.dumps(v, separators=(',', ':'))
-            script_parts.append(f"set {k} {v}")
-    if note:
-        script_parts.append(f"note {note}")
-
-    if not script_parts:
+def _write_node(root: Path, node_id: str,
+                set_fm: dict | None = None,
+                note: str | None = None,
+                actor: str = "season.py",
+                session: str = "season") -> int:
+    """Modify a node through node_commit.land (node_writer.update_node + ONE commit of the node by exact path,
+    subject `season: <node> (<actor>)`). Returns an exit code: 0 written, 3 refused (a hand edit in the node, a
+    held suite lock, an exhausted index.lock retry: ONE named `ERR:` line on stderr). `edited_by` is the actor;
+    `thought_session` only when `session` is truthy (the owner-tier stamp passes actor=owner and no session).
+    V8a 3a: the written_by admission the retired writer applied here is gone (until the R-land flip its only
+    reader is R-land's would-refuse line at land time)."""
+    if not set_fm and not note:
         return 0
+    import node_commit
+    import node_writer
+    fm = {k: node_commit.coerce_value(v) for k, v in (set_fm or {}).items()}
+    fm["edited_by"] = actor
+    if session:
+        fm["thought_session"] = session
 
-    script = " && ".join(script_parts)
-    cmd = [
-        sys.executable, str(WRITE_PY),
-        node_id,
-        script,
-        "--actor", actor,
-        "--session", session,
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(root))
-    if result.returncode != 0:
-        print(f"ERR: write.py failed for {node_id}: {result.stderr.strip()}",
-              file=sys.stderr)
-    return result.returncode
+    def apply():
+        body = None
+        if note:
+            path = node_writer.find_node_file(root, node_id)
+            body = node_commit.append_note(frontmatter.load_node_file(path).body, note) if path else None
+        return node_writer.update_node(root, node_id, set_fm=fm, body=body)
+
+    try:
+        node_commit.land(root, node_id, f"season: {node_id} ({actor})", apply)
+    except node_commit.CommitRefused as exc:
+        print(f"ERR: season.py: {exc.line}", file=sys.stderr)
+        return 3
+    return 0
 
 
 # ---------------------------------------------------------------------------
@@ -568,7 +566,7 @@ def cmd_judge(root: Path, args) -> int:
               f"unset; the disputed call goes to the prime")
         return 0
 
-    # Write the judgment record using write.py
+    # Write the judgment record (node_commit.land)
     set_fields = {
         "judged_against": final_against,
         "season": season,
@@ -580,7 +578,7 @@ def cmd_judge(root: Path, args) -> int:
         if quorum_adjust:
             set_fields["adjust"] = quorum_adjust
 
-    rc = _shell_out_write(root, report_id, set_fm=set_fields,
+    rc = _write_node(root, report_id, set_fm=set_fields,
                           note=quorum_note,
                           actor=actor, session=session)
     if rc != 0:
@@ -605,7 +603,7 @@ def cmd_judge(root: Path, args) -> int:
                 changed = True
 
         if changed:
-            rc2 = _shell_out_write(root, report_id, set_fm={"moral_audit": new_audit})
+            rc2 = _write_node(root, report_id, set_fm={"moral_audit": new_audit})
             if rc2 != 0:
                 return rc2
             print(f"moral_audit scaffolded on {report_id} (filled missing keys)")
@@ -631,7 +629,7 @@ def cmd_judge(root: Path, args) -> int:
 # ---------------------------------------------------------------------------
 
 #: A node whose id starts with this prefix is owner-tier (goal:g12) and may
-#: only be written through write.py with `--actor owner`.
+#: only be written with actor `owner` (the retag stamp below passes it).
 MORAL_PREFIX = "moral:"
 
 #: The frontmatter key retag stamps.
@@ -651,11 +649,10 @@ def cmd_retag(root: Path, args) -> int:
       * every node under `nodes/`, including `nodes/deprecated/`, with no
         `season` field is stamped with the ladder's `current_season`;
       * a node that already has `season` is skipped, never overwritten;
-      * every write shells out to write.py (never a direct file write), so
-        the write guard stays silent and provenance (`edited_by`,
-        `thought_session`) is recorded;
+      * every write goes through _write_node (node_commit.land, never a bare
+        file write), so provenance (`edited_by`, `thought_session`) is recorded;
       * moral nodes are owner-tier (goal:g12): for those five only the
-        shell-out uses `--actor owner`, and their existing `edited_by` /
+        write uses actor `owner`, and their existing `edited_by` /
         `thought_session` provenance is preserved rather than overwritten by
         this scripted pass.
     """
@@ -705,7 +702,7 @@ def cmd_retag(root: Path, args) -> int:
     for nid in candidates:
         if nid.startswith(MORAL_PREFIX):
             # Owner-tier (goal:g12): the stamp must not clobber the owner's
-            # own edited_by/thought_session — write.py always sets edited_by
+            # own edited_by/thought_session — _write_node always sets edited_by
             # from --actor and only touches thought_session when --session is
             # truthy, so pass actor=owner and no session to preserve both.
             node_actor = "owner"
@@ -713,7 +710,7 @@ def cmd_retag(root: Path, args) -> int:
         else:
             node_actor = actor
             node_session = session
-        rc = _shell_out_write(root, nid, set_fm={SEASON_KEY: season},
+        rc = _write_node(root, nid, set_fm={SEASON_KEY: season},
                               actor=node_actor, session=node_session)
         if rc == 0:
             stamped += 1
@@ -869,7 +866,7 @@ def cmd_rollover(root: Path, args) -> int:
       * mint three visions from `--visions-from` (dir or file), bodies taken
         **verbatim** from the owner text (text + gloss); `--actor owner`;
       * `--name <name>` names the CURRENT season in the ladder's
-        `season_names` through write.py (e.g. `genesis`);
+        `season_names` through node_commit.land (e.g. `genesis`);
       * `--branch` opens `season<N>/main` with `git checkout -b` after the
         graph writes, then prints the next commands — never pushes;
       * `--branch` opens `season<N>/main` with `git checkout -b` after the
@@ -987,7 +984,7 @@ def cmd_rollover(root: Path, args) -> int:
             print(f"    {town}: {per_town.get(town, 0)} ({flag})")
     print()
 
-    # ---- Ladder fields (through write.py).
+    # ---- Ladder fields (through node_commit.land).
     print("Ladder writes:")
     if name:
         print(f"  season_names[{season}] = {name}")
@@ -1051,14 +1048,14 @@ def cmd_rollover(root: Path, args) -> int:
         else:
             os.environ["AGI_SEASON"] = old_env_season
 
-    # 2. Name season 1 and bump the season on the ladder (through write.py).
+    # 2. Name season 1 and bump the season on the ladder (through node_commit.land).
     ladder_set = {}
     if name:
         season_names = dict(ladder_fm.get("season_names") or {})
         season_names[season] = name
         ladder_set["season_names"] = season_names
     ladder_set["current_season"] = new_season
-    rc = _shell_out_write(root, "ladder:ladder", set_fm=ladder_set,
+    rc = _write_node(root, "ladder:ladder", set_fm=ladder_set,
                           actor=actor, session=session)
     if rc != 0:
         return rc
@@ -1291,8 +1288,8 @@ def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
             fm = ({"season": g, "season_history": json.dumps(hist)}
                   if cell_field == "season" else {cell_field: g})
             print(f"[{tag}] {d + 1} CELL {cell_id} {m} -> {g}")
-            if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
-                return _stop(d + 1, "cell", "write.py refused (see stderr above)")
+            if apply and _write_node(root, cell_id, actor=actor, session=session, set_fm=fm):
+                return _stop(d + 1, "cell", "the cell write was refused (see stderr above)")
     else:
         print(f"[{tag}] {d + 1} CELL HELD {cell_id} stays {m} — old head {old} remains on origin (bump gated on the verified delete)")
     return 0
@@ -1337,29 +1334,6 @@ def cmd_rollover_align(root: Path, args) -> int:
                        apply, delete_old, actor, args.session or "season"):
             return 1  # the failing step named itself; nothing further performed
     if not apply: print("dry-run: nothing changed")
-    return 0
-
-
-def _preflight_cells(root: Path, cells: list, actor: str) -> int:
-    """PASS 0 (SM.106 auth defect): reach the SAME written_by admission rule
-    write.py enforces, once per cell, BEFORE any step is performed -- so a run
-    whose default actor would be refused at the deferred cell pass refuses by
-    name with NOTHING done, instead of pushing every origin ref and then
-    leaving the ladder and town cells disagreeing. Returns 0 when every cell
-    admits, 1 on the first refusal (already printed)."""
-    import write as _w
-    for cell_id, field, value in cells:
-        decision = {}
-        try:
-            _w._enforce_written_by(
-                root, cell_id.split(":", 1)[0], actor, cell_id, "",
-                set_fm={field: value}, allow_self_row=True,
-                out_decision=decision, preview=True)
-        except Exception as exc:  # noqa: BLE001  (a broken gate refuses, never admits)
-            decision["refusal"] = f"{exc}"
-        if decision.get("refusal"):
-            print(f"REFUSED: {decision['refusal']}", file=sys.stderr)
-            return 1
     return 0
 
 
@@ -1562,14 +1536,10 @@ def cmd_rollover_global(root: Path, args) -> int:
         return 1
     if refused:       # a DRY run still prints every step (the rehearsal), then ends rc 1: the real run would refuse
         print("[DRY] the judge check above WOULD REFUSE the real run (rc 1, nothing performed); the steps below are the rehearsal")
-    # A cell write happens ONLY with --delete-old (without it every cell is HELD),
-    # so admission is owed only then: a no-delete run must not be pre-flighted.
-    if apply and delete_old:
-        cells = [(cell_id, "current_season" if slug is None else "season", ng)
-                 for slug, cell_id, _h in trunks]
-        if _preflight_cells(root, cells, actor):
-            print("nothing performed", file=sys.stderr)
-            return 1
+    # V8a 3a: PASS 0 (the written_by pre-check of every cell, SM.106) is GONE with the retired writer, whose
+    # admission it reached. THE NAMED GAP (council decision alive 23:28:02Z 10-25): until the R-land flip to enforce, a cell
+    # write whose actor is not in the schema's written_by lands with only R-land's would-refuse line at land
+    # time; the gap closes at the flip. Cells are written ONLY with --delete-old (every cell is HELD without it).
     restore = []   # (old head, tip) of every old head PASS 1 deleted after proving its archive ref
     h0 = _git(repo, "rev-parse", "HEAD").stdout.strip()
     plan = []      # PASS 1a: every trunk that cut (and folded): slug, cell_id, history, old, new, sha
@@ -1614,8 +1584,8 @@ def cmd_rollover_global(root: Path, args) -> int:
               if cell_field == "season" else {cell_field: gg})
         print(f"[{tag}] 5 CELL {cell_id} {m} -> {gg} (deferred pass; all trunks verified) on branch {cur_branch or 'detached HEAD'}")
         h0 = _git(repo, "rev-parse", "HEAD").stdout.strip()
-        if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
-            return _stop5(repo, restore, h0, cur_branch, f"write.py refused for {cell_id}")
+        if apply and _write_node(root, cell_id, actor=actor, session=session, set_fm=fm):
+            return _stop5(repo, restore, h0, cur_branch, f"the cell write was refused for {cell_id}")
         if apply:
             why = _check_cell_commit(repo, h0, cell_id, jb)
             if why:

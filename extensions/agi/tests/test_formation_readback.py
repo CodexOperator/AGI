@@ -91,69 +91,12 @@ def test_a_retired_template_fails_the_check(groot):
     assert verification.check_formation(groot).status == "FAIL"
 
 
-def test_the_switch_runs_through_write_py(groot):
-    """The ONE act that switches a formation is `write.py config:formations
-    'set active <doc>'` -- driven here in the tmp project, then read back."""
-    import subprocess
-    (groot / "config.json").write_text("{}\n", "utf-8")
-    _cell(groot, "doc:council-loop")
-    wp = Path(__file__).resolve().parents[1] / "bin" / "write.py"
-    r = subprocess.run([sys.executable, str(wp), "config:formations", "set active doc:two-step",
-                        "--actor", "test", "--role", "director"],
-                       cwd=groot.parent, capture_output=True, text=True, timeout=120,
-                       env={k: v for k, v in __import__("os").environ.items() if not k.startswith(("TMUX", "AGI_"))})
-    assert r.returncode == 0, r.stderr[-400:]
-    res = verification.check_formation(groot)
-    assert res.status == "PASS" and "doc:two-step" in (res.note or "")
-
-
-# --- goal:g7.16.1.2.6 · hypothesis:park-is-a-tag-that-set-active-drops
-# (council bundle 2, director-general-2). RED on the trunk at ef73dec71 -- the
-# park was THOUGHT text and `set active` dropped nothing; green since
-# director-general-3's build.
-def test_set_active_drops_that_formations_park_tag(groot):
-    import os, subprocess
-    (groot / "config.json").write_text("{}\n", "utf-8")
-    _cell(groot, "doc:council-loop")
-    f = groot / "nodes" / "hypothesis" / "h.md"
-    f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text("---\nid: hypothesis:h\ntype: hypothesis\ntitle: h\ntestable_claim: c\n"
-                 "tags:\n  - parked:g7.16.2\n  - keep-me\n---\nbody\n", "utf-8")
-    wp = Path(__file__).resolve().parents[1] / "bin" / "write.py"
-    r = subprocess.run([sys.executable, str(wp), "config:formations", "set active doc:two-step",
-                        "--actor", "test", "--role", "director"], cwd=groot.parent,
-                       capture_output=True, text=True, timeout=120,
-                       env={k: v for k, v in os.environ.items() if not k.startswith(("TMUX", "AGI_"))})
-    assert r.returncode == 0, r.stderr[-400:]
-    text = f.read_text("utf-8")
-    assert "parked:g7.16.2" not in text and "keep-me" in text
-
-
 def test_a_thought_park_mark_fails_the_check(groot):
     """The retired mark never parks quietly: the read-back names its carrier."""
     _node(groot, "goal/g5.md", "goal:g5", _T.format("triage (parked: formation g7.16.2)"))
     _cell(groot, "doc:two-step")
     r = verification.check_formation(groot)
     assert (r.status, r.message) == ("FAIL", "mark goal:g5")
-
-
-@pytest.mark.parametrize("tags,ok", [("[parked:g7.16.2, keep-me, parked]", True),
-                                     ("[parked: formation g7.16.2]", False),
-                                     ("[parked:g7.]", False)])
-def test_the_schema_holds_the_park_tag_form(groot, tags, ok):
-    import os, shutil, subprocess
-    (groot / "config.json").write_text("{}\n", "utf-8")
-    write_free_veto(groot / "nodes" / ".geometry")
-    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
-    (groot / "context").mkdir()
-    shutil.copytree(src, groot / "context" / "schemas")
-    wp = Path(__file__).resolve().parents[1] / "bin" / "write.py"
-    r = subprocess.run([sys.executable, str(wp), "goal:g3", f"set tags {tags}",
-                        "--actor", "test", "--role", "director"], cwd=groot.parent,
-                       capture_output=True, text=True, timeout=120,
-                       env={k: v for k, v in os.environ.items() if not k.startswith(("TMUX", "AGI_"))})
-    assert (r.returncode == 0) is ok, r.stderr[-400:]
-    assert ("item_regex" in r.stderr) is (not ok)
 
 
 # --- goal:g7.16.1.2.8 · hypothesis:formations-are-one-registry-with-one-home
@@ -206,52 +149,6 @@ def test_only_the_mark_shape_on_a_carrier_trips_the_check(groot, rel, nid, thoug
     _node(groot, rel, nid, _T.format(thought))
     _cell(groot, "doc:two-step")
     assert verification.check_formation(groot).status == status
-
-
-@pytest.mark.parametrize("how", ["rejected", "oserror"])
-def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys, how):
-    """Residue 54: the set-active hook names a carrier update_node REJECTS or
-    whose write raises OSError, and goes on (the loop is never aborted)."""
-    import node_writer, write
-    (groot / "config.json").write_text("{}\n", "utf-8")
-    _cell(groot, "doc:council-loop")
-    real = node_writer.update_node
-
-    def refuse_g1(root, nid, **kw):
-        if nid != "goal:g1":
-            return real(root, nid, **kw)
-        if how == "oserror":
-            raise OSError("probe")
-        return node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason="probe")
-    monkeypatch.setattr(node_writer, "update_node", refuse_g1)
-    _node(groot, "goal/g9.md", "goal:g9", tags="parked:g7.16.2")  # sorts AFTER goal:g1 (residue 56)
-    write.submit(groot, write.Edit(node_id="config:formations", set_fm={"active": "doc:two-step"}),
-                 actor="test", role="director")
-    err = capsys.readouterr().err
-    assert "unpark REJECTED goal:g1 (parked:g7.16.2): probe" in err
-    assert "unparked goal:g9 (parked:g7.16.2)" in err  # the loop went on
-    assert "parked:g7.16.2" not in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
-
-
-# council C1 on bundle 3 (alive, all-is-one's lens): a carrier grep that cannot
-# look REFUSES `set active` with nothing written -- never rc 0 with every carrier
-# still parked (check_formation's fail-closed stance, on the write side).
-def test_set_active_refuses_when_the_carrier_grep_fails(groot, monkeypatch, capsys):
-    import rotation_record, write
-    (groot / "config.json").write_text("{}\n", "utf-8")
-    _cell(groot, "doc:council-loop")
-    _node(groot, "goal/g9.md", "goal:g9", tags="parked:g7.16.2")
-    cell = groot / "nodes" / ".geometry" / "formations.md"
-    before = cell.read_bytes()
-
-    def blind(root, goal):
-        raise rotation_record.GrepError("git grep exit 128: fatal: probe")
-    monkeypatch.setattr(rotation_record, "parked_carriers", blind)
-    rc = write.main(["config:formations", "set active doc:two-step", "--root", str(groot),
-                     "--actor", "test", "--role", "director"])
-    assert rc == 2 and "set active refused" in capsys.readouterr().err
-    assert cell.read_bytes() == before  # nothing written
-    assert "parked:g7.16.2" in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
 
 
 # --- goal:g7.16.1.3.1 · hypothesis:row-parks-carry-a-carrier-tag (bundle 3 H3,

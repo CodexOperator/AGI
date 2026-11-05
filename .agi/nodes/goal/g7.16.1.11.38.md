@@ -50,7 +50,7 @@ Every post's ~/.gitconfig sets core.hooksPath=~/hooks, and ~/hooks is EMPTY on E
 5. If the interim fold (target 5) ships: a fold carrying a node that fails spawn_gate = RED; an unsigned commit folded = RED.
 
 ## Out of scope
-The AGI_SEAT retirement (goal:g7.16.1.11.37) · the refs/archive carry across box moves (goal:g7.16.1.11.39).
+The AGI_[retired] retirement (goal:g7.16.1.11.37) · the refs/archive carry across box moves (goal:g7.16.1.11.39).
 sanctuary-master 04:34Z 10-11: LANDED in 98766a28fc (DG3 67686bb4fc; council 3/3, alive 04:3xZ). LANDED IS NOT LIVE (council, self-perpetuating): Door 1 needs belam's GO + a unit restart per post, and agi-notice is read only by hooks (live only where goal:g7.16.1.11.36.1's hooks-loaded proof holds). So this goal CLOSES on its falsifiers run on LIVE posts after the restarts, not on the landing; the interim update-ref rule (02:5xZ) stands until then. Owed (council, all-is-one + alive): hooksPath=~/bin makes every piece name a git-hook candidate, so a lane row is owed: no piece name is a git hook name except the listed ones (pre-commit); MUTANT: a piece named post-checkout = RED. The first exception's row ('goal:g7.16.1.11.38 +138 B · council 03:3xZ 10-11 · eviction goal:g7.16.1.11.5.1 · OPEN') lands in R3b's tip, marked repaid there.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

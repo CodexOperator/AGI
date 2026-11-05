@@ -67,7 +67,7 @@ are "the paths that need it" (only reached at threshold).
 Claim (2) makes "a fraction printed with seat None" the FALSIFIER, which is
 exactly what three pre-existing meter tests asserted with the seat-less
 `agi_project` fixture. They were updated (one line each) to
-`monkeypatch.setenv("AGI_SEAT", "meter-director")` so a post resolves and a
+`monkeypatch.setenv("AGI_[retired]", "meter-director")` so a post resolves and a
 computable pin lets the D1/D2/D3 fraction print — the fraction now belongs
 to a RESOLVED post. Without this the fix itself reds them
 (3 failed after the edit, 40 passed; verified). Claims tests (b) (rc-3

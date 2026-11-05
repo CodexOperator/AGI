@@ -464,6 +464,8 @@ def test_self_cmd_pre_receive_refuses_push_keeps_key(tmp_path, capsys,
     (hd / "pre-receive").write_text(
         "#!/bin/sh\necho 'refusing for the test' >&2\nexit 1\n")
     (hd / "pre-receive").chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(fx.origin), "config", "core.hooksPath", str(hd)], check=True)
 
     rc, _, _ = _drive_self(fx, monkeypatch, capsys, tmp_path)
     assert rc == 0, f"a refused own-row push must still be a graceful rotate-self: {rc}"

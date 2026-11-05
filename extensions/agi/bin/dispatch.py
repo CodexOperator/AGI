@@ -1230,7 +1230,7 @@ def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
     # hypothesis:l4-a-model-change-is-one-write — the ladder `roles:` table is
     # the ONE source of a role's model/effort/settings. The row lookup and the
     # blank-cell -> None mapping live in adapters/ (the shared resolver
-    # dispatch.py, workflow.py and heal.py import), so one write.py on the
+    # dispatch.py, workflow.py and heal.py import), so one edit of the
     # ladder IS the model write.
     row = adapters.ladder_role_row(roles, tier, role)
     if row is not None:
@@ -2902,7 +2902,7 @@ def main() -> int:
             spawn_env["AGI_PROFILE"] = str(profile_val)
             # hypothesis:l3-agent-id-never-exported — tell every agent its own
             # name: export the id dispatch minted and the actor under which it
-            # records provenance, so send.py and write.py resolve the same
+            # records provenance, so send.py and node_writer resolve the same
             # identity the engine already wrote into agent.json, instead of
             # inventing a per-tool fallback (tmux window name / $USER).
             spawn_env["AGI_AGENT_ID"] = agent_id

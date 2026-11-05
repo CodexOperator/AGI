@@ -3,8 +3,9 @@
 The node PINS eight `git grep` commands C1-C8 and their verbatim output at one sha (2e92b6447a); its blocks keep their `path:N:` numbers (informational, at that sha). These rows run the SAME command, as the node prints it, at HEAD of a git repo and compare what it FOUND:
   C1 every ref writer (update-ref | commit-tree | mktree | hash-object -w) · C2 every user of the grid push-spec builders · C3 every user of the fetch-spec builders ·
   C4 every wildcard push (--all | --mirror | refs/*) · C5 every push site, per file (the `path:count` lines) · C6 the `refs/grid` literal outside grid.py ·
-  C7 every fetch consumer · C8 every caller of the gated verbs (`grid.py commit | push-changed | sync`, v4 of the list).
-C4w (SM: widen C4): the same scan with `refs/grid/\\*` added to the pattern; its extra hits at the pin are the comments and docs in C4W_EXTRA (no hand-spelled `refs/grid/*` push exists).
+  C7 every fetch consumer · C8 every caller of the gated verbs (`grid.py commit | push-changed | sync`, v4 of the list) ·
+  C9 every refspec LITERAL (`/*:`, goal:g7.16.1.11.46.16 R5): `push_spec_for` / `fetch_spec_for` are THE builders of a refs/grid refspec, and a SECOND function returning one is a NEW site.
+C4w (SM: widen C4): the same scan with `refs/grid/\\*` added to the pattern; its extra hits at the pin are the comments and docs in C4W_EXTRA (the 6th is push_spec_for's docstring naming the wide spec it replaced) (no hand-spelled `refs/grid/*` push exists).
 COMPARE (path, TEXT): every `path:N:text` line becomes `path:text` on BOTH sides and the two lists are compared SORTED (a multiset): a pure line SHIFT or a reorder is GREEN; a changed, added, removed or MOVED-to-another-file matching line is RED. The node's `cut -c1-120` makes the visible text depend on the digit width of N, so each text is cut to the budget of a 5-digit N (120 - len(path) - 7) before comparing: a shift across a digit boundary is GREEN too. C5 is `path:count` and is compared exactly (a shift cannot change a count).
 A NEW writer, pusher, fetcher, builder user or literal anywhere under extensions/ src/ .agi/nodes/.geometry changes one of the outputs and the row is RED until a person re-cuts the node (classifying the site); C6 counts comments and docstrings on purpose.
 
@@ -26,7 +27,7 @@ import pytest
 HERE = Path(__file__).resolve()
 NODE_REL = ".agi/nodes/goal/g7.16.1.11.13.md"
 HEADING = "## refs/grid writers, pushers and fetchers"
-IDS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
+IDS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 #: the scope every command shares, as the pathspec TOKENS the shell hands git (the node prints the four exclusions single-quoted): where a writer can hide, and what is out of it
 SCOPE = ["extensions", "src", ".agi/nodes/.geometry", ":!extensions/agi/tests", ":!*.js", ":!*.json", ":!extensions/**/*.md"]
 
@@ -52,7 +53,7 @@ def read_blocks(root: Path | None = None) -> dict[str, tuple[str, list[str]]]:
     nxt = sec.find("\n## ", 5)
     sec = sec if nxt < 0 else sec[:nxt]
     out = {}
-    for m in re.finditer(r"^(C[1-8]) [^\n]*\n```\n(.*?)\n```", sec, re.S | re.M):
+    for m in re.finditer(r"^(C[1-9]) [^\n]*\n```\n(.*?)\n```", sec, re.S | re.M):
         lines = m.group(2).split("\n")
         out[m.group(1)] = (lines[0], lines[1:])
     return out
@@ -110,6 +111,7 @@ def norm(lines: list[str]) -> list[str]:
 C4W_OLD = "(--all|--mirror|refs/\\*)"
 C4W_NEW = "(--all|--mirror|refs/\\*|refs/grid/\\*)"
 C4W_EXTRA = [
+    "extensions/agi/bin/grid.py:228:    slashes (measured, git 2.43.0: `git push <bare> 'refs/grid/*:refs/grid/*'` carried node/, origin-snap/node/",
     ".agi/nodes/.geometry/crons.md:162:(every 5 minutes, snapshot + push refs/grid/*) and `branch_push` (hourly).",
     "extensions/agi/bin/grid.py:49:  grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)",
     "extensions/agi/bin/grid.py:250:    ARE retired. Retired, rotate._push's `refs/grid/*` push and `grid.py sync`",
@@ -122,7 +124,7 @@ def scan_failures(root: Path | None = None) -> list[str]:
     """Every C-id whose scan in `root` (default: the repo) differs from the node's pinned block, compared as (path, text) multisets (C5: path:count, exactly)."""
     bad = []
     blocks = read_blocks()
-    for cid in ("C1", "C2", "C3", "C4", "C6", "C7", "C8"):
+    for cid in ("C1", "C2", "C3", "C4", "C6", "C7", "C8", "C9"):
         cmd, pinned = blocks[cid]
         if norm(run(cmd[2:], root)) != norm(pinned):
             bad.append(cid)
@@ -137,7 +139,7 @@ def scan_failures(root: Path | None = None) -> list[str]:
 
 
 def test_the_node_pins_all_eight_commands_by_c_heading_over_one_shared_scope():
-    """C1-C8 are all in the node, each a `$ git grep ...` over the SAME scope (extensions, src, .agi/nodes/.geometry; the tests, js, json and md files excluded), so a node
+    """C1-C9 are all in the node, each a `$ git grep ...` over the SAME scope (extensions, src, .agi/nodes/.geometry; the tests, js, json and md files excluded), so a node
     that drops a block, swaps the tool, or narrows the scan to hide a site is RED. The scope is compared as whole pathspec TOKENS (shlex), not as substrings."""
     assert shape_problems(read_blocks()) == []
 
@@ -158,7 +160,7 @@ def test_the_shape_row_is_red_when_a_node_command_drops_one_scope_token(tmp_path
     assert bad and all(b.startswith(f"{cid}: the command lost scope") for b in bad), bad
 
 
-@pytest.mark.parametrize("cid", ["C1", "C2", "C3", "C4", "C6", "C7", "C8"])
+@pytest.mark.parametrize("cid", ["C1", "C2", "C3", "C4", "C6", "C7", "C8", "C9"])
 def test_the_scan_output_at_head_equals_the_nodes_pinned_block_without_line_numbers(cid):
     """(a) the SAME command as the node prints it, run at HEAD, finds the SAME (path, text) multiset as the node's block: a new writer (C1), a new user of a push-spec builder (C2)
     or fetch-spec builder (C3), a wildcard push (C4) or a `refs/grid` literal outside grid.py (C6, comments and docstrings included: intended, the node is then re-cut)
@@ -179,7 +181,7 @@ def test_the_push_sites_per_file_at_head_equal_the_nodes_pinned_counts():
 
 
 def test_c4_widened_with_refs_grid_wildcard_finds_only_the_pinned_comments():
-    """(c) C4w (SM): the node's C4 command with `refs/grid/\\*` added to the pattern finds the node's C4 block plus the 5 comment / doc lines in C4W_EXTRA, nothing else:
+    """(c) C4w (SM): the node's C4 command with `refs/grid/\\*` added to the pattern finds the node's C4 block plus the 6 comment / doc lines in C4W_EXTRA, nothing else:
     a hand-spelled `git push origin refs/grid/*:refs/grid/*` anywhere in scope is RED here (C4's own `refs/\\*` is the literal `refs/*`, which `refs/grid/*` is not)."""
     cmd, pinned = read_blocks()["C4"]
     assert C4W_OLD in cmd, f"C4's pattern changed: {cmd[:200]}"
@@ -242,7 +244,7 @@ def edit(root: Path, rel: str, fn) -> None:
 
 
 def test_d0_the_unmodified_scratch_copy_is_green(base_copy, tmp_path):
-    """The control for every d-row: an untouched copy of the tree passes all nine comparisons (C1-C8 and C4w) (so a RED below is the edit, not the copy)."""
+    """The control for every d-row: an untouched copy of the tree passes all ten comparisons (C1-C9 and C4w) (so a RED below is the edit, not the copy)."""
     assert scan_failures(scratch(base_copy, tmp_path)) == []
 
 
@@ -311,13 +313,14 @@ def test_d6_a_site_moved_to_another_file_is_red(base_copy, tmp_path):
 def test_d7_a_new_push_a_new_builder_user_and_a_new_literal_are_red(base_copy, tmp_path):
     """C5 (a `git push` in a file that had none), C2 (`grid.PUSH_SPEC`), C3 (`grid.FETCH_SPEC`), C4 (a `--mirror` push), C6 (a `refs/grid` mention in a comment), C7 (a new `git fetch`), C8 (a new caller of `grid.py commit`, and a new `with_name('grid.py')`): one edit each."""
     for i, (rel, line, want) in enumerate([("extensions/agi/bin/sensei.py", "subprocess.run('git push origin x')", "C5"),
-                            ("extensions/agi/bin/metrics.py", "x = grid.PUSH_SPEC", "C2"),
+                            ("extensions/agi/bin/metrics.py", "x = grid.PUSH_SPECS", "C2"),
                             ("extensions/agi/bin/heal.py", "x = grid.FETCH_SPEC", "C3"),
                             ("extensions/agi/bin/season.py", "subprocess.run('git push --mirror origin')", "C4"),
                             ("extensions/agi/bin/level3.py", "# talks about refs/grid/node/x", "C6"),
                             ("extensions/agi/bin/metrics.py", "subprocess.run([\"git\", \"fetch\", \"origin\"])", "C7"),
                             ("extensions/agi/bin/metrics.py", "os.system(f'python3 {grid_py} commit --all')", "C8"),
-                            ("extensions/agi/bin/heal.py", "p = Path(__file__).with_name(\"grid.py\")", "C8")]):
+                            ("extensions/agi/bin/heal.py", "p = Path(__file__).with_name(\"grid.py\")", "C8"),
+                            ("extensions/agi/bin/metrics.py", "def _other_spec(ns):\n    return f\"{ns}/*:{ns}/*\"", "C9")]):
         s = scratch(base_copy, tmp_path / f"{i}{want}")
         edit(s, rel, lambda t, _l=line: t + "\n" + _l + "\n")
         assert want in scan_failures(s), f"{rel}: {line!r} must be RED on {want}"

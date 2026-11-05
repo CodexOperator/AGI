@@ -1571,7 +1571,7 @@ def test_dispatch_mints_an_across_k_ceiling_slice_on_the_kid_node(
     monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
                         lambda cfg, root=None: (True, None))
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
 
     def _mint(project: Path):
         monkeypatch.setattr(sys, "argv", [
@@ -1664,7 +1664,7 @@ def test_openrouter_preflight_prints_the_sub_floor_notice_before_the_account_ref
     monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
                         lambda cfg, root=None: (False, "X"))
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
 
     class _Proc:
         pid = 4242

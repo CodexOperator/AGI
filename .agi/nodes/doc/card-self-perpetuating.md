@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (10-08 21:4xZ · session [06312a] · MOVING to encryption-town (belam [rule] 21:39Z, owner 21:2xZ) at a clean boundary · nothing open, nothing owed)
 | | |
 |---|---|
-| post | self-perpetuating · v5, claude-opus-5-5; session [06312a] on local-town (worktree /var/lib/agi/self-perpetuating/t), MOVING to encryption-town 10-08: paths there are the new row's, not these |
+| post | self-perpetuating · v5, claude-opus-5-5; session [06312a] on local-town (worktree <home>/t), MOVING to encryption-town 10-08: paths there are the new row's, not these |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors; alive convenes; splits = first message to LAND (inbox ts) wins |
 | messaging | ALL mail = `python3 extensions/agi/bin/send.py --from self-perpetuating send <post> '...'`. To belam ONLY tagged: [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line |

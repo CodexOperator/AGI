@@ -340,8 +340,8 @@ def test_guard_fixture_why_only_hit_passes():
 # --- hypothesis:l4-no-role-template-... (PARENT CORRECTION #2): the wake-
 # READ body region, not the frontmatter fields. Kid 1 scanned cmd/label/
 # delivery and LOST the mechanism: the field a post actually ACTS ON at wake
-# is the region the `facts` first_turn entry PRINTS — `write.py
-# config:rotations 'read body N:M'` emits the SAME node's body lines into
+# is the region the `facts` first_turn entry PRINTS — `node_read.py
+# config:rotations section facts` emits the SAME node's body lines into
 # STARTUP OUTPUT every rotation. F13 lives there and kid 1 (frontmatter-only)
 # could not see it. In that region the guard must classify each vocabulary
 # hit as INSTRUCTION (`by hand, one command:` — introduces a hand-run
@@ -386,10 +386,10 @@ _HAND_STEP_PATTERNS = [
 ]
 
 
-def _facts_body_range(templates: dict) -> list[tuple[str, int, int]]:
+def _facts_body_range(templates: dict, body_lines: list[str]) -> list[tuple[str, int, int]]:
     """EVERY wake-read facts body region (label, N, M), 1-based inclusive,
-    resolved from the templates' OWN `facts*` first_turn cmd(s) — `write.py
-    config:rotations 'read body N:M'`.
+    resolved from the templates' OWN `facts*` first_turn cmd(s) — `node_read.py
+    config:rotations section <heading>` — against `body_lines`.
 
     SM.55 residue (item 11): this is now the PRODUCTION reader
     `rotate.facts_body_ranges` (imported, never a second copy), so the
@@ -398,15 +398,15 @@ def _facts_body_range(templates: dict) -> list[tuple[str, int, int]]:
     `AssertionError` so every existing `pytest.raises(AssertionError)` fixture
     keeps reading the production refusal text."""
     try:
-        return rotate.facts_body_ranges(templates)
+        return rotate.facts_body_ranges(templates, body_lines)
     except rotate.FactsBodyRangeError as exc:
         raise AssertionError(str(exc)) from exc
 
 
 def _canonical_body_lines(source: "str | Path") -> list[str]:
     """The node body split into 1-based-addressable lines through the SAME
-    canonical frontmatter reader `write.py ... read body N:M` uses (BODY:BEGIN
-    stripped), so the guard scans exactly the bytes the post reads at wake."""
+    canonical frontmatter reader (the BODY:BEGIN line is body line 1), so the
+    guard scans exactly the bytes the post reads at wake."""
     from graph_core.persistence import frontmatter as _fm  # noqa: E402
     nf = _fm.load_node_file(Path(source))
     return nf.body.split("\n")
@@ -446,8 +446,8 @@ def _region_hand_hits(source: "str | Path") -> list[tuple[int, int, str, str]]:
     `facts` cmd of `source`. The one reader both the live node and the
     falsifier fixtures route through."""
     templates = _live_templates(source)
-    regions = _facts_body_range(templates)
     lines = _canonical_body_lines(source)
+    regions = _facts_body_range(templates, lines)
     hits: dict[tuple[int, int, str], tuple[int, int, str, str]] = {}
     for _facts_label, n, m in regions:
         for i in range(n, m + 1):
@@ -461,19 +461,16 @@ def _region_hand_hits(source: "str | Path") -> list[tuple[int, int, str, str]]:
     return list(hits.values())
 
 
-def _rotations_fixture_with_region(tmp_path: Path, body_lines: list[str],
-                                   region: tuple[int, int]) -> Path:
+def _rotations_fixture_with_region(tmp_path: Path, body_lines: list[str]) -> Path:
     """A self-contained fixture rotations.md whose canonical body is exactly
     `'\n'.join(body_lines)` (the reader numbers `<!-- BODY:BEGIN -->` as
-    body line 1) and whose director facts cmd reads `region_start:region_end`
-    of it — so a falsifier places an injected instruction/prohibition/
-    citation line in the region, at a known line, and exercises the widened
-    guard hermetically. Written under tmp_path; the live node is never
-    touched."""
+    body line 1) and whose director facts cmd reads the `## facts` section of
+    it — so a falsifier places an injected instruction/prohibition/citation
+    line under that heading and exercises the widened guard hermetically.
+    Written under tmp_path; the live node is never touched."""
     body = "\n".join(body_lines) + "\n"
-    n, m = region
-    cmd_val = (f"python3 extensions/agi/bin/write.py config:rotations "
-               f"'read body {n}:{m}'")
+    cmd_val = ("python3 extensions/agi/bin/node_read.py config:rotations "
+               "section facts")
     text = (f"---\nid: config:rotations\n"
             f"mint_id: deadbeef00000000000000000000000009\n"
             f"type: config\ntemplates:\n  director:\n"
@@ -570,7 +567,7 @@ def test_region_fixture_declared_instruction_plus_forbidden_and_prose_passes(
         "- F16 citation. every seat ran `rotate-self -h` by hand before "
         "rotating.",
     ]
-    p = _rotations_fixture_with_region(tmp_path, body, (6, 8))
+    p = _rotations_fixture_with_region(tmp_path, body)
     hits = _region_hand_hits(p)
     refusal = _region_refusal(p)
     assert refusal is None, refusal
@@ -591,7 +588,7 @@ def test_region_fixture_undeclared_instruction_fails(tmp_path):
         "secrets.txt` (unkeyed — not the declared open sentence).",
         "- F8 prohibition. NEVER touch the record by hand.",
     ]
-    p = _rotations_fixture_with_region(tmp_path, body, (6, 7))
+    p = _rotations_fixture_with_region(tmp_path, body)
     refusal = _region_refusal(p)
     assert refusal is not None, ("an instruction lacking the g15-18 key must "
                                  "be REFUSED, not just counted")
@@ -616,7 +613,7 @@ def test_region_fixture_blanket_exemption_refused(tmp_path):
         "- F13 (g15-18). Spend by hand, one command: `curl ...`",
         "- F99 (g15-18 too). Grep by hand, one command: `grep ...`",
     ]
-    p = _rotations_fixture_with_region(tmp_path, body, (6, 7))
+    p = _rotations_fixture_with_region(tmp_path, body)
     assert len(_region_instructions(p)) == 2  # the fixture really holds two
     refusal = _region_refusal(p)
     assert refusal is not None, ("two declared instructions must be REFUSED "
@@ -636,7 +633,7 @@ def test_region_live_f16_run_once_seen_but_not_a_waked_hand_step():
     src = Path(__file__).resolve().parents[3] \
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     lines = _canonical_body_lines(src)
-    regions = _facts_body_range(_live_templates(src))
+    regions = _facts_body_range(_live_templates(src), lines)
     # (SL7.97) locate F16 by its FACT ID, never by the vocab phrase — a regex
     # on 'run it once' is phrase-keyed and would either red for the wrong
     # reason or silently miss if the canon reworded F16 in the region.
@@ -1108,7 +1105,7 @@ def _facts_cap_violations(templates: dict, lines: list[str]) -> list[str]:
     each carrying template is measured per label. ONE decision: the live guard
     and every falsifier fixture call THIS, so a fixture cannot pass on a state
     the live assertion would refuse."""
-    regions = {lbl: (n, m) for lbl, n, m in _facts_body_range(templates)}
+    regions = {lbl: (n, m) for lbl, n, m in _facts_body_range(templates, lines)}
     violations = []
     for name, ent in templates.items():
         if not isinstance(ent, dict):
@@ -1140,7 +1137,7 @@ def _facts_cap_violations(templates: dict, lines: list[str]) -> list[str]:
 def test_live_facts_region_fits_under_every_template_byte_cap_with_headroom():
     """A first_turn entry whose output exceeds its `byte_cap` is a DELIVERY
     FAILURE, never a truncation (Prime rule, g17.1, 2026-09-13 17:1xZ). The
-    director template's `facts` entry printed `read body 37:61` under
+    director template's `facts` entry printed a body range 37:61 under
     `byte_cap: 8000` while the section had grown to 15 KB — F14-F27 were
     silently cut from every director wake for ~20 h, and three early
     rotations on director-point followed (master-sensei audit 17:09Z).
@@ -1154,7 +1151,7 @@ def test_live_facts_region_fits_under_every_template_byte_cap_with_headroom():
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     templates = _live_templates(src)
     lines = _canonical_body_lines(src)
-    assert _facts_body_range(templates), "no template carries a facts entry"
+    assert _facts_body_range(templates, lines), "no template carries a facts entry"
     violations = _facts_cap_violations(templates, lines)
     assert not violations, "; ".join(violations)
 
@@ -1166,18 +1163,19 @@ def test_facts_cap_guard_refuses_a_facts2_over_its_own_byte_cap():
     passed silently — the facts-2 region was never measured (PRE-FIX probe:
     `_facts_body_range` returned (1, 3), not both ranges; scratch
     prefix_probe.py)."""
-    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
-           "'read body 1:3'")
+    cmd = ("python3 extensions/agi/bin/node_read.py config:rotations "
+           "section {}")
     templates = {"director": {"startup": {
         "byte_cap": 4000,
         "first_turn": [
-            {"label": "facts", "cmd": cmd},
-            {"label": "facts-2", "cmd": cmd, "byte_cap": 8},
+            {"label": "facts", "cmd": cmd.format("facts")},
+            {"label": "facts-2", "cmd": cmd.format("facts-2"), "byte_cap": 8},
         ]}}}
-    # 9 rendered bytes ("L1\nL2\nL3\n") against the 7-byte 90% limit of cap 8
-    assert _facts_body_range(templates) == [("facts", 1, 3),
-                                            ("facts-2", 1, 3)]
-    viol = _facts_cap_violations(templates, ["L1", "L2", "L3"])
+    body = ["## facts", "L2", "## facts-2", "L4", "L5"]
+    # facts-2 renders "## facts-2\nL4\nL5\n" = 16 bytes against the 7-byte 90% limit of cap 8
+    assert _facts_body_range(templates, body) == [("facts", 1, 2),
+                                                  ("facts-2", 3, 5)]
+    viol = _facts_cap_violations(templates, body)
     assert viol, ("facts-2 over its own byte_cap must be refused; pre-fix the "
                   "label=='facts' gate let it pass")
     assert "facts-2" in viol[0] and "'director'" in viol[0]
@@ -1185,17 +1183,17 @@ def test_facts_cap_guard_refuses_a_facts2_over_its_own_byte_cap():
 
 
 def test_facts_range_resolution_refuses_a_facts2_without_a_body_range():
-    """FALSIFIER: a `facts-2` entry whose cmd names no `read body N:M` fails
+    """FALSIFIER: a `facts-2` entry whose cmd names no `section <heading>` fails
     by NAME (template + label). Pre-fix it either vanished (other `facts`
     entries existed) or was folded into the bare 'no template declares a
     facts entry' refusal, which names neither."""
-    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
-           "'read body 1:3'")
+    cmd = ("python3 extensions/agi/bin/node_read.py config:rotations "
+           "section facts")
     templates = {"director": {"startup": {"first_turn": [
         {"label": "facts", "cmd": cmd},
         {"label": "facts-2", "cmd": "true"}]}}}
     with pytest.raises(AssertionError) as exc:
-        _facts_body_range(templates)
+        _facts_body_range(templates, ["## facts", "x"])
     assert "facts-2" in str(exc.value) and "director" in str(exc.value)
 
 
@@ -1203,13 +1201,14 @@ def test_facts_body_range_returns_every_facts_label_ordered():
     """The pre-fix reader returned ONE (n, m) pair and a template carrying
     both `facts` and `facts-2` resolved only `facts`. Widened: BOTH ranges are
     returned, facts first, and `_facts_cap_violations` measures both."""
-    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
-           "'read body {}:{}'")
+    cmd = ("python3 extensions/agi/bin/node_read.py config:rotations "
+           "section {}")
     templates = {"director": {"startup": {"byte_cap": 4000,
                                            "first_turn": [
-        {"label": "facts-2", "cmd": cmd.format(5, 7)},
-        {"label": "facts", "cmd": cmd.format(1, 3)}]}}}
-    got = _facts_body_range(templates)
+        {"label": "facts-2", "cmd": cmd.format("b")},
+        {"label": "facts", "cmd": cmd.format("a")}]}}}
+    body = ["## a", "x", "y", "", "## b", "z", "w"]
+    got = _facts_body_range(templates, body)
     assert got == [("facts", 1, 3), ("facts-2", 5, 7)], got
 
 
@@ -1229,16 +1228,17 @@ def _fake_run(monkeypatch, out: str):
 
 def test_production_facts_reader_refuses_a_facts3_without_a_range_by_name():
     """item 11(b): `rotate.facts_body_ranges` is the production home of the
-    rule and refuses a `facts*` entry that names no `read body N:M` BY NAME
+    rule and refuses a `facts*` entry that names no `section <heading>` BY NAME
     (template + label) — here `facts-3`."""
-    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
-           "'read body {}:{}'")
+    cmd = ("python3 extensions/agi/bin/node_read.py config:rotations "
+           "section {}")
     templates = {"director": {"startup": {"first_turn": [
-        {"label": "facts", "cmd": cmd.format(1, 3)},
-        {"label": "facts-2", "cmd": cmd.format(5, 7)},
+        {"label": "facts", "cmd": cmd.format("a")},
+        {"label": "facts-2", "cmd": cmd.format("b")},
         {"label": "facts-3", "cmd": "true"}]}}}
+    body = ["## a", "x", "y", "", "## b", "z", "w"]
     with pytest.raises(rotate.FactsBodyRangeError) as exc:
-        rotate.facts_body_ranges(templates)
+        rotate.facts_body_ranges(templates, body)
     assert "facts-3" in str(exc.value) and "director" in str(exc.value)
 
 
@@ -1246,14 +1246,15 @@ def test_production_reader_and_the_test_helper_agree_on_three_labels():
     """item 11(3): the guard's `_facts_body_range` IS the production reader,
     so the two agree label-for-label and range-for-range on a fixture carrying
     `facts`, `facts-2` and `facts-3`."""
-    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
-           "'read body {}:{}'")
+    cmd = ("python3 extensions/agi/bin/node_read.py config:rotations "
+           "section {}")
     templates = {"director": {"startup": {"first_turn": [
-        {"label": "facts-3", "cmd": cmd.format(9, 11)},
-        {"label": "facts", "cmd": cmd.format(1, 3)},
-        {"label": "facts-2", "cmd": cmd.format(5, 7)}]}}}
-    assert rotate.facts_body_ranges(templates) == \
-        _facts_body_range(templates) == \
+        {"label": "facts-3", "cmd": cmd.format("c")},
+        {"label": "facts", "cmd": cmd.format("a")},
+        {"label": "facts-2", "cmd": cmd.format("b")}]}}}
+    body = ["## a", "x", "y", "", "## b", "z", "w", "", "## c", "u", "v"]
+    assert rotate.facts_body_ranges(templates, body) == \
+        _facts_body_range(templates, body) == \
         [("facts", 1, 3), ("facts-2", 5, 7), ("facts-3", 9, 11)]
 
 
@@ -1425,16 +1426,7 @@ def test_an_unregistered_behind_seat_refuses_before_any_merge(
     assert _mgit(wt, "rev-parse", "HEAD") == head != tip
 
 
-# --- bundle 4 W3c (director-general-2) --------------------------------------
-# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row CLAIM (5): the
-# facts first_turn cmds leave `write.py ... 'read body N:M'` in the SAME commit
-# as the cut, so the production reader parses the render's range and the live
-# node names the render (flag pinned as test_viewport.py's W3a/W3c rows pin it).
-@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 moves facts_body_ranges "
-                   "and config:rotations' facts cmds to the render's --range in one row")
-def test_w3c_the_facts_reader_parses_the_render_range_and_the_live_node_uses_it():
-    cmd = "python3 extensions/agi/bin/viewport.py --node config:rotations --range {}:{} --emit llm"
-    templates = {"director": {"startup": {"first_turn": [{"label": "facts", "cmd": cmd.format(37, 57)}]}}}
-    assert rotate.facts_body_ranges(templates) == [("facts", 37, 57)]
-    live = (BIN.parents[2] / ".agi" / "nodes" / ".geometry" / "rotations.md").read_text("utf-8")
-    assert "'read body" not in live and "viewport.py --node config:rotations --range" in live
+# --- bundle 4 W3c RETIRED (goal:g7.16.1.11.46.23 3b, council decision alive 02:11:54Z 10-26): the strict-xfail row
+# test_w3c_the_facts_reader_parses_the_render_range_and_the_live_node_uses_it ("RED until DG3 moves facts_body_ranges and
+# config:rotations' facts cmds to the render's --range") is replaced by the live facts reader itself: facts_body_ranges
+# resolves `node_read.py config:rotations section <heading>` (tests above) and test_node_read.py pins the bytes.

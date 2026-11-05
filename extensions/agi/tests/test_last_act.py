@@ -116,15 +116,13 @@ def test_touch_never_raises_on_an_unwritable_root():
 
 def _closeout_fixture(tmp_path):
     """A real git repo whose graph root holds a COMMITTED card (so its own
-    commit time is measurable) plus the g17.1 node the closeout note writes."""
+    commit time is measurable)."""
     r = tmp_path / "repo"
     graph = r / ".agi"
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "sessions" / "quorum").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
-    (graph / "nodes" / "goal" / "g17.1.md").write_text(
-        "---\nid: goal:g17.1\ntype: goal\ntitle: g17.1\n---\n\nbody\n")
     card = graph / "sessions" / "quorum" / "seat-a.md"
     card.write_text("# seat A card\n")
     _git(r, "init", "-q", "-b", "master")
@@ -135,58 +133,41 @@ def _closeout_fixture(tmp_path):
     return r, graph, card
 
 
-def test_rotate_closeout_note_never_restales_the_card_it_just_wrote(
+def test_the_seat_resolver_and_a_fresh_stamp_that_stales_the_card(
         tmp_path, monkeypatch):
-    """THE HAZARD (conjunct 1, measured): the closeout's OWN `write.py
-    goal:g17.1 note ...` runs AFTER the rotation wrote the card. Without an
-    engine-internal marker its stamp is a FRESH act, so the card the rotation
-    just produced reads STALE on the next check -- the loop this node removes.
-
-    Both halves on ONE fixture: the same write.py call WITHOUT the marker
-    stales the card; the REAL `_g17_1_note` closeout seam leaves it FRESH."""
+    """THE HAZARD (conjunct 1, measured), after V8a 3a retired the closeout's g17.1 note: a write that runs AFTER
+    the rotation wrote the card and STAMPS the seat is a FRESH act, so the card reads STALE on the next check.
+    This pins the pieces: the seat resolver (explicit flag first, then AGI_POST) and the stamp that stales a card.
+    (The engine-internal marker that skipped the stamp retired with the node writer's closeout note, step 4: the
+    env var no longer exists, so setting it changes nothing.)"""
     from agi.bin import rotate as _rotate  # noqa: PLC0415
     r, graph, card = _closeout_fixture(tmp_path)
     # HERMETIC: this agent's own env carries AGI_AGENT_ID/AGI_ACTOR (a spawned
     # kid has both), and after the resolver reorder they would otherwise beat
-    # the AGI_SEAT these assertions are about.
+    # the AGI_POST these assertions are about.
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.delenv("AGI_ACTOR", raising=False)
-    # the seat resolver: the explicit flag first, then AGI_SEAT; and the
-    # engine-internal marker SKIPS the stamp entirely (the closeout's own call).
-    monkeypatch.setenv("AGI_SEAT", "seat-env")
+    # the seat resolver: the explicit flag first, then AGI_POST.
+    monkeypatch.setenv("AGI_POST", "seat-env")
     assert last_act.touch_env(graph, "seat-flag") == "seat-flag"
     assert not last_act.stamp_path(graph, "seat-env").exists()
     assert last_act.touch_env(graph) == "seat-env"
     last_act.stamp_path(graph, "seat-flag").unlink()
-    monkeypatch.setenv(last_act.INTERNAL_ENV, "1")
-    assert last_act.touch_env(graph, "seat-a") == ""
-    assert not last_act.stamp_path(graph, "seat-a").exists()
+    assert not hasattr(last_act, "INTERNAL_ENV")
     last_act.stamp_path(graph, "seat-env").unlink()
-    monkeypatch.delenv(last_act.INTERNAL_ENV)
     own = last_act.card_commit_ts(graph, card)
     assert own is not None
     # the note runs in a LATER whole second than the card's own commit -- what
     # makes `act > own` true and the hazard real.
     time.sleep(max(0.0, own + 2 - time.time()))
 
-    # (b) FALSIFIER, same fixture: an ordinary write.py call stamps the seat.
-    plain = subprocess.run(
-        [sys.executable, str(BIN / "write.py"), "goal:g17.1", "note plain",
-         "--root", str(graph), "--actor", "seat-a"],
-        capture_output=True, text=True, cwd=str(r))
-    assert plain.returncode == 0, plain.stderr
-    assert last_act.stamp_path(graph, "seat-a").exists()
+    # (b) the card the rotation wrote is FRESH until something stamps the seat: nothing has.
+    assert last_act.card_stale(graph, "seat-a", card)[0] is False
+    # a FRESH act (the stamp an ordinary verb writes, here made directly) is what would re-stale it -- the hazard
+    # the closeout note must never create.
+    last_act.touch(graph, "seat-a")
     assert last_act.card_stale(graph, "seat-a", card)[0] is True
     last_act.stamp_path(graph, "seat-a").unlink()
-
-    # the REAL closeout runner: writes the note, never stamps.
-    seams = _rotate._make_closeout_seams(
-        graph, {"commit": "abc1234", "facts": ["42"]}, seat="seat-a")
-    ok, result, detail = seams["g17_1_note"]()
-    assert ok is True, detail
-    assert "42 | abc1234" in (graph / "nodes" / "goal" / "g17.1.md").read_text()
-    assert not last_act.stamp_path(graph, "seat-a").exists()
-    assert last_act.card_stale(graph, "seat-a", card)[0] is False
 
 
 # ── the SPAWNED AGENT'S OWN ID, never the inherited seat (SM.48b) ─────────
@@ -202,7 +183,7 @@ def _seat_graph(tmp_path) -> Path:
 def test_spawned_agent_stamps_its_own_id_never_the_inherited_seat(
         tmp_path, monkeypatch):
     """THE HAZARD (measured at the tip): a spawned kid's env carries BOTH
-    `AGI_AGENT_ID=a00-x` and the dispatching seat's inherited `AGI_SEAT`
+    `AGI_AGENT_ID=a00-x` and the dispatching seat's inherited `AGI_POST`
     (dispatch.py survives it through scrubbed_env). Before the reorder the kid
     stamped the DIRECTOR, the director's card read stale although the director
     did nothing -- the rotation loop. Also folds in conjunct 4: a stray USER
@@ -211,7 +192,7 @@ def test_spawned_agent_stamps_its_own_id_never_the_inherited_seat(
     for k in ("AGI_ACTOR", "AGI_TIER"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("AGI_AGENT_ID", "a00-x")
-    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    monkeypatch.setenv("AGI_POST", "sensei-director")
 
     assert last_act.env_seat() == "a00-x"
     assert last_act.touch_env(graph) == "a00-x"
@@ -220,7 +201,7 @@ def test_spawned_agent_stamps_its_own_id_never_the_inherited_seat(
 
     # conjunct 4: USER alone (no agent id, no seat, no actor) is NOT a seat.
     monkeypatch.delenv("AGI_AGENT_ID")
-    monkeypatch.delenv("AGI_SEAT")
+    monkeypatch.delenv("AGI_POST")
     monkeypatch.setenv("USER", "sensei-director")
     assert last_act.env_seat() == ""
     assert last_act.touch_env(graph) == ""
@@ -229,13 +210,13 @@ def test_spawned_agent_stamps_its_own_id_never_the_inherited_seat(
 
 def test_only_a_seat_env_stamps_that_seat_itself(tmp_path, monkeypatch):
     """A director's OWN acts (its harvest, its sends, its notes) still stale
-    its own card: with only AGI_SEAT set the seat is stamped, and it is that
+    its own card: with only AGI_POST set the seat is stamped, and it is that
     seat's stamp, not anyone else's."""
     graph = _seat_graph(tmp_path)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.delenv("AGI_ACTOR", raising=False)
     monkeypatch.delenv("AGI_TIER", raising=False)
-    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    monkeypatch.setenv("AGI_POST", "sensei-director")
 
     assert last_act.env_seat() == "sensei-director"
     assert last_act.touch_env(graph) == "sensei-director"
@@ -249,7 +230,7 @@ def test_explicit_actor_beats_the_agent_id_env(tmp_path, monkeypatch):
     stamp the post, not the agent)."""
     graph = _seat_graph(tmp_path)
     monkeypatch.setenv("AGI_AGENT_ID", "a00-x")
-    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    monkeypatch.setenv("AGI_POST", "sensei-director")
 
     assert last_act.env_seat("master-sensei") == "master-sensei"
     assert last_act.touch_env(graph, "master-sensei") == "master-sensei"
@@ -262,7 +243,7 @@ def test_explicit_actor_beats_the_agent_id_env(tmp_path, monkeypatch):
 
 def test_director_tier_stamps_the_seat_it_owns(tmp_path, monkeypatch):
     """conjunct 2: a DIRECTOR is itself a spawned agent -- dispatch.py exports
-    AGI_AGENT_ID, AGI_ACTOR AND AGI_SEAT together (measured from the real
+    AGI_AGENT_ID, AGI_ACTOR AND AGI_POST together (measured from the real
     `dispatch.py --tier director --seat sensei-director --dry-run`) -- so
     keying AGI_AGENT_ID first for everyone re-pointed the director's own clock
     at its agent id and its card never went stale. AGI_TIER=director says the
@@ -272,7 +253,7 @@ def test_director_tier_stamps_the_seat_it_owns(tmp_path, monkeypatch):
     monkeypatch.setenv("AGI_TIER", "director")
     monkeypatch.setenv("AGI_AGENT_ID", "dry00-x")
     monkeypatch.setenv("AGI_ACTOR", "dry00-x")
-    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    monkeypatch.setenv("AGI_POST", "sensei-director")
     card = graph / "sessions" / "quorum" / "sensei-director.md"
     card.parent.mkdir(parents=True, exist_ok=True)
     card.write_text("card\n")
@@ -291,14 +272,14 @@ def test_director_tier_stamps_the_seat_it_owns(tmp_path, monkeypatch):
 def test_no_tier_director_shape_resolves_the_agent_id(monkeypatch):
     """SM.68 residue (4) — the CAVEAT the SM.48b node did not name: the
     tier literal is what selects the key order (`env_seat`, last_act.py:76).
-    A director-tier process with `AGI_SEAT` + `AGI_AGENT_ID` and NO
+    A director-tier process with `AGI_POST` + `AGI_AGENT_ID` and NO
     `AGI_TIER` takes the agent branch, so AGI_AGENT_ID wins and the seat is
     ignored -- the director's own act stamps a clock no seat gate reads and
     its card never goes stale, i.e. exactly the rotation loop the
     AGI_TIER=director arm exists to fix, surviving undetected for any spawn
     that does not set the tier. The paired arm shows the literal flipping it."""
     monkeypatch.delenv("AGI_ACTOR", raising=False)
-    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    monkeypatch.setenv("AGI_POST", "sensei-director")
     monkeypatch.setenv("AGI_AGENT_ID", "dry00-x")
     for tier in ("kid", "parent"):
         monkeypatch.setenv("AGI_TIER", tier)

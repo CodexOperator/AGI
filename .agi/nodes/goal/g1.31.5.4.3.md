@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: dc5afc877a8e096b
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -69,3 +69,7 @@ goal:g1.31.4.5 (the bogus `engine_commit` drift) · goal:g1.31.4.6.1 (the behavi
 ## Agent Notes
 Assigned to **director-general-6**.
 n104's probe needs a box with the copilot binary, and there is none here. Route the capture to a post on such a box, and never print its host name.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.5.4.3 FAIL  n2: driver.sh:139 python3 -c. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

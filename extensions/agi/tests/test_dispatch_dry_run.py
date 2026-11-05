@@ -413,7 +413,7 @@ def test_dry_run_no_seat_leaves_key_absent(project):
     inherited AGI_POST means the key is ABSENT, never a placeholder."""
     r = _run(project, "--harness", "pi", "--tier", "parent",
              "--target", "hypothesis:x", "--dry-run",
-             env={"AGI_POST": None, "AGI_SEAT": None})   # the helper falls back to the retired name: remove it too
+             env={"AGI_POST": None})
     assert r.returncode == 0, r.stderr
     assert "AGI_POST=" not in r.stdout, r.stdout
 
@@ -458,7 +458,7 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
 
     monkeypatch.syspath_prepend(str(BIN))
     loaded = {}
-    for name in ("send", "write"):
+    for name in ("send", "geometry_config"):
         spec = importlib.util.spec_from_file_location(name, BIN / f"{name}.py")
         mod = importlib.util.module_from_spec(spec)
         # dataclasses needs the module registered; through monkeypatch so the
@@ -470,7 +470,7 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
         spec.loader.exec_module(mod)
         loaded[name] = mod
     assert loaded["send"]._detect_sender(None) == aid
-    assert loaded["write"]._default_actor() == aid
+    assert loaded["geometry_config"].default_actor() == aid
 
 
 def test_dry_run_exports_reaper_knob_for_kid_and_parent(project):

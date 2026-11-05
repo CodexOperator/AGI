@@ -15,9 +15,8 @@ Closed failure categories (one row per event, per agent):
 - overclaim          `iter-*/review/results.json` reports `overclaims>0`
 - broken_frontmatter write-log.jsonl `operation=="repair-frontmatter"`
 - session_limit      output.log's last line is a subscription-limit result
-- wrong_file         output.log shows a `write_guard` `WARN unsanctioned
-                     write:` — the agent hand-edited a node instead of
-                     routing the edit through the sanctioned writer
+(wrong_file, which read the write guard's `WARN unsanctioned write:` line, retired with the guard,
+goal:g7.16.1.11.46.23 step 4: an old ledger row carrying it is data now.)
 - no_build_probe_only agent.json `verdict=="pending"` at done
 
 `unadmitted` slots never count — no agent ran, there is no dir to read.
@@ -32,10 +31,11 @@ Usage:
     python3 failures.py ledger <root> [--since ITER] [--out PATH] [--write-node ID]
     python3 failures.py rates  <root> --by model|role|harness [--in PATH]
 
-`--write-node` lands the merged table as a build node's payload via
-`write.py`, the only sanctioned writer (this module never calls
-node_writer itself). The target build node (build:g16-failure-ledger,
-parents [mvp:g16-failure-ledger]) is minted by the mvp job — until it
+`--write-node` lands the merged table as a build node's payload through
+node_commit.land (node_writer.replace_payload + a by-exact-path commit; V8a
+3a: this module never shells out to a writer). The target build node
+(build:g16-failure-ledger, parents [mvp:g16-failure-ledger]) is minted by
+the mvp job -- until it
 exists, `--write-node` reports that it is absent and does not fail on
 the file landing.
 """
@@ -61,7 +61,6 @@ CATEGORIES = (
     "overclaim",
     "broken_frontmatter",
     "session_limit",
-    "wrong_file",
     "no_build_probe_only",
 )
 
@@ -75,7 +74,6 @@ DEFAULT_LEDGER = "failure-ledger.json"
 DEFAULT_RATES = "failure-rates.json"
 
 _ERR_MSG = re.compile(r"EVIDENCE-GATE REJECTED")
-_WARN_MSG = re.compile(r"WARN unsanctioned write:\s+(\S+)")
 _MODEL_RE = re.compile(r"--model\s+['\"]?([^'\"\s]+)")
 _ROLE_RE = re.compile(r"You are (PARENT|parent|KID|kid|agent)\b", re.IGNORECASE)
 
@@ -166,14 +164,12 @@ def _iteration_rows(root: Path, iter_id) -> list[dict]:
         if str(rec.get("verdict") or "").strip().lower() == "pending":
             emit("no_build_probe_only", "verdict pending at done")
 
-        # rejected / wrong_file / session_limit from output.log
+        # rejected / session_limit from output.log
         olog = adir / "output.log"
         if olog.exists():
             text = olog.read_text(encoding="utf-8", errors="replace")
             if _ERR_MSG.search(text):
                 emit("rejected", "EVIDENCE-GATE REJECTED")
-            for m in _WARN_MSG.finditer(text):
-                emit("wrong_file", m.group(1))
             lim = _scan_session_limit(olog)
             if lim:
                 emit("session_limit", lim)
@@ -353,24 +349,32 @@ def ledger(root: Path, since=None, out_path: Path | None = None,
 
 def _land_via_write(root: Path, write_node: str, new_rows: list[dict],
                     out_path: Path) -> None:
-    """Land the merged table as a build node's payload via the sanctioned
-    writer. The build node is minted by the mvp job; absent it, we report."""
-    # Re-read the full merged ledger so `payload -` carries the whole table.
+    """Land the merged table as a build node's payload: node_writer.replace_payload under node_commit.land
+    (V8a 3a). The build node is minted by the mvp job; absent it (no node file, or no payload_ref) we WARN and
+    the ledger file still stands. A node that EXISTS and is refused (a hand edit in the node or its payload, a
+    held suite lock, an exhausted index.lock retry) is LOUD: SystemExit with the named line, rc != 0."""
+    import node_commit
+    import node_writer
+    # Re-read the full merged ledger so the payload carries the whole table.
     merged, _ = _load_ledger(out_path)
-    text = json.dumps(merged, indent=2)
-    cmd = [sys.executable, str(Path(__file__).resolve().parent / "write.py"),
-           write_node, "payload -"]
-    try:
-        proc = subprocess.run(cmd, cwd=str(root), input=text,
-                              capture_output=True, text=True, timeout=60)
-    except (subprocess.SubprocessError, OSError) as exc:
-        print(f"WARN: --write-node land failed ({write_node}): {exc}",
+    data = json.dumps(merged, indent=2).encode("utf-8")
+    ref = node_commit._payload_path(root, write_node) if node_writer.find_node_file(root, write_node) else None
+    if ref is None:
+        print(f"WARN: --write-node {write_node} has no node file or no payload_ref "
+              f"(not yet minted by the mvp job?): the ledger file landed, the node was not touched",
               file=sys.stderr)
         return
-    if proc.returncode != 0:
-        print(f"WARN: write.py could not land payload on {write_node} "
-              f"(not yet minted by the mvp job?): {proc.stderr.strip()}",
-              file=sys.stderr)
+
+    def apply():
+        path, changed = node_writer.replace_payload(root, ref[0], location=ref[1], data=data)
+        return node_writer.NodeWrite(status=node_writer.UPDATED, node_id=write_node,
+                                     path=node_writer.find_node_file(root, write_node),
+                                     payload_changed=changed, payload_path=str(path))
+
+    try:
+        node_commit.land(root, write_node, f"failures: {write_node}", apply, payload=True)
+    except node_commit.CommitRefused as exc:
+        raise SystemExit(f"failures: --write-node {write_node} refused: {exc.line}") from exc
 
 
 def aggregate(rows: list[dict], by: str = "role") -> list[dict]:

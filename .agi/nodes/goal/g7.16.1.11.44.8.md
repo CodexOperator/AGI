@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11.44
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: director-goals-1
 goal_id: G7.16.1.11.44.8
 goal_kind: subgoal
 origin: goal
@@ -58,16 +58,22 @@ The 10-14 bullets below are the earlier asks; the council's design decides how t
 - No spend on a provider or scale the owner did not name.
 
 ## Falsifier
-Draft, recorded on the owner's word; the council cuts the real ones in season 3 (owner 14:4xZ: "record but not cut it yet").
-1. On a scratch box: `agi-stop` then `agi-start` from the pack alone gives the same running post set and the same crontab as before (`crons.py show` diff empty), and every active post received the broadcast once.
-2. Negative: after `agi-stop`, 0 agi-post@ units running and 0 agi cron lines in any uid's crontab.
+The council's falsifier (3/3, alive 10-22 08:4xZ; it replaces the 10-15 draft). F0 is the part a post can run: stubs only, no town stop, 0 USD. F1 and F2 are the OWNER's two acceptance runs (owner 10-15 19:5xZ Q1, "Both is good") and stay BANKED until he runs them.
+F0. Both town lanes exit 0 on a bare environment, and the stop -> start round trip is a named row with its three mutants (this command exits non-zero until the round-trip row is in the lane):
+`o=$(mktemp -d) && env -i PATH=/usr/bin:/bin sh extensions/agi/tests/agi-town.t.sh >$o/a 2>&1 && env -i PATH=/usr/bin:/bin sh extensions/agi/tests/agi-town-start.t.sh >$o/b 2>&1 && grep -q '^ok st-the-town-is-down ' $o/a && [ "$(grep -c '^ok st2-RT2-' $o/b)" = 4 ]`
+ - The 10-15 draft's F2 (0 agi-post@ units and 0 marked cron lines after a stop) is the S1 row `st-the-town-is-down` in agi-town.t.sh.
+ - The round trip is `st2-RT2-same-set-same-crons-one-town-line-each` in agi-town-start.t.sh: a fixture town up -> `agi.sh stop` -> `agi.sh start` gives the SAME active agi-post@ set, `crons.py show` unchanged (read from the fake's log), and the town line once per active post (the box calls, logged).
+F0 negative: three mutants, each RED (the row passes only when the clean property breaks): `st2-RT2-mutant-start-drops-a-post-RED` (start leaves one post down), `st2-RT2-mutant-stop-leaves-a-cron-line-RED` (stop leaves one cron line), `st2-RT2-mutant-double-town-line-RED` (a post gets two town lines).
+F1 (OWNER, BANKED). The same stop -> start in an nspawn container on this box with claude stubbed. `systemd-container` is not installed (dpkg: un); installing it is a host act, belam's on the owner's GO.
+F2 (OWNER, BANKED). The same stop -> start on the owner's next real fresh box. This is the SAME owner event as the live half of goal:g7.16.1.11.44.7 (the first real box move = the owner's next fresh box).
+This leaf stays active until the owner closes or keeps it; F0 green is "built and stub-proven", not complete.
 
 ## Out of scope
 goal:g7.16.1.11.44.7 (box-move.sh calls the capsule verbs) · season-2 close and rollover (goal:g7.16.1)
 
 ## Agent Notes
-Assigned to **council**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v3 (belam 19:3xZ 10-15): the owner said mid-write "lets have the council run it first to design it better ... remember the rule we always let council do design work first to simplify and streamline everything". v2 had added belam's own design (an input list and a credential line in the target) and assigned SM to place. v3 keeps only the owner's asks in the target and assigns the council: it designs first, then SM places and gates. Status stays active, since the owner named this as season 3's next work. g7.16.1.12 (the fresh council bundle) is retired, so the parent stays .44; a re-parent is the council's call.
+v4 (director-goals-1 10-22, on the council's .44.8 decision 3/3 08:4xZ, placed by SM 08:47Z): the 10-15 draft falsifier is replaced by the real one (F0 / F1 BANKED / F2 BANKED). Why not closing it "superseded by the binds": the owner set the acceptance on 10-15 19:5xZ (Q1, "Both is good": an nspawn container with claude stubbed AND his next real fresh box), so a close without those two runs would report it done against his own words. The binds that landed under this goal are L31 (S2a + R1: the host act folds into agi.sh host, host.done = the pin), L35 (S2b: agi.sh start, main host posts crons units blast, + skill agi-town), L36 (S2b follow-up: B-6, R-d, B1 order, ring line, titles line), L39 (S2b BIND: B-7 trigger skip, H1 answered by removal) and L42 (S2b (iii): a oneshot with RemainAfterExit=no is never recorded or stopped; the pid row); the other stacks in L31-L50 belong to other goals. The only build left is the round-trip row. F2's remainder points at the same owner event as goal:g7.16.1.11.44.7's live half, per the council's .44.7 ruling relayed through SM. For the owner's report, verbatim from the council: ".44.8: built and stub-proven (F0, incl. the stop -> start round trip); your two acceptance runs (nspawn: needs your GO for the systemd-container install; your next fresh box) are yours. It stays active until you close or keep it." Before this, v3 (belam 19:3xZ 10-15): the owner said the council designs first, so the target holds only his asks; status stays active as season 3's next work.
 <!-- THOUGHT:END -->

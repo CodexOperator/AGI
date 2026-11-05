@@ -99,11 +99,11 @@ def fx(tmp_path):
         _agent_json("a5-hung", i1, status="hung-unhealed"), indent=2),
         encoding="utf-8")
 
-    # a6 — wrong_file: the agent's own transcript shows a write_guard WARN.
+    # a6 — the RETIRED write guard's WARN line (wrong_file retired with the guard, goal:g7.16.1.11.46.23
+    # step 4): an old transcript that still carries it must read as no failure row at all.
     _write_agent(sessions, i1, "a6-wrongfile")
     (sessions / f"iter-{i1}" / "a6-wrongfile" / "output.log").write_text(
-        "WARN unsanctioned write: nodes/experiment/someone.md\n"
-        "  to redo: python3 extensions/agi/bin/write.py ...\n", encoding="utf-8")
+        "WARN unsanctioned write: nodes/experiment/someone.md\n", encoding="utf-8")
 
     # a7 — session_limit: last output.log line is a subscription-limit result.
     _write_agent(sessions, i1, "a7-sessionlimit")
@@ -176,13 +176,12 @@ def test_ledger_reads_session_limit_from_output_log(fx):
     assert len(sl) == 1 and sl[0]["agent_id"] == "a7-sessionlimit"
 
 
-def test_ledger_reads_wrong_file_from_write_guard_warn(fx):
+def test_the_retired_wrong_file_category_reads_no_row(fx):
+    """The write guard retired with the node writer (step 4): its WARN line in an old transcript is not a failure."""
     root, _ = fx
     rows = _derive(root)
-    wf = [r for r in rows if r["category"] == "wrong_file"]
-    assert len(wf) == 1
-    assert "nodes/experiment/someone.md" in wf[0]["detail"]
-    assert wf[0]["agent_id"] == "a6-wrongfile"
+    assert "wrong_file" not in failures.CATEGORIES
+    assert [r for r in rows if r["agent_id"] == "a6-wrongfile"] == []
 
 
 def test_ledger_reads_overclaim_and_no_build_probe_only(fx):
@@ -284,7 +283,7 @@ class _ns:
 
 
 def test_ledger_never_writes_node_frontmatter_directly(fx, tmp_path):
-    """ledger() lands the table via write.py when asked to; the module never
+    """ledger() lands the table via node_commit when asked to; the module never
     calls node_writer/log_write itself (no repair-frontmatter is triggered by
     a ledger run). A --write-node whose target build node is not yet minted
     (the mvp job's job) must degrade to a WARN and still land the file."""
@@ -295,3 +294,52 @@ def test_ledger_never_writes_node_frontmatter_directly(fx, tmp_path):
     assert appended > 0
     assert out.exists() and total > 0
     assert failures._load_ledger(out)[0]  # file landed with rows
+
+# ---- V8a 3a: --write-node through node_commit.land (no writer subprocess) --------------------------------------
+def _graph_with_ledger_node(tmp_path):
+    import subprocess
+    import locations
+    proj = tmp_path / "wn"
+    graph = proj / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "build" / "g16-failure-ledger.md").write_text(
+        '---\nid: "build:g16-failure-ledger"\ntype: build\nmint_id: ccc333\ntitle: "t"\nbuild_kind: data\n'
+        'origin: build-scan\npayload_ref: ledger.json\n---\n\nthe body\n')
+    payload = locations.resolve_payload_path(graph, "ledger.json", None)
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text("[]\n")
+    g = lambda *a: subprocess.run(["git", "-C", str(proj), "-c", "user.name=t", "-c", "user.email=t@t",
+                                   "-c", "commit.gpgsign=false", *a], text=True, capture_output=True, check=True).stdout.strip()
+    g("init", "-q"); g("add", "-A"); g("commit", "-q", "-m", "base")
+    out = tmp_path / "ledger.out.json"
+    out.write_text(json.dumps([{"_key": "k1", "category": "died"}]))
+    return graph, payload, out, g
+
+
+def test_write_node_lands_the_payload_as_one_commit_of_the_node_and_its_bytes(tmp_path):
+    graph, payload, out, g = _graph_with_ledger_node(tmp_path)
+    failures._land_via_write(graph, "build:g16-failure-ledger", [], out)
+    assert json.loads(payload.read_text())[0]["_key"] == "k1"
+    assert g("log", "-1", "--format=%s") == "failures: build:g16-failure-ledger"
+    assert payload.name in g("show", "--name-only", "--format=", "HEAD")
+
+
+def test_write_node_mutant_a_hand_edited_payload_is_refused_loud_and_untouched(tmp_path):
+    graph, payload, out, g = _graph_with_ledger_node(tmp_path)
+    payload.write_text("[\"belam's hand edit\"]\n")
+    head = g("rev-parse", "HEAD")
+    with pytest.raises(SystemExit) as exc:
+        failures._land_via_write(graph, "build:g16-failure-ledger", [], out)
+    assert "already dirty: refused, nothing written" in str(exc.value)
+    assert payload.read_text() == "[\"belam's hand edit\"]\n" and g("rev-parse", "HEAD") == head
+
+
+def test_write_node_a_node_with_no_payload_ref_warns_and_touches_nothing(tmp_path, capsys):
+    graph, payload, out, g = _graph_with_ledger_node(tmp_path)
+    node = graph / "nodes" / "build" / "g16-failure-ledger.md"
+    node.write_text(node.read_text().replace("payload_ref: ledger.json\n", ""))
+    g("commit", "-qam", "drop ref")
+    failures._land_via_write(graph, "build:g16-failure-ledger", [], out)
+    assert "WARN: --write-node build:g16-failure-ledger has no node file or no payload_ref" in capsys.readouterr().err
+    assert payload.read_text() == "[]\n"

@@ -26,7 +26,7 @@ verdict: proved
 
 BUILT the g15 claim (`hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open`) on `send.py` @42ce34503 (post-fix bytes).
 
-**Pre-fix measure.** The dispatch (send.py 3829-3848) took the positional `target` of `read` and fed it straight to `read(root, args.target, sender, wrap)` -> `_inbox_path(root, target)` -> `READ_MARKER` written for ANY target. No check against the caller. `_detect_sender` (AGI_AGENT_ID -> AGI_SEAT -> --from -> `unknown`) never entered the decision.
+**Pre-fix measure.** The dispatch (send.py 3829-3848) took the positional `target` of `read` and fed it straight to `read(root, args.target, sender, wrap)` -> `_inbox_path(root, target)` -> `READ_MARKER` written for ANY target. No check against the caller. `_detect_sender` (AGI_AGENT_ID -> AGI_[retired] -> --from -> `unknown`) never entered the decision.
 
 **Change.** Added `_own_inbox_or_refuse(target, me)` wired into the `read` dispatch immediately before `read(...)`:
 ```python

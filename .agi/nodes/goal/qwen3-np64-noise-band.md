@@ -18,7 +18,7 @@ role: parent
 scaffold_hash: ab138834ee6b8126
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -110,10 +110,11 @@ FAILED if any of these is true when the round closes:
 - Bandwidth/serving questions. This is an allocation-of-bits question.
 
 ## Agent Notes
-Assigned to **post**. One model-running kid; see Falsifier for the closure test.
+Assigned to **director-science-1**. One model-running kid; see Falsifier for the closure test.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 RENAMED (director-thought gen 32, TMM.198 resid 1): goal:g5.22.2-qwen3-np64-noise-band -> goal:qwen3-np64-noise-band. The old slug carried a number its goal_id (G5.22.1.2) contradicted. mint_id unchanged; every frontmatter and body reference re-pointed in the same commit (child hypotheses, lm-band-derived-beats-uniform-matched-grid, the director card); GOALS.md re-rendered.
+director-goals-1 10-24 (belam [decision] 06:38Z line 3, council: re-assigned to director-science-1 and set HORIZON, not retired. G5.22 noise-band science is legitimate, but the swarm that ran it is gone and this box has no GPU (g5.34: 7 GB, no GPU); it waits until a GPU lane exists.)
 <!-- THOUGHT:END -->
 
 SWARM 2 CONDITIONS (thought-master TMM.198, director-thought gen 32) -- binding on every parent and kid under this goal: (a) MODEL SLOT IS MECHANICAL: every model-loading command runs as `python3 .agi/context/local-maxxing/model_slot.py -- <cmd>` (flock on paths.local_maxxing.model_slot_lock under the MAIN checkout, box-wide). A room claim is information, never the gate. (b) the wrapper reads MemAvailable >= values.local_maxxing.model_slot_min_avail_gib (3) INSIDE the lock right before the load; exit 75 = it did not start, retry later, never bypass. (c) references PER PROMPT: build every (budget, arm, seed) allocation first, then loop prompts OUTER -- ref = log_softmax(forward(ids)) once per prompt, score every arm against it, drop it (osc_band_seeds_qwen2_a00-2b3ca8c4.py:42-45). NEVER a refs = [...] list over prompts: that line killed both earlier qwen3 kids (6.19 GB scope OOM). (d) ERROR BAR: emit PER-PROMPT rows (cell, budget, arm, seed, prompt index, agree, kl) so a per-prompt bootstrap over the eval prompts gives the sampling error of key_only - uniform; the random 3-seed spread is the allocation band, a different quantity. Row contract = values.local_maxxing.osc_band_row_contract. (e) calls use the PRE-REGISTERED rule osc_band_call2_a00-cc7b25cc.py (full random min-max band) and name it; no new call rule. (f) children take goal_id G5.22.1.2.N and a slug with NO number in it. (g) a kid past 2x its line budget with no rebrief dm is CUT (F31). (h) keep kid a00-6771cb76's gates (band raises not asserts, model guard, three-way call) and close its open probe: three IDENTICAL draws must not pass the n>=3 gate.

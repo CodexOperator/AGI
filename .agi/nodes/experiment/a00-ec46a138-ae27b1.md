@@ -32,7 +32,7 @@ Added `_rotate_human_gate(root, seat, actor=None)` in rotate.py: resolves the
 shared graph root exactly like `_push_season_branch` does and calls
 `veto.is_frozen(root, "prime")`. When frozen it returns the HELD-by-name line
 ("rotation: HELD -- rotating another post ... is a gated Prime-scope act; ...")
-plus a structured freeze dict. The actor defaults to `$AGI_SEAT`; if the target
+plus a structured freeze dict. The actor defaults to `$AGI_[retired]`; if the target
 seat == the actor's own post (`self_row`), the rotation is NEVER gated. Wired it
 into `cmd_rotate_self` BEFORE the branch/geometry guards and ANY side effect
 (stops write, started record, handoff, rename, spawn). A HELD rotation exits 3
@@ -56,7 +56,7 @@ sees the freeze without asking `viewport --live`.
   HELD on stderr, and a durable rotation record written whose `human_gate`
   block shows scope=prime, FROZEN, auto_released=False.
 
-All on tmp roots (real tree read, never written); AGI_SEAT set via monkeypatch.
+All on tmp roots (real tree read, never written); AGI_[retired] set via monkeypatch.
 
 ## Evidence
 

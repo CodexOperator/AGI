@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: e77a6464d65466bc
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - s-goal-retirement
   - from-s21
@@ -53,6 +53,7 @@ Assigned to **the council** (placement).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by self-perpetuating (council S-goal pass, alive convening) from goal:s21 remainder on the owner 01:2xZ 09-30 line; KEPT under g4.18.5 by all-is-one ("a write verb belongs with the write"). WIDENED on all-is-one lens (02:3xZ): retire and renumber are the same missing act, moving a node address, for EVERY type; three renumbers were hand-made tonight (b9dc2c83b, s35 -> g4.18.8, s1 -> g1.6.1), each a git mv plus a hand id edit because write.py refuses to set id. Two hand multi-step paths = the next one-source census FAIL row (goal:g7.16.1.1.6).
+director-goals-1 10-24 (follows goal:g4.18.5 to horizon, STEP B (alive 07:1xZ). Assigned to the council kept as written.)
 <!-- THOUGHT:END -->
 
 FALSE STATE (council read 19:3xZ 10-15 at 5fa654a5f3, recorded by belam): 6 nodes carry status: deprecated but sit in live dirs -- doc/lm-town-trajectory, experiment/a00-3a7d5c8c-46ee39, experiment/a01-545f623d-6d71d2, hypothesis/a00-500a23f5-f8c142, hypothesis/a00-655e37e2-87cfb0, hypothesis/a01-98e872ef-bd5f40. Each moves to deprecated/<type>/ (retire, never delete); a set-status-without-move is the path this goal closes.

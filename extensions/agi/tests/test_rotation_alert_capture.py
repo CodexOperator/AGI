@@ -37,7 +37,7 @@ _SPAWNS: list[list[str]] = []
 
 @pytest.fixture(autouse=True)
 def _no_inherited_seat(monkeypatch):
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
 
 
 @pytest.fixture(autouse=True)
@@ -101,7 +101,7 @@ def test_imperative_at_or_over_the_line(tmp_path, run_hook, monkeypatch, capsys)
     """Conjunct 1: f >= line prints the imperative block verbatim, and the
     [meter] line stays the LAST stdout line."""
     graph, cwd = _graph(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     tp = tmp_path / "over.jsonl"
     _transcript(tp, 45_000)                     # 0.45 >= 0.4 -> over the line
     state_dir = tmp_path / "state-over"
@@ -121,7 +121,7 @@ def test_over_line_payload_is_imperative_without_the_band(tmp_path, run_hook,
     form conjunct 1 forbids. The deferral reason (if any) is not the band and
     stays; the [meter] line stays LAST."""
     graph, cwd = _graph(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     tp = tmp_path / "over-band.jsonl"
     _transcript(tp, 45_000)                     # 0.45 >= 0.4 -> over the line
     state_dir = tmp_path / "state-over-band"
@@ -140,7 +140,7 @@ def test_imperative_on_unread_rotate_now_below_the_line(tmp_path, run_hook,
     """Conjunct 1: an UNREAD `rotate now` in the seat's inbox prints the
     imperative block even below the line (0.10 < 0.25)."""
     graph, cwd = _graph(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     inbox = graph / "sessions" / "inbox" / "probe-director.md"
     inbox.parent.mkdir(parents=True, exist_ok=True)
     inbox.write_text("---\nfrom: sanctuary-director\nrotate now\n")
@@ -172,7 +172,7 @@ def test_force_capture_after_n_minutes_records_argv(tmp_path, run_hook,
     handoff AND rotate-self --force --stops are invoked; under
     AGI_HOOK_NO_SPAWN nothing is spawned, the argv is RECORDED."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-cap"
@@ -209,7 +209,7 @@ def test_successor_session_waits_the_full_capture_grace(
     session s-B's first crossing must WAIT -- the pre-fix reader ignored the
     session and force-captured at once (RED-FIRST)."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-sess"
@@ -230,7 +230,7 @@ def test_same_session_old_stamp_still_captures(tmp_path, run_hook,
     """EF.22 conjunct 2 complement: the session scoping must not over-block --
     a stamp NAMING the CURRENT session and 10 min old still captures."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-same"
@@ -250,7 +250,7 @@ def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
     dir (never in the card) and the generated stops line is non-empty.
     hypothesis:the-captive-capture-never-writes-into-the-live-card-..."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-marker"
     card = _stale_state(tmp_path, graph, state_dir)
@@ -280,7 +280,7 @@ def test_capture_is_one_ordered_child_handoff_then_rotate_self(
     two argvs with `&&`, argv passed positionally so nothing is shell-
     interpolated -- so rotate-self cannot start until handoff exits."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-order"
     _stale_state(tmp_path, graph, state_dir)
@@ -373,7 +373,7 @@ def test_a_failed_step_is_named_to_the_seat_and_cleared(tmp_path, run_hook,
     naming the step AND its rc -- not only the ladder's /tmp capture log. The
     hook reads and CLEARS the marker, so the line is read exactly once."""
     graph, cwd = _graph(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     state_dir = tmp_path / "state-note"
     state_dir.mkdir()
     fail = state_dir / "capture-probe-director.failed"
@@ -398,7 +398,7 @@ def test_rotate_now_from_unrelated_sender_is_silent_below_the_line(
     is neither the seat row's `rotated_by` holder nor the owner prints NO
     imperative — the claim restricts the triggering dm to the authoriser."""
     graph, cwd = _graph(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     inbox = graph / "sessions" / "inbox" / "probe-director.md"
     inbox.parent.mkdir(parents=True, exist_ok=True)
     inbox.write_text("---\nfrom: random-unrelated-seat\nrotate now\n")
@@ -418,7 +418,7 @@ def test_below_line_holder_rotate_now_forces_capture(tmp_path, run_hook,
     BELOW the line, card stale N min after the first fire -> the capture runs
     (handoff + rotate-self --force argv recorded under AGI_HOOK_NO_SPAWN)."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts",
                         lambda *a, **k: int(__import__("time").time()) - 60)
@@ -488,7 +488,7 @@ def test_capture_appends_its_line_and_keeps_the_slot_and_banked(
     owed list) and the whole BANKED section -- and the old test only asserted
     the line was PRESENT, so the destruction was green (RED-FIRST)."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-keep"
@@ -586,7 +586,7 @@ def test_capture_rotate_self_step_keeps_the_owed_slot(
     slot_title = (UNFENCED_SLOT_CARDS[shape][1] if shape in UNFENCED_SLOT_CARDS
                   else "where it stops")
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / f"state-step2-{shape}"
@@ -705,7 +705,7 @@ def test_capture_keeps_unfenced_stops_slot_and_banked(
     `### 🔴 Where it stops` header was gone from the card afterwards)."""
     card_text, slot_title = UNFENCED_SLOT_CARDS[shape]
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / f"state-unfenced-{shape}"
@@ -783,7 +783,7 @@ def test_capture_keeps_the_hybrid_prose_then_fence_slot_and_banked(
     writer keeps everything above it) -- the appended line is then the whole
     slot, and the successor inherits nothing (RED-FIRST)."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     state_dir = tmp_path / "state-hybrid"

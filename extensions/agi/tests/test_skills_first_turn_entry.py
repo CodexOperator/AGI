@@ -77,7 +77,7 @@ def test_the_skills_entry_names_every_skill_dir_on_the_trunk():
 def test_every_build_node_the_cmd_names_resolves_in_the_graph():
     """/bin/sh -c returns the LAST clause's rc, so a clause naming a RENAMED
     or REMOVED build node fails while the suite stays green -- a dead clause
-    is invisible. Ask the one resolver write.py itself uses
+    is invisible. Ask the one resolver the node writer itself used
     (node_writer.find_node_file, extensions/agi/bin/node_writer.py:185)."""
     import node_writer
     for role, entry in _skills_entries():

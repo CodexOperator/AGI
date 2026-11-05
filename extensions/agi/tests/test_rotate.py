@@ -12,6 +12,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
+from agi.bin import geometry_config
 from tests.veto_cell import write_free_veto  # noqa: E402
 from agi.bin import brief
 
@@ -590,8 +591,8 @@ def test_rotate_self_completes_pending_swap_before_minting(
     # generation's retired key exactly ONCE -- the failed-push entry (pred,
     # gen N) and this rotation's (succ, gen N+1) -- NO duplicate generation
     # (this is the assertion kid 1's stubbed mint could never reach).
-    import write as _w
-    rows_after = _w._load_seats(tmp_path)
+    import geometry_config as _w
+    rows_after = _w.load_rows(tmp_path)
     own = next(r for r in rows_after if r.get("name") == "adv-alive")
     assert own["pubkey"] == minted["successor_pub"]
     hist = [h for h in own["key_history"] if isinstance(h, dict)]
@@ -689,8 +690,8 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     assert not pend.exists()
     # .key's private key derives the COMMITTED row's pubkey -- the swap
     # state, not the stale predecessor.
-    import write as _w
-    rows_after = _w._load_seats(tmp_path)
+    import geometry_config as _w
+    rows_after = _w.load_rows(tmp_path)
     own = next(r for r in rows_after if r.get("name") == "adv-alive")
     _sch = bin_send.seatsig.get("ed25519")
     kp = bin_send._seat_key_path(tmp_path, "adv-alive")
@@ -829,8 +830,8 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     assert calls[0][0] == "push: OK", calls
     assert calls[0][1] is True and calls[0][2] is False, calls
     assert not pend.exists()
-    import write as _w
-    rows_after = _w._load_seats(tmp_path)
+    import geometry_config as _w
+    rows_after = _w.load_rows(tmp_path)
     own = next(r for r in rows_after if r.get("name") == "adv-alive")
     _sch = bin_send.seatsig.get("ed25519")
     kp = bin_send._seat_key_path(tmp_path, "adv-alive")
@@ -946,8 +947,7 @@ def test_successor_row_write_stores_session_label(tmp_path):
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=2, window="w")
     assert "session_label=s1" in out
-    import write as w
-    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert own["session_label"] == "s1"
 
 
@@ -964,15 +964,14 @@ def test_successor_row_write_writes_generation_for_non_prime(tmp_path):
     out = rotate._successor_row_write(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=2, window="w")
-    import write as w
-    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert own["generation"] == 2, own
     assert "generation=2" in out
 
     out_p = rotate._successor_row_write(
         graph, actor="belam", seat="belam", role="prime_director",
         session_ref="y", generation=7, window="belam-S1-L4-VII")
-    prime = next(r for r in w._load_seats(graph)
+    prime = next(r for r in geometry_config.load_rows(graph)
                  if r.get("name") == "belam")
     assert prime["generation"] == 7, prime
     assert "generation=7" in out_p
@@ -1122,8 +1121,7 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
         session_ref="x", generation=2, window="",
         key_rotation=kr)
     assert "config:seats row" in out and "s1" in out
-    import write as w
-    rows_after = w._load_seats(graph)
+    rows_after = geometry_config.load_rows(graph)
     own = next(r for r in rows_after if r.get("name") == "s1")
     assert own["pubkey"] == kr["successor_pub"]
     assert own["key_history"] == existing_hist + [kr["retired"]]
@@ -1156,8 +1154,7 @@ def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=3, window="", key_rotation=fresh)
     assert "config:seats row" in out, out
-    import write as w
-    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert own["key_history"] == existing_hist + [fresh["retired"]]
     assert own["key_history"][-1]["fp"] == "fp-new"
     # (b) idempotence on the fp: the deliberate retry is a no-op.
@@ -1166,7 +1163,7 @@ def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
     rotate._successor_row_write(
         graph, actor="s1", seat="s1", role="director",
         session_ref="x", generation=3, window="", key_rotation=again)
-    own2 = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    own2 = next(r for r in geometry_config.load_rows(graph) if r.get("name") == "s1")
     assert len(own2["key_history"]) == len(own["key_history"])
 
 
@@ -1205,8 +1202,7 @@ def test_key_history_survives_a_rename_boundary_key_rotation(tmp_path):
         role="director", session_ref="", generation=10, window="@NEW",
         row_seat="sensei-director", key_rotation=kr)
     assert "config:seats row" in out, out
-    import write as w
-    rows_after = w._load_seats(graph)
+    rows_after = geometry_config.load_rows(graph)
     # the boundary never renames the seats row; no phantom new-named row.
     assert not [r for r in rows_after
                 if r.get("name") == "director-sanctuary"], rows_after
@@ -2787,7 +2783,7 @@ def test_rotate_self_model_differs_from_row_refused_by_name(
     proceeds on the row model)."""
     import io as _io
     import contextlib as _c
-    from agi.bin import write as _w
+    from agi.bin import geometry_config as _w
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "sonnet"}])
@@ -2797,9 +2793,9 @@ def test_rotate_self_model_differs_from_row_refused_by_name(
             _rotate_self_args(tmp_path, model="opus"), tmp_path)
     assert rc == 3, err.getvalue()
     assert "--model opus differs from the row: model sonnet" in err.getvalue()
-    assert "the row changes only through write.py" in err.getvalue()
+    assert "the row changes only by an edit of its row" in err.getvalue()
     # the row was never rewritten
-    rows = _w._load_seats(tmp_path)
+    rows = _w.load_rows(tmp_path)
     assert rows and rows[0]["model"] == "sonnet"
 
 
@@ -3225,6 +3221,8 @@ def test_stops_push_real_refusal_branch_receive_fails(
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     local_before = subprocess.run(
         ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
         capture_output=True, text=True).stdout.strip()
@@ -4211,7 +4209,7 @@ def test_rotate_self_record_names_rotated_ack_after_rotation(
     # CLAUSE 9 (goal:g15.25): a refused spawn-row write FAILS LOUD (record
     # `refused`, rc non-zero) and aborts the rotation BEFORE the ack-file
     # rotation. So this fixture must make the s6.1 row write SUCCEED — the
-    # graph-root marker write.py's API demands (L4.95) + a [config].md schema
+    # graph-root marker the row write's API demands (L4.95) + a [config].md schema
     # declaring the self_row fields the writer emits (mirrors
     # test_rotate_handover's `_fix`), else the rotation halts at the refusal
     # and there is no ack to rotate — exactly the silent-stale failure the
@@ -8266,6 +8264,50 @@ def test_ack_dirty_seats_allowed_when_no_commit(tmp_path, monkeypatch, capsys):
 # `cmd_ack` exits NON-ZERO (3). Falsifier: a forced commit failure leaves
 # seats.md STAGED, or the command exits 0.
 
+def _ack_hook_fail(top, pin=None):
+    """The forcing pre-commit hook, and the PIN that makes it the one git runs:
+    a global `core.hooksPath` (every post uid has `~/bin`) hides a repo's own
+    `.git/hooks`, so the forced failure never fired off a hermetic box. The
+    repo-local `core.hooksPath` outranks the global one. `pin` overrides the
+    pinned dir (mutants: "" = no pin)."""
+    hooks = top / ".git" / "hooks"
+    hooks.mkdir(parents=True, exist_ok=True)
+    pre = hooks / "pre-commit"
+    pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    pre.chmod(0o755)
+    pin = str(hooks) if pin is None else pin
+    if pin:
+        subprocess.run(["git", "-C", str(top), "config", "core.hooksPath", pin],
+                       check=True)
+
+
+@pytest.mark.parametrize("pin,want", [(None, 3), ("", 0), ("global", 0)],
+                         ids=["pinned", "mutant-no-pin-RED", "mutant-pin-to-the-global-dir-RED"])
+def test_ack_forced_hook_fails_under_a_global_hooks_path_only_when_pinned(
+        tmp_path, tmp_path_factory, monkeypatch, pin, want):
+    """The census pin (council 02:32:49Z 10-26): under a GLOBAL core.hooksPath
+    naming an empty dir (the post uids' shape), the pinned fixture hook still
+    forces the failure (exit 3); the two mutants -- the pin dropped, the pin
+    naming the global's dir -- let the commit succeed (exit 0), which is the
+    host-dependent red this pin cures."""
+    root, top = _ack_seed_git(tmp_path)
+    monkeypatch.chdir(root)
+    for k in ("GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0"):
+        monkeypatch.delenv(k, raising=False)
+    g = tmp_path_factory.mktemp("global")   # outside the repo: no untracked dirt
+    gdir = g / "hooks"
+    gdir.mkdir()
+    gcfg = g / "gitconfig"
+    gcfg.write_text(f"[core]\n\thooksPath = {gdir}\n"
+                    "[user]\n\tname = t\n\temail = t@t\n", encoding="utf-8")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(gcfg))
+    _ack_hook_fail(top, pin=str(gdir) if pin == "global" else pin)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=None, window_path=None), root)
+    assert code == want, f"pin={pin!r}: expect exit {want}, got {code}"
+
+
 def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
         tmp_path, monkeypatch, capsys):
     """g15.24 P1 falsifier + as-written claim (first integrity test): a
@@ -8282,11 +8324,7 @@ def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
     monkeypatch.delenv("GIT_CONFIG_COUNT", raising=False)
     monkeypatch.delenv("GIT_CONFIG_KEY_0", raising=False)
     monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
-    hooks = top / ".git" / "hooks"
-    hooks.mkdir(parents=True, exist_ok=True)
-    pre = hooks / "pre-commit"
-    pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
-    pre.chmod(0o755)
+    _ack_hook_fail(top)
     rel = os.path.relpath(rotate._ack_seats_path(root), top)
     code = rotate.cmd_ack(SimpleNamespace(
         seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
@@ -8500,10 +8538,10 @@ def test_bootstrap_writes_before_spawn_in_rotate_self():
     )
 
 
-# --- owed item (v): AGI_SEAT export on cmd_spawn / cmd_loop when --seat -----
+# --- owed item (v): AGI_POST export on cmd_spawn / cmd_loop when --seat -----
 # hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-
 # fires-at-turn-one (SL1.07). A concrete --seat on spawn/loop must ride
-# AGI_SEAT=<name> out in front of the claude argv so the SessionStart hook
+# AGI_POST=<name> out in front of the claude argv so the SessionStart hook
 # copy can fire at turn one; when --seat is ABSENT the launch line must stay
 # byte-identical to a plain spawn/loop.
 
@@ -8524,11 +8562,10 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         dry_run=True, seat="adv",
     )[1]
     assert "AGI_POST=" not in base
-    # a seat exports AGI_POST ONLY: AGI_SEAT is retired (goal:g7.16.1.11.37)
+    # a seat exports AGI_POST ONLY (goal:g7.16.1.11.37)
     # (hypothesis:l4-a-seat-is-a-post-everywhere).
     _q = rotate.shlex.quote('adv')
     assert f"export AGI_POST={_q} && " in seated
-    assert "AGI_SEAT" not in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes
     # vs base is the `export AGI_POST=... &&` prefix plus the wrapper inserted
@@ -8546,7 +8583,7 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
 def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):
     # Proves cmd_spawn and cmd_loop actually FORWARD args.seat into the shared
     # launch path (the wiring owed item (v) added). With args.seat None the
-    # forwarded value is None, so _shell_cmd emits no AGI_SEAT (byte-identical).
+    # forwarded value is None, so _shell_cmd emits no AGI_POST (byte-identical).
     root = _proj(tmp_path)
     monkeypatch.chdir(root)
     monkeypatch.setattr(rotate, "find_project_root", lambda: root)
@@ -9943,6 +9980,8 @@ def test_rotate_out_mirror_push_failure_refuses_by_name(tmp_path, capsys):
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     err = rotate._stops_push(root, "stops")
     assert err and "refused" in err and "refs/agi/posts/adv" in err, err
     assert subprocess.run(
@@ -10002,6 +10041,8 @@ def test_rename_apply_mirror_failure_refuses_and_keeps_old_head(
     hook = bare / "hooks" / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     capsys.readouterr()
     rotate._apply_surfaces(
         root, _post_rename_origin_surface(), delete_old=True,
@@ -10017,7 +10058,7 @@ def _merge_up_fixture(tmp_path):
     checked out in MAIN (the merge-up target), AND a KEYED `adv` seat row: the
     merge-up verb is key-gated like rotate, so every fixture that reaches the
     merge must hold a signing key whose fingerprint matches the committed row.
-    Returns (root, top, bare). Callers set AGI_SEAT=adv."""
+    Returns (root, top, bare). Callers set AGI_POST=adv."""
     import send as bin_send
     _priv, pub = bin_send.seatsig.get("ed25519").keygen()
     row = {"name": "adv", "role": "parent", "model": "x", "effort": "max",
@@ -10047,7 +10088,7 @@ def test_merge_up_dry_run_touches_nothing(tmp_path, capsys, monkeypatch):
     """B2 (i): the dry-run prints the plan (lock, suite cmd, target, mirror)
     and touches NOTHING -- no lock file, no merge, no push."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
     capsys.readouterr()
@@ -10073,7 +10114,7 @@ def test_merge_up_main_on_another_branch_refusal_text_pinned(
     (docstring MAP in branches.merge_target) is deliberately left to. The
     fix is the NAMING, not a widened resolution: nothing merges."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
     subprocess.run(["git", "-C", str(top), "checkout", "-q", "master"],
@@ -10097,10 +10138,9 @@ def test_merge_up_main_on_another_branch_refusal_text_pinned(
 def test_merge_up_unkeyed_caller_refused_nothing_merged(tmp_path, capsys,
                                                         monkeypatch):
     """C1 falsifier (the parent's probe, now asserted): an UNKEYED caller --
-    no AGI_SEAT/AGI_POST, no held key -- is refused BY NAME before the lock
+    no AGI_POST, no held key -- is refused BY NAME before the lock
     is taken or any git read, and NOTHING merges or pushes."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
     monkeypatch.delenv("AGI_POST", raising=False)
     before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
@@ -10123,7 +10163,7 @@ def test_merge_up_out_of_rank_post_refused(tmp_path, capsys, monkeypatch):
     """C1: a keyed caller whose --post is a DIFFERENT, EQUAL-ranked post is
     refused by the SAME rank gate rotate uses, before any git read."""
     root, top, _bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     capsys.readouterr()
     rc = rotate.cmd_merge_up(
         SimpleNamespace(post="other", name=None, dry_run=False), root)
@@ -10138,7 +10178,7 @@ def test_merge_up_held_lock_refuses_names_pid_nothing_merged(
     """B2 (ii) falsifier: a HELD suite lock refuses BY NAME, naming the
     holder pid, with nothing merged and the suite never spawned."""
     root, top, _bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     sessions = root / "sessions"
     sessions.mkdir(parents=True, exist_ok=True)
     (sessions / "verify-suite.lock").write_text("1", encoding="utf-8")
@@ -10165,7 +10205,7 @@ def test_merge_up_proves_mirror_then_drops_pre_existing_origin_head(
     ONLY THEN deletes the pre-existing origin head. Falsifier: a head deleted
     before the mirror is proved."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     # the LEGACY state: the post head is already on origin (pre-migration)
     subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
                     "season2/posts/adv"], check=True)
@@ -10191,7 +10231,7 @@ def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
     """C2 falsifier: when the mirror is NOT proved the pre-existing origin
     head SURVIVES -- never deleted first."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
                     "season2/posts/adv"], check=True)
     monkeypatch.setattr(rotate, "_merge_up_suite",
@@ -10201,6 +10241,8 @@ def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
                     "  case \"$ref\" in refs/agi/*) exit 1;; esac\n"
                     "done\nexit 0\n", encoding="utf-8")
     hook.chmod(0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     capsys.readouterr()
     rc = rotate.cmd_merge_up(
         SimpleNamespace(post="adv", name=None, dry_run=False), root)
@@ -10219,7 +10261,7 @@ def test_merge_up_locks_runs_suite_merges_pushes_mirrors_releases(
     falsifier 'a merge-up that runs the suite without holding the lock' is
     false: the seam observes the lock file."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     seen = {}
     lock = root / "sessions" / "verify-suite.lock"
 
@@ -10295,7 +10337,7 @@ def test_merge_up_without_delete_old_prints_plan_deletes_nothing(
     (naming the head that WOULD be deleted and the mirror that would justify
     it) and deletes NOTHING. FALSIFIER: any head deletion without the flag."""
     root, top, bare = _merge_up_fixture(tmp_path)
-    monkeypatch.setenv("AGI_SEAT", "adv")
+    monkeypatch.setenv("AGI_POST", "adv")
     subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
                     "season2/posts/adv"], check=True)
     monkeypatch.setattr(rotate, "_merge_up_suite",
@@ -10482,8 +10524,8 @@ _W1B2_PATHS = ("_ack_commit_seats", "_publish_row_to_authority",
                "_commit_spawn_row", "_commit_stops_row")
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 deletes "
-                   "_posts_load_error and _row_names (callers on the one parser)")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.5.3: RED until _posts_load_error "
+                   "and _row_names are deleted (callers on the one parser; bundle 4 W1 B2)")
 def test_b4_w1b2_no_second_posts_parser_in_rotate():
     src = Path(rotate.__file__).read_text(encoding="utf-8")
     assert "def _row_names" not in src and "_posts_load_error(" not in src
@@ -10492,11 +10534,10 @@ def test_b4_w1b2_no_second_posts_parser_in_rotate():
 # The ONE row write (goal:g4.18.5.2's commit -- one gate, one write, one
 # `git commit -- <path>`) is a MODULE-LEVEL function, so the spy is a
 # `monkeypatch.setattr` on the module attribute: a path that reaches it by
-# attribute lookup at call time (as every rotate function does, via its local
-# `import write as _w`) is caught.
+# attribute lookup at call time is caught.
 #
 # Its NAME is a CONTRACT, not a guess. goal:g4.18.5.3 Falsifier 1 declares it:
-# `write.ONE_ROW_WRITE`. The guard's FIRST assertion is that the attribute
+# `ONE_ROW_WRITE` (first on the node writer, which retired in goal:g7.16.1.11.46.23 step 4; now on rotate). The guard's FIRST assertion is that the attribute
 # exists, so a re-point published under any other name fails LOUDLY, naming
 # itself, instead of leaving behind a strict-xfail that can never go green.
 #
@@ -10517,18 +10558,13 @@ _ONE_ROW_WRITE = "ONE_ROW_WRITE"
 
 
 def _one_row_write_module():
-    """The module object that OWNS the seam -- the same one rotate resolves at
-    call time through its local `import write as _w`. Asserts it is a sibling
-    of rotate in ONE tree: the suite can end up with two module objects for one
-    file (the tests import `from agi.bin import rotate` while rotate imports
-    bare `write`), and patching the wrong copy measures nothing at all."""
-    mod = sys.modules.get("write")
-    if mod is None:
-        import write as mod_          # noqa: PLC0415 -- the import IS the test
-        mod = mod_
-    assert Path(mod.__file__).parent == Path(rotate.__file__).parent, (
-        f"write is loaded from {mod.__file__} but rotate from "
-        f"{rotate.__file__} -- two trees; the spy would patch the wrong one")
+    """The module object that OWNS the seam. goal:g7.16.1.11.46.23 step 4 retired the node writer this seam was
+    first contracted on (`write.ONE_ROW_WRITE`, never shipped there); rotate's config:posts commit paths write the
+    row through rotate's own `_write_identity_cells`, so the seam's home is now rotate itself (named in
+    goal:g4.18.5.3's THOUGHT). Asserts it is the rotate module these tests drive (one tree, one module object)."""
+    mod = sys.modules.get(rotate.__name__) or rotate
+    assert Path(mod.__file__) == Path(rotate.__file__), (
+        f"the seam module is loaded from {mod.__file__} but rotate from {rotate.__file__} -- two trees")
     return mod
 
 
@@ -10806,7 +10842,7 @@ def test_a_wrong_named_seam_is_refused_by_the_contract(tmp_path, monkeypatch):
 def test_a_path_that_bypasses_the_contract_still_fails_after_the_re_point(
         tmp_path, monkeypatch):
     """The other half, and the one that must survive the landing. ONCE
-    `write.ONE_ROW_WRITE` exists, a path that keeps its own hand-rolled
+    `ONE_ROW_WRITE` exists, a path that keeps its own hand-rolled
     `_write_row`-style commit is no longer stopped by the missing attribute --
     the contract exists and is simply bypassed. It must still be caught, and
     caught on the COUNT (0 calls), which is the assertion that means something

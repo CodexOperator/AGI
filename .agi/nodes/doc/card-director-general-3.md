@@ -1,101 +1,57 @@
 ---
 id: doc:card-director-general-3
-mint_id: 960e181d30924fb3ba1a63ca4a6698f4
+mint_id: 2ba5a1adbdcb4ea2aa3aa6d92d309253
 type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-3
-scaffold_hash: 67b067422d7509fe
+edited_by: director-general-5
+scaffold_hash: e13627c192e516b7
 season: 2
-tags: []
+tags:
+  - card
+  - director
+  - director-general-5
+thought_session: director-general-5
 title: Card director general 3
 town: core
 ---
-# doc:card-director-general-3
+# DG5 card (10-21 23:40Z) -- G7 STEP 0: the card whole, the resume path of the moved identity
 
-# doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
+## §0 State
+Post director-general-5 (DG5), Sonnet 5.5, under sanctuary-master (SM). Season 3, trunk core/season3/main. At G7 (the LAST move) this post is renamed director-general-3 (design B: same uid, a fresh key under the new name, a NEW Claude session: THIS CARD is the resume path). Mail: box ONLY SM, never belam (owner order). `AGI_POST=<my current name> box read` ONCE, whole, through `fold -s -w 200` (it consumes it). Keepalive prompt -> exactly `ok`. First command of a new generation: read THIS card, then `box read`.
+Owner GO 10-21 goal:g7.16.1.11.45 THE POST SHUFFLE. DONE and LIVE: director-review; G3 DG1->director-goals-1; G4 DG2->director-science-1; G5 DG3->director-general-1; G6 DG4->director-general-2 (23:33Z, probe passed, L58 61e90435d0). G7 = ME: DG5 -> director-general-3, the third reused name, LAST. Procedure: skill agi-post section 8; rows: guard/post-move-checks.sh; belam owns the sitting (sitting v6 a23e40e614747a92, move.sh 842bac7cf231842a).
+Mail names: goals post director-goals-1, science post director-science-1, director-general-1 and -2 are the ex-DG3 and ex-DG4. director-general-3 is off-matrix until G7 lands.
 
-Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
+## §1 Plan (council G7 PREP GO 23:34:45Z, relayed by SM 23:36:15Z)
+(3) STEP 0 = this card, WHOLE, 2 '---', no home literal; committed, [land] to SM with the sha; belam lands the CARD BLOB only.
+(1) WORKTREES: DONE 23:3xZ as myself. 28 under my home -> 24 REMOVED by `git worktree remove` WITHOUT --force (all clean, HEAD on a ref, never a prune): laneA C D E F G H I J K L M N O P Q R S T U V W X Z. Now 4 LOCKED under my home (~/t, ~/laneAA, ~/laneB, ~/laneY) + 2 under the gate dir (locked); porcelain 0 unlocked. All 60 dg5-* branch refs intact.
+(2) SCRATCH: DONE. No tmp*/pytest-of-* under my home (the `.agi/tmp*` files are TRACKED repo content). My pytest scratch is in /tmp/pytest-of-<user> (outside the home); TMPDIR unset: never set one under the home. Sweep read 23:2xZ: 47 files name my home, 0 in */hooks/* or bin/ (EXECUTED empty).
+(4) THE G7 4a (mine, ONE G commit, cut on the LIVE trunk AFTER step 0 lands, [merge-up] SM, SM gates it): rows director-general-3 (was director-general-5, since DATE, session_name "", session_id "", pubkey "", key_history [], seeds with the card renamed) + director-general-5-retired (became director-general-3, off-matrix, KEEPS session_name agi-c8, the only holder); the ex-DG3's director-general-3-retired intact; 0 duplicate non-empty session_names; card-director-general-5 -> card-director-general-3 (mint 2ba5a1adbdcb4ea2aa3aa6d92d309253 kept, id/title/heading; THOUGHT by sha: 'address doc:card-director-general-3 reused at G7: before the G5 4a land 69e36d2286 (10-21) it named card mint 960e181d30 (now director-general-1)'); quorum symlink director-general-3.md (DG5's is a symlink already: check); council-loop line; round1 RENAMED += card-director-general-5; off-matrix test OLD_NAMES += director-general-5 (with -4 both free for good), a G7 named test (shape: the G6 test). Cut with `git branch <new> origin/core/season3/main && git checkout <new>` in ~/laneAA (never `checkout -b/-B <new> origin/..`, see §4); sign with -S, no GIT_CONFIG_GLOBAL=/dev/null.
+Then the council's MOVE GO: 1a belam stops my units -> SM cuts the L -> belam lands -> move.sh + sitting v6 at a PIN printing ancestry 2ebb270242, bc0bbc6d0d, 69e36d2286, 61e90435d0 + the G7 4a's land, each rc 0 -> run 1 exact 18 (move.sh's own predicate) -> move -> run 2 20 incl. stays-up + name-dirs -> SM's probe (fresh key in NO closed director-general-3 ring line) -> the new holder unlocks ~/t ~/laneAA ~/laneB ~/laneY AS ITSELF and reports the porcelain to SM. Nothing lands inside the move. gate-director-general-5 -> gate-director-general-3 is belam's (step 3).
+THE NEW HOLDER'S FIRST ACTS (as director-general-3): unlock the 4 worktrees, report; fix MY known_marketplaces.json as myself (root never edits it); then the leaves below.
 
-## §0 State (00:1xZ 10-02, MOVING to v5) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · MAIL: skill agi-send, `send.py --from director-general-3 send <post>` only (belam rule 10-02 18:04Z)
-| | |
-|---|---|
-| post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
-| skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
-| reports | BUILD + SWITCH: one line per milestone to belam (GO per post) · merge-ups to SM (board coordinator; G7 gates FIRST with SM) |
-| inbox | send.py read (WHOLE) |
-
-## §1 Plan
-```
-v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2) · alive (MOVE 3 19:31Z) · self-perpetuating (MOVE 4 19:43Z) · all-is-one (MOVE 5 19:48Z) · NEXT MOVE 6 = SM (belam verdict + GO first), then stream-master; DG3 itself = director class, PAUSED on the key broker · DG4 DOWN
-  every v5 unit carries preserve.conf (the /run template predates G8): a NEW start installs it too
-  DG5 key RENEWED 21:41Z (R7 per-spawn, 480 min -> expires ~05:41Z 10-02) + restarted 21:41:45Z, 0 restarts after 90 s: renew again before 05:00Z (R7 in doc:g716111-stage25-rootplan + systemctl restart, behind the gate)
-GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AND io PSI some avg60 < 20 AND mem PSI full avg60 well under 40 -- space every start
-AGI-METER ROLLOUT (G10 14e06f47b): COMPLETE -- DG2 19:29Z · DG1 20:34Z · DT-1 21:05Z · DT-2 21:13Z · DG5 21:41Z · stream-master born with it · TM-new rotates itself
-MOVES: 6/9 on v5 (MOVE 6 stream-master UP 20:23Z, belam ACCEPTED). Remaining SM (land broker) · DG3 (key broker) · belam LAST (leaf .8 holds): all wait on the OWNER -- none is mine now. Procedure: verify row on trunk -> window + /proc environ AGI_POST -> pre-seed .claude.json (trust t + upsell 99, as the user, 600) -> project the trunk into the scratchpad (engine.md agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants, daemon-reload -> kill-window, TERM wrapper+claude -> start behind the gate -> first turn -> ONE line to belam
-G9: LANDED 0b8f086a5 (de-base-G9 worktree removed) · MOCK DONE 20:58Z: F1 F2 F3 HOLD, teardown after == before, belam ACCEPTED (node e5d6f3d1d + THOUGHT 86026eba9) -> G9.5 corrective (row 89: agi_boot.space_s + no wants for non-boot) BEFORE any real install -> the real /etc install and the ONE real reboot each need a SEPARATE belam GO
-ROUNDS -- ALL LANDED 22:0xZ (DG1 95a232d63 -> G9.5 ab74187f9 -> heal-ack 458a774a4 -> heal-pid 0422da076), RAM worktrees removed; were: DG1 nodes -> G9.5 64ae63ef6 -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d
-  G9.5 chain de-base-G9.5 64ae63ef6 (G9.5 + G9.6 + G9.7; murs mur-de-base-g9-5 -> -2 -> mur-heal-respawn-pid-de-base-g9-5 g97 ACCEPT/ACCEPT)
-  heal-ack   heal-ack-by-role d9e5409f2 (DH.1 DH.2; mur-heal-respawn-pid-heal-ack-by-role ACCEPT/ACCEPT)
-  heal-pid   heal-respawn-pid 7caa0ab4d (DH.1-DH.3; DH.3 = recovery_ack seed so it passes beside heal-ack; trunk+both 1072 passed 0 failed)
-  ON EACH LANDING: git merge-base --is-ancestor <tip> local-maxxing/season2/main -> remove its RAM worktree (/mnt/agi-ram/worktrees/{de-base-G9.5,heal-ack-by-role,heal-respawn-pid}; git worktree remove, never bare prune)
-  belam (agi-17) 21:4xZ: heal guards only the OLD-setup posts (v5 rows recover:false; systemd Restart=always) and retires with the last move -- no more heal rounds beyond these
-G9 INSTALL: after G9.5 lands, belam reads the landed unit text and sends a SEPARATE GO for the real /etc install (agi-boot.service + enable; the mock's steps in the G9 node RESULT G9 MOCK), then a SEPARATE GO for the ONE real reboot (old belam as look-over). Nothing before each GO.
-GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --user --unit=agi-director-general-3-mur-<k> --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 -- python3 <ccrun.py> --root /data/work/agi --args <json>; args files in .agi/sessions/dg3-mur-args/ (bare workflow.py --harness claude-code runs NO stage: row 88, belam DECLINED the template change)
-```
-
-## §2 Landed (this session)
-G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
+## §2 In-flight stacks (K2: every dg5-* tip named; re-commit as director-general-3, or land first)
+- dg5-s42-whois-leaf (~/laneAA, LOCKED) f53f1ec34d: cf5476738f = goal:g7.16.1.11.45.2 (send.py whois refuses an ambiguous token naming both rows + a posts.md unique-session_name test; first-hit sites send.py :3700 :5102 :5120 :5140) and f53f1ec34d = goal:g7.16.1.11.45.3 (sweep EXECUTED = what git runs + known_marketplaces.json rewrite/count). Both leaves are AFTER G7, status horizon; they ride a LATER [merge-up], never the 4a.
+- goal:g7.16.1.11.45.1 (SM's leaf, mine, not started): heal.py bare `git worktree prune` at :1869 + :2051 (council 21:53:31Z; sp's falsifier + mutant on the leaf). AFTER G7.
+- dg5-g43 8addd43cc2 (~/laneY, LOCKED), UNLANDED, 5 commits 10-11 (goal:g7.16.1.11.43 a..e, (e) WIP UNVERIFIED handed to DG3): git cherry '+' x5. Stale unless .43 reopens: the new holder asks SM, then re-cut on the trunk or drop.
+- dg5-s41-g6-4a 7b165eb51e: LANDED as L58 (merge-tree). dg5-g41d (~/laneB, LOCKED): LANDED. dg5-l3 and dg5-s17: git cherry '-' = on the trunk under other shas. The other dg5-* branches: landed or superseded, ignore.
 
 ## 🔴 Where it stops
-LANE TAKEN 18:53Z 10-02 (goal:g7.16.1.11.11.1 AA1.M; DG1 order M1 -> M3 -> M2). STATE 19:5xZ: M1+M3 built = piece `box` 1927 B (a() line HELD: owner 19:5xZ same-level-or-one-apart rule supersedes the figure-eight edge, DO NOT fold) in config:engine-post; M2 built scratch-only (box-carry, agi-signers, 4 units in config:engine-root, box-carry.t.sh 31 ok; review 1 REJECT fixed in 742432512, re-review running). SEQUENCE (SM 19:5xZ): HOLD until SM sends '[landed] 19' (DG1 merge-up 19 f53e626ac, newer DG2 files conflict with my 5bf54d0e0); then ONE commit on the new trunk = piece + engine map + my BUILD notes merged INTO 19's node versions + box-mail.t.sh (default sect box, c3 B0 derived, b0, o1 o2, n1 1927) + M1 real-box overclaim rewrite (a separate UNVERIFIED probe) + my card; NEVER carry .agi/keys (my Stop hook commits it: build the cut from a temp index / worktree on the trunk, proof `git log --diff-filter=A --name-only <trunk>..<tip>` has no .agi/keys). Drafts: branch dg3-aa1m-m1m3 (10b4d2929, old base, do not deliver); post branch posts/director-general-3 tip carries everything incl. M2. M2 = its OWN merge-up AFTER the M1/M3 landing (smaller mur), each host act = belam GO via SM/DG1 (DG3 -> belam is off-matrix by design). Held: K1 K2 K3 W. M2 residues left: config_max (AGI_BOX/HUB/REPO cells), survivor mutations (--strict, fsck, CAS old, ^$o).
-MOVED TO v5 (belam executes the packet, 00:1xZ 10-02). OWNER 00:0xZ verbatim: "Let’s stand up DG2 and DG3 on new system to take over whatever DG1 comes up with and take it to completion."
-YOUR JOB ON v5: take what DG1 writes (goals + hypotheses, placed by the council bundle) and carry it to completion, beside DG2. Order: council (SM = coordinator) -> DG1 writes -> you build. The broker (hypothesis:g716111-broker-keys-and-land-for-v5-posts) is a PROPOSAL on HOLD: never dispatch it unless a council bundle names it; its parked draft = local branch broker-v5 2dc9d4c66.
-v5 LIMITS (the known CUTs; each is a council item, not yours to hack around):
-  · no kid dispatch from v5 (no .env, no per-spawn key) -> keys = the council's AA2/AA3 (rows 92 93) -- until then build what you can directly or ask belam to dispatch
-  · inbox appends: send.py send belam (route proven 18:0xZ 10-02)
-  · node edits = plain Write/Edit on the node file; agi-turn commits (write.py is OLD SETUP ONLY, owner 23:3xZ)
-  · no sudo: every host act (systemctl, /etc, /run, other users' homes) = belam's
-  · v5 uids cannot git push (row 93); the Stop hook's git add -A is row 94
-FIRST TURN: read this card, the head, the director template; ONE send.py line to belam: UP + what you read; then wait for the council's bundle / DG1's output.
+Step 0 done once this card is committed: next command `AGI_POST=director-general-5 box send sanctuary-master < <file>` = [land] with the card commit sha (pasted from git output in the SAME command), then `box read` ONCE. Then wait for belam to land the card blob; then cut the G7 4a (§1 (4)) and [merge-up] SM; hold it unchanged at SM's gate.
 
-## §4 Traps
-| trap | rule |
-|---|---|
-| MAIN is shared | commit by exact path; check each file for FOREIGN hunks first; never switch branches, stash or reset |
-| landing | SM lands; a chain whose merge-tree vs HEAD is rc 1: merge the trunk INTO the loop branch in its worktree, resolve (node sections: keep both sides' CORRECTIVE sections, the newer THOUGHT), re-test, re-gate |
-| parents may not commit | write.py refuses 'tier parent may not commit (goal:s27)': at harvest, land the dirty node bytes ONLY if sha256 == the last write-log entry, then merge the KID branch into the loop branch yourself; unlogged bytes: re-apply the content as the director via write.py |
-| vanishing worktrees | a round worktree can be pruned under you: re-add it on its loop branch (git worktree add <path> <branch>) |
-| write.py sub | strips leading whitespace off BOTH sides: anchor on a non-indented start, --dry-run first on frontmatter; >1 occurrence = sub! |
-| pi-free mur verify | times out at 3600 s on the memcap/dispatch slices: a dead verify = triage the review; small re-reviews go to a Sonnet 5.5 subagent (owner 16:4xZ) |
-| mur verdict JSON | read masked (hex -> <h>, emails, home paths); unstructured review = parse the defects text |
-| edited_by | pass --actor director-general-3 --role director on EVERY write.py call |
-| RAM hold | dispatch holds at the RAM disk >= 60%: remove finished RAM worktrees (never bare git worktree prune) |
+## §4 Traps (this generation)
+- `git checkout -b/-B <new> origin/<trunk>` fails to write upstream config (Permission denied on the shared .git/config): the ref and index move, HEAD stays. `git branch <new> origin/<trunk> && git checkout <new>`; read `git status --short` first.
+- ~/t is a read view: edit a card via `agi-wt pull doc:card-director-general-5` (it lands under /run/<user>/wt/<mint>/), then agi-flush. A whole-card replace can drop the closing '---': grep -c '^---$' = 2 first.
+- a heredoc inside a heredoc ends at the inner EOF: write helper scripts with the Write tool. A script's new test must build its scratch repo once per tmp_path.
+- NEVER `git worktree prune` on MAIN; lock long-lived worktrees; a mail body goes in a FILE, `box send P < file`, then `git log -1 --format=%B refs/box/<me>/P` non-empty.
 
-| manifest row | write.py row manifest.<key> refuses an ABSENT key: set manifest <whole mapping as JSON> via a python subprocess (single quotes in the JSON; 77 KB < argv cap); --dry-run first; the diff must be the new row only |
-| the old units | agi-director-general-3-dg3mur-* units read failed: the earlier murs whose verify timed out, already triaged -- not live work |
-| round worktrees vanish | the RAM reaper removes a round worktree once its parent exits (both did at 20:4xZ, mid-command): commits are safe on the branch; re-add with git worktree add <path> <branch> |
-| links MALFORMED | links.py links prints 13 MALFORMED FILE SCOPE lines on lm-* hypotheses: pre-existing off-shape, not damage (broken stays 0) |
-| v5 boot: trust | a fresh post stops at the folder-trust dialog: set projects./var/lib/agi/<post>/t.hasTrustDialogAccepted in that user's .claude.json BEFORE start (as the user, 600) |
-| v5 boot: inbox | an ABSENT inbox file makes the mail poll type mail+CR every 5 s (answers any modal): create it empty (g:agi rw) before start, until G5.3 item 5 lands |
-| v5 boot: .fresh | agi-run eats ~/.fresh on the first start; a run that died before any turn restarts with -c = 'No conversation found': touch ~/.fresh as the user |
-| v5 boot: modal | a 'Try the new fullscreen renderer' modal (Yes preselected) opens after turn 1: one Esc into /run/agi-<post>/i as the user |
-| start gate | belam [red] 12:58Z: ONE post start at a time; between starts read loadavg1 < 16 AND io PSI some avg60 < 50 (cat /proc/pressure/io); 4 starts 3-4 min apart drove io PSI 88 and an oomd kill of TM-new |
-| reboot wipes | /run (unit template, drop-ins, multi-user.target.wants dir), /tmp (projection, mur args), /mnt/agi-ram worktrees and the comms/inbox ACLs: re-project the trunk with the agi-project section into the scratchpad, mkdir the wants dir, install template + one drop-in per start; mur args live in .agi/sessions/dg3-mur-args/ (ignored, persistent); re-apply the 11:4xZ ACL set (row 73) |
-
-
-## §5 Verification (11:1xZ): DG5 active on v5, 24/25 bin == engine, journal 0 errors · links 5621 resolved 0 broken · test_thought_hygiene 17 passed
+## §5 Verification
+G6 4a evidence: -k set 395/0, aa3-lanes 17/0, land-bounds 2/0, SM gate142 2506/0; G6 run 1 18 (sweep red = DG4 pytest scratch, fixed by moving it), run 2 20/20. Counts for every sent item are in its box message.
 
 ## §6 BANKED
-- OWNER (night item 6): does his 06:5xZ 'spawn on encryption-town' authorize the cutover the 09-30 scrub note asks for (fresh clone of current history only)? + push/fetch timers there or by hand · the pre-scrub remote branch encryption-town/season2/main on the PUBLIC repo (review as residue) · his Doppler login there later. Plan: doc:g716111-crossbox-plan.
-- OWNER/belam: capsule sealing CREATED /var/lib/systemd/credential.secret (keep or remove at teardown) · R10 seal the real phone key · delete the stand-in key when the real one lands.
-- 86 (SM): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left. (a) re-wire into verification quick as `goals-integrity` (recommended) · (b) retire both.
-- R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
-- goal:g4.18.4 Falsifier 2 scans all history: scope it to recent commits, then complete it.
-- config_max proposals routed via SM: paths.core.workflow_runs_root · merge_gate.red_classes · council.residue_leaves · anonymize.email_allow (RFC 2606 + non-numeric systemd local part).
+(none for the owner). For SM: the §4 traps go to agi-post / agi-master-gate at the move (the card-trap rule).
 
-Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
-
-
-ROTATION NOTE: no Agent-tool subagent is live (Phase A' + DG3.71b returned 05:1xZ-05:2xZ).
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+address doc:card-director-general-3 reused at G7: before the G5 4a land 69e36d2286 (10-21) it named card mint 960e181d30 (now director-general-1); from G7 it is this card, mint 2ba5a1adbdcb4ea2aa3aa6d92d309253, the card of the post that was director-general-5 (goal:g7.16.1.11.45).
+<!-- THOUGHT:END -->

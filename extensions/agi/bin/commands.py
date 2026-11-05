@@ -442,14 +442,14 @@ def get(root, name: str) -> Command:
 
 
 def _actor(root=None) -> str:
-    """The actor running this process -- `write._default_actor`, imported, never a
+    """The actor running this process -- `geometry_config.default_actor`, imported, never a
     second copy of its order (AGI_ACTOR > the resolved post > $USER-if-provably-not-a-post
     > `unknown`), so the owner gate here and the role resolution there agree on who is
     who. A seated post whose unix user is the Prime's name (`belam`) is its seat here,
-    not `belam`; `owner` is only ever `AGI_ACTOR=owner`. Local import: write.py is the
-    heavier module and this file stays importable without it until an owner gate asks."""
-    import write as _w   # same dir (send.py / rotate.py pattern; write.py never imports commands)
-    return _w._default_actor(root)
+    not `belam`; `owner` is only ever `AGI_ACTOR=owner`. Local import keeps this file
+    importable without geometry_config until an owner gate asks."""
+    import geometry_config   # same dir (goal:g7.16.1.11.46.23 V8a: moved off write.py)
+    return geometry_config.default_actor(root)
 
 
 def run(root, name: str, extra: list[str] | None = None) -> int:

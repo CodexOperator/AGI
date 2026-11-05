@@ -296,7 +296,7 @@ KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent onl
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
-TESTS     test_zero_usd_mint_floor.py test_model_fence_guard_owner.py test_model_fence_one_module.py test_provisioning.py test_dispatch.py test_ladder_node.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT); tmp repos only; never a live pane, seat, worktree or real mint
+TESTS     test_zero_usd_mint_floor.py test_model_fence_guard_owner.py test_model_fence_one_module.py test_provisioning.py test_dispatch.py test_ladder_node.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired]); tmp repos only; never a live pane, seat, worktree or real mint
 FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/bin/provisioning.py · the kid's own node · NEVER the tests (item 2), never .agi/config.json
 CEILING   HARD CAP: 1 kid · <= 40 production lines net over 30f99ec23 · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE against the CUT tip, never HEAD: paste git diff --numstat 30f99ec23 <your final tip> on your node
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)

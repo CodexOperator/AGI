@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 2b337790deb901f0
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - harness
@@ -56,4 +56,5 @@ Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 belam-S2-L5-XIII 15:3xZ 09-27: minted on the OWNER 15:3xZ question (verbatim in the body). Nested under goal:g4.20 (everything is a node) rather than a new G4 sibling: the config.json harnesses block is exactly a config without a node, and the skill rule is nest rather than widen. Eleven places measured from the resolvers (workflow.py:345-374, adapters/__init__.py:222, dispatch.py:2113, config:ladder, config:workflows, config.json), not from the owner eight. Queued BEHIND the zero-usd mint fix (resume first).
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g4.20.1 FAIL  14 hits of "provider|harness|default_harness" (12 in .agi/config.json) and 23 agent_dispatch hits in bin. NOT superseded: no .46 U8 node exists.. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->

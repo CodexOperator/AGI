@@ -33,11 +33,11 @@ FT = [
     {"label": "rotation-record",
      "cmd": "python3 extensions/agi/bin/rotate.py status --seat {seat} --record latest"},
     {"label": "facts",
-     "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:46'"},
+     "cmd": "python3 extensions/agi/bin/node_read.py config:rotations section facts"},
     {"label": "git-state",
      "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3"},
-    {"label": "write-verbs",
-     "cmd": "python3 extensions/agi/bin/write.py -h | sed -n 1,40p"},
+    {"label": "tool-verbs",
+     "cmd": "python3 extensions/agi/bin/send.py -h | sed -n 1,40p"},
 ]
 SEAT = "sanctuary-director"
 
@@ -89,8 +89,7 @@ def _write_root(tmp_path: Path, gen14_calls):
         # (c) protocol learning (c)
         ("Bash", "python3 extensions/agi/bin/rotate.py -h | sed -n 1,30p"),
         # (d) the genuine decision: the card edit
-        ("Bash", "python3 extensions/agi/bin/write.py .agi/nodes/handoff.md "
-                 "'replace body 5:9 -'"),
+        ("Bash", "sed -i 's/old/new/' .agi/nodes/handoff.md"),
         # (d) the genuine decision: the rotate-self invocation
         ("Bash", f"python3 extensions/agi/bin/rotate.py rotate-self "
                  f"--seat {SEAT} --gen 15"),
@@ -1065,8 +1064,7 @@ def _out_after_work_transcript(tmp_path):
     the push (--cut); the closing tail after it is the out window."""
     return _write_root(tmp_path, [
         # the 35-min working turn, delivered by the push (call 164)
-        ("Bash", "python3 extensions/agi/bin/write.py .agi/nodes/handoff.md "
-                 "'replace body 5:9 -'"),
+        ("Bash", "sed -i 's/old/new/' .agi/nodes/handoff.md"),
         ("Bash", "python3 extensions/agi/bin/send.py send sanctuary-helper "
                  "'[rotate] replay: point at the tmux pane'"),
         ("Bash", "git commit -m 'round work' -q"),

@@ -7,7 +7,7 @@ o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill agi-ga
 [ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL no agi-land at $T";exit 99;}
 for p in cyc2 par;do ssh-keygen -qN "" -ted25519 -f$D/k/$p>/dev/null;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done
 git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;export PATH=$D/b:$PATH AGI_RING=$D/ring AGI_TRUNK=refs/heads/trunk
-P=.agi/nodes/.geometry/posts.md;C=.agi/nodes/doc/card-director-general-1.md
+P=.agi/nodes/.geometry/posts.md;C=.agi/nodes/doc/card-director-review.md
 { git show $o:$P;printf '%s\n' '  - {"name":"cyc1","parent":"cyc2","harness":"claude"}' '  - {"name":"cyc2","parent":"cyc1","harness":"claude"}' '  - {"name":"zz","parent":"cyc1","harness":"claude"}' '  - {"name":"par","parent":"belam","harness":"claude","lands":["aa","bb"]}' '  - {"name":"aa","parent":"par","harness":"claude"}' '  - {"name":"bb","parent":"par","harness":"claude"}' '  - {"name":"cc","parent":"par","harness":"claude"}';}>$D/p
 x=$D/i;GIT_INDEX_FILE=$x git read-tree $o;GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/p),$P;t=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
 b=$(GIT_COMMITTER_NAME=x GIT_COMMITTER_EMAIL=x@x GIT_AUTHOR_NAME=x GIT_AUTHOR_EMAIL=x@x git commit-tree -p $o -m fixture $t);git update-ref refs/heads/trunk $b

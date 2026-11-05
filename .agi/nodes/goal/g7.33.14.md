@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 5b913738aea99943
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - local-maxxing
   - engine
@@ -79,4 +79,5 @@ mints its own sub-subgoal before proceeding to hypothesis -> kids as normal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g7.33.14 UNRUN  n1 greps the literal `<home>/work/agi`: 0 hits is vacuous (no positive control); n3 PYWAIT. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->

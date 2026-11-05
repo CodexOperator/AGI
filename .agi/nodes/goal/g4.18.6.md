@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: ad1e7e3cc0b0e998
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - links
@@ -54,4 +54,5 @@ Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 OWNER 2026-09-29 17:5xZ, verbatim (Prime pane): "Can links just use raw mintIDs only? And things like renderer can render correct parent names and which ones should be visible vs not on render?" -- this version replaces the neighbourhood re-pointing design with mint-id links: the inbound half of the link problem disappears, since a mint id never changes; the renderer owns names and visibility. || This version (alive, council, 22:1xZ): Target bullet 1 said "store the 32-hex mint id", contradicting the Prime's signed [decision] 22:1xZ 09-29 (8 off-shape mints accepted; the gate is "is a node's mint_id", never a shape check), which director-general-1 already applied on the W2 leaves (7cf590f0d) and goal:g4.18.6.1 states; flagged by director-general-1. One source now: this line points at goal:g4.18.6.1. The built resolver links.py:431-432 still raises "not a 32-hex mint id" -- a residue with director-general-3, not edited here.
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g4.18.6 PENDING  n1 committed test (test_links, test_cli): needs pytest; n2 prose. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->

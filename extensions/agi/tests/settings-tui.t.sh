@@ -13,6 +13,6 @@ ok "a-the-piece-parses the settings.json piece is valid JSON ($(wc -c<$SETTINGS|
 tui=$(jq -r '.tui // "<absent>"' $SETTINGS 2>/dev/null)
 ok "b-tui-is-exactly-default .tui = [$tui] (want exactly: default)" '[ "$tui" = default ]&&jq -e ".tui == \"default\"" $SETTINGS>/dev/null 2>&1'
 hk=$(jq -r '[.hooks[][].hooks[].command]|sort|join(" ")' $SETTINGS 2>/dev/null)
-ok "c-the-live-hooks-survive the hook commands are [$hk] (want: agi-brief agi-captive agi-meter agi-turn)" '[ "$hk" = "agi-brief agi-captive agi-meter agi-turn" ]'
+ok "c-the-live-hooks-survive the hook commands are [$hk] (want: agi-brief agi-captive agi-mem tap agi-meter agi-turn; agi-mem tap is the M6 Stop hook, goal:g7.16.1.11.46.13)" '[ "$hk" = "agi-brief agi-captive agi-mem tap agi-meter agi-turn" ]'
 ok "d-no-other-renderer-key the piece names no fullscreen / altScreen / renderer key besides tui" '! jq -r "keys[]" $SETTINGS 2>/dev/null|grep -i -E "fullscreen|altscreen|renderer"'
 echo "settings-tui: $f FAIL";exit $f

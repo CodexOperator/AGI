@@ -1756,7 +1756,7 @@ def test_b4_w1a_the_row_index_has_one_definition():
 
 
 # --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2 ------------------
-_W2DB = "bundle 4 W2d-b: RED until DG3 builds the writer's address -> mint_id resolve"
+_W2DB = "goal:g4.18.6.4.2: RED until the writer's address -> mint_id resolve is built (bundle 4 W2d-b)"
 _W2DB_MINT = "0123456789abcdef0123456789abcdef"
 
 
@@ -1812,3 +1812,48 @@ def test_r3_canonicalize_keeps_a_quoted_string_number(tmp_path):
     out = nw._serialize_node(nw.render_frontmatter(fm.frontmatter), fm.body)
     back = fmr._parse_md(out, ".md", True).frontmatter
     assert back == fm.frontmatter and back["ver"] == "0.8" and back["flag"] == "yes" and back["nil"] == "null", out
+
+
+# goal:g7.16.1.11.46.23 step 4 (self-perpetuating 14:12:33Z 10-28): ensure_payload's only direct test went with
+# the node writer's tests; grid.py calls it, so it keeps a row here. Creates the empty payload ONCE, never overwrites.
+def test_ensure_payload_creates_once_and_never_overwrites(project):
+    made = nw.ensure_payload(project, "extensions/x/new.py")
+    assert made is not None and made.is_file() and made.read_text() == ""
+    made.write_text("kept bytes\n")
+    assert nw.ensure_payload(project, "extensions/x/new.py") is None
+    assert made.read_text() == "kept bytes\n", "an existing payload is linked, never replaced"
+    absolute = project / "abs.txt"
+    absolute.write_text("abs\n")
+    assert nw.ensure_payload(project, str(absolute)) is None and absolute.read_text() == "abs\n"
+
+
+# goal:g7.16.1.11.46.23 step 4 FOLLOW-UP (self-perpetuating [approve] 14:35:27Z 10-28): replace_payload and log_write
+# have live callers (failures.py:369; cli.py:556/:2084, snapshot-goals.py:317) and their only tests went with the node
+# writer's (test_write.py, test_write_guard.py). Each keeps a row here.
+def test_replace_payload_replaces_keeps_the_exec_bit_and_never_creates(project):
+    import os, stat
+    dest = nw.ensure_payload(project, "extensions/x/run.sh")
+    os.chmod(dest, 0o755)
+    got = nw.replace_payload(project, "extensions/x/run.sh", data=b"#!/bin/sh\necho hi\n")
+    assert got == (dest, True) and dest.read_bytes() == b"#!/bin/sh\necho hi\n"
+    assert stat.S_IMODE(dest.stat().st_mode) & 0o111, "an executable keeps its exec bit"
+    assert nw.replace_payload(project, "extensions/x/run.sh", data=b"#!/bin/sh\necho hi\n") == (dest, False)
+    with pytest.raises(FileNotFoundError, match="never creates"):   # the refusal BY NAME, not any missing-file error
+        nw.replace_payload(project, "extensions/x/absent.sh", data=b"x")
+    assert not (dest.parent / "absent.sh").exists()
+    with pytest.raises(ValueError):
+        nw.replace_payload(project, "extensions/x/run.sh", source=dest, data=b"x")
+
+
+def test_log_write_appends_one_line_with_the_mint_id_and_the_extra(project):
+    import json
+    node = project / "nodes" / "idea" / "i1.md"
+    log = project / nw.WRITE_LOG
+    n0 = len(log.read_text().splitlines()) if log.is_file() else 0
+    nw.log_write(project, "probe", "idea:i1", node, "t", mint_id="m-1", extra={"why": "row"})
+    lines = log.read_text().splitlines()
+    # ONE line: failures.py counts repair-frontmatter rows, so a double append would double broken_frontmatter
+    assert len(lines) == n0 + 1
+    last = json.loads(lines[-1])
+    assert (last["operation"], last["node_id"], last["mint_id"], last["why"]) == ("probe", "idea:i1", "m-1", "row")
+    assert last["path"] == "nodes/idea/i1.md" and last["sha256"]

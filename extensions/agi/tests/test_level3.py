@@ -1266,8 +1266,8 @@ def test_w2cc_read_mvp_map_keeps_an_off_shape_mvp_mint_as_its_address_twin(tmp_p
 
 
 # --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2d-b: RED until DG3 builds "
-                   "level3's parent address -> mint_id resolve (level3.py:1127)")
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.6.4.2: RED until level3's "
+                   "parent address -> mint_id resolve is built (level3.py:1127; bundle 4 W2d-b)")
 def test_b4_w2db_build_node_parent_is_the_census_ideas_mint_id(project, engine):
     run(project, engine)
     mint = fm_of(project / "nodes" / "idea" / "engine-graph-core.md")["mint_id"]

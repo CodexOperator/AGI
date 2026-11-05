@@ -3,7 +3,7 @@
 
 GOALS.md is RETIRED (owner 2026-09-29 17:3xZ, goal:g7.16.1.4.1): the render
 (`--render` / `--check`), the legacy document import and its prune are
-gone. A goal lives only in its node, minted with `write.py create goal` and
+gone. A goal lives only in its node, minted with `node_writer.write_node` (skill agi-goal) and
 read by id. What stays is imported by file path by level3.py,
 snapshot-build-site.py, backfill-mint-ids.py, decompose-engine.py and
 post_wire.py: `write_frontmatter` (THE serializer), `ensure_mint_id`,
@@ -492,7 +492,7 @@ def main(argv: list[str] | None = None) -> int:
         "helpers other generators import."))
     ap.parse_args(argv)
     print("snapshot-goals.py: GOALS.md is retired (goal:g7.16.1.4.1); read a "
-          "goal by id: write.py goal:<id> 'read body 1:60'", file=sys.stderr)
+          "goal by id: sed -n '1,60p' .agi/nodes/goal/<id>.md", file=sys.stderr)
     return 2
 
 

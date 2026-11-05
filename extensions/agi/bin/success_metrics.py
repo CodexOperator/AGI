@@ -28,9 +28,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -253,9 +255,15 @@ LINE_GRAPH_KEYS = (
     "broken_links", "thought_coverage", "longest_chain_length", "outcome_coverage")
 
 
-def _reason(text: str) -> str:
-    """A reason that can sit inside UNMEASURED(...) on one line: no parens, no `&`/`|`."""
-    return re.sub(r"[()&|\s]+", " ", str(text)).strip()[:48] or "unknown"
+def _reason(exc: BaseException | str) -> str:
+    """A FIXED code that can sit inside UNMEASURED(...) on one line, never exception text: an exception's text can
+    hold an absolute box path, and the line is pushed. The exception class, plus errno / exit code where there is
+    one; anything that is not an exception is never echoed."""
+    if not isinstance(exc, BaseException):
+        return "unknown"
+    name = type(exc).__name__
+    code = getattr(exc, "errno", None) if not isinstance(exc, SystemExit) else exc.code
+    return f"{name} {code}" if isinstance(code, int) and not isinstance(code, bool) else name
 
 
 def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
@@ -281,6 +289,221 @@ def _run_metrics_once(root: Path) -> tuple[dict, str | None]:
 #: key_usage, up to two authenticated 30 s GETs) and their value is always null, so the
 #: hourly --line names them statically instead of calling out and discarding the answer.
 LINE_NO_NETWORK = ("subscription_tokens_per_season", "openrouter_subscription_spend_ratio")
+
+
+# ---------------------------------------------------------------------------
+# goal:g7.16.1.11.46.5 (M4): the intake segment and the TRAJECTORY line, read from
+# the cards' §7 ATOMS rows -- the ONE writer of metrics_line stays this --line.
+# ---------------------------------------------------------------------------
+
+LAP_SECONDS = 14400   # one lap = 4 h, the cadence of the Prime's digest / CHECK (agi-atom stamps lap<n> with the same unit)
+_S7 = re.compile(r"^## (?:\S+ )?§7(?!\d)")
+_ATOM_ID = re.compile(r"^(a\d+|r[0-9a-f]{8}|\d+\.\d+)$")
+_BOLD = re.compile(r"^\*\*(.+?)\*\*\s*$")   # a card's `**throw 1 (10-22) -- ...**` line names the section the rows below it belong to
+
+
+def current_lap() -> int:
+    """The lap number now (AGI_LAP overrides, as it does for agi-atom)."""
+    env = os.environ.get("AGI_LAP", "")
+    return int(env) if env.isdigit() else int(time.time() // LAP_SECONDS)
+
+
+def card_atoms(card: Path) -> list[tuple[str, str, int | None, str]]:
+    """(id, state, lap, section) for every §7 row of a card (section = the text of the last
+    standalone `**...**` line above the row, "" before any): the agi-atom form
+    `| a<n> | "<slice>" | src:<..> | <state> | lap<n> |` and the legacy
+    `| 1.1 | <text> | <state> |` (no lap: its age is unknown, never red, counted apart as `?`)."""
+    try:
+        text = card.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    rows, in7, sect = [], False, ""
+    for ln in text.splitlines():
+        if ln.startswith("## "):
+            in7, sect = bool(_S7.match(ln)), ""
+            continue
+        if in7 and (b := _BOLD.match(ln)):
+            sect = b.group(1)
+            continue
+        if not in7 or not ln.startswith("|"):
+            continue
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if not cells or not _ATOM_ID.match(cells[0]):
+            continue
+        if len(cells) == 6 and cells[5].startswith("chunks:"):
+            cells = cells[:5]   # the DERIVED `chunks:` cell (goal:g7.16.1.11.46.14 R2) is not part of the row's shape
+        m = re.fullmatch(r"lap(\d+)", cells[-1]) if len(cells) == 5 else None
+        if len(cells) == 5 and m and cells[2].startswith("src:"):
+            rows.append((cells[0], cells[3], int(m.group(1)), sect))
+        elif len(cells) >= 3:
+            rows.append((cells[0], cells[-1], None, sect))
+    return rows
+
+
+def _cards(root: Path) -> list[tuple[str, Path]]:
+    """(post, card) for each quorum card with a §7, one per resolved file."""
+    q, seen, out = root / "sessions" / "quorum", set(), []
+    for f in sorted(q.glob("*.md")) if q.is_dir() else []:
+        real = f.resolve()
+        if real in seen or not real.is_file():
+            continue
+        seen.add(real)
+        out.append((f.stem, real))
+    return out
+
+
+def intake_counts(rows: list[tuple[str, str, int | None, str]], lap: int) -> tuple[int, int, int, int]:
+    """(open, placed, red, unknown): open = state target:... or red:..., placed = any other state,
+    red = open and older than one lap (stamped lap n with lap - n > 1) OR a `red:<why>` row (born red:
+    goal:g7.16.1.11.46.14 R5, a reply to an ask that names no atom id), unknown = open with
+    NO lap (a legacy row: its age cannot be told, so it is never red and never hidden)."""
+    op = sum(1 for _, st, _, _ in rows if st.startswith(("target:", "red:")))
+    red = sum(1 for _, st, lp, _ in rows if st.startswith("red:") or (st.startswith("target:") and lp is not None and lap - lp > 1))
+    unk = sum(1 for _, st, lp, _ in rows if st.startswith("target:") and lp is None)
+    return op, len(rows) - op, red, unk
+
+
+def intake_segment(root: Path) -> str:
+    """`intake: <post>=<open>/<placed>/<red>[/?<unknown-age open>] ...` for every post whose card has a §7;
+    no quorum dir = UNMEASURED (a wrong root is named, never "none")."""
+    if not (root / "sessions" / "quorum").is_dir():
+        return "intake: UNMEASURED(no quorum dir)"
+    lap = current_lap()
+    parts = []
+    for post, card in _cards(root):
+        rows = card_atoms(card)
+        if rows:
+            op, placed, red, unk = intake_counts(rows, lap)
+            parts.append(f"{post}={op}/{placed}/{red}" + (f"/?{unk}" if unk else ""))
+    return "intake: " + (" ".join(parts) if parts else "none")
+
+
+ATOMIZE_AGE = 86400   # agi-atomize's own age bound (AGI_ATOMIZE_AGE): an older message is skipped and COUNTED by the run (P-e), never read
+
+
+def unatomized_segment(root: Path) -> str:
+    """goal:g7.16.1.11.46.3 P-d (council 3/3 05:26Z 10-24; V2, alive [decision] 14:20:53Z 10-31): `unatomized: <n>` = box commits to a
+    post older than ONE lap (and inside the atomizer's age bound) with no refs/atomized/<post>/<sha> marker. It keys on the GATE CELL
+    atomize_live, never credits_live: while the cell reads a value other than true it reads `unatomized: off`; an unread cell (git show rc != 0)
+    or an absent key is `unatomized: UNMEASURED(cell unread: ...)` / `UNMEASURED(cell absent: ...)`, never off (T3) (a count there grows by design, so it is never
+    red and never silent); a count > 0 with the cell true is `unatomized: RED <n> (<post>=<k> ...)`: a drifted wake string or a dead
+    caller. AGI_TRUNK names the trunk ref (the board cron: the engine's own); a git that cannot look is UNMEASURED, named."""
+    try:
+        repo = locations.repo_root(Path(root))
+        trunk = os.environ.get("AGI_TRUNK") or _trunk_ref()
+        g = lambda *a: subprocess.run(["git", "-C", str(repo), *a], capture_output=True, text=True, timeout=60)  # noqa: E731
+        sec = g("show", f"{trunk}:.agi/nodes/.geometry/secrets.md")
+        if sec.returncode:   # T3 (sp; alive [decision] 16:31:36Z 10-31): a cell that cannot be read is named, never `off`
+            return f"unatomized: UNMEASURED(cell unread: git show rc {sec.returncode})"
+        cell = re.search(r"^atomize_live:\s*(\S+)", sec.stdout, re.M)
+        if not cell:
+            return "unatomized: UNMEASURED(cell absent: no atomize_live key)"
+        if cell.group(1) != "true":
+            return "unatomized: off"
+        refs = g("for-each-ref", "--format=%(refname)", "refs/box")
+        if refs.returncode:
+            return f"unatomized: UNMEASURED(source failed: git for-each-ref rc {refs.returncode})"
+        hi = int(os.environ.get("AGI_ATOMIZE_AGE") or ATOMIZE_AGE)
+        now, per = int(time.time()), {}
+        for ref in refs.stdout.split():
+            post = ref.rsplit("/", 1)[1]
+            for row in g("log", "--format=%H %ct", ref).stdout.split("\n"):
+                if not row:
+                    continue
+                sha, ct = row.split()
+                age = now - int(ct)
+                if LAP_SECONDS < age <= hi and g("rev-parse", "-q", "--verify", f"refs/atomized/{post}/{sha}").returncode:
+                    per[post] = per.get(post, 0) + 1
+        n = sum(per.values())
+        return f"unatomized: RED {n} (" + " ".join(f"{k}={v}" for k, v in sorted(per.items())) + ")" if n else "unatomized: 0"
+    except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
+        return f"unatomized: UNMEASURED(source failed: {_reason(exc)})"
+
+
+_LEAF_STATE = re.compile(r"^leaf:(?:goal:)?(g[0-9][0-9.]*)")
+
+
+def trajectory_line(root: Path, post: str, label: str, throws: str = "") -> str:
+    """One TRAJECTORY line for a throw ingested into <post>'s card §7:
+    `<label> atoms=<n> placed=<k> -> <leaf ids>`. THROWS is a section-heading prefix: only the rows
+    under the card's `**<prefix>...**` lines are the throw's (a later ask has its own line); empty = every row."""
+    rows = [r for r in card_atoms(root / "sessions" / "quorum" / f"{post}.md") if r[3].startswith(throws)]
+    placed = intake_counts(rows, current_lap())[1]
+    leaves = sorted({m.group(1) for _, st, _, _ in rows if (m := _LEAF_STATE.match(st))})
+    return f"{label} atoms={len(rows)} placed={placed} \u2192 {' '.join(leaves) if leaves else 'none'}"
+
+
+def trajectory_segment(root: Path) -> str:
+    """goal:g7.16.1.11.46.5 T2: one `| trajectory: <line>` per throw REGISTERED in the town node's
+    `trajectory_throws` cell (`  - {"post": .., "label": .., "throws": <heading prefix>}`), re-rendered by this
+    ONE writer on every cell write, never pasted. No cell = no segment; an unreadable node or cell is NAMED."""
+    node = root / "nodes" / "town" / "local-maxxing.md"
+    try:
+        text = node.read_text(encoding="utf-8")
+    except OSError:
+        return "| trajectory: UNMEASURED(no town node)"   # named, never "" (Z1's twin: a wrong root must not read as 'nothing registered')
+    head = text.split("\n---", 1)[0] if text.startswith("---") else ""
+    lines, on, regs = head.splitlines(), False, []
+    try:
+        for ln in lines:
+            if ln.startswith("trajectory_throws:"):
+                on = True
+                continue
+            if on and ln.startswith("  - {"):
+                regs.append(json.loads(ln[4:]))
+            elif on:
+                break
+        return " ".join(f"| trajectory: {trajectory_line(root, r['post'], r['label'], r.get('throws', ''))}" for r in regs)
+    except Exception as exc:  # noqa: BLE001 -- a metrics line is never fatal
+        return f"| trajectory: UNMEASURED(registered throws unreadable: {_reason(exc)})"
+
+
+def p1_segment(root: Path) -> str:
+    """goal:g7.16.1.11.46.9 Q3: the `| p1: <model> $/landed=.. s/landed=.. red=<r>/<n> ran=<k>/<n> rss=<z>` segments, one per arm in
+    the committed results file (p1_ab.py writes the file and never this line).
+
+    `root` is the REPO root or the graph dir `<repo>/.agi` (the CLI's find_project_root returns the latter): the
+    repo is resolved ONCE and used for the config AND the repo-relative results path. No `.agi/config.json`, no
+    `p1` cell (another project) or no results file yet = NO segment; a file that exists and cannot be read or
+    rendered is NAMED, not dropped."""
+    repo = locations.repo_root(Path(root))
+    cfg_path = repo / ".agi" / "config.json"
+    if not cfg_path.is_file():
+        return ""
+    try:
+        import json  # noqa: PLC0415
+        import p1_ab  # noqa: PLC0415
+        cfg = json.loads(cfg_path.read_text())
+        if not isinstance(cfg.get("p1"), dict):
+            return ""
+        results = p1_ab.read_results(repo, cfg)
+        return "" if results is None else p1_ab.render_segment(results, cfg)
+    except Exception as exc:  # noqa: BLE001 -- a metrics line is never fatal
+        return f"| p1: UNMEASURED(results unreadable: {_reason(exc)})"
+
+
+def _trunk_ref() -> str:
+    """The trunk's local ref, DERIVED through branches.py from the ladder's current_season (never hand-spelled; the
+    branch-spelling grep test's ask). The ladder is the ENGINE's own (this file's tree), not the segment's `root`: the board
+    cron reads MAIN's refs, and a MAIN checkout need not carry the graph. No default season: a ladder without `current_season`
+    raises, and `_notices` names it UNMEASURED rather than reading the trunk of a guessed season."""
+    import branches  # noqa: PLC0415
+    cur = int(season._load_ladder(locations.find_project_root(Path(__file__).resolve()))["current_season"])
+    return "refs/heads/" + branches.derive_names("core", cur)["town_season_main"]
+
+
+def _notices(root: Path) -> str:
+    """goal:g7.16.1.11.46.12 -- the prereq-cleared notice's board segment, read from refs only (prereq_notice.line).
+
+    `root` is the REPO root or the graph dir `<repo>/.agi` (the board CLI's find_project_root returns the latter): the repo is
+    resolved ONCE, as p1_segment does (F-a). The board cron passes `--line {root}` = MAIN, never `@WROOT@` (the clone): the
+    segment reads trunk, seen and the goal tree from MAIN (F-e); a clone has neither ref and reads a NAMED red."""
+    try:
+        import argparse as _ap  # noqa: PLC0415
+        import prereq_notice  # noqa: PLC0415
+        return prereq_notice.line(_ap.Namespace(repo=str(locations.repo_root(Path(root))), trunk=_trunk_ref(), lag_red_min=None))
+    except (Exception, SystemExit) as exc:   # a source that cannot run is named, not fatal
+        return f"notices: UNMEASURED(source failed: {_reason(exc)})"
 
 
 def make_line(root: Path) -> str:
@@ -315,7 +538,15 @@ def make_line(root: Path) -> str:
                          f"{'no live counter' if rec.get('present') else 'no source yet'})")
     when = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     g = " ".join(f"{k}={graph(k)}" for k in LINE_GRAPH_KEYS)
-    return f"{when} graph: {g} | success: {' '.join(parts)}"
+    line = f"{when} graph: {g} | success: {' '.join(parts)}"
+    seg = trajectory_segment(root)
+    line = f"{line} {seg}" if seg else line
+    line = f"{line} | {intake_segment(root)}"   # goal:g7.16.1.11.46.5: `| intake:` follows the success block directly
+    line = f"{line} | {unatomized_segment(root)}"   # goal:g7.16.1.11.46.3 P-d
+    seg = p1_segment(root)
+    line = f"{line} {seg}" if seg else line
+    # ORDER (goal:g7.16.1.11.46.12): graph | success | trajectory | intake | unatomized | [p1] | notices. NO test pins a position (council 04:23Z): each segment is counted by its key
+    return f"{line} | {_notices(root)}"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -323,6 +554,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("root", nargs="?", default=None)
     ap.add_argument("--line", action="store_true",
                     help="print ONE line for the town node's graph_metrics cell, no write")
+    ap.add_argument("--trajectory", nargs=2, metavar=("POST", "LABEL"),
+                    help="print ONE TRAJECTORY line for the throw ingested into POST's card §7, no write")
+    ap.add_argument("--throws", default="", metavar="HEADING_PREFIX",
+                    help="with --trajectory: count only the rows under the card's **<prefix>...** sections")
+    ap.add_argument("--unatomized", action="store_true", help="print ONE `unatomized:` segment (goal:g7.16.1.11.46.3 P-d), no write")
     ap.add_argument("--json", action="store_true", help="print JSON, no write")
     ap.add_argument("--diff", action="store_true", help="include the season diff")
     args = ap.parse_args(argv)
@@ -332,6 +568,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.line:
         print(make_line(root))
+        return 0
+    if args.unatomized:
+        print(unatomized_segment(root))
+        return 0
+    if args.trajectory:
+        print(trajectory_line(root, *args.trajectory, throws=args.throws))
         return 0
     payload = compute(root)
     if args.diff:

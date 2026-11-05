@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: d35f123a89a49d21
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -69,3 +69,7 @@ the test halves (DG3 lane, see notes): an orphan-prose check in `test_thought_hy
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.5.5.6 FAIL  block rc 1; n2: g6.41.1.md:38. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

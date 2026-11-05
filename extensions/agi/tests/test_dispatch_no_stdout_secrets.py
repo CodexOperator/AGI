@@ -198,4 +198,4 @@ def test_looks_like_secret_name_and_shape():
     assert dispatch._looks_like_secret("UNNAMED", "sk-anything")
     # neither
     assert not dispatch._looks_like_secret("AGI_MODEL", "glm-flash")
-    assert not dispatch._looks_like_secret("AGI_SEAT", "liaison")
+    assert not dispatch._looks_like_secret("AGI_POST", "liaison")

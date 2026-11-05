@@ -76,7 +76,7 @@ def _harness(monkeypatch, tmp_path, *, zero_usd, mints, calls):
         _REAL_RUN(*a, **k) if list(a[0][:2]) == ["git", "grep"] else _Run()))
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
 
     # the account IS drained: below every PAID floor above, above the free cap.
     monkeypatch.setattr(dispatch.provisioning, "credit_balance",

@@ -94,7 +94,6 @@ def test_producing_refusal_allows_shipped_commands():
         "python3 extensions/agi/bin/send.py read {seat}",
         "python3 extensions/agi/bin/spawn_budget.py status; "
         "python3 extensions/agi/bin/provisioning.py status | head -4",
-        "python3 extensions/agi/bin/write.py -h | sed -n 1,40p",
     ]
     for cmd in shipped:
         assert rotate._producing_refusal(cmd) is None, cmd

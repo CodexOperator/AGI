@@ -6,7 +6,7 @@ pre-verb writers that set the status without the move. Rows, both directions:
 - r1  `retire` sets the status, moves the file to nodes/deprecated/<type>/, keeps the mint id and the
       bytes otherwise; active + deprecated (the node-file total) is unchanged.
 - r2  a status-only deprecate (`set status deprecated`, update_node) is REFUSED by name and writes nothing.
-- r3  the verb through write.py (`retire <note>`) does the same, note landing as deprecated_note.
+- r3  (the verb through the node writer retired with it, goal:g7.16.1.11.46.23 step 4.)
 - r4  a node already carrying the status in a live dir (the 6) is MOVED by retire, content untouched.
 - r5  a name collision at the target refuses and leaves the node where it was, status unchanged.
 - r6  retired-place: 0 outside / 0 inside on a clean tree; the stub mutant (status only) -> outside 1;
@@ -27,7 +27,6 @@ sys.path.insert(0, str(SRC))
 
 import node_writer  # noqa: E402
 import verification  # noqa: E402
-import write  # noqa: E402
 from tests.veto_cell import write_free_veto  # noqa: E402
 
 NODE = ('---\nid: "hypothesis:{n}"\ntype: hypothesis\nmint_id: {mint}\ntitle: "t"\n'
@@ -75,26 +74,11 @@ def test_r2_a_status_only_deprecate_is_refused_by_name_and_writes_nothing(graph)
     assert res.status == node_writer.REJECTED
     assert "status: deprecated without the move" in res.reason and "retire" in res.reason
     assert p.read_text() == was
-    e = write.Edit("hypothesis:h1")
-    write.verb_set(e, "status", "deprecated")
-    assert write.submit(graph, e, actor="t").status == node_writer.REJECTED
-    assert p.read_text() == was
 
 
 def test_r2b_other_status_writes_still_land(graph):
     res = node_writer.update_node(graph, "hypothesis:h1", set_fm={"status": "active"})
     assert res.status == node_writer.UPDATED
-
-
-def test_r3_the_verb_through_write_py(graph):
-    e = write.Edit("hypothesis:h2")
-    write.verb_retire(e, "folded into h1")
-    res = write.submit(graph, e, actor="t")
-    assert res.status == node_writer.UPDATED
-    text = (graph / "nodes/deprecated/hypothesis/h2.md").read_text()
-    assert "status: deprecated" in text and "deprecated_note: folded into h1" in text
-    assert not (graph / "nodes/hypothesis/h2.md").exists()
-    assert "retire" in write.VERBS and write.ARITY["retire"] == 1 and "retire" in write.VERB_EXAMPLES
 
 
 def test_r4_a_live_dir_node_already_marked_deprecated_is_moved_not_rewritten(graph):

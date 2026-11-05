@@ -49,7 +49,7 @@ so a Master's build backlog does not cost a fresh dispatch per item.
 - Edit source files directly, in place — there is no staged copy.
 - Run the touched tests before reporting; run the full suite alone if you
   changed shared code (`python3 -m pytest extensions/agi/tests/ -q`).
-- Every node edit goes through `write.py` — never hand-edit frontmatter.
+- Every node edit is a plain file edit (skill agi-node-write) — never hand-edit `id`, `mint_id` or `type`.
 - Never write to `config:seats` — that is Sanctuary Master's row, not
   yours or your Master's, under any circumstance.
 - Never touch `moral:*`. Never `git rm` under `.agi/nodes`. Never run

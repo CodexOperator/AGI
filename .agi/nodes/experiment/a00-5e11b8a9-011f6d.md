@@ -82,7 +82,7 @@ trunk NEXT read output: inbox for dg5: empty
 |---|---|---|
 | first-turn inbox injection / `rotate.py` brief running a read | OUT | no `send.py read` invocation and no `send.read(` import anywhere outside send.py itself (`grep -rnE "send\.py.{0,20}read\|send\.read\("` → rotation_alert only) |
 | `send.py wake`, heal `_repair_stranded_wakes` | OUT | heal.py never reads a seat inbox (no `send.read` call; its inbox mention is prose at 4134) |
-| **v5 mail poll typing `send.py read $AGI_SEAT`** | **IN** | `crons.py:941` — see above |
+| **v5 mail poll typing `send.py read $AGI_[retired]`** | **IN** | `crons.py:941` — see above |
 | compaction / resume re-running a read | OUT | no second call site exists to resume from |
 | a second session sharing the seat name | OUT (not the mechanism) | it makes the loss WORSE (whichever session reads first retires for both) but it is not what moves the marker |
 

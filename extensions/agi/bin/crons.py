@@ -78,6 +78,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -330,6 +331,15 @@ def load_crons_node(root: Path) -> dict:
             raise CronsError(
                 f"{path}: cadences.{name}.log must be a non-empty string path")
         entry["log"] = log
+        # Optional `needs` (goal:g7.16.1.11.46.16 G1a lap, SM [red] 08:2xZ 10-26): the name of a KNOWN job; the row renders only while that
+        # job is declared and enabled. A scheduled grid writer (the grid_unify_lap row) names grid_sync, so retiring the grid stops it with
+        # every other grid writer (test_b5). Refused BY NAME when it names no known job.
+        needs = cadences[name].get("needs")
+        if needs is not None:
+            if needs not in known:
+                raise CronsError(
+                    f"{path}: cadences.{name}.needs must name a known job {list(KNOWN_JOBS)}, got {needs!r}")
+            entry["needs"] = needs
         jobs[name] = entry
 
     # Optional `services:` table — systemd unit files rendered from the graph
@@ -1034,6 +1044,8 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         job = jobs[name]
         if not (job["enabled"] and _on_this_box(job, own)):
             continue
+        if job.get("needs") and not node["jobs"].get(job["needs"], {}).get("enabled"):
+            continue
         sched = _schedule_expr(job)
         cmd = _substitute(job["cmd"], root, repo_root, own, **({"logs_dir": tilde_logs} if foreign else {}))
         glog = Path(job["log"]) if job.get("log") else (
@@ -1445,6 +1457,28 @@ def _user_io(user: str, user_crontab_dir: Path | str | None, prompt: bool = Fals
     return reader, writer
 
 
+UNREAD = ("unread: run apply --sudo (a plain apply makes no sudo call and reads no foreign table, so this user's "
+          "crontab was not looked at)")
+
+
+def _temp_project(repo_root: Path) -> str | None:
+    """goal:g7.16.1.11.13 C-3 (council 06:30Z 10-24): why `repo_root` is NOT a project whose block may be written into ANOTHER uid's crontab, or None.
+    A suite run (`commands.py run verify` makes /tmp/agi-suite-*; pytest makes a basetemp) once reached the real `sudo crontab -u` and left
+    managed blocks for a throwaway project in agi-sanctuary-master's table. Scoped to the sudo / foreign-user writer: the applying user's OWN
+    crontab goes through the PATH-fake `crontab` the fixtures use by design and is untouched."""
+    p = Path(repo_root).resolve()
+    for t in ("/tmp", "/var/tmp", "/dev/shm", tempfile.gettempdir()):
+        r = Path(t).resolve()
+        if p == r or r in p.parents:
+            return f"{p} is under the temp dir {r}"
+    for part in p.parts:
+        if part.startswith(("agi-suite-", "pytest-")):
+            return f"{p} is a suite/pytest scratch path ({part})"
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return f"{p} is applied from inside a pytest run"
+    return None
+
+
 def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, *,
                            dry_run: bool = False, user_crontab_dir: Path | str | None = None,
                            prompt: bool = False) -> dict:
@@ -1472,7 +1506,7 @@ def reconcile_user_crontab(user: str, managed: list[str], begin: str, end: str, 
 
 def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool = False,
               unit_dir: Path | str | None = None,
-              user_crontab_dir: Path | str | None = None, sudo: bool = False) -> dict:
+              user_crontab_dir: Path | str | None = None, sudo: bool = False, *, allow_temp: bool = False) -> dict:
     """Render the node and reconcile the crontab. Idempotent by construction:
     the managed block replaces itself in place (or is appended once, on first
     install), so a second `apply` with nothing changed produces byte-identical
@@ -1517,6 +1551,19 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
     for u in _foreign_users(node, root, _invoking_user()):
         u_lines = render_managed_lines(root, repo_root, engine_root, node,
                                        user=u, only_bound=True)
+        if user_crontab_dir is None and not sudo:
+            # C-2: only `--sudo` touches another uid's table. A plain apply (the cron-run one included) makes ZERO sudo calls and reads
+            # NOTHING of it, so it says `unread`, never `ok` / `in sync` / `pending` (each would claim a reading that never happened).
+            foreign[u] = {"user": u, "managed_lines": u_lines, "changed": None, "status": UNREAD}
+            continue
+        if user_crontab_dir is not None:
+            why = _seam_refused(repo_root, user_crontab_dir)   # S1/S3: ONE predicate for every --user-crontab-dir caller
+        else:
+            why = None if allow_temp else _temp_project(repo_root)
+        if why:   # C-3 (3): the real `sudo crontab -u` path never serves a throwaway project; `allow_temp` is a test seam, no CLI flag
+            foreign[u] = {"user": u, "managed_lines": u_lines, "changed": None,
+                          "status": f"refused: {why}; a foreign user's crontab is written only for the real project"}
+            continue
         foreign[u] = reconcile_user_crontab(u, u_lines, begin, end, dry_run=dry_run,
                                             user_crontab_dir=user_crontab_dir,
                                             prompt=sudo)
@@ -1571,8 +1618,50 @@ def cmd_show(root: Path, crontab_file: Path | str | None = None) -> str:
     return "\n".join(out)
 
 
+_SEAM_ROOTS = ("/tmp", "/var/tmp", "/dev/shm")
+
+
+def _seam_path_ok(repo_root: Path) -> bool:
+    """goal:g7.16.1.11.13.4 S1 (council 3/3 03:10Z 10-26): a throwaway project by PATH FACTS ONLY, on the REAL path (a /tmp symlink to a real
+    project is not one): under /tmp, /var/tmp or /dev/shm, or a path part agi-suite-* / pytest-*. Never TMPDIR and never PYTEST_CURRENT_TEST:
+    in the HONOURING direction an inherited value would fail OPEN (a real project served from fixtures). `_temp_project` keeps its env clauses, which
+    only make the REFUSING direction refuse more."""
+    p = Path(os.path.realpath(repo_root))
+    for t in _SEAM_ROOTS:
+        r = Path(os.path.realpath(t))
+        if p == r or r in p.parents:
+            return True
+    return any(part.startswith(("agi-suite-", "pytest-")) for part in p.parts)
+
+
+def _seam_refused(repo_root: Path, user_crontab_dir) -> str | None:
+    """Why `--user-crontab-dir` is NOT honoured for this project, or None (and then it says so on stderr, S2). Every caller that takes the dir
+    (apply, remove, marked) asks this ONE predicate before any read or write. S3: a dir that does not exist is refused, never read as empty tables
+    (a missing `<user>.crontab` inside an existing dir stays an empty table)."""
+    d = Path(user_crontab_dir)
+    if not _seam_path_ok(repo_root):
+        return (f"a fixture crontab dir ({d}) is honoured only for a throwaway project (a real path under /tmp, /var/tmp, /dev/shm or an "
+                f"agi-suite-*/pytest-* part), not {os.path.realpath(repo_root)}")
+    if not d.is_dir():
+        return f"the fixture crontab dir {d} does not exist (it would read as empty tables)"
+    print(f"[crons] fixture crontab dir {d} (test seam)", file=sys.stderr)
+    return None
+
+
+def _refuse_user_door(repo_root: Path, user: str, user_crontab_dir, allow_temp: bool, what: str) -> None:
+    """C-3 (3) + S1 on the other two `--user` doors (`remove`, `marked`; council all-is-one 01:34Z 10-26: the guard is in the goal's own title): a
+    throwaway project never reaches `sudo crontab -u USER` (the `allow_temp` keyword is a test seam, no CLI flag), and a fixture dir is honoured only
+    for a throwaway project (`_seam_refused`)."""
+    if user_crontab_dir is not None:
+        why = _seam_refused(repo_root, user_crontab_dir)
+    else:
+        why = None if allow_temp else _temp_project(repo_root)
+    if why:
+        raise CronsError(f"refused: {why}; {user}'s crontab is {what} only for the real project")
+
+
 def cmd_remove(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
-               user_crontab_dir: Path | str | None = None) -> dict:
+               user_crontab_dir: Path | str | None = None, *, allow_temp: bool = False) -> dict:
     """Drop this project's managed block only. Does not read or validate the
     node — removal must work even when the node is missing or malformed,
     which is exactly the state a broken edit can leave the graph in.
@@ -1582,6 +1671,7 @@ def cmd_remove(root: Path, crontab_file: Path | str | None = None, user: str | N
     repo_root = locations.repo_root(root)
     begin, end = block_markers(repo_root)
     if user:
+        _refuse_user_door(repo_root, user, user_crontab_dir, allow_temp, "changed")
         reader, writer = _user_io(user, user_crontab_dir)
         current, why = reader()
         if current is None:
@@ -1617,7 +1707,7 @@ def _managed_blocks(lines: list[str]) -> list[tuple[str, str, int]]:
 
 
 def cmd_marked(root: Path, crontab_file: Path | str | None = None, user: str | None = None,
-               user_crontab_dir: Path | str | None = None, foreign: bool = False):
+               user_crontab_dir: Path | str | None = None, foreign: bool = False, *, allow_temp: bool = False):
     """How many lines the managed blocks of a crontab hold, the marker lines included, over EVERY block whatever
     root installed it (a block installed from a worktree is still an agi cron job: goal:g7.16.1.11.44.8 R3). A block with no
     job lines still counts 2: it is still installed. `foreign=True` returns instead `[(project, line_count)]` of the blocks
@@ -1625,6 +1715,7 @@ def cmd_marked(root: Path, crontab_file: Path | str | None = None, user: str | N
     repo_root = locations.repo_root(Path(root))
     begin, _end = block_markers(repo_root)
     if user:
+        _refuse_user_door(repo_root, user, user_crontab_dir, allow_temp, "read")
         current, why = _user_io(user, user_crontab_dir)[0]()
         if current is None:
             raise CronsError(f"cannot read {user}'s crontab ({why})")
@@ -1708,8 +1799,8 @@ def main(argv: list[str] | None = None) -> int:
                           help="render and report; write nothing")
     ap_apply.add_argument("--sudo", action="store_true",
                           help="install a job's `user:` crontab through an interactive "
-                               "`sudo crontab -u USER` (the owner's GO); without it a "
-                               "foreign user is only reported as pending")
+                               "`sudo crontab -u USER` (the owner's GO); without it NO sudo call "
+                               "is made and a foreign user is reported `unread: run apply --sudo`")
     ap_apply.add_argument("--user-crontab-dir", default=None,
                           help="a dir of <user>.crontab fixtures instead of sudo "
                                "crontab -u (testing; production omits this)")
@@ -1766,8 +1857,10 @@ def main(argv: list[str] | None = None) -> int:
             if not result["changed"]:
                 print(f"crons: no-op — the crontab already matches the node "
                       f"({len(result['managed_lines'])} line(s))")
+            refused = False
             for u, fr in sorted((result.get("foreign_users") or {}).items()):
                 print(f"crons: user {u}: {fr['status']} ({len(fr['managed_lines'])} line(s))")
+                refused = refused or fr["status"].startswith("refused")
                 if fr["changed"]:
                     for line in fr["managed_lines"]:
                         print(f"  {line}")
@@ -1777,6 +1870,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"crons: units ({result['unit_dir']}):")
                 for a in result["unit_actions"]:
                     print(f"  {a}")
+            if refused:   # C-3 (3): a named refusal is a non-zero exit, never a silent skip
+                return 1
         elif args.cmd == "caps":
             for a in cmd_caps(root, args.dry_run, args.name):
                 print(f"crons: log {a}")

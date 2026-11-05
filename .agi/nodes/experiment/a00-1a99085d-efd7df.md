@@ -40,7 +40,7 @@ comment marking it the Keep's shared marker, NOT a town name (towns come from th
 ladder's `towns:` list per goal:g1.24; `all` is a bound sentinel, never a literal).
 `_merge_up_town_gate` now returns `None` (allows) when `seat_town == TOWN_ALL`,
 so a Keep seat serves any round's town. The refusal fires only when BOTH towns are
-specific AND differ. Everything else unchanged: AGI_SEAT/--seat derivation,
+specific AND differ. Everything else unchanged: AGI_[retired]/--seat derivation,
 `_resolve_round_town` order, fail-open `None` when either half is unknowable.
 
 **Test (test_season.py only):** a new test mirroring the live seats shape —
@@ -55,9 +55,9 @@ both fail open.
 logic validated; exact output below):
 
 ```
-1) AGI_SEAT=sanctuary-director + core round        -> None
-2) AGI_SEAT=sanctuary-director + streaming round   -> None
-3) AGI_SEAT=council-web-app-suite + core round     -> REFUSED: round  is in town `core` but seat `council-web-app-suite` belongs to town `web-app-suite` -- a round merges up through the seat of the town that originated it
+1) AGI_[retired]=sanctuary-director + core round        -> None
+2) AGI_[retired]=sanctuary-director + streaming round   -> None
+3) AGI_[retired]=council-web-app-suite + core round     -> REFUSED: round  is in town `core` but seat `council-web-app-suite` belongs to town `web-app-suite` -- a round merges up through the seat of the town that originated it
 ```
 
 Reproductions use the live `.agi/nodes`-shaped seats (Keep `town: all` + council
@@ -76,7 +76,7 @@ PARENT REVIEW (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch). ACCEPTE
 
 (1) WHAT THE INSTRUCTION SAID. The brief I wrote after measuring the defect: "Treat the seat town value `all` as the SHARED/KEEP marker, not a town: a seat whose `town` cell is `all` serves ANY town -> the gate ALLOWS (None) regardless of the round's town. The refusal fires ONLY when BOTH towns are specific and DIFFER ... `all` must be a single named module constant beside the gate with a comment saying it is the Keep's shared marker and NOT a town name."
 
-(2) WHAT THE MACHINE ACTUALLY DOES — re-run by me against the LIVE `.agi/nodes`, not a fixture. season.py:1175 `TOWN_ALL = "all"`; :1208 `if seat_town == TOWN_ALL: return None`. My five live-seat calls: `AGI_SEAT=sanctuary-director` + core round -> None; the same Keep seat + a streaming-suite round -> None; `council-web-app-suite` + core round -> the refusal string naming both towns; `council-core` + core round -> None; `council-streaming-suite` + streaming-suite round -> None. The regression the parent measured on kid 2 (`all` treated as a literal town, refusing every Keep-seat merge) is gone. The kid's own tests: test_season + test_no_literal_town = 51 passed; the fixture now contains a KEEP row with `town: all`, which is the shape it was missing before.
+(2) WHAT THE MACHINE ACTUALLY DOES — re-run by me against the LIVE `.agi/nodes`, not a fixture. season.py:1175 `TOWN_ALL = "all"`; :1208 `if seat_town == TOWN_ALL: return None`. My five live-seat calls: `AGI_[retired]=sanctuary-director` + core round -> None; the same Keep seat + a streaming-suite round -> None; `council-web-app-suite` + core round -> the refusal string naming both towns; `council-core` + core round -> None; `council-streaming-suite` + streaming-suite round -> None. The regression the parent measured on kid 2 (`all` treated as a literal town, refusing every Keep-seat merge) is gone. The kid's own tests: test_season + test_no_literal_town = 51 passed; the fixture now contains a KEEP row with `town: all`, which is the shape it was missing before.
 
 (3) THE NEAR MISS. Skipping the gate entirely when a seat is a Keep seat would also stop the false refusal and would lose the mechanism: a streaming-suite round merged through `council-web-app-suite` MUST still refuse, and that case only survives because the wildcard lives at the SEAT half and the comparison is still made. The other near miss: hardcoding `"all"` inline at the comparison satisfies the words and loses the naming requirement — the constant is what makes the reserved marker greppable and distinct from a town name (goal:g1.24).
 

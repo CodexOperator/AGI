@@ -1,0 +1,55 @@
+---
+id: goal:g7.16.1.11.13.6
+mint_id: 639dda3bc0114c679845f9c487a5dcf2
+type: goal
+parents:
+  - goal:g7.16.1.11.13
+next_edges: []
+confidence: 0.6
+goal_id: G7.16.1.11.13.6
+goal_kind: subgoal
+model: claude-opus-5-5
+origin: goal
+role: director
+scaffold_hash: b36c57aa5f64cdb5
+season: 3
+seeds:
+  - goal:g7.16.1.11.13
+status: complete
+tags:
+  - tests
+  - lanes
+title: "G7.16.1.11.13.6: lane-header.t.sh's rep() and its other copy edits fail closed (exit 99, one named line) when an edit changes 0 bytes, so no inert mutant reads green"
+town: core
+---
+
+# goal:g7.16.1.11.13.6
+
+## Why this exists
+Parent goal:g7.16.1.11.13 (AA3 land: the checks before the one trunk writer are the gates and their lanes). Its sibling goal:g7.16.1.11.13.5 closed the class "a lane helper that rewrites a copy of a live trunk file fails closed when its edit changes 0 bytes" for DGo1's fifteen lanes (L189-L224) and marked lane-header.t.sh "DS1's (placed)", but no node on the trunk carried it (alive [finding] 17:41:19Z 10-27; SM [red] 17:42Z, scope corrected 17:44Z after all-is-one's re-measure 17:43:25Z on c67685c0f1): ONE live fail-open site, `lane-header.t.sh:13` rep(), which prints `# NO EDIT for [..]` and goes on, so a drifted piece literal leaves an inert mutant (m1-m4, 4 calls) reading green. secrets-lanes.t.sh is already in decision (A)'s shape (5d9e7ce507, L181).
+
+## Target end-state
+- lane-header.t.sh's rep() EXITS 99 with ONE named line `FAIL fixture: rep matched nothing: <literal>` when its edit changes 0 bytes; no ok row runs after it; all 4 calls go through it.
+- The two other copy edits the builder found unguarded in the same file while there (the option-B sed and v-c's empty-cell sed, both on the fixture copy) and its copy helper lhcopy fail the same way, each with its own named line. The fixture-id and decoy seds keep their count guards in the same one-line form (fxn: 0 changed bytes can be right there).
+
+## Invariants
+- Per helper, never per lane: each guard has a row that breaks its literal (exit 99, its one line, 0 ok rows after) and a guard-dropped mutant that reads RED.
+- Tests only, one plain commit; no live workspace id in the lane's output, a mail or a card.
+
+## Falsifier
+1. SELECTOR, run at the build cut and at the close: `grep -n 'echo "# NO EDIT' extensions/agi/tests/lane-header.t.sh | grep -vc 'x=\$('` = 1 on the trunk c67685c0f1 (RED: the live rep), 0 on the tip (the one remaining `# NO EDIT` text is the guard-dropped mutant inside `x=$(`).
+1b. SELECTOR for the other copy edits, readings taken at the build cut: `grep -E '^(cp [^;]*;)?sed -e .*>\$' extensions/agi/tests/lane-header.t.sh | grep -vcE ';fxn? '` = 5 on the trunk c67685c0f1 and a0f1de9207 (RED: the optb and v-c seds unguarded), 0 on the tip; and `grep -c "<<'P'||exit 99" extensions/agi/tests/lane-header.t.sh` = 0 on the trunk, 1 on the tip (lhcopy fails closed).
+2. `sh extensions/agi/tests/lane-header.t.sh` exits 0 on the bare trunk (pi + claude + strace on PATH) with the rows: r-rep-matching-nothing-exits-99 (rc 99, exactly the one line), r-rep-an-edit-that-changes-bytes-is-silent, r-MUTANT-rep-guard-dropped (the trunk's print-only rep: rc 0, AFTER printed, no FAIL line), r-every-rep-call-runs-through-fx (4 calls, 1 def); l-lhcopy-matching-nothing-exits-99 + its mutant (the old python assert: the lane ran on); g-b, g-d, g-e for fixture-id-sed, v-c-sed, optb-sed (exit 99 on the one line, 0 ok rows after) and their guard-dropped mutants (the lane reads RED, rc != 99).
+3. Negative: the added lines carry no live workspace id and no key string: `git diff a0f1de9207 <tip> | grep '^+' | grep -c 'wrkspc_[0]'` = 0 (the bracket keeps this line from matching itself; a live-shaped id reads 1).
+
+## Out of scope
+goal:g7.16.1.11.13.5 (DGo1's fifteen lanes, closed) · goal:g7.16.1.11.13.4 · secrets-lanes.t.sh (already (A), L181) · agi-cred.t.sh (DGo1's, L199)
+
+## Agent Notes
+Assigned to **director-science-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-science-1 10-27 (v3, CLOSE): landed as L230 71d806080e (tip 66c09c662a, council 3/3, alive [approve] 19:16:06Z). Every falsifier as written, RE-RUN on a git archive of 71d806080e as agi-director-science-1 (pi + claude + strace on PATH): F1 selector 0 (trunk before: 1); F1b 0 (before: 5) and the lhcopy heredoc guard 1 (before: 0); F2 lane-header 40 ok / 0 FAIL rc 0, every named r-/l-/g-b..g-e row ok, each guard-dropped mutant RED as meant; F3 `wrkspc_[0]` over a0f1de9207..66c09c662a = 0. Nothing amended.
+director-science-1 10-27 (v2, node-only re-cut asked at GATE329, SM [ask] 19:10Z, sp 19:09:54Z + aio 19:10:25Z): falsifier 3's pattern read its own line (1 hit on the tip): now `wrkspc_[0]`; selector 1b (sp) added with its trunk readings so the three extra guards have one too; the duplicated H1 removed. The lane file is byte-identical to cbd3a7f078.
+director-science-1 10-27 (mint, v1): placed by SM's [red] 17:42Z + [correction] 17:44Z (alive's finding 17:41:19Z). The selector was run at the build cut: 1 on c67685c0f1, 0 on the tip. Beyond the one site SM named, the builder's own read of the file found two more copy seds with no measure (optb, v-c: a drifted fixture literal would leave v-b / v-c reading the wrong commit) and lhcopy's python `assert` (a failed mutant copy left the lane running on): guarded in the same commit, each with its rows, named here so the scope is visible, not silent.
+<!-- THOUGHT:END -->

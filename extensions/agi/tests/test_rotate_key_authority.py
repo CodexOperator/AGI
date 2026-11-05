@@ -626,6 +626,8 @@ def test_ef56_refused_authority_push_fails_and_defers_the_swap(tmp_path):
                     "done\n"
                     "exit 0\n")
     os.chmod(hook, 0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     seat_key = bin_send._seat_key_path(g, "aa")
     seat_key.parent.mkdir(parents=True, exist_ok=True)
     seat_key.write_text(_json.dumps({"scheme": "ed25519",

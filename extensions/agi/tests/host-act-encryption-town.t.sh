@@ -2,14 +2,17 @@
 # host-act-encryption-town.t.sh: the REHEARSAL of extensions/agi/guard/host-act-encryption-town.sh (ROOT=<scratch>, no systemd, no root): step 0 + the act + the rollback + the per-post move, on a scratch MAIN holding the REAL geometry. One ok/FAIL line per case; exit = FAIL count. ACT=<script copy> runs a mutant.
 umask 022;T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;R0=$(cd "$(dirname "$0")/../../.." && pwd);ACT=${ACT:-$R0/extensions/agi/guard/host-act-encryption-town.sh};GEO=$R0/.agi/nodes/.geometry
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+# a mutant/fixture edit of a COPY must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
+sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_AUTHOR_NAME GIT_COMMITTER_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_EMAIL;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 mk(){ X=$T/$1;rm -rf $X;mkdir -p $X/data/work/agi/.agi/nodes/.geometry $X/opt/agi/bin $X/etc/systemd/system $X/etc/polkit-1/rules.d $X/usr/local $X/mnt $X/var/lib;M=$X/data/work/agi;cp $GEO/engine*.md $M/.agi/nodes/.geometry/
- { printf '%s\n' '---' 'posts:';printf '  - {"name":"xp","box":"encryption-town","engine":{"v":4,"name":"xp","harness":"pi","model":"m","effort":"low"}}\n  - {"name":"lp","box":"local-town","engine":{"v":4,"name":"lp","harness":"pi","model":"m","effort":"low"}}\n';printf '%s\n' '---';} >$M/.agi/nodes/.geometry/posts.md
+ { printf '%s\n' '---' 'posts:';printf '  - {"name":"xp","box":"encryption-town","engine":{"v":4,"name":"xp","harness":"claude-code","model":"m","effort":"low"}}\n  - {"name":"lp","box":"local-town","engine":{"v":4,"name":"lp","harness":"claude-code","model":"m","effort":"low"}}\n';printf '%s\n' '---';} >$M/.agi/nodes/.geometry/posts.md
  [ -z "$CFG" ]||printf '%s\n' "$CFG">$M/.agi/config.json
  [ -n "$NOCOMMS" ]||{ mkdir -p $M/.agi/comms/season-2/dm;echo x>$M/.agi/comms/season-2/dm/a--b.md;}
  git init -q $M;git -C $M add -A;git -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm fx;PIN=$(git -C $M rev-parse HEAD);printf '#!/bin/sh\n' >$X/opt/agi/bin/pi;chmod +x $X/opt/agi/bin/pi;}
-run(){ ( cd $T;env -i PATH=$PATH HOME=$T ROOT=$X PIN=${PIN} AGI_REPO=/data/work/agi "$@" );}
+run(){ ( cd $T;env -i PATH=$PATH HOME=$T ROOT=$X PIN=${PIN} AGI_REPO=/data/work/agi STUB_X=$X STUB_M=$X/data/work/agi "$@" );}
 # one line per getfacl record, sorted: readdir order differs between filesystems (tmpfs moves .git/index when it is rewritten), the content does not
 acls(){ { getfacl -R -p $X/data/work/agi/.git $X/data/work/agi/.agi/comms;getfacl -p $X/data/work/agi/.agi/sessions;} 2>/dev/null|awk 'BEGIN{RS=""}{gsub(/\n/,"|");print}'|sort;}
 tree(){ (cd $X&&find . -path ./data -prune -o -path ./var/backups -prune -o -print|sort|xargs -I{} stat -c '%a %n' {});}
@@ -88,13 +91,13 @@ ok e4-projection-is-the-hconf-dropin-not-the-wants-link "[ $re4 != 0 ]&&grep -q 
 run env PIN=$PIN2 sh $ACT move 'bad name'>/dev/null 2>$T/e3.err;ok e3-a-bad-post-name-is-refused "[ \$? != 0 ]"
 # ---- S2a (goal:g7.16.1.11.44.8, council 09:20Z 10-16): the act lives in `agi.sh host`; the old script's `act` is ONE delegating line. Each row has its mutant (one edit on the code under test; the row passes only when the clean property BREAKS) ----
 AGI=${AGI:-$R0/extensions/agi/bin/agi.sh}
-rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for [$1]";}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&{ echo "FAIL fixture: rep matched nothing: $1";exit 99;};}
 backups(){ ls -d $X/var/backups/agi-act-* 2>/dev/null|wc -l|tr -d ' ';}
 # the `act)` branch of the old script (condition 1): exactly the one exec line, no step of its own left in it
 onebranch(){ b=$(sed -n '/^act)/,/^move)/p' $1|sed '$d');[ "$(echo "$b"|wc -l|tr -d ' ')" = 1 ]&&echo "$b"|grep -qx 'act)exec sh "$(dirname "$0")/../bin/agi.sh" host;;'&&! echo "$b"|grep -q 'setfacl\|install\|put\|systemctl\|printf\|mkdir';}
 unitread(){ env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory $(grep '^GIT_CONFIG_VALUE_0=' $X/etc/agi/carry.env 2>/dev/null) git config --get safe.directory 2>/dev/null;}
 ok k1-the-old-act-branch-is-one-exec-line-and-no-step-of-its-own "onebranch $ACT"
-sed '/^act)/a setfacl -m g:x:rwx /nonexistent' $ACT>$T/act.mut;cmp -s $ACT $T/act.mut&&echo "# NO EDIT in the act mutant"
+sed '/^act)/a setfacl -m g:x:rwx /nonexistent' $ACT>$T/act.mut;chg $ACT $T/act.mut "the act mutant"
 ok k1-mutant-an-act-branch-that-runs-its-own-step-is-RED "! onebranch $T/act.mut"
 mk k;run sh $AGI host>$T/k.out 2>$T/k.err;rk=$?
 ok k2-carry-env-keeps-GIT_CONFIG_VALUE_0-and-the-stub-unit-read-prints-the-repo "[ $rk = 0 ]&&grep -qx 'GIT_CONFIG_VALUE_0=/data/work/agi' $X/etc/agi/carry.env&&[ \"\$(unitread)\" = /data/work/agi ]"
@@ -110,7 +113,7 @@ mk q;run sh $AGI host>/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;run
 ok k3-a-drifted-piece-is-not-met-and-is-restored "[ $rq = 0 ]&&! grep -qx 'host: met' $T/q.out&&[ $(backups) = 2 ]&&sect sect|cmp -s - $X/opt/agi/bin/sect"
 mk q;run sh $AGI host>/dev/null 2>&1;setfacl -x g:$GG $X/data/work/agi/.agi/sessions/inbox;sleep 1;run sh $AGI host>$T/q2.out 2>&1;rq2=$?
 ok k3-a-removed-inbox-acl-is-not-met-and-is-restored "[ $rq2 = 0 ]&&! grep -qx 'host: met' $T/q2.out&&getfacl -p $X/data/work/agi/.agi/sessions/inbox 2>/dev/null|grep -qx \"group:$GG:rwx\""
-mk q;run sh $AGI host>/dev/null 2>&1;sed -i 's/^MemoryMax=6G/MemoryMax=9G/' $X/etc/systemd/system/agi.slice;sleep 1;run sh $AGI host>$T/q3.out 2>&1
+mk q;run sh $AGI host>/dev/null 2>&1;sedc 's/^MemoryMax=6G/MemoryMax=9G/' $X/etc/systemd/system/agi.slice "the slice MemoryMax edit";sleep 1;run sh $AGI host>$T/q3.out 2>&1
 ok k3-an-edited-slice-is-not-met-and-is-restored "grep -qx 'MemoryMax=6G' $X/etc/systemd/system/agi.slice&&! grep -qx 'host: met' $T/q3.out"
 # the hub's fetch timer: enabled only when the cell is true at the pin (default false)
 ok k4-cell-absent-no-enable-line "! grep -q 'rehearsal: systemctl enable --now agi-carry-fetch.timer' $T/m1.out"
@@ -124,8 +127,25 @@ ok k5-agi-sh-host-refuses-a-bad-pin-by-name "[ $rr != 0 ]&&grep -q 'PIN must be'
 ok k6-the-row-is-in-the-matrix-and-the-act-writes-no-sudoers "sect matrix|grep -qP '^town\\tstart\\tmain host posts crons units blast\\tagi.sh\$'&&[ ! -e $X/etc/sudoers.d ]&&! sed -n '/^up_host()/,/^);}\$/p' $AGI|grep -q 'sudoers\\|visudo'"
 # ---- council RETURN R1 (11:22Z 10-16): a FAILED act must not re-run as "host: met". /etc/agi/host.done = the PIN is the act's LAST write (cleared before its first); hostmet requires it; stop never touches it.
 # AGI_HOST_UNITS=<stub dir> makes the rehearsal run the live tail (verify, daemon-reload, timer, enable agi-boot: ENABLE only, council 10-21 (2)) against these stubs.
-SHD=$T/shd;mkdir -p $SHD;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze;printf '#!/bin/sh\necho "$*">>$STUB_LOG\ncase $1 in is-enabled)case $2 in agi-carry-fetch.timer)echo "${STUB_IS_T-enabled}";exit ${STUB_IS_T_RC:-0};;esac;echo "${STUB_IS-enabled}";exit ${STUB_IS_RC:-0};;esac\n[ "$STUB_FAIL" = "$1" ]&&exit 1;exit 0\n' >$SHD/systemctl;chmod +x $SHD/*
-hu(){ run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log STUB_FAIL=$1 sh ${2:-$AGI} host;}
+# council 17:58Z 10-21: agi-project.path never runs on the box, so `start agi-project.service` is the ONLY projection. The stubs' `proj` helper runs the REAL agi-project piece of carry.env's pin the way the unit's ExecStart does, into $STUB_X/run/systemd/system; STUB_NOPROJ=1 = a start that returns 0 and projects nothing
+PROJ='#!/bin/sh
+[ -z "$STUB_NEEDUNIT" ]||[ -e $STUB_X/run/systemd/system/agi-project.service ]||{ echo "Unit agi-project.service not found." >&2;exit 5;}
+[ -z "$STUB_NOPROJ" ]||exit 0
+pin=$(sed -n "s/^AGI_TRUNK=//p" $STUB_X/etc/agi/carry.env 2>/dev/null);[ -n "$pin" ]||exit 1;U=$STUB_X/run/systemd/system;mkdir -p $U;f=$(mktemp)||exit 1
+git -C $STUB_M ls-tree --full-tree --name-only $pin .agi/nodes/.geometry/|grep "/engine[^/]*\.md\$"|sed "s|^|$pin:|"|git -C $STUB_M cat-file --batch --follow-symlinks|sed -n "/^###* agi-project /,/^###* /{/^~~~/,/^~~~/{//!p}}">$f;[ -s $f ]||{ rm -f $f;exit 1;}
+(cd $STUB_M&&AGI_BOX=${STUB_BOX:-encryption-town} sh $f $U $pin);r=$?;rm -f $f;exit $r'
+SHD=$T/shd;mkdir -p $SHD;printf '%s\n' "$PROJ" >$SHD/proj;printf '#!/bin/sh\n[ "$STUB_FAIL" = verify ]&&exit 1;exit 0\n' >$SHD/systemd-analyze
+cat >$SHD/systemctl <<'XEOF'
+#!/bin/sh
+pin=;[ "$1 $2" = "start agi-project.service" ]&&pin=" pin=$(sed -n 's/^AGI_TRUNK=//p' $STUB_X/etc/agi/carry.env 2>/dev/null)"
+echo "$*$pin">>$STUB_LOG
+case $1 in is-enabled)case $2 in agi-carry-fetch.timer)echo "${STUB_IS_T-enabled}";exit ${STUB_IS_T_RC:-0};;esac;echo "${STUB_IS-enabled}";exit ${STUB_IS_RC:-0};;esac
+[ "$STUB_FAIL" = "$1" ]&&exit 1
+[ "$1 $2" = "start agi-project.service" ]&&{ sh "$(dirname "$0")/proj"||exit 1;}
+exit 0
+XEOF
+chmod +x $SHD/*
+hu(){ run env PATH=$SHD:$PATH AGI_HOST_UNITS=$SHD AGI_TOWN_STATE=$T/ts STUB_LOG=$T/sc.log STUB_FAIL=$1 STUB_NOPROJ=$NOPROJ STUB_NEEDUNIT=$NEEDUNIT sh ${2:-$AGI} host;}
 HD=etc/agi/host.done
 mk s;: >$T/sc.log;hu "">$T/s1.out 2>&1;rs1=$?
 ok r1-a-completed-act-writes-host-done-pin-mode-644-and-runs-the-tail-enabling-agi-boot-without-starting-it "[ $rs1 = 0 ]&&[ \"\$(cat $X/$HD)\" = $PIN ]&&[ \$(stat -c %a $X/$HD) = 644 ]&&grep -qx 'daemon-reload' $T/sc.log&&grep -qx 'enable agi-boot.service' $T/sc.log&&! grep -q 'start agi-boot.service' $T/sc.log&&! grep -q 'carry-fetch' $T/sc.log"
@@ -142,7 +162,7 @@ ok r1-c-a-marker-holding-another-pin-is-not-met "! grep -qx 'host: met' $T/u4.ou
 mk u;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "">/dev/null 2>&1;sh $(ls -d $X/var/backups/agi-act-*|tail -1)/rollback.sh>/dev/null 2>&1
 ok r1-c-the-rollback-of-a-re-run-restores-the-old-marker "[ \"\$(cat $X/$HD)\" = $PIN ]"
 # MUTANTS: each is one edit on agi.sh, and the clean row above must BREAK
-rep '&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]' '';mk t;hu verify $T/mut.sh>/dev/null 2>&1;sleep 1;hu "" $T/mut.sh>$T/m1.out 2>&1
+rep '&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]' '';mk t;hu enable $T/mut.sh>/dev/null 2>&1;sleep 1;hu "" $T/mut.sh>$T/m1.out 2>&1   # a failed act that got past the projection (since 17:58Z a verify failure leaves nothing projected, so projmet alone would say not met)
 ok r1-mutant-hostmet-without-host-done-says-met-after-a-failed-act-is-RED "grep -qx 'host: met' $T/m1.out"
 rep 'rm -f $R/etc/agi/host.done||exit 1' ':';mk u;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu enable $T/mut.sh>/dev/null 2>&1;sleep 1;hu "" $T/mut.sh>$T/m2.out 2>&1
 ok r1-mutant-an-old-marker-kept-through-a-dying-re-run-says-met-RED "grep -qx 'host: met' $T/m2.out"
@@ -150,7 +170,7 @@ rep 'printf '"'"'%s\n'"'"' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.
 ok r1-mutant-no-host-done-write-never-becomes-met-RED "[ ! -e $X/$HD ]&&! grep -qx 'host: met' $T/m3b.out"
 # stop never touches it: every host.done in agi.sh sits inside up_host
 ok r1-stop-never-touches-host-done "[ \$(grep -v '^#' $AGI|grep -c 'host[.]done') -gt 0 ]&&[ \$(awk '/^up_host\\(\\)/{i=1}/^ck_host\\(\\)/{i=0}i&&/host[.]done/&&!/^#/{n++}END{print n+0}' $AGI) = \$(grep -v '^#' $AGI|grep -c 'host[.]done') ]"
-sed 's|^dn_host(){ return 0;}|dn_host(){ rm -f /etc/agi/host.done;}|' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for dn_host mutant"
+sed 's|^dn_host(){ return 0;}|dn_host(){ rm -f /etc/agi/host.done;}|' $AGI>$T/mut.sh;chg $AGI $T/mut.sh "the dn_host mutant"
 ok r1-mutant-dn_host-removing-it-is-RED "! [ \$(awk '/^up_host\\(\\)/{i=1}/^ck_host\\(\\)/{i=0}i&&/host[.]done/&&!/^#/{n++}END{print n+0}' $T/mut.sh) = \$(grep -v '^#' $T/mut.sh|grep -c 'host[.]done') ]"
 # the timer on the live tail: a cell true enables it, false does not (the stub log)
 CFG='{"values":{"local_maxxing":{"agi_town":{"carry_fetch":true}}}}';mk n;CFG=;: >$T/sc.log;hu "">/dev/null 2>&1
@@ -199,13 +219,14 @@ cat >$SHS/systemctl <<'EOF'
 #!/bin/sh
 echo "$*">>$STUB_LOG;E=$STUB_EN;touch $E
 case $1 in
+start)[ "$2" = agi-project.service ]&&{ sh "$(dirname "$0")/proj"||exit 1;};;
 is-enabled)grep -qx "$2" $E&&{ echo enabled;exit 0;};echo ${STUB_WORD:-disabled};exit 1;;
 enable)shift;[ "$1" = --now ]&&shift;case ",$STUB_NOOP," in *,$1,*)exit 0;;esac;echo "$1">>$E;;
 disable)grep -vxF "$2" $E>$E.n;mv $E.n $E;;
 esac
 exit 0
 EOF
-chmod +x $SHS/*
+printf '%s\n' "$PROJ" >$SHS/proj;chmod +x $SHS/*
 sx(){ run env PATH=$SHS:$PATH AGI_HOST_UNITS=$SHS AGI_TOWN_STATE=$T/ts2 STUB_LOG=$T/sl.log STUB_EN=$T/en STUB_WORD=${WORD:-disabled} sh ${1:-$AGI} host $2;}
 # the stop's own arms, as agi.sh stop does them: posts arm = `systemctl disable agi-boot.service`; units arm = disable the recorded `enabled` unit; town.state written FIRST (the stopped line LAST)
 stopsim(){ printf 'boot enabled\nunit agi-carry-fetch.timer enabled\nstopped encryption-town 2026-10-21T00:00:00Z\n'>$T/ts2;$SHS/systemctl disable agi-boot.service;$SHS/systemctl disable agi-carry-fetch.timer;}
@@ -219,4 +240,54 @@ ok r2-mutant-masked-accepted-while-stopped-is-RED "grep -qx 'host: met' $T/f4.ou
 mk f;rm -f $T/en;printf 'stopped x y\n'>$T/ts2;: >$T/sl.log;sx >/dev/null 2>&1;sleep 1;WORD=masked sx >$T/f5.out 2>&1
 ok r2-stub-masked-on-a-stopped-town-is-NOT-met "! grep -qx 'host: met' $T/f5.out"
 rm -f $T/ts2
+# ---- council 17:58Z 10-21 (3): `host: met` was a FALSE GREEN while /run held an older pin's projection (agi-project.path never ran on the box). The act's tail now STARTS agi-project.service after the carry.env write,
+# and hostmet reads the live projection (agi-users.conf bytes + the agi-post@* wants links) against the pin's OWN, built by the pinned piece. The stubs' `proj` runs the real piece; STUB_NOPROJ=1 = a start that returns 0 and projects nothing.
+NOPROJ=;NEEDUNIT=
+pj_commit(){ git -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qam "$1";git -C $M rev-parse HEAD;}
+pj_row(){ sed -i '/"name":"lp"/a\  - {"name":"zp","box":"encryption-town","boot":true,"engine":{"v":4,"name":"zp","harness":"claude-code","model":"m","effort":"low"}}' $M/.agi/nodes/.geometry/posts.md;}
+mk p;: >$T/sc.log;hu "">$T/p1.out 2>&1;rp1=$?
+ok p1-the-act-starts-agi-project-after-the-carry-env-write-and-the-run-projection-is-the-pins "[ $rp1 = 0 ]&&grep -qx 'start agi-project.service pin=$PIN' $T/sc.log&&grep -q 'agi-xp' $X/run/systemd/system/agi-users.conf&&! grep -q 'agi-lp' $X/run/systemd/system/agi-users.conf&&[ \"\$(grep -B1 -x 'start agi-project.service pin=$PIN' $T/sc.log|head -1)\" = 'daemon-reload' ]"
+# the false green: the pin moves to B and the start returns 0 WITHOUT projecting; host.done = B, carry.env = B, /run is still A's
+PA=$PIN;pj_row;PB=$(pj_commit zp);PIN=$PB;sleep 1;NOPROJ=1;hu "">$T/p2a.out 2>&1;NOPROJ=;sleep 1;hu "">$T/p2b.out 2>&1;rp2b=$?;sleep 1;hu "">$T/p2c.out 2>&1
+ok p2-carry-env-at-the-pin-but-run-from-an-older-pin-is-NOT-met-and-the-re-act-projects "! grep -qx 'host: met' $T/p2b.out&&[ $rp2b = 0 ]&&[ \$(backups) = 3 ]&&grep -q 'agi-zp' $X/run/systemd/system/agi-users.conf&&[ -L $X/run/systemd/system/multi-user.target.wants/agi-post@zp.service ]&&grep -qx 'host: met' $T/p2c.out"
+# MUTANT: hostmet without the projection read says met at the older pin's projection
+rep '&&aclmet&&projmet;}' '&&aclmet;}';mk p;hu "">/dev/null 2>&1;pj_row;PIN=$(pj_commit zp);sleep 1;NOPROJ=1;hu "" $T/mut.sh>/dev/null 2>&1;NOPROJ=;sleep 1;hu "" $T/mut.sh>$T/p3.out 2>&1
+ok p3-mutant-hostmet-without-the-projection-read-says-met-at-an-older-pins-run-is-RED "grep -qx 'host: met' $T/p3.out&&! grep -q 'agi-zp' $X/run/systemd/system/agi-users.conf"
+# drift in the live projection: an extra user line, then a stale wants link
+mk q;hu "">/dev/null 2>&1;printf 'u agi-ghost - - -\n'>>$X/run/systemd/system/agi-users.conf;sleep 1;hu "">$T/p4a.out 2>&1;sleep 1;hu "">$T/p4b.out 2>&1
+ok p4-an-extra-user-line-in-the-live-agi-users-conf-is-NOT-met-and-is-re-projected "! grep -qx 'host: met' $T/p4a.out&&! grep -q ghost $X/run/systemd/system/agi-users.conf&&grep -qx 'host: met' $T/p4b.out"
+mk q;hu "">/dev/null 2>&1;mkdir -p $X/run/systemd/system/multi-user.target.wants;ln -s ../agi-post@.service $X/run/systemd/system/multi-user.target.wants/agi-post@ghost.service;sleep 1;hu "">$T/p4c.out 2>&1
+ok p4-a-stale-agi-post-wants-link-in-run-is-NOT-met-and-is-removed "! grep -qx 'host: met' $T/p4c.out&&[ ! -e $X/run/systemd/system/multi-user.target.wants/agi-post@ghost.service ]"
+# MUTANT: a tail that never starts the projection (the else arm). On a box that HAS the unit (so the fresh-box fallback stays out) the pin moves, /run stays the old pin's, and the next run is not met
+rep '{ systemctl start agi-project.service||die "$PJ";}&&tm' 'tm';mk r;hu "">/dev/null 2>&1;pj_row;PIN=$(pj_commit zp);sleep 1;: >$T/sc.log;hu "" $T/mut.sh>$T/p5a.out 2>&1;n5=$(grep -c 'start agi-project.service' $T/sc.log);z5=$(grep -c 'agi-zp' $X/run/systemd/system/agi-users.conf);sleep 1;hu "">$T/p5.out 2>&1
+ok p5-mutant-a-tail-that-never-starts-agi-project-is-RED "[ $n5 = 0 ]&&[ $z5 = 0 ]&&! grep -qx 'host: met' $T/p5.out"
+# a failing start dies by name with the rollback line and leaves no host.done
+mk s;: >$T/sc.log;hu start>$T/p6.out 2>$T/p6.err;rp6=$?
+ok p6-a-failing-projection-start-dies-naming-it-with-the-rollback-line-and-no-marker "[ $rp6 != 0 ]&&grep -q 'agi-project.service did not run at $PIN' $T/p6.err&&grep -q 'rollback.sh' $T/p6.err&&[ ! -e $X/$HD ]"
+# ---- council 19:46Z 10-21 FRESH-BOX DEADLOCK: a box whose agi-boot never ran has no agi-project.service in /run, so the explicit start dies, a re-run dies the same way and a reboot does not help (agi-boot is installed by this act but not enabled).
+# STUB_NEEDUNIT=1 makes the stub start answer like systemd for a missing unit. The tail runs the SAME pinned piece into /run when the unit is absent (one code, two callers).
+mk w;: >$T/sc.log;NEEDUNIT=1;hu "">$T/f1.out 2>$T/f1.err;rf1=$?;sleep 1;hu "">$T/f1b.out 2>&1;NEEDUNIT=
+ok f1-a-fresh-box-act-completes-writes-the-unit-and-the-second-run-is-met "[ $rf1 = 0 ]&&[ -e $X/run/systemd/system/agi-project.service ]&&grep -q 'agi-xp' $X/run/systemd/system/agi-users.conf&&[ -s $X/$HD ]&&grep -qx 'host: met' $T/f1b.out&&[ \$(backups) = 1 ]"
+rep 'fresh(){ [ -e $R/run/systemd/system/agi-project.service ]&&return 0;' 'fresh(){ return 0;';mk w;: >$T/sc.log;NEEDUNIT=1;hu "" $T/mut.sh>$T/f2.out 2>$T/f2.err;rf2=$?;NEEDUNIT=
+ok f2-mutant-the-tail-without-the-fresh-box-fallback-dies-at-the-start-RED "[ $rf2 != 0 ]&&grep -q 'agi-project.service did not run at $PIN' $T/f2.err&&[ ! -e $X/$HD ]"
+mk w;sedc '/^### agi-project /,/^### /s|^#!/bin/sh$|#!/bin/sh\nexit 4|' $M/.agi/nodes/.geometry/engine.md "the broken agi-project piece";PIN=$(pj_commit brokenpiece);: >$T/sc.log;NEEDUNIT=1;hu "">$T/f3.out 2>$T/f3.err;rf3=$?;NEEDUNIT=
+ok f3-a-pinned-piece-that-itself-fails-dies-by-name-with-the-rollback-line-and-no-marker "[ $rf3 != 0 ]&&grep -q 'the pinned agi-project piece failed at $PIN' $T/f3.err&&grep -q 'rollback.sh' $T/f3.err&&[ ! -e $X/$HD ]&&! grep -q 'start agi-project' $T/sc.log"
+# G3 20:00Z 10-21: the backup step of a re-run (every file present, so NO $B/absent) printed `agi.sh: 170: cannot open .../absent` on stderr beside "0 absent files": the shell reports a failed `<file` before the command's own 2>/dev/null applies
+mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "">$T/g1.out 2>$T/g1.err
+ok g1-the-backup-step-of-a-re-run-with-0-absent-files-says-so-and-prints-nothing-on-stderr "grep -q ' 0 absent files' $T/g1.out&&! grep -q 'cannot open' $T/g1.err"
+rep '$(cat $B/absent 2>/dev/null|wc -l|tr -d " ") absent files' '$(wc -l <$B/absent 2>/dev/null||echo 0) absent files';mk g;hu "">/dev/null 2>&1;echo drift>>$X/opt/agi/bin/sect;sleep 1;hu "" $T/mut.sh>$T/g2.out 2>$T/g2.err
+ok g2-mutant-the-old-redirect-prints-cannot-open-on-stderr-RED "grep -q 'cannot open' $T/g2.err"
+# r3/r4 (the census, council (A)): rep, chg and sedc EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it
+x=$(rep 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok rep-a-matchless-anchor-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: rep matched nothing: NO-SUCH-ANCHOR-XYZ" ]'
+x=$(rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $AGI>$T/mut.sh;cmp -s $AGI $T/mut.sh&&echo "# NO EDIT for [$1]";};rep 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok rep-mutant-the-guard-dropped-is-RED '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: rep"&&echo "$x"|grep -qx AFTER'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok chg-a-matchless-edit-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok chg-an-edit-that-changed-bytes-is-silent '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf 'a\n' >$T/c1;x=$(sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo AFTER);rc=$?
+ok sedc-a-sed-i-that-matches-nothing-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted sed -i" ]'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo AFTER);rc=$?
+ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
 echo "host-act-encryption-town: $f FAIL";exit $f

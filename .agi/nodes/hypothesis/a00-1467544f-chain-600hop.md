@@ -28,3 +28,7 @@ title: "Hypothesis: Extend 6 chains from 502 to 600 hops"
 6 chains extended from 502 to 600 hops. Formula hops=2*cycle+8 verified at cycle 296. 20 chains total, 274 tests pass.
 
 **Deviation, 2026-08-27.** This node carried `verdict: proved` in its own frontmatter. `[hypothesis].md` declares no `verdict` field, and `metrics.py` reads `verdict:` on *any* node — so the duplicate registered as an unevidenced decisive verdict and was the sole contributor to `unevidenced_decisive_verdicts=1`. The judgement is unchanged and lives where it belongs: `verdict:a00-1467544f-chain-600hop`, `proved`, backed by `exp:a00-1467544f-chain-600hop`. Only the duplicate was removed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-27 GHOST MINT (goal:g7.16.1.11.46.16.3; census --orphans double-mint): this id is also carried by the grid ref hyp/a00-1467544f-chain-600hop, ONE version (08-22) under the MALFORMED ref name refs/grid/node/hyp/a00-1467544f-chain-600hop (not a 32-hex mint), adopted from origin by unify; this node's own mint carries every edit: counted as one of the ten double mints, nothing renamed or deleted.
+<!-- THOUGHT:END -->

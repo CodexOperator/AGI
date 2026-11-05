@@ -187,7 +187,7 @@ DIRECTOR (numstat self-reference): measure `git diff --numstat 42b212b06 <tip BE
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_send_dm_read_and_nudge.py test_box_identity.py test_box_guard.py test_send.py + test_bin_help_smoke.py once (timeout 900, --basetemp under a fresh mktemp -d, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT); tmp repos only; never a live pane, seat, worktree or real mint
+TESTS     test_send_dm_read_and_nudge.py test_box_identity.py test_box_guard.py test_send.py + test_bin_help_smoke.py once (timeout 900, --basetemp under a fresh mktemp -d, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired]); tmp repos only; never a live pane, seat, worktree or real mint
 FILE SCOPE extensions/agi/tests/test_send_dm_read_and_nudge.py · extensions/agi/bin/send.py (the --box-local read branch ONLY, if item 2 finds the defect there) · the kid's own node
 CEILING   HARD CAP: 1 kid · <= 10 production lines net over 42b212b06 · <= 12 test lines net over 42b212b06 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)

@@ -17,7 +17,7 @@ town: core
 # hypothesis:a-test-that-writes-a-project-root-resolves-it-from-tmp-path-never-from-inherited-agi-env
 
 ## Measured
-- 05:03Z 09-28, director-engine post worktree: a pytest run from a shell carrying the seat's AGI_POST / AGI_SEAT left (a) `.agi/config.json` rewritten -- workflows.review / drafting / deep-search `provider: pi-free` -> PAID `pi`, a `drafting.model` deepseek slug added, a `mint.storage_categories` block added -- and (b) a `.agi/nodes/nodes` self-loop. thought-master verified it contained, 0 spend (TMM.322).
+- 05:03Z 09-28, director-engine post worktree: a pytest run from a shell carrying the seat's AGI_POST / AGI_[retired] left (a) `.agi/config.json` rewritten -- workflows.review / drafting / deep-search `provider: pi-free` -> PAID `pi`, a `drafting.model` deepseek slug added, a `mint.storage_categories` block added -- and (b) a `.agi/nodes/nodes` self-loop. thought-master verified it contained, 0 spend (TMM.322).
 - The leaked bytes are NOT a fixture literal: `git grep storage_categories -- extensions/` is empty at 230bf04de, so a test wrote an OLDER / FOREIGN config version over the live tree instead of into its tmp_path.
 - Detached systemd units carry no AGI_* (`systemctl --user show-environment` has none); a seat's interactive shell does -- the leak needs the inherited env.
 
@@ -25,7 +25,7 @@ town: core
 The test that wrote it is NAMED (file::test, reproduced in a scratch tmpfs worktree with a dummy AGI_* env, the transcript pasted), and fixed so that a test which writes a project root (config.json, nodes/) resolves that root from tmp_path -- never from inherited AGI_* env, cwd, or a git ref of the live tree. Re-running the named test under the same dummy env leaves the scratch tree byte-identical (git status empty).
 
 ## Dispatch line
-config-max: none (no cell carries a test's root) · template-max: the TESTS line of every brief already scrubs AGI_POST/AGI_SEAT (TMM.322) -- keep, cite · code: the named test's (or its fixture's) root resolution -- the only code.
+config-max: none (no cell carries a test's root) · template-max: the TESTS line of every brief already scrubs AGI_POST/AGI_[retired] (TMM.322) -- keep, cite · code: the named test's (or its fixture's) root resolution -- the only code.
 
 ## FALSIFIERS
 - no test reproduces the write under a dummy AGI_* env in a scratch worktree (then say so with the transcript, and name the next suspect: a non-test writer);
@@ -33,7 +33,7 @@ config-max: none (no cell carries a test's root) · template-max: the TESTS line
 - the fix changes a production resolver's behaviour for a real seat.
 
 ## TESTS
-The named test file + its neighbourhood + test_bin_help_smoke.py, run ONLY in a scratch worktree under /dev/shm (git worktree add --detach), TMPDIR + --basetemp under /dev/shm, with a DUMMY AGI_POST/AGI_SEAT (never a live post name); never in a post worktree or MAIN.
+The named test file + its neighbourhood + test_bin_help_smoke.py, run ONLY in a scratch worktree under /dev/shm (git worktree add --detach), TMPDIR + --basetemp under /dev/shm, with a DUMMY AGI_POST/AGI_[retired] (never a live post name); never in a post worktree or MAIN.
 
 ## FILE SCOPE
 The named test file and, only if the root resolution lives there, its conftest/fixture · the kid's own node. No production file without naming it OUTSIDE first.

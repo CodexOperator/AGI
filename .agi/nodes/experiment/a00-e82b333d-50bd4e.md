@@ -13,7 +13,7 @@ line_ceiling: 30
 loop: hypothesis:l4-sm48-integration-residue-merge-up-stamps-the-caller-unpushed-gate-scoped-card-mtime-floor-no-tier-caveat-unmeasurable-label-dead-stops-rotation@s2
 model: ~deepseek/deepseek-v4-flash-latest
 probes:
-  - "P4(env/auth): env_seat with AGI_SEAT=sensei-director + AGI_AGENT_ID=a00-x -> no-tier=a00-x, kid=a00-x, parent=a00-x, director=sensei-director, prime_director=sensei-director; the no-tier director shape stamps a clock no seat gate reads (caveat now named in the SM.48b node). P5(wire+gate): grepped every reader of the check-4 label -- rotation_alert.py:671 uses startswith (survives the suffix); the two exact-equality test filters only ever hit the measured cases (_last_ts not None) so the suffix cannot break them; source contains the unmeasured arm and the measured/BLOCK labels stay byte-identical. P6(gate): inspect.signature(_prepare_checks) == [root, seat, perform]; calling with stops_rotation=True raises TypeError; grep finds no residual stops_rotation outside the retirement docstring and the test file; _stops_has still referenced twice in rotate.py. Ran: <home>/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/iter-SM.68/a00-a6135607/parent_probe_kid2.py -> ALL PARENT PROBES PASSED; plus a regression run of test_last_act + test_rotate_prepare + test_rotate_verb + test_rotate -> 399 passed."
+  - "P4(env/auth): env_seat with AGI_[retired]=sensei-director + AGI_AGENT_ID=a00-x -> no-tier=a00-x, kid=a00-x, parent=a00-x, director=sensei-director, prime_director=sensei-director; the no-tier director shape stamps a clock no seat gate reads (caveat now named in the SM.48b node). P5(wire+gate): grepped every reader of the check-4 label -- rotation_alert.py:671 uses startswith (survives the suffix); the two exact-equality test filters only ever hit the measured cases (_last_ts not None) so the suffix cannot break them; source contains the unmeasured arm and the measured/BLOCK labels stay byte-identical. P6(gate): inspect.signature(_prepare_checks) == [root, seat, perform]; calling with stops_rotation=True raises TypeError; grep finds no residual stops_rotation outside the retirement docstring and the test file; _stops_has still referenced twice in rotate.py. Ran: <home>/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/iter-SM.68/a00-a6135607/parent_probe_kid2.py -> ALL PARENT PROBES PASSED; plus a regression run of test_last_act + test_rotate_prepare + test_rotate_verb + test_rotate -> 399 passed."
 production_lines: 21
 profile: balanced
 push_further: "Re-run at this node: audit rotation_alert.py and any other reader that keys on check 4's label for a substring that the new '(unmeasured: no own act)' suffix could silently satisfy (startswith survives, but an equality/complement test would not); and probe whether any real dispatch path spawns a director without AGI_TIER."
@@ -39,7 +39,7 @@ Pre-fix probe (all three items, one script):
 
 ### Item 4 — the SM.48b no-`AGI_TIER` caveat was missing
 
-**Pre-fix measurement:** `AGI_SEAT=sensei-director AGI_AGENT_ID=a00-x` with NO
+**Pre-fix measurement:** `AGI_[retired]=sensei-director AGI_AGENT_ID=a00-x` with NO
 `AGI_TIER` resolved `env_seat()` to `'a00-x'` (the agent id), and so did
 `AGI_TIER=kid`; only `AGI_TIER=director` resolved `'sensei-director'`. The
 hypothesis node documented only the tier-present arms, so a director-tier

@@ -38,7 +38,7 @@ Owner, verbatim (11), Belam-only: "...may ask their predecessor for input... and
 
 ## DESIGN
 
-`seats.md`'s `belam` row is per-seat class config, not per-rotation state — no field goes there. `.meter` is one line, a transcript path (`_read_pin_target` strips the file as one path); a second line breaks it silently. `.predecessor` is a new sibling, same family as `.log`/`.head.md`/`.seed.md`. `--chain`'s live enumeration is authoritative and free; `.predecessor` is a durability record for once a link's window is gone. `ask-predecessor` requires `--as` — no reliable identity exists for a remote-control prime today (`AGI_SEAT`/`AGI_AGENT_ID` are never exported into the tmux launch line). Recursion needs no new code: every Belam reads this same rule at spawn, so an idling IV can `ask-predecessor` III on V's behalf.
+`seats.md`'s `belam` row is per-seat class config, not per-rotation state — no field goes there. `.meter` is one line, a transcript path (`_read_pin_target` strips the file as one path); a second line breaks it silently. `.predecessor` is a new sibling, same family as `.log`/`.head.md`/`.seed.md`. `--chain`'s live enumeration is authoritative and free; `.predecessor` is a durability record for once a link's window is gone. `ask-predecessor` requires `--as` — no reliable identity exists for a remote-control prime today (`AGI_[retired]`/`AGI_AGENT_ID` are never exported into the tmux launch line). Recursion needs no new code: every Belam reads this same rule at spawn, so an idling IV can `ask-predecessor` III on V's behalf.
 
 ## TESTS (red-first)
 

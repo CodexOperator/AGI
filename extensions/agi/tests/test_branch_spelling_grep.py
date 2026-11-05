@@ -121,6 +121,17 @@ PINNED = {
         'season2/m',
         'season2/m',
     ],
+    # reader_census.py (goal:g7.16.1.11.46.18 slice (b), L265; route (a) RE-PIN, council 3/3 alive [decision] 15:53:35Z 10-28): the census's
+    # own MATCH PATTERNS (docstring, LITERAL, NAMES) -- a classifier that resolves no branch by them, NOT a resolver and NOT the frozen debt
+    # the docstring lists. Exact multiset: a new pattern line trips this again; dropping this entry is its own mutant (the 2 reds of L265).
+    'reader_census.py': [
+        'season/s3',
+        'season/s3',
+        'season/s3',
+        'season3/m',
+        'season3/m',
+        'season3/m',
+    ],
     'season.py': [
         'season/s<N',
         'season/s<N',

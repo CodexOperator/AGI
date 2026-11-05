@@ -41,7 +41,7 @@ read->Read, edit->Edit, write->Write) so CC matchers work unchanged.
 | SubagentStop | — | — | pi has no built-in subagent; not exposed (named, not faked) | — |
 | PreCompact | `session_before_compact` | none configured | run; payload `trigger:"auto"` | harness: logged `PreCompact` |
 | SessionEnd | `session_shutdown` | none configured (the flush is the unit's ExecStopPost, harness-independent) | run; payload `reason:"other"` | harness: logged `SessionEnd` |
-| (no CC hook) mail | `fs.watchFile` on `$O/.agi/sessions/inbox/$AGI_SEAT.md` | — | the inbox file GROWS -> `pi.sendUserMessage("mail: send.py read <post>", {deliverAs:"followUp"})`: a turn after the current one, never an interrupt; a same-size rewrite (send.py moving its read marker) does not fire; `unwatchFile` first so a /new or reload never doubles it | harness: one append -> exactly 1 followUp message; same-size rewrite -> 0; real pi: the third provider attempt in the pty run is the extension's (`Extension "<runtime>" error: No API key ...`) |
+| (no CC hook) mail | `fs.watchFile` on `$O/.agi/sessions/inbox/$AGI_[retired].md` | — | the inbox file GROWS -> `pi.sendUserMessage("mail: send.py read <post>", {deliverAs:"followUp"})`: a turn after the current one, never an interrupt; a same-size rewrite (send.py moving its read marker) does not fire; `unwatchFile` first so a /new or reload never doubles it | harness: one append -> exactly 1 followUp message; same-size rewrite -> 0; real pi: the third provider attempt in the pty run is the extension's (`Extension "<runtime>" error: No API key ...`) |
 
 Live-post proofs (need the post running, key in env): see parity-proofs.md rows 7-10, 16, 21, CC1-CC4.
 
@@ -52,7 +52,7 @@ const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hook
 const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.matcher).test(j.tool_name))for(const c of g.hooks)try{o+=x(c.command,{input:JSON.stringify({hook_event_name:n,cwd:process.cwd(),...j}),encoding:"utf8",stdio:"pipe",timeout:(c.timeout||60)*1e3})}catch(e){if(e.status==2)k=2,o+=e.stderr}return{o,k}}
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
-const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))})
+const f=`${E.O}/.agi/sessions/inbox/${E.AGI_[retired]}.md`;U(f);W(f,{interval:5e3},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_[retired],{deliverAs:"followUp"}))})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
 on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r.o}});on("tool_result",e=>{h("PostToolUse",t(e))})
@@ -929,7 +929,7 @@ BELAM 11:08Z: G1 CLOSED (owner logged in all 12 post users) · G2 = a fix round,
 | 57 | agi-kid cccc-probe | the post minted a hypothesis node (dec629745) instead of the kid run -- re-order later; not a switch gate |
 G5 minted: hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer (2a9baac18), Sonnet 5.5 subagent on de-base-G5.
 ACL SUPERSEDED by belam 11:4xZ (DG5 + SM reds): setfacl -R -m g:agi:rwX,u:belam:rwX + matching defaults (-d) on .git/refs, .agi/comms, .agi/sessions/.spawn-budget, .agi/sessions/inbox; dir-level + default on .agi/worktrees, .git/worktrees; .agi/sessions/seats UNTOUCHED (private seat keys). UNDO: sudo setfacl -R -x g:agi,u:belam (+ -d -x) on the same paths.
-NEW-POST USER (DG3 11:4xZ, belam's pick-and-record): agi-thought-master -> agi-thought-master-new (usermod -l -d -m + groupmod -n; uid 972 kept; home /var/lib/agi/thought-master-new with the owner's Claude credential, 600). UNDO: usermod -l agi-thought-master -d /var/lib/agi/thought-master -m agi-thought-master-new + groupmod -n agi-thought-master agi-thought-master-new.
+NEW-POST USER (DG3 11:4xZ, belam's pick-and-record): agi-thought-master -> agi-thought-master-new (usermod -l -d -m + groupmod -n; uid 972 kept; home /var/lib/agi/thought-master-new with the owner's Claude credential, 600). UNDO: usermod -l agi-thought-master -d <home> -m agi-thought-master-new + groupmod -n agi-thought-master agi-thought-master-new.
 NEW POSTS (belam 6f5275059 rows): thought-master-new (opus-5-5), director-thought-1/-2 (sonnet-5-5) project from HEAD (dry /tmp/agi-proj6); director-general-4 has no engine cell yet. GO asked 11:4xZ.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

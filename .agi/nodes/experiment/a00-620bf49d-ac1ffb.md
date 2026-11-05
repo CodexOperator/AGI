@@ -84,7 +84,7 @@ every de-mark must be followed by a `thought` write.
 
 ## Tests
 ```
-$ env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT TMPDIR=/dev/shm/... timeout 900 \
+$ env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] TMPDIR=/dev/shm/... timeout 900 \
     python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp /dev/shm/...
 72 passed, 6 skipped in 8.48s
 ```

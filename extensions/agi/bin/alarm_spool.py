@@ -68,14 +68,21 @@ def new_id(now: float) -> str:
     return f"{int(now):08x}-{secrets.token_hex(2)}"
 
 
+ID_OK = __import__("re").compile(r"^[A-Za-z0-9._-]{1,64}$")
+
+
 def append(job: str, to: str, text: str, *, spool: Path | None = None, max_lines: int = 500,
-           now: float | None = None) -> str | None:
-    """None when appended, else WHY NOT. One O_APPEND write of one line."""
+           now: float | None = None, alarm_id: str | None = None) -> str | None:
+    """None when appended, else WHY NOT. One O_APPEND write of one line. `alarm_id` (goal:g7.16.1.11.46.12) is an OPTIONAL
+    DETERMINISTIC id: the same content gets the same id, so the drain's Alarm-id search (already_sent) is a content-level
+    guard, not only a guard for a failed unlink; absent = the time-plus-random id, as before."""
+    if alarm_id is not None and not ID_OK.match(alarm_id):
+        return f"--id {alarm_id!r} is not [A-Za-z0-9._-]{{1,64}}"
     spool = spool or spool_path()
     now = time.time() if now is None else now
     text = " ".join(str(text).split())
     while True:
-        line = json.dumps({"id": new_id(now), "job": job, "to": to, "text": text,
+        line = json.dumps({"id": alarm_id or new_id(now), "job": job, "to": to, "text": text,
                            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))},
                           separators=(",", ":")) + "\n"
         if len(line.encode()) <= LINE_MAX or not text:
@@ -207,6 +214,7 @@ def main(argv: list[str] | None = None) -> int:
     ap_a.add_argument("--text", required=True)
     ap_a.add_argument("--max-lines", type=int, required=True)
     ap_a.add_argument("--spool", type=Path, default=None)
+    ap_a.add_argument("--id", dest="alarm_id", default=None, help="optional DETERMINISTIC Alarm-id (same content, same id: the drain sends it once)")
     ap_d = sub.add_parser("drain", help="sign + box-send every spooled line, as the sending seat")
     ap_d.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     ap_d.add_argument("--max-tries", type=int, required=True, help="failed passes before a line is dead-lettered to alarm.spool.dead")
@@ -216,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
     ap_d.add_argument("--tree", type=Path, default=None)
     a = ap.parse_args(argv)
     if a.verb == "append":
-        why = append(a.job, a.to, a.text, spool=a.spool, max_lines=a.max_lines)
+        why = append(a.job, a.to, a.text, spool=a.spool, max_lines=a.max_lines, alarm_id=a.alarm_id)
         if why:
             print(f"alarm_spool: NOT appended: {why}", file=sys.stderr)
             return 3

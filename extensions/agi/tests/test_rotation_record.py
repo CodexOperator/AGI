@@ -40,12 +40,9 @@ def test_a_string_tags_cell_is_a_named_fail(tmp_path):  # CM8
         rotation_record.parked_carriers(tmp_path, "g7.16.2")
 
 
-def test_g13152_the_park_tag_has_one_spelling_and_write_py_calls_it():
-    """goal:g1.31.5.2 (n84): `parked_tag(goal)` is the ONE builder; parked_carriers
-    matches with it and write.py's unpark filter calls it -- write.py spells no
-    `f"parked:` literal of its own."""
+def test_g13152_the_park_tag_has_one_spelling():
+    """goal:g1.31.5.2 (n84): `parked_tag(goal)` is the ONE builder and parked_carriers matches with it.
+    (The node writer's unpark filter, its other caller, retired with the writer, goal:g7.16.1.11.46.23 step 4.)"""
     assert rotation_record.parked_tag("g7.16.2") == "parked:g7.16.2"
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
-    src = (bin_dir / "write.py").read_text("utf-8")
-    assert 'f"parked:' not in src and "rotation_record.parked_tag(" in src
     assert "parked_tag(goal)" in (bin_dir / "rotation_record.py").read_text("utf-8")

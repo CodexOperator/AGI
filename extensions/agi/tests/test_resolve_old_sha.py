@@ -7,7 +7,7 @@ and no real box path is printed.
 
 Falsifiers: F1 mapped, F2 silent-None, F3 the `sha` subcommand's output shape and
 its refusal by name, F4 no map path literal in the code, F5 a dropped commit is
-not a commit, F6 the hex gate, F7 the write.py WARN (create path, added text only).
+not a commit, F6 the hex gate. (F7, the node writer's WARN, and F10 retired with the writer, goal:g7.16.1.11.46.23 step 4.)
 """
 from __future__ import annotations
 
@@ -27,7 +27,6 @@ sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
 import links  # noqa: E402
-import write as w  # noqa: E402
 
 OLD_A = "a" * 40          # synthetic pre-rewrite id
 OLD_B = "b" * 40
@@ -145,37 +144,6 @@ def test_f4_no_map_path_literal_in_code():
     assert forbidden not in src and "scrub_commit_map" in src   # the CELL, not a path
 
 
-def test_f7_create_warns_once_and_still_writes(tmp_path, capsys):
-    """item 1: the WARN is reachable on the CREATE branch, through main, rc 0."""
-    proj = _project(tmp_path, [])
-    body = tmp_path / "b.md"
-    body.write_text(f"see {HOME}/x.log\n")
-    assert w.main(["create", "hypothesis", "h-create-warn", "--parent", "idea:i1",
-                   "--body-file", str(body), "--root", str(proj)]) == 0
-    err = capsys.readouterr().err
-    assert err.count("WARN:") == 1 and "refused" in err.lower()
-    assert (proj / ".agi/nodes/hypothesis/h-create-warn.md").is_file()
-
-
-def test_f7_the_warn_judges_added_text_only(tmp_path, capsys):
-    """item 7: a CONTEXT line carrying a home path is not this write's text."""
-    proj = _project(tmp_path, [])
-    body = tmp_path / "b.md"
-    body.write_text(f"alpha\nbeta {HOME}/x.log\ngamma\n")
-    assert w.main(["create", "hypothesis", "h-diff-warn", "--parent", "idea:i1",
-                   "--body-file", str(body), "--root", str(proj)]) == 0
-    capsys.readouterr()
-    d = tmp_path / "d.diff"
-    d.write_text("--- a\n+++ b\n@@ -3,2 +3,2 @@\n alpha\n"
-                 f"-beta {HOME}/x.log\n+clean text\n")
-    assert w.main(["hypothesis:h-diff-warn", f"body_patch {d}", "--root", str(proj)]) == 0
-    assert capsys.readouterr().err.count("WARN:") == 0, "a context line is not added text"
-    d.write_text("--- a\n+++ b\n@@ -3,2 +3,2 @@\n alpha\n"
-                 "-clean text\n" + f"+see {HOME}/y.log\n")
-    assert w.main(["hypothesis:h-diff-warn", f"body_patch {d}", "--root", str(proj)]) == 0
-    assert capsys.readouterr().err.count("WARN:") == 1
-
-
 def test_f8_an_unreadable_map_is_a_silent_none(tmp_path, capsys, monkeypatch):
     """item 1: a map file that EXISTS but cannot be read is a MISS — never a raise."""
     proj = _project(tmp_path, [f"{OLD_A}\t{'c' * 40}"], git=True)
@@ -203,22 +171,3 @@ def test_f9_map_cache_reads_once_per_mtime(tmp_path):
     finally:
         Path.read_text = real
 
-
-def test_f10_every_file_source_is_judged(tmp_path, capsys):
-    """item 2: the sources read in SUBMIT are judged, on create and on edit."""
-    proj, r, src = _project(tmp_path, []), tmp_path / "r.md", tmp_path / "p.py"
-    src.write_text(f"# see {HOME}/x.log\n")
-    # [build] is parent-shaped ([goal, idea] is legal, [idea] alone is not): the spawn gate checks a created build
-    # node's shape since write.py create sets build_kind (belam 10:4xZ (A)), so the row gives it a legal one
-    (proj / ".agi" / "nodes" / "goal").mkdir()
-    (proj / ".agi" / "nodes" / "goal" / "g1.md").write_text("---\nid: goal:g1\ntype: goal\n---\n\nbody\n")
-    assert w.main(["create", "build", "b-warn", "--parent", "goal:g1", "--parent", "idea:i1", "--payload",
-                   str(src), "--root", str(proj)]) == 0
-    assert capsys.readouterr().err.count("WARN:") == 1
-    assert w.main(["create", "hypothesis", "h-rep-warn", "--parent",
-                   "idea:i1", "--root", str(proj)]) == 0
-    capsys.readouterr()
-    r.write_text(f"added {HOME}/y.log\n")
-    assert w.main(["hypothesis:h-rep-warn", f"replace body 4:6 {r}",
-                   "--root", str(proj)]) == 0
-    assert capsys.readouterr().err.count("WARN:") == 1

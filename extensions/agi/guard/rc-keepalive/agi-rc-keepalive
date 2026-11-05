@@ -5,13 +5,21 @@
 # fifo + separate CR that agi-run's mail wake uses -- so the session refreshes its own token. A busy post refreshes by
 # itself and is never pinged. At most one ping per post per GAP seconds. Values are never read out: only expiresAt.
 # IDLE ONLY (owner 10-14: "only fire if the post is otherwise idle"): nothing is typed into a pane unless the post is
-# idle -- its newest transcript is >= IDLE s old AND its claude has no child younger than itself by > 60 s (a running
-# tool: Bash's bash; measured 06:3xZ 10-14, an idle claude's only child is its MCP server, started with the session).
-LEAD=${LEAD:-7200};GAP=${GAP:-3600};IDLE=${IDLE:-600};S=/run/agi-rc-keepalive;mkdir -p $S
+# idle -- its newest transcript is >= IDLE s old AND its screen log has not changed for QUIET s (see the 10-25 fix below; was:
+# no claude child older than 60 s, which a background shell kept true forever).
+# TIMING + IDLE FIX (belam 01:4xZ 10-25, measured on the 9 posts moved to the alternate account): claude refreshes a token only
+# on a turn in its LAST minutes (a turn 473 min out left it as it was; posts refreshed at 1-3 min before expiry). The old
+# LEAD 7200 / GAP 3600 / 30-min timer spent its pings 2 h and 1 h out (no-ops), then GAP held the next one until up to 1 h
+# PAST expiry (01:2xZ: 6 posts sat expired). Now the timer is 5 min, LEAD 300, GAP 600: a ping lands in the last 5 min, and
+# a miss repeats 10 min later. IDLE was "no claude child older than 60 s", so a post with a background shell (sanctuary-
+# master's stale task, director-goals-1) read busy FOREVER and was never pinged; now busy = its screen log ~/o changed in
+# the last QUIET s (a turn or a foreground tool redraws its spinner; a background shell does not), as well as the
+# transcript age.
+LEAD=${LEAD:-300};GAP=${GAP:-600};IDLE=${IDLE:-600};QUIET=${QUIET:-60};RGAP=${RGAP:-3600};S=/run/agi-rc-keepalive;mkdir -p $S
 idle(){ cg=$(systemctl show "agi-post@$1.service" -p ControlGroup --value);[ -n "$cg" ]||return 1
  k=$(for x in $(cat /sys/fs/cgroup$cg/cgroup.procs 2>/dev/null);do [ "$(cat /proc/$x/comm 2>/dev/null)" = claude ]&&echo $x;done|head -1);[ -n "$k" ]||return 1
  ke=$(ps -o etimes= -p $k|tr -d ' ');[ -n "$ke" ]||return 1
- for x in $(ps -o pid= --ppid $k);do xe=$(ps -o etimes= -p $x|tr -d ' ');[ -n "$xe" ]&&[ $((ke-xe)) -gt 60 ]&&return 1;done
+ [ $((now-$(stat -c %Y /var/lib/agi/$1/o 2>/dev/null||echo $now))) -ge $QUIET ]||return 1   # a turn or a running tool redraws its spinner into ~/o
  j=$(ls -t /var/lib/agi/$1/.claude/projects/*/*.jsonl 2>/dev/null|head -1);[ -n "$j" ]||return 1
  [ $((now-$(stat -c %Y "$j"))) -ge $IDLE ];}
 MSG='keepalive: reply with the one word ok and do nothing else (owner 10-09: a turn refreshes your claude.ai login so Remote Control stays up).'
@@ -19,17 +27,37 @@ now=$(date +%s)
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
  p=${u#agi-post@};p=${p%.service};case $p in ""|*[!a-z0-9-]*)continue;;esac
  c=/var/lib/agi/$p/.claude/.credentials.json;f=/run/agi-$p/i;[ -r "$c" ]&&[ -p "$f" ]||continue
- idle $p||continue
+ idle $p||continue;me=$k   # idle() leaves the post's own claude pid in k
  # title heal: a bare /remote-control titles the RC session after its first prompt ('go': sanctuary-master 14:38Z
  # 10-09) -- if the LIVE bridge's titleSha is not sha256(P) and the session is not already user-named P, /rename P once
- for q in $(jq -r '(.replBridgePlaceholders // {})[]|"\(.pid):\(.titleSha)"' /var/lib/agi/$p/.claude.json 2>/dev/null);do
-  k=${q%%:*};[ -d /proc/$k ]||continue;[ "${q#*:}" = "$(printf %s "$p"|sha256sum|cut -c1-12)" ]&&continue
+ # ONLY the post's own claude (belam 17:5xZ 10-25): a second session under the same login (belam's tmux belam-fable, named
+ # t-e4, outside agi-post@belam's cgroup) has its own bridge in the same .claude.json, never converges, and drew a /rename
+ # into the post's pane every GAP (14 in 3 h once GAP went to 600). Renames keep their own RGAP (3600).
+ for q in $(jq -r '(.replBridgePlaceholders // {})[]|"\(.pid):\(.titleSha // "")"' /var/lib/agi/$p/.claude.json 2>/dev/null);do
+  k=${q%%:*};[ "$k" = "$me" ]||continue;[ -d /proc/$k ]||continue;[ "${q#*:}" = "$(printf %s "$p"|sha256sum|cut -c1-12)" ]&&continue
   [ "$(jq -r .name /var/lib/agi/$p/.claude/sessions/$k.json 2>/dev/null)" = "$p" ]&&continue
-  r=$(cat $S/$p.rename 2>/dev/null||echo 0);[ $((now-r)) -ge $GAP ]||continue
+  r=$(cat $S/$p.rename 2>/dev/null||echo 0);[ $((now-r)) -ge $RGAP ]||continue
   runuser -u agi-$p -- timeout 5 sh -c 'printf "%s" "$1" > "$2"' _ "/rename $p" "$f"&&sleep 1&&runuser -u agi-$p -- timeout 5 sh -c 'printf "\r" > "$1"' _ "$f"&&echo $now>$S/$p.rename&&logger -t agi-rc-keepalive "renamed $p (RC title was not the post name)"
  done
  e=$(jq -r '.claudeAiOauth.expiresAt // empty' "$c" 2>/dev/null);[ -n "$e" ]||continue;e=$((e/1000))
  [ $((e-now)) -lt $LEAD ]||continue
  l=$(cat $S/$p 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]||continue
  runuser -u agi-$p -- timeout 5 sh -c 'printf "%s" "$1" > "$2"' _ "$MSG" "$f"&&sleep 1&&runuser -u agi-$p -- timeout 5 sh -c 'printf "\r" > "$1"' _ "$f"&&echo $now>$S/$p&&logger -t agi-rc-keepalive "pinged $p (token $(( (e-now)/60 )) min from expiry)"
+done
+# RC SERVERS (owner 20:5xZ 10-24: "Let's extend the keep alive"): a login user's standalone `claude remote-control` server
+# (the box's environment: encryption-town, a user unit under belam) has no pane to type into. Its credentials file sat
+# untouched 10-16..10-23 while it ran, and the 10-23 reboot found it logged out (rc 1 every 10 s for 41 h). For each user
+# in RCUSERS with a claude.ai login whose token expires within ULEAD (300 s; the timer is 30 min, so a turn lands at most 30 min past expiry), run ONE cheap headless turn as that
+# user (at most one per GAP), so claude refreshes and rewrites the file. Logged with the expiry before and after; a turn
+# that fails, or a file with no login, is logged loud, never silent. Values are never read out: only expiresAt.
+for u in ${RCUSERS-belam};do
+ case $u in ""|*[!a-z0-9_-]*)continue;;esac
+ h=$(getent passwd "$u"|cut -d: -f6);b=$h/.local/bin/claude;c=$h/.claude/.credentials.json;[ -n "$h" ]&&[ -x "$b" ]||continue
+ e=$(jq -r '.claudeAiOauth.expiresAt // empty' "$c" 2>/dev/null)
+ [ -n "$e" ]||{ l=$(cat $S/u-$u 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]&&echo $now>$S/u-$u&&logger -p user.warning -t agi-rc-keepalive "rc-user $u: NO claude.ai login in its credentials file: its Remote Control server cannot start (re-login: claude auth login as $u)";continue;}
+ e=$((e/1000));[ $((e-now)) -lt ${ULEAD:-300} ]||continue   # claude refreshes only a token near or past expiry, so an earlier turn is a no-op (tested 20:55Z: 473 min before = 473 after)
+ l=$(cat $S/u-$u 2>/dev/null||echo 0);[ $((now-l)) -ge $GAP ]||continue;echo $now>$S/u-$u
+ runuser -u "$u" -- env HOME="$h" sh -c 'cd "$HOME"&&timeout 180 "$1" -p --no-session-persistence --model claude-haiku-5-5 "reply with the one word ok" >/dev/null 2>&1' _ "$b";rc=$?
+ a=$(jq -r '.claudeAiOauth.expiresAt // 0' "$c" 2>/dev/null);a=$((a/1000))
+ if [ $rc = 0 ];then logger -t agi-rc-keepalive "rc-user $u: one turn (token $(( (e-now)/60 )) min from expiry before, $(( (a-now)/60 )) min after)";else logger -p user.warning -t agi-rc-keepalive "rc-user $u: the turn FAILED rc $rc (token $(( (e-now)/60 )) min from expiry): re-login may be needed";fi
 done

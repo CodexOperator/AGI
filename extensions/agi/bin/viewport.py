@@ -398,8 +398,8 @@ def render_human(frames: list[Frame], top: int, left: int,
         import briefing as _briefing
         head = [ln[:width] for ln in _briefing.to_compact(brief)]
     if seats is not None:
-        import seat_status as _ss
-        head += [ln[:width] for ln in _ss.to_compact(seats)]
+        import hierarchy as _hs
+        head += [ln[:width] for ln in _hs.seats_to_compact(seats)]
     if anchors is not None:
         head += [f"map layers: on top = {layer}, other = "
                  + ("agent hierarchy" if layer == "graph" else "graph")]
@@ -453,8 +453,8 @@ def render_llm(frames: list[Frame], top: int, left: int,
         import briefing as _briefing
         head += [*_briefing.to_markdown(brief), ""]
     if seats is not None:
-        import seat_status as _ss
-        head += [*_ss.to_markdown(seats), ""]
+        import hierarchy as _hs
+        head += [*_hs.seats_to_markdown(seats), ""]
     if occupants is not None and occupants.idle:
         head += ["## idle seats", "",
                  *[f"- seat {nm}" for nm in occupants.idle], ""]
@@ -523,16 +523,15 @@ def sanctuary_frame(seat_rows: list, ephemeral_leases, rotating):
 
 
 def load_seat_rows(root: Path, fm_by_id: dict):
-    """`(rows, registry_present)` — telemetry when available, else seats.md.
+    """`(rows, registry_present)` — the metered view when it reads, else the bare rows.
 
-    Matches telemetry's own fallback (`l3w4-telemetry-seat-status`): prefer
-    `seat_status.collect(...).seats` when that module exists, otherwise read
-    `config:seats`'s `seats:` list from `.geometry/seats.md` with `fraction`
-    unset. Whichever lane lands first is safe to render.
+    Prefer `hierarchy.collect_seats(root).seats` (the registry rows with their
+    meter fraction; seat_status.py is retired, owner atom 8.1), otherwise read
+    the geometry config's seat rows with `fraction` unset.
     """
     try:
-        import seat_status
-        sv = seat_status.collect(root, fm_by_id)
+        import hierarchy as _hv
+        sv = _hv.collect_seats(root)
         rows = getattr(sv, "seats", None)
         if rows:
             return list(rows), True
@@ -1023,8 +1022,8 @@ def interactive(root: Path, g, fm_by_id, args) -> int:
             anchors = None
             if live:
                 try:
-                    import seat_status as _ss
-                    seats = _ss.collect(root, fm_by_id)
+                    import hierarchy as _hs
+                    seats = _hs.collect_seats(root)
                     occ_rows = getattr(seats, "seats", [])
                     at_nodes, idle = seat_index(
                         _manifest_agents(root, iter_name), occ_rows,
@@ -1166,7 +1165,8 @@ def main() -> int:
         print(f"viewport: briefing unavailable ({type(exc).__name__}: {exc})",
               file=sys.stderr)
 
-    # Live seat status (hypothesis:l3w4-telemetry-seat-status): one `SeatsView`
+    # Live seat status (hypothesis:l3w4-telemetry-seat-status; seat_status.py is retired, the view is
+    # hierarchy.collect_seats): one `SeatsView`
     # computed once, handed to both formatters like the frame stream and the
     # briefing. Only on `--live` — the static graph view has no business reading
     # the seat board. Fails open to an absent registry, never a traceback.
@@ -1175,8 +1175,8 @@ def main() -> int:
     anchors = None
     if args.live:
         try:
-            import seat_status as _ss
-            seats = _ss.collect(root, fm_by_id)
+            import hierarchy as _hs
+            seats = _hs.collect_seats(root)
             # hypothesis:l3w4-seat-graph-view — join seats to the nodes they
             # sit on (manifest target + each seat's meter pin), newest
             # iteration wins; build ONE OccupantIndex both readers render.

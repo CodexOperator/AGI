@@ -21,6 +21,7 @@ agi-fill          5973 B  a node key opens a captive window
 grow-check        1298 B  one node vs its matrix row + key
 grow-gate         7098 B  pre-receive: added/changed nodes must pass
 ckpt              3444 B  signed hand-offs at one tip; check lists them
+agi-id            3188 B  identity chain: agi-id check walks refs/id/<mint>
 grow-project      1185 B  schemas -> the growth matrix
 ~~~
 
@@ -92,6 +93,24 @@ for c in $B;do git ls-tree -r --name-only $c|grep -qvE '^(tip|time|hash|sigs/[a-
   ssh-keygen -Y verify -f $t/a -I $p@agi -n agi-checkpoint -s $t/s<$t/m 2>/dev/null|sed -n 's/.* with \([A-Z0-9-]*\) key \([^ ]*\).*/\1 \2/p';done|sort -u>$t/k
   for a in ${AGI_SIGN:-ED25519};do grep -q "^$a " $t/k||continue 2;done;l=$(lv "$x" $p)&&[ "$l" ]||continue;echo "$l $(cut -d' ' -f2 $t/k|sort -u|tr '\n' ' ')">>$t/l;done
  sort -n $t/l|awk -v K=" ${AGI_CKK:-} " '$1<0{exit 1}{u=1;for(i=2;i<=NF;i++)if($i in S)u=0;for(i=2;i<=NF;i++)S[$i];if(u){if(!n++)m=$1;M=$1}}END{k=2;if(match(K," "m":[0-9]+"))k=substr(K,RSTART+length(m)+2,RLENGTH-length(m)-2);exit !(n&&M-m<=1&&n>=k)}'&&echo "$x $y $c";done;:;;esac
+~~~
+
+### agi-id (3188 B)
+~~~sh
+#!/bin/sh
+# agi-id check REF [ROOT] (goal:g7.16.1.11.46.19 V1a, doc §9 + §27; named agi-id, never id: /usr/bin/id is what agi-gate's root drop calls): REF = refs/id/<mint>, a chain of commits, ONE per identity version, oldest = the BIRTH. Each link holds iff: ONE parent (the birth none) · its tree is ONLY PLAIN FILES (mode 100644, type blob: a tree, a symlink, a submodule or an executable entry is bad) each named EXACTLY one word of AGI_ID_PIECES (key.pub role harness model brief card perms slot cred), the name read untrimmed from ls-tree's tab, key.pub present · its slot equals the birth's (a slot change is a new identity, never a version) · it carries an SSH signature (its HEADER, to the first blank line, holds EXACTLY ONE line starting 'gpgsig', equal to 'gpgsig -----BEGIN SSH SIGNATURE-----', a SHA-1 repo; any other backend, or a second gpgsig line, is bad whatever keyring the verifier holds) by the PREVIOUS link's key.pub, and the birth by a ROOT signer: ROOT = an allowed-signers file (default the trunk's .agi/nodes/.geometry/id-root; valid-after honoured at the commit time by git). Prints `id: ok <ref> <n> link(s)` rc 0, else `id: BAD <ref> link <i> <sha12>: <reason>` for the FIRST bad link, rc 1; a REF or ROOT that cannot be read, or an EMPTY root file, = `id: unread <what>`, rc 1, never a pass. V1b (the live chains, the root key pinned, the mint column, the store move) is not here.
+[ "$1" = check ]&&[ "$2" ]||{ echo "usage: agi-id check refs/id/<mint> [allowed-signers]">&2;exit 2;};r=$2;t=$(mktemp -d);trap 'rm -rf $t' 0;P=" ${AGI_ID_PIECES:-key.pub role harness model brief card perms slot cred} "
+if [ "$3" ];then cat "$3">$t/root 2>/dev/null;else git show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/id-root>$t/root 2>/dev/null;fi&&[ -s $t/root ]||{ echo "id: unread root signers (${3:-${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/id-root})";exit 1;}
+L=$(git rev-list --reverse "$r" 2>/dev/null)&&[ "$L" ]||{ echo "id: unread $r";exit 1;};sed -E 's/^[^ #][^ ]* /* /' $t/root>$t/a;i=0;sl=
+for c in $L;do i=$((i+1));b(){ echo "id: BAD $r link $i $(echo $c|cut -c1-12): $*";exit 1;}
+ n=$(git rev-list --parents -1 $c|wc -w);[ $n -le 2 ]||b "a merge link (one parent only)";[ $i = 1 ]&&[ $n != 1 ]&&b "the birth has a parent"
+ git ls-tree $c>$t/e;while IFS="$(printf '\t')" read -r h x;do m=${h%% *};ty=${h#* };ty=${ty%% *};[ "$m $ty" = "100644 blob" ]||b "'$x' is not a plain file ($m $ty)";w=;for q in $P;do [ "$x" = "$q" ]&&w=1;done;[ "$w" ]||b "'$x' is not an allowed piece";done<$t/e
+ [ "$(git cat-file -t $c:key.pub 2>/dev/null)" = blob ]||b "no key.pub"
+ s=$(git show $c:slot 2>/dev/null);[ $i = 1 ]&&sl=$s;[ "$s" = "$sl" ]||b "the slot changed ($sl -> $s): a new identity, never a version"
+ [ "$(git cat-file commit $c|sed '/^$/q'|grep '^gpgsig')" = 'gpgsig -----BEGIN SSH SIGNATURE-----' ]||b "not an SSH signature (the backend is pinned to ssh)"
+ git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$t/a verify-commit $c>/dev/null 2>&1||{ [ $i = 1 ]&&b "the birth is not signed by a root signer";b "not signed by link $((i-1))'s key.pub";}
+ { printf '* namespaces="git" ';git show $c:key.pub|cut -d' ' -f1,2;}>$t/a;done
+echo "id: ok $r $i link(s)"
 ~~~
 
 ### grow-project (1185 B)

@@ -5,7 +5,7 @@
 T=$(mktemp -d);trap 'for p in $(cat $T/pids $T/boxpid 2>/dev/null);do kill -TERM -$p 2>/dev/null;kill -TERM $p 2>/dev/null;done;rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-unset GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST
+unset GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST
 mkdir -p $T/bin $T/run $T/hm
 [ -n "$AGIRUN" ]||{ sect agi-run>$T/agi-run;AGIRUN=$T/agi-run;}
 [ -s $AGIRUN ]||{ echo "FAIL extract: agi-run $(wc -c<$AGIRUN)";exit 99;}
@@ -94,4 +94,9 @@ printf 'alerts:\n  audit:\n    - sanctuary-master\n  edges: {}\n  surprise: 1\n'
 mut noexit 's/if(!s||b)exit 1;//'&&{ WANT=1 go 1 $T/m.noexit;ok mutant-b-failure-ignored-is-RED "has sanctuary-master"; }
 # stderr: the alert's warn on the pane's stderr (the TUI's pty) instead of the alert log
 mut pane 's/)2>>\$RUNTIME_DIRECTORY\/alert&$/)\&/'&&{ go 1 $T/m.pane;ok mutant-stderr-to-the-pane-is-RED "[ -s $T/err ]"; }
+# r3 (the census, sp's condition): mut()'s guard (L82, 6 callers) is a RUN row, not a reading -- a literal that matches nothing fails closed and the row is skipped; the unguarded helper is the mutant
+x=$(f=0;mut selftest 's/NO-SUCH-LITERAL-XYZ/x/';echo "rc=$? f=$f")
+ok mut-a-matchless-mutant-fails-closed-and-is-skipped 'echo "$x"|grep -q "^FAIL mutant-selftest-did-not-change-the-piece"&&echo "$x"|grep -qx "rc=1 f=1"'
+x=$(mut(){ cp $AGIRUN $T/m.$1;sed -i "$2" $T/m.$1;return 0;};f=0;mut selftest 's/NO-SUCH-LITERAL-XYZ/x/';echo "rc=$? f=$f")
+ok mut-mutant-the-unguarded-helper-runs-the-row-on-an-unmutated-copy-RED '! echo "$x"|grep -q "^FAIL mutant-selftest"&&echo "$x"|grep -qx "rc=0 f=0"'
 echo "fresh-alert: $f FAIL";[ $f = 0 ]

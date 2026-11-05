@@ -7,7 +7,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST AGI_RAM AGI_BOOT_OUT
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST AGI_RAM AGI_BOOT_OUT
 sect agi-boot >$T/agiboot.sh;[ -s $T/agiboot.sh ]&&[ -s $R0/.agi/config.json ]||{ echo "FAIL extract: agi-boot $(wc -c <$T/agiboot.sh)";exit 99;}
 # UE (DG1 04:15Z, belam 04:14Z: the lane runs the REAL ownership): the unit's own Environment= words are the ONLY thing that lets root read /data/work/agi (another uid owns it); the runs below use an empty git config + git's different-owner seam + UE, never a $T/gitconfig that grants safe.directory the unit does not
 sect agi-boot.service|sed -n 's/^Environment=//p'|tr ' ' '\n' >$T/ue.txt;UE=$(cat $T/ue.txt)

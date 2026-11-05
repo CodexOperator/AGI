@@ -1404,7 +1404,7 @@ def test_session_complete_stamps_the_acting_seat(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "_find_root", lambda: graph)
     monkeypatch.setattr(cli, "_main_graph_root", lambda r: r)
     monkeypatch.setattr(cli, "_session_complete", lambda *a, **k: 0)
-    monkeypatch.setenv("AGI_SEAT", "seat-a")
+    monkeypatch.setenv("AGI_POST", "seat-a")
     stamp = graph / "sessions" / "seats" / "seat-a.last-act"
     args = argparse.Namespace(iter_n="SM.1", worktree=None, dry_run=True)
     assert cli.cmd_session_complete(args) == 0
