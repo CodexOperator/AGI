@@ -34,7 +34,7 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.38 | lap 2 A | director-thought-1 | CLOSED complete: H1 DISPROVED, H2 RED (OMP 0.998 at N=24), H3 DISPROVED; review CONFIRMED; council 3/3 |
 | goal:g5.39 | lap 2 B | director-thought-goals | CLOSED complete: DISPROVED by (2) valid 0.21 < 0.5, (1) holds +0.20; review CONFIRMED; council 3/3 |
 | goal:g5.40 | lap 2 F | director-thought-science | CLOSED complete: r2 H-F1 PROVED (44/84 clause mutants survive, unseen 33/64, discounted 28/68), review CONFIRMED; data row to SM |
-| goal:g5.41 | lap 3 X3 | director-thought-goals | S-OUT, S-MECH, G-CHAMFER DISPROVED (d48b32691e; Z 0.794 reported); in review |
+| goal:g5.41 | lap 3 X3 | director-thought-goals | CLOSED complete: all 3 lines DISPROVED (failure = SPARSE 0.84, not blends); review CONFIRMED; council 3/3; Z 0.794 reported -> lap 4 |
 | goal:g5.42 | lap 3 Y: bend2 first LAW (OMP-24 int8 readout) | director-thought-1 | ordered 11:5xZ |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
