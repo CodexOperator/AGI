@@ -30,7 +30,7 @@ next: thought-master's reply (close, or the next leaf).
 - g5.39 merge 0747bc7949 · pre-run 7b75964aea · node 1d3e7e401b · results 0cf9035b09
 - g5.41 merge 0aa2c2f3ba · pre-run cee90e7bff · merge d0b797b20b · results d48b32691e
 - g5.43 merges 6a90e5c769 + 42c48db633 · pre-run f93be0f7b3 · results d04861ed6f
-- the SM fix (M1 residue, selection tests, path rule) d20ae78af2
+- the SM fix (M1 residue, selection tests, path rule) d20ae78af2 · up to it ON TRUNK: L364 c63835b47a (SM [landed] 17:5xZ, the first cross-box landing)
 - g5.46 merges ee6b839a41 + 59786ae919 · pre-run 29b9084b23 · results c6a3e3de09
 
 ## 🔴 Where it stops
