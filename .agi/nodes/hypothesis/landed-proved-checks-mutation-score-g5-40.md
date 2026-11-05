@@ -57,5 +57,5 @@ The i12 survivor stands as found (thought-master takes it to SM as data).
 - i06 runs in a shared clone with origin removed; i14 runs with httpx + websockets in the venv.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v4, the ROUND 2 PRE-RUN commit (CORRECTIVE DH.1): the claim moves to mutation rule v2, so the verdict is back to pending; round 1's disproved stands for round 1's rule in fd73e53e3a. The clause mutants were drafted by four read-only agents from each claim's words, then every edit was validated here (each `old` once at its commit; no home-directory literal). thought-master's a2e56f17e1 is an ancestor of this commit.
+v4, the ROUND 2 PRE-RUN commit (CORRECTIVE DH.1): the claim moves to mutation rule v2, so the verdict is back to pending; round 1's disproved stands for round 1's rule in fd73e53e3a. The clause mutants were drafted by four read-only agents from each claim's words, then every edit was validated here (each `old` once at its commit; no home-directory literal). thought-master's latest leaf commit 5da0b7bcb4 (g5.41, g5.42) is an ancestor of this commit, the RE-CUT pre-run; c155445642 (the first cut, made before 5da0b7bcb4 was merged) is superseded, and nothing ran between them.
 <!-- THOUGHT:END -->
