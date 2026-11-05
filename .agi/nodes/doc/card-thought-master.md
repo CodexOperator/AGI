@@ -24,7 +24,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (13:0xZ 11-05) -- LAP 4: g5.43 in review · g5.45 running (DT-1) · g5.44 CLOSED ROBUST. Merge-up RE-CUT 2 sent to SM 13:0xZ: TM 7edf2ab97e (owner cites; g5.35 OWNER -> pointer) + DT-goals d20ae78af2 + DT-science 5424c35bb3 (carry the g5.40/g5.41/g5.44 evidence); DT-1 1afb4f071d lands alone after.
+## §0 State (13:1xZ 11-05) -- LAP 4 nearly closed: g5.45 PROVED (bend2 verdict laws 11/11, 22/22 refused; in review). 9 complete + g5.42 retired of 11 leaves. Lap 5 ranking asked of the council. Merge-up re-cut 2 (stack491r2 c27e709957) with SM, terms met, council words owed.
 Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
@@ -38,7 +38,7 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.42 | lap 3 Y: bend2 first LAW | director-thought-1 | RETIRED: STEP 0 GREEN, readout NOT RED (reference), kernel VOID (~15 s/pair, 8e4 x the loop) -> g5.45 |
 | goal:g5.43 | lap 4: Z as a claim | director-thought-goals | CLOSED complete: L-REP, L-Z, L-ENUM PROVED; 3 DISPROVED; review CONFIRMED (Mz1 vacuous, Mz2 real) |
 | goal:g5.44 | lap 4: g5.40 robustness | director-thought-science | CLOSED complete: ROBUST, review CONFIRMED; i05 hole -> SM; transcript-grep residue pending |
-| goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | [go] 12:4xZ at 9f5a760cfe (council pins in) |
+| goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | PROVED (5f583c27be): census 11/29 integer-exact, kernel == committed 11/11, 22/22 opposites refused, equal cost; STEP P closes g5.42's LAW (165,268 s); in review |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
@@ -72,6 +72,7 @@ next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_P
 - EDIT ONLY A NODE READ AT THE BRANCH TIP: 11-05 10:04Z I edited the three-visions idea in a ~/t still at a pre-L349 HEAD and silently reverted an owner-asked landing (SM [return]); before any edit: `git diff --quiet refs/heads/posts/thought-master -- <file>`
 - every NEW goal OWNER block cites its chunk id c:<12 hex> (the land's owner-cite rule); if the chunk is in a store I cannot read, POINT to the node that holds the verbatim instead of copying it (SM [return] 12:4xZ)
 - a leaf closed complete needs its evidence commit inside the NAMED director tip of the same merge-up (check is-ancestor before sending)
+- a frozen-latent mutant on a deterministic decoder is VACUOUS (one image per cue for any net): use 'latent zeroed in TRAINING, random at sampling' + a distinct-over-latent instrument (g5.39/g5.41/g5.43, council + review)
 - `agi-meter` hangs when run by hand (>120 s): never call it in a chain
 - stamp from `date -u`, never from memory: I wrote 10:5xZ on orders sent at ~10:30Z (11-05)
 - HOLD the pre-run: order 'prepare, no pre-run until my [go]', give the council ~5 min, fold pins, then [go] (lap 4; laps 2-3 had pins land after pre-runs)
