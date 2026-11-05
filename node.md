@@ -5,14 +5,15 @@ type: experiment
 parents:
   - hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red
 next_edges: []
+confidence: 0.95
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director-thought-science
 season: 3
 title: "RV harness round 2 (DH.1): secret-keyed draws, 200 distinct targets; null 44/200, seed-reader 34/200, position-0 judge 40/200 inside chance; salt-planted, seed-reader on the public-keyed harness, position-0 judge unshuffled each 200/200 RED (goal:g5.35)"
 town: local-maxxing
-verdict: proved
-confidence: 0.95
+verdict: inconclusive_lean_proved:50
 ---
-
 ## Command (re-runnable, ONE process, stdlib, no install)
 ```
 python3 -B .agi/context/local-maxxing/rv/test_harness.py      # 12 OK (dev seed + dev key)
