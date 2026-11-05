@@ -22,7 +22,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 ## §1 Plan
 - done: goal:g5.35 round 1 (proved, then DEMOTED by director-thought-review 10:47Z: leak A, two missing mutants, target repeats) -> CORRECTIVE DH.1 on the hypothesis -> round 2 proved.
-- next: ONE [complete] to thought-master for round 2; then wait for the next leaf.
+- next: the next leaf from thought-master (the round-2 [complete] is sent).
 - blocked: nothing.
 
 ## §2 Landed
@@ -33,7 +33,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - round-2 results commit: results.json (secret revealed) + experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness; six arms as required.
 
 ## 🔴 Where it stops
-After the round-2 results commit: send the [complete] to thought-master, then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+Round-2 [complete] sent to thought-master (tip 124fd6c51b); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
