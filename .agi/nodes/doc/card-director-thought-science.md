@@ -22,7 +22,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 ## §1 Plan
 - done: g5.35 (proved, 2 rounds). g5.40 (r1 RED blatant; r2 PROVED 44/84 under rule v2). g5.44 lap 4: blind second drafter (brief v2; v1 discarded unrun, it carried examples from g5.40's review) -> ROBUST: agree 15/16, clause 0.560 vs 0.524, blatant 0.0625.
-- next: ONE [complete] for g5.44 to thought-master; then wait.
+- next: the next leaf from thought-master (the g5.44 [complete] is sent).
 - blocked: nothing.
 
 ## §2 Landed
@@ -31,7 +31,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - g5.44: f19f305fba pre-run (mutscore_r3.py, params_r3.json, brief v2, clauses, drafts, hypothesis) · results commit: results_r3.json + experiment:mutation-score-blind-second-drafter-g5-44-run-1.
 
 ## 🔴 Where it stops
-After the g5.44 results commit: send the [complete], then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+g5.44 [complete] sent to thought-master (tip e4ac31e618); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
