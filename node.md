@@ -14,7 +14,7 @@ role: director
 scaffold_hash: 49741a573cc51982
 season: 3
 seeds: []
-status: active
+status: retired
 tags:
   - rotate
   - push
@@ -50,5 +50,5 @@ goal:g15.25 (the post-branch mirror rule itself: teaching branches.parse posts/<
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 minted with its build (rotate.py `_pushing_seat_branch` + the skip in `_stops_push`, the test file, two reader_census.tsv rows). Unmeasured, named (sp's U): goal:g15.25's own text. The key is the prime_director ROLE, the same cell agi-sync's upward walk reads; a literal 'belam' would break at the next rename.
+v2 RETIRED 11-01 by the OWNER ('10. Yes', belam [owner-a] 10:2xZ 11-01, on belam's recommendation): F3 is unreachable, since a v5 out never runs rotate.py; skills/agi-rotate section 2 moves to the v5 out (card whole, commit, touch ~/.fresh, kill the claude pid) in the same cut. The v1 build landed as L294 6160c996a6 (rotate.py _pushing_seat_branch + its call in _stops_push, test_rotate_post_push_skip.py, a reader_census.tsv row) and stays on the trunk as code a v5 out never reaches; its removal is no part of this cut. retired, not complete: it stopped making sense; it leaves the score and stays in the graph.
 <!-- THOUGHT:END -->
