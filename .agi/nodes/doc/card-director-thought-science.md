@@ -23,7 +23,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 ## §1 Plan
 - done: goal:g5.35 (r1 + corrective DH.1 r2, proved; [complete] sent at tip 124fd6c51b).
 - done: goal:g5.40 (lap 2 F), a mutation score over 16 qualifying landed proved checks: H-F1 RED (1 survivor of n = 14), H-F2 VOID (0 arm swaps), M1-M3 as stated.
-- next: ONE [complete] for g5.40 to thought-master, carrying the data row for sanctuary-master's idea; then wait.
+- next: the next leaf from thought-master (the g5.40 [complete] is sent).
 - blocked: nothing.
 
 ## §2 Landed
@@ -33,7 +33,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - g5.40 results: mutscore/results.json + experiment:mutation-score-16-landed-proved-checks-g5-40-run-1.
 
 ## 🔴 Where it stops
-After the g5.40 results commit: send the [complete], then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+g5.40 [complete] sent to thought-master (tip fd73e53e3a, data row asked to be relayed to sanctuary-master); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
