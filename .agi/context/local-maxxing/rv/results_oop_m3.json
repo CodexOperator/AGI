@@ -1,0 +1,4429 @@
+{
+ "M3_as_stated": true,
+ "channels": {
+  "mem": 200
+ },
+ "dumpable": 1,
+ "goal": "goal:g5.48",
+ "mutant": "M3",
+ "proc": {
+  "rc": 0,
+  "stderr_tail": [
+   "{\"tried\": {\"frame\": 1, \"gc\": 1, \"environ\": 1, \"cmdline\": 1, \"fd\": 1, \"mem\": 1, \"files\": 0, \"self\": 0}, \"dead\": [\"cmdline\", \"environ\", \"fd\"]}"
+  ]
+ },
+ "ptrace_scope": 0,
+ "reading": "as stated: A* reads the secret via /proc/PPID/mem",
+ "rows": [
+  {
+   "channel": "mem",
+   "commitment": "3361d037c6ed3fe0984d69e92c8ce08fd68b8b1e20cad136211c31a76ab30a1e",
+   "decoys": [
+    490,
+    16,
+    878,
+    552
+   ],
+   "desc": [
+    "closed",
+    "green",
+    "light",
+    "natural",
+    "round",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 262,
+   "trial": 0
+  },
+  {
+   "channel": "mem",
+   "commitment": "44045598be63125cfa816a187737883252a28b0ff08acca787270d6d92a9a82f",
+   "decoys": [
+    197,
+    587,
+    894,
+    372
+   ],
+   "desc": [
+    "door",
+    "loud",
+    "round",
+    "still",
+    "tree",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 540,
+   "trial": 1
+  },
+  {
+   "channel": "mem",
+   "commitment": "889d9116330cf0959e6717f8061b0df2caa07c5d804bd27639d4a5026d5cda08",
+   "decoys": [
+    673,
+    733,
+    167,
+    33
+   ],
+   "desc": [
+    "high",
+    "metal",
+    "quiet",
+    "tree",
+    "wet",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 742,
+   "trial": 2
+  },
+  {
+   "channel": "mem",
+   "commitment": "c217257f707d308706d2517126f2efd12d1594ea8e8ffc8f302de5a7fab5c178",
+   "decoys": [
+    126,
+    411,
+    102,
+    48
+   ],
+   "desc": [
+    "fire",
+    "shadow",
+    "tall",
+    "tree",
+    "wall",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 115,
+   "trial": 3
+  },
+  {
+   "channel": "mem",
+   "commitment": "b2891553e9ee6d87fa96ee06cd6425aa9636a8d4218a83ec7dbf07bab4af63f8",
+   "decoys": [
+    861,
+    433,
+    67,
+    580
+   ],
+   "desc": [
+    "fire",
+    "metal",
+    "road",
+    "rope",
+    "round",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 968,
+   "trial": 4
+  },
+  {
+   "channel": "mem",
+   "commitment": "d515b14a7a17a8b62a267a18aad8141d88b1734b65767058a5c516cad5f2d02a",
+   "decoys": [
+    656,
+    586,
+    95,
+    829
+   ],
+   "desc": [
+    "crowd",
+    "curved",
+    "field",
+    "new",
+    "open",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 365,
+   "trial": 5
+  },
+  {
+   "channel": "mem",
+   "commitment": "b4cebe80e05cb926771c1a049039bb782473d6a270698554cbb4ab62a9b34a6d",
+   "decoys": [
+    197,
+    803,
+    297,
+    955
+   ],
+   "desc": [
+    "boat",
+    "empty",
+    "flat",
+    "hot",
+    "mountain",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 207,
+   "trial": 6
+  },
+  {
+   "channel": "mem",
+   "commitment": "88349f769b29835e34662a299b31723264f9fc13fe10af62539ba4c3ae4804d4",
+   "decoys": [
+    917,
+    711,
+    580,
+    332
+   ],
+   "desc": [
+    "closed",
+    "curved",
+    "dry",
+    "hot",
+    "natural",
+    "open"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 971,
+   "trial": 7
+  },
+  {
+   "channel": "mem",
+   "commitment": "775d95798dff691445f17bf362706e3ded1b394886e26634d62bd67509c0b84b",
+   "decoys": [
+    423,
+    994,
+    488,
+    843
+   ],
+   "desc": [
+    "closed",
+    "glass",
+    "green",
+    "rope",
+    "water",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 291,
+   "trial": 8
+  },
+  {
+   "channel": "mem",
+   "commitment": "d871b513e2754e2ed3d9cd74953c080d06d678ad98f96ad0e863bc70717658fe",
+   "decoys": [
+    362,
+    76,
+    598,
+    214
+   ],
+   "desc": [
+    "boat",
+    "fire",
+    "high",
+    "moving",
+    "still",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 597,
+   "trial": 9
+  },
+  {
+   "channel": "mem",
+   "commitment": "6973f862b53ad3b1eb81682e73aa5a69918b5aa8ff055ea5fcc98ac1603f7ab1",
+   "decoys": [
+    518,
+    720,
+    697,
+    703
+   ],
+   "desc": [
+    "boat",
+    "cloud",
+    "field",
+    "flat",
+    "light",
+    "mountain"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 641,
+   "trial": 10
+  },
+  {
+   "channel": "mem",
+   "commitment": "55f4be9908ca8a2602460f7cddb20d4286504b2f59b1b452e9671ce89a141d2a",
+   "decoys": [
+    6,
+    518,
+    304,
+    884
+   ],
+   "desc": [
+    "fire",
+    "new",
+    "open",
+    "road",
+    "square",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 986,
+   "trial": 11
+  },
+  {
+   "channel": "mem",
+   "commitment": "6c072d43cb9731c46477aa9c3e0e728d1b625a125fe229e677a486d8448a3d61",
+   "decoys": [
+    631,
+    911,
+    69,
+    777
+   ],
+   "desc": [
+    "fire",
+    "light",
+    "old",
+    "quiet",
+    "stone",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 121,
+   "trial": 12
+  },
+  {
+   "channel": "mem",
+   "commitment": "29dabc882b8975e47fe6ca76520ad4a7ff673ce764091da29c757a942a3f8bfa",
+   "decoys": [
+    951,
+    242,
+    859,
+    689
+   ],
+   "desc": [
+    "blue",
+    "green",
+    "high",
+    "sand",
+    "tall",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 468,
+   "trial": 13
+  },
+  {
+   "channel": "mem",
+   "commitment": "df79a399291db2f2d62d42dee887d761e55ac3b83a1ca5e19930d1e19f146eda",
+   "decoys": [
+    177,
+    925,
+    995,
+    900
+   ],
+   "desc": [
+    "cloud",
+    "cold",
+    "red",
+    "still",
+    "stone",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 988,
+   "trial": 14
+  },
+  {
+   "channel": "mem",
+   "commitment": "13a3b72b631d05c183fa4f11bf64c756befecf95db26213ae276b98c5f1545bd",
+   "decoys": [
+    519,
+    631,
+    448,
+    935
+   ],
+   "desc": [
+    "bird",
+    "blue",
+    "empty",
+    "field",
+    "loud",
+    "moving"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 223,
+   "trial": 15
+  },
+  {
+   "channel": "mem",
+   "commitment": "6f1477c1713a7652a5e28f17741a4defc765a98db478bd636ebc2dd939da1f18",
+   "decoys": [
+    177,
+    862,
+    510,
+    401
+   ],
+   "desc": [
+    "empty",
+    "ice",
+    "natural",
+    "square",
+    "still",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 514,
+   "trial": 16
+  },
+  {
+   "channel": "mem",
+   "commitment": "e02b04c256dd891da80cf094de27640e14cadb23eab3b9d9c7986732a7f9b430",
+   "decoys": [
+    697,
+    967,
+    688,
+    876
+   ],
+   "desc": [
+    "cloud",
+    "green",
+    "open",
+    "rope",
+    "sand",
+    "square"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 802,
+   "trial": 17
+  },
+  {
+   "channel": "mem",
+   "commitment": "6039a3626ce9be4e97c9d3c29474c77d450fbf03ec86e277aa735032f73d9185",
+   "decoys": [
+    431,
+    159,
+    696,
+    42
+   ],
+   "desc": [
+    "bridge",
+    "curved",
+    "empty",
+    "fire",
+    "rope",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 719,
+   "trial": 18
+  },
+  {
+   "channel": "mem",
+   "commitment": "7973c81c3a329a08a81f6485b490da8955d20b8e1b4d15b21058b97d85f93087",
+   "decoys": [
+    897,
+    166,
+    355,
+    791
+   ],
+   "desc": [
+    "bird",
+    "cold",
+    "dry",
+    "ice",
+    "natural",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 265,
+   "trial": 19
+  },
+  {
+   "channel": "mem",
+   "commitment": "16028e3e33b2baf50c21a8b495923bd258ce071cd44a97e2227d2a8d5b445a5c",
+   "decoys": [
+    869,
+    440,
+    100,
+    29
+   ],
+   "desc": [
+    "field",
+    "low",
+    "metal",
+    "old",
+    "round",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 630,
+   "trial": 20
+  },
+  {
+   "channel": "mem",
+   "commitment": "44d0b1ba469b0c5ac82c979e57b5822194d01540f9b1afa648d5bd11fe27a3aa",
+   "decoys": [
+    477,
+    1,
+    918,
+    6
+   ],
+   "desc": [
+    "closed",
+    "door",
+    "high",
+    "light",
+    "moving",
+    "open"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 324,
+   "trial": 21
+  },
+  {
+   "channel": "mem",
+   "commitment": "41c1f3852440183037608ad59736090aca2c2f2964d587ba91e1cff8302f9156",
+   "decoys": [
+    296,
+    943,
+    983,
+    599
+   ],
+   "desc": [
+    "cloud",
+    "ice",
+    "quiet",
+    "rope",
+    "stone",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 260,
+   "trial": 22
+  },
+  {
+   "channel": "mem",
+   "commitment": "a631b6f151cd475aaf290952f7e38c74c4a552155da1dc42c94ef10e0b83b400",
+   "decoys": [
+    264,
+    316,
+    519,
+    811
+   ],
+   "desc": [
+    "blue",
+    "built",
+    "mountain",
+    "still",
+    "stone",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 387,
+   "trial": 23
+  },
+  {
+   "channel": "mem",
+   "commitment": "230614a35d58467be29ba30e132149598a08a1057ba6983854410a9f1956e6d7",
+   "decoys": [
+    294,
+    444,
+    42,
+    178
+   ],
+   "desc": [
+    "bridge",
+    "door",
+    "flat",
+    "moving",
+    "open",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 767,
+   "trial": 24
+  },
+  {
+   "channel": "mem",
+   "commitment": "7d232d28e365d073361ecd9d3b0bb8850d4afa184c0dc75fe5a06cfe0a30ec5d",
+   "decoys": [
+    816,
+    333,
+    840,
+    916
+   ],
+   "desc": [
+    "boat",
+    "field",
+    "road",
+    "square",
+    "tall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 406,
+   "trial": 25
+  },
+  {
+   "channel": "mem",
+   "commitment": "c071282fa3e2ee8e07c4fa78226ea9e8c680acfa5f560b29467b90710eb3fffe",
+   "decoys": [
+    876,
+    378,
+    140,
+    843
+   ],
+   "desc": [
+    "blue",
+    "ice",
+    "light",
+    "red",
+    "rope",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 226,
+   "trial": 26
+  },
+  {
+   "channel": "mem",
+   "commitment": "7e13a6ed2e760e4425b4c79287688e5394e39c1a86090109684f98a704887216",
+   "decoys": [
+    363,
+    414,
+    413,
+    478
+   ],
+   "desc": [
+    "bridge",
+    "curved",
+    "low",
+    "red",
+    "tree",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 432,
+   "trial": 27
+  },
+  {
+   "channel": "mem",
+   "commitment": "3e8ed002cb927fe2a0a5cb7b0968f83f46c723dd1412558090cc4ecb10c269e1",
+   "decoys": [
+    431,
+    605,
+    894,
+    67
+   ],
+   "desc": [
+    "closed",
+    "dry",
+    "hot",
+    "light",
+    "wall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 417,
+   "trial": 28
+  },
+  {
+   "channel": "mem",
+   "commitment": "5e942b148fad2619ff75c2a2ce88bc1824748a0af196bc19693e271f70f2311e",
+   "decoys": [
+    850,
+    75,
+    59,
+    819
+   ],
+   "desc": [
+    "crowd",
+    "glass",
+    "shadow",
+    "still",
+    "stone",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 745,
+   "trial": 29
+  },
+  {
+   "channel": "mem",
+   "commitment": "c4130276664805442e00db37af8ef40a518d87bfe3f02afbf2f85d685e058806",
+   "decoys": [
+    149,
+    930,
+    472,
+    457
+   ],
+   "desc": [
+    "fire",
+    "flat",
+    "road",
+    "square",
+    "still",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 593,
+   "trial": 30
+  },
+  {
+   "channel": "mem",
+   "commitment": "27d549ea12fc1d2bb39879b63bfe4c71fb90743a36ac9e274e899223883b1fd3",
+   "decoys": [
+    558,
+    706,
+    649,
+    580
+   ],
+   "desc": [
+    "blue",
+    "crowd",
+    "curved",
+    "high",
+    "ice",
+    "light"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 181,
+   "trial": 31
+  },
+  {
+   "channel": "mem",
+   "commitment": "b95a2f19ad7bc5b528621f5afd9aa40277ece9f7bc752e5d663c1370b85ff66d",
+   "decoys": [
+    551,
+    609,
+    607,
+    441
+   ],
+   "desc": [
+    "bird",
+    "boat",
+    "glass",
+    "light",
+    "metal",
+    "quiet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 286,
+   "trial": 32
+  },
+  {
+   "channel": "mem",
+   "commitment": "f34bd268bde9ea74e8aa6a71c04477ad6e85b42e43a2ebb938ccf372bf0ef3c9",
+   "decoys": [
+    247,
+    909,
+    947,
+    708
+   ],
+   "desc": [
+    "boat",
+    "quiet",
+    "shadow",
+    "tower",
+    "water",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 700,
+   "trial": 33
+  },
+  {
+   "channel": "mem",
+   "commitment": "6d90672a22b816fa469b8b362f7a451ecffc41fc15ecf1cf87be540d2e6e6a6a",
+   "decoys": [
+    40,
+    323,
+    331,
+    701
+   ],
+   "desc": [
+    "cloud",
+    "fire",
+    "ice",
+    "loud",
+    "new",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 244,
+   "trial": 34
+  },
+  {
+   "channel": "mem",
+   "commitment": "00dabad4fb4bb9db1f1973291ed1979b1c09b8e2c8247a7106983dc4ff004550",
+   "decoys": [
+    506,
+    280,
+    587,
+    931
+   ],
+   "desc": [
+    "bird",
+    "low",
+    "moving",
+    "quiet",
+    "tower",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 723,
+   "trial": 35
+  },
+  {
+   "channel": "mem",
+   "commitment": "1aec681d0f7c6cb96006d22f40aeefd4b3ef2f8cbb1cef13b10b375a0c66910d",
+   "decoys": [
+    786,
+    768,
+    749,
+    606
+   ],
+   "desc": [
+    "door",
+    "empty",
+    "glass",
+    "green",
+    "shadow",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 508,
+   "trial": 36
+  },
+  {
+   "channel": "mem",
+   "commitment": "439eeeec3706ac0ab4aa4f9bdc9d643a0a5e705f54b548845d230cdff0dfa879",
+   "decoys": [
+    222,
+    331,
+    991,
+    249
+   ],
+   "desc": [
+    "cloud",
+    "crowd",
+    "ice",
+    "shadow",
+    "stone",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 695,
+   "trial": 37
+  },
+  {
+   "channel": "mem",
+   "commitment": "7e0358bda0ec740c091d2983a2f225d7f496c75313efae2f8e1fd998fdfc98cb",
+   "decoys": [
+    347,
+    469,
+    407,
+    515
+   ],
+   "desc": [
+    "closed",
+    "crowd",
+    "field",
+    "glass",
+    "ice",
+    "quiet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 678,
+   "trial": 38
+  },
+  {
+   "channel": "mem",
+   "commitment": "bf7f6f1642ca826da2c7b2864426554adcd8446dea1a0f13d749495daed4018a",
+   "decoys": [
+    750,
+    162,
+    592,
+    55
+   ],
+   "desc": [
+    "curved",
+    "mountain",
+    "red",
+    "still",
+    "wall",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 86,
+   "trial": 39
+  },
+  {
+   "channel": "mem",
+   "commitment": "71bf7f7a1fa1c2cb5cfe3d37132d644885de879eb1a280eb142b7a4eab73d730",
+   "decoys": [
+    479,
+    230,
+    3,
+    434
+   ],
+   "desc": [
+    "built",
+    "cold",
+    "curved",
+    "hot",
+    "round",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 739,
+   "trial": 40
+  },
+  {
+   "channel": "mem",
+   "commitment": "8911c987c251c1b4ec18fcc1c1b570405f35b94ad000ed85fb70c20d53178284",
+   "decoys": [
+    711,
+    682,
+    389,
+    373
+   ],
+   "desc": [
+    "cloud",
+    "cold",
+    "curved",
+    "rope",
+    "wet",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 982,
+   "trial": 41
+  },
+  {
+   "channel": "mem",
+   "commitment": "0834017b4e60dc1882308455470d2d1a15440ad146b6d955319027029c2b08c1",
+   "decoys": [
+    776,
+    131,
+    376,
+    354
+   ],
+   "desc": [
+    "glass",
+    "green",
+    "high",
+    "metal",
+    "rope",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 765,
+   "trial": 42
+  },
+  {
+   "channel": "mem",
+   "commitment": "3be05a6e021f1deed9f4b17f535eb07b3bc91c6f054839e17dbab4ff33bc5a27",
+   "decoys": [
+    575,
+    797,
+    902,
+    953
+   ],
+   "desc": [
+    "cloud",
+    "fire",
+    "moving",
+    "stone",
+    "wall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 14,
+   "trial": 43
+  },
+  {
+   "channel": "mem",
+   "commitment": "e881aab8c62cbea1492030243aae6c7f1219121d1b0c016f089a88a11b6e047e",
+   "decoys": [
+    54,
+    810,
+    772,
+    373
+   ],
+   "desc": [
+    "bird",
+    "dry",
+    "natural",
+    "quiet",
+    "stone",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 728,
+   "trial": 44
+  },
+  {
+   "channel": "mem",
+   "commitment": "5070388291b171c22cd5d39610962b235d0a739bff6c9fa4a54abb98a2570ce9",
+   "decoys": [
+    248,
+    994,
+    125,
+    111
+   ],
+   "desc": [
+    "field",
+    "loud",
+    "moving",
+    "road",
+    "still",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 44,
+   "trial": 45
+  },
+  {
+   "channel": "mem",
+   "commitment": "869e61b2314f0307a948d7ed815475739e93397bca1931e93ac2645b0b2ec297",
+   "decoys": [
+    519,
+    321,
+    894,
+    645
+   ],
+   "desc": [
+    "low",
+    "new",
+    "red",
+    "road",
+    "sand",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 306,
+   "trial": 46
+  },
+  {
+   "channel": "mem",
+   "commitment": "99a46a1bf64fb1b26edaf2d5bdafe04f35bdfffed0c133c88c4cfbd6fb93a8c2",
+   "decoys": [
+    590,
+    691,
+    169,
+    471
+   ],
+   "desc": [
+    "green",
+    "loud",
+    "natural",
+    "old",
+    "round",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 753,
+   "trial": 47
+  },
+  {
+   "channel": "mem",
+   "commitment": "abc465a295f9e0ee26b519c830639f403eacf36be290bee21074ec6a74f23051",
+   "decoys": [
+    297,
+    59,
+    595,
+    509
+   ],
+   "desc": [
+    "built",
+    "cold",
+    "fire",
+    "glass",
+    "metal",
+    "new"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 133,
+   "trial": 48
+  },
+  {
+   "channel": "mem",
+   "commitment": "62d89fbe38318fbe46c76eac781e5b7cfbb8f9942a63d76846a89025674a4c8b",
+   "decoys": [
+    539,
+    57,
+    509,
+    573
+   ],
+   "desc": [
+    "bird",
+    "boat",
+    "flat",
+    "square",
+    "tower",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 11,
+   "trial": 49
+  },
+  {
+   "channel": "mem",
+   "commitment": "7ed182ee403e4c0aa4cf2799108e334dea93810f86312778fe2f5e03557bee40",
+   "decoys": [
+    199,
+    455,
+    372,
+    655
+   ],
+   "desc": [
+    "door",
+    "flat",
+    "metal",
+    "mountain",
+    "sand",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 775,
+   "trial": 50
+  },
+  {
+   "channel": "mem",
+   "commitment": "3afb75b55ad5616be9efd601c6b8b37d5d57b2e44abbff6337faaf28f7e1ffbb",
+   "decoys": [
+    393,
+    32,
+    613,
+    276
+   ],
+   "desc": [
+    "glass",
+    "sand",
+    "shadow",
+    "still",
+    "tall",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 382,
+   "trial": 51
+  },
+  {
+   "channel": "mem",
+   "commitment": "d089469c0946f181af0509bdb1ba45fbf4bcb7a41bf1371906b334c07d43bb52",
+   "decoys": [
+    684,
+    437,
+    504,
+    341
+   ],
+   "desc": [
+    "built",
+    "hot",
+    "light",
+    "loud",
+    "tower",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 122,
+   "trial": 52
+  },
+  {
+   "channel": "mem",
+   "commitment": "d51354022ba166e9d43dd103e468bd7f5457aa9f84703c832c058909a04a7645",
+   "decoys": [
+    603,
+    996,
+    476,
+    509
+   ],
+   "desc": [
+    "bridge",
+    "crowd",
+    "hot",
+    "natural",
+    "road",
+    "rope"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 263,
+   "trial": 53
+  },
+  {
+   "channel": "mem",
+   "commitment": "7f64ebc2476488f1e19e2c2071a2f442d8c21310c57d50cd42962eb8300c9289",
+   "decoys": [
+    287,
+    740,
+    897,
+    246
+   ],
+   "desc": [
+    "hot",
+    "light",
+    "metal",
+    "open",
+    "still",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 821,
+   "trial": 54
+  },
+  {
+   "channel": "mem",
+   "commitment": "a9c81aa74b3d08cfb3bb0a759201f92037cedcc83ca7bedc92e7671b6a0bd7b1",
+   "decoys": [
+    930,
+    585,
+    157,
+    53
+   ],
+   "desc": [
+    "dry",
+    "flat",
+    "loud",
+    "metal",
+    "old",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 388,
+   "trial": 55
+  },
+  {
+   "channel": "mem",
+   "commitment": "f48b92a90d7507599af74bb76bb6db1706e81f5634e650f3c4042a7fe3b06003",
+   "decoys": [
+    749,
+    300,
+    764,
+    845
+   ],
+   "desc": [
+    "door",
+    "ice",
+    "loud",
+    "mountain",
+    "moving",
+    "sand"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 961,
+   "trial": 56
+  },
+  {
+   "channel": "mem",
+   "commitment": "bb281bc5be4394b0ea87d524fb9568af4b3451f591b67714859ffae6c0aa291d",
+   "decoys": [
+    164,
+    616,
+    679,
+    149
+   ],
+   "desc": [
+    "bridge",
+    "curved",
+    "field",
+    "light",
+    "still",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 224,
+   "trial": 57
+  },
+  {
+   "channel": "mem",
+   "commitment": "81339466bb39385c45ce39b431ae0bcb9de41c079350ebacf094a2f6833b5c53",
+   "decoys": [
+    448,
+    952,
+    189,
+    656
+   ],
+   "desc": [
+    "bird",
+    "dry",
+    "flat",
+    "high",
+    "low",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 374,
+   "trial": 58
+  },
+  {
+   "channel": "mem",
+   "commitment": "f1c447c8e69b1785ce5096f2d5c31880f5f8c0792920ee65cdc2025228bffc57",
+   "decoys": [
+    183,
+    537,
+    94,
+    234
+   ],
+   "desc": [
+    "blue",
+    "closed",
+    "moving",
+    "natural",
+    "stone",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 119,
+   "trial": 59
+  },
+  {
+   "channel": "mem",
+   "commitment": "80a230d6660ede2aa5cdf67c10c168d5400f72ad07003caecc3fe4e39cf8c817",
+   "decoys": [
+    301,
+    810,
+    820,
+    656
+   ],
+   "desc": [
+    "bridge",
+    "cold",
+    "crowd",
+    "glass",
+    "still",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 305,
+   "trial": 60
+  },
+  {
+   "channel": "mem",
+   "commitment": "d885a35aa9c7b851e2a4f3cd0b3ddb0263896526560fc1eef3732df7090f48b3",
+   "decoys": [
+    217,
+    35,
+    815,
+    844
+   ],
+   "desc": [
+    "cloud",
+    "curved",
+    "empty",
+    "flat",
+    "high",
+    "square"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 174,
+   "trial": 61
+  },
+  {
+   "channel": "mem",
+   "commitment": "0f8b7570c4d67fac520212434b3d6648e04377ecc75da34bcd22f13f68d7e56b",
+   "decoys": [
+    686,
+    752,
+    789,
+    614
+   ],
+   "desc": [
+    "crowd",
+    "red",
+    "round",
+    "sand",
+    "still",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 913,
+   "trial": 62
+  },
+  {
+   "channel": "mem",
+   "commitment": "26ebe41916bfd486698e7812080d01edc939516312483c0685b81eb9977be64b",
+   "decoys": [
+    547,
+    152,
+    111,
+    480
+   ],
+   "desc": [
+    "cloud",
+    "dry",
+    "empty",
+    "low",
+    "sand",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 992,
+   "trial": 63
+  },
+  {
+   "channel": "mem",
+   "commitment": "d8fd2ae4d2160779e5c22e56d606c2841d731e7295fa3226c75a0e794914d551",
+   "decoys": [
+    880,
+    228,
+    266,
+    9
+   ],
+   "desc": [
+    "boat",
+    "curved",
+    "field",
+    "glass",
+    "red",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 225,
+   "trial": 64
+  },
+  {
+   "channel": "mem",
+   "commitment": "389a57edcd6bcc1c1fb54755df3f696f58e244eadb73fa348e248a9adb1bed30",
+   "decoys": [
+    710,
+    931,
+    193,
+    58
+   ],
+   "desc": [
+    "blue",
+    "low",
+    "new",
+    "old",
+    "shadow",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 564,
+   "trial": 65
+  },
+  {
+   "channel": "mem",
+   "commitment": "9823293f541ab4718efa6ee374101c05a111cb183242e11e533401b89177d510",
+   "decoys": [
+    940,
+    390,
+    169,
+    168
+   ],
+   "desc": [
+    "closed",
+    "high",
+    "light",
+    "mountain",
+    "tall",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 184,
+   "trial": 66
+  },
+  {
+   "channel": "mem",
+   "commitment": "43836215ed3cdb2afe176d73b03aeb007b5d9dfec8335c0db0a0c87e75d203ad",
+   "decoys": [
+    975,
+    141,
+    101,
+    144
+   ],
+   "desc": [
+    "closed",
+    "dry",
+    "loud",
+    "rope",
+    "sand",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 926,
+   "trial": 67
+  },
+  {
+   "channel": "mem",
+   "commitment": "0128bf5f0ac988bf56ce57b759a6cb307501e2d8d6a610f0ab5ecb0d9abb41e6",
+   "decoys": [
+    383,
+    861,
+    481,
+    16
+   ],
+   "desc": [
+    "field",
+    "fire",
+    "rope",
+    "shadow",
+    "stone",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 529,
+   "trial": 68
+  },
+  {
+   "channel": "mem",
+   "commitment": "3bae617c8eb60088b8a7c89f25870ea2e5e51a6a79eb0990f41887a77e095881",
+   "decoys": [
+    140,
+    236,
+    888,
+    54
+   ],
+   "desc": [
+    "green",
+    "loud",
+    "natural",
+    "round",
+    "stone",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 554,
+   "trial": 69
+  },
+  {
+   "channel": "mem",
+   "commitment": "bcc6ed211d42664c2934fbd35841df07d15043d9e3587373fbf935f95b72c90a",
+   "decoys": [
+    490,
+    389,
+    32,
+    837
+   ],
+   "desc": [
+    "cold",
+    "door",
+    "ice",
+    "sand",
+    "still",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 541,
+   "trial": 70
+  },
+  {
+   "channel": "mem",
+   "commitment": "d8d75223b0e20ce22be45d10285e9d714845f233c553bb34723b03ab2294362f",
+   "decoys": [
+    974,
+    588,
+    936,
+    273
+   ],
+   "desc": [
+    "built",
+    "ice",
+    "low",
+    "square",
+    "tree",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 754,
+   "trial": 71
+  },
+  {
+   "channel": "mem",
+   "commitment": "c4a75fe850d308add0e29446ad3a17d45d4d24eda0fcef2da407c268e4b657ce",
+   "decoys": [
+    666,
+    743,
+    440,
+    364
+   ],
+   "desc": [
+    "built",
+    "glass",
+    "hot",
+    "quiet",
+    "stone",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 438,
+   "trial": 72
+  },
+  {
+   "channel": "mem",
+   "commitment": "44205f059abcd4bb492f5ab4bc376fb8bda518403e71e1fa23114fbcd4da4b54",
+   "decoys": [
+    940,
+    107,
+    846,
+    493
+   ],
+   "desc": [
+    "closed",
+    "empty",
+    "glass",
+    "light",
+    "moving",
+    "quiet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 370,
+   "trial": 73
+  },
+  {
+   "channel": "mem",
+   "commitment": "dc20607db16f7d0a6f82751ece1ff65e6319ee9cb976374c0afe415dd3549a7d",
+   "decoys": [
+    909,
+    786,
+    689,
+    178
+   ],
+   "desc": [
+    "cloud",
+    "crowd",
+    "curved",
+    "loud",
+    "low",
+    "square"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 496,
+   "trial": 74
+  },
+  {
+   "channel": "mem",
+   "commitment": "7e46f241306144706219e13b7670a4183ee807d8c11507514b4173dd34daaf22",
+   "decoys": [
+    647,
+    632,
+    687,
+    295
+   ],
+   "desc": [
+    "bridge",
+    "cold",
+    "metal",
+    "open",
+    "red",
+    "rope"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 571,
+   "trial": 75
+  },
+  {
+   "channel": "mem",
+   "commitment": "9183ce0da9b325677b90cdd13ae7f65149e968825fc07e620d8046b88503d802",
+   "decoys": [
+    919,
+    149,
+    144,
+    76
+   ],
+   "desc": [
+    "bridge",
+    "built",
+    "ice",
+    "mountain",
+    "round",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 730,
+   "trial": 76
+  },
+  {
+   "channel": "mem",
+   "commitment": "2bbe172eb715b10c70b708fffab082911c6fd5cc44b715a79b0da8beda263fb5",
+   "decoys": [
+    124,
+    321,
+    237,
+    43
+   ],
+   "desc": [
+    "bird",
+    "bridge",
+    "built",
+    "closed",
+    "glass",
+    "new"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 626,
+   "trial": 77
+  },
+  {
+   "channel": "mem",
+   "commitment": "98a0d76bb79ddf00737a57bb94ae44322c7c72532e3a5a89787bc277e75ca144",
+   "decoys": [
+    175,
+    398,
+    220,
+    636
+   ],
+   "desc": [
+    "door",
+    "fire",
+    "loud",
+    "natural",
+    "open",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 256,
+   "trial": 78
+  },
+  {
+   "channel": "mem",
+   "commitment": "838db8f7f2da95903a7adb27b37b3602d99d72be1449710247753f039529b2bd",
+   "decoys": [
+    330,
+    257,
+    392,
+    311
+   ],
+   "desc": [
+    "bridge",
+    "cold",
+    "dry",
+    "moving",
+    "quiet",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 653,
+   "trial": 79
+  },
+  {
+   "channel": "mem",
+   "commitment": "3aac0ae473e8a94aafafd2b785ec6f68f777fb35100bfce592f02caf8938a564",
+   "decoys": [
+    662,
+    366,
+    480,
+    807
+   ],
+   "desc": [
+    "bird",
+    "cloud",
+    "metal",
+    "red",
+    "sand",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 352,
+   "trial": 80
+  },
+  {
+   "channel": "mem",
+   "commitment": "f236b0bc104ffc2c5a7364b67686133d222186faac4a1ed30b8168843a1e594f",
+   "decoys": [
+    269,
+    111,
+    647,
+    436
+   ],
+   "desc": [
+    "bird",
+    "glass",
+    "light",
+    "mountain",
+    "old",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 284,
+   "trial": 81
+  },
+  {
+   "channel": "mem",
+   "commitment": "7952c29c1e18005b590c35bf778c4fd2a87f79e74c0739235dfa01e1b52a7331",
+   "decoys": [
+    531,
+    393,
+    944,
+    680
+   ],
+   "desc": [
+    "bridge",
+    "cloud",
+    "flat",
+    "glass",
+    "green",
+    "metal"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 721,
+   "trial": 82
+  },
+  {
+   "channel": "mem",
+   "commitment": "bcada61c48b17ab8b9210e2411251f5918dd31b41fb46a60e8ad7b8329c27151",
+   "decoys": [
+    377,
+    585,
+    492,
+    117
+   ],
+   "desc": [
+    "cloud",
+    "empty",
+    "glass",
+    "ice",
+    "round",
+    "square"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 812,
+   "trial": 83
+  },
+  {
+   "channel": "mem",
+   "commitment": "084161bc53e8abc28aa4836a230030d1d790c1792109e56a8ed31218b820d254",
+   "decoys": [
+    171,
+    826,
+    348,
+    984
+   ],
+   "desc": [
+    "blue",
+    "loud",
+    "mountain",
+    "stone",
+    "tower",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 856,
+   "trial": 84
+  },
+  {
+   "channel": "mem",
+   "commitment": "9968dad69f1d4923654eef4c4ae904c2722a49d5df07c838f8392940d149952c",
+   "decoys": [
+    991,
+    405,
+    148,
+    499
+   ],
+   "desc": [
+    "door",
+    "empty",
+    "fire",
+    "open",
+    "round",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 7,
+   "trial": 85
+  },
+  {
+   "channel": "mem",
+   "commitment": "7846a6ee42036393ace3d864e6f1ad0da7bed2ae9cb17043d1c6959b1d941db5",
+   "decoys": [
+    764,
+    542,
+    287,
+    168
+   ],
+   "desc": [
+    "dry",
+    "empty",
+    "hot",
+    "light",
+    "open",
+    "round"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 612,
+   "trial": 86
+  },
+  {
+   "channel": "mem",
+   "commitment": "e8418529d1b521cdad613bdaef07edf5bd9f013338b4982a2d46937c4d0e4a37",
+   "decoys": [
+    118,
+    683,
+    928,
+    303
+   ],
+   "desc": [
+    "blue",
+    "boat",
+    "glass",
+    "rope",
+    "square",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 165,
+   "trial": 87
+  },
+  {
+   "channel": "mem",
+   "commitment": "64fa45d86721a8c712f8f78229fcb0f8a2db42696c0a55682d9e5e444395ed42",
+   "decoys": [
+    357,
+    498,
+    459,
+    959
+   ],
+   "desc": [
+    "curved",
+    "mountain",
+    "old",
+    "road",
+    "still",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 221,
+   "trial": 88
+  },
+  {
+   "channel": "mem",
+   "commitment": "ba0e02c0cfb78841bb9379c4d3bc8673f121a1a2c5000325bc6dd4aecc90f263",
+   "decoys": [
+    928,
+    320,
+    70,
+    981
+   ],
+   "desc": [
+    "cold",
+    "flat",
+    "green",
+    "low",
+    "square",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 494,
+   "trial": 89
+  },
+  {
+   "channel": "mem",
+   "commitment": "4a8041cda75d8a2c5b80e893bb973987348158f0b4902ad4ad75f40c9ef414f1",
+   "decoys": [
+    32,
+    313,
+    173,
+    29
+   ],
+   "desc": [
+    "boat",
+    "cold",
+    "hot",
+    "natural",
+    "road",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 881,
+   "trial": 90
+  },
+  {
+   "channel": "mem",
+   "commitment": "69bfe0505e541c7cde23419b6a7f85ad3dde138516f39b1c649d8f91dccc7afe",
+   "decoys": [
+    252,
+    558,
+    466,
+    930
+   ],
+   "desc": [
+    "dry",
+    "empty",
+    "high",
+    "natural",
+    "round",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 694,
+   "trial": 91
+  },
+  {
+   "channel": "mem",
+   "commitment": "2ef4eb3305eca7c4818f638696248490714ed37e5c8009f0f449a11ec5f552d6",
+   "decoys": [
+    249,
+    893,
+    822,
+    501
+   ],
+   "desc": [
+    "door",
+    "loud",
+    "low",
+    "metal",
+    "shadow",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 912,
+   "trial": 92
+  },
+  {
+   "channel": "mem",
+   "commitment": "9b48df398fcd56ca708d23c4ae67542b58144f81f5d5a7dca3bc3ca6441eb288",
+   "decoys": [
+    530,
+    169,
+    407,
+    829
+   ],
+   "desc": [
+    "empty",
+    "green",
+    "light",
+    "old",
+    "square",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 566,
+   "trial": 93
+  },
+  {
+   "channel": "mem",
+   "commitment": "9b4fe82854b22e10d916e4ae3b6ee7b18dc85de25a4a9616ce2352a3b3520c50",
+   "decoys": [
+    674,
+    533,
+    58,
+    302
+   ],
+   "desc": [
+    "built",
+    "glass",
+    "open",
+    "red",
+    "rope",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 460,
+   "trial": 94
+  },
+  {
+   "channel": "mem",
+   "commitment": "1bf66e60bbb2d04fe2f8cc174e99b2f05141305aa322fdb57c26f7d5b086461d",
+   "decoys": [
+    501,
+    851,
+    682,
+    60
+   ],
+   "desc": [
+    "dry",
+    "natural",
+    "quiet",
+    "sand",
+    "water",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 963,
+   "trial": 95
+  },
+  {
+   "channel": "mem",
+   "commitment": "830b217633990e04f78d887fa498c5201919b5d2a01f8076ed9295555007f38f",
+   "decoys": [
+    180,
+    840,
+    649,
+    792
+   ],
+   "desc": [
+    "bridge",
+    "dry",
+    "glass",
+    "natural",
+    "sand",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 885,
+   "trial": 96
+  },
+  {
+   "channel": "mem",
+   "commitment": "0a3ddc0f282629c84e8d0213f7bb5e873c80e7ad892863a380505c1db2b42eb2",
+   "decoys": [
+    778,
+    563,
+    829,
+    320
+   ],
+   "desc": [
+    "bridge",
+    "built",
+    "hot",
+    "light",
+    "moving",
+    "open"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 422,
+   "trial": 97
+  },
+  {
+   "channel": "mem",
+   "commitment": "102d35f2f1c63cea69ac2be25a1cbf2ec6c9ce29e6c83399392d01f4e1546a48",
+   "decoys": [
+    41,
+    217,
+    927,
+    887
+   ],
+   "desc": [
+    "glass",
+    "light",
+    "new",
+    "open",
+    "still",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 664,
+   "trial": 98
+  },
+  {
+   "channel": "mem",
+   "commitment": "ff62aaf3f835e22645a2d663de7e2c84870f279135eb853a9831808f04d70c4e",
+   "decoys": [
+    150,
+    252,
+    170,
+    199
+   ],
+   "desc": [
+    "cloud",
+    "door",
+    "empty",
+    "field",
+    "metal",
+    "natural"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 942,
+   "trial": 99
+  },
+  {
+   "channel": "mem",
+   "commitment": "ad4b63a712b9b6c6a8bd5879494e67142cdf026912eb5ea9120b9a7f4bf286ff",
+   "decoys": [
+    556,
+    254,
+    803,
+    768
+   ],
+   "desc": [
+    "cold",
+    "light",
+    "moving",
+    "open",
+    "sand",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 358,
+   "trial": 100
+  },
+  {
+   "channel": "mem",
+   "commitment": "bca25781f2e76fd7d3abd9367cc4888c07041316d448b81cc7c2f4dd96ce4322",
+   "decoys": [
+    524,
+    793,
+    299,
+    599
+   ],
+   "desc": [
+    "road",
+    "round",
+    "still",
+    "tree",
+    "wall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 672,
+   "trial": 101
+  },
+  {
+   "channel": "mem",
+   "commitment": "707c2a35189d6b5bef87d7d1836e680dbc521d9ec2a7741f06754b0a3d63a87f",
+   "decoys": [
+    375,
+    970,
+    38,
+    264
+   ],
+   "desc": [
+    "empty",
+    "hot",
+    "low",
+    "metal",
+    "square",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 68,
+   "trial": 102
+  },
+  {
+   "channel": "mem",
+   "commitment": "b7ea72061f228c7edf65d20d282763aa110ce73f21a3a32c91565b1a6b3f60d0",
+   "decoys": [
+    400,
+    117,
+    887,
+    843
+   ],
+   "desc": [
+    "curved",
+    "field",
+    "fire",
+    "ice",
+    "moving",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 724,
+   "trial": 103
+  },
+  {
+   "channel": "mem",
+   "commitment": "35c33be1d17b0cd5af9c5288a5745510a2d6f0d04fdd833b0c2d8dfcdcee2e14",
+   "decoys": [
+    570,
+    285,
+    141,
+    478
+   ],
+   "desc": [
+    "dry",
+    "metal",
+    "red",
+    "rope",
+    "tree",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 289,
+   "trial": 104
+  },
+  {
+   "channel": "mem",
+   "commitment": "cc621325b5d39161c9610bb27433e8922c687a0624b327f580ef2f31c71bc0ba",
+   "decoys": [
+    650,
+    101,
+    40,
+    153
+   ],
+   "desc": [
+    "bird",
+    "dry",
+    "high",
+    "moving",
+    "square",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 617,
+   "trial": 105
+  },
+  {
+   "channel": "mem",
+   "commitment": "7edfd59656d4e4b1536bf683ca862bf56df72d041e07e8bfc0137b766ff68849",
+   "decoys": [
+    74,
+    817,
+    302,
+    832
+   ],
+   "desc": [
+    "flat",
+    "hot",
+    "ice",
+    "light",
+    "quiet",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 275,
+   "trial": 106
+  },
+  {
+   "channel": "mem",
+   "commitment": "9660331fa53bfcc2e6b8442443688710408fb26e7e205aa6d25503725a57ca41",
+   "decoys": [
+    373,
+    201,
+    149,
+    715
+   ],
+   "desc": [
+    "blue",
+    "closed",
+    "cloud",
+    "empty",
+    "green",
+    "mountain"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 116,
+   "trial": 107
+  },
+  {
+   "channel": "mem",
+   "commitment": "e7b7e560e495461bcbb34a127bbaf3c4b85dfd08b939feb83e5bd05c345aabc0",
+   "decoys": [
+    112,
+    581,
+    193,
+    169
+   ],
+   "desc": [
+    "dry",
+    "empty",
+    "field",
+    "metal",
+    "quiet",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 796,
+   "trial": 108
+  },
+  {
+   "channel": "mem",
+   "commitment": "c8bd722503e98e3f612f257d5b2672891614bcc3a6aba007f6f9395ea5da9804",
+   "decoys": [
+    110,
+    393,
+    751,
+    357
+   ],
+   "desc": [
+    "boat",
+    "closed",
+    "green",
+    "natural",
+    "round",
+    "sand"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 785,
+   "trial": 109
+  },
+  {
+   "channel": "mem",
+   "commitment": "f04e9b3322320b5b8f509999731c8f8503a907968bfd7e8e8bf061231c8f9b50",
+   "decoys": [
+    759,
+    502,
+    836,
+    557
+   ],
+   "desc": [
+    "closed",
+    "crowd",
+    "high",
+    "new",
+    "shadow",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 130,
+   "trial": 110
+  },
+  {
+   "channel": "mem",
+   "commitment": "1f785f046c1216a577c9b0d14022be4ba4ac1fc280e5073c5644a602f8ee13a4",
+   "decoys": [
+    73,
+    840,
+    680,
+    300
+   ],
+   "desc": [
+    "closed",
+    "ice",
+    "rope",
+    "sand",
+    "wall",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 663,
+   "trial": 111
+  },
+  {
+   "channel": "mem",
+   "commitment": "7b65f1298534ca41d94b8fcdc7a99e7bf2c1a7e42c2778250e330d7c19a7d43c",
+   "decoys": [
+    844,
+    635,
+    125,
+    870
+   ],
+   "desc": [
+    "boat",
+    "hot",
+    "ice",
+    "low",
+    "natural",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 915,
+   "trial": 112
+  },
+  {
+   "channel": "mem",
+   "commitment": "1977251cd6cca5c5427393548f35ab14f6d8e5737b51f9fd8f26ccfa3b0532c6",
+   "decoys": [
+    464,
+    58,
+    804,
+    936
+   ],
+   "desc": [
+    "blue",
+    "closed",
+    "crowd",
+    "fire",
+    "road",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 736,
+   "trial": 113
+  },
+  {
+   "channel": "mem",
+   "commitment": "798e8f2812471de6fc04cb5c0b702456fc206903e91deecc792741a534589827",
+   "decoys": [
+    243,
+    619,
+    204,
+    921
+   ],
+   "desc": [
+    "bridge",
+    "curved",
+    "door",
+    "glass",
+    "tall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 93,
+   "trial": 114
+  },
+  {
+   "channel": "mem",
+   "commitment": "34e8ae2cf066eca8addf6467d2f4a62845bcf58be0fb57651058922e5dc4a7b7",
+   "decoys": [
+    279,
+    845,
+    434,
+    126
+   ],
+   "desc": [
+    "dry",
+    "hot",
+    "mountain",
+    "rope",
+    "stone",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 625,
+   "trial": 115
+  },
+  {
+   "channel": "mem",
+   "commitment": "249951e917d3498cd70005aa132498823d2bc49719f5a2399ed5bc0a0d12b57e",
+   "decoys": [
+    696,
+    761,
+    0,
+    621
+   ],
+   "desc": [
+    "blue",
+    "closed",
+    "cloud",
+    "cold",
+    "new",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 830,
+   "trial": 116
+  },
+  {
+   "channel": "mem",
+   "commitment": "c96b72e6c6b41116631bda3d50d7660ed4ad262d02b643ce41388be063f1f42f",
+   "decoys": [
+    782,
+    632,
+    658,
+    22
+   ],
+   "desc": [
+    "crowd",
+    "curved",
+    "glass",
+    "ice",
+    "light",
+    "metal"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 904,
+   "trial": 117
+  },
+  {
+   "channel": "mem",
+   "commitment": "b6291a64dfefa30428ba9b812ff6d5ed39b6afc2d5ae31c0fe3f9670cccc8567",
+   "decoys": [
+    476,
+    933,
+    675,
+    991
+   ],
+   "desc": [
+    "green",
+    "light",
+    "loud",
+    "moving",
+    "new",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 451,
+   "trial": 118
+  },
+  {
+   "channel": "mem",
+   "commitment": "450632361b2d8101f65ba32dbffae5c236377d0b480f4a5159be806c8a3eddf0",
+   "decoys": [
+    960,
+    423,
+    186,
+    173
+   ],
+   "desc": [
+    "closed",
+    "cloud",
+    "curved",
+    "metal",
+    "sand",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 528,
+   "trial": 119
+  },
+  {
+   "channel": "mem",
+   "commitment": "1c85d812e0f459c8f03ed78e6d868c2deb435627a5cb98390becc0592383f053",
+   "decoys": [
+    308,
+    517,
+    336,
+    662
+   ],
+   "desc": [
+    "high",
+    "moving",
+    "natural",
+    "old",
+    "square",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 707,
+   "trial": 120
+  },
+  {
+   "channel": "mem",
+   "commitment": "dbb9ca7c583a8061d21ad4d81e5490267b810e27810e3164c59a7a0723eaac59",
+   "decoys": [
+    69,
+    334,
+    539,
+    900
+   ],
+   "desc": [
+    "bridge",
+    "empty",
+    "flat",
+    "road",
+    "square",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 329,
+   "trial": 121
+  },
+  {
+   "channel": "mem",
+   "commitment": "917392a55cbf587fe877805647c65d85d21072df98813138a3c52baddeb597e8",
+   "decoys": [
+    411,
+    532,
+    949,
+    296
+   ],
+   "desc": [
+    "cold",
+    "crowd",
+    "mountain",
+    "moving",
+    "road",
+    "square"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 852,
+   "trial": 122
+  },
+  {
+   "channel": "mem",
+   "commitment": "10241cff00cb72eb4ecdf6b17baefe863c3d470d2f573dc6d9c569472845c018",
+   "decoys": [
+    561,
+    698,
+    813,
+    95
+   ],
+   "desc": [
+    "cold",
+    "dry",
+    "moving",
+    "rope",
+    "sand",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 345,
+   "trial": 123
+  },
+  {
+   "channel": "mem",
+   "commitment": "3d0d5c3904e416ca305a331f5da9ade81f4f5affb93202303a27848845da77c3",
+   "decoys": [
+    457,
+    674,
+    362,
+    947
+   ],
+   "desc": [
+    "bridge",
+    "shadow",
+    "square",
+    "tower",
+    "wall",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 272,
+   "trial": 124
+  },
+  {
+   "channel": "mem",
+   "commitment": "6fc89f153ce941c2c2bb803253916070b97c959d67cfcdab6641cb8f36541fc1",
+   "decoys": [
+    74,
+    429,
+    390,
+    662
+   ],
+   "desc": [
+    "bird",
+    "built",
+    "cloud",
+    "empty",
+    "low",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 462,
+   "trial": 125
+  },
+  {
+   "channel": "mem",
+   "commitment": "3434e3d4adb0a9c584174450c65823649c35d00165d47f718ecd79bb77789951",
+   "decoys": [
+    686,
+    557,
+    19,
+    418
+   ],
+   "desc": [
+    "curved",
+    "moving",
+    "new",
+    "old",
+    "open",
+    "quiet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 80,
+   "trial": 126
+  },
+  {
+   "channel": "mem",
+   "commitment": "20488ba04502b7bcc5bdd3eb7c65eafa4bea77432fb14ea2c594fba158403149",
+   "decoys": [
+    88,
+    768,
+    398,
+    899
+   ],
+   "desc": [
+    "bird",
+    "door",
+    "natural",
+    "old",
+    "red",
+    "round"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 359,
+   "trial": 127
+  },
+  {
+   "channel": "mem",
+   "commitment": "314c9668009546027c33dd09ba631295a8b01d9cf3c7067477cfe98e7828b61e",
+   "decoys": [
+    252,
+    867,
+    989,
+    47
+   ],
+   "desc": [
+    "cold",
+    "empty",
+    "glass",
+    "tower",
+    "tree",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 445,
+   "trial": 128
+  },
+  {
+   "channel": "mem",
+   "commitment": "d20bb67c56b499f2d25876b8f43ade4ab1aca5720bf9e051f5d3e1b87fa908c2",
+   "decoys": [
+    131,
+    56,
+    158,
+    247
+   ],
+   "desc": [
+    "bird",
+    "field",
+    "high",
+    "loud",
+    "old",
+    "road"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 987,
+   "trial": 129
+  },
+  {
+   "channel": "mem",
+   "commitment": "ebc542f27532e4ec2025fae26b9cdc28cf4939473b28b35372ec564a4ad98a0c",
+   "decoys": [
+    331,
+    773,
+    87,
+    647
+   ],
+   "desc": [
+    "boat",
+    "glass",
+    "green",
+    "loud",
+    "shadow",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 337,
+   "trial": 130
+  },
+  {
+   "channel": "mem",
+   "commitment": "7ab2ed19426bc1419380bc81a21c1c3931d293c9a6f8197ef2f8fe3fdc1f0145",
+   "decoys": [
+    887,
+    473,
+    373,
+    759
+   ],
+   "desc": [
+    "cloud",
+    "curved",
+    "flat",
+    "hot",
+    "natural",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 548,
+   "trial": 131
+  },
+  {
+   "channel": "mem",
+   "commitment": "2c249eb290657ee2ef4787780de815f3083fd6aaed20b65abdd913fd09340826",
+   "decoys": [
+    923,
+    731,
+    231,
+    705
+   ],
+   "desc": [
+    "blue",
+    "boat",
+    "low",
+    "natural",
+    "shadow",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 212,
+   "trial": 132
+  },
+  {
+   "channel": "mem",
+   "commitment": "58e23968612f68878c3b788c6f3ed9e9447597c670fdf78f3edcc448f0496be5",
+   "decoys": [
+    113,
+    316,
+    424,
+    335
+   ],
+   "desc": [
+    "bird",
+    "door",
+    "ice",
+    "light",
+    "sand",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 644,
+   "trial": 133
+  },
+  {
+   "channel": "mem",
+   "commitment": "4ac86f48b5ff82633f0c074abe7eff2be3703666813436287db4c348fa49c310",
+   "decoys": [
+    732,
+    937,
+    949,
+    587
+   ],
+   "desc": [
+    "empty",
+    "flat",
+    "mountain",
+    "natural",
+    "still",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 196,
+   "trial": 134
+  },
+  {
+   "channel": "mem",
+   "commitment": "f09048ccc3025ed15b7ebd7fcfc77a4bf793dcaea90f31b984e2b5fdacd3dde8",
+   "decoys": [
+    158,
+    431,
+    985,
+    314
+   ],
+   "desc": [
+    "built",
+    "closed",
+    "cold",
+    "green",
+    "road",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 489,
+   "trial": 135
+  },
+  {
+   "channel": "mem",
+   "commitment": "fa37d24a04e35c76c3bb51ece20fb4fe28ec8c63083668306a70a0b312a6fddb",
+   "decoys": [
+    659,
+    379,
+    991,
+    393
+   ],
+   "desc": [
+    "cold",
+    "light",
+    "quiet",
+    "round",
+    "sand",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 858,
+   "trial": 136
+  },
+  {
+   "channel": "mem",
+   "commitment": "ca8246c6627eed5cb0e618267c9b115593e8dca37ec8403c3d08db6d1185e20b",
+   "decoys": [
+    837,
+    738,
+    735,
+    607
+   ],
+   "desc": [
+    "flat",
+    "mountain",
+    "quiet",
+    "round",
+    "sand",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 283,
+   "trial": 137
+  },
+  {
+   "channel": "mem",
+   "commitment": "c02ce8c9c3e41aec5c379e6700a5e86db0c29ab0656263fa4260eacfe590265d",
+   "decoys": [
+    649,
+    680,
+    348,
+    610
+   ],
+   "desc": [
+    "cold",
+    "crowd",
+    "door",
+    "loud",
+    "metal",
+    "moving"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 864,
+   "trial": 138
+  },
+  {
+   "channel": "mem",
+   "commitment": "806ed790000e2ef63d2922c3a4f51622fcbc3c4110982eaeb948ac682d886543",
+   "decoys": [
+    629,
+    797,
+    922,
+    264
+   ],
+   "desc": [
+    "bird",
+    "green",
+    "light",
+    "metal",
+    "old",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 381,
+   "trial": 139
+  },
+  {
+   "channel": "mem",
+   "commitment": "98de539ba6232ad018334d81a7fd421ac6362f994521b37b2510776e8984825c",
+   "decoys": [
+    601,
+    901,
+    720,
+    967
+   ],
+   "desc": [
+    "blue",
+    "cloud",
+    "flat",
+    "green",
+    "round",
+    "shadow"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 82,
+   "trial": 140
+  },
+  {
+   "channel": "mem",
+   "commitment": "0a583c44bdbb2c16ff7b8eda783cc33b5ce21a7ad007c5441b36c66691fccba6",
+   "decoys": [
+    447,
+    530,
+    43,
+    600
+   ],
+   "desc": [
+    "blue",
+    "flat",
+    "metal",
+    "square",
+    "tower",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 259,
+   "trial": 141
+  },
+  {
+   "channel": "mem",
+   "commitment": "63814a4db69b9d32d444a52f6b715aadb1f407e5ba27d2ed979d02b177c59735",
+   "decoys": [
+    191,
+    598,
+    27,
+    248
+   ],
+   "desc": [
+    "built",
+    "metal",
+    "moving",
+    "new",
+    "round",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 39,
+   "trial": 142
+  },
+  {
+   "channel": "mem",
+   "commitment": "7f9a332ebe60c193b888f5b2fdbaaedaead020911aa137f57b9de09818a1a7d8",
+   "decoys": [
+    662,
+    731,
+    752,
+    429
+   ],
+   "desc": [
+    "crowd",
+    "fire",
+    "ice",
+    "light",
+    "metal",
+    "red"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 526,
+   "trial": 143
+  },
+  {
+   "channel": "mem",
+   "commitment": "71bfbc65f368e9975c6bfb030cfcf5aa8ef8d9f6668231b4d08789798b64daff",
+   "decoys": [
+    946,
+    47,
+    703,
+    97
+   ],
+   "desc": [
+    "boat",
+    "field",
+    "old",
+    "red",
+    "road",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 799,
+   "trial": 144
+  },
+  {
+   "channel": "mem",
+   "commitment": "6b31ee4508a6b547dcb86c7ae32a99e095ab8d163874dee07250525a366ca8fa",
+   "decoys": [
+    649,
+    575,
+    586,
+    392
+   ],
+   "desc": [
+    "built",
+    "cold",
+    "door",
+    "red",
+    "rope",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 976,
+   "trial": 145
+  },
+  {
+   "channel": "mem",
+   "commitment": "72516c1bbffab491dfdf1a83ce8e76201903761347fb9525757ff48ccdc3a139",
+   "decoys": [
+    341,
+    91,
+    959,
+    567
+   ],
+   "desc": [
+    "bird",
+    "curved",
+    "empty",
+    "open",
+    "sand",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 251,
+   "trial": 146
+  },
+  {
+   "channel": "mem",
+   "commitment": "3b0f0f85dd563b41d7b362479ace3b16184e56a34994bd3a8093c8f31a7b442e",
+   "decoys": [
+    383,
+    930,
+    559,
+    809
+   ],
+   "desc": [
+    "light",
+    "road",
+    "rope",
+    "stone",
+    "tall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 523,
+   "trial": 147
+  },
+  {
+   "channel": "mem",
+   "commitment": "0a21a05d683ad7570f8c95e8f235d9a5451940a2bb2c038376ac5d8d3b1aacc4",
+   "decoys": [
+    35,
+    949,
+    735,
+    469
+   ],
+   "desc": [
+    "closed",
+    "empty",
+    "field",
+    "high",
+    "mountain",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 483,
+   "trial": 148
+  },
+  {
+   "channel": "mem",
+   "commitment": "2b9e32d7ca6208990ac407001c94f5c2d923ee670acb2d91680b1cbec3d67ce5",
+   "decoys": [
+    35,
+    426,
+    155,
+    232
+   ],
+   "desc": [
+    "blue",
+    "boat",
+    "cold",
+    "flat",
+    "mountain",
+    "new"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 535,
+   "trial": 149
+  },
+  {
+   "channel": "mem",
+   "commitment": "d85d527adf4b4831b087900199aa8437373bd00478f178bf0d502be88dccc8db",
+   "decoys": [
+    239,
+    893,
+    791,
+    490
+   ],
+   "desc": [
+    "bridge",
+    "door",
+    "field",
+    "road",
+    "tall",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 84,
+   "trial": 150
+  },
+  {
+   "channel": "mem",
+   "commitment": "41738b6ec44d538f4f6192e2fa4a64beb64fde024572188debe586ef0972a35b",
+   "decoys": [
+    449,
+    610,
+    916,
+    249
+   ],
+   "desc": [
+    "bridge",
+    "field",
+    "light",
+    "mountain",
+    "red",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 198,
+   "trial": 151
+  },
+  {
+   "channel": "mem",
+   "commitment": "907d3e4ce38c062483775c610c40e0a89f9e68118e6c5de180034d37a413b2ba",
+   "decoys": [
+    563,
+    733,
+    241,
+    957
+   ],
+   "desc": [
+    "cold",
+    "open",
+    "quiet",
+    "square",
+    "stone",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 210,
+   "trial": 152
+  },
+  {
+   "channel": "mem",
+   "commitment": "35ae158e838d159fa925c5ae91ffdc514f9d7d2bb9fa4bc70261f54bf6a4ccca",
+   "decoys": [
+    618,
+    838,
+    941,
+    390
+   ],
+   "desc": [
+    "bird",
+    "door",
+    "field",
+    "flat",
+    "green",
+    "sand"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 205,
+   "trial": 153
+  },
+  {
+   "channel": "mem",
+   "commitment": "02cd02c6718141814f2e1945b04b460a2015b51ffca1ecedf8b0977e585fe0a8",
+   "decoys": [
+    757,
+    53,
+    937,
+    629
+   ],
+   "desc": [
+    "empty",
+    "fire",
+    "natural",
+    "quiet",
+    "sand",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 45,
+   "trial": 154
+  },
+  {
+   "channel": "mem",
+   "commitment": "0dbc134861b06424cbc5eaf9cd0d71b29fc5c00d3778d2b9dfb1570360f0ac61",
+   "decoys": [
+    362,
+    214,
+    397,
+    195
+   ],
+   "desc": [
+    "bridge",
+    "fire",
+    "metal",
+    "old",
+    "still",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 380,
+   "trial": 155
+  },
+  {
+   "channel": "mem",
+   "commitment": "d1db5f499cb30800dbdc4fbaf441d46bcd1c613134fdf90bfca2fa244aec3271",
+   "decoys": [
+    433,
+    501,
+    848,
+    235
+   ],
+   "desc": [
+    "cloud",
+    "low",
+    "metal",
+    "quiet",
+    "red",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 734,
+   "trial": 156
+  },
+  {
+   "channel": "mem",
+   "commitment": "6a5898f1f5709cd253f0c1e529bf5505efe4031aa8863e73ea8e08e28138b529",
+   "decoys": [
+    234,
+    474,
+    586,
+    941
+   ],
+   "desc": [
+    "cloud",
+    "fire",
+    "hot",
+    "ice",
+    "low",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 307,
+   "trial": 157
+  },
+  {
+   "channel": "mem",
+   "commitment": "594164f453ea5e5bb271b5200008e96c40a34fa597e9cd180cdd98b533961995",
+   "decoys": [
+    300,
+    63,
+    340,
+    825
+   ],
+   "desc": [
+    "hot",
+    "moving",
+    "road",
+    "rope",
+    "still",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 979,
+   "trial": 158
+  },
+  {
+   "channel": "mem",
+   "commitment": "c3572f39a8423c78d19e11fdcca03d1e350c3618a496b1b31c11592154cfda73",
+   "decoys": [
+    415,
+    920,
+    714,
+    405
+   ],
+   "desc": [
+    "cloud",
+    "field",
+    "glass",
+    "ice",
+    "moving",
+    "natural"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 72,
+   "trial": 159
+  },
+  {
+   "channel": "mem",
+   "commitment": "ad7183aad68c04ae14dbd05018b6e3d90aac61fb6042cdcb0a6272b30a1bed45",
+   "decoys": [
+    738,
+    216,
+    97,
+    804
+   ],
+   "desc": [
+    "loud",
+    "moving",
+    "rope",
+    "sand",
+    "tall",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 866,
+   "trial": 160
+  },
+  {
+   "channel": "mem",
+   "commitment": "9d8424447a615e2a894103e308b4ae74aaec83416b746b635dd59bfd38a4d95b",
+   "decoys": [
+    222,
+    412,
+    843,
+    314
+   ],
+   "desc": [
+    "cold",
+    "door",
+    "high",
+    "light",
+    "sand",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 727,
+   "trial": 161
+  },
+  {
+   "channel": "mem",
+   "commitment": "eecdf5efe8f30aadc27e0d4c276b2da53655741865dd4b1218c42658eafdd0c4",
+   "decoys": [
+    553,
+    996,
+    875,
+    582
+   ],
+   "desc": [
+    "closed",
+    "fire",
+    "hot",
+    "rope",
+    "shadow",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 842,
+   "trial": 162
+  },
+  {
+   "channel": "mem",
+   "commitment": "e7a4597294cd7c37eb9ea4952ebb17251dcac95c984f01b9b048ebfb3960c98e",
+   "decoys": [
+    318,
+    90,
+    595,
+    629
+   ],
+   "desc": [
+    "closed",
+    "curved",
+    "empty",
+    "loud",
+    "old",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 814,
+   "trial": 163
+  },
+  {
+   "channel": "mem",
+   "commitment": "6e10e136d13ffba7a83d8c768b3576d6512a9169d7ad3d781fac2aff637bf340",
+   "decoys": [
+    401,
+    326,
+    33,
+    512
+   ],
+   "desc": [
+    "flat",
+    "old",
+    "quiet",
+    "rope",
+    "square",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 31,
+   "trial": 164
+  },
+  {
+   "channel": "mem",
+   "commitment": "105f566ffe4b3978d531aa4017aaeedeca16540e42fdd5141ce3c9376d1ac7c1",
+   "decoys": [
+    430,
+    443,
+    118,
+    148
+   ],
+   "desc": [
+    "curved",
+    "green",
+    "metal",
+    "old",
+    "round",
+    "square"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 646,
+   "trial": 165
+  },
+  {
+   "channel": "mem",
+   "commitment": "3f50e151a4eef049411a2d2756abf81f703b476a964adea93af798a54a64e6b6",
+   "decoys": [
+    148,
+    395,
+    85,
+    448
+   ],
+   "desc": [
+    "blue",
+    "boat",
+    "crowd",
+    "hot",
+    "moving",
+    "new"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 790,
+   "trial": 166
+  },
+  {
+   "channel": "mem",
+   "commitment": "dfe5524bdcb823273549af832138e43197f7563433bd6be1a5915c61897a4fd9",
+   "decoys": [
+    333,
+    43,
+    748,
+    234
+   ],
+   "desc": [
+    "cold",
+    "curved",
+    "old",
+    "open",
+    "quiet",
+    "rope"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 853,
+   "trial": 167
+  },
+  {
+   "channel": "mem",
+   "commitment": "b0ddb462f4a829b073bb262408409f472cfd33215486123c1f7f58972c976117",
+   "decoys": [
+    37,
+    789,
+    702,
+    56
+   ],
+   "desc": [
+    "closed",
+    "door",
+    "road",
+    "rope",
+    "still",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 206,
+   "trial": 168
+  },
+  {
+   "channel": "mem",
+   "commitment": "552ec236acc806f9efce0364d1c5e19c05206f3a8c790dc338a510605ccf6f24",
+   "decoys": [
+    491,
+    928,
+    579,
+    160
+   ],
+   "desc": [
+    "bridge",
+    "cold",
+    "fire",
+    "light",
+    "new",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 857,
+   "trial": 169
+  },
+  {
+   "channel": "mem",
+   "commitment": "62bb762bdbb00f5fef48f4bcf5d2b7320a5def737b18ab5e7e397504d77cd70a",
+   "decoys": [
+    488,
+    567,
+    576,
+    322
+   ],
+   "desc": [
+    "loud",
+    "mountain",
+    "natural",
+    "open",
+    "road",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 142,
+   "trial": 170
+  },
+  {
+   "channel": "mem",
+   "commitment": "49335896969b3083514287bfed96fec679b17acafd31d141b046e3229966d68b",
+   "decoys": [
+    879,
+    759,
+    510,
+    331
+   ],
+   "desc": [
+    "bridge",
+    "door",
+    "flat",
+    "low",
+    "tower",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 435,
+   "trial": 171
+  },
+  {
+   "channel": "mem",
+   "commitment": "3ff5531008d60291e0c2ee6000345664c12c0f7136c2aa2f3cd6729bb9c1353e",
+   "decoys": [
+    886,
+    720,
+    501,
+    623
+   ],
+   "desc": [
+    "cloud",
+    "door",
+    "field",
+    "moving",
+    "open",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 805,
+   "trial": 172
+  },
+  {
+   "channel": "mem",
+   "commitment": "d9cf69b1d79c3385aa0ec018b7bfe56d0978b3a01b22b67874247f9059052798",
+   "decoys": [
+    901,
+    837,
+    577,
+    838
+   ],
+   "desc": [
+    "ice",
+    "open",
+    "round",
+    "shadow",
+    "square",
+    "stone"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 718,
+   "trial": 173
+  },
+  {
+   "channel": "mem",
+   "commitment": "7582c958e1ea416ee4c688996822b11ec90f287430233684041d6e4f70a86458",
+   "decoys": [
+    333,
+    978,
+    108,
+    403
+   ],
+   "desc": [
+    "glass",
+    "natural",
+    "new",
+    "rope",
+    "tower",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 747,
+   "trial": 174
+  },
+  {
+   "channel": "mem",
+   "commitment": "35e51ddeb4645f4759df07dd69bedfce313c8fc1414d4023571cffe42cde0aaf",
+   "decoys": [
+    385,
+    341,
+    918,
+    25
+   ],
+   "desc": [
+    "built",
+    "metal",
+    "mountain",
+    "open",
+    "rope",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 278,
+   "trial": 175
+  },
+  {
+   "channel": "mem",
+   "commitment": "297d360273f0999fc32612f4a9cd1c34234459dda171c046271b25e3fd3fa3ae",
+   "decoys": [
+    846,
+    622,
+    227,
+    751
+   ],
+   "desc": [
+    "door",
+    "field",
+    "glass",
+    "low",
+    "natural",
+    "open"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 367,
+   "trial": 176
+  },
+  {
+   "channel": "mem",
+   "commitment": "455503cbf1ed3b9262dfd526546286013a6b0368a97c4e3510afcdfc04ae5751",
+   "decoys": [
+    981,
+    145,
+    934,
+    798
+   ],
+   "desc": [
+    "cloud",
+    "hot",
+    "loud",
+    "shadow",
+    "square",
+    "tall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 482,
+   "trial": 177
+  },
+  {
+   "channel": "mem",
+   "commitment": "af370de4ba8b26ef26aeb36d3c99c0191f3d4ece8f23f2dbf11eccf3056c26c8",
+   "decoys": [
+    378,
+    855,
+    627,
+    698
+   ],
+   "desc": [
+    "natural",
+    "rope",
+    "round",
+    "stone",
+    "tower",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 860,
+   "trial": 178
+  },
+  {
+   "channel": "mem",
+   "commitment": "67369aa8042a7aa3471ab41da2079af4eccda8c0720505f3252870da72946f9e",
+   "decoys": [
+    855,
+    20,
+    794,
+    960
+   ],
+   "desc": [
+    "flat",
+    "moving",
+    "old",
+    "open",
+    "red",
+    "road"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 218,
+   "trial": 179
+  },
+  {
+   "channel": "mem",
+   "commitment": "5800c706348a9aa6492318ba881a085d08cc7f205c37dc3e97416f20e0b01bf1",
+   "decoys": [
+    371,
+    722,
+    900,
+    605
+   ],
+   "desc": [
+    "bridge",
+    "cloud",
+    "fire",
+    "road",
+    "sand",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 120,
+   "trial": 180
+  },
+  {
+   "channel": "mem",
+   "commitment": "2cdff72a38577e14b85ba677e75893e2e3bf8c85fa3a76cfc8c402469161a79e",
+   "decoys": [
+    426,
+    716,
+    166,
+    810
+   ],
+   "desc": [
+    "blue",
+    "built",
+    "cold",
+    "field",
+    "high",
+    "round"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 948,
+   "trial": 181
+  },
+  {
+   "channel": "mem",
+   "commitment": "2fa816a3c9e036ceb744b4e54bbb8cf324fe788fac35564750ce3c5a309d810b",
+   "decoys": [
+    185,
+    127,
+    792,
+    531
+   ],
+   "desc": [
+    "blue",
+    "door",
+    "glass",
+    "loud",
+    "moving",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 290,
+   "trial": 182
+  },
+  {
+   "channel": "mem",
+   "commitment": "edd50d1a71b8d42dca2b1c8265ddd8460f95acc7a3fbc76bca86368b3e933f5d",
+   "decoys": [
+    674,
+    530,
+    176,
+    246
+   ],
+   "desc": [
+    "high",
+    "metal",
+    "red",
+    "stone",
+    "tree",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 487,
+   "trial": 183
+  },
+  {
+   "channel": "mem",
+   "commitment": "d8a9964fc58f668c49c8020fd577a6748c86c093ff551d79ba2647af5a5a4b47",
+   "decoys": [
+    211,
+    903,
+    356,
+    132
+   ],
+   "desc": [
+    "boat",
+    "closed",
+    "empty",
+    "open",
+    "wet",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 999,
+   "trial": 184
+  },
+  {
+   "channel": "mem",
+   "commitment": "6d27b577769ea1638faca76631a34e3da79e2b091007d0e5383a6cfceca46e61",
+   "decoys": [
+    479,
+    733,
+    547,
+    89
+   ],
+   "desc": [
+    "bird",
+    "curved",
+    "moving",
+    "quiet",
+    "red",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 310,
+   "trial": 185
+  },
+  {
+   "channel": "mem",
+   "commitment": "22fc4b9c5175defcfc1497a84ea7457f29b04fef498eb0044eb887a904e35229",
+   "decoys": [
+    538,
+    708,
+    362,
+    643
+   ],
+   "desc": [
+    "bird",
+    "bridge",
+    "curved",
+    "quiet",
+    "round",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 544,
+   "trial": 186
+  },
+  {
+   "channel": "mem",
+   "commitment": "20e56b27b4132cf3b4ad182f2ebe8cf5d1e6c8c81434d7bf642e696cd79a1619",
+   "decoys": [
+    266,
+    703,
+    876,
+    897
+   ],
+   "desc": [
+    "curved",
+    "field",
+    "high",
+    "light",
+    "new",
+    "old"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 420,
+   "trial": 187
+  },
+  {
+   "channel": "mem",
+   "commitment": "7d61bdc1f8318a4f1ff27cdb093dd004d0738575b1ac4e8905bebfe70831652d",
+   "decoys": [
+    41,
+    551,
+    995,
+    943
+   ],
+   "desc": [
+    "closed",
+    "low",
+    "mountain",
+    "natural",
+    "new",
+    "tower"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 188,
+   "trial": 188
+  },
+  {
+   "channel": "mem",
+   "commitment": "67b35ce00603e14e5064b085ac27d85f9b609786453c9b28d3c6800d0e5ed6a4",
+   "decoys": [
+    452,
+    321,
+    954,
+    740
+   ],
+   "desc": [
+    "boat",
+    "built",
+    "door",
+    "ice",
+    "tower",
+    "wheel"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 66,
+   "trial": 189
+  },
+  {
+   "channel": "mem",
+   "commitment": "5b4b4ff72505effccd3921b1af7919d6b89409ba5b493d5c1a2cd4b3309a159c",
+   "decoys": [
+    293,
+    882,
+    527,
+    454
+   ],
+   "desc": [
+    "bird",
+    "cloud",
+    "metal",
+    "mountain",
+    "shadow",
+    "water"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 914,
+   "trial": 190
+  },
+  {
+   "channel": "mem",
+   "commitment": "7a939a7256390c0adf1b562ddabda41cf69a09733b66e5ce1c819434e389cbd8",
+   "decoys": [
+    364,
+    843,
+    433,
+    685
+   ],
+   "desc": [
+    "light",
+    "metal",
+    "road",
+    "sand",
+    "still",
+    "wall"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 368,
+   "trial": 191
+  },
+  {
+   "channel": "mem",
+   "commitment": "f1545c1d279614ffb0f46eb78288eb99f2507e55fe465b7e3b856012dbb8c34e",
+   "decoys": [
+    516,
+    209,
+    989,
+    471
+   ],
+   "desc": [
+    "fire",
+    "green",
+    "hot",
+    "metal",
+    "moving",
+    "red"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 633,
+   "trial": 192
+  },
+  {
+   "channel": "mem",
+   "commitment": "0f2d8652a2b90f3a669ab847bf2bd8f75b878eb5fd47f19a52a170038ea9b78d",
+   "decoys": [
+    967,
+    555,
+    172,
+    491
+   ],
+   "desc": [
+    "bird",
+    "built",
+    "dry",
+    "natural",
+    "old",
+    "round"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 23,
+   "trial": 193
+  },
+  {
+   "channel": "mem",
+   "commitment": "ca2255826903c3ba13ef9ac4e6dbc2225801f62fc57be0dc069eec6d3afd9d5c",
+   "decoys": [
+    667,
+    164,
+    955,
+    425
+   ],
+   "desc": [
+    "bird",
+    "crowd",
+    "ice",
+    "moving",
+    "sand",
+    "still"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 450,
+   "trial": 194
+  },
+  {
+   "channel": "mem",
+   "commitment": "7ebbf21604ee98eb5fd595d15d0f5e641a5fa4ae062a32bce86f73ef4fa13c73",
+   "decoys": [
+    586,
+    372,
+    154,
+    230
+   ],
+   "desc": [
+    "bird",
+    "cloud",
+    "hot",
+    "loud",
+    "new",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 562,
+   "trial": 195
+  },
+  {
+   "channel": "mem",
+   "commitment": "b37e2d26c103f0f0e1023b7df8c08db71801065809ea147e63877755a228a4d9",
+   "decoys": [
+    779,
+    918,
+    168,
+    219
+   ],
+   "desc": [
+    "built",
+    "cold",
+    "high",
+    "loud",
+    "moving",
+    "quiet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 161,
+   "trial": 196
+  },
+  {
+   "channel": "mem",
+   "commitment": "d3fca362f697e4cb0cc7581b6f54fde1eaec8db163262b836e2db2749ba2c150",
+   "decoys": [
+    106,
+    771,
+    216,
+    677
+   ],
+   "desc": [
+    "curved",
+    "fire",
+    "flat",
+    "loud",
+    "natural",
+    "open"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 741,
+   "trial": 197
+  },
+  {
+   "channel": "mem",
+   "commitment": "64c2e210aaa6f1f2f2a6c1a7c134aa87b5450e004d147ddec4722e79121617ff",
+   "decoys": [
+    909,
+    186,
+    651,
+    779
+   ],
+   "desc": [
+    "closed",
+    "ice",
+    "metal",
+    "red",
+    "road",
+    "wet"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 906,
+   "trial": 198
+  },
+  {
+   "channel": "mem",
+   "commitment": "cbf6470ed0cdbb996315cf1bfb425916c5e54af572f970224d5da19480973de4",
+   "decoys": [
+    655,
+    705,
+    391,
+    958
+   ],
+   "desc": [
+    "bird",
+    "cold",
+    "light",
+    "red",
+    "rope",
+    "tree"
+   ],
+   "hit": true,
+   "rank": 1,
+   "target": 833,
+   "trial": 199
+  }
+ ],
+ "secret_hex_revealed": "1d6b55e98820a179edcb2bbcb2f6372e4b0257084548825f330626fda34ab3c2",
+ "secret_sha256": "4c7d2fa29c2d52fa5cbed0fd05f41584f0fc8b46501ca47f83276706d0e5efe7",
+ "summary": {
+  "band_hits_lt": 50,
+  "hits": 200,
+  "inside_chance": false,
+  "n": 200,
+  "p_one_sided": 1.6069380442590082e-140,
+  "rate": 1.0
+ }
+}

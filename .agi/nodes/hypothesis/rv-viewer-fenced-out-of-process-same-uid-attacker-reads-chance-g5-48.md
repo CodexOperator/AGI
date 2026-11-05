@@ -10,7 +10,9 @@ season: 3
 testable_claim: "With the viewer as its own process (fork + exec, close_fds, scrubbed env, public argv, pipes only) and the parent non-dumpable before its secret exists, a same-uid attacker viewer A* that tries the caller frame, a gc walk, /proc/PPID environ, cmdline, fd and mem, every file under the run and rv dirs, and its own env and argv scores inside chance (alpha 0.01) over all 200 trials, train and held-out; the null and salt viewers out of process reproduce chance and 200/200; the same A* in process scores >= 150 (M1), the fixed decoy draw has 0 run targets vs 74 earlier-trial targets on round 2's draw (M2), and A* reads /proc/PPID/mem when the parent is left dumpable (M3)."
 title: "The remote-viewing viewer fenced out of process: a same-uid attacker A* reads chance, while the same A* in process or against a dumpable parent reads the secret (goal:g5.48, lap 5)"
 town: local-maxxing
-verdict: pending
+verdict: proved
+evidence_runs:
+  - experiment:rv-viewer-out-of-process-astar-g5-48-run-1
 ---
 
 ## Measured
@@ -40,5 +42,5 @@ rv/{harness_oop.py,viewer_oop.py,test_harness_oop.py,prereg_oop.json,results_oop
 0 kids · 0 USD · one parent and at most one viewer child at a time · <= 3 GiB · stdlib only · never reboot
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2, the PRE-RUN commit, after thought-master's [go] 13:17Z (no pins); f409f32928 merged first and is an ancestor. The run was started first, holding its secret in memory (dumpable 0), and is waiting on this commit. Its secret_sha256 0f36e24068b57baa64d4ce89ae0ce9ff3b9e77942475b5b27013eb33f8c08347 is in prereg_oop.json. A*'s attempts (viewer_oop.py) are committed here, before any trial. M2's 74 is the earlier-trial-target count, and any-run-target (144) is pre-registered beside it.
+v3, the RESULTS commit: proved. A* out of process 40/200 (train 20, held-out 20, inside alpha 0.01, channel none); M1 200/200 (frame); M3 200/200 (mem); M2 exact (0, 0 vs 74, 144); F1 45/200; F2 200/200; replay identical. The v2 pre-run reasoning stands in 110f6e2071.
 <!-- THOUGHT:END -->
