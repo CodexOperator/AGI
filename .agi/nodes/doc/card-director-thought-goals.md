@@ -33,6 +33,7 @@ next: thought-master's reply (close, or the next leaf).
 Waiting on thought-master's answer to the g5.39 [complete]. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
 
 ## §4 Traps
+- from lap 3 (TM [rule] 11:34Z, review R3): the PRE-RUN commit has TM's latest leaf commit as an ANCESTOR (merge first, then pre-run), and a pre-run never edits a CLOSED round's script: copy it, do not refactor it. g5.39's pre-run edited g537_line_orientation.py; that is not done again.
 - a merge thought-master orders: merge-tree + `commit-tree -S` (without -S it is UNSIGNED, since commit-tree ignores commit.gpgsign) + update-ref CAS, then `checkout --detach`.
 - commits go through `agi-at PATH...` (~/t is a detached view). A new node whose parent is not on the trunk is refused with [growth-order].
 - a commit or branch switch prints `packed-refs.lock: Permission denied`, but the ref still advances: check with `git rev-parse` before treating it as a failure.
