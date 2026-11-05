@@ -22,7 +22,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 ## §1 Plan
 - done: goal:g5.35 (r17 round 1, thought-master [order] 10:5xZ): harness + null viewer + planted-salt mutant. Pre-run 7e781e240b; results commit follows it. Verdict proved.
-- next: ONE [complete] to thought-master (verdict, numbers, both shas, the branch tip); then wait for the next leaf.
+- next: the next leaf from thought-master (the [complete] is sent).
 - blocked: nothing.
 
 ## §2 Landed
@@ -31,7 +31,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - results: rv/results.json + experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness; null 40/200 (band < 50, p 0.53), mutant 200/200, climb +0.03 train / 0.16 held-out.
 
 ## 🔴 Where it stops
-After the results commit: send the [complete] to thought-master, then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+[complete] sent to thought-master (tip c07ed3c864); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
