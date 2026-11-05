@@ -2,8 +2,8 @@
 name: agi-rotate
 description: >
   Rotate an agi post out and wake its successor: when to rotate (the meter), the card
-  written before the out-line, the one bare `rotate.py rotate` command, what a successor
-  does and does NOT do at wake, the ack, and re-linking the card. Use when the meter
+  written before the out-line, the v5 out (commit, touch ~/.fresh, kill the claude pid),
+  what a successor does and does NOT do at wake, the ack, and re-linking the card. Use when the meter
   nears the line, when a post is told to rotate, or on the first turn after a rotation.
 ---
 
@@ -18,24 +18,24 @@ ratio `r = f/0.47`. A step that cannot finish before the line is handed on whole
 starting it obeys "run it now" and strands it mid-step). Prime HARD RULE: an irreversible / multi-ref operation is
 never started at f ≥ 0.41 nor while a rotation is pending — it becomes the successor card's first line.
 
-## 2 · Out — ONE command, in this order (F23, F26, F14)
+## 2 · Out — the v5 out, in this order (F23, F26; owner 11-01: rotate.py is not the out)
 ```
 1. write the card WHOLE (one Write) — .agi/sessions/quorum/<post>.md in YOUR worktree; §0-§6 ≤ 100 lines
    §0 state · §1 plan · §2 landed · 🔴 where it stops + exact next command · §4 traps · §5 verification · §6 BANKED
    · §7 ATOMS: bounded by age, not length (an atom open > 1 lap = red); rotation carries §7 whole, never trims it (.46.2)
    the where-it-stops slot's FIRST LINE = plain text: it becomes the commit subject (trap 2)
    §4 traps: only THIS generation's; an older trap moves to its skill / role doc first (owner 10-10: one sweep, then a rule)
-   an EMPTY or AMBIGUOUS slot is refused; a STALE one is NOT — write + stamp it BEFORE any window ask or dispatch
+   never leave the slot EMPTY or AMBIGUOUS (nothing refuses it in the v5 out: it is the author's duty); a STALE one is still written + stamped BEFORE any window ask or dispatch
 2. commit the card by exact path
    then `git status --porcelain <card>` must be empty: the privacy guard can refuse a card commit silently; write 'home-path' in prose, never a literal home path (SM)
-3. python3 extensions/agi/bin/rotate.py rotate            # bare, keyed: every value from the row + key
+3. touch ~/.fresh                                         # agi-run's .fresh branch starts the successor and sends the alert
+4. kill $PPID                                             # the claude pid; the unit restarts it fresh
 ```
-- `rotate.py rotate` refuses 'behind origin/season2/main by N' -> never merge origin into your tree by hand; `[red]` to SM and stay seated below the line (DG2).
-- NEVER `-h`, never `--dry-run | head` (its head is the prayers), never merge origin by hand first: merge +
-  prepare run INSIDE rotate, which reads `config:rotations` + `config:posts` from YOUR worktree (F14, F16).
+- The owner, 11-01 (belam [owner-a] 10:2xZ, '10. Yes'): the out is this v5 out for EVERY post; `rotate.py rotate` is not run (from a detached ~/t it refused 'detached HEAD, nothing to push', SM gen 64 23:4xZ 10-28 + belam gen X 04:05Z 11-01). goal:g7.16.1.11.46.28 (rotate's push rule) is retired with it.
+- Never merge origin into your tree by hand before the out (F14): the card commit is the only write.
 - `HANDOFF.md` at the repo root is the ENGINE's — never read it before rotating (F26).
 - The rotation alert has TWO senders (goal:g7.16.1.11.20). (1) agi-run's `.fresh` branch runs on EVERY start that finds `~/.fresh`: a v5 post's own rotation (`touch ~/.fresh; kill $PPID`, see the v5 line below), its FIRST start, a hand `touch ~/.fresh`. It box-sends the alert AS the post, backgrounded, `timeout -k 2 20`, to config:rotations `alerts` (audit + edges[post] - silent - self) read from the trunk; no liveness filter, and the Prime is NOT excluded; the exec never waits on it. Its stderr goes to `$RUNTIME_DIRECTORY/alert`, never the TUI pane: an unreadable alerts cell = ONE `warn: rotation alert` line there and nothing sent; a failing receiver warns once EACH; a timeout kill warns none. (2) `rotate.py rotate` inbox-copies each receiver and, when the ROTATING post is not the Prime, also box-sends it (signed by the post, ONE 20 s budget armed at the first box call, plus up to 5 s of reap after a timeout); a rotating Prime sends no box message there (its branch returns before the box loop), but a Prime can RECEIVE one. A captive / master-path rotation runs as the HOLDER (`AGI_POST=<holder>`), so it sends the inbox copy only.
-- Last tokens of the session: one prayer from the head, after the rotation confirmation. Two spots per session, never per turn.
+- Last tokens of the session: one prayer from the head as the LAST tokens of the reply that runs step 3, BEFORE step 4 (kill $PPID ends the session: nothing comes after it). Two spots per session, never per turn (owner 09-12).
 
 ## 3 · Wake — the successor's first turn (F19, F20, F1)
 ```

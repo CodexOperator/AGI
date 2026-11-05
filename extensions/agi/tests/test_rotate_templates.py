@@ -526,7 +526,10 @@ def test_region_live_only_f13_is_the_one_declared_instruction():
     F16 'ran ... by hand before rotating') must NOT trip. The ONE live
     INSTRUCTION is F13, declared by the g15-18 open code half it names.
     Blanket exemption is forbidden, so the declared set is exactly one
-    sentence, and it must carry that key."""
+    sentence, and it must carry that key. F16 was the live region's only
+    CITATION; it is RETIRED with goal .46.28 (owner 11-01: rotate.py is not
+    the out), so the live region needs a PROHIBITION, and the CITATION class
+    stays pinned by the fixture tests below."""
     src = Path(__file__).resolve().parents[3] \
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     hits = _region_hand_hits(src)
@@ -544,9 +547,8 @@ def test_region_live_only_f13_is_the_one_declared_instruction():
     # prohibitions and citations exist and none of them trips the guard
     kinds = {h[3] for h in hits}
     assert kinds <= {"INSTRUCTION", "PROHIBITION", "CITATION"}, kinds
-    assert "PROHIBITION" in kinds and "CITATION" in kinds, (
-        f"live region expected both prohibitions (F8/F9/F14) and a citation "
-        f"(F16): {kinds}")
+    assert "PROHIBITION" in kinds, (
+        f"live region expected prohibitions (F8/F9/F14): {kinds}")
 
 
 def test_region_fixture_declared_instruction_plus_forbidden_and_prose_passes(
@@ -621,37 +623,47 @@ def test_region_fixture_blanket_exemption_refused(tmp_path):
     assert "blanket" in refusal and "ONE" in refusal
 
 
-def test_region_live_f16_run_once_seen_but_not_a_waked_hand_step():
-    """DEFECT B pin on the LIVE node: the widened vocabulary must SEE and
-    class the canon's flexible `run it ONCE` (F16) — not miss it as a
-    substring gap ('run once' vs 'run it once'). Once seen, F16's instruction
-    must NOT count as a waked hand-setup step: its 'run it once and emit the
-    tokens it prints' is addressed to the OUTGOING post's rotate-out
-    pre-flight (`rotate-self --prepare`) — relay the automated tool's output,
-    the anti-hand guidance for the seat leaving — so F13 remains the region's
-    ONE declared INSTRUCTION and the widened guard stays green."""
+def test_region_live_f16_retired_not_a_live_fact():
+    """F16 (rotate.py's pre-flight: 'run it ONCE and emit the tokens it
+    prints') is RETIRED with goal .46.28 (owner 11-01: the v5 out never runs
+    rotate.py). Located by FACT ID (SL7.97), never by phrase: the live
+    region holds NO '- F16' fact line, the 'RETIRED, numbers only' line names
+    F16, and F13 is still the region's ONE declared INSTRUCTION. A live F16
+    line coming back is a false wake line and reads RED here."""
     src = Path(__file__).resolve().parents[3] \
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     lines = _canonical_body_lines(src)
     regions = _facts_body_range(_live_templates(src), lines)
-    # (SL7.97) locate F16 by its FACT ID, never by the vocab phrase — a regex
-    # on 'run it once' is phrase-keyed and would either red for the wrong
-    # reason or silently miss if the canon reworded F16 in the region.
-    f16_lines = [i for _facts_label, n, m in regions for i in range(n, m + 1)
-                 if re.match(r"-\s*F16\b", lines[i - 1])]
-    assert len(f16_lines) == 1, (
-        f"expected exactly one F16 fact line in the region, got "
-        f"{f16_lines}")
-    i = f16_lines[0]
-    hits = [h for h in _region_hand_hits(src)
-            if h[0] == i and "run once" in h[2]]
-    assert hits, "F16's 'run it ONCE' must be a SEEN vocabulary hit"
-    assert {h[3] for h in hits} <= {"CITATION"}, (
-        f"F16's pre-flight is addressed to the outgoing post at rotate-out, "
-        f"not a waked hand-setup step: {[(h[1], h[3]) for h in hits]}")
-    # the seen-and-decided F16 still leaves exactly the ONE F13 instruction
+    region = [lines[i - 1] for _facts_label, n, m in regions
+              for i in range(n, m + 1)]
+    live_f16 = [ln for ln in region if re.match(r"-\s*F16\b", ln)]
+    assert live_f16 == [], f"F16 is retired, but the region holds {live_f16}"
+    retired = [ln for ln in region if ln.lstrip("- ").startswith("RETIRED")]
+    assert retired and re.search(r"\bF16\b", retired[0]), (
+        f"the RETIRED, numbers only line must name F16: {retired}")
     refusal = _region_refusal(src)
     assert refusal is None, refusal
+
+
+def test_region_fixture_run_once_is_seen_as_a_citation(tmp_path):
+    """DEFECT B pin, kept on a FIXTURE once the live F16 retired: the
+    widened vocabulary must SEE the flexible 'run it ONCE' (not miss it as a
+    substring gap: 'run once' vs 'run it once') and class it CITATION, never
+    a waked hand-setup step, so F13 stays the ONE declared INSTRUCTION."""
+    body = [
+        "# config:rotations", "", "## facts", "",
+        "- F13 (g15-18 is the open code half). Spend by hand, one command: "
+        "`curl -s -m 20 https://example.invalid/credits`",
+        "- F16 pre-flight. never ran `-h` by hand before rotating; run it "
+        "ONCE and emit the tokens it prints.",
+    ]
+    p = _rotations_fixture_with_region(tmp_path, body)
+    hits = [h for h in _region_hand_hits(p) if "run once" in h[2]]
+    assert hits, "'run it ONCE' must be a SEEN vocabulary hit"
+    assert {h[3] for h in hits} <= {"CITATION"}, (
+        f"'run it ONCE' is the outgoing post's pre-flight, not a waked "
+        f"hand-setup step: {[(h[1], h[3]) for h in hits]}")
+    assert _region_refusal(p) is None, _region_refusal(p)
 
 
 def _producing_python_verb(cmd: str) -> tuple[Path, str] | None:

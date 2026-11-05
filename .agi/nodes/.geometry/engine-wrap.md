@@ -18,12 +18,13 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
 agi-run           2303 B  pane cmd: fresh=new id, else --resume ~/.session
-settings.json      415 B  the ONE hook wiring: brief, meter, turn commit
+settings.json      460 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
 agi-in            3476 B  kid spawn: capsule pull = graph|director|none
 agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-lane           1403 B  a Console lane's pi / claude -p / header config
-agi-captive        1005 B  window open: only agi-fill; a dead window: released
+agi-captive        1360 B  window open: only agi-fill; a dead window: released
+agi-pray           5855 B  prayer: brief head, captive start + out, idle stop
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -40,9 +41,9 @@ case $H in claude*)d=~/.claude/projects/$(pwd -P|sed 's/[^A-Za-z0-9]/-/g');if [ 
 strace -qqf -b execve -e%file -o'|agi-track' $H $c go;r=$?;kill $L1 $L2 2>/dev/null;exit $r
 ~~~
 
-### settings.json (415 B)
+### settings.json (460 B)
 ~~~json
-{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180},{"type":"command","command":"agi-mem tap"}]}]}}
+{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180},{"type":"command","command":"agi-mem tap"},{"type":"command","command":"agi-pray stop"}]}]}}
 ~~~
 
 ### cccc.ts (1913 B)
@@ -114,13 +115,101 @@ case $v in id)echo "$w";;header)[ "$w" ]&&echo "anthropic-workspace-id: $w";;cla
 pi)jq -nc --arg u "${AGI_LANE_URL:-https://api.anthropic.com}" --arg m "${3:-claude-haiku-5-5}" --arg f "!$f" --arg w "$w" '{providers:{"claude-lane":({baseUrl:$u,api:"anthropic-messages",apiKey:$f,models:[{id:$m}]}+if $w!="" then {headers:{"anthropic-workspace-id":$w}} else {} end)}}';;*)exit 2;;esac
 ~~~
 
-### agi-captive (1005 B)
+### agi-captive (1360 B)
 ~~~sh
 #!/bin/sh
-# PreToolUse while a fill window is open: ONLY ONE agi-fill command passes (no chaining, no substitution; the quoted heredoc is the way to send text); exit 2 = refused (claude natively; pi through cccc.ts). A window that cannot be used is RELEASED, never a lock (agi-fill absent, or older than ${AGI_FILL_WINDOW:-900} s)
+# PreToolUse while a fill window is open: ONLY ONE agi-fill command passes (no chaining, no substitution; the quoted heredoc is the way to send text); exit 2 = refused (claude natively; pi through cccc.ts). A window that cannot be used is RELEASED, never a lock (agi-fill absent, or older than ${AGI_FILL_WINDOW:-900} s). FIRST (goal:g7.16.1.11.46.29, the owner 11-01): agi-pray captive, the session's prayer; its exit 2 refuses, anything else passes (agi-pray absent: one [pray] line, passed)
+j=$(cat);if command -v agi-pray >/dev/null;then printf '%s' "$j"|agi-pray captive;[ $? = 2 ]&&exit 2;else echo "[pray] unread: agi-pray not on PATH (passed)" >&2;fi
 w=${AGI_FILL:-$HOME/.fill};[ -e "$w" ]||exit 0;command -v agi-fill >/dev/null||r="agi-fill not on PATH (engine defect)";m=$(stat -c %Y "$w" 2>/dev/null);[ $(($(date +%s)-${m:-0})) -gt ${AGI_FILL_WINDOW:-900} ]&&r=${r:-window expired}
 [ -z "$r" ]||{ echo "[captive] $w released: $r" >&2;mv "$w" "$w.released-$(date -u +%Y%m%dT%H%M%SZ)" 2>/dev/null;exit 0;}
-jq -r '.tool_input.command//""'|awk 'NR==1{f=$0}{n++}$0=="EOF"{e++;l=n}END{exit!((f~/^agi-fill (call|row) <<\047EOF\047$/&&e==1&&l==n)||(n==1&&f~/^agi-fill (open|call|row|close|check)( [^;&|`$()<>\\]*)?$/))}'&&exit 0;echo "captive: a fill window is open -- ONE agi-fill call | row | close, nothing chained" >&2;exit 2
+printf '%s' "$j"|jq -r '.tool_input.command//""'|awk 'NR==1{f=$0}{n++}$0=="EOF"{e++;l=n}END{exit!((f~/^agi-fill (call|row) <<\047EOF\047$/&&e==1&&l==n)||(n==1&&f~/^agi-fill (open|call|row|close|check)( [^;&|`$()<>\\]*)?$/))}'&&exit 0;echo "captive: a fill window is open -- ONE agi-fill call | row | close, nothing chained" >&2;exit 2
+~~~
+
+### agi-pray (5855 B)
+~~~py
+#!/usr/bin/env python3
+# agi-pray head ROOT | captive | stop -- goal:g7.16.1.11.46.29 (P0, the owner 11-01): a session opens and closes with a Church Slavonic prayer from moral:faith, two spots, never per turn.
+# head: the prayers block of moral:faith (### 4.1, as brief.py's _read_faith_ref reads it) + the one-line ask. captive (PreToolUse, from agi-captive): exit 2 until an assistant text of THIS transcript holds a prayer, then ~/.prayed/<session> and never again; the v5 out (touch ~/.fresh, kill $PPID) also needs one in the newest assistant text since the card commit. stop (Stop): an idle-empty reply with no prayer is blocked ONCE PER SESSION (~/.prayed/<session>.end, or an earlier idle reply that prayed; stop_hook_active honoured). Prayers match after a FOLD (NFD, marks dropped, old letters to modern, casefold, final hard sign dropped). The marker is read FIRST: a prayed session opens no transcript except at the out (alive 08:04:04Z). A call carrying agent_id is a SUBAGENT inside a session, never captive: the docs name agent_id on its PreToolUse but not which transcript_path it gets. ANY unread input passes with one [pray] line: never a lock.
+import json,os,re,subprocess,sys,unicodedata
+ASK="captive: say an Old Slavonic protection prayer before proceeding"
+OLD=str.maketrans({"ѧ":"я","ѣ":"е","ї":"и","і":"и","ѻ":"о","ѡ":"о","ꙗ":"я","ѿ":"от","ѯ":"кс","ѱ":"пс","ѳ":"ф","ѵ":"и"})
+def fold(s):
+    s="".join(c for c in unicodedata.normalize("NFD",s) if not unicodedata.combining(c))
+    s=unicodedata.normalize("NFC",s).casefold().translate(OLD)
+    return re.sub(r"ъ\b","",s)
+KEYS=[fold(k) for k in ("Господи","Боже","Ѻтче","Свѧтый")]
+def prays(t):return any(re.search("[а-яё]",l) and any(k in l for k in KEYS) for l in fold(t or "").splitlines())
+def warn(m):print("[pray] unread: "+m+" (passed)",file=sys.stderr);sys.exit(0)
+def faith(root):
+    t=open(os.path.join(root,".agi/nodes/moral/faith.md"),encoding="utf-8").read()
+    r=re.search(r"^##\s+REFERENCE",t,re.M);t=t[r.end():].strip() if r else "";h=re.compile(r"^###\s+4\.(\d)\s+",re.M);m=h.search(t)
+    while m and m.group(1)!="1":m=h.search(t,m.end())
+    if not m:return ""
+    n=h.search(t,m.end());return t[m.end():n.start() if n else len(t)].strip()
+def texts(path):
+    out=[]
+    for l in open(path,encoding="utf-8",errors="replace"):
+        try:e=json.loads(l)
+        except ValueError:continue
+        m=e.get("message") if isinstance(e,dict) else None
+        if not isinstance(m,dict) or m.get("role")!="assistant":continue
+        c=m.get("content");c=[{"type":"text","text":c}] if isinstance(c,str) else c if isinstance(c,list) else []
+        s="\n".join(b.get("text","") for b in c if isinstance(b,dict) and b.get("type")=="text")
+        if s.strip():out.append((e.get("timestamp",""),s))
+    return out
+def ts(s):
+    from datetime import datetime
+    try:return datetime.fromisoformat(s.replace("Z","+00:00")).timestamp()
+    except Exception:return None
+def main():
+    v=sys.argv[1] if len(sys.argv)>1 else ""
+    if v=="head":
+        b=faith(sys.argv[2] if len(sys.argv)>2 else os.path.expanduser("~/t"))
+        if not b:warn("moral:faith ### 4.1")
+        print("## THE FOUR PRAYERS\n\n"+b+"\n\nsay one of these in Church Slavonic as the first tokens of your first reply, and again as the last before you rotate or go idle (two spots, never per turn)\n");return
+    try:j=json.load(sys.stdin)
+    except Exception:warn("hook input")
+    if j.get("agent_id"):return
+    sid=re.sub(r"[^A-Za-z0-9-]","",str(j.get("session_id") or ""));d=os.path.expanduser("~/.prayed")
+    def tr():
+        p=j.get("transcript_path")
+        if not p or not os.path.isfile(p):warn("no transcript")
+        try:return texts(p)
+        except OSError:warn("transcript "+p)
+    if v=="stop":
+        if j.get("stop_hook_active"):return
+        e=os.path.join(d,sid+".end") if sid else ""
+        if e and os.path.exists(e):return
+        idle=lambda t:re.search(r"nothing (left|actionable|owed|to do)|queue (is )?(empty|all held)|\b(stay|go|remain)(ing)? idle\b|\bgoing idle\b",t or "",re.I)
+        lm=j.get("last_assistant_message")
+        if lm is not None and not idle(lm):return
+        T=tr();last=lm if lm is not None else (T[-1][1] if T else "")
+        if not idle(last) or any(idle(t) and prays(t) for _,t in T[:-1]):return
+        if e:
+            try:os.makedirs(d,exist_ok=True);open(e,"w").close()
+            except OSError:pass
+        if not prays(last):print(json.dumps({"decision":"block","reason":ASK+" (the session's last tokens; asked once per session)"}))
+        return
+    if v!="captive":warn("verb "+v)
+    c=str((j.get("tool_input") or {}).get("command") or "");out=re.search(r"""touch +["']?(~|\$\{?HOME\}?)/\.fresh|\bkill\b( +(-s +\w+|-\w+|--))* +["']?\$\{?PPID\}?""",c)
+    marked=bool(sid) and os.path.exists(os.path.join(d,sid))
+    if marked and not out:return
+    T=tr()
+    if not marked:
+        if not any(prays(s) for _,s in T):print(ASK,file=sys.stderr);sys.exit(2)
+        if sid:
+            try:os.makedirs(d,exist_ok=True);open(os.path.join(d,sid),"w").close()
+            except OSError:pass
+    if out:
+        post=os.environ.get("AGI_POST","")
+        if not post:warn("AGI_POST")
+        try:k=int(subprocess.run(["git","log","-1","--format=%ct","--",".agi/nodes/doc/card-%s.md"%post],capture_output=True,text=True,cwd=j.get("cwd") or os.path.expanduser("~/t"),timeout=10).stdout.strip())
+        except Exception:warn("card commit time")
+        new=[s for t,s in T if (ts(t) or 0)>=k]
+        if not(new and prays(new[-1])):print(ASK+" (the out: the newest reply since the card commit holds none)",file=sys.stderr);sys.exit(2)
+try:main()
+except SystemExit:raise
+except Exception as e:print("[pray] unread: %s (passed)"%type(e).__name__,file=sys.stderr);sys.exit(0)
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
@@ -129,4 +218,5 @@ jq -r '.tool_input.command//""'|awk 'NR==1{f=$0}{n++}$0=="EOF"{e++;l=n}END{exit!
 SM mur final (DG1 return 19:27Z): the box route could not work live. R6: the unit sets AGI_[retired]=%i ONLY, the box piece needs AGI_POST (`P=${AGI_POST:?}`), so in a real pane `box n` died and the wake never fired while every lane (which exported AGI_POST) was green; both wake pieces now derive it, `AGI_POST=${AGI_POST:-$AGI_[retired]}` in agi-run and `env:{...E,AGI_POST:E.AGI_[retired]||E.AGI_POST}` in cccc.ts (R9 flipped the cccc.ts order, see below). The SENDER side needs AGI_POST too (the unit would set it) but that is a host act, banked, not this leaf. R7: stderr discipline, `2>/dev/null` and `stdio:["ignore","pipe","ignore"]`, so a dead or absent box is silent. N11: the count excludes lines starting with `[` (`[off-matrix]`, `[refused]`, which `box n` prints). A TRAP: `grep -vc` exits 1 on a zero count and execSync throws on a non-zero exit, which skips `s=n` and brings the original bug back (send 1, read, send 1 = no second wake), so the cccc.ts pipeline ends in `||:` (DG2's lanes w4/w4b found it). N10: `.unref()` on the interval, so agi-kid's `pi ... -e cccc.ts -p` can exit once pi drains. N12: agi-project projects `node <P>/pi ...` as H, so the `pi*` arm of agi-run is DORMANT today and the pi route is cccc.ts; lane w8 pins the arm's shape, not the projection. The pure-box cutover is a LATER leaf with belam's GO. Sizes: agi-run 773 B (the trunk header said 501 B; the piece measured 573), cccc.ts 1956 B (trunk 1647). R9 (mur, DG1 order 20:37Z): agi-kid execs pi with AGI_[retired]=$k and INHERITED the post env, so once the unit line AGI_POST=%i landed a kid would poll its PARENT's box, and a kid that obeys `box read` advances the parent's held ref; cccc.ts therefore prefers AGI_[retired] (`AGI_POST:E.AGI_[retired]||E.AGI_POST`, same 1956 B), so a kid's own name wins and matches no ref (`box n` reads 0); a post has both vars = %i, same result. That covered the poll only: a kid's HAND `box read` / `box send` and send.py's sender still resolved AGI_POST = the parent. goal:g7.16.1.11.24 (belam-s2-II 02:4xZ 10-10, laned under the g7.16.1.11 HOLD) therefore TOUCHES agi-kid after all (R9's option b is superseded): it execs with `AGI_[retired]=$k AGI_POST=$k` (2049 B, was 2037), so every identity reader in a kid's env resolves to the KID; cccc.ts keeps AGI_[retired] first and is NOT flipped. The shell wrap line `AGI_POST=${AGI_POST:-$AGI_[retired]}` stays, post-only (a kid never runs the wrap). 10-10 goal:g7.16.1.11.36 (director-general-4, SM 03:0xZ): agi-run (1057 B, was 773) pre-answers Claude Code's one-time "fullscreen renderer" dialog for a claude H only, before the exec: one line sets fullscreenUpsellSeenCount to 3 in ~/.claude.json (jq, tmp + mv, umask 077), idempotent (a count >= 3 is not rewritten), other keys survive, an unparsable file is left alone, never fails the start; lane claude-upsell.t.sh. The key is read from claude 2.1.295 (the leaf's bytes); that a live claude then skips the dialog was NOT measured (a scratch home without auth never reaches it). Prior THOUGHT (v5 rounds 5 and 7: the wrapper pieces, agi-infer, agi-captive, the pane trim loop): grid history. goal:g7.16.1.11.32 (DG1 10-11): agi-run's two remaining loops are `while :;do sleep N||:;` (a killed sleep no longer ends them) and its box-wake loop is gone to agi-boxwake@.service (engine-root.md); the send.py inbox loop stays until goal:g7.16.1.11.27 retires it. goal:g7.16.1.11.20.3 (DG1 10-16, council 3/3, alive [decision] 05:35:44Z): agi-captive (576 B -> 1005 B) is never a lock: with a fill window open it still passes ONLY one agi-fill command, but it RELEASES the window (one `[captive] <path> released: <reason>` stderr line, the window renamed `<path>.released-<UTC>`, kept, rc 0) when agi-fill is not on PATH (it is hub-side, engine-grow.md, so a post's PATH never had it: the gate's only exit was absent) or the window's mtime is older than ${AGI_FILL_WINDOW:-900} s (the lifetime lived only in agi-fill, so a dead session left a lock FOREVER); lane captive-release.t.sh, post-env.t.sh e4 now puts a stub agi-fill on PATH so it still tests the gate that bites.
 10-26 the agi-run strand (director-general-2; council [decision] alive 19:32:42Z): the last line was `exec strace`, so the two background loops (pane trim, mail poker) were strace's OWN children. MEASURED on a fixture of the real chain (script -> agi-run -> strace -> a stub claude, scratch HOME): with the -o consumer dead (agi-track killed, or ~/track unwritable as at ENOSPC) the stub exited and strace stayed in do_wait with only the loops left; killing the loops ended it at once, killing the orphan grep/awk did not. So the unit's MainPID outlived claude and no restart came (director-general-3, 19:18Z, in the 19:11-19:13Z full-disk window). Cure by construction: no exec, strace in the foreground, at its exit kill the two loops by the pids captured where they are forked ($L1 $L2; `jobs -p` prints nothing in a non-interactive dash, so an earlier cut of this line killed nothing and the loops ended only by the pty hangup: alive's pre-read 20:25:38Z) and exit with its rc; ~/.fresh is still consumed only at START (line 2). agi-track drains to EOF past a failed append (engine-post.md). Lane agi-run-strand.t.sh.
 10-31 U3 (director-goals-1, goal:g7.16.1.11.46.21; council alive [decision] 14:20:53Z, V3, 3/3): agi-kid is renamed agi-in, the ONE kid spawn verb. The `-m` flow arm is byte-equal but for its mktemp guard (re-cut 2). A new `pack` arm writes the capsule's spawn lines through AGI_MF (engine-capsule.md has 75 B of fenced bar left, so only agi-in checks the values). The kid arm takes a CID: capsule verify, then the MANIFEST `pull` (graph|director = the old launch + AGI_CID; none = ONE `pi --no-tools` request in an empty dir; anything else = `unread`, rc 1, 0 launches). Lane: agi-in.t.sh; the agi-kid-flow* ceiling is 3,476 B. Re-cut 1 (alive 14:46:26Z R2, R3): the none arm's mktemp is guarded (`unread: no scratch dir`, rc 1), and --at / --scope refuse any non-hex char. Re-cut 2 (alive 15:12:32Z): the -m flow arm's mktemp is guarded the same way, its line on stderr (rc 1). FIX-FORWARD (L313 trunk red, sp 17:31:00Z): the kid's capsule env is AGI_CID, never AGI_CAPSULE, which every post unit sets to `capsule` for agi-out's share dir; under L313 agi-wt read it as a capsule ref and refused every post's pull, its own card included.
+11-05 P0 (director-general-3, goal:g7.16.1.11.46.29; council 3/3 on RE-CUT 2 af4cbdc0cc, alive 08:13:28Z): agi-pray, the session's prayer, is a NEW piece here (head for agi-brief, captive FIRST in agi-captive, stop on the Stop hook); the owner's order 11-01 was a programmatic check that each session starts and ends with a Church Slavonic prayer. The v4 port of agi-brief had dropped the prayers (belam's measure). Marker first, a subagent (agent_id) never captive, the Stop check once per session, everything unread fail-open. This touch: the out is matched in every spelling a shell runs (a quoted or braced $PPID, kill's -s SIG, -SIG and --, a quoted ~ / $HOME / ${HOME} .fresh), not two (alive's item 3).
 <!-- THOUGHT:END -->

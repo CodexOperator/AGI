@@ -90,7 +90,9 @@ echo '{}' >$T/pj;run sh -c "agi-meter <$T/pj" >$T/m1 2>/dev/null;run sh -c "agi-
 ok n1-agi-meter-prints-each-line-once-and-clears "[ \$(grep -c '^\[strand-refused\]' $T/m1) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $T/m1) = 1 ]&&[ ! -e $H/.notice ]&&[ ! -s $T/m2 ]"
 rm -f $T/bin/agi-mem;run sh -c "agi-meter <$T/pj" >$T/m3 2>/dev/null
 ok n1b-a-tap-that-cannot-run-is-named-not-silent "[ \"\$(grep -c '^\[mem\] tap not run (rc 127)' $T/m3)\" = 1 ]"
-ok n2-agi-brief-prints-the-notice-first "[ \$(grep -c '^ls ~/.notice\* >/dev/null 2>&1&&agi-notice;p=' $T/bin/agi-brief) = 1 ]"
+# goal:g7.16.1.11.46.29: the prayer head is agi-brief's FIRST block (the owner 11-01); the notice comes right after it, before anything else
+ok n2-agi-brief-prints-the-notice-right-after-the-prayer-head "[ \$(grep -c '^{ command -v agi-pray >/dev/null&&agi-pray head ~/t 2>&1;}||echo \"\[pray\] unread: agi-pray not on PATH: say a Church Slavonic prayer from moral:faith first\";ls ~/.notice\* >/dev/null 2>&1&&agi-notice;p=' $T/bin/agi-brief) = 1 ]"
+nohead(){ awk 'NR==1&&/^\[pray\] /{next} NR==1&&/^## THE FOUR PRAYERS$/{h=1;next} h==1{if(/^say one of these in Church Slavonic/)h=2;next} h==2{h=0;if(/^$/)next} {print}' "$1";}
 # n3: append-only until printed: a line appended WHILE the print runs (an awk shim that appends first) survives; only the lines printed are dropped
 mk;mkdir -p $T/shimawk;printf '#!/bin/sh\necho "[late] kept" >>%s/.notice\nexec /usr/bin/awk "$@"\n' $H >$T/shimawk/awk;chmod +x $T/shimawk/awk;printf '[a] one\n[b] two\n' >$H/.notice
 (cd $V&&env -i PATH=$T/shimawk:$T/bin:/usr/bin:/bin HOME=$H agi-notice) >$T/n3 2>/dev/null
@@ -106,7 +108,7 @@ PG=$(src|sed -n 's/^Environment="AGI_PIECE_GLOB=\(.*\)"$/\1/p');rm -rf $T/orig;m
 printf '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref\n' >$H/.notice;touch $H/.fresh
 (cd $H&&env -i PATH=/usr/bin:/bin HOME=$H O=$T/orig AGI_TRUNK=lanetrunk AGI_PIECE_GLOB="$PG" GIT_TEST_ASSUME_DIFFERENT_OWNER=1 sh $T/unit37.sh) >$T/u37.out 2>&1;u=$?
 echo '{"source":"startup"}' >$T/sj;(cd $H&&env -i PATH=$T/stub:$H/bin:/usr/bin:/bin HOME=$H AGI_POST=alive AGI_ROLE=director sh -c "agi-brief <$T/sj") >$T/br1 2>/dev/null
-ok r1-the-notice-survives-the-restart-and-the-successors-first-sessionstart-prints-it "[ -s $T/unit37.sh ]&&[ $u = 0 ]&&[ -x $H/bin/agi-notice ]&&[ \"\$(sed -n 1p $T/br1)\" = '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref' ]&&[ ! -e $H/.notice ]"
+ok r1-the-notice-survives-the-restart-and-the-successors-first-sessionstart-prints-it-right-after-the-prayer-head "[ -s $T/unit37.sh ]&&[ $u = 0 ]&&[ -x $H/bin/agi-notice ]&&[ \"\$(nohead $T/br1|sed -n 1p)\" = '[strand-refused] alive: HEAD abc1234 carries 1 commit(s) on no ref' ]&&[ ! -e $H/.notice ]"
 # h1: hooksPath=~/bin -- a piece named like a git hook would RUN as one (the lane's own PIECES / ROOT text is the list of piece names)
 HOOKS=" applypatch-msg pre-applypatch post-applypatch pre-commit pre-merge-commit prepare-commit-msg commit-msg post-commit pre-rebase post-checkout post-merge pre-push pre-receive update proc-receive post-receive post-update reference-transaction push-to-checkout pre-auto-gc post-rewrite sendemail-validate fsmonitor-watchman p4-changelist p4-prepare-changelist p4-post-changelist p4-pre-submit post-index-change "
 if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|grep -o '^### [^ ]*'|cut -c5- >$T/pnames
