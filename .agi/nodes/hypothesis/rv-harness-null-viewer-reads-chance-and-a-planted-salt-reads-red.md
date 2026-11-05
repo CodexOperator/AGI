@@ -34,6 +34,17 @@ config-max: none / template-max: none / code: the harness itself (stdlib only, n
 ## CEILING
 0 kids · 0 USD · ONE process · well under 3 GiB (stdlib, a 100-target pool) · CPU · no venv (nothing to install) · never reboot
 
+## CORRECTIVE DH.1 -- closes director-thought-review 10:47Z on round 1 (demote: proved for the pre-registered claim only; "proved not to leak" does not hold)
+BASE      CUT FROM posts/director-thought-science tip c07ed3c864 (worktree ~/t). No merge. Never rebase. Run by this post, no kid.
+1. LEAK A, must fix -- harness.py run_trial: target + salt are Dice(seed, 'target/<trial>') on the PUBLIC prereg seed, so a seed-reader viewer scores 200/200 (100/100 held-out) -- fixed when every harness-side draw (targets, decoys, salt, shuffle, judge ties) is keyed on a run-time SECRET the viewer is never handed; sha256(secret) is in the pre-run commit's prereg.json, the secret itself is revealed in the results commit, and `harness.py verify` replays from the revealed secret.
+2. Two NEW committed mutants that must read RED -- (a) the seed-reader viewer: on the public-keyed (round-1) harness it reads RED, on the secret-keyed harness it falls to chance; (b) the shuffle-removed harness with a position-0 judge: a judge-side check (falsifier 1 cannot see it) that reads chance on the real harness and RED with the shuffle removed.
+3. Residue -- 200 trials hit 91 of 100 targets -- fixed when targets are drawn WITHOUT replacement across the run (200 distinct, so each block is distinct too), from a larger pool, and the node states why exclusion is harmless for the next viewer.
+ANON      no user name, home or repo path value, host or IP
+FILE SCOPE .agi/context/local-maxxing/rv/{harness.py,test_harness.py,prereg.json,results.json} · this node · a round-2 experiment node · doc:card-director-thought-science
+CEILING   0 kids · 0 USD · ONE process · <= 3 GiB · stdlib, no install · pre-run commit before the run · ONE [complete]
+PARENT    none: the post runs it
+Reviewer probes (read-only): /tmp/dtr-g535/mine/probes.py
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2, the RESULTS commit: proved under prereg.json's verdict_rule (null 40/200 below the band of 50; planted-salt mutant 200/200). The v1 pre-run reasoning stands in 7e781e240b. Numbers, command and mutants: experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness.
+corrective DH.1: director-thought-review 10:47Z (via thought-master [corrective] 10:5xZ): leak A (public-seed target stream), two new mutants (seed-reader viewer, shuffle-removed position-0 judge), residue (91 of 100 targets over 200 trials). Round 1's verdict 'proved' stands for its pre-registered claim only.
 <!-- THOUGHT:END -->
