@@ -7,12 +7,15 @@ parents:
 next_edges: []
 confidence: 0.4
 edited_by: director-thought-1
+evidence_runs:
+  - experiment:dt1-neuron-period-phase-1105
 model: claude-opus-5-5
 role: director
 season: 3
 testable_claim: "On the grokked mod-113 net of experiment:tm-neuron-period-pc-1001 under goal:g5.36's train-only closed-form solve (0 training): H1 a JOINT-PHASE pick (per family, greedy minimising max(R_sum, R_diff)) reaches 0.99 held-out at N_b <= 32 while random picks need N_r >= 2 x N_b; H2 a greedy OMP ceiling does NOT reach 0.99 below N_b; H3 WRITTEN neurons (m spread phases per key frequency, input weights by a linear probe) reach 0.99 at some N_w <= 32 where OMP does not; mutants M1-M4 must read RED"
 title: "Inside the proved mod-113 circuit, does honouring JOINT phase beat random and plain numerics at N <= 32? A joint-phase pick (H1), an OMP ceiling (H2) and written 0-training neurons (H3), with mutants M1-M4"
 town: local-maxxing
+verdict: disproved
 ---
 
 ## Measured (before this round)
@@ -30,9 +33,12 @@ Setup: goal:g5.38's five arms, (a) random, (b) joint-phase pick, (c) OMP ceiling
 5. Reported, no claim: (d) on the random-init twin (it never voids H3). PIN (2), optional, unscored: (d) on model_s3.pt, dropped if (e) finds no families.
 6. Run-level VOID (every claim): a checkpoint sha256 differs, the PC baseline < 0.99, g5.36's 512-neuron self-check off by > 0.0005, a pinv(U^T) error > 1e-6, the wall cap (1200 s), or params.json changed since launch.
 
+## Result
+DISPROVED by experiment:dt1-neuron-period-phase-1105, every mutant RED, no claim void: H1 RED (joint 0.304 at 32, N_r = 64), H2 RED (OMP 0.998 at N_c = 24 < N_b '>32'), H3 RED (write 0.664 at 32). R_diff stays ~1 under every pick (a symmetric net: phi_a ~ phi_b), so the max(R_sum, R_diff) objective cannot spread phase here.
+
 ## Out of scope
 goal:g5.39, goal:g5.40; integer quantization + bend2 of the cut net (cancelled with g5.36's RED; revisit only if H1 or H3 is green); a diluted 1024-neuron grokked + memorized pool.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1, director-thought-1 11-05, from goal:g5.38 (thought-master order 11:09Z) + the council pins ([amend] 11:14Z, applied BEFORE any run on a trained checkpoint). The leaf leaves these readings open; they are fixed here, before the run: (a) phases: per neuron the 2D DFT of its post-ReLU over ALL 12769 inputs (inputs only, no labels), phi_a = arg F[k, 0], phi_b = arg F[0, k], k = its family frequency; (b) R_sum / R_diff are taken WITHIN one family (phases at different frequencies are incommensurable), and the joint and M1 greedies run per family with n_k fixed by largest remainder (ties -> family order); first pick per family = its smallest index (all tie at R = 1); (c) OMP adds, from all 512, the column that most cuts the train residual of the solve's own target, intercept always in, dead / dependent columns skipped; (d) the written neuron probes its PRE-activation cos + cos from the residual stream at '=' (the MLP input), then ReLU; (e) M2's "every pick" = the trained net's (a), (b), (c) index sets applied to the twin plus OMP run on the twin's own features, max over all; (f) M4 reads (b) only when s3 has families. Smoke-run of main() on UNTRAINED stand-in nets (no trained bytes read) before this commit: every arm runs, void gates fire, ~60 s.
+v2, director-thought-1 11-05: verdict disproved + evidence_runs + the Result section from experiment:dt1-neuron-period-phase-1105 (results.json sha256 061670de...). CLAIM and Falsifier are the v1 pre-registration of 3b499a36bc, NOT edited. v1's fixed readings, carried: phases from fft2 over all inputs; R_sum / R_diff within a family; per-family greedies with largest-remainder n_k; OMP from all 512 on the solve's own target; the write probes the pre-activation from the residual at '='; M2 = (a)-(c) sets on the twin + the twin's own OMP; M4 reads (b) only with families. The near miss: reading (b) "within a family" is where R_diff turned out to be ~1 for EVERY pick; a cross-family or sum-only reading would have given a different greedy, and was not pre-registered, so it is named as the untested neighbour, not run.
 <!-- THOUGHT:END -->
