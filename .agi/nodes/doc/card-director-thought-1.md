@@ -6,10 +6,10 @@ parents:
   - goal:g7.16.1
 next_edges: []
 edited_by: director-thought-1
-model: claude-sonnet-5-5
+model: claude-opus-5-5
 role: director
 scaffold_hash: 8d62ca827b8a4a87
-season: 2
+season: 3
 tags:
   - card
   - director
@@ -19,37 +19,55 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master (TM) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · box encryption-town (E) · STOOD DOWN 10-21 14:4xZ by the owner (via TM/belam, goal:g7.16.1.11.45): parked clean, nothing in flight; trunk core/season3/main
+director-thought-1 · v5 post · Opus 5.5 · director under thought-master (TM) · goal:g5.36 (r9 less-is-more) · tree ~/t (detached read view; commits via agi-at) · branch posts/director-thought-1 · box belam-gpu (local-town) · trunk core/season3/main
 
 ## §0 State
 ```
-order   NONE held. Owner 10-21 verbatim: "stand down thought master and director thought at this time." Earlier: owner PAUSE 10-16 (out of usage). Last work: g5.28 PAIR-LOSS DONE, returned by box [complete]
-comms   BOX ONLY: `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send <post>`. NEVER box belam. Sent: [rotation] director-thought-1 down-ready <this card's commit sha>. belam stops the unit, boot false; home, card and keys stay
-skills  agi-send · agi-memory-guard · agi-node-write (plain Write/Edit) · agi-verify
+order   goal:g5.36 from TM by box 10:5xZ 11-05: cut the PC mod-113 net to N neurons, closed-form W_out, 0 training. DONE: DISPROVED
+comms   BOX ONLY: `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send thought-master`. NEVER box belam
+skills  agi-send · agi-node-write · agi-memory-guard · agi-verify
+venv    /data/scratch/director-thought-1/venv (torch 2.14.0+cpu, numpy 2.5.4, pytest, pyyaml; 965 MB)
 ```
 
 ## §1 Plan
 ```
-DONE   experiment:dt1-neuron-period-pairloss-1010 DISPROVED: T={seed0 k=34, seed1 k=3}; k=34 3/3 partners beat the null (best g=45 1.133 vs 0.069); seed 1 k=3 0/3 (inert); seed 2 k=17 (unscored) 3/3. Pre-run 7f82854951, results e670e9c8b6, node ec913021fe
-NEXT   nothing: on a restart `box read`, do nothing without an order
+DONE   experiment:dt1-neuron-period-cut-1105 DISPROVED: N_f > 64 (freq pick 0.815 @64, 0.995 @128), N_r = 64 (random 4/5 seeds), mutant twin 0.011 (RED, not void)
+NEXT   nothing held: on a box order, act; else idle. Next rung (quantize the N_f net) was gated on green: NOT unlocked
 BLOCK  none
+```
+
+## §2 Landed (posts/director-thought-1, not yet on trunk: TM lands it)
+```
+a726d7817e  merge of TM 33b3e4f121 (the g5.35-37 leaves)
+f533da2a1a  PRE-RUN: hypothesis (falsifier + mutant), params.json b8fdafc5, osc_neuron_period_cut.py + _test.py (7 pass), config cell
+f157dedb99  RESULTS: results.json 2dd333ec, run.log, summary, experiment node, hypothesis verdict
 ```
 
 ## 🔴 Where it stops
 ```
-Tree clean on posts/director-thought-1; no process of mine running; nothing unpushed matters (local-only branch).
-Cold resume: 1) git status -sb (HEAD may come up detached: git switch posts/director-thought-1)  2) AGI_POST=director-thought-1 box read  3) on an order, git merge <sha it names> BEFORE any edit.
-Torch on E: cd <tree>; (ulimit -v 4000000; OMP_NUM_THREADS=1 PYTHONPATH=$HOME/scratch/torch-cpu/pylib python3 -m pytest <file> -q -p no:cacheprovider --basetemp <scratchpad>/bt)  (torch 2.14.0+cpu in ~/scratch/torch-cpu/pylib, belam GO 10-10)
+[complete] for g5.36 boxed to TM after this card commit. Nothing running. Cold resume: AGI_POST=director-thought-1 box read; act only on an order.
+Run the cut again: cd ~/t; (ulimit -v 3145728; OMP_NUM_THREADS=1 /data/scratch/director-thought-1/venv/bin/python .agi/context/local-maxxing/osc/osc_neuron_period_cut.py)
+Tests: (ulimit -v 3145728; OMP_NUM_THREADS=1 /data/scratch/director-thought-1/venv/bin/python -m pytest .agi/context/local-maxxing/osc/osc_neuron_period_cut_test.py -q -p no:cacheprovider)
 ```
 
 ## §4 Traps (this generation)
 ```
-box E     no /data/ml, no torch: any osc run needs the private pylib above
-detached  engine checkouts can leave HEAD detached: switch to the post branch before committing. A stale index (staged old copies of others' files) blocks the switch: back it up with git diff --cached, restore those paths from HEAD
-links.py  `links.py links` outruns the 120 s foreground limit: run it in the background
+packed-refs  every ref write prints "Unable to create /data/work/agi/.git/packed-refs.lock: Permission denied": harmless, the commit lands (check git log)
+hand git     I ran git switch + git merge by hand at wake (signed, fine), then re-detached HEAD: agi-at is the commit path, ~/t stays detached
+venv         the repo conftest imports yaml: a fresh venv needs pyyaml + pytest beside torch/numpy
+```
+
+## §5 Verification
+```
+links.py links: 6000 resolved, 0 broken · new nodes: missing_required [] · cut tests 7 pass · run void checks all clear
 ```
 
 ## §6 BANKED
 ```
 none
+```
+
+## §7 ATOMS
+```
+g5.36 (TM 10:5xZ 11-05)  CLOSED: placed in experiment:dt1-neuron-period-cut-1105
 ```
