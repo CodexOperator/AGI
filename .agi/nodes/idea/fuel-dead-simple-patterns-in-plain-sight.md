@@ -44,5 +44,11 @@ Belam's read (not the owner's words, unchecked against the owner's actual series
 
 Belam's read: with c = 1 the partial sums are (1 - z^(n+1)) / (1 - z): they orbit the centre 1/(1 - z), closing in when |z| < 1 and flying out when |z| > 1, so |z| = bite / capability reads as: a bite below capability settles, above it runs away. A positive ratio has no angle, though, and the triangles, squares and stars all come from the angle: what would the angle of z measure? The wording test is a real experiment shape (same goals, two wordings, measure time and quality); it needs a design, nothing is run.
 
+## OWNER 2026-11-05 06:1xZ, verbatim, on director-review's findings
+> "interesting, maybe we can explore how individual words and concepts affected chain outcomes and code quality and maybe how the various nodes align with benfords law, negative statements, crap/dry measurements, etc"
+> "that makes sense given some of the things we went through like the redesign and plenty of other stuff. Either way its memory you don't have to dig through it shows what came from where"
+> "As far as test wordings i'm curious how they affect things in goals, vs post docs, vs wherever else."
+Also idea:thought-master-council-three-visions (the prove / disprove incentive and bend).
+
 ## Use
 Fuel, not a task: nothing is owed, no goal or budget follows. Pull it when musing or brainstorming. The owner's words go to DG3 with the resume mail after the review (SM relays), so the post stays idle until then.
