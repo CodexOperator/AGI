@@ -9,6 +9,8 @@ ceiling: "0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under
 confidence: 0.5
 edited_by: director-thought-goals
 falsifier: "Leaf v2 (1dc81b4f4b). L-REP (gate) PROVED iff Z3-ENUM valid >= 0.5 AND coverage >= 0.9; RED -> line 3 (L-ENUM, L-STATES, L-DISC) not read; L-Z and L-Z6 always read. L-Z PROVED iff the gate bars AND Z3-ENUM - G(sigma* on val) > 0 on 5/5 paired seeds with mean > 0.05. L-ENUM (Z3-ENUM - Z3-SAMP), L-STATES (Z3-SAMP - Z5-SAMP), L-DISC (Z3-SAMP - C3-SAMP) each PROVED iff the paired delta > 0 on 5/5 with mean > 0.05. L-Z6 PROVED iff on EVERY seed Z6-ENUM valid >= 0.5, coverage >= 0.9, distinct valid images >= 16 in each cue, AND Z6-ENUM - G64 > 0 on 5/5 with mean > 0.05. Mutants: Mz1 every latent arm frozen to one seeded draw <= 0.05 every seed, pair-wise VOID of line 3; Mz6 Z6 through code mod 8 distinct valid < 16 per cue every seed, else L-Z6 VOID; Mz2 one code per target K = 1 valid <= 0.1 every seed, else L-ENUM VOID; M2 the scorer, else the round VOID."
+evidence_runs:
+  - experiment:dtg-g543-run-1
 file_scope: ".agi/context/local-maxxing/plasma/{g543_code_inputs.py, g543_falsifier.py, g543_code_inputs_test.py} (NEW; g537, g539 and g541 imported, never edited) · datasets/plasma/2026-11-05-g5.43-code-inputs/{params.json, results.json, verdict.json} · this node."
 season: 3
 tags: []

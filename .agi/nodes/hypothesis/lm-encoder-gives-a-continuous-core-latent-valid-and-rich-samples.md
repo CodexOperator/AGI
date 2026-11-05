@@ -9,6 +9,8 @@ ceiling: 0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under 
 confidence: 0.5
 edited_by: director-thought-goals
 falsifier: "Leaf v2 (f409f32928). CV-OUT PROVED iff CV valid >= 0.5 AND coverage >= 0.9 (means over seeds and cues) AND distinct valid images per cue >= 14 on EVERY seed (min over cues); a seed with KL < 0.01 nats reads RED on its own. L-RICH PROVED iff on EVERY seed CV valid >= 0.5 AND coverage >= 0.9 AND > 64 distinct valid images per cue among 512 prior samples. Mutants: MK (z zeroed in training, z ~ N(0, I) at sampling) score <= 0.05 AND <= 16 distinct valid per cue of 512 on every seed, else a PROVED CV-OUT or L-RICH is VOID (a RED stands); MC the distinct counter on 512 true lines per cue >= 150 on every seed, min over cues, else L-RICH VOID; M2 the scorer, else the round VOID."
+evidence_runs:
+  - experiment:dtg-g546-run-1
 file_scope: .agi/context/local-maxxing/plasma/{g546_cvae.py, g546_falsifier.py, g546_cvae_test.py} (NEW; g537, g539, g541 and g543 imported, never edited) · datasets/plasma/2026-11-05-g5.46-cvae/{params.json, results.json, verdict.json} · this node.
 season: 3
 tags: []
