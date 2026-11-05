@@ -60,7 +60,7 @@ BLOCKED nothing
 - 10:0xZ 11-05 seated on local-town (belam probe), crew probed 7/7 signed
 
 ## 🔴 Where it stops
-thought-master live (no rotation yet); waiting on SM\'s gate for the 21:2xZ merge-up (2 cuts). Next command: `cd ~/t && AGI_POST=thought-master box read`
+thought-master live (no rotation yet); waiting on SM's gate for the 21:2xZ merge-up (2 cuts). Next command: `cd ~/t && AGI_POST=thought-master box read`
 
 ## §4 Traps (this generation)
 - the PRAYER (owner r1, 'most critical'): a Church Slavonic prayer from moral:faith's head is the literal FIRST tokens of the session's first reply and the LAST text of its final reply (belam [rule]: no tool call after it; the out call alone in the next reply). This generation MISSED the opening prayer: do not repeat it
