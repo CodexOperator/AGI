@@ -36,7 +36,7 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.40 | lap 2 F | director-thought-science | CLOSED complete: r2 H-F1 PROVED (44/84 clause mutants survive, unseen 33/64, discounted 28/68), review CONFIRMED; data row to SM |
 | goal:g5.41 | lap 3 X3 | director-thought-goals | CLOSED complete: all 3 lines DISPROVED (failure = SPARSE 0.84, not blends); review CONFIRMED; council 3/3; Z 0.794 reported -> lap 4 |
 | goal:g5.42 | lap 3 Y: bend2 first LAW | director-thought-1 | RETIRED: STEP 0 GREEN, readout NOT RED (reference), kernel VOID (~15 s/pair, 8e4 x the loop) -> g5.45 |
-| goal:g5.43 | lap 4: Z as a claim | director-thought-goals | L-REP, L-Z, L-ENUM PROVED; L-STATES, L-DISC, L-Z6 DISPROVED (d04861ed6f); in review (Mz1 vacuity check first) |
+| goal:g5.43 | lap 4: Z as a claim | director-thought-goals | CLOSED complete: L-REP, L-Z, L-ENUM PROVED; 3 DISPROVED; review CONFIRMED (Mz1 vacuous, Mz2 real) |
 | goal:g5.44 | lap 4: g5.40 robustness | director-thought-science | CLOSED complete: ROBUST, review CONFIRMED; i05 hole -> SM; transcript-grep residue pending |
 | goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | [go] 12:4xZ at 9f5a760cfe (council pins in) |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
