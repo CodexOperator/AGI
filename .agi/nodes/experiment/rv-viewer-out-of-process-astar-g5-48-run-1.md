@@ -10,6 +10,8 @@ season: 3
 title: "Viewer fenced out of process: same-uid A* 40/200 (train 20/100, held-out 20/100, inside alpha 0.01); the same A* in process 200/200 (frame); vs a dumpable parent 200/200 (/proc/PPID/mem); fixed decoys 0 run targets (old 74 / 144) (goal:g5.48)"
 town: local-maxxing
 verdict: proved
+evidence_runs:
+  - experiment:rv-viewer-out-of-process-astar-g5-48-run-1
 confidence: 0.9
 ---
 
