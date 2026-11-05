@@ -1,0 +1,17 @@
+{
+ "goal": "goal:g5.35",
+ "seed": "g5.35/33b3e4f121a8e56aae561c1fde4bc5ed1e49e98d",
+ "seed_why": "the full sha of thought-master's leaf commit, fixed before this post existed: not chosen",
+ "n": 200,
+ "chance": 0.2,
+ "candidates_per_trial": 5,
+ "alpha_harness": 0.05,
+ "train_trials": [0, 100],
+ "held_out_trials": [100, 200],
+ "climb_policies": 20,
+ "alpha_held_out": 0.01,
+ "falsifier_1": "the null viewer (policy 0) over trials 0..199: hits must be below the one-sided binomial 95% band (band_hits_lt); at or above it = the harness LEAKS, RED, nothing else is measured on it",
+ "falsifier_2": "the SaltMutantViewer, handed the salt before it describes, must score at or above the same band; below it = the harness cannot see a leak, vacuous",
+ "falsifier_3": "any later viewer: its held-out (trials 100..199, n = 100) hit rate must beat chance at p < 0.01, whatever its train curve; for the null viewer the climb keeps the best of 20 seeds on trials 0..99 and is graded on 100..199",
+ "verdict_rule": "proved iff falsifier_1 inside AND falsifier_2 outside; else disproved"
+}
