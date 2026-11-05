@@ -1,0 +1,107 @@
+{
+ "goal": "goal:g5.38",
+ "hypothesis": "hypothesis:lm-honouring-the-mod-113-circuits-joint-phase-beats-random-and-plain-numerics",
+ "run": "five arms on the SAVED seed-0 PC checkpoint (+ model_s3.pt census) under g5.36's train-only solve and scoring, IMPORTED unchanged from osc_neuron_period_cut.py (feats, solve, install, arm, rand_pick); forward passes, least squares and greedy selection only, 0 gradient steps, NO training, NO data download",
+ "p": 113,
+ "model": {
+  "d_model": 128,
+  "n_heads": 4,
+  "d_mlp": 512,
+  "n_ctx": 3,
+  "act": "relu",
+  "layernorm": false,
+  "pos": "learned",
+  "vocab_in": 114,
+  "vocab_out": 113,
+  "note": "1 layer: tokens (a, b, '=') with '=' = id 113; causal attention (no biases on Q/K/V/O), MLP W_in+b_in -> ReLU -> W_out+b_out, residual stream only (no LayerNorm), unembed (no bias) read at the '=' position (index 2) -> logits over 113 classes = (a+b) mod 113. Init: W_E, W_pos ~ N(0, 1/d_model); Linear layers PyTorch default"
+ },
+ "train_fraction": 0.3,
+ "split_seed": 0,
+ "split_def": "all 113*113 pairs (a, b), index a*113+b; numpy default_rng(split_seed).permutation; first floor(0.3*12769) = 3830 = train, the rest (8939) = held-out test",
+ "threads": 1,
+ "b_set": [
+  0,
+  23,
+  46,
+  69,
+  92
+ ],
+ "detrend_tol": 1e-09,
+ "null_permutations": 20,
+ "null_seed": 0,
+ "null_quantile": 0.999,
+ "twin_seed": 1001,
+ "family_floor": 20,
+ "pipeline": "IMPORTED unchanged: S = osc_neuron_period_pc (make, data, sweep, stat, null, evaluate), T = osc_neuron_period_seeds.families, F = osc_neuron_period_p4fair (sha, rp); peakiness pk and dominant bin per neuron as in the PC; families = the P1 neurons (pk > null q999 AND pk > twin max) grouped by dominant frequency, every family of >= family_floor neurons, ordered by size desc (ties smallest k). Key frequencies are COMPUTED by the run (expected 5, 1, 45, 34 from the PC's P2 tally), never typed in",
+ "solve_def": "for a kept set K of N neurons: h = post-ReLU at '=' on the TRAIN rows (3830), Phi = [h[:, K], 1] (N+1 columns); target T = the full net's train logits minus its non-MLP path (L - U(W_out h + b_out)); M = lstsq(Phi, T) in float64 (gelsd, min-norm), the logit-space readout; W' = M pinv(U^T) (the residual-stream W_out rows + b_out); the cut net = a copy with W_out[:, K] = W'[:N]^T, every other W_out column 0, b_out = W'[N]; scored by the model's own forward pass on the 8939 held-out rows (S.evaluate). 0 gradient steps",
+ "u_tol": 1e-06,
+ "u_def": "void if max |W' U^T - M| > u_tol (U^T must be invertible on the logit space)",
+ "self_check": "the same solve with ALL 512 neurons must reproduce the full net: |held-out acc(cut 512) - baseline| <= self_tol, else VOID",
+ "self_tol": 0.0005,
+ "random_seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "random_pick_def": "seed s: numpy default_rng(s).permutation(512); the first N entries (nested sets: the N=8 set is inside the N=16 set); over ALL 512 neurons; every index set is written to results.json",
+ "acc_threshold": 0.99,
+ "wall_cap_s": 1200,
+ "box_min_avail_mib": 2000,
+ "box_max_psi_some_avg10": 5,
+ "checkpoints": {
+  "pc": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-pc/model.pt",
+   "sha256": "8e174e98261aa4995d69a65911cefcbe5f6cdef4388577f8a3209ec64e5ccccc",
+   "train_seed": 0,
+   "note": "grokked, held-out 0.99978 (experiment:tm-neuron-period-pc-1001)"
+  },
+  "s3": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-seeds/model_s3.pt",
+   "sha256": "04f96cc83f62787ca6676a1dcb2a015c81ccea18a88c028e34f54583b7f29021",
+   "train_seed": 3,
+   "note": "memorized, NOT grokked: train 1.0, held-out 0.024 at step 14900 (results_s3.json); sha read 11-05 before this commit"
+  }
+ },
+ "n_grid": [
+  8,
+  16,
+  24,
+  32
+ ],
+ "n_grid_random_extra": [
+  48,
+  64
+ ],
+ "n_grid_note": "claims are scored at N in n_grid (<= 32); the random arm also runs at 48 and 64 (the leaf) so N_r >= 2 x N_b is decidable for N_b <= 32",
+ "arm_a": "RANDOM: seed s in random_seeds, Z.rand_pick = default_rng(s).permutation(512)[:N] (nested); N_r = the smallest N in n_grid + n_grid_random_extra where ANY seed reaches acc_threshold held-out (none -> > 64)",
+ "phase_def": "per family neuron i of family frequency k: A = its post-ReLU at '=' over ALL 12769 (a, b) inputs (inputs only, no labels), laid out A[a, b]; Fq = numpy fft2(A) (axis 0 = a, axis 1 = b); phi_a = angle(Fq[k, 0]), phi_b = angle(Fq[0, k])",
+ "R_def": "R(theta) = |mean_j exp(i theta_j)| (mean resultant length); within ONE family (phases at different frequencies are not comparable): R_sum = R(phi_a + phi_b), R_diff = R(phi_a - phi_b) over that family's kept neurons",
+ "quota_def": "n_k by largest remainder on the computed family tally: q_k = N c_k / sum c; floor; the remaining seats to the largest fractional parts, ties -> family order (size desc, smallest k)",
+ "arm_b": "JOINT-PHASE pick: per family k, greedy n_k steps, each adding the candidate that MINIMISES max(R_sum, R_diff) of (kept + candidate); ties within 1e-12 -> smallest index (so the first pick of every family = its smallest index, where all candidates tie at R = 1)",
+ "arm_c": "CEILING: greedy OMP on the TRAIN rows only: the intercept is always in; each step adds the neuron (of all 512) whose column, orthogonalised against the kept set, most cuts the Frobenius residual of the solve's own target (train logits - non-MLP path); columns with orthogonal energy <= 1e-9 x their own energy (dead / dependent) are skipped; ties -> smallest index; nested in N",
+ "arm_d": "WRITE, DON'T PICK: per computed key frequency k (the families, expected 5, 1, 45, 34), m neurons; neuron j targets z_j = cos(2 pi k a / p + phi_j) + cos(2 pi k b / p + psi_j) as its PRE-activation, (phi_j, psi_j) = the rank-1 lattice (2 pi j / m, 2 pi (j g mod m) / m), j = 0..m-1, g = the integer coprime to m nearest m / 1.618 (m 2/4/6/8 -> g 1/3/5/5; council pin, thought-master [amend] 11:14Z); input weights (w, b) = lstsq([r, 1], z) on the TRAIN rows, r = the residual stream at '=' (the MLP's input); written into a COPY's w_in rows 0..N_w-1, the neuron = ReLU(w.r + b); W_out by g5.36's solve (Z.arm, keep = those rows); m in write_m, N_w = 4 m",
+ "write_m": [
+  2,
+  4,
+  6,
+  8
+ ],
+ "arm_e": "model_s3.pt census: train / held-out baseline, P1 + family tally (the PC pipeline, floor family_floor); then (a), (c) and, if it has families, (b), with the solve onto ITS OWN train logits, scored on TRAIN rows as a fraction of its own train baseline",
+ "H1": "PROVED iff (b) reaches acc_threshold held-out at N_b <= 32 (N_b = the smallest n_grid N) AND (N_r > 64 or N_r >= 2 x N_b); else DISPROVED (RED). VOID if M1, M2 or M4 is not RED",
+ "H2": "RED iff (c) reaches acc_threshold at N_c (smallest n_grid N) below N_b; if (b) never reaches it at N <= 32, N_b := '>32' and RED iff (c) reaches it at any N <= 32; if NEITHER reaches it, H2 = no_verdict (council pin 11:14Z); else NOT RED. VOID if M2 is not RED",
+ "H3": "PROVED iff some N_w <= 32 has (d) held-out acc >= acc_threshold AND (c) at that same N < acc_threshold; else DISPROVED (RED). VOID if M3 is not RED",
+ "M1": "phase-twin pick: same n_k, per family greedy MAXIMISING R_sum (ties smallest index); RED iff held-out acc < acc_threshold at every n_grid N",
+ "M2": "init twin (S.make(P, twin_seed), untrained) under the same solve onto the TRAINED net's train logits, every pick: the trained net's (a) at n_grid, (b) and (c) index sets, and OMP run on the twin's own features; RED iff every held-out acc < m2_max_acc ((a)-(c) only, council pin 11:14Z; (d) on the twin is item 5 and never voids H3)",
+ "m2_max_acc": 0.5,
+ "M3": "equal-phase write: phi_j = psi_j = 0 for every j at m = max(write_m) (N_w = 32); RED iff held-out acc < m3_max_acc",
+ "m3_max_acc": 0.5,
+ "M4": "model_s3.pt: RED iff (c) and (b) (when it has families) each keep < m4_keep_frac of s3's own TRAIN baseline (TRAIN rows) at every n_grid N",
+ "m4_keep_frac": 0.99,
+ "item5": "REPORTED, no claim: (d) on the random-init twin (its residual probed the same way, the solve onto the trained net's train logits)",
+ "verdict_rule": "run-level VOID (every claim void) if a checkpoint sha256 differs, the PC baseline < acc_threshold, the 512 self-check is off by > self_tol, any u error > u_tol, the wall cap hits, or params.json changed since launch; else each claim per H1 / H2 / H3 with its mutant gates",
+ "box_note": "local-town limits (goal:g5.38 Invariants): 0 USD; ONE python process, threads 1, ulimit -v 3145728 (3 GiB); private venv /data/scratch/director-thought-1/venv (torch 2.14.0+cpu, numpy 2.5.4); never reboot",
+ "item5_s3": "OPTIONAL, unscored (council pin 11:14Z): (d) on model_s3.pt with its own families and its own train logits, train-row accuracy reported; dropped if (e) finds no families",
+ "pins": "thought-master [amend] 11:14Z 11-05 (council pre-run pins, they beat the leaf text): (1) arm_d lattice, (2) M2 scope + item5_s3, (3) the H2 edge"
+}
