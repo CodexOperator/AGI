@@ -10,9 +10,10 @@ season: 3
 testable_claim: "Round 2 (CORRECTIVE DH.1): on the commit-reveal, blind 1-of-5 harness whose every harness-side draw is keyed on a run-time secret (sha256 pre-committed, revealed after), with 200 distinct targets from a 1000-target pool, the NULL viewer, the seed-reader viewer and the position-0 judge all read inside chance over n = 200, while the planted-salt viewer, the seed-reader on the public-keyed harness and the position-0 judge with the shuffle removed all read RED: the harness does not leak through the seed, the salt or the judge, and sees each of those leaks when it is planted."
 title: "The remote-viewing harness's null viewer reads chance over n = 200 and a viewer handed the salt reads RED (goal:g5.35, r17 round 1)"
 town: local-maxxing
-verdict: pending
+verdict: proved
 evidence_runs:
   - experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness
+  - experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness
 ---
 
 ## Measured
@@ -53,5 +54,5 @@ Reviewer probes (read-only): /tmp/dtr-g535/mine/probes.py
 - Dev only before the pre-run commit: test_harness.py = 12 OK (dev seed + dev key).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v3, the ROUND 2 PRE-RUN commit (CORRECTIVE DH.1): the claim widened to the leaf's end-state ('proved not to leak'), so the verdict is back to pending; round 1's proved verdict and its experiment stand for round 1's narrower claim. The secret's sha256 is in prereg.json; the secret sits outside the repo (0600) until the results commit reveals it.
+v4, the ROUND 2 RESULTS commit: proved under round 2's verdict_rule, all six arms as required (F1 44, F4 real 34, F5 real 40 of 200 inside; F2, F4 public-keyed, F5 unshuffled 200/200 RED); 200 distinct targets. The v3 pre-run reasoning stands in 09f2e322f0. Numbers: experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness.
 <!-- THOUGHT:END -->

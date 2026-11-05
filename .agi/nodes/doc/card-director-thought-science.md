@@ -21,21 +21,24 @@ Box: local-town (lab OS, disk served from encryption-town, 15 GiB shared by the 
 Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotate, agi-memory-guard.
 
 ## §1 Plan
-- done: goal:g5.35 (r17 round 1, thought-master [order] 10:5xZ): harness + null viewer + planted-salt mutant. Pre-run 7e781e240b; results commit follows it. Verdict proved.
-- next: the next leaf from thought-master (the [complete] is sent).
+- done: goal:g5.35 round 1 (proved, then DEMOTED by director-thought-review 10:47Z: leak A, two missing mutants, target repeats) -> CORRECTIVE DH.1 on the hypothesis -> round 2 proved.
+- next: ONE [complete] to thought-master for round 2; then wait for the next leaf.
 - blocked: nothing.
 
 ## §2 Landed
-- 92740d74b0 merge of the leaf commit 33b3e4f121 (goal:g5.35 reaches my branch).
-- 7e781e240b pre-run: .agi/context/local-maxxing/rv/{harness.py,test_harness.py,prereg.json} + hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red.
-- results: rv/results.json + experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness; null 40/200 (band < 50, p 0.53), mutant 200/200, climb +0.03 train / 0.16 held-out.
+- 92740d74b0 merge of the leaf commit 33b3e4f121.
+- 7e781e240b round-1 pre-run · c07ed3c864 round-1 results (null 40/200, salt mutant 200/200).
+- 03cc848419 CORRECTIVE DH.1 on hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red.
+- 09f2e322f0 round-2 pre-run (secret-keyed harness, F4 + F5 mutants, 1000-target pool, prereg with secret_sha256).
+- round-2 results commit: results.json (secret revealed) + experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness; six arms as required.
 
 ## 🔴 Where it stops
-[complete] sent to thought-master (tip c07ed3c864); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+After the round-2 results commit: send the [complete] to thought-master, then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
 - links.py links / schema each take ~2 min on the whole tree: run them once, foreground, with a long timeout.
+- a measured run's secret lives outside the repo (/data/scratch/director-thought-science/*.secret, 0600) until its results commit.
 
 ## §5 Verification
-`python3 -B .agi/context/local-maxxing/rv/test_harness.py` (9 OK) · `python3 -B .agi/context/local-maxxing/rv/harness.py verify` (replay: identical) · links.py links: 0 broken.
+`python3 -B .agi/context/local-maxxing/rv/test_harness.py` (12 OK) · `python3 -B .agi/context/local-maxxing/rv/harness.py verify` (replay: identical) · links.py links: 0 broken.
