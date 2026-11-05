@@ -31,7 +31,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 - L364 c63835b47a (sanctuary-master 17:5xZ, cc): this post's slice through 5424c35bb3 LANDED on the trunk (stack491r2, first cross-box landing). Next touch per SM: sp's demote (a) + residues, and g5.35's pointer pinned to a card-belam sha, via thought-master.
 
-- 9a574af500 evidence_runs fix (belam [red] 20:07Z): self-citing evidence_runs on my 6 verdict experiments; dry-run trunk 7 -> merge-tree 2 (DT-goals' 2 hypotheses). Rode TM re-cut 61abbc396e (dry-run 0, sent to SM); the g5.48 node rides the next merge-up.
+- 9a574af500 evidence_runs fix (belam [red] 20:07Z): self-citing evidence_runs on my 6 verdict experiments; dry-run trunk 7 -> merge-tree 2 (DT-goals' 2 hypotheses). Rode TM re-cut 61abbc396e (dry-run 0, sent to SM); the g5.48 node rides the next merge-up. LANDED as L374 5ba578905e (belam 20:35Z); MAIN restored, dry-run 0.
 
 ## 🔴 Where it stops
 g5.48 [complete] sent to thought-master (tip 389fae739d); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
