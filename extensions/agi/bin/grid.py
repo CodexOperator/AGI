@@ -65,6 +65,7 @@ import subprocess
 import sys
 import time
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 # goal:g11 — one resolver for every path. Plain sibling import; every entry
@@ -1356,6 +1357,26 @@ def is_retired_node_file(root: Path, path: Path) -> bool:
     return bool(rel.parts) and rel.parts[0] == "deprecated"
 
 
+def _holder_phrase(record: str | None, now: datetime) -> str:
+    """goal:g7.16.1.11.20.5: what a refusal says about the holder. The
+    record is '<pid> <taker...> <UTC start>' (a legacy holder wrote a bare
+    pid); the holder truncates before it writes, so a waiter can read it
+    EMPTY, and that case says so (term (b)), never a bare 'held by'."""
+    if not record:
+        return "holder record empty"
+    parts = record.split()
+    if len(parts) == 1 and parts[0].isdigit():
+        return f"held by {parts[0]} (legacy record)"
+    try:
+        since = datetime.strptime(parts[-1], "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc)
+    except ValueError:
+        return f"held by {record} (unparsed record)"
+    age = max(0, int((now - since).total_seconds()))
+    return (f"held by {parts[0]} {' '.join(parts[1:-1])} since {parts[-1]}, "
+            f"{age} s")
+
+
 class GridLock:
     """Exclusive advisory flock held across one `commit --all`.
 
@@ -1383,7 +1404,8 @@ class GridLock:
     documented path, and let a correct-location holder race it. Legacy bare
     roots keep `.agi/sessions`; only the G11 graph dir uses the direct form.
     """
-    def __init__(self, root: Path, wait_seconds: int) -> None:
+    def __init__(self, root: Path, wait_seconds: int,
+                 taker: str = "commit --all") -> None:
         # G11 graph root => the `.agi` dir itself: sessions sit directly under
         # it. Legacy bare root => `.agi/sessions`, as the contract documents.
         # G11 graph root: sessions sit directly under it. Route through
@@ -1394,6 +1416,9 @@ class GridLock:
             if locations.is_graph_dir(root) else root / ".agi" / "sessions"
         self._path = self._lock_dir / ".grid.lock"
         self._wait_seconds = wait_seconds
+        # goal:g7.16.1.11.20.5: who takes the lock, named in the holder record
+        # and in a refusal (four call sites shared the literal 'commit --all')
+        self._taker = taker
         self._f = None
 
     def acquire(self) -> None:
@@ -1416,10 +1441,12 @@ class GridLock:
                     pass
                 if time.time() >= deadline:
                     f.close()
-                    holder_msg = f" (held by pid {holder})" if holder else ""
+                    now = datetime.now(timezone.utc)
                     print(
-                        f"grid: commit --all could not acquire the grid lock "
-                        f"{self._path}{holder_msg} within {self._wait_seconds}s; "
+                        f"grid: {self._taker} could not acquire the grid lock "
+                        f"{self._path} at {now.strftime('%Y-%m-%dT%H:%M:%SZ')} "
+                        f"({_holder_phrase(holder, now)}) within "
+                        f"{self._wait_seconds}s; "
                         f"another commit (manual or the grid_sync cron) is in "
                         f"progress — wait for it to finish and retry",
                         file=sys.stderr)
@@ -1428,7 +1455,8 @@ class GridLock:
         # We hold the lock: stamp our pid so a waiter can name us.
         f.seek(0)
         f.truncate()
-        f.write(str(os.getpid()))
+        f.write(f"{os.getpid()} {self._taker} "
+                f"{datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}")
         f.flush()
         self._f = f
 
@@ -1575,7 +1603,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     # evidence-gate rewrites and every ref write below, then is released here.
     lock: GridLock | None = None
     if do_all and not session:
-        lock = GridLock(root, lock_wait)
+        lock = GridLock(root, lock_wait, taker="commit --all")
         lock.acquire()
     try:
         # hypothesis:gate-must-sit-on-the-commit-path (goal:g7) -- the evidence
@@ -1798,7 +1826,7 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
         print(f"split: unread {len(unread)}; nothing written")
         return 1
     SPLIT_HELD.clear()
-    lock = GridLock(root, lock_wait) if write else None
+    lock = GridLock(root, lock_wait, taker="split") if write else None
     if lock is not None:
         lock.acquire()
     try:
@@ -3070,7 +3098,7 @@ def _unify_owner_batch(root: Path, ns: str, record: str, write: bool, trunk: str
             return 1
     lock = None
     if write:
-        lock = GridLock(root, 120)
+        lock = GridLock(root, 120, taker="unify owner-batch")
         lock.acquire()
     tally = {"merged": 0, "unchanged": 0, "conflict": 0, "unread": 0}
     named: list[str] = []
@@ -3199,7 +3227,7 @@ def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD",
             return 1
     lock = None
     if write:
-        lock = GridLock(root, 120)
+        lock = GridLock(root, 120, taker="unify --write")
         lock.acquire()
     try:
         snap = _Snapshot(root, ns, write)
