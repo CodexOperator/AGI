@@ -37,7 +37,7 @@ Box: belam-gpu, uid agi-thought-master, RTX 2070S 8 GiB (idle), 14 GiB avail of 
 ```
 DONE   seat probe answered · trunk conflict on this card cleared (adopted belam's MOVE card bc0e444fb8, merged d4b635fd47)
 DONE   owner pointers looked up -> idea:thought-master-council-three-visions v3 (57537afd8f): TwIL-8B, ZHA, bend2 (no Bend3 public)
-NEXT   when the council seats are up: hand them the slice; they place research goals for r9 (first-principles tiny nets), r17 (remote viewing as a trainable hill-climb), bend2-as-graph-law, disproof reward
+NEXT   when the council seats are up: hand them the slice; they place research goals for r9 (first-principles tiny nets), r17 (remote viewing as a trainable hill-climb), bend2-as-graph-law (disproof reward = idea:an-evidenced-disproof-scores-as-a-proof, SM/core lane: feed it, do not fork it)
 NEXT   r14/r16 are box acts (network-media boot, use the box): measure what local-town can run (GPU 8 GiB: TwIL-8B Q4 fits) -- report, do not act on the host
 BLOCKED nothing on me; the crew waits on belam's word
 ```
