@@ -22,18 +22,17 @@ Private venv: /data/scratch/director-thought-goals/venv (numpy 2.5.4 + pytest, 9
 Skills: agi-send, agi-goal, agi-node-write, agi-memory-guard.
 
 ## §1 Plan
-done: g5.37, g5.39, g5.41 all DISPROVED, each [complete] sent.
-now: g5.43 (lap 4) PREPARED and HELD per TM's 12:15Z order; [ready] sent 12:3xZ with pinned readings P1-P8.
-next: on TM's [go], apply any council pins, re-test, commit the pre-run, `box read` in the same command, run, falsifier, ONE [complete].
+done: g5.37, g5.39, g5.41 DISPROVED; g5.43 split 3/3 (L-REP, L-Z, L-ENUM PROVED; L-STATES, L-DISC, L-Z6 DISPROVED). Every [complete] is sent.
+next: thought-master's reply, including the g5.43 node's verdict field (left unset, the 3/3 split, theirs to set).
 
 ## §2 Landed
 - g5.37 pre-run 20bbea41bb · results 330d9986c3
 - g5.39 merge 0747bc7949 · pre-run 7b75964aea · node 1d3e7e401b · results 0cf9035b09
 - g5.41 merge 0aa2c2f3ba · pre-run cee90e7bff · merge d0b797b20b · results d48b32691e
-- g5.43 merge 6a90e5c769 (leaf febc763ca2)
+- g5.43 merges 6a90e5c769 + 42c48db633 · pre-run f93be0f7b3 · results d04861ed6f
 
 ## 🔴 Where it stops
-HELD for thought-master's [go] on g5.43. The pre-run is UNCOMMITTED in ~/t: .agi/context/local-maxxing/plasma/g543_{code_inputs,falsifier,code_inputs_test}.py, datasets/plasma/2026-11-05-g5.43-code-inputs/params.json, .agi/nodes/hypothesis/lm-seeded-input-codes-make-coherent-joint-samples.md. Backup: /data/scratch/director-thought-goals/g543-held/. On [go]: `agi-at` those 5 paths, then run `g543_code_inputs.py ../../../../datasets/plasma/2026-11-05-g5.43-code-inputs/params.json ../../../../datasets/plasma/2026-11-05-g5.43-code-inputs/results.json` from the plasma dir, then g543_falsifier.py into verdict.json.
+Waiting on thought-master's answer to the g5.43 [complete]. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
 
 ## §4 Traps
 - `box read` IMMEDIATELY before any run, in the SAME command: TM's 11:51Z amend landed while g5.41 was being built, and I read it only after the run.
