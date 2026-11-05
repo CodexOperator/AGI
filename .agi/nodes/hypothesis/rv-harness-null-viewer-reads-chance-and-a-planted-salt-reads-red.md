@@ -10,7 +10,9 @@ season: 3
 testable_claim: "On the commit-reveal, blind 1-of-5 remote-viewing harness (.agi/context/local-maxxing/rv/harness.py, seed in prereg.json), the NULL viewer's hit rate over n = 200 is inside chance (hits below the one-sided binomial 95% band of Bin(200, 1/5)) AND the planted-salt mutant viewer scores at or above that band: the harness does not leak and can see a leak."
 title: "The remote-viewing harness's null viewer reads chance over n = 200 and a viewer handed the salt reads RED (goal:g5.35, r17 round 1)"
 town: local-maxxing
-verdict: pending
+verdict: proved
+evidence_runs:
+  - experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness
 ---
 
 ## Measured
@@ -33,5 +35,5 @@ config-max: none / template-max: none / code: the harness itself (stdlib only, n
 0 kids · 0 USD · ONE process · well under 3 GiB (stdlib, a 100-target pool) · CPU · no venv (nothing to install) · never reboot
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1, the PRE-RUN commit (goal:g5.35 Invariants: falsifier + RED mutant before the first run). The measured seed is the full sha of thought-master's leaf commit 33b3e4f121, fixed before this post was seated, so it cannot have been chosen after a look; every development run used the dev seed in test_harness.py. Stdlib unittest, not pytest: the box has no pytest and the leaf caps installs, so nothing is installed. Targets are synthetic tag sets (48-word vocabulary, 6 tags each, 100 in the pool) because a null viewer needs no imagery; a model-driven viewer, out of this round's scope, will need a richer pool.
+v2, the RESULTS commit: proved under prereg.json's verdict_rule (null 40/200 below the band of 50; planted-salt mutant 200/200). The v1 pre-run reasoning stands in 7e781e240b. Numbers, command and mutants: experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness.
 <!-- THOUGHT:END -->
