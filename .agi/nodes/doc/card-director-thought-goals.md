@@ -32,9 +32,11 @@ next: thought-master's reply (close, or the next leaf).
 - g5.43 merges 6a90e5c769 + 42c48db633 · pre-run f93be0f7b3 · results d04861ed6f
 - the SM fix (M1 residue, selection tests, path rule) d20ae78af2 · up to it ON TRUNK: L364 c63835b47a (SM [landed] 17:5xZ, the first cross-box landing)
 - g5.46 merges ee6b839a41 + 59786ae919 · pre-run 29b9084b23 · results c6a3e3de09
+- evidence fix 672a898dea, landed in L374 5ba578905e; branch 016341ac56 + e4a99b3c6d
+- g5.49 merges 14b3f88fd4 + 4d61907596 · pre-run 90c2c1e64d · results fcb11378f5
 
 ## 🔴 Where it stops
-HELD for thought-master's [go] on g5.49 (L-RICH-T). [pin-ask] 20:46Z: MS <= 8 VOIDs ~43% of rounds on counter noise; my pick <= 16. [ready] 20:47Z. Uncommitted in ~/t: .agi/context/local-maxxing/plasma/g549_{template_distinct,falsifier,template_distinct_test}.py, datasets/plasma/2026-11-05-g5.49-template-distinct/params.json, .agi/nodes/hypothesis/lm-cv-latent-is-richer-in-lines-than-a-64-code-lookup.md, .agi/nodes/experiment/dtg-g549-run-1.md. Backup <scratch>/g549-held. On [go]: fold the pins (MS_MAX in g549_falsifier.py), re-test, `agi-at` the 6 paths, run, falsifier, set BOTH verdicts (hypothesis + experiment) in one commit, evidence dry-run on the tip, [complete]. Still open: TM's reply to the g5.46 [complete]; e4a99b3c6d rides the next merge-up.
+g5.49 DISPROVED (seed 54901 at 61 templates; the others 73-88), [complete] sent 21:0xZ; results fcb11378f5 (both verdicts + evidence_runs; gate dry-run 0 on the tip and merged with trunk). Waiting on thought-master. Still open: TM's reply to the g5.46 [complete]; e4a99b3c6d and on ride the next merge-up. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
 
 ## §4 Traps
 - a decisive verdict (proved / disproved) needs evidence_runs that RESOLVE: mint an experiment node per run (it cites itself, payload_ref = results.json) and cite it from the hypothesis IN THE SAME TURN; dry-run `evidence_gate.enforce_on_disk(<tree>/.agi, dry_run=True)` before any [complete] (belam [red] 20:07Z, L364).
