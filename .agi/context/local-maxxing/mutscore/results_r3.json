@@ -1,0 +1,2125 @@
+{
+ "agreement": {
+  "agree": 15,
+  "bar": 13,
+  "of": 16,
+  "per_item": [
+   {
+    "agree": true,
+    "blind_has_survivor": false,
+    "key": "i01",
+    "round2_has_survivor": false
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i02",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i03",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i04",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i05",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i06",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i07",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i08",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i09",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i10",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i11",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i12",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i13",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i14",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": false,
+    "blind_has_survivor": false,
+    "key": "i15",
+    "round2_has_survivor": true
+   },
+   {
+    "agree": true,
+    "blind_has_survivor": true,
+    "key": "i16",
+    "round2_has_survivor": true
+   }
+  ]
+ },
+ "classes": {
+  "blatant": {
+   "fraction": 0.0625,
+   "killed": 15,
+   "scored": 16,
+   "skip_unscored": 0,
+   "survived": 1
+  },
+  "clause": {
+   "fraction": 0.5595238095238095,
+   "killed": 37,
+   "scored": 84,
+   "skip_unscored": 0,
+   "survived": 47
+  },
+  "own": {
+   "fraction": 0.0,
+   "killed": 10,
+   "scored": 10,
+   "skip_unscored": 0,
+   "survived": 0
+  }
+ },
+ "clause_fraction_vs_round2": {
+  "bar": 0.15,
+  "blind": 0.5595238095238095,
+  "delta": 0.0357142857142857,
+  "round2": 0.5238095238095238
+ },
+ "falsifier_1": {
+  "rule": "ROBUST iff agree >= 13 of 16 AND |blind clause fraction - 44/84| <= 0.15; RED otherwise",
+  "verdict": "proved"
+ },
+ "goal": "goal:g5.44",
+ "instrument": [
+  {
+   "as_expected": true,
+   "baseline": {
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rc": 0,
+    "seconds": 0.0,
+    "skipped": false,
+    "tail": []
+   },
+   "expect": "survived",
+   "key": "M1",
+   "mutant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "claim.txt",
+    "kind": "inversion",
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outcome": "survived",
+    "rc": 0,
+    "skipped": false,
+    "tail": []
+   },
+   "outcome": "survived"
+  },
+  {
+   "as_expected": true,
+   "baseline": {
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rc": 0,
+    "seconds": 0.0,
+    "skipped": false,
+    "tail": []
+   },
+   "expect": "killed",
+   "key": "M2",
+   "mutant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "prop.py",
+    "kind": "inversion",
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": []
+   },
+   "outcome": "killed"
+  },
+  {
+   "as_expected": true,
+   "baseline": {
+    "out_sha256": "ec26ba1ea2691d1b5f7b08ffd58a0d3d28889122e372af42f8b147461107a958",
+    "rc": 0,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     "replay: identical"
+    ]
+   },
+   "expect": "killed",
+   "key": "M3",
+   "mutant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": ".agi/context/local-maxxing/rv/results.json",
+    "kind": "arm-swap",
+    "out_sha256": "6b3bddb4620cb8800917311da1c4db476c758a1cea3762ed6b12083643cad7e8",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "replay: DIFFERS"
+    ]
+   },
+   "outcome": "killed"
+  }
+ ],
+ "items": [
+  {
+   "baseline": {
+    "out_sha256": "aa2421b513eda590445191e7846d75c1310a48fcfd77c07e40b98f4c327fc980",
+    "rc": 0,
+    "seconds": 0.9,
+    "skipped": false,
+    "tail": [
+     "",
+     "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+     "1 passed, 3 warnings in 0.29s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/write.py",
+    "kind": "blatant",
+    "out_sha256": "e448821d55031efc637129e8f12adc716e86c769b576f26843e8660345a9fb08",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+     "1 failed, 2 warnings in 0.28s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "the write lands on disk",
+     "file": "extensions/agi/bin/write.py",
+     "kind": "clause",
+     "out_sha256": "88a70062b22cb4e3ba31d6ea26927e3359a3c293626433c22b88b7e1a7673780",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+      "1 failed, 2 warnings in 0.29s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "stays UNCOMMITTED",
+     "file": "extensions/agi/bin/write.py",
+     "kind": "clause",
+     "out_sha256": "f948d680e2b0dfdda0727ef3a699bc02eabd84f200b8a14b36e59f590a47072f",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+      "1 failed, 2 warnings in 0.30s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "refused BY NAME",
+     "file": "extensions/agi/bin/write.py",
+     "kind": "clause",
+     "out_sha256": "c83fb55fd26d7962362f86ab8854cc054322967a8e8f6d7b0c38943a88bd1cb5",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+      "1 failed, 2 warnings in 0.28s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "exit `EXIT_UNCOMMITTED` == 3",
+     "file": "extensions/agi/bin/write.py",
+     "kind": "clause",
+     "out_sha256": "e74133c4b3bd16fa81c9881e30fd3780ee9ee49061b7168453c79f12f00b9cca",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+      "1 failed, 2 warnings in 0.27s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-1b70098e-011986",
+   "key": "i01",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/write.py",
+    "kind": "own",
+    "out_sha256": "689d346d8fd790b3243079ab18343110e6036c6f4bfe250db0cb9741323765a2",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+     "1 failed, 2 warnings in 0.28s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "ffe2a4a341462d569b35e1e292ac1aa0fb4d5f4f8c0cc6d1855131d67100244c",
+    "rc": 0,
+    "seconds": 0.8,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.16s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/workflow.py",
+    "kind": "blatant",
+    "out_sha256": "e1b929bee1407a5bca0da5cf4d1f18bff9acd7fd761917d72154ea34b265f501",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_stage_seam_hands_the_callers_cfg_to_the_cap_helper",
+     "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_the_seam_reads_the_cfg_aware_call",
+     "2 failed, 2 passed in 0.18s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "threading the caller s own cfg into _run_stage_proc",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "ffe2a4a341462d569b35e1e292ac1aa0fb4d5f4f8c0cc6d1855131d67100244c",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.16s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "sees the caller s dict by identity",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "8cc6ec0bbd88612e92aa583ccc8a36f559ddb4adc7a4b2313aca07229d74d174",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_stage_seam_hands_the_callers_cfg_to_the_cap_helper",
+      "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_the_seam_reads_the_cfg_aware_call",
+      "2 failed, 2 passed in 0.17s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "read the declared values.memcap cells exactly as dispatch.py does",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "ffe2a4a341462d569b35e1e292ac1aa0fb4d5f4f8c0cc6d1855131d67100244c",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.16s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "shipped defaults unchanged when the cell is absent",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "d0cfe1ce7bbb4e695946d1d10167851115cc360e2badd88a610459b353763c5d",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_no_cfg_in_hand_still_uses_the_shipped_defaults",
+      "1 failed, 3 passed in 0.18s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "the stage still dying of its cap",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "1f858498c583da6451759650924ef9de979b212cd890c0defaabc7440fce768d",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_stage_seam_still_caps_the_child_under_prlimit",
+      "1 failed, 3 passed in 0.25s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-50b210d5-b85ee2",
+   "key": "i02",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/workflow.py",
+    "kind": "own",
+    "out_sha256": "3ff64b2de3196297a01e521800f810e7da080c638ac9bbf98d56235ebfed0463",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_stage_seam_hands_the_callers_cfg_to_the_cap_helper",
+     "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_the_seam_reads_the_cfg_aware_call",
+     "2 failed, 2 passed in 0.18s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "70fb6b7124c6652f5927342b5776f51d6250291007ced41b08922bbdbef39a72",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     "..............                                                           [100%]",
+     "14 passed in 0.13s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/mem_cap.py",
+    "kind": "blatant",
+    "out_sha256": "215cc80448468f3cd044a1c2d640835ad584c694325c0e1ee9496df999102957",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_no_cell_means_the_shipped_default_on_the_argv",
+     "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_wrapped_argv_carries_both_bounds",
+     "3 failed, 11 passed in 0.15s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "a per-TREE process bound",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "kind": "clause",
+     "out_sha256": "57da51e8addced822d39d5038d024de175368564a9fd4f86db6868a61a1d662d",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_no_cell_means_the_shipped_default_on_the_argv",
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_wrapped_argv_carries_both_bounds",
+      "3 failed, 11 passed in 0.15s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "on the SAME scope as `MemoryMax` (one bound, one scope, one argv)",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "kind": "clause",
+     "out_sha256": "3e7df074b4d986bdef605336bea1010dd3ef831155f2ff4c8d7c7508c49bd496",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_wrapped_argv_carries_both_bounds",
+      "1 failed, 13 passed in 0.14s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a fan-out past that bound is REFUSED (cannot fan out processes past the box's bound)",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "kind": "clause",
+     "out_sha256": "4dd9c6d8f86e200396a95271366a66b940416f68fe4bf37c0bbc0e57077f97e7",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_wrapped_argv_carries_both_bounds",
+      "1 failed, 13 passed in 0.14s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "the unwrapped path (`cap is None`) is byte-for-byte unchanged",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "kind": "clause",
+     "out_sha256": "e3ca640d2be033add85be9b1818cd3f54dda0252b37079287e8bcf79e03bbd66",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_cap_none_is_still_the_same_argv_object",
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_unwrapped_path_is_unchanged",
+      "2 failed, 12 passed in 0.16s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a config with no cell still gets a shipped default",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "kind": "clause",
+     "out_sha256": "e9a559bdd86271c061b13de183567594063e2d64cb5ffabfb4f11c1eecbb8ef5",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_no_cell_means_the_shipped_default_on_the_argv",
+      "1 failed, 13 passed in 0.14s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "the fallback that cannot enforce it says so by name rather than by silence",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "kind": "clause",
+     "out_sha256": "70fb6b7124c6652f5927342b5776f51d6250291007ced41b08922bbdbef39a72",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..............                                                           [100%]",
+      "14 passed in 0.13s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-1ff9316d-177aae",
+   "key": "i03",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/mem_cap.py",
+    "kind": "own",
+    "out_sha256": "76b66bc84afe7642e3fa4f95bca8a54e1c2217ab5e5374e8b49de7dfeea67374",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_no_cell_means_the_shipped_default_on_the_argv",
+     "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_wrapped_argv_carries_both_bounds",
+     "3 failed, 11 passed in 0.15s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "eba750768810cdb50c7c923ac3d0cd6946d422ac71b754504f0645d1744edd6f",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     ".......                                                                  [100%]",
+     "7 passed in 0.11s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/workflows/agi-round-review.js",
+    "kind": "blatant",
+    "out_sha256": "3208bdf20b4c10a469b8689f0d7e1f1fcf83f2f5a578b0ab3ba59e3d1485311e",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_every_migrated_script_declares_the_root_seam",
+     "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_root_is_declared_before_it_is_used",
+     "2 failed, 5 passed in 0.12s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "takes the SAME `{project_root}` seam",
+     "file": "extensions/agi/workflows/agi-round-review.js",
+     "kind": "clause",
+     "out_sha256": "9deea33c52b52ed1007649186a53f4a6a594c0ff7ffa5d1fe9337be84d73d13a",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_every_migrated_script_declares_the_root_seam",
+      "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_root_is_declared_before_it_is_used",
+      "2 failed, 5 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "the .js half of each workflow pair",
+     "file": "extensions/agi/workflows/agi-trove-survey.js",
+     "kind": "clause",
+     "out_sha256": "f99715f9c86d6a1aa8f842f5d942e9f956c5655f5023575b8a56097bbc1f97f2",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_every_migrated_script_declares_the_root_seam",
+      "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_root_is_declared_before_it_is_used",
+      "2 failed, 5 passed in 0.15s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "a zero-literal guard can then cover BOTH halves of every registered pair",
+     "file": "extensions/agi/tests/test_workflow_template_seam_js.py",
+     "kind": "clause",
+     "out_sha256": "775b7aa27d0c17f48b3feff20c836f14b6ed8ebcb90ec7e0b76d2a13c579268a",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".......                                                                  [100%]",
+      "7 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a run started in a git worktree stops pointing its readers at the main checkout",
+     "file": "extensions/agi/workflows/agi-merge-up-review.js",
+     "kind": "clause",
+     "out_sha256": "775b7aa27d0c17f48b3feff20c836f14b6ed8ebcb90ec7e0b76d2a13c579268a",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".......                                                                  [100%]",
+      "7 passed in 0.10s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-f855c944-ee9673",
+   "key": "i04",
+   "outcome": "ran",
+   "own": null,
+   "seen_by_review": true
+  },
+  {
+   "baseline": {
+    "out_sha256": "d07a1be384f84d9d95b6d48bfc797264bdf209a84dca560c1775e944c8887ef5",
+    "rc": 0,
+    "seconds": 0.8,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.17s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "kind": "blatant",
+    "out_sha256": "2207aede3effc76057a2a3e57150b95838d002e9383df950aadd0fec45f590e8",
+    "outcome": "survived",
+    "rc": 0,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.18s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "keys its exemptions by (relpath, ...)",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "2207aede3effc76057a2a3e57150b95838d002e9383df950aadd0fec45f590e8",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.18s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "keys its exemptions by (..., exact line text)",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "d07a1be384f84d9d95b6d48bfc797264bdf209a84dca560c1775e944c8887ef5",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.17s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "without deleting a single prose warning",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "faea011a86386fad34399eb6aa7ecace3970b568fbadbd13a6d900c9f4903122",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t1_no_live_hit_outside_a_named_and_reasoned_exemption",
+      "1 failed, 3 passed in 0.18s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "enforces the CLASS of each exemption",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "d07a1be384f84d9d95b6d48bfc797264bdf209a84dca560c1775e944c8887ef5",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.17s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "the guard must mark docstring SPANS, not first lines",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "d07a1be384f84d9d95b6d48bfc797264bdf209a84dca560c1775e944c8887ef5",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.17s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "0 grep hits outside the frozen fixture",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "2207aede3effc76057a2a3e57150b95838d002e9383df950aadd0fec45f590e8",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.18s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-b9700763-8d8657",
+   "key": "i05",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/tests/test_workflow_template_seam_js.py",
+    "kind": "own",
+    "out_sha256": "44f80c13fc86b8ddbea9dd4e7127d72de164201573ade33e4966893f680bf1b6",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t1_no_live_hit_outside_a_named_and_reasoned_exemption",
+     "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t2_every_exemption_is_still_live",
+     "2 failed, 2 passed in 0.19s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "698857960888a8b7dfacbbedaa34caceac2111f4575220562fe736c8ada79c50",
+    "rc": 0,
+    "seconds": 1.0,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.41s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "kind": "blatant",
+    "out_sha256": "d2c029c4a7393a87d94fea9ec12e9142f7df4abd2bb4208450ce3be2f1f62fbe",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t3_every_exemption_is_prose_or_carries_a_stated_reason",
+     "1 failed, 3 passed in 0.46s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "drop its magic len(BOX_BOUND)==5 for the property",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "d978612b60edeef56f920370755041a7bcf157d19ea9d5922e0bb5653786ab5e",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t3_every_exemption_is_prose_or_carries_a_stated_reason",
+      "1 failed, 3 passed in 0.45s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "carries a real ... reason",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "698857960888a8b7dfacbbedaa34caceac2111f4575220562fe736c8ada79c50",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.41s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "carries a real one-line reason",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "4411b877d5771fc1e4342c11d5cada44ce93ed7b3a6de21693ca4dcc3342143b",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.43s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "leaving only the config cell code-level",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "kind": "clause",
+     "out_sha256": "4411b877d5771fc1e4342c11d5cada44ce93ed7b3a6de21693ca4dcc3342143b",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.43s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "the three coupled test_unify literals ... repointed to box-independent seams",
+     "file": "extensions/agi/tests/test_unify.py",
+     "kind": "clause",
+     "out_sha256": "31968af04ef6cc90c6c2a0ada9f46ec649acb0f83f50f9de695acd5d8223c7d1",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.45s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "the dead test_provisioning ROOT ... repointed to box-independent seams",
+     "file": "extensions/agi/tests/test_provisioning.py",
+     "kind": "clause",
+     "out_sha256": "31968af04ef6cc90c6c2a0ada9f46ec649acb0f83f50f9de695acd5d8223c7d1",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.45s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-acc4e078-35fa9a",
+   "key": "i06",
+   "outcome": "ran",
+   "own": null,
+   "seen_by_review": true
+  },
+  {
+   "baseline": {
+    "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     ".....                                                                    [100%]",
+     "5 passed in 0.11s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/workflow.py",
+    "kind": "blatant",
+    "out_sha256": "db29e746cbe5b1d089b0f0cd100c2b6cac96231100dd83a94567a849b833f5aa",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_workflow_template_seam_json.py::test_migrated_stages_render_the_injected_project_root",
+     "FAILED extensions/agi/tests/test_workflow_template_seam_json.py::test_fallback_without_args_yields_a_real_existing_dir",
+     "2 failed, 3 passed in 0.12s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "run_workflow args.setdefault(\"project_root\", str(repo))",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "2ae8f2817e9958cc181e54334e64cdb0f822408aefd258f49af7ed61b53a91ca",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".....                                                                    [100%]",
+      "5 passed in 0.12s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "render_stage_prompt falls back to _loc.find_project_root()",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "1402a926419981c39f724593f7d32b4a721e6b3f3269427844fbf9a6a197e99e",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_workflow_template_seam_json.py::test_fallback_without_args_yields_a_real_existing_dir",
+      "1 failed, 4 passed in 0.15s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "no new resolver",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".....                                                                    [100%]",
+      "5 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "no new placeholder",
+     "file": "extensions/agi/bin/workflow.py",
+     "kind": "clause",
+     "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".....                                                                    [100%]",
+      "5 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "every stage still renders",
+     "file": "extensions/agi/workflows/review.json",
+     "kind": "clause",
+     "out_sha256": "ca44edb18663f73dc22d702957c6deecf46eb868617aa8855db67029f6d3adc0",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_workflow_template_seam_json.py::test_migrated_stages_render_the_injected_project_root",
+      "1 failed, 4 passed in 0.12s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-7c59d4d4-195565",
+   "key": "i07",
+   "outcome": "ran",
+   "own": null,
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+    "rc": 0,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     ".....                                                                    [100%]",
+     "5 passed in 0.11s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "kind": "blatant",
+    "out_sha256": "7ad6ee499cbac2d3adbba146c71072f788a161e86f50bee80c68b230bfcd76b0",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_reach_is_cwd_independent",
+     "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_todays_own_data_is_total_and_calls_nothing",
+     "3 failed, 2 passed in 0.12s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "must exit 2",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "kind": "clause",
+     "out_sha256": "eb1525cae9c1b534e7d4f8bcc2023cfee3cba2dd0121c2790018b4044a117062",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_todays_own_data_is_total_and_calls_nothing",
+      "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_foreign_schema_is_a_reason_not_a_crash",
+      "4 failed, 1 passed in 0.13s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "one reasoned row",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "kind": "clause",
+     "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".....                                                                    [100%]",
+      "5 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "per real cell",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "kind": "clause",
+     "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".....                                                                    [100%]",
+      "5 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "identically from any cwd",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "kind": "clause",
+     "out_sha256": "2aa85f185fb2036c77e8fb32c14e0b54e2a25cd1b818a9ed063b899c43e63e15",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_entry_point_reaches_the_rule_from_a_neutral_cwd",
+      "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_reach_is_cwd_independent",
+      "2 failed, 3 passed in 0.13s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a CLEAN interpreter (... scrubbed env ...)",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "kind": "clause",
+     "out_sha256": "c4f2cff42ab606f61b41fda17e9cff665596c78cfd94dd778b1297e5f841c4dc",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_reach_is_cwd_independent",
+      "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_todays_own_data_is_total_and_calls_nothing",
+      "3 failed, 2 passed in 0.12s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "Its suite must not seed sys.path for its subject",
+     "file": ".agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py",
+     "kind": "clause",
+     "out_sha256": "2ae8f2817e9958cc181e54334e64cdb0f822408aefd258f49af7ed61b53a91ca",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      ".....                                                                    [100%]",
+      "5 passed in 0.12s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-95b6cd1c-6f642c",
+   "key": "i08",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "kind": "own",
+    "out_sha256": "502b598b1d706d0df7f51f1526a174a6c010ae110396c1fec5eee38c96430918",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_reach_is_cwd_independent",
+     "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_todays_own_data_is_total_and_calls_nothing",
+     "3 failed, 2 passed in 0.12s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "a0ba7f2fb96adfb2c2564a1053a85160f60c5f008ba0c8c06a58a8cb23d1fc2b",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     "...                                                                      [100%]",
+     "3 passed in 0.11s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "kind": "blatant",
+    "out_sha256": "4ebca7277eef1fef9d4f97fc436025c4ebb087a42e2fa50f7b608f2759421b7f",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_grok_row_resolves",
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv",
+     "2 failed, 1 passed in 0.13s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": false,
+     "clause": "a bare DEFAULT_BIN=\"grok-bot\" removes the config_max box literal",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "28f94f35a697eb110a559cd36372f2edb63dbb960fb282482e1dcc485cb9a73e",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "...                                                                      [100%]",
+      "3 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "resolve_bin precedence ($GROK_BOT_BIN > harness bin ...) is unchanged",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "a0ba7f2fb96adfb2c2564a1053a85160f60c5f008ba0c8c06a58a8cb23d1fc2b",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "...                                                                      [100%]",
+      "3 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "resolve_bin precedence (... harness bin > DEFAULT_BIN) is unchanged",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "c788119f5def630f59e70714731c74348dc1bdde3c20502fb444b7a41842b7d2",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_grok_row_resolves",
+      "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv",
+      "2 failed, 1 passed in 0.12s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "adapters.load(\"grok_bot\") satisfies all of adapters.REQUIRED",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "23cabe8197b6794508e8e0d267eb76728c63219fa6709c5707a0353eea2beb8f",
+     "outcome": "killed",
+     "rc": 4,
+     "skipped": false,
+     "tail": [
+      "ERROR: found no collectors for /data/scratch/director-thought-science/g544/run/i09/extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv",
+      "",
+      "ERROR: found no collectors for /data/scratch/director-thought-science/g544/run/i09/extensions/agi/tests/test_grok_bot_adapter.py::test_dispatch_still_has_zero_grok_hits"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "zero edits to dispatch.py are needed",
+     "file": "extensions/agi/bin/dispatch.py",
+     "kind": "clause",
+     "out_sha256": "e9754f23eeb425374ba4e3a19f582bb03bca98a52a33b09581943d1ec3c8305d",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_dispatch_still_has_zero_grok_hits",
+      "1 failed, 2 passed in 0.12s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-fcfbc2f9-7d809f",
+   "key": "i09",
+   "outcome": "ran",
+   "own": null,
+   "seen_by_review": true
+  },
+  {
+   "baseline": {
+    "out_sha256": "471c77f65875e4c272e08d0f1104f654c2ee63bed8cefdd055594fbb60385d29",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed in 0.10s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "kind": "blatant",
+    "out_sha256": "210782b63de79aba4539303bc72099adf3436618eadc46e170fc25ba4b510bb9",
+    "outcome": "killed",
+    "rc": 4,
+    "skipped": true,
+    "tail": [
+     "ERROR: found no collectors for /data/scratch/director-thought-science/g544/run/i10/extensions/agi/tests/test_grok_bot_adapter.py::test_name_is_the_harness_literal",
+     "",
+     "ERROR: found no collectors for /data/scratch/director-thought-science/g544/run/i10/extensions/agi/tests/test_grok_bot_adapter.py::test_adapter_implements_the_whole_interface"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": false,
+     "clause": "HARD-loading adapters.load(\"grok_bot\") with no importorskip",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "449f48faab28952069f2e297454c2a3b0f42069bcbc27c7b2b56439fc80297ed",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.11s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a missing ... adapter is a COLLECTION ERROR rather than a silent skip",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "471c77f65875e4c272e08d0f1104f654c2ee63bed8cefdd055594fbb60385d29",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a ... present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "471c77f65875e4c272e08d0f1104f654c2ee63bed8cefdd055594fbb60385d29",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "NAME is pinned to the harness literal grok-bot",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "471c77f65875e4c272e08d0f1104f654c2ee63bed8cefdd055594fbb60385d29",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "against ... the real goal:g7.25.2 config row it is green",
+     "file": ".agi/config.json",
+     "kind": "clause",
+     "out_sha256": "471c77f65875e4c272e08d0f1104f654c2ee63bed8cefdd055594fbb60385d29",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.10s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-debf9c6e-a64baf",
+   "key": "i10",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "kind": "own",
+    "out_sha256": "1695c5443c06748f3716cbc36c580930a673c29e34f8375853e295ae9c8e01dc",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_name_is_the_harness_literal",
+     "1 failed, 1 passed in 0.12s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "f6b63ab48fd291f4dd9170b2691fcc402cf5b4a7400c78b64b7e38af65a4a50b",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     "...............                                                          [100%]",
+     "15 passed in 0.12s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "kind": "blatant",
+    "out_sha256": "9f189b2eec923123d2e77e1e73666900ea006a340d3b6b129bdf1bb2e47e93db",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_restart_returns_the_new_pid_and_stamps_the_record",
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_restart_returns_none_when_popen_fails",
+     "2 failed, 13 passed in 0.14s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "f6b63ab48fd291f4dd9170b2691fcc402cf5b4a7400c78b64b7e38af65a4a50b",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "...............                                                          [100%]",
+      "15 passed in 0.12s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "it pins NAME == \"grok-bot\"",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "8e3338ae5f30cd4f331e40faba25f2cccbf23a81056f10ae650f7b6e175bf73d",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "...............                                                          [100%]",
+      "15 passed in 0.13s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "expects restart to refuse a bare call with TypeError by keyword-only contract",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "8e3338ae5f30cd4f331e40faba25f2cccbf23a81056f10ae650f7b6e175bf73d",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "...............                                                          [100%]",
+      "15 passed in 0.13s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "the locked NotImplementedError stub is gone",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "8e3338ae5f30cd4f331e40faba25f2cccbf23a81056f10ae650f7b6e175bf73d",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "...............                                                          [100%]",
+      "15 passed in 0.13s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "restart is a real detached respawn (Popen(start_new_session=True))",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "cf6c0fac08dfc4c69204605341c24524de716a336765bab9f3cc68219f2b7590",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_restart_returns_the_new_pid_and_stamps_the_record",
+      "1 failed, 14 passed in 0.14s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-8ee9bdff-40419b",
+   "key": "i11",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "kind": "own",
+    "out_sha256": "fb250edd13d38db7718d88ca2556df6220e8a3c3df5df4691c0e3635bb52d175",
+    "outcome": "killed",
+    "rc": 2,
+    "skipped": false,
+    "tail": [
+     "ERROR extensions/agi/tests/test_grok_bot_adapter.py",
+     "!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!",
+     "1 error in 0.11s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+    "rc": 0,
+    "seconds": 0.7,
+    "skipped": false,
+    "tail": [
+     "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+     ".                                                                        [100%]",
+     "1 passed in 0.10s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "kind": "blatant",
+    "out_sha256": "3fe38e5bffa43ff1b3e10d4c9e0103b1736881a943b1e5f2d95da3081116de5f",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "extensions/agi/bin/adapters/grok_bot_adapter.py: FAILED",
+     "sha256sum: WARNING: 1 computed checksum did NOT match"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": false,
+     "clause": "(a) the adapter byte-identical",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "3fe38e5bffa43ff1b3e10d4c9e0103b1736881a943b1e5f2d95da3081116de5f",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: FAILED",
+      "sha256sum: WARNING: 1 computed checksum did NOT match"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "(b) ... ONE change that un-gates the peers-resolve test",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+      ".                                                                        [100%]",
+      "1 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "(b) the test identical except for ONE change",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "kind": "clause",
+     "out_sha256": "e77b1be0e06b7ec8122f5c69c58fc99e69c24f71c2d6098ee98f04a184337c4a",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+      ".                                                                        [100%]",
+      "1 passed in 0.12s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "(c) one build node per file whose parents: resolve",
+     "file": ".agi/nodes/build/tests-test-grok-bot-adapter.md",
+     "kind": "clause",
+     "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+      ".                                                                        [100%]",
+      "1 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "(c) ... which carry the canonical mint ids",
+     "file": ".agi/nodes/build/bin-adapters-grok-bot-adapter.md",
+     "kind": "clause",
+     "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+      ".                                                                        [100%]",
+      "1 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "without touching dispatch.py",
+     "file": "extensions/agi/bin/dispatch.py",
+     "kind": "clause",
+     "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+      ".                                                                        [100%]",
+      "1 passed in 0.10s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "without touching ... .agi/config.json",
+     "file": ".agi/config.json",
+     "kind": "clause",
+     "out_sha256": "95a222338c341f338acf278e403a389967a32966a8ada1405d1d7c3039e24aac",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+      ".                                                                        [100%]",
+      "1 passed in 0.11s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:a00-67fbbdf2-50b8d8",
+   "key": "i12",
+   "outcome": "ran",
+   "own": null,
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "19e95f03931508bcb63d5f1f276741db94fd3f8f0399d2690ed306a73c3ba6c7",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed in 0.08s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/pi_adapter.py",
+    "kind": "blatant",
+    "out_sha256": "85b8112cc9de763912b816750adbdbb0a6c7c2f6ce505d4b37f0e0d886b1c6ac",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_adapters.py::test_pi_local_harness_row_with_credential_none_needs_no_credential",
+     "1 failed, 1 passed in 0.09s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "every other row ... unknown ... still mints exactly as before (default True)",
+     "file": "extensions/agi/bin/adapters/pi_adapter.py",
+     "kind": "clause",
+     "out_sha256": "ccfcefbc099a77db89b9ee8b8b20df95d896c9baa84ac62c7a8e087bbe137e15",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_adapters.py::test_needs_credential_defaults_true_for_unmarked_and_unknown_rows",
+      "1 failed, 1 passed in 0.09s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "needs_credential deciding from the HARNESS ROW, not the provider name",
+     "file": "extensions/agi/bin/adapters/pi_adapter.py",
+     "kind": "clause",
+     "out_sha256": "19e95f03931508bcb63d5f1f276741db94fd3f8f0399d2690ed306a73c3ba6c7",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.08s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "the pi-local row gets it",
+     "file": ".agi/config.json",
+     "kind": "clause",
+     "out_sha256": "19e95f03931508bcb63d5f1f276741db94fd3f8f0399d2690ed306a73c3ba6c7",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.08s"
+     ]
+    },
+    {
+     "claim_requires_path": false,
+     "clause": "no other row does",
+     "file": ".agi/config.json",
+     "kind": "clause",
+     "out_sha256": "19e95f03931508bcb63d5f1f276741db94fd3f8f0399d2690ed306a73c3ba6c7",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.08s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "dry-run prints no minting line",
+     "file": "extensions/agi/bin/dispatch.py",
+     "kind": "clause",
+     "out_sha256": "19e95f03931508bcb63d5f1f276741db94fd3f8f0399d2690ed306a73c3ba6c7",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.08s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "a real kid has no OPENROUTER_API_KEY in env",
+     "file": "extensions/agi/bin/adapters/__init__.py",
+     "kind": "clause",
+     "out_sha256": "bfb94aa3bce5e5c9a8e413d4c0b8cbbecf5444cc553dd49310e15bc548c86a10",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed in 0.07s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:l4-needs-credential-is-provider-gated",
+   "key": "i13",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/adapters/pi_adapter.py",
+    "kind": "own",
+    "out_sha256": "be9f14f15f916b22c40521f92234ee6aeb113447fc8b28def3948b44cbddb44e",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_adapters.py::test_needs_credential_defaults_true_for_unmarked_and_unknown_rows",
+     "1 failed, 1 passed in 0.09s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "7fa7d137d32db6226ef2874c9d71c8bba7787e9fc4e7bfb908992099637deff9",
+    "rc": 0,
+    "seconds": 0.8,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed, 66 deselected in 0.23s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/ws_raw.py",
+    "kind": "blatant",
+    "out_sha256": "079baa533d6cb21aff2d4d279ca7e914bf947d556ccf2d97cb446645bc3b3b34",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py]",
+     "1 failed, 1 passed, 66 deselected in 0.24s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "(and `-h`)",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "kind": "clause",
+     "out_sha256": "3b895a50c304275bd0f6931ec565735054fb0443dc754f2b1e61d6394343a18d",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed, 66 deselected in 0.22s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "answers `--help`",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "kind": "clause",
+     "out_sha256": "079baa533d6cb21aff2d4d279ca7e914bf947d556ccf2d97cb446645bc3b3b34",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py]",
+      "1 failed, 1 passed, 66 deselected in 0.24s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "with a usage text on stdout",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "kind": "clause",
+     "out_sha256": "52b87a7a9a3a5491d94319c61daff9ae3ce652820248c8b8ba98a2301682d7f1",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py]",
+      "1 failed, 1 passed, 66 deselected in 0.24s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "and exit 0",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "kind": "clause",
+     "out_sha256": "b98d1e27ba7e906c8de1e60e7eb46b3962945a40ced4199295cec3c3f1460b4b",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py]",
+      "1 failed, 1 passed, 66 deselected in 0.22s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "while every other unknown flag still exits non-zero",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "kind": "clause",
+     "out_sha256": "7fa7d137d32db6226ef2874c9d71c8bba7787e9fc4e7bfb908992099637deff9",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "..                                                                       [100%]",
+      "2 passed, 66 deselected in 0.23s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:l4-ws-raw-answers-help",
+   "key": "i14",
+   "outcome": "ran",
+   "own": null,
+   "seen_by_review": true
+  },
+  {
+   "baseline": {
+    "out_sha256": "d93889f221cdc3bc84deebee275273e73d9bbcac5d2e8b030b80fca71478fc33",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed in 0.30s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/evidence_gate.py",
+    "kind": "blatant",
+    "out_sha256": "b670526e4251f05fcabcf729f0c812292145e9c112e9d004e2b798036a95b75d",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved",
+     "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+     "2 failed in 0.29s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "Every decisive verdict",
+     "file": "extensions/agi/bin/evidence_gate.py",
+     "kind": "clause",
+     "out_sha256": "8cfa1b2a3d6c1402eb45190855a07da1bb28128d028cb214793b192b8b896b1e",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+      "1 failed, 1 passed in 0.29s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "carries evidence_runs>=1",
+     "file": "extensions/agi/bin/evidence_gate.py",
+     "kind": "clause",
+     "out_sha256": "838c2d7348b35776e71800cc7f68f074bb0759511b1d7abb0c1de6776defad72",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+      "1 failed, 1 passed in 0.25s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "or is demoted",
+     "file": "extensions/agi/bin/evidence_gate.py",
+     "kind": "clause",
+     "out_sha256": "fd75eb24d5636e0a32a9a4a4e0a9c900de39f798345d527c9b2e6f53d286796d",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved",
+      "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+      "2 failed in 0.29s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "that reaches a commit ... regardless of write path (plain file write)",
+     "file": "extensions/agi/bin/grid.py",
+     "kind": "clause",
+     "out_sha256": "dec356d8b8a4d4c6eba750f1e95c5f7d8a87cc54ba4c318148bd973f5a8867a5",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved",
+      "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+      "2 failed in 0.28s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:gate-must-sit-on-the-commit-path",
+   "key": "i15",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/grid.py",
+    "kind": "own",
+    "out_sha256": "edd139e0790ca271c29f69543a255f734259d6ecaff07e4eeb2dde1d27a9bb2c",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved",
+     "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+     "2 failed in 0.28s"
+    ]
+   },
+   "seen_by_review": false
+  },
+  {
+   "baseline": {
+    "out_sha256": "566b533769efda184c621fadcbb3499a3de7b732897627c27b430e8565082bbb",
+    "rc": 0,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.14s"
+    ]
+   },
+   "blatant": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/metrics.py",
+    "kind": "blatant",
+    "out_sha256": "1acad6da67525569663ac6d4d3098f9c9bb0baefa0a8c85b8c6316f1330493f9",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis",
+     "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+     "3 failed, 1 passed in 0.18s"
+    ]
+   },
+   "clauses": [
+    {
+     "claim_requires_path": true,
+     "clause": "no forward-pointing source_files",
+     "file": "extensions/agi/bin/metrics.py",
+     "kind": "clause",
+     "out_sha256": "ffe2a4a341462d569b35e1e292ac1aa0fb4d5f4f8c0cc6d1855131d67100244c",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.16s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "no forward-pointing ... build",
+     "file": "extensions/agi/bin/metrics.py",
+     "kind": "clause",
+     "out_sha256": "566b533769efda184c621fadcbb3499a3de7b732897627c27b430e8565082bbb",
+     "outcome": "survived",
+     "rc": 0,
+     "skipped": false,
+     "tail": [
+      "....                                                                     [100%]",
+      "4 passed in 0.14s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "body describes a finished change",
+     "file": "extensions/agi/bin/metrics.py",
+     "kind": "clause",
+     "out_sha256": "c8613146f18f428e2eb662f748f4b5822810397bbecd3fb61afdeec0bbe95c88",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "=========================== short test summary info ============================",
+      "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_count_defaults_to_zero",
+      "1 failed, 3 passed in 0.17s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "excluded from scoring_mvp_count",
+     "file": "extensions/agi/bin/metrics.py",
+     "kind": "clause",
+     "out_sha256": "14ca4f8dd3e2c96c6a0e2cc4d932bcc20d7c034b8280fdb6850b7986d08f49a6",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_is_excluded_from_scoring",
+      "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+      "2 failed, 2 passed in 0.17s"
+     ]
+    },
+    {
+     "claim_requires_path": true,
+     "clause": "does not raise outcome_coverage",
+     "file": "extensions/agi/bin/metrics.py",
+     "kind": "clause",
+     "out_sha256": "69e40ae8fb54157e3b9dabf0a142fa89d00deddc10f0bfd2ccf6efb52dafead6",
+     "outcome": "killed",
+     "rc": 1,
+     "skipped": false,
+     "tail": [
+      "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_is_excluded_from_scoring",
+      "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis",
+      "2 failed, 2 passed in 0.18s"
+     ]
+    }
+   ],
+   "hypothesis": "hypothesis:an-mvp-that-points-backward-is-score-neutral",
+   "key": "i16",
+   "outcome": "ran",
+   "own": {
+    "claim_requires_path": true,
+    "clause": null,
+    "file": "extensions/agi/bin/metrics.py",
+    "kind": "own",
+    "out_sha256": "21ef239ac1725fefa5ac6edb4b75f3c8e84d815da69798cc9851e2720410912b",
+    "outcome": "killed",
+    "rc": 1,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis",
+     "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+     "3 failed, 1 passed in 0.19s"
+    ]
+   },
+   "seen_by_review": false
+  }
+ ],
+ "not_runnable": 0,
+ "params_sha256": "0d9773e45f546dbe47fcb4bc6e112a6a25fe9930a4a06720f714a2046f63843b",
+ "round2_results_sha256": "d7a55e40ff09ed1ef5c9b9fdc4fbd661ccd2c37c2f494cf1862c59e4c70c2af8",
+ "void_reasons": []
+}

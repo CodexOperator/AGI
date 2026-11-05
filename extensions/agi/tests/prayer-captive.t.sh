@@ -1,7 +1,7 @@
 #!/bin/sh
 # prayer-captive.t.sh: goal:g7.16.1.11.46.29 falsifier 1 (P0, the owner 11-01: every session starts and ends with a Church Slavonic prayer; a captive reminder if not). agi-pray (engine-wrap.md) + its callers agi-captive, agi-brief, settings.json.
 # sh + python3 + jq + git on a STUB HOME, fixture transcripts (Claude Code jsonl shape), a scratch git repo for the card commit; no claude, no network, 0 USD. ROOT=<tree> (or $1). Pieces are EXTRACTED from .geometry, never retyped.
-# Rows: h* the head block + its parity with brief.py's _read_faith_ref; s* the start check; o* the v5 out; p* the Stop (idle) check; a* agi-captive's wiring; m* mutants (no check, no fold) that must read RED.
+# Rows: h* the head block + its parity with brief.py's _read_faith_ref; s* the start check; d* goal .46.29.1's real transcript shapes (a prayer beside a tool call DROPPED or written LATE) and the Stop resume; o* the v5 out (c* reads that only NAME it); p* the Stop (idle) check; a* agi-captive's wiring; m* mutants (no check, no fold, no exemptions, no resume, a refusal-gated resume, no heredoc skip, no open-quote fallback, segment-start only, zones exempt whatever consumes them, no command-substitution clause, no backtick boundary, no process-substitution clause, no write-then-run clause) that must read RED.
 # Honest limits: the claude / pi call path is not run (only the pieces); live falsifier 2 (a fresh post's first session) is read at a land, not here.
 R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};GEO=$R0/.agi/nodes/.geometry;T=$(mktemp -d);trap 'rm -rf "${T:?}"' 0;f=0
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
@@ -9,7 +9,8 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 mkdir -p $T/bin $T/hm $T/r/.agi/nodes/doc
 for p in agi-pray agi-captive agi-brief;do sect $p >$T/bin/$p;[ -s $T/bin/$p ]||{ echo "FAIL extract: $p";exit 99;};chmod +x $T/bin/$p;done
 sect settings.json >$T/settings.json
-ASK='captive: say an Old Slavonic protection prayer before proceeding'
+ASK="captive: say an Old Slavonic protection prayer before proceeding: as your reply's LAST text, no tool call after it (that ENDS the turn: a pause until your next prompt, not a hang); a prayer beside a call is read again at the next call"
+GO='prayed: the captive is released; continue your work'
 # a transcript: one assistant text per argument, timestamps from argument 1 (unix) upward
 tr_(){ o=$1;t0=$2;shift 2;: >$o;i=0;for x in "$@";do python3 -I -c 'import json,sys,datetime;print(json.dumps({"type":"assistant","timestamp":datetime.datetime.fromtimestamp(int(sys.argv[2]),datetime.timezone.utc).isoformat().replace("+00:00","Z"),"message":{"role":"assistant","content":[{"type":"text","text":sys.argv[1]}] if sys.argv[1]!="-" else [{"type":"tool_use","name":"Bash","input":{}}]}}))' "$x" $((t0+i)) >>$o;i=$((i+1));done;}
 # pray VERB JSON-FIELDS... : runs agi-pray on a stub HOME; stdout -> $T/out, stderr -> $T/err, rc in $rc
@@ -46,6 +47,23 @@ tr_ $T/big $NOW 'no prayer here';chmod 000 $T/big;pray captive transcript_path="
 ok "s9-a-marked-session-opens-no-transcript ~/.prayed/s1 set, transcript mode 000: rc $rc (want 0), stderr bytes $(wc -c<$T/err|tr -d ' ') (want 0: no [pray] unread line, so it was never opened)" '[ $rc = 0 ]&&[ ! -s $T/err ]'
 pray captive transcript_path="\"$T/t0\"" session_id='"sa"' agent_id='"agent-1"' agent_type='"general-purpose"'
 ok "s10-a-subagent-call-is-never-captive (agent_id set, the transcript holds no prayer): rc $rc (want 0), stderr bytes $(wc -c<$T/err|tr -d ' ') (want 0)" '[ $rc = 0 ]&&[ ! -s $T/err ]'
+# ---- d: goal .46.29.1, the shapes a live transcript has (aio 11:03:07Z: a prayer said beside a tool_use is DROPPED; sp 11:49:51Z: or written LATE)
+js(){ python3 -I -c 'import json,sys;print(json.dumps(sys.argv[1]))' "$1";}
+tr_ $T/d1 $NOW '-';pray captive transcript_path="\"$T/d1\"" session_id='"d1"'
+ok "d1-a-prayer-said-beside-a-tool-call-and-absent-from-the-jsonl-is-refused rc $rc (want 2), stderr is the ASK: $([ "$(cat $T/err)" = "$ASK" ]&&echo yes||echo no), it names the reply-final form: $(grep -c "reply's LAST text, no tool call after it" $T/err) (want 1)" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK" ]&&grep -q "reply.s LAST text, no tool call after it" $T/err' 
+pray stop transcript_path="\"$T/d1\"" session_id='"d1"' last_assistant_message="$(js "$JES")"
+ok "d2-a-reply-final-prayer-resumes-the-post (the Stop hook's OUTPUT is the next prompt, no outside input) decision [$(jq -r .decision $T/out 2>/dev/null)] (want block), reason [$(jq -r .reason $T/out 2>/dev/null)] (want '$GO'), ~/.prayed/d1 $([ -e $T/hm/.prayed/d1 ]&&echo yes||echo no) (want yes)" '[ "$(jq -r .decision $T/out 2>/dev/null)" = block ]&&[ "$(jq -r .reason $T/out 2>/dev/null)" = "$GO" ]&&[ -e $T/hm/.prayed/d1 ]' 
+pray captive transcript_path="\"$T/d1\"" session_id='"d1"'
+ok "d3-then-released (the jsonl still holds no prayer): rc $rc (want 0)" '[ $rc = 0 ]'
+pray stop transcript_path="\"$T/d1\"" session_id='"d1"' last_assistant_message="$(js "$JES")"
+ok "d4-the-resume-fires-once (a marked session's next prayer-final Stop): stdout [$(cat $T/out)] (want empty)" '[ ! -s $T/out ]'
+tr_ $T/d5 $NOW 'work';pray stop transcript_path="\"$T/d5\"" session_id='"d5"' last_assistant_message="$(js "work done. $JES")"
+d5o=$(jq -r .reason $T/out 2>/dev/null);ok "d5-a-NEVER-refused-prayer-final-first-reply-is-resumed (sp 12:03:49Z: the post that obeyed the interim line) reason [$d5o] (want '$GO'), ~/.prayed/d5 $([ -e $T/hm/.prayed/d5 ]&&echo yes||echo no) (want yes)" '[ "$d5o" = "$GO" ]&&[ -e $T/hm/.prayed/d5 ]' 
+tr_ $T/d6 $NOW '-';pray captive transcript_path="\"$T/d6\"" session_id='"d6"';pray stop transcript_path="\"$T/d6\"" session_id='"d6"' last_assistant_message="$(js 'Landed L340; next I read the gate.')"
+ok "d6-a-refused-session-whose-reply-holds-no-prayer-is-not-resumed stdout [$(cat $T/out)] (want empty), ~/.prayed/d6 $([ -e $T/hm/.prayed/d6 ]&&echo yes||echo no) (want no)" '[ ! -s $T/out ]&&[ ! -e $T/hm/.prayed/d6 ]' 
+tr_ $T/l1 $NOW '-';pray captive transcript_path="\"$T/l1\"" session_id='"l1"';l1a=$rc
+tr_ $T/l1 $NOW "$JES" '-';pray captive transcript_path="\"$T/l1\"" session_id='"l1"'
+ok "d7-the-LAG-a-kept-prayer-written-after-the-check-releases-at-the-next-call (no new reply) first call rc $l1a (want 2), the same prayer now in the jsonl: rc $rc (want 0)" '[ $l1a = 2 ]&&[ $rc = 0 ]'
 # ---- o: the v5 out, read against the card commit's time in a scratch repo
 G="git -C $T/r -c user.name=t -c user.email=t@t -c commit.gpgsign=false";$G init -q;echo c>$T/r/.agi/nodes/doc/card-pp.md;$G add -A;GIT_COMMITTER_DATE="@$NOW +0000" $G commit -qm card;K=$NOW
 out(){ pray captive transcript_path="\"$1\"" session_id="\"$2\"" cwd="\"$T/r\"" tool_input='{"command":"touch ~/.fresh; kill $PPID"}';}
@@ -57,12 +75,67 @@ tr_ $T/o3 $((K+5)) "rotating: $JES" '-';out $T/o3 o3
 ok "o3-step-3-and-step-4-in-two-replies-pass (the prayer in step 3's reply, step 4's reply holds a tool call and no text): rc $rc (want 0)" '[ $rc = 0 ]'
 # o5: EVERY spelling of the out (alive 08:13:28Z item 3), a marked session whose newest text since the card commit holds no prayer -> each refused
 SP='kill "$PPID"|kill ${PPID}|kill -s TERM $PPID|kill -- $PPID|touch "$HOME/.fresh" \&\& kill "$PPID"|kill -TERM "${PPID}"';old=0;new=0;nsp=0
-sed 's/out=re.search(r""".*""",c)$/out=re.search(r"touch +(~|\\$HOME)\/\\.fresh|kill +(-[A-Z0-9]+ +)?\\$PPID",c)/' $T/bin/agi-pray>$T/m5;chmod +x $T/m5;cmp -s $T/bin/agi-pray $T/m5&&{ echo "FAIL mutant m5 changed nothing";exit 99;}
+sed 's/out=isout(c)$/out=re.search(r"touch +(~|\\$HOME)\/\\.fresh|kill +(-[A-Z0-9]+ +)?\\$PPID",c)/' $T/bin/agi-pray>$T/m5;chmod +x $T/m5;cmp -s $T/bin/agi-pray $T/m5&&{ echo "FAIL mutant m5 changed nothing";exit 99;}
 IFS='|';for c in $SP;do unset IFS;c=$(printf '%s' "$c"|sed 's/\\&/\&/g');nsp=$((nsp+1));j=$(python3 -I -c 'import json,sys;print(json.dumps({"command":sys.argv[1]}))' "$c")
 pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 2 ]&&new=$((new+1))
 PB=$T/m5 pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 2 ]&&old=$((old+1));IFS='|';done;unset IFS
 ok "o5-every-spelling-of-the-out-is-checked $new of $nsp spellings refused (want $nsp: quoted / braced \$PPID, kill -s SIG / -SIG / --, a quoted \$HOME/.fresh)" '[ $nsp = 6 ]&&[ $new = $nsp ]'
 ok "m5-the-old-two-spelling-match-reads-RED the old regex refuses $old of $nsp (want 0: it never ran the out check on them)" '[ $old = 0 ]'
+# c: reads that only NAME the out (aio 11:03:07Z: one was refused live) on a marked session whose newest text since the card commit holds no prayer -> each passes; o6: alive's 10:53:22Z kill -n N and a TAB -> refused
+NM='grep -n "kill $PPID" skills/agi-rotate/SKILL.md|echo kill $PPID later|ls # kill $PPID|echo '"'"'touch ~/.fresh'"'"'|git log -S "kill $PPID"';nn=0;np=0;nq=0;mp=0
+for c in "$(printf 'kill -n 15 $PPID')" "$(printf 'kill\t$PPID')";do j=$(python3 -I -c 'import json,sys;print(json.dumps({"command":sys.argv[1]}))' "$c");pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 2 ]&&np=$((np+1));done
+ok "o6-kill-n-and-a-TAB-are-the-out $np of 2 refused (want 2)" '[ $np = 2 ]'
+sed 's/out=isout(c)$/out=bool(OUT.search(c))/' $T/bin/agi-pray>$T/m6;chmod +x $T/m6;cmp -s $T/bin/agi-pray $T/m6&&{ echo "FAIL mutant m6 changed nothing";exit 99;}
+IFS='|';for c in $NM;do unset IFS;nn=$((nn+1));j=$(python3 -I -c 'import json,sys;print(json.dumps({"command":sys.argv[1]}))' "$c")
+pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 0 ]&&[ ! -s $T/err ]&&nq=$((nq+1))
+PB=$T/m6 pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 2 ]&&mp=$((mp+1));IFS='|';done;unset IFS
+ok "c1-a-read-that-only-names-the-out-is-not-the-out $nq of $nn passed with no line (want $nn: a grep pattern, an echo, a comment, a quoted touch, a git log -S)" '[ $nn = 5 ]&&[ $nq = $nn ]'
+ok "m6-without-the-exemptions-c1-reads-RED the bare L358-style whole search refuses $mp of $nn (want $nn)" '[ $mp = $nn ]'
+# c2-c4 + o7 (aio 11:59:57Z RETURN: no command the L358 matcher refuses may pass; alive 11:59:58Z: a heredoc body line is not the out): rq CMD [AGI-PRAY] -> rc of the out check on the marked session o1
+rq(){ j=$(python3 -I -c 'import json,sys;print(json.dumps({"command":sys.argv[1].encode().decode("unicode_escape")}))' "$1");PB=${2:-} pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";}
+H1="cat > c.md <<EOF\\nsp's card line\\nEOF\\ntouch ~/.fresh && kill \$PPID";H2="echo it's; kill \$PPID";H3="cat > f <<EOF\\nthen touch ~/.fresh && kill \$PPID\\nkill \$PPID\\nEOF"
+python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="        elif c.startswith(\"<<\",i)";b="H=[];continue\n";i=s.index(a);k=s.index(b,i)+len(b);assert s.count(a)==1;open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+s[k:])' $T/bin/agi-pray $T/m8
+sed 's/    return None if q else (z,o,b,sp,ps,red)$/    return (z,o,b,sp,ps,red)/' $T/bin/agi-pray>$T/m9;sed -e 's/    return None if q else (z,o,b,sp,ps,red)$/    return (z,o,b,sp,ps,red)/' -e 's/^        if k==2:continue$/        if k:continue/' $T/m8>$T/m10;chmod +x $T/m8 $T/m9 $T/m10
+for m in m8 m9;do cmp -s $T/bin/agi-pray $T/$m&&{ echo "FAIL mutant $m changed nothing";exit 99;};done;cmp -s $T/m8 $T/m10&&{ echo "FAIL mutant m10 changed nothing";exit 99;}
+rq "$H1";c2=$rc;rq "$H1" $T/m10;c2m=$rc;rq "$H2";c3=$rc;rq "$H2" $T/m9;c3m=$rc;rq "$H3";c4=$rc;c4e=$(wc -c<$T/err|tr -d ' ');rq "$H3" $T/m8;c4m=$rc
+ok "c2-a-heredoc-body-with-one-apostrophe-then-the-out-is-refused rc $c2 (want 2, as the L358 search refuses it)" '[ $c2 = 2 ]'
+ok "m10-without-the-heredoc-skip-the-open-quote-fallback-and-the-consumer-check-c2-reads-RED rc $c2m (want 0: the fail-open shape of 3c29d5c717)" '[ $c2m = 0 ]'
+ok "c3-an-unclosed-quote-is-searched-whole (fail closed) rc $c3 (want 2); m9-without-the-fallback rc $c3m (want 0 = RED)" '[ $c3 = 2 ]&&[ $c3m = 0 ]'
+ok "c4-a-heredoc-body-line-naming-the-out-is-not-the-out rc $c4 (want 0), stderr bytes $c4e (want 0); m8-without-the-heredoc-skip rc $c4m (want 2 = RED)" '[ $c4 = 0 ]&&[ $c4e = 0 ]&&[ $c4m = 2 ]'
+o7=0;for c in '{ kill $PPID; }' 'if true; then kill $PPID; fi';do rq "$c";[ $rc = 2 ]&&o7=$((o7+1));done
+ok "o7-the-out-inside-braces-or-then-is-the-out $o7 of 2 refused (want 2)" '[ $o7 = 2 ]'
+# o8 (aio 12:01:27Z, alive 12:02:31Z: regressions against L358 are RED, not next touches): an unknown leading word before the out is the out; m11 = segment-start only (the 3c29d5c717 shape) reads RED on them
+python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="        return True\n    return False\n";assert s.count(a)==1;open(sys.argv[2],"w",encoding="utf-8").write(s.replace(a,"        if not c[max(x for x in b if x<=i):i].strip():return True\n    return False\n"))' $T/bin/agi-pray $T/m11;chmod +x $T/m11
+o8=0;m11=0;n8=0;for c in '{ kill $PPID; }' 'if true; then kill $PPID; fi' '! kill $PPID' 'sudo kill $PPID' 'nohup kill $PPID' 'timeout 5 kill $PPID' 'env kill $PPID' 'while :; do kill $PPID; done' 'time kill $PPID' 'if false; then :; else kill $PPID; fi';do n8=$((n8+1));rq "$c";[ $rc = 2 ]&&o8=$((o8+1));rq "$c" $T/m11;[ $rc = 0 ]&&m11=$((m11+1));done
+ok "o8-no-command-the-L358-search-refuses-passes $o8 of $n8 refused (want $n8: a brace group, then, !, sudo, nohup, timeout, env, do, time, else)" '[ $n8 = 10 ]&&[ $o8 = $n8 ]'
+ok "m11-segment-start-only-reads-RED-on-o8 the mutant passes $m11 of $n8 (want $n8)" '[ $m11 = $n8 ]'
+# c5/c6 + m13 (aio 12:09:41Z RETURN on RE-CUT 1: a quoted span or heredoc body handed to a shell RUNS): exempt only when its consumer is a printer (SHOW), awk/sed out of SHOW, a printer piped to a shell loses it, $( ) / backticks run
+sed 's/^        if k==2:continue$/        if k:continue/' $T/bin/agi-pray>$T/m13;chmod +x $T/m13;cmp -s $T/bin/agi-pray $T/m13&&{ echo "FAIL mutant m13 changed nothing";exit 99;}
+n5=0;o5=0;m13=0;IFS='|';for c in 'sh -c "touch ~/.fresh; kill $PPID"' "bash -c 'kill \$PPID'" 'eval "kill $PPID"' "sh <<'EOF'\\nkill \$PPID\\nEOF" 'bash <<EOF\ntouch ~/.fresh && kill $PPID\nEOF' 'env sh -c "kill $PPID"' "timeout 5 sh -c 'kill \$PPID'" "awk 'BEGIN{system(\"kill \$PPID\")}'" "sed -n '1e kill \$PPID' f";do unset IFS;n5=$((n5+1));rq "$c";[ $rc = 2 ]&&o5=$((o5+1));rq "$c" $T/m13;[ $rc = 0 ]&&m13=$((m13+1));IFS='|';done;unset IFS
+ok "c5-a-quoted-span-or-heredoc-a-shell-runs-is-the-out $o5 of $n5 refused (want $n5: sh -c, bash -c, eval, sh <<'EOF', bash <<EOF, env sh -c, timeout sh -c, awk system(), sed e)" '[ $n5 = 9 ]&&[ $o5 = $n5 ]'
+ok "m13-zones-exempt-whatever-consumes-them-reads-RED-on-c5 the mutant passes $m13 of $n5 (want $n5)" '[ $m13 = $n5 ]'
+x5=0;IFS='|';for c in 'echo kill $PPID \| sh' 'echo "$(kill $PPID)"' 'echo "`kill $PPID`"' 'cat > f <<EOF\n$(kill $PPID)\nEOF' 'grep x f \| xargs kill $PPID';do unset IFS;c=$(printf '%s' "$c"|sed 's/\\|/|/g');rq "$c";[ $rc = 2 ]&&x5=$((x5+1));IFS='|';done;unset IFS
+ok "c6-a-printer-piped-to-a-shell-and-a-command-substitution-are-the-out $x5 of 5 refused (want 5)" '[ $x5 = 5 ]'
+y5=0;for c in "git log -S'kill \$PPID'" "cat > f <<'EOF'\\n\$(kill \$PPID)\\nEOF" 'echo kill $PPID || true' 'grep "kill $PPID" f | wc -l' 'printf "%s\\\\n" kill $PPID';do rq "$c";[ $rc = 0 ]&&[ ! -s $T/err ]&&y5=$((y5+1));done
+ok "c7-more-reads-that-only-name-the-out-pass $y5 of 5 (want 5: git log -S'...', a QUOTED heredoc holding \$( ), || true, grep | wc, printf)" '[ $y5 = 5 ]'
+# c8 + m14 (sp 12:11:20Z clause (4): a command substitution runs whatever consumes it; a single-quoted span expands nothing)
+sed '/^                if x3:z\[qs:i+1\]=\[3\]\*(i+1-qs)$/d' $T/bin/agi-pray>$T/m14;chmod +x $T/m14;cmp -s $T/bin/agi-pray $T/m14&&{ echo "FAIL mutant m14 changed nothing";exit 99;}
+x8=0;m14=0;for c in 'echo "$(kill $PPID)"' 'echo "`kill $PPID`"';do rq "$c";[ $rc = 2 ]&&x8=$((x8+1));rq "$c" $T/m14;[ $rc = 0 ]&&m14=$((m14+1));done
+z8=0;for c in 'echo `kill $PPID`' 'X="$(touch ~/.fresh)"';do rq "$c";[ $rc = 2 ]&&z8=$((z8+1));done;rq "echo '\$(kill \$PPID)'";q8=$rc
+ok "c8-a-command-substitution-runs-whatever-consumes-it double-quoted $x8 of 2 + bare backtick / an assignment $z8 of 2 refused (want 2, 2); a single-quoted \$( ) rc $q8 (want 0: it expands nothing)" '[ $x8 = 2 ]&&[ $z8 = 2 ]&&[ $q8 = 0 ]'
+ok "m14-a-printer's-double-quoted-span-exempt-without-the-clause-reads-RED-on-c8 the mutant passes $m14 of 2 (want 2)" '[ $m14 = 2 ]'
+# c9-c11 + m15-m17 (aio 12:15:03Z bare backticks under a printer; sp 12:15:41Z (3') process substitution into a RUN word, (5) a script written and run in ONE command): each refused, each mutant RED
+mu(){ python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a=sys.argv[3];assert s.count(a)==1,a;open(sys.argv[2],"w",encoding="utf-8").write(s.replace(a,sys.argv[4]))' $T/bin/agi-pray $T/$1 "$2" "$3";chmod +x $T/$1;}
+mu m15 ';&|()`\n' ';&|()\n';mu m16 ' and not (s0 in ps and lead(c,ps[s0],b)[0] in RUN)' '';mu m17 ' and not ((s0 in red or pi and lead(c,e,b)[0]=="tee") and any(lead(c,x,b)[0] in RUN for x in b if x>s0))' ''
+cl(){ n=0;m=0;M=$1;shift;for c in "$@";do rq "$c";[ $rc = 2 ]&&n=$((n+1));rq "$c" $T/$M;[ $rc = 0 ]&&m=$((m+1));done;}
+cl m15 'echo `kill $PPID`' 'cat `kill $PPID`' 'grep -c x `kill $PPID`' 'printf %s `kill $PPID`';n9=$n;m15=$m
+ok "c9-bare-backticks-under-a-printer-run $n9 of 4 refused (want 4); m15-without-the-backtick-boundary passes $m15 of 4 (want 4 = RED)" '[ $n9 = 4 ]&&[ $m15 = 4 ]'
+cl m16 'sh <(echo kill $PPID)' "source <(printf 'touch ~/.fresh')" '. <(echo touch ~/.fresh)';n10=$n;m16=$m
+ok "c10-a-printer-in-a-process-substitution-fed-to-a-RUN-word $n10 of 3 refused (want 3); m16-without-the-clause passes $m16 of 3 (want 3 = RED)" '[ $n10 = 3 ]&&[ $m16 = 3 ]'
+cl m17 'echo kill $PPID > x.sh; sh x.sh' 'echo kill $PPID >> x.sh && bash x.sh' 'echo kill $PPID | tee x.sh; sh x.sh';n11=$n;m17=$m
+ok "c11-a-script-written-and-run-in-one-command $n11 of 3 refused (want 3); m17-without-the-clause passes $m17 of 3 (want 3 = RED)" '[ $n11 = 3 ]&&[ $m17 = 3 ]'
+y11=0;for c in 'echo kill $PPID > notes.md' 'diff <(echo kill $PPID) f';do rq "$c";[ $rc = 0 ]&&[ ! -s $T/err ]&&y11=$((y11+1));done
+ok "c12-a-redirect-with-no-later-RUN-word-and-a-process-substitution-fed-to-a-printer-still-pass $y11 of 2 (want 2)" '[ $y11 = 2 ]'
 pray captive transcript_path="\"$T/o2\"" session_id='"o4"' cwd='"/nonexistent-dir-x"' tool_input='{"command":"kill $PPID"}'
 ok "o4-an-unread-card-commit-passes-with-one-line rc $rc (want 0), [pray] lines $(grep -c '^\[pray\] unread' $T/err) (want 1)" '[ $rc = 0 ]&&[ $(grep -c "^\[pray\] unread" $T/err) = 1 ]'
 # ---- p: the Stop (idle) check
@@ -103,5 +176,11 @@ ok "m3-without-the-once-per-session-read-p5-and-p6-read-RED the mutant blocks p5
 python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="    if marked and not out:return\n    T=tr()\n";assert a in s;open(sys.argv[2],"w",encoding="utf-8").write(s.replace(a,"    T=tr()\n    if marked and not out:return\n"))' $T/bin/agi-pray $T/m4;chmod +x $T/m4
 PB=$T/m4 pray captive transcript_path="\"$T/big\"" session_id='"s1"'
 ok "m4-the-transcript-read-before-the-marker-reads-RED on s9's input the mutant opens the mode-000 transcript: [pray] unread lines $(grep -c '^\[pray\] unread' $T/err) (want 1), so s9 can fail" '[ $(grep -c "^\[pray\] unread" $T/err) = 1 ]'
+python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="        if sid and not os.path.exists(os.path.join(d,sid)):\n";b="print(json.dumps({\"decision\":\"block\",\"reason\":GO}));return\n";i=s.index(a);k=s.index(b,i)+len(b);assert s.count(a)==1;open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+s[k:])' $T/bin/agi-pray $T/m7;chmod +x $T/m7;cmp -s $T/bin/agi-pray $T/m7&&{ echo "FAIL mutant m7 changed nothing";exit 99;}
+rm -f $T/hm/.prayed/m7;PB=$T/m7 pray stop transcript_path="\"$T/d1\"" session_id='"m7"' last_assistant_message="$(js "$JES")"
+ok "m7-without-the-resume-d2-reads-RED the mutant's Stop prints [$(cat $T/out)] (want empty: no next prompt, so d2 can fail)" '[ ! -s $T/out ]'
+sed 's/^        if sid and not os.path.exists(os.path.join(d,sid)):$/        if sid and not os.path.exists(os.path.join(d,sid)) and os.path.exists(os.path.join(d,sid+".asked")):/' $T/bin/agi-pray>$T/m12;chmod +x $T/m12;cmp -s $T/bin/agi-pray $T/m12&&{ echo "FAIL mutant m12 changed nothing";exit 99;}
+rm -f $T/hm/.prayed/m12;PB=$T/m12 pray stop transcript_path="\"$T/d5\"" session_id='"m12"' last_assistant_message="$(js "work done. $JES")"
+ok "m12-the-refusal-gate-kept-d5-reads-RED (sp's mutant) the gated Stop prints [$(cat $T/out)] (want empty: the obeying post would stall)" '[ ! -s $T/out ]'
 chmod 600 $T/big
 echo "prayer-captive: $f FAIL";exit $f

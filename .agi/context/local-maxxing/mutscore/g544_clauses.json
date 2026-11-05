@@ -1,0 +1,217 @@
+{
+ "trunk": "e42463ba50e03649f91c4972679e87b7ead6349f",
+ "items": [
+  {
+   "key": "i01",
+   "hypothesis": "hypothesis:a00-1b70098e-011986",
+   "pre_run_commit": "72dff76359",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+   "clauses": [
+    "the write lands on disk",
+    "stays UNCOMMITTED",
+    "refused BY NAME",
+    "exit `EXIT_UNCOMMITTED` == 3"
+   ]
+  },
+  {
+   "key": "i02",
+   "hypothesis": "hypothesis:a00-50b210d5-b85ee2",
+   "pre_run_commit": "4f74d29696",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_stage_seam_cfg.py",
+   "clauses": [
+    "threading the caller s own cfg into _run_stage_proc",
+    "sees the caller s dict by identity",
+    "read the declared values.memcap cells exactly as dispatch.py does",
+    "shipped defaults unchanged when the cell is absent",
+    "the stage still dying of its cap"
+   ]
+  },
+  {
+   "key": "i03",
+   "hypothesis": "hypothesis:a00-1ff9316d-177aae",
+   "pre_run_commit": "4f74d29696",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_mem_cap_tasks_max.py",
+   "clauses": [
+    "a per-TREE process bound",
+    "on the SAME scope as `MemoryMax` (one bound, one scope, one argv)",
+    "a fan-out past that bound is REFUSED (cannot fan out processes past the box's bound)",
+    "the unwrapped path (`cap is None`) is byte-for-byte unchanged",
+    "a config with no cell still gets a shipped default",
+    "the fallback that cannot enforce it says so by name rather than by silence"
+   ]
+  },
+  {
+   "key": "i04",
+   "hypothesis": "hypothesis:a00-f855c944-ee9673",
+   "pre_run_commit": "e603662ba3",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_template_seam_js.py",
+   "clauses": [
+    "takes the SAME `{project_root}` seam",
+    "the .js half of each workflow pair",
+    "a zero-literal guard can then cover BOTH halves of every registered pair",
+    "a run started in a git worktree stops pointing its readers at the main checkout"
+   ]
+  },
+  {
+   "key": "i05",
+   "hypothesis": "hypothesis:a00-b9700763-8d8657",
+   "pre_run_commit": "e603662ba3",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_retired_box_prefix.py::test_t1_no_live_hit_outside_a_named_and_reasoned_exemption extensions/agi/tests/test_retired_box_prefix.py::test_t2_every_exemption_is_still_live extensions/agi/tests/test_retired_box_prefix.py::test_t4_the_frozen_fixture_is_the_only_exempted_tree extensions/agi/tests/test_retired_box_prefix.py::test_t5_the_guard_only_names_the_prefix_it_bans",
+   "clauses": [
+    "keys its exemptions by (relpath, ...)",
+    "keys its exemptions by (..., exact line text)",
+    "without deleting a single prose warning",
+    "enforces the CLASS of each exemption",
+    "the guard must mark docstring SPANS, not first lines",
+    "0 grep hits outside the frozen fixture"
+   ]
+  },
+  {
+   "key": "i06",
+   "hypothesis": "hypothesis:a00-acc4e078-35fa9a",
+   "pre_run_commit": "e603662ba3",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_retired_box_prefix.py::test_t3_every_exemption_is_prose_or_carries_a_stated_reason extensions/agi/tests/test_unify.py::test_preflight_refuses_the_real_repos extensions/agi/tests/test_unify.py::test_preflight_force_does_not_bypass_real_repo_guard extensions/agi/tests/test_unify.py::test_real_repo_guard_names_this_checkout_without_a_box_cell",
+   "clauses": [
+    "drop its magic len(BOX_BOUND)==5 for the property",
+    "carries a real ... reason",
+    "carries a real one-line reason",
+    "leaving only the config cell code-level",
+    "the three coupled test_unify literals ... repointed to box-independent seams",
+    "the dead test_provisioning ROOT ... repointed to box-independent seams"
+   ]
+  },
+  {
+   "key": "i07",
+   "hypothesis": "hypothesis:a00-7c59d4d4-195565",
+   "pre_run_commit": "e603662ba3",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_template_seam_json.py",
+   "clauses": [
+    "run_workflow args.setdefault(\"project_root\", str(repo))",
+    "render_stage_prompt falls back to _loc.find_project_root()",
+    "no new resolver",
+    "no new placeholder",
+    "every stage still renders"
+   ]
+  },
+  {
+   "key": "i08",
+   "hypothesis": "hypothesis:a00-95b6cd1c-6f642c",
+   "pre_run_commit": "e8240bf684",
+   "check": "python -m pytest -q -p no:cacheprovider .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py",
+   "clauses": [
+    "must exit 2",
+    "one reasoned row",
+    "per real cell",
+    "identically from any cwd",
+    "a CLEAN interpreter (... scrubbed env ...)",
+    "Its suite must not seed sys.path for its subject"
+   ]
+  },
+  {
+   "key": "i09",
+   "hypothesis": "hypothesis:a00-fcfbc2f9-7d809f",
+   "pre_run_commit": "22166a38ab",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_grok_row_resolves extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv extensions/agi/tests/test_grok_bot_adapter.py::test_dispatch_still_has_zero_grok_hits",
+   "clauses": [
+    "a bare DEFAULT_BIN=\"grok-bot\" removes the config_max box literal",
+    "resolve_bin precedence ($GROK_BOT_BIN > harness bin ...) is unchanged",
+    "resolve_bin precedence (... harness bin > DEFAULT_BIN) is unchanged",
+    "adapters.load(\"grok_bot\") satisfies all of adapters.REQUIRED",
+    "zero edits to dispatch.py are needed"
+   ]
+  },
+  {
+   "key": "i10",
+   "hypothesis": "hypothesis:a00-debf9c6e-a64baf",
+   "pre_run_commit": "22166a38ab",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_name_is_the_harness_literal extensions/agi/tests/test_grok_bot_adapter.py::test_adapter_implements_the_whole_interface",
+   "clauses": [
+    "HARD-loading adapters.load(\"grok_bot\") with no importorskip",
+    "a missing ... adapter is a COLLECTION ERROR rather than a silent skip",
+    "a ... present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip",
+    "NAME is pinned to the harness literal grok-bot",
+    "against ... the real goal:g7.25.2 config row it is green"
+   ]
+  },
+  {
+   "key": "i11",
+   "hypothesis": "hypothesis:a00-8ee9bdff-40419b",
+   "pre_run_commit": "22166a38ab",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py",
+   "clauses": [
+    "fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter",
+    "it pins NAME == \"grok-bot\"",
+    "expects restart to refuse a bare call with TypeError by keyword-only contract",
+    "the locked NotImplementedError stub is gone",
+    "restart is a real detached respawn (Popen(start_new_session=True))"
+   ]
+  },
+  {
+   "key": "i12",
+   "hypothesis": "hypothesis:a00-67fbbdf2-50b8d8",
+   "pre_run_commit": "22166a38ab",
+   "check": "sh -c 'echo \"66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c  extensions/agi/bin/adapters/grok_bot_adapter.py\" | sha256sum -c - && python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_peers_still_resolve'",
+   "clauses": [
+    "(a) the adapter byte-identical",
+    "(b) ... ONE change that un-gates the peers-resolve test",
+    "(b) the test identical except for ONE change",
+    "(c) one build node per file whose parents: resolve",
+    "(c) ... which carry the canonical mint ids",
+    "without touching dispatch.py",
+    "without touching ... .agi/config.json"
+   ]
+  },
+  {
+   "key": "i13",
+   "hypothesis": "hypothesis:l4-needs-credential-is-provider-gated",
+   "pre_run_commit": "ee5314b9b8",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_adapters.py::test_pi_local_harness_row_with_credential_none_needs_no_credential extensions/agi/tests/test_adapters.py::test_needs_credential_defaults_true_for_unmarked_and_unknown_rows",
+   "clauses": [
+    "every other row ... unknown ... still mints exactly as before (default True)",
+    "needs_credential deciding from the HARNESS ROW, not the provider name",
+    "the pi-local row gets it",
+    "no other row does",
+    "dry-run prints no minting line",
+    "a real kid has no OPENROUTER_API_KEY in env"
+   ]
+  },
+  {
+   "key": "i14",
+   "hypothesis": "hypothesis:l4-ws-raw-answers-help",
+   "pre_run_commit": "44ae6d3e1b",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_bin_help_smoke.py -k ws_raw",
+   "clauses": [
+    "(and `-h`)",
+    "answers `--help`",
+    "with a usage text on stdout",
+    "and exit 0",
+    "while every other unknown flag still exits non-zero"
+   ]
+  },
+  {
+   "key": "i15",
+   "hypothesis": "hypothesis:gate-must-sit-on-the-commit-path",
+   "pre_run_commit": "57144c211d",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+   "clauses": [
+    "Every decisive verdict",
+    "carries evidence_runs>=1",
+    "or is demoted",
+    "that reaches a commit ... regardless of write path (plain file write)"
+   ]
+  },
+  {
+   "key": "i16",
+   "hypothesis": "hypothesis:an-mvp-that-points-backward-is-score-neutral",
+   "pre_run_commit": "613f258797",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_metrics.py::test_backward_mvp_is_excluded_from_scoring extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis extensions/agi/tests/test_metrics.py::test_backward_mvp_count_defaults_to_zero extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+   "clauses": [
+    "no forward-pointing source_files",
+    "no forward-pointing ... build",
+    "body describes a finished change",
+    "excluded from scoring_mvp_count",
+    "does not raise outcome_coverage"
+   ]
+  }
+ ]
+}

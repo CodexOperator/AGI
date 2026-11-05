@@ -1,0 +1,447 @@
+{
+ "goal": "goal:g5.40",
+ "trunk": "e42463ba50e03649f91c4972679e87b7ead6349f",
+ "trunk_ref": "core/season3/main at the leaf's mint (7387e6afd3, 11:09:02Z 11-05)",
+ "selection_rule": "live hypotheses on trunk with `verdict: proved` (29), ordered by the first-parent trunk commit that introduced `verdict: proved` (git log --first-parent -G'^verdict: proved'), newest first; keep those whose falsifier names an in-tree runnable check; excluded by name: any check that calls or loads rotate/heal/send/dispatch/crons. 16 qualify (< 20): all 16 taken, n stated.",
+ "mutation_order": "own named mutant, else arm swap, else one-line inversion of the claimed property; none = NOT KILLABLE",
+ "arm_swap_column": "pin 11:14Z (plasma): the arm swap is run on every item where one is defined. None of the 16 checks compares a treatment against a control or a measured number against a threshold (each asserts a code property), so no arm swap is defined for any: H-F2 n = 0, VOID by the pin.",
+ "n_rule": "pin 11:14Z (remix): n = qualifying items that have a mutant AND ran; NOT KILLABLE and NOT RUNNABLE reported beside n, never as survived; VOID '> 5 cannot run' counts NOT RUNNABLE only. A baseline whose pytest run reports any skipped test counts as NOT RUNNABLE (a skip is not a pass).",
+ "falsifier": {
+  "H_F1": "remix: the proved ledger holds vacuous proofs. PROVED iff >= 2 of n primary mutants read survived; RED iff <= 1.",
+  "H_F2": "plasma: the tilt is a number. PROVED iff arm-swap survivors >= max(5, n/4); RED if fewer; scored on the arm-swap runs only; VOID if that n < 10.",
+  "VOID": "more than 5 NOT RUNNABLE, or n < 10, or an instrument mutant not as stated",
+  "instrument": "M1 an `exit 0` check scores survived; M2 a strong check reads RED under its mutant; M3 goal:g5.35 r2's check with null and salt rows swapped scores killed"
+ },
+ "scratch": "/data/scratch/director-thought-science/g540",
+ "venv_bin": "/data/scratch/director-thought-science/venv/bin",
+ "ulimit_v_kb": 3145728,
+ "timeout_s": 900,
+ "pythonhashseed": 0,
+ "excluded": [
+  {
+   "hypothesis": "hypothesis:a00-da06914d-d133b6",
+   "landed": "2026-09-30T17:31:38Z",
+   "reason": "dispatch: test_dispatch_dry_run.py runs dispatch.py as a subprocess"
+  },
+  {
+   "hypothesis": "hypothesis:l3-done-lifts-testable-claim",
+   "landed": "2026-09-30T02:39:12Z",
+   "reason": "send + dispatch: cli.cmd_done lazily imports send (alarm) and dispatch (kid report)"
+  },
+  {
+   "hypothesis": "hypothesis:born-valid-without-touching-frontmatter",
+   "landed": "2026-09-30T02:39:12Z",
+   "reason": "dispatch: test_node_writer.py loads dispatch at module level"
+  },
+  {
+   "hypothesis": "hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only",
+   "landed": "2026-09-28T11:37:46Z",
+   "reason": "send + dispatch + heal: a named row calls cli.cmd_done; falsifier 3 names test_heal_watch.py and test_dispatch.py"
+  },
+  {
+   "hypothesis": "hypothesis:conftest-spawn-fence-install-is-idempotent-across-a-second-conftest-exec",
+   "landed": "2026-09-28T00:14:02Z",
+   "reason": "rotate: test_conftest_guard.py imports rotate"
+  },
+  {
+   "hypothesis": "hypothesis:a00-d89b6c11-b6e73f",
+   "landed": "2026-09-28T00:14:02Z",
+   "reason": "heal: test_heal_mem_cap.py loads heal and calls heal._heal"
+  },
+  {
+   "hypothesis": "hypothesis:a00-955a27ff-64bc5a",
+   "landed": "2026-09-28T00:14:02Z",
+   "reason": "rotate: rotate.py launch wrapper (its named test also exists at no ref)"
+  },
+  {
+   "hypothesis": "hypothesis:a00-32f358d3-4ee42d",
+   "landed": "2026-09-10T08:21:56Z",
+   "reason": "dispatch: test_dispatch.py loads dispatch"
+  }
+ ],
+ "not_qualifying": [
+  {
+   "hypothesis": "hypothesis:a01-1f2762d5-1d90c0",
+   "landed": "2026-09-30T05:00:44Z",
+   "reason": "no in-tree check: a /tmp probe.py plus a links.py before/after diff on a /tmp copy"
+  },
+  {
+   "hypothesis": "hypothesis:a00-05c5c2b4-547067",
+   "landed": "2026-09-30T05:00:44Z",
+   "reason": "no check: a one-off corpus census via a /tmp load.py"
+  },
+  {
+   "hypothesis": "hypothesis:a00-8f215541-f95365",
+   "landed": "2026-09-23T07:17:06Z",
+   "reason": "its git merge-tree inputs (3 commits) resolve in this repo at no ref"
+  },
+  {
+   "hypothesis": "hypothesis:gpu-local-town-openai-endpoint",
+   "landed": "2026-09-16T09:27:56Z",
+   "reason": "needs the local-town GPU + tunnel, and dispatch.py --dry-run (excluded by name); no in-tree script carries its threshold"
+  },
+  {
+   "hypothesis": "hypothesis:a00-a111bc47-ff00ea",
+   "landed": "2026-09-09T15:35:04Z",
+   "reason": "no in-tree check (a /tmp probe); the claim reads false at its own landing commit"
+  }
+ ],
+ "items": [
+  {
+   "key": "i01",
+   "hypothesis": "hypothesis:a00-1b70098e-011986",
+   "pre_run_commit": "72dff76359",
+   "landed": "2026-09-30T18:06:57Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/write.py",
+    "edits": [
+     [
+      "    out: set = set()\n    paths = [node_writer.find_node_file(root, node_id)]",
+      "    return frozenset()\n    out: set = set()\n    paths = [node_writer.find_node_file(root, node_id)]"
+     ]
+    ],
+    "why": "experiment R4: _pre_dirty stubbed to frozenset()"
+   }
+  },
+  {
+   "key": "i02",
+   "hypothesis": "hypothesis:a00-50b210d5-b85ee2",
+   "pre_run_commit": "4f74d29696",
+   "landed": "2026-09-28T00:14:02Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_stage_seam_cfg.py",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)",
+      "        cmd = mem_cap.wrap_argv(cmd, cap)"
+     ]
+    ],
+    "why": "the node's red-today column: the 2-arg call that drops the caller's cfg"
+   }
+  },
+  {
+   "key": "i03",
+   "hypothesis": "hypothesis:a00-1ff9316d-177aae",
+   "pre_run_commit": "4f74d29696",
+   "landed": "2026-09-28T00:14:02Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_mem_cap_tasks_max.py",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+      ""
+     ]
+    ],
+    "why": "red-on-old: the TasksMax property line deleted from wrap_argv"
+   }
+  },
+  {
+   "key": "i04",
+   "hypothesis": "hypothesis:a00-f855c944-ee9673",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_template_seam_js.py",
+   "mutant": {
+    "kind": "inversion",
+    "file": "extensions/agi/workflows/agi-brief-drafting.js",
+    "edits": [
+     [
+      "const ROOT = (args && args.project_root) || '.'\n",
+      ""
+     ]
+    ],
+    "why": "no own mutant named: the declared root seam removed from one migrated script"
+   }
+  },
+  {
+   "key": "i05",
+   "hypothesis": "hypothesis:a00-b9700763-8d8657",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_retired_box_prefix.py::test_t1_no_live_hit_outside_a_named_and_reasoned_exemption extensions/agi/tests/test_retired_box_prefix.py::test_t2_every_exemption_is_still_live extensions/agi/tests/test_retired_box_prefix.py::test_t4_the_frozen_fixture_is_the_only_exempted_tree extensions/agi/tests/test_retired_box_prefix.py::test_t5_the_guard_only_names_the_prefix_it_bans",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/tests/test_workflow_template_seam_js.py",
+    "edits": [
+     [
+      "checkout literal in 14 lines across 9 files",
+      "checkout literal in 15 lines across 9 files"
+     ]
+    ],
+    "why": "the parent's probe 'reword one exempt prose line' (T2 must fail)"
+   }
+  },
+  {
+   "key": "i06",
+   "hypothesis": "hypothesis:a00-acc4e078-35fa9a",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_retired_box_prefix.py::test_t3_every_exemption_is_prose_or_carries_a_stated_reason extensions/agi/tests/test_unify.py::test_preflight_refuses_the_real_repos extensions/agi/tests/test_unify.py::test_preflight_force_does_not_bypass_real_repo_guard extensions/agi/tests/test_unify.py::test_real_repo_guard_names_this_checkout_without_a_box_cell",
+   "mutant": {
+    "kind": "inversion",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "\"the one code-level exemption left: the box.root CELL, owned by group a00-3b546363; correcting the cell removes the hit and this entry with it (T2)\"",
+      "\"box cell\""
+     ]
+    ],
+    "why": "the node's own mutant (a live hit) is T1's, not in this check: inversion of T3's property, one exemption reason cut below 20 chars"
+   }
+  },
+  {
+   "key": "i07",
+   "hypothesis": "hypothesis:a00-7c59d4d4-195565",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_template_seam_json.py",
+   "mutant": {
+    "kind": "inversion",
+    "file": "extensions/agi/workflows/review.json",
+    "edits": [
+     [
+      "Inspect the repo at {project_root} and report",
+      "Inspect the repo at /tmp/elsewhere and report"
+     ]
+    ],
+    "why": "no own mutant named: review.json's one injected root replaced by a fixed path"
+   }
+  },
+  {
+   "key": "i08",
+   "hypothesis": "hypothesis:a00-95b6cd1c-6f642c",
+   "pre_run_commit": "e8240bf684",
+   "landed": "2026-09-26T02:17:57Z",
+   "check": "python -m pytest -q -p no:cacheprovider .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py",
+   "mutant": {
+    "kind": "own",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "sys.path[:0] = [os.path.dirname(HERE)]   # paths.py, discovered -- cwd-independent",
+      "pass"
+     ]
+    ],
+    "why": "the experiment's negative control: the sys.path discovery line deleted"
+   }
+  },
+  {
+   "key": "i09",
+   "hypothesis": "hypothesis:a00-fcfbc2f9-7d809f",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_grok_row_resolves extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv extensions/agi/tests/test_grok_bot_adapter.py::test_dispatch_still_has_zero_grok_hits",
+   "mutant": {
+    "kind": "inversion",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN",
+      "    return DEFAULT_BIN"
+     ]
+    ],
+    "why": "no own mutant named: resolve_bin ignores the live bin cell"
+   }
+  },
+  {
+   "key": "i10",
+   "hypothesis": "hypothesis:a00-debf9c6e-a64baf",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_name_is_the_harness_literal extensions/agi/tests/test_grok_bot_adapter.py::test_adapter_implements_the_whole_interface",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "NAME = \"grok-bot\"",
+      "NAME = \"grok\""
+     ]
+    ],
+    "why": "own P-C: NAME mutated"
+   }
+  },
+  {
+   "key": "i11",
+   "hypothesis": "hypothesis:a00-8ee9bdff-40419b",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "NAME = \"grok-bot\"",
+      "raise ImportError(\"mutant P3\")\nNAME = \"grok-bot\""
+     ]
+    ],
+    "why": "own P3: the adapter raises ImportError"
+   }
+  },
+  {
+   "key": "i12",
+   "hypothesis": "hypothesis:a00-67fbbdf2-50b8d8",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "sh -c 'echo \"66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c  extensions/agi/bin/adapters/grok_bot_adapter.py\" | sha256sum -c - && python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_peers_still_resolve'",
+   "mutant": {
+    "kind": "inversion",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "def test_live_config_peers_still_resolve(live_cfg_raw):",
+      "def test_live_config_peers_still_resolve(live_cfg):"
+     ],
+     [
+      "        rname, row = adapters.resolve(live_cfg_raw, name)",
+      "        rname, row = adapters.resolve(live_cfg, name)"
+     ]
+    ],
+    "why": "inversion of claim (b), the un-gating: the peers test re-gated on live_cfg"
+   }
+  },
+  {
+   "key": "i13",
+   "hypothesis": "hypothesis:l4-needs-credential-is-provider-gated",
+   "pre_run_commit": "ee5314b9b8",
+   "landed": "2026-09-16T18:23:45Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_adapters.py::test_pi_local_harness_row_with_credential_none_needs_no_credential extensions/agi/tests/test_adapters.py::test_needs_credential_defaults_true_for_unmarked_and_unknown_rows",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/adapters/pi_adapter.py",
+    "edits": [
+     [
+      "    return harness.get(\"credential\") != \"none\"",
+      "    return harness.get(\"provider\") == \"openrouter\""
+     ]
+    ],
+    "why": "round 1's reverted provider check"
+   }
+  },
+  {
+   "key": "i14",
+   "hypothesis": "hypothesis:l4-ws-raw-answers-help",
+   "pre_run_commit": "44ae6d3e1b",
+   "landed": "2026-09-16T10:17:38Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_bin_help_smoke.py -k ws_raw",
+   "mutant": {
+    "kind": "inversion",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "    if \"-h\" in argv or \"--help\" in argv:",
+      "    if False:"
+     ]
+    ],
+    "why": "no own mutant named: the --help branch disabled (filtered -k ws_raw: the unfiltered smoke runs --help on rotate/heal/send/dispatch/crons)"
+   }
+  },
+  {
+   "key": "i15",
+   "hypothesis": "hypothesis:gate-must-sit-on-the-commit-path",
+   "pre_run_commit": "57144c211d",
+   "landed": "2026-09-03T21:53:20Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/grid.py",
+    "edits": [
+     [
+      "        demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)\n                      if d.written)",
+      "        demoted = 0"
+     ]
+    ],
+    "why": "own: the enforce_on_disk call removed from cmd_commit"
+   }
+  },
+  {
+   "key": "i16",
+   "hypothesis": "hypothesis:an-mvp-that-points-backward-is-score-neutral",
+   "pre_run_commit": "613f258797",
+   "landed": "2026-09-03T21:52:25Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_metrics.py::test_backward_mvp_is_excluded_from_scoring extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis extensions/agi/tests/test_metrics.py::test_backward_mvp_count_defaults_to_zero extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "        if _BACKWARD_MVP_RE.search(parts[2]):\n            backward.add(nid)",
+      "        pass"
+     ]
+    ],
+    "why": "own: 'reverting it ... 3 of 7 go red'"
+   }
+  }
+ ],
+ "instrument": [
+  {
+   "key": "M1",
+   "expect": "survived",
+   "check": "sh check.sh",
+   "tree": {
+    "check.sh": "exit 0\n",
+    "claim.txt": "the claim holds\n"
+   },
+   "mutant": {
+    "kind": "inversion",
+    "file": "claim.txt",
+    "edits": [
+     [
+      "the claim holds",
+      "the claim does not hold"
+     ]
+    ],
+    "why": "a check that always passes must score survived/vacuous"
+   }
+  },
+  {
+   "key": "M2",
+   "expect": "killed",
+   "check": "python check.py",
+   "tree": {
+    "prop.py": "def mysort(xs):\n    return sorted(xs)\n",
+    "check.py": "import random, sys\nfrom prop import mysort\nrng = random.Random(20261105)\nfor _ in range(200):\n    xs = [rng.randrange(1000) for _ in range(rng.randrange(1, 30))]\n    if mysort(xs) != sorted(xs):\n        sys.exit(1)\n"
+   },
+   "mutant": {
+    "kind": "inversion",
+    "file": "prop.py",
+    "edits": [
+     [
+      "return sorted(xs)",
+      "return list(xs)"
+     ]
+    ],
+    "why": "a strong check (200 seeded lists, seed 20261105) must read RED"
+   }
+  },
+  {
+   "key": "M3",
+   "expect": "killed",
+   "hypothesis": "hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red",
+   "pre_run_commit": "124fd6c51b",
+   "check": "python .agi/context/local-maxxing/rv/harness.py verify",
+   "mutant": {
+    "kind": "arm-swap",
+    "file": ".agi/context/local-maxxing/rv/results.json",
+    "edits": [
+     [
+      "  \"F1_null\": [",
+      "  \"F2_salt_planted\": ["
+     ],
+     [
+      "  \"F2_salt_planted\": [",
+      "  \"F1_null\": ["
+     ]
+    ],
+    "why": "goal:g5.35 round 2's committed check with the null-viewer rows and the salt-mutant rows swapped must score killed"
+   }
+  }
+ ]
+}
