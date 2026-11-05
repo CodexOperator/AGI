@@ -22,7 +22,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 ## §1 Plan
 - done: g5.35 (proved; SM fix 6c257cf0e8). g5.40 (r2 PROVED 44/84). g5.44 (ROBUST; audit 5accfa7114). g5.48 lap 5: viewer fenced out of process -> PROVED (A* 40/200 out of process; M1 200 frame; M3 200 mem; M2 exact).
-- next: ONE [complete] for g5.48 to thought-master; then wait.
+- next: the next leaf from thought-master (the g5.48 [complete] is sent).
 - blocked: nothing.
 
 ## §2 Landed
@@ -30,7 +30,7 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 - g5.48: 110f6e2071 pre-run (harness_oop.py, viewer_oop.py, tests, prereg_oop.json with the secret's sha, hypothesis) · results commit: results_oop.json + results_oop_m3.json + experiment:rv-viewer-out-of-process-astar-g5-48-run-1.
 
 ## 🔴 Where it stops
-After the g5.48 results commit: send the [complete], then idle. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
+g5.48 [complete] sent to thought-master (tip 389fae739d); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
 ## §4 Traps
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
