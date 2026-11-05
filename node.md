@@ -5,7 +5,7 @@ type: idea
 parents:
   - goal:g5.19
 next_edges: []
-edited_by: sanctuary-master
+edited_by: thought-master
 scale: big
 season: 3
 title: "Thought-master's own local-maxxing council of 3, one per vision: plasma, less is more, remix; bend2/bend3 for the graph; cross-box work on tonight's owner word"
@@ -19,9 +19,12 @@ town: local-maxxing
 ## Where it stands
 Extends card-belam section 7 row r3 (the TM slice: thought-master + own council of 3 + own director sets on local-maxxing on the local-town box). New here: the three council seats' visions.
 Nothing started. thought-master is `boot: false` and its unit is disabled on this box. Starting it waits for the owner's word: "when I'm logged off tonight I'll say when".
-TwIL-8B and the hierarchical kv cache compression are the owner's pointers, not yet looked up.
+The owner's pointers, LOOKED UP by thought-master 10:1xZ 11-05 (web, 0 USD):
+- TwIL-8B (webAI-Official/TwIL-8B): 8.79B reasoning model post-trained from IBM Granite 4.2 8B; text only; MATH-500 98.2, GPQA-D 70.2; weights open but NON-COMMERCIAL; Q4_K_M GGUF 4.98 GiB (fits the 2070S 8 GiB), bf16 16.4 GiB. Not 'tiny': for less-is-more it is a strong small baseline to beat, not a weight-edit target (that wants <= 1B).
+- ZHA = Zyphra Hierarchical Attention (arXiv 2610.42112, 11-02): a tree of recursively compressed key summaries over the KV cache, traversed top-down with adaptive top-p per level; full KV kept at the leaves, so it is sparse SEARCH, not memory compression; LongBench v2 63.4 vs dense 58.0 at ~1.1% of the cache read; bolt-on: 81,920 trained params on a frozen 35B. For remix: the same summary-tree shape is a candidate index over the graph itself (node -> chunk summaries -> top-down retrieval).
+- bend2 (bend2.org, github.com/bendlang/bend): a dependently typed, affine language; LAWS.bend states laws, PROOF.bend discharges them, the checker gates the commit (--verdict = a Lean-kernel recheck). No Bend3 is public yet. The match the owner names: a graph claim as a LAW, its experiment as the PROOF, and a DISPROOF as an equally checked counter-proof.
 Parent moved goal:g14 -> goal:g5.19 (the Thought Master post) on 11-05: g14 was retired into goal:g5 on 09-23 on the owner's word; this was its one live edge.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2 (sanctuary-master 11-05, the owner's JOB 4 via belam 07:16Z; council 3/3, alive [decision] 07:33:15Z): parent goal:g14 -> goal:g5.19. g14 is status retired since 09-23 (its 70 owner lines moved to goal:g5, belam 197c856f71 + ef9ceedf6c); this idea, minted 06:13Z 11-05, was the one live frontmatter edge left on it. g5.19 = the Thought Master post, and these three visions are that post's own council. The 70 prose citations of g14 elsewhere stay as history.
+v3 (thought-master 12:4xZ 11-05): the owner's three pointers (TwIL-8B, ZHA, bend2 / bend3) looked up and placed under "Where it stands", replacing the "not yet looked up" line; nothing else changed from v2 (L349). RE-CUT: my first v3 (57537afd8f, 10:04:53Z) was written on a STALE read view (~/t still at a pre-L349 HEAD), so it silently reverted L349: parent back to the retired goal:g14, the OWNER heading's cite c:6e83f39da840 and this v2 THOUGHT dropped (sanctuary-master's [return], self-perpetuating + all-is-one measured 12:3xZ). This version is L349's bytes (blob d8e4e6bcea) plus the lookup lines only. v2, kept: (sanctuary-master 11-05, the owner's JOB 4 via belam 07:16Z; council 3/3, alive [decision] 07:33:15Z) parent goal:g14 -> goal:g5.19; g14 is retired since 09-23 (its owner lines moved to goal:g5); g5.19 = the Thought Master post, and these three visions are that post's own council.
 <!-- THOUGHT:END -->
