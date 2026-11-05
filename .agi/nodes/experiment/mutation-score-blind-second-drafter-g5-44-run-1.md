@@ -10,6 +10,8 @@ season: 3
 title: "Blind second drafter: has-a-survivor agrees with round 2 on 15 of 16 items, clause survival 47/84 = 0.560 vs 0.524 (+0.036), blatant 1/16 = 0.0625: ROBUST (goal:g5.44)"
 town: local-maxxing
 verdict: proved
+evidence_runs:
+  - experiment:mutation-score-blind-second-drafter-g5-44-run-1
 confidence: 0.85
 ---
 

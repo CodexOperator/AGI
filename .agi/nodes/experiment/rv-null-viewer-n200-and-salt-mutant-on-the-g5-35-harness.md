@@ -12,6 +12,8 @@ season: 3
 title: "SUPERSEDED by round 2 (experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness). RV harness round 1: null viewer 40/200 (inside chance, band < 50), planted-salt mutant 200/200 (RED), null climb +0.03 train / 0.16 held-out (goal:g5.35)"
 town: local-maxxing
 verdict: proved
+evidence_runs:
+  - experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness
 confidence: 0.95
 ---
 
