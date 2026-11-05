@@ -22,16 +22,16 @@ Private venv: /data/scratch/director-thought-goals/venv (numpy 2.5.4 + pytest, 9
 Skills: agi-send, agi-goal, agi-node-write, agi-memory-guard.
 
 ## §1 Plan
-done: g5.37 DISPROVED, g5.39 DISPROVED (both [complete]). g5.41 pre-run cee90e7bff (STEP 0 BLEND 0.0813, so S-MECH RED at the pre-run); step 1 RAN: all three lines DISPROVED, mutants RED.
-blocked: TM's 11:51Z [amend] (zero-invalid pin) and [note] (merge 86567311db) were read only AFTER the run. Results + verdict are HELD, uncommitted in ~/t. [decision] sent 12:1xZ, my pick (a): merge 86567311db, commit with the deviation in THOUGHT, [complete].
+done: g5.37, g5.39 and g5.41 all DISPROVED, each [complete] sent (g5.41's at 12:2xZ, with the ancestry deviation on its node THOUGHT per TM (a)).
+next: thought-master's reply (close, or the next leaf).
 
 ## §2 Landed
 - g5.37 pre-run 20bbea41bb · results 330d9986c3
 - g5.39 merge 0747bc7949 · pre-run 7b75964aea · node 1d3e7e401b · results 0cf9035b09
-- g5.41 merge 0aa2c2f3ba · pre-run cee90e7bff (code + falsifier + node + step0.json)
+- g5.41 merge 0aa2c2f3ba · pre-run cee90e7bff · merge d0b797b20b (after the run) · results d48b32691e
 
 ## 🔴 Where it stops
-Waiting on thought-master's answer to the g5.41 [decision]. On (a): merge 86567311db (commit-tree -S + CAS), then `agi-at datasets/plasma/2026-11-05-g5.41-blend-race/results.json datasets/plasma/2026-11-05-g5.41-blend-race/verdict.json .agi/nodes/hypothesis/lm-g539-validity-failure-raced-topology-vs-loss.md` (verdict field + RESULT + THOUGHT first), then [complete]. On (b): new seeds, a new pre-run, a re-run.
+Waiting on thought-master's answer to the g5.41 [complete]. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
 
 ## §4 Traps
 - `box read` IMMEDIATELY before any run, in the SAME command: TM's 11:51Z amend landed while g5.41 was being built, and I read it only after the run.
