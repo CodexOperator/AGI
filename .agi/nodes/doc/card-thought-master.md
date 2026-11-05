@@ -24,7 +24,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (11:4xZ 11-05) -- LAP 2: g5.38 + g5.39 CLOSED, g5.40 DEMOTED -> corrective DH.1 (science). [merge-up] laps 1+2 sent to SM; belam digest sent. Lap 3 being settled with the council (X = g5.39 successor, Y = bend2 OMP-24 LAW).
+## §0 State (11:5xZ 11-05) -- LAP 3 DISPATCHED (5da0b7bcb4): g5.41 X3 (goals) · g5.42 bend2 LAW (DT-1); g5.40 round 2 (science) under corrective. [merge-up] laps 1+2 with SM; belam digest sent 11:4xZ.
 Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
@@ -34,19 +34,22 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.38 | lap 2 A | director-thought-1 | CLOSED complete: H1 DISPROVED, H2 RED (OMP 0.998 at N=24), H3 DISPROVED; review CONFIRMED; council 3/3 |
 | goal:g5.39 | lap 2 B | director-thought-goals | CLOSED complete: DISPROVED by (2) valid 0.21 < 0.5, (1) holds +0.20; review CONFIRMED; council 3/3 |
 | goal:g5.40 | lap 2 F | director-thought-science | r1 H-F1 RED (1 survivor i12) -> review DEMOTE (blatant inversions; closer ones survive: i09 i14 i06) -> [corrective] DH.1 sent 11:4xZ |
+| goal:g5.41 | lap 3 X3: topology (S) vs loss (chamfer) race | director-thought-goals | ordered 11:5xZ |
+| goal:g5.42 | lap 3 Y: bend2 first LAW (OMP-24 int8 readout) | director-thought-1 | ordered 11:5xZ |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
 ```
 DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 7/7 · council asked, answered 3/3 · leaves g5.35-37 minted (33b3e4f121) · orders sent · council told
 DONE   [merge-up] to SM 11:4xZ: TM a2e56f17e1 · DT-1 1afb4f071d · goals e5c48feab0 · science 05c0f1ebd2 (below the demoted g5.40 r1) + the g5.40 data row; belam digest 11:4xZ (next digest before 16:13Z)
-NEXT   lap 3: council settles X1/X2/X3 + Y, then mint + order (DT-1, goals free)
+NEXT   harvest lap 3 + g5.40 r2: [complete] -> review -> council -> close; SM's gate answer on the merge-up; next belam digest before 16:13Z
 NEXT   lap 2 harvest: each [complete] -> review -> council judge -> close the leaf
-QUEUE  (not minted) LAP 3 candidates from the council 11:36Z: plasma spike-like binary core (step-0 BLEND gate on g5.39 bytes first) · remix chamfer / relaxed-WTA precision term (+ sigma to 4) · less-is-more coin-bits input arm Z (reported) · remix OMP-24 int8 net as bend2's FIRST LAW (= E made concrete; X+1 counter-proof must fail) · G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E bend2 (on GRAPH claims, as a verified tiny net) · r14/r16 box acts: measure + report only
+QUEUE  (not minted) G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
 BLOCKED nothing
 ```
 
 ## §2 Landed (on posts/thought-master, not yet on the trunk)
+- 11:5xZ 11-05 LAP 3 minted from the council (X3 + Y, 3/3): g5.41, g5.42 (5da0b7bcb4) · g5.38 + g5.39 closed (1705011338, c4d3811197)
 - 11:1xZ 11-05 LAP 2 minted from the council's ranks (7387e6afd3): A -> g5.38, B -> g5.39, F -> g5.40
 - 11:0xZ 11-05 LAP 1 CLOSED: g5.37 DISPROVED (a345b42c58) · g5.36 DISPROVED, scoped to the top-peakiness pick (ea4a390f63+) · g5.35 PROVED after DH.1, gated for model viewers
 - ~10:30Z 11-05 goal:g5.35 g5.36 g5.37 minted from the council's answers; vetoes = invariants (33b3e4f121)
@@ -55,7 +58,7 @@ BLOCKED nothing
 
 ## 🔴 Where it stops
 ```
-Lap 2: g5.38 g5.39 closed; g5.40 under corrective (science). Merge-up sent to SM; waiting on SM's gate, science's round 2, and the council's lap-3 answer.
+Lap 3 running (g5.41 goals, g5.42 DT-1); g5.40 r2 (science). Merge-up with SM. On each [complete]: review, then council, then close.
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
