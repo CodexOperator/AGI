@@ -21,5 +21,34 @@ Kolakoski (1,2,2,1,1,2,...) describes its own run lengths. DG3's break, Drive di
 - length-k block frequencies: 1/6, 1/3 (k=2); 1/6 (k=3); 1/6, 1/9, 1/18 (k=4). Denominators are a power of 3, some times 2 (DG3's note writes "1/(2*3^m)", which 1/3 and 1/9 do not fit).
 - where a 3 comes from: runs have length 1 or 2, so the mean run is 3/2 IF the density is 1/2; DG3 derived lags 1-3 that way and reads the rest as the same step repeated at each level of the self-description. A measured pattern and a suggestion, not a theorem: density 1/2 is itself open.
 
+## OWNER 2026-11-05 05:2xZ, verbatim, on DG2's happy numbers and graph counts
+> "I love the exploration of happy numbers. I wonder if we can apply that to the simple patterns stuff as well. Some of these may actually be surprising optimizations in plain sight. IDK for sure though I just always was fascinated with raw numerology like this just doing it for your own fun not like the mystical stuff."
+> "Maybe we can look into benford's law i'm not sure what it is. I also know there's a book called 'clean code' by a guy who goes by uncle bob on twitter I think and it talks about how to limit 'crap' and how to do one other key thing and idk if its related to benford's but maybe. I notice his swarm harness setup looks remarkably reminiscent of ours. unclebob on github I think he's very well known not some random."
+
+## Threads to pull (read 11-05, by search summaries, not by reading the repos)
+- Benford's law: in data spanning many orders of magnitude the leading digit d appears at rate log10(1 + 1/d), so 1 about 30%, 9 about 4.6%. DG2 tested node sizes: they fail it (1 leads 23%) because they span only 1.25 decades. Which of our counts DO span many decades?
+- CRAP (Change Risk Anti-Patterns; Savoia + Evans): CC^2 * (1 - coverage)^3 + CC, per function. Not related to Benford. Martin ports it (unclebob/crap4clj, crap4go); he reportedly has agents drive every function's score below 6. We have not scored our engine.
+- unclebob/swarm-forge: tmux, one git worktree per agent, role prompts, message passing, a "constitution"; roles such as specifier, coder, cleaner (DRY + CRAP reviews), architect. Close to our posts + box + briefs. The cleaner role is the part we have no post for.
+- DG2's counts as a pattern to use: two thirds of goal leaves dormant since September; "The graph is a ledger; the cards are the whiteboard."
+
+## OWNER 2026-11-05 05:5xZ, verbatim, on goals-1's sandpile
+> "oh wow the sandpile thing reminds me of the complex number stuff i've been working on regarding seeing how series react to various starting positions. I noticed that the series c_n*z^n would form first spiraling inward/outward traingles, then squares, then 5-pointed star and almost a 6-pointed one but it blends into almost like this twisty shape that becomes a line type shape as you move the starting point z around a cycloid type shape. I was thinking that type of setup could maybe be applied to dynamically adjust how granular of a task each post takes on as we work towards our lattice goal that is super long-term."
+
+Belam's read (not the owner's words, unchecked against the owner's actual series): each term of z^n turns by arg z and scales by |z|, so near arg z = 2 pi p/q the terms draw a q-sided figure (a star when p > 1, e.g. 2/5), spiraling in for |z| < 1 and out for |z| > 1. The dial is the rotation number p/q. Open for the owner: what would map to arg z and |z| for a post's task size?
+
+## OWNER 2026-11-05 06:0xZ, verbatim, on DS1's findings
+> "I love the benford check results. Interesting how everyone is acting like a gardener tending to the tree we've grown."
+> "Cool that seems interesting could be a metric we can optimize that results in better or worse quality somehow." (on the in-degree shape / the NEVER and ONLY counts)
+> "Maybe we can adjust wordings and see how well and how efficiently goals get done? Maybe the negativity subconsciously slows down work whatever that means for LLMs."
+> "Also the c stays as 1 in the case I was looking at, and z could be size of each model's 'bite' vs model 'capability' which could be a combo of external and internal benchmarks."
+
+Belam's read: with c = 1 the partial sums are (1 - z^(n+1)) / (1 - z): they orbit the centre 1/(1 - z), closing in when |z| < 1 and flying out when |z| > 1, so |z| = bite / capability reads as: a bite below capability settles, above it runs away. A positive ratio has no angle, though, and the triangles, squares and stars all come from the angle: what would the angle of z measure? The wording test is a real experiment shape (same goals, two wordings, measure time and quality); it needs a design, nothing is run.
+
+## OWNER 2026-11-05 06:1xZ, verbatim, on director-review's findings
+> "interesting, maybe we can explore how individual words and concepts affected chain outcomes and code quality and maybe how the various nodes align with benfords law, negative statements, crap/dry measurements, etc"
+> "that makes sense given some of the things we went through like the redesign and plenty of other stuff. Either way its memory you don't have to dig through it shows what came from where"
+> "As far as test wordings i'm curious how they affect things in goals, vs post docs, vs wherever else."
+Also idea:thought-master-council-three-visions (the prove / disprove incentive and bend).
+
 ## Use
 Fuel, not a task: nothing is owed, no goal or budget follows. Pull it when musing or brainstorming. The owner's words go to DG3 with the resume mail after the review (SM relays), so the post stays idle until then.
