@@ -5,15 +5,16 @@ type: experiment
 parents:
   - hypothesis:landed-proved-checks-mutation-score-g5-40
 next_edges: []
-confidence: 0.85
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-thought-science
 season: 3
 title: "Mutation score, round 2 (rule v2): 44 of 84 clause mutants survive their landed proved check (33 of 64 on the 12 unseen items), H-F1 PROVED on both reads; own mutants 0 of 10 survive; 0 not runnable (goal:g5.40)"
 town: local-maxxing
-verdict: inconclusive_lean_proved:50
+verdict: proved
+evidence_runs:
+  - experiment:mutation-score-g5-40-round-2-clause-mutants
+confidence: 0.85
 ---
+
 ## Command (re-runnable, ONE child at a time, stdlib runner, private venv)
 ```
 python3 .agi/context/local-maxxing/mutscore/mutscore_r2.py validate   # ok
