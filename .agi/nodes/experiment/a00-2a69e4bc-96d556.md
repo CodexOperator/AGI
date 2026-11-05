@@ -104,7 +104,7 @@ than hide it.
 Script: `.agi/sessions/iter-DH.490/a00-2a69e4bc/probes.py`
 Output: `.agi/sessions/iter-DH.490/a00-2a69e4bc/probes.out`
 TMP roots under `/tmp/pN`, `_nudge_window` stubbed, no pane, no send-keys,
-no live inbox, no live dm file. (AGI_AGENT_ID/AGI_SEAT/AGI_POST are popped in
+no live inbox, no live dm file. (AGI_AGENT_ID/AGI_[retired]/AGI_POST are popped in
 the probe: the identity env outranks `--from`, and a leftover value makes every
 probe resolve the sender to some other seat -- the first probe run did.)
 

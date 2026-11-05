@@ -15,7 +15,7 @@ model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "wire", "cmd": "probe_prefix.py: the same wire fixture with the fix DISABLED (key_seat dropped)", "expected": "successor key at <new>.key", "observed": "<new>.key held the PREDECESSOR key; row pubkey was the successor -> cannot sign as the new seat", "result": "defect reproduced (test would fail)"}
   - {"conjunct": 1, "class": "gate", "cmd": "probe_gates.py: keyed row, rename target, NO predecessor key file", "expected": "_rotate_successor_key returns None (no keyless mint)", "observed": "None", "result": "pass"}
-  - {"conjunct": 1, "class": "wire", "cmd": "pytest test_rotate_boundary_rename.py::test_rename_rotation_successor_signs_as_the_new_seat", "expected": "successor at <new>.key 0600, pub == row pubkey cell, predecessor preserved, sign as AGI_SEAT=new verifies", "observed": "pass; 942 passed over every rotate/rename/keygen test file", "result": "pass"}
+  - {"conjunct": 1, "class": "wire", "cmd": "pytest test_rotate_boundary_rename.py::test_rename_rotation_successor_signs_as_the_new_seat", "expected": "successor at <new>.key 0600, pub == row pubkey cell, predecessor preserved, sign as AGI_[retired]=new verifies", "observed": "pass; 942 passed over every rotate/rename/keygen test file", "result": "pass"}
   - {"conjunct": 1, "class": "wire", "cmd": "parent probe A: cmd_rotate_self with a staged rename; a wrapper records the key_seat kwarg actually passed to _rotate_successor_key", "expected": "key_seat == 'adv-new' and pending path ends adv-new.key", "observed": "key_seat=adv-new path=.../adv-new.key rc=0", "result": "pass"}
   - {"conjunct": 1, "class": "auth", "cmd": "parent probe B: after the renamed rotation, send._sign_line as 'adv-alive' (old) and as 'adv-new' (new)", "expected": "old name resolves NO key; new name signs and VERIFIES under the seats row pubkey cell", "observed": "old_key_exists=False; row.pubkey==pub(new.key); verify=True", "result": "pass"}
   - {"conjunct": 1, "class": "gate", "cmd": "parent probe C: stage present + a post-staging drift surface, then cmd_rotate_self", "expected": "boundary refuses (rc=2), stage intact, NO <new>.key written by the peek", "observed": "rc=2, stage exists, new.key absent", "result": "pass"}
@@ -50,7 +50,7 @@ At a rotation that also carries a post rename:
   MOVES the predecessor key `<old>.key` to `<new>.key`.
 - `_apply_successor_key_gated` then writes the DEFERRED successor key to the
   OLD path, so `<old>.key` holds the fresh successor and `<new>.key` holds the
-  predecessor. But the successor is spawned with `AGI_SEAT=<new>`, and `send`
+  predecessor. But the successor is spawned with `AGI_[retired]=<new>`, and `send`
   signs via `_seat_key_path(root, from_id)` — so it read `<new>.key`, the
   PREDECESSOR key, whose pub does not match the row's `pubkey` cell (which the
   same rotation wrote as the successor pub). Exactly the 22:43Z defect; the
@@ -105,7 +105,7 @@ Regression tests added to `extensions/agi/tests/test_rotate_boundary_rename.py`:
   the successor key lands at `adv-new.key`, its pub equals the row's `pubkey`
   cell, the predecessor is preserved, and `send._sign_line(root, "adv-new", …)`
   returns a signature that VERIFIES under the row's pubkey — i.e. a process
-  running with `AGI_SEAT=adv-new` can sign as that seat.
+  running with `AGI_[retired]=adv-new` can sign as that seat.
 
 The wire test FAILS on the unfixed code: with `key_seat` dropped (the pre-fix
 target name), `adv-new.key` holds the predecessor key (`priv == pred_priv`) and

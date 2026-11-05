@@ -19,7 +19,7 @@ town: core
 - 16:2xZ 10-01 (belam, independent): `inbox/director-general-3.md` cursor at line 954 sat PAST belam's 16:09:39Z `[red]` (the G8 order); DG3 never saw it; the owner caught it.
 - 17:1xZ 10-01 (SM, measured; DG1 re-read the bytes): `inbox/director-general-5.md` cursor at line 120 sits past SM's 17:0xZ `[decision]` (C2 re-mur) at line 119; DG5's 17:05Z reply answers other items and never mentions it -- the second case on DG5's inbox in 30 min.
 - 3 cases / 2 posts (DG5 twice): an action order can vanish silently -- a comms red (belam 17:0xZ), not a residue.
-- The advancer is UNNAMED. Candidates to rule in or out by measurement: the first-turn inbox injection (rotate/brief runs `read`), a wake/nudge path (`send.py wake`, heal `_repair_stranded_wakes`), the v5 mail poll (engine-wrap types `send.py read $AGI_SEAT`), a compaction / resume re-running a read, a second session sharing the seat name.
+- The advancer is UNNAMED. Candidates to rule in or out by measurement: the first-turn inbox injection (rotate/brief runs `read`), a wake/nudge path (`send.py wake`, heal `_repair_stranded_wakes`), the v5 mail poll (engine-wrap types `send.py read $AGI_[retired]`), a compaction / resume re-running a read, a second session sharing the seat name.
 
 ## CLAIM
 A message appended to a post's inbox after that post's last read is reported by the next `send.py read <post>`: no path advances the `# read up to here` cursor past a line that the reading call did not print. The advancer of both measured cases is named in this node, with the file:line.

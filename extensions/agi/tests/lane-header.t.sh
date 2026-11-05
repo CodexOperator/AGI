@@ -1,0 +1,162 @@
+#!/bin/sh
+# lane-header.t.sh: goal:g7.16.1.11.46.8 (C3) falsifier 1: the three fronts that reach the Console each send the lane's anthropic-workspace-id, from the lane CELL of config:secrets, with the key read from the credential FILE and
+# never in a front's argv or environ. The fronts are the REAL ones: the agi-infer piece, pi 0.73.x (models.json provider claude-lane from `agi-lane pi`), claude -p (ANTHROPIC_CUSTOM_HEADERS from `agi-lane header` + apiKeyHelper from
+# `agi-lane claude`). A LOCAL capture endpoint (127.0.0.1, python3 = the FIXTURE server only) records every request; no real key, no network, 0 USD. strace -f -v -e execve on each front proves the canary key is in no argv/environ.
+# One ok/FAIL line per case; exit = number of FAILs. A MUTANT is one edit of a piece (rep) and its row passes only when the clean row is RED on it. Live leg (one real request per front, the response header == the cell) = banked.
+T=$(mktemp -d);S=;trap '[ -z "$S" ]||kill $S 2>/dev/null;rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};G=/usr/bin/git
+sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
+ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+for x in pi claude strace jq python3;do command -v $x >/dev/null||{ echo "FAIL inputs: $x is not on PATH";exit 99;};done
+sect agi-infer>$T/infer;sect agi-lane>$T/lane;[ -s $T/infer ]&&[ -s $T/lane ]||{ echo "FAIL extract: agi-infer $(wc -c<$T/infer) B, agi-lane $(wc -c<$T/lane) B";exit 99;}
+INFER=$T/infer;LANE=$T/lane
+KP=sk-an;KP=${KP}t;K="${KP}-api03-LANECANARY0123"
+# a helper that rewrites a COPY later rows run on fails closed (goal:g7.16.1.11.13.6, council (A) 10-26 22:17Z): ONE named line, exit 99, no ok row after it.
+# fx NAME BEFORE AFTER LITERAL: the edit changed 0 bytes. fxn NAME GOT WANT LITERAL: a count the edit must reach (where 0 changed bytes can be right: the live cell may already hold the value).
+fx(){ cmp -s "$2" "$3"&&{ echo "FAIL fixture: $1 matched nothing: $4";exit 99;};:;}
+fxn(){ [ "$2" = "$3" ]||{ echo "FAIL fixture: $1 matched nothing: $4 ($2 of $3)";exit 99;};}
+rep(){ A=$1 B=$2 awk '{o="";r=$0;while((i=index(r,ENVIRON["A"]))>0){o=o substr(r,1,i-1) ENVIRON["B"];r=substr(r,i+length(ENVIRON["A"]))}print o r}' $3>$T/mut.$4;fx rep $3 $T/mut.$4 "$1";}
+# --- the cells: a scratch main repo whose secrets.md carries three test ids (and an option-B lane in a second commit)
+M=$T/main;mkdir -p $M/.agi/nodes/.geometry;$G -C $M init -q
+sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": "wrkspc_BATCH111"/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": "wrkspc_KIDS2222"/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": "wrkspc_COUNCIL333"/' $R0/.agi/nodes/.geometry/secrets.md>$M/.agi/nodes/.geometry/secrets.md;fxn fixture-id-sed $(grep -c '"workspace": "wrkspc_\(BATCH111\|KIDS2222\|COUNCIL333\)"' $M/.agi/nodes/.geometry/secrets.md) 3 "the three fixture workspace cells in the scratch secrets.md"
+# (above) fail closed: the three fixture ids must be IN the scratch cells, whatever the live cells hold (empty or filled), else every row below would read the live ids
+$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm ids >/dev/null 2>&1;TR=$($G -C $M rev-parse HEAD)
+sed -e '/^  agi-council:/s/"workspace": "wrkspc_COUNCIL333"/"scoped_key": "claude-council"/' $M/.agi/nodes/.geometry/secrets.md>$T/optb;fx optb-sed $M/.agi/nodes/.geometry/secrets.md $T/optb "agi-council wrkspc_COUNCIL333 -> scoped_key";cp $T/optb $M/.agi/nodes/.geometry/secrets.md;$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm optb >/dev/null 2>&1;TB=$($G -C $M rev-parse HEAD)
+mkdir -p $T/cred;printf %s "$K">$T/cred/claude-sp;printf %s "$K">$T/cred/claude-council
+# --- the capture endpoint: every request's path + lowercased headers, one JSON per line; 200 + [DONE] for a chat call, 401 otherwise
+cat >$T/srv.py<<'XX2'
+import http.server,sys,json
+T=sys.argv[1]
+class H(http.server.BaseHTTPRequestHandler):
+  protocol_version='HTTP/1.0'
+  def log_message(self,*a):pass
+  def do_POST(s):
+    b=s.rfile.read(int(s.headers.get('Content-Length') or 0))
+    open(T+'/req.log','a').write(json.dumps({'p':s.path,'h':{k.lower():v for k,v in s.headers.items()}})+'\n')
+    if s.path.endswith('/chat/completions'):
+      s.send_response(200);s.send_header('Content-Type','text/event-stream');s.end_headers();s.wfile.write(b'data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n');return
+    s.send_response(401);s.send_header('Content-Type','application/json');s.end_headers();s.wfile.write(b'{"type":"error","error":{"type":"authentication_error","message":"capture"}}')
+srv=http.server.HTTPServer(('127.0.0.1',0),H);open(T+'/port','w').write(str(srv.server_address[1]));srv.serve_forever()
+XX2
+python3 $T/srv.py $T & S=$!;i=0;while [ ! -s $T/port ]&&[ $i -lt 50 ];do sleep 0.1;i=$((i+1));done;PORT=$(cat $T/port);[ "$PORT" ]||{ echo "FAIL inputs: the capture endpoint did not start";exit 99;}
+BASE=http://127.0.0.1:$PORT
+lane(){ ( cd $M && AGI_TRUNK=${LT:-$TR} AGI_LANE_URL=$BASE/$TAG sh ${LP:-$LANE} "$@" );}
+# first request of a front (by its path prefix) and every request lacking the header
+got(){ jq -rs --arg t "/$1/" --arg k "$2" '[.[]|select(.p|startswith($t))]|(.[0].h[$k]//"")' $T/req.log 2>/dev/null;}
+nreq(){ jq -rs --arg t "/$1/" '[.[]|select(.p|startswith($t))]|length' $T/req.log 2>/dev/null;}
+nolack(){ jq -rs --arg t "/$1/" --arg v "$2" '[.[]|select(.p|startswith($t))|select(.h["anthropic-workspace-id"]!=$v)]|length' $T/req.log 2>/dev/null;}
+# --- the three fronts: each under strace (execve, env expanded) so a key in any argv/environ of the front or its children is seen
+front_infer(){ TAG=$1;echo hi|strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH CREDENTIALS_DIRECTORY=$T/cred AGI_INFER_URL=$BASE/$1/v1 AGI_INFER_MODEL=m AGI_INFER_CRED=$T/cred/claude-sp AGI_INFER_WORKSPACE="$(lane id agi-batch)" sh ${IP:-$INFER}>/dev/null 2>&1;}
+front_pi(){ TAG=$1;rm -rf $T/pi.$1;mkdir -p $T/pi.$1/.pi/agent;lane pi agi-kids capmodel>$T/pi.$1/.pi/agent/models.json;strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH HOME=$T/pi.$1 CREDENTIALS_DIRECTORY=$T/cred timeout 90 pi --provider claude-lane --model capmodel -p hi </dev/null >/dev/null 2>&1;}
+front_claude(){ TAG=$1;rm -rf $T/cl.$1;mkdir -p $T/cl.$1;strace -f -v -s 4096 -qq -e trace=execve -o $T/st.$1 env -i PATH=$PATH HOME=$T/cl.$1 CREDENTIALS_DIRECTORY=$T/cred ANTHROPIC_BASE_URL=$BASE/$1 ANTHROPIC_CUSTOM_HEADERS="$(lane header agi-council)" DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 timeout 90 claude -p hi --settings "$(lane claude agi-council)" </dev/null >/dev/null 2>&1;}
+# council 4ac9112d8d + amendment c9a1c2f38f (L82): agi-infer reads the credential file ONLY when AGI_INFER_CRED is set explicitly (no default, no host rule); the file is present in every scenario below
+inf_x(){ TAG=$1;shift;echo hi|env -i PATH=$PATH CREDENTIALS_DIRECTORY=$T/cred AGI_INFER_URL=$BASE/$TAG/v1 AGI_INFER_MODEL=m "$@" sh ${IP:-$INFER}>/dev/null 2>&1;}
+canary_in(){ grep "\"/$1/" $T/req.log|grep -c LANECANARY;}
+leak(){ echo "$(grep -c LANECANARY $T/st.$1) / $(grep -c execve $T/st.$1) execve";}
+# ================= the lane verbs themselves
+ok "v-a-id-prints-the-cell lane agi-batch: [$(TAG=x lane id agi-batch)] (want wrkspc_BATCH111)" '[ "$(TAG=x lane id agi-batch)" = wrkspc_BATCH111 ]'
+ok "v-a-header-is-name-colon-value [$(TAG=x lane header agi-kids)]" '[ "$(TAG=x lane header agi-kids)" = "anthropic-workspace-id: wrkspc_KIDS2222" ]'
+ok "v-a-claude-settings-cat-the-credential-file-by-name-not-by-value [$(TAG=x lane claude agi-kids)]" '[ "$(TAG=x lane claude agi-kids)" = "{\"apiKeyHelper\":\"cat \$CREDENTIALS_DIRECTORY/claude-sp\"}" ]'
+ok "v-a-pi-provider-has-the-header-and-the-bang-cat-key [$(TAG=x lane pi agi-kids m|cut -c1-120)]" 'TAG=x lane pi agi-kids m|jq -e ".providers[\"claude-lane\"]|.api==\"anthropic-messages\" and .headers[\"anthropic-workspace-id\"]==\"wrkspc_KIDS2222\" and .apiKey==\"!cat \$CREDENTIALS_DIRECTORY/claude-sp\"" >/dev/null'
+ok "v-a-no-verb-prints-a-key-byte canary hits in all four: $(for v in id header pi claude;do TAG=x lane $v agi-kids;done|grep -c LANECANARY)" '[ "$(for v in id header pi claude;do TAG=x lane $v agi-kids;done|grep -c LANECANARY)" = 0 ]'
+ok "v-b-option-B-lane-sends-no-header-and-names-its-own-file header out [$(LT=$TB TAG=x lane header agi-council)] rc, pi: $(LT=$TB TAG=x lane pi agi-council|jq -c '.providers["claude-lane"]|[.headers,.apiKey]')" '[ -z "$(LT=$TB TAG=x lane header agi-council)" ]&&[ "$(LT=$TB TAG=x lane pi agi-council|jq -c ".providers[\"claude-lane\"]|[.headers,.apiKey]")" = "[null,\"!cat \$CREDENTIALS_DIRECTORY/claude-council\"]" ]'
+ok "v-c-an-unknown-lane-is-rc-2 rc $(TAG=x lane id agi-nope >/dev/null 2>&1;echo $?)" '[ "$(TAG=x lane id agi-nope >/dev/null 2>&1;echo $?)" = 2 ]'
+cp $M/.agi/nodes/.geometry/secrets.md $T/keep;sed -e '/^  agi-kids:/s/"workspace": "wrkspc_KIDS2222"/"workspace": ""/' $T/keep>$M/.agi/nodes/.geometry/secrets.md;fx v-c-sed $T/keep $M/.agi/nodes/.geometry/secrets.md "agi-kids wrkspc_KIDS2222 -> empty";$G -C $M add -A;$G -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm empty >/dev/null 2>&1;TE=$($G -C $M rev-parse HEAD)
+ok "v-c-an-empty-workspace-cell-is-rc-3-and-says-whose-act rc $(LT=$TE TAG=x lane id agi-kids >/dev/null 2>&1;echo $?)" '[ "$(LT=$TE TAG=x lane id agi-kids >/dev/null 2>&1;echo $?)" = 3 ]&&LT=$TE TAG=x lane id agi-kids 2>&1|grep -q "owner makes the workspace"'
+[ -z "$LH_STOP" ]||{ echo "lane-header: $f FAIL (stopped after the fixture rows)";exit $f;}
+# ================= the fronts, clean
+front_infer a;front_pi b;front_claude c
+ok "f-a-agi-infer-sends-the-lane-header header [$(got a anthropic-workspace-id)] (cell wrkspc_BATCH111), requests $(nreq a), without it $(nolack a wrkspc_BATCH111)" '[ "$(got a anthropic-workspace-id)" = wrkspc_BATCH111 ]&&[ "$(nolack a wrkspc_BATCH111)" = 0 ]'
+ok "f-a-agi-infer-sends-the-key-from-the-file auth line equals the canary bearer: $([ "$(got a authorization)" = "Bearer $K" ]&&echo yes||echo NO)" '[ "$(got a authorization)" = "Bearer $K" ]'
+ok "f-b-pi-sends-the-lane-header header [$(got b anthropic-workspace-id)] (cell wrkspc_KIDS2222), requests $(nreq b), without it $(nolack b wrkspc_KIDS2222)" '[ "$(got b anthropic-workspace-id)" = wrkspc_KIDS2222 ]&&[ "$(nolack b wrkspc_KIDS2222)" = 0 ]'
+ok "f-b-pi-sends-the-key-from-the-bang-cat x-api-key equals the canary: $([ "$(got b x-api-key)" = "$K" ]&&echo yes||echo NO)" '[ "$(got b x-api-key)" = "$K" ]'
+ok "f-c-claude-p-sends-the-lane-header header [$(got c anthropic-workspace-id)] (cell wrkspc_COUNCIL333), requests $(nreq c), without it $(nolack c wrkspc_COUNCIL333)" '[ "$(got c anthropic-workspace-id)" = wrkspc_COUNCIL333 ]&&[ "$(nolack c wrkspc_COUNCIL333)" = 0 ]'
+ok "f-c-claude-p-sends-the-key-from-the-apiKeyHelper auth line equals the canary bearer: $([ "$(got c authorization)" = "Bearer $K" ]&&echo yes||echo NO)" '[ "$(got c authorization)" = "Bearer $K" ]'
+for x in a b c;do ok "f-$x-no-key-byte-in-any-argv-or-environ-of-the-front-or-its-children canary/execve: $(leak $x) (want 0 / >= 1: non-vacuous)" '[ "$(grep -c LANECANARY $T/st.'$x')" = 0 ]&&[ "$(grep -c execve $T/st.'$x')" -ge 1 ]';done
+# ================= (a)(b)(c): the file is never read unless asked for
+inf_x sa OTHERVAR=otherbearer AGI_INFER_KEY=OTHERVAR
+ok "x-a-file-present-cred-unset-key-set-sends-the-callers-key auth [$(got sa authorization)] (want Bearer otherbearer), requests $(nreq sa), credential bytes in the request: $(canary_in sa) (want 0)" '[ "$(nreq sa)" -ge 1 ]&&[ "$(got sa authorization)" = "Bearer otherbearer" ]&&[ "$(canary_in sa)" = 0 ]'
+inf_x sb
+ok "x-b-file-present-cred-unset-key-unset-sends-NO-authorization auth [$(got sb authorization)] (want empty), requests $(nreq sb), credential bytes: $(canary_in sb) (want 0)" '[ "$(nreq sb)" -ge 1 ]&&[ -z "$(got sb authorization)" ]&&[ "$(canary_in sb)" = 0 ]'
+inf_x sc OTHERVAR=otherbearer AGI_INFER_KEY=OTHERVAR AGI_INFER_CRED=$T/cred/claude-sp
+ok "x-c-cred-set-explicitly-the-credential-is-sent-even-over-a-named-key auth equals the canary bearer: $([ "$(got sc authorization)" = "Bearer $K" ]&&echo yes||echo NO)" '[ "$(got sc authorization)" = "Bearer $K" ]'
+# ================= MUTANTS: a front with the header dropped reads RED (the clean row above is what it breaks)
+rep '${AGI_INFER_WORKSPACE:+anthropic-workspace-id: $AGI_INFER_WORKSPACE}' '' $INFER inf;IP=$T/mut.inf front_infer ma;IP=
+ok "m1-MUTANT-agi-infer-without-the-header-line-RED header [$(got ma anthropic-workspace-id)] (clean: wrkspc_BATCH111), requests $(nreq ma)" '[ "$(nreq ma)" -ge 1 ]&&[ "$(got ma anthropic-workspace-id)" != wrkspc_BATCH111 ]'
+rep 'if $w!="" then' 'if false then' $LANE lpi;LP=$T/mut.lpi front_pi mb;LP=
+ok "m2-MUTANT-the-pi-provider-without-headers-RED header [$(got mb anthropic-workspace-id)] (clean: wrkspc_KIDS2222), requests $(nreq mb)" '[ "$(nreq mb)" -ge 1 ]&&[ "$(got mb anthropic-workspace-id)" != wrkspc_KIDS2222 ]'
+rep 'header)[ "$w" ]&&echo "anthropic-workspace-id: $w"' 'header)true' $LANE lcl;LP=$T/mut.lcl front_claude mc;LP=
+ok "m3-MUTANT-claude-p-without-the-custom-header-RED header [$(got mc anthropic-workspace-id)] (clean: wrkspc_COUNCIL333), requests $(nreq mc)" '[ "$(nreq mc)" -ge 1 ]&&[ "$(got mc anthropic-workspace-id)" != wrkspc_COUNCIL333 ]'
+rep '[ -r "$AGI_INFER_CRED" ]&&k=$(cat "$AGI_INFER_CRED")' 'c=${AGI_INFER_CRED:-$CREDENTIALS_DIRECTORY/claude-sp};[ -r "$c" ]&&k=$(cat "$c")' $INFER dflt
+IP=$T/mut.dflt inf_x ma2 OTHERVAR=otherbearer AGI_INFER_KEY=OTHERVAR;IP=$T/mut.dflt inf_x mb2;IP=
+ok "m4-MUTANT-the-old-default-replaces-the-callers-key-RED (a) auth [$(got ma2 authorization)] (clean: Bearer otherbearer), (b) auth [$(got mb2 authorization)] (clean: empty)" '[ "$(nreq ma2)" -ge 1 ]&&[ "$(got ma2 authorization)" != "Bearer otherbearer" ]&&[ "$(nreq mb2)" -ge 1 ]&&[ -n "$(got mb2 authorization)" ]'
+# ================= the fixture is INDEPENDENT of the live cells (council 10-26: the lane went red on the trunk when the live cells were filled). Each row runs a COPY of this file against a SCRATCH root whose
+# secrets.md holds DECOY ids (the live file is never read), stopped after the fixture rows (LH_STOP), in seconds. A mutant is one or two edits of the copy.
+FR=$T/fr;FE=$T/fe;mkdir -p $FR/.agi/nodes/.geometry $FE/.agi/nodes/.geometry;cp $R0/.agi/nodes/.geometry/engine*.md $FR/.agi/nodes/.geometry/;cp $R0/.agi/nodes/.geometry/engine*.md $FE/.agi/nodes/.geometry/
+sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY1"/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY2"/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": "wrkspc_LIVEDECOY3"/' $R0/.agi/nodes/.geometry/secrets.md>$FR/.agi/nodes/.geometry/secrets.md;fxn decoy-filled-sed $(grep -c '"workspace": "wrkspc_LIVEDECOY' $FR/.agi/nodes/.geometry/secrets.md) 3 "the three decoy workspace cells"
+sed -e '/^  agi-batch:/s/"workspace": "[^"]*"/"workspace": ""/' -e '/^  agi-kids:/s/"workspace": "[^"]*"/"workspace": ""/' -e '/^  agi-council:/s/"workspace": "[^"]*"/"workspace": ""/' $R0/.agi/nodes/.geometry/secrets.md>$FE/.agi/nodes/.geometry/secrets.md;fxn decoy-empty-sed $(grep -c '"workspace": ""' $FE/.agi/nodes/.geometry/secrets.md) 3 "the three empty workspace cells"
+SELF=$R0/extensions/agi/tests/lane-header.t.sh
+lhcopy(){ python3 - "$SELF" "$@" <<'P'||exit 99
+import sys
+s=open(sys.argv[1]).read();out=sys.argv[2];pr=sys.argv[3:]
+for x,y in zip(pr[0::2],pr[1::2]):
+    if x not in s: print("FAIL fixture: lhcopy matched nothing: "+x[:60]); sys.exit(99)
+    s=s.replace(x,y,1)
+open(out,"w").write(s)
+P
+}
+lhrun(){ ROOT=$1 LH_STOP=1 sh $2 >$T/lh.out 2>&1;lhrc=$?;lhfail=$(grep -c '^FAIL' $T/lh.out);lhdecoy=$(grep -c LIVEDECOY $T/lh.out);}
+lhrun $FR $SELF
+ok "g-a-live-cells-FILLED: the lane reads its fixture ids rc $lhrc, FAIL lines $lhfail, lines echoing a live id $lhdecoy (want 0 0 0)" '[ $lhrc = 0 ]&&[ $lhfail = 0 ]&&[ $lhdecoy = 0 ]&&grep -q "^ok v-a-id-prints-the-cell lane agi-batch: .wrkspc_BATCH111" $T/lh.out'
+ok "g-a-the-v-c-empty-cell-is-the-fixtures-own rc $lhrc" 'grep -q "^ok v-c-an-empty-workspace-cell-is-rc-3-and-says-whose-act rc 3" $T/lh.out'
+lhrun $FE $SELF
+ok "g-a-live-cells-EMPTY: the same fixture rc $lhrc, FAIL lines $lhfail" '[ $lhrc = 0 ]&&[ $lhfail = 0 ]&&grep -q "^ok v-c-an-empty-workspace-cell-is-rc-3-and-says-whose-act rc 3" $T/lh.out'
+SEDB='s/"workspace": "[^"]*"/"workspace": "wrkspc_BATCH111"/';SEDBO='s/"workspace": ""/"workspace": "wrkspc_BATCH111"/'
+SEDK='s/"workspace": "[^"]*"/"workspace": "wrkspc_KIDS2222"/';SEDKO='s/"workspace": ""/"workspace": "wrkspc_KIDS2222"/'
+SEDC='s/"workspace": "[^"]*"/"workspace": "wrkspc_COUNCIL333"/';SEDCO='s/"workspace": ""/"workspace": "wrkspc_COUNCIL333"/'
+# (1)+(3): the empty-only sed back WITH the guard -> the lane stops at the fixture step, never reading the live ids
+lhcopy $T/lh.m5.sh "$SEDB" "$SEDBO" "$SEDK" "$SEDKO" "$SEDC" "$SEDCO"
+lhrun $FR $T/lh.m5.sh
+ok "g-b-guard-the-empty-only-sed-with-the-guard-stops-at-the-fixture rc $lhrc (want 99): $(grep -m1 '^FAIL fixture' $T/lh.out|cut -c1-70)" '[ $lhrc = 99 ]&&grep -qx "FAIL fixture: fixture-id-sed matched nothing: the three fixture workspace cells in the scratch secrets.md (0 of 3)" $T/lh.out&&[ "$(grep -c '^ok' $T/lh.out)" = 0 ]'
+# (1) MUTANT and (3) MUTANT: the empty-only sed back AND the guard dropped -> the lane runs on the live ids and reads RED (the 8 FAIL), never green
+lhcopy $T/lh.m6.sh "$SEDB" "$SEDBO" "$SEDK" "$SEDKO" "$SEDC" "$SEDCO" 'fxn fixture-id-sed $(' 'true fixture-id-sed $(' 'fx optb-sed ' 'true optb-sed ' 'fx v-c-sed ' 'true v-c-sed '
+lhrun $FR $T/lh.m6.sh
+ok "g-c-MUTANT-empty-only-sed-and-no-guard-reads-RED rc $lhrc (want >0 and not 99), FAIL lines $lhfail, live ids echoed $lhdecoy" '[ $lhrc -gt 0 ]&&[ $lhrc != 99 ]&&[ $lhfail -ge 1 ]'
+# (2) MUTANT: the v-c empty cell fed the live file instead of the fixture's own commit -> the cell is never emptied, v-c reads RED
+lhcopy $T/lh.m7.sh 's/"workspace": "wrkspc_KIDS2222"/"workspace": ""/' 's/"workspace": "wrkspc_NOMATCH"/"workspace": ""/'
+lhrun $FR $T/lh.m7.sh
+ok "g-d-v-c-sed-matching-nothing-exits-99 rc $lhrc (want 99): $(grep -m1 '^FAIL' $T/lh.out|cut -c1-90)" '[ $lhrc = 99 ]&&grep -qx "FAIL fixture: v-c-sed matched nothing: agi-kids wrkspc_KIDS2222 -> empty" $T/lh.out&&[ "$(tail -1 $T/lh.out)" = "FAIL fixture: v-c-sed matched nothing: agi-kids wrkspc_KIDS2222 -> empty" ]'
+# the same with v-c's fx dropped: the cell is never emptied and v-c itself reads RED (the guard's mutant)
+lhcopy $T/lh.m8.sh '"workspace": ""/'"'"' $T/keep>' '"workspace": ""/'"'"' $R0/.agi/nodes/.geometry/secrets.md>' 'fx v-c-sed ' 'true v-c-sed '
+lhrun $FR $T/lh.m8.sh
+ok "g-d-MUTANT-v-c-fed-the-live-file-without-its-guard-reads-RED rc $lhrc, FAIL lines $lhfail: $(grep -m1 '^FAIL v-c' $T/lh.out|cut -c1-60)" '[ $lhrc -ge 1 ]&&[ $lhrc != 99 ]&&grep -q "^FAIL v-c-an-empty-workspace-cell" $T/lh.out'
+# optb-sed: its literal made unmatchable -> exit 99 on its one line, no ok row after it; its guard dropped -> v-b reads RED
+lhcopy $T/lh.m9.sh 's/"workspace": "wrkspc_COUNCIL333"/"scoped_key"' 's/"workspace": "wrkspc_NOMATCH"/"scoped_key"'
+lhrun $FR $T/lh.m9.sh
+ok "g-e-optb-sed-matching-nothing-exits-99 rc $lhrc: $(grep -m1 '^FAIL' $T/lh.out|cut -c1-90)" '[ $lhrc = 99 ]&&grep -qx "FAIL fixture: optb-sed matched nothing: agi-council wrkspc_COUNCIL333 -> scoped_key" $T/lh.out&&[ "$(grep -c "^ok" $T/lh.out)" = 0 ]'
+lhcopy $T/lh.m10.sh 's/"workspace": "wrkspc_COUNCIL333"/"scoped_key"' 's/"workspace": "wrkspc_NOMATCH"/"scoped_key"' 'fx optb-sed ' 'true optb-sed '
+lhrun $FR $T/lh.m10.sh
+ok "g-e-MUTANT-optb-sed-guard-dropped-reads-RED rc $lhrc (want >0, not 99): $(grep -m1 '^FAIL v-b' $T/lh.out|cut -c1-60)" '[ $lhrc -ge 1 ]&&[ $lhrc != 99 ]&&grep -q "^FAIL v-b-option-B" $T/lh.out'
+# lhcopy: a mutant copy whose target is gone EXITS 99 with its one line (never a lane that runs on with a missing copy); the old python assert is its guard-dropped mutant
+NOL=$(printf 'no-%s-here' such);x=$(lhcopy $T/lh.zz.sh "$NOL" 'y';echo AFTER);rc=$?
+ok "l-lhcopy-matching-nothing-exits-99-with-one-named-line rc $rc: $(echo "$x"|tr '\n' '|'|cut -c1-90)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: lhcopy matched nothing: $NOL" ]'
+x=$(lhcopy(){ python3 - "$SELF" "$@" <<'P'
+import sys
+s=open(sys.argv[1]).read();out=sys.argv[2];pr=sys.argv[3:]
+for x,y in zip(pr[0::2],pr[1::2]):
+    assert x in s,"mutant target absent: "+x[:40]; s=s.replace(x,y,1)
+open(out,"w").write(s)
+P
+};lhcopy $T/lh.zz.sh "$NOL" 'y' 2>/dev/null;echo AFTER);rc=$?
+ok "l-MUTANT-lhcopy-guard-dropped-the-old-assert-reads-RED rc $rc, $(echo "$x"|tr '\n' '|') (want rc 0 and AFTER: the lane ran on)" '[ $rc = 0 ]&&[ "$x" = AFTER ]'
+# rep (the leaf's site, 4 calls): a literal that matches nothing EXITS 99 with ONE named line, no ok row after it; the old print-only rep is the guard-dropped mutant
+x=$(rep 'a literal no piece holds' 'x' $INFER zz;echo AFTER);rc=$?
+ok "r-rep-matching-nothing-exits-99-with-one-named-line rc $rc (want 99): $(echo "$x"|tr '\n' '|'|cut -c1-100)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: rep matched nothing: a literal no piece holds" ]'
+x=$(rep 'if $w!="" then' 'if false then' $LANE zz;echo AFTER);rc=$?
+ok "r-rep-an-edit-that-changes-bytes-is-silent rc $rc: $(echo "$x"|tr '\n' '|')" '[ $rc = 0 ]&&[ "$x" = AFTER ]'
+x=$(fx(){ cmp -s "$2" "$3"&&echo "# NO EDIT for [$4]";};rep 'a literal no piece holds' 'x' $INFER zz;echo AFTER);rc=$?
+ok "r-MUTANT-rep-guard-dropped-reads-RED (the trunk's print-only rep): rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-90) (want rc 0, AFTER, no FAIL line: the clean row exits 99)" '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture"&&echo "$x"|grep -qx AFTER'
+ok "r-every-rep-call-runs-through-fx calls $(grep -c "^rep '" $SELF) (want 4), rep defs with fx $(grep -c '^rep(){ .*;fx rep ' $SELF) (want 1)" '[ "$(grep -c "^rep '"'"'" $SELF)" = 4 ]&&[ "$(grep -c "^rep(){ .*;fx rep " $SELF)" = 1 ]'
+# ================= NEGATIVE (leaf falsifier 3)
+n=$($G -C $R0 grep -c 'ANTHROPIC_API_KEY=' -- .agi/nodes/.geometry 2>/dev/null|awk -F: '{s+=$NF}END{print s+0}')
+ok "n-no-geometry-node-sets-ANTHROPIC_API_KEY hits $n (want 0)" '[ "$n" = 0 ]'
+echo "lane-header: $f FAIL";exit $f

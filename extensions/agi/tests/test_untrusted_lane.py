@@ -13,7 +13,7 @@ untrusted row keeping today's default exactly.
 
 FILE SCOPE (slice-cut): dispatch.py, season.py, provisioning.py -- tested
 through their helpers -- plus this test file only. send.py/rings.py/veto.py/
-rotate.py/verification.py/cli.py/write.py/brief.py are untouched.
+rotate.py/verification.py/cli.py/brief.py (and the node writer, since retired) are untouched.
 """
 
 from __future__ import annotations

@@ -29,6 +29,14 @@ locations:
     gitignored: false
     declared_in:
       - {"extensions/agi/bin/envfile.py :": "resolve"}
+credits_live: true
+atomize_live: false
+summary_live: false
+doppler: {"project": "agi", "config": "dev"}
+lanes:
+  agi-batch: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-batch.service"}
+  agi-kids: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-kids.service"}
+  agi-council: {"workspace": "wrkspc_01F6D36dQiczWRCAEvea8FHC", "unit": "agi-council.service"}
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
@@ -146,3 +154,34 @@ is that the location is owned.
 CAMBER_API_KEY declared optional 2026-09-07 (owner: the Camber Cloud GPU auth token, for goal:g14 local-maxxing; arrives through the standard .env path, never a shell argument). Consumers read it through envfile.py like every other key.
 
 Renamed the declared Camber key to CAMBER_CLOUD_API_KEY, the name the owner pasted on 2026-09-07 (goal:g14 consumers read this name).
+
+## lanes — ids and names only (goal:g7.16.1.11.46.7)
+
+`lanes:` has one cell per Console lane, each read by `agi-cred` (the unit to restart) and by the fronts
+(`agi-infer`, `agi-lane`: the header to send). A cell is JSON on one line so a shell reads it with `sed` + `jq`:
+
+| key | value |
+|---|---|
+| `workspace` | `wrkspc_` + letters/digits (the Console Workspaces page), or `""` while the owner has not made the workspace |
+| `scoped_key` | option B, instead of `workspace`: the NAME of the lane's credential file (`[a-z][a-z0-9-]*`); that front then sends no header |
+| `unit` | the lane unit `agi-cred` restarts when the credential file changes: `<name>.service` |
+
+An id and a name are not secrets; a secret value in this node is a red: `python3 extensions/agi/bin/envfile.py --lanes`
+exits 1 on a malformed cell, a lane missing, both or neither of `workspace` / `scoped_key`, or any Console key string anywhere in
+this file (it names the line number and the count, never the line).
+
+## credits_live and doppler (goal:g7.16.1.11.46.6)
+
+`credits_live: false` is the kill cell (the shape of `crons_live`): at its next tick `agi-cred` removes `/etc/credstore/claude-sp` and restarts the
+lane units that carry `LoadCredential=claude-sp`. The owner flips it; it ships false. `doppler` names the Doppler project and config `agi-cred` reads
+`CLAUDE_CONSOLE_SP_KEY` from; the config is empty until the owner names it, and an empty cell writes nothing.
+
+`atomize_live` gates the atomizer's wake (goal:g7.16.1.11.46.3) on its OWN cell, never on `credits_live`: agi-meter, the one caller every post
+runs, forks `agi-atomize wake` only when it reads `atomize_live: true` here; anything else logs ONE named line in ~/.atomize.log and makes no
+request. It ships false and stays false until the council's P-a..P-e terms have landed (council 3/3 05:26Z 10-24; this cell: alive [decision]
+14:17:17Z 10-31, D1: credits_live had been true since 10-25 while every post's wake ran live against a closed port).
+
+`summary_live` gates the memory compactor (goal:g7.16.1.11.46.25, M9) on its OWN cell, never on `credits_live` (alive [decision]
+14:17:17Z 10-31, D3): `agi-mem compact` sends its ONE request to the real endpoint only when it reads `summary_live: true` here;
+anything else (false, absent, unreadable) forces agi-infer's URL to AGI_MEM_STUB (default a dead local port), so no model call is spent. It
+ships false and stays false until the council flips it.

@@ -80,7 +80,7 @@ def _run_hook(cwd: Path, *, home: Path, seat: str):
     env.pop("AGI_TREE_PROJECT_ROOT", None)
     env.pop("AUTORESEARCH_TREE_PROJECT_ROOT", None)
     env["HOME"] = str(home)
-    env["AGI_SEAT"] = seat
+    env["AGI_POST"] = seat
     return subprocess.run(["bash", str(NEXT_HOOK)], cwd=str(cwd),
                           capture_output=True, text=True, env=env)
 

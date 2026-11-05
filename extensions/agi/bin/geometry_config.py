@@ -54,31 +54,20 @@ from pathlib import Path
 _FLAG_DEP_MSG = (
     "note: --seat is deprecated; use --post this season."
 )
-_ENV_DEP_MSG = (
-    "note: AGI_SEAT is deprecated; use AGI_POST this season."
-)
 
-# Module-level flags: the deprecated-alias notices (--seat flag spelling +
-# the retired env spelling) fire AT MOST ONCE PER PROCESS, however many
-# readers/consumers hit them. There is deliberately NO file-level notice: the
-# seats.md fallback is silent.
+# Module-level flag: the deprecated-alias notice (the --seat flag spelling)
+# fires AT MOST ONCE PER PROCESS, however many readers/consumers hit it. There
+# is deliberately NO file-level notice: the seats.md fallback is silent.
 _seen_flag = False
-_seen_env = False
 
 
 def _print_once(msg: str, flag_holder: str) -> None:
     """Print a deprecation notice once per process (best effort, never raises).
-    Only the `--seat` flag and the retired env spelling remain live; there is
-    no file fallback notice."""
-    global _seen_flag, _seen_env
+    Only the `--seat` flag remains live; there is no file fallback notice."""
+    global _seen_flag
     if flag_holder == "flag" and _seen_flag:
         return
-    if flag_holder == "env" and _seen_env:
-        return
-    if flag_holder == "flag":
-        _seen_flag = True
-    else:
-        _seen_env = True
+    _seen_flag = True
     try:
         print(msg, file=sys.stderr)
     except Exception:  # noqa: BLE001  (a notice must never break a reader)
@@ -129,17 +118,59 @@ def load_rows(root: Path | None) -> list:
     return []
 
 
+MEM_VALUES = ("full", "season", "goal", "none")
+FACES_VALUES = ("owner", "posts", "none")
+
+
+def cell_errors(root: Path | None) -> list:
+    """goal:g7.16.1.11.46.13 R7: the ONE check of a row's `mem:` and `faces:`
+    cells. An absent `mem:` reads `none`, an absent `faces:` reads `none`;
+    `faces: owner` without `mem: full` is refused, each by one named line."""
+    out = []
+    for row in load_rows(root):
+        who, mem, faces = row.get("name", "?"), row.get("mem") or "none", row.get("faces") or "none"
+        if mem not in MEM_VALUES:
+            out.append(f"[cells] {who}: mem: {mem} is not {'|'.join(MEM_VALUES)}")
+        elif faces not in FACES_VALUES:
+            out.append(f"[cells] {who}: faces: {faces} is not {'|'.join(FACES_VALUES)}")
+        elif faces == "owner" and mem != "full":
+            out.append(f"[cells] {who}: faces: owner requires mem: full (has mem: {mem})")
+    return out
+
+
 def resolved_seat_env() -> str | None:
-    """AGI_POST; else the v4 fallback (the retired spelling, noticed once per
-    process). None when neither — never a placeholder."""
-    post = os.environ.get("AGI_POST")
-    if post:
-        return post
-    seat = os.environ.get("AGI_SEAT")
-    if seat:
-        _print_once(_ENV_DEP_MSG, "env")
-        return seat
-    return None
+    """AGI_POST, the one identity variable (goal:g7.16.1.11.46.11 V10a: the
+    retired spelling's fallback is gone). None when unset — never a placeholder."""
+    return os.environ.get("AGI_POST") or None
+
+
+def default_actor(root=None) -> str:
+    """Who a write with no `--actor` is stamped as (goal:g7.33.20.2, R1; moved
+    here from write._default_actor by goal:g7.16.1.11.46.23 V8a, no change).
+
+    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST), else the unix
+    user PROVABLY not a post's name (every post runs as the user named like the
+    Prime's seat, `belam`, so `$USER` there names the Prime, not the writer),
+    else `unknown`. Fail CLOSED: when the collision check cannot run -- no project
+    root resolved, the posts list unreadable, missing or empty -- `$USER` is never
+    returned. `root` reads the posts list; None resolves it from the cwd."""
+    actor = os.environ.get("AGI_ACTOR") or resolved_seat_env()
+    if actor:
+        return actor
+    user = os.environ.get("USER")
+    if not user:
+        return "unknown"
+    try:
+        if root is None:
+            import locations  # noqa: PLC0415  (local: same dir, no cycle)
+
+            root = locations.find_project_root(Path.cwd())
+        rows = load_rows(root) if root is not None else []
+        if not rows or any(r.get("name") == user for r in rows):
+            return "unknown"
+    except Exception:  # noqa: BLE001 -- the check cannot run: fail closed, never $USER
+        return "unknown"
+    return user
 
 
 class SeatAction(argparse.Action):
@@ -172,6 +203,12 @@ def _main(argv=None) -> int:
         help="Project root to resolve the post config from (default: current "
              "working directory's nearest .agi project).",
     )
+    ap.add_argument(
+        "--cells",
+        action="store_true",
+        help="Check the mem:/faces: cells of every row (goal:g7.16.1.11.46.13 R7): "
+             "one named line per refusal, rc 1 if any.",
+    )
     args = ap.parse_args(argv)
 
     root = args.root
@@ -182,6 +219,15 @@ def _main(argv=None) -> int:
             root = find_root()
         except Exception:  # noqa: BLE001  (best effort for a print helper)
             root = None
+
+    path, key = resolve(root)
+    if args.cells:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+        errs, n = cell_errors(root), len(load_rows(root))
+        if not n:   # a check over no rows proves nothing: never a bare ok
+            errs = [f"[cells] no rows read from {path}"]
+        print("\n".join(errs) if errs else f"cells: ok ({n} rows)")
+        return 1 if errs else 0
 
     path, key = resolve(root)
     if path is not None:

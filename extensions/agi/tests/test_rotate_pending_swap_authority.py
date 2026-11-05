@@ -335,6 +335,8 @@ def test_authority_publish_failed_keeps_key_byte_identical(tmp_path):
                     "echo 'refused by test' >&2; exit 1;; esac\n"
                     "done\nexit 0\n")
     os.chmod(hook, 0o755)
+    # the census pin: a global core.hooksPath (a post uid's ~/bin) hides this repo's own hooks/ (council 02:32:49Z 10-26)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath", str(hook.parent)], check=True)
     r = rotate._finish_pending_swap_on_push(g, "aa", "push: OK")
     assert "NOT completed" in r and key.read_bytes() == frozen
     assert pend.exists()

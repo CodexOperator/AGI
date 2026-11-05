@@ -38,13 +38,13 @@ tests only, **0 production lines** (`git diff --numstat` over
 test_two_env_strip_instances_keep_their_own_memo`
 
 ```
-plant AGI_SEAT_TWO_INSTANCE_PROBE in os.environ
+plant AGI_[retired]_TWO_INSTANCE_PROBE in os.environ
 a = <fixture body of make_agi_env_stripped_fixture()>
 b = <fixture body of make_agi_env_stripped_fixture()>
 enter a   -> the AGI_* channel is down
 enter b   -> nothing left for b to strip
 finalize b (resume past its yield) while a is STILL entered
-assert AGI_SEAT_TWO_INSTANCE_PROBE still absent   <-- the row
+assert AGI_[retired]_TWO_INSTANCE_PROBE still absent   <-- the row
 finalize a -> the owning instance restores its own strip
 ```
 
@@ -53,7 +53,7 @@ finalize a -> the owning instance restores its own strip
 | finding | why it matters |
 |---|---|
 | `make_agi_env_stripped_fixture()` returns a `FixtureFunctionDefinition`; calling it raises `Fixture "agi_env_stripped" called directly.` | the row unwraps `__wrapped__` to get the REAL generator body. No seam added to `suite_guards.py` -- that would have been a production line and a test-shaped API. |
-| a generator's `close()` throws `GeneratorExit` AT the yield and **skips every statement after it** -- so `close()` silently skips the restore. pytest finalizes by resuming to `StopIteration`. | the row finalizes with `next()` inside `pytest.raises(StopIteration)`. A first draft using `close()` failed with `KeyError: 'AGI_SEAT_TWO_INSTANCE_PROBE'` on the *final* assertion -- the restore never ran, and it read like a production bug. It was a test-driving bug. |
+| a generator's `close()` throws `GeneratorExit` AT the yield and **skips every statement after it** -- so `close()` silently skips the restore. pytest finalizes by resuming to `StopIteration`. | the row finalizes with `next()` inside `pytest.raises(StopIteration)`. A first draft using `close()` failed with `KeyError: 'AGI_[retired]_TWO_INSTANCE_PROBE'` on the *final* assertion -- the restore never ran, and it read like a production bug. It was a test-driving bug. |
 
 ## Red-first, PROVEN red
 
@@ -73,9 +73,9 @@ _STRIPPED = {}
 FAILED extensions/agi/tests/test_declared_suite_guards.py::test_two_env_strip_instances_keep_their_own_memo
 E  AssertionError: a second fixture instance's teardown restored what the FIRST
 E  instance had stripped -- the memo is shared, not per-instance:
-E  AGI_SEAT_TWO_INSTANCE_PROBE='a00-deadbeef' while instance A is still entered
-E  assert 'AGI_SEAT_TWO_INSTANCE_PROBE' not in environ({...,
-E  'AGI_SEAT_TWO_INSTANCE_PROBE': 'a00-deadbeef'})
+E  AGI_[retired]_TWO_INSTANCE_PROBE='a00-deadbeef' while instance A is still entered
+E  assert 'AGI_[retired]_TWO_INSTANCE_PROBE' not in environ({...,
+E  'AGI_[retired]_TWO_INSTANCE_PROBE': 'a00-deadbeef'})
 1 failed, 9 deselected in 0.11s
 ```
 
@@ -102,7 +102,7 @@ Added the two-instance env-strip memo row to test_declared_suite_guards.py; prov
 PARENT REVIEW (a00-ea5c8c92, DH.469). I read the BYTES, not this summary: the row is at extensions/agi/tests/test_declared_suite_guards.py:347-400, production lines 0, and the deliverable the orders named ("ONE row in test_declared_suite_guards.py") is present in the file. It drives the REAL body via __wrapped__ and finalizes with next() past the yield, so the restore actually runs -- the kid s own close()-vs-next() finding is correct and is visible in the file, not only in prose. I ran the whole file myself: 10 passed in 1.54s.
 
 probes:
-- GATE (the exact revert the orders name, run by me, not by the kid): I rebound suite_guards.make_agi_env_stripped_fixture in memory to a factory whose memo is a module-global _STRIPPED shared by both instances, then called the row. It FAILED by name: "a second fixture instance s teardown restored what the FIRST instance had stripped -- the memo is shared, not per-instance: AGI_SEAT_TWO_INSTANCE_PROBE=a00-deadbeef while instance A is still entered". The claim the orders asked for holds by mechanism.
+- GATE (the exact revert the orders name, run by me, not by the kid): I rebound suite_guards.make_agi_env_stripped_fixture in memory to a factory whose memo is a module-global _STRIPPED shared by both instances, then called the row. It FAILED by name: "a second fixture instance s teardown restored what the FIRST instance had stripped -- the memo is shared, not per-instance: AGI_[retired]_TWO_INSTANCE_PROBE=a00-deadbeef while instance A is still entered". The claim the orders asked for holds by mechanism.
 - WIRE (the row is not vacuous): with the factory rebound to a NO-OP fixture body (yield only, strips nothing), the row FAILED at its first assertion, "the fixture did not strip the channel". So the row reaches the shipped generator body -- the __wrapped__ unwrap is not silently reaching a stub, and a gutted fixture cannot stay green.
 - GATE variant (a shared memo whose teardown restores only what IT stripped): also FAILED by name, with the same memo-shared assertion. The row does not need the teardown to be unconditional to catch the shared dict.
 - BASELINE: with the shipped per-instance closure the row PASSES in my process. No source file was mutated for any probe; the probes rebind one factory in memory (scratch: sessions/iter-DH.469/a00-ea5c8c92/probe/probe_driver.py).

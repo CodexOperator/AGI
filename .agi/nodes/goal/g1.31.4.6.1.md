@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 1ac54dde8df00d93
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -57,3 +57,7 @@ goal:g1.31.4.6.2 (posts one-writer call count, DG5) · #37 the `<unset>` sentine
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.4.6.1 FAIL  warn_premature_complete( absent in bin; rings.json_field idempotence conjunct rc 1; n2: test_links.py:1008 'BANKED 86', test_rings.py:924 present. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

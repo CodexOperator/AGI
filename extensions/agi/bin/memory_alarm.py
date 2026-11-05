@@ -16,6 +16,9 @@ Signals, all read from the kernel (never from a process list):
   * box memory pressure           /proc/pressure/memory (some/full avg60)
   * the cgroup's kernel SLAB       memory.stat slab against --warn-slab-mib: a slice held at memory.high by dentry/inode cache
                                   with small anon (goal:g7.16.1.11.40.1.1) is raised as SLAB, by name; never dropped from here
+  * the free space of --disk-path  shutil.disk_usage(path).free against --warn-root-free-mib (goal:g7.16.1.11.40.1.3): `/` holds the posts'
+                                  homes, the spool and the logs, and a full one stops every write with no line raised first; WARN only,
+                                  nothing is removed, shortened, rotated or dropped from here (clearing space is the box owner's)
   * the cgroup it is pointed at   memory.pressure, and the UNRECLAIMABLE part (anon + shmem + slab_unreclaimable, memory.stat)
                                   against min(memory.high, memory.max); never memory.current, which counts cache that
                                   reclaim gives back. Guard caps user@<uid>; a thrash inside that cap never shows box-wide.
@@ -42,6 +45,7 @@ import argparse
 import json
 import os
 import pwd
+import shutil
 import socket
 import subprocess
 import sys
@@ -107,6 +111,19 @@ def read_stat(path: Path) -> dict:
     return out
 
 
+def read_disk(path: Path) -> dict:
+    """The free space of the filesystem `path` is on, as the signals `decide` reads: free MiB (what a non-root writer can still
+    use, shutil.disk_usage().free) and the used fraction as df shows it. `disk_free_mib` None = the path could not be read."""
+    out: dict = {"disk_path": str(path), "disk_free_mib": None, "disk_used_frac": None}
+    try:
+        du = shutil.disk_usage(path)
+    except OSError:
+        return out
+    out["disk_free_mib"] = du.free / 1048576.0
+    out["disk_used_frac"] = du.used / (du.used + du.free) if du.used + du.free else None
+    return out
+
+
 def read_signals(cgroup: Path | None) -> dict:
     sig = {"avail_mib": read_meminfo_mib("MemAvailable"),
            "box_psi": read_psi(BOX_PSI),
@@ -137,7 +154,8 @@ def clear_line(th: argparse.Namespace) -> argparse.Namespace:
                                  "warn_psi_some_avg60": th.warn_psi_some_avg60 * f,
                                  "crit_psi_full_avg60": th.crit_psi_full_avg60 * f,
                                  "warn_cgroup_max_frac": th.warn_cgroup_max_frac * f,
-                                 "warn_slab_mib": th.warn_slab_mib * f})
+                                 "warn_slab_mib": th.warn_slab_mib * f,
+                                 "warn_root_free_mib": th.warn_root_free_mib / f})
 
 
 def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, list[str]]:
@@ -195,6 +213,17 @@ def decide(sig: dict, th: argparse.Namespace, prev: str = "ok") -> tuple[str, li
         warn.append(f"{name} kernel SLAB {slab / 1048576:.0f} MiB >= {th.warn_slab_mib:g}"
                     + (f" (reclaimable {rec / 1048576:.0f}, anon {anon / 1048576:.0f} MiB)" if rec is not None and anon is not None else "")
                     + " -- dentry/inode cache; the box owner drops caches, nothing here does")
+    # FREE SPACE on --disk-path (goal:g7.16.1.11.40.1.3): a filesystem under its floor RAISES a WARN by name, and a path that cannot be read is
+    # a WARN too, never a silent ok. Once raised the floor is the clear line (floor / margin). It only raises: space is the box owner's to clear.
+    dpath = sig.get("disk_path")
+    if dpath is not None:
+        free = sig.get("disk_free_mib")
+        if free is None:
+            warn.append(f"disk path {dpath} unreadable: its free space is not known")
+        elif free < th.warn_root_free_mib:
+            used = sig.get("disk_used_frac")
+            warn.append(f"{dpath} free {free:.0f} MiB < {th.warn_root_free_mib:g}" + (f" ({used:.0%} used)" if used is not None else "")
+                        + " -- nothing here deletes or drops; the box owner clears space")
     if crit:
         return "crit", crit + warn
     if warn:
@@ -246,6 +275,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="warn when the cgroup's anon + shmem + slab_unreclaimable (memory.stat; memory.current only if that is unreadable) is this fraction of min(memory.high, memory.max); the reason names which and the cgroup")
     ap.add_argument("--warn-slab-mib", type=float, required=True,
                     help="warn when the cgroup's kernel slab (memory.stat slab) is at least this many MiB")
+    ap.add_argument("--warn-root-free-mib", type=float, required=True,
+                    help="warn when the filesystem --disk-path is on has less than this many MiB free for a non-root writer (goal:g7.16.1.11.40.1.3)")
+    ap.add_argument("--disk-path", type=Path, required=True,
+                    help="the path whose filesystem's free space --warn-root-free-mib is read on (`/` on the rows: posts' homes, spool, logs)")
     ap.add_argument("--repeat-mins", type=float, required=True)
     ap.add_argument("--clear-margin-frac", type=float, required=True,
                     help="a raised alarm clears only below its warn line moved this fraction toward calm "
@@ -288,7 +321,9 @@ def main(argv: list[str] | None = None) -> int:
         state = json.loads(state_path.read_text())
     except (OSError, ValueError):
         state = {}
-    level, reasons = decide(read_signals(cg if cg.is_dir() else None), a, state.get("level", "ok"))
+    signals = read_signals(cg if cg.is_dir() else None)
+    signals.update(read_disk(a.disk_path))
+    level, reasons = decide(signals, a, state.get("level", "ok"))
     now = time.time()
     held = level == "ok" and state.get("level", "ok") != "ok"       # past the clear line, not yet cleared
     if held and "ok_since" not in state:

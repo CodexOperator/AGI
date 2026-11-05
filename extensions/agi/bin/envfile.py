@@ -543,6 +543,69 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
 # --- cli ----------------------------------------------------------------
 
 
+# --- the Console lanes (goal:g7.16.1.11.46.7): ids and names only -----------
+
+#: The lanes config:secrets must carry (doc:brainstorm-unify section 36.2). A cell is
+#: ``{"workspace": "wrkspc_..." | "", "unit": "<name>.service"}``; option B swaps
+#: ``workspace`` for ``scoped_key`` (the NAME of the lane's credential file).
+LANE_NAMES = ("agi-batch", "agi-kids", "agi-council")
+_WORKSPACE_ID = re.compile(r"wrkspc_[A-Za-z0-9]+")
+_CRED_NAME = re.compile(r"[a-z][a-z0-9-]*")
+_LANE_UNIT = re.compile(r"[a-z][a-z0-9@.-]*\.service")
+#: A Console key's prefix, assembled here so no file under the geometry or bin
+#: carries it spelled out (the leaf's negative falsifier greps for it).
+_CONSOLE_KEY = "sk-" + "ant"
+
+
+def lanes_problems(node_path: Path) -> list[str]:
+    """What is wrong with the ``lanes:`` cells of one config:secrets file.
+
+    Names a lane, a key and a line number; never a value. A Console key string
+    anywhere in the file (frontmatter or prose) is a problem by itself: this node
+    holds ids and names only.
+    """
+    problems: list[str] = []
+    text = Path(node_path).read_text(encoding="utf-8")
+    hits = [n for n, line in enumerate(text.splitlines(), 1) if _CONSOLE_KEY in line]
+    if hits:
+        problems.append(
+            f"{len(hits)} line(s) hold a Console key string (line "
+            f"{', '.join(map(str, hits[:5]))}): config:secrets holds ids and names only")
+    try:
+        fm = _parse_frontmatter(Path(node_path))
+    except SecretsError as exc:
+        return problems + [str(exc)]
+    lanes = fm.get("lanes")
+    if not isinstance(lanes, dict):
+        return problems + ["no `lanes:` mapping"]
+    for name in LANE_NAMES:
+        cell = lanes.get(name)
+        if not isinstance(cell, dict):
+            problems.append(f"lane {name}: no cell")
+            continue
+        has_w, has_k = "workspace" in cell, "scoped_key" in cell
+        if has_w == has_k:
+            problems.append(f"lane {name}: exactly one of `workspace` / `scoped_key` (has {'both' if has_w else 'neither'})")
+        if has_w:
+            w = cell["workspace"]
+            if not (w == "" or (isinstance(w, str) and _WORKSPACE_ID.fullmatch(w))):
+                problems.append(f"lane {name}: `workspace` is not \"\" or wrkspc_<letters/digits> ({len(str(w))} char(s))")
+        if has_k:
+            k = cell["scoped_key"]
+            if not (isinstance(k, str) and _CRED_NAME.fullmatch(k)):
+                problems.append(f"lane {name}: `scoped_key` is not a credential NAME [a-z][a-z0-9-]*")
+        u = cell.get("unit")
+        if not (isinstance(u, str) and _LANE_UNIT.fullmatch(u)):
+            problems.append(f"lane {name}: `unit` is not <name>.service")
+        extra = sorted(set(cell) - {"workspace", "scoped_key", "unit"})
+        if extra:
+            problems.append(f"lane {name}: unknown key(s) {', '.join(extra)}")
+    extra_lanes = sorted(set(lanes) - set(LANE_NAMES))
+    if extra_lanes:
+        problems.append(f"unknown lane(s): {', '.join(map(str, extra_lanes))}")
+    return problems
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Resolve and check this project's secret file (goal:g1.8).")
@@ -553,6 +616,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true",
                     help="report missing or forbidden keys; exit 1 on a problem")
     ap.add_argument("--json", action="store_true", help="emit the whole resolution")
+    ap.add_argument("--lanes", action="store_true",
+                    help="check the Console lane cells of config:secrets (ids and names "
+                         "only, no key string); exit 1 on a problem")
     ap.add_argument("--set", metavar="NAME",
                     help="prompt on the terminal for NAME's value and write it "
                          "into the env file, replacing any existing lines for "
@@ -568,6 +634,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.set:
         return set_key(res, args.set)
+
+    if args.lanes:
+        problems = lanes_problems(res.node_path)
+        for problem in problems:
+            print(f"[lanes] PROBLEM: {problem}", file=sys.stderr)
+        if not problems:
+            print(f"[lanes] ok: {', '.join(LANE_NAMES)} in {res.node_path.name}")
+        return 1 if problems else 0
 
     if args.what:
         print({"env-file": res.env_file, "template": res.template,

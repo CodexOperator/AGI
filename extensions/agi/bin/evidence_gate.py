@@ -507,7 +507,7 @@ def stamp(fm: dict, res: GateResult) -> dict:
 # kid that writes `verdict: proved` straight into the node file never asks, so
 # the gate never fires -- measured across three live waves on 2026-09-03 as
 # `unevidenced_decisive_verdicts` climbing 6 -> 7 -> 10 -> 11 while the gate
-# reported nothing. `write.py set verdict proved` walks past it the same way:
+# reported nothing. a hand-set `verdict: proved` walks past it the same way:
 # `node_writer.update_node` is gated for spawn and schema, not for evidence.
 #
 # A gate on the writer paths is a gate on the writers that chose to use it.

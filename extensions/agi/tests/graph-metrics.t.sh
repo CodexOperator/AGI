@@ -1,16 +1,20 @@
 #!/bin/sh
-# graph-metrics.t.sh: goal:g3.8 (DG1 15:47Z; design = doc:rse-aa1-boxes AA1.S at alive/aa1n e6693df0b): the old metrics are read again. ONE cron job as belam runs `success_metrics.py --line | write.py set metrics_line` and the town node carries ONE `metrics_line` cell; metrics.py refuses a root with no nodes/; every null is NAMED on the line, never a number the engine does not have.
+# graph-metrics.t.sh: goal:g3.8 (DG1 15:47Z; design = doc:rse-aa1-boxes AA1.S at alive/aa1n e6693df0b): the old metrics are read again. ONE cron job as belam runs `success_metrics.py --line` through metrics_cell.py (node_commit; the node writer retired, step 4) and the town node carries ONE `metrics_line` cell; metrics.py refuses a root with no nodes/; every null is NAMED on the line, never a number the engine does not have.
 # sh + git + python3 on a SCRATCH project (the engine's bin dir is COPIED under it, so crons.py's repo_root, success_metrics.py's root and write.py's graph are all the scratch); a v5 uid cannot read every uid's files, so nothing here touches the live box. No network (no OpenRouter key in the env or the scratch), 0 USD, a scratch crontab FILE (never the user's crontab). BIN = the extensions/agi/bin dir under test (default: ROOT's); a reference / mutant = BIN=<an edited copy of that dir>. The crons lanes read ROOT's own `.agi/nodes/.geometry/crons.md` (the node the builder edits). One ok/FAIL line per case; exit = FAIL count.
 # Lanes: A crons (a1 the shipped node declares the job ONCE with the AA1.S fields; a2 `crons.py apply` makes a scratch crontab agree, idempotently; a3 (dropped: DG1 15:59Z, a duplicate-key loader in crons.py is out of this round); a4 the rendered cron line, run by sh in the scratch, writes the cell) · B success_metrics.py --line (b1 ONE line in the AA1.S shape, rc 0, bounded, no && ; b2 exact counts on a known graph; b3 the 7 success metrics each a number or UNMEASURED(reason), none a number it does not have; b4 the reason names the real cause; b5 an ABSENT graph counter is named, not dropped, not 0; b6 a dead metrics.py gives no invented number; b7 a missing ladder node still gives a line) · C metrics.py (c1 a root with no nodes/ is REFUSED: rc != 0, ONE reason line, 0 METRIC lines; c2 control: a normal root prints the SAME 41 METRIC lines as before; c2-help `--help` / `-h` are usage requests, not roots (rc 0, usage, 0 METRIC lines); c3 control: an EMPTY nodes/ is not refused; c4 control: the functions the SessionStart hook imports still work on a root with no nodes/) · D the write (d1 dry-run admitted, writes nothing; d2 one cell replaced whole, value round-trips through YAML; d3 trajectory_standin untouched; d4 a second set by the same actor is last-wins, ONE key).
-# Honest limits: AA1.S names no byte bound beyond today's 634 B, so b1 pins 1,024 B (one constant: LINEMAX). b5 pins that an absent graph counter is NAMED (the AA1.S prototype formatter skips absent keys, which this lane calls a defect). d-lanes are green today (write.py set already works): they guard the builder, they are not the RED set.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src;LINEMAX=1024
+# Honest limits: AA1.S names no byte bound beyond today's 634 B (the 1,024 B was picked, not named); NO reader of metrics_line cuts it, so no byte bound is pinned (council 04:23Z, goal:g7.16.1.11.46.12; if a reader that cuts is ever named, --line enforces the bound with a `| truncated:` marker and a full-fixture row). Segments are counted by key, never by position. b5 pins that an absent graph counter is NAMED (the AA1.S prototype formatter skips absent keys, which this lane calls a defect). d-lanes are green today (the cell set already works): they guard the builder, they are not the RED set.
+T=$(mktemp -d -t agi-suite-XXXXXX);trap 'rm -rf $T' 0;   # the scratch project carries the throwaway part crons.py's seam (S1) honours under ANY TMPDIR (the gate's is /data/work/gate-sm/tmp)
+f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};BIN=${BIN:-$R0/extensions/agi/bin};SRC=$R0/extensions/agi/src
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
+# a fixture/mutant edit of a COPY of a trunk file must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
+sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";chg $T/sedc.pre "$2" "$3";}   # sed -i on a copy, measured
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST OPENROUTER_API_KEY OPENROUTER_PROVISIONING_KEY
 export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$SRC AGI_BOX=encryption-town HOME=$T/home;mkdir -p $T/home
 printf '[user]\n\tname=t\n\temail=t@t\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' >$T/gitconfig;export GIT_CONFIG_GLOBAL=$T/gitconfig GIT_CONFIG_SYSTEM=/dev/null
 # nd DIR ID PARENT [EXTRA]: one node file under nodes/DIR
 nd(){ { printf -- '---\nid: %s\nmint_id: %s\ntype: %s\nparents:\n  - %s\n%s---\nbody\n' $2 $(printf '%s' $2|md5sum|cut -c1-32) ${2%%:*} $3 "$4"; } >$G_/nodes/$1/${2#*:}.md;}
-# mkp NAME [full]: the scratch project. graph = goal g1 <- ideas i1 i2 <- hypothesis h1 (child of i1) <- experiment e1 (verdict proved, evidence_runs 2), ONE deprecated idea i3, and a hand-made one-line ladder node: the counts are the fixture's own. `full` instead copies ROOT's real town node, ladder, crons node and [box] schema (what write.py / crons.py read), committed so write.py is not "dirty".
+# mkp NAME [full]: the scratch project. graph = goal g1 <- ideas i1 i2 <- hypothesis h1 (child of i1) <- experiment e1 (verdict proved, evidence_runs 2), ONE deprecated idea i3, and a hand-made one-line ladder node: the counts are the fixture's own. `full` instead copies ROOT's real town node, ladder, crons node and [box] schema (what node_writer / crons.py read), committed so the node is not "dirty".
 mkp(){ P=$T/$1;G_=$P/.agi;rm -rf $P;mkdir -p $G_/nodes/goal $G_/nodes/idea $G_/nodes/hypothesis $G_/nodes/experiment $G_/nodes/deprecated/idea $G_/nodes/town $G_/nodes/.geometry $G_/context/schemas $P/extensions/agi $G_/sessions
  $G init -q $P;echo '{}'>$G_/config.json;cp -r $BIN $P/extensions/agi/bin;find $P/extensions/agi/bin -name __pycache__ -prune -exec rm -rf {} +;ln -s $SRC $P/extensions/agi/src
  printf -- '---\nid: goal:g1\nmint_id: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1\ntype: goal\nparents: []\nstatus: active\n---\nbody\n' >$G_/nodes/goal/g1.md
@@ -18,20 +22,21 @@ mkp(){ P=$T/$1;G_=$P/.agi;rm -rf $P;mkdir -p $G_/nodes/goal $G_/nodes/idea $G_/n
 evidence_runs: 2
 ';nd deprecated/idea idea:i3 goal:g1 'status: deprecated
 '
- if [ "$2" = full ];then cp $R0/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;sed -i "/^metrics_line:/d" $G_/nodes/town/local-maxxing.md;cp $R0/.agi/nodes/.geometry/ladder.md $R0/.agi/nodes/.geometry/crons.md $G_/nodes/.geometry/;cp "$R0/.agi/context/schemas/[box].md" $G_/context/schemas/
+ if [ "$2" = full ];then cp $R0/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;sedc "/^metrics_line:/d" $G_/nodes/town/local-maxxing.md "the metrics_line cell delete";cp $R0/.agi/nodes/.geometry/ladder.md $R0/.agi/nodes/.geometry/crons.md $G_/nodes/.geometry/;cp "$R0/.agi/context/schemas/[box].md" $G_/context/schemas/
  else printf -- '---\nid: ladder:ladder\nmint_id: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb2\ntype: ladder\nparents:\n  - goal:g1\ncurrent_season: 2\n---\nbody\n' >$G_/nodes/.geometry/ladder.md;fi
  $G -C $P add -A >/dev/null 2>&1;$G -C $P commit -qm fixture;}
 sm(){ (cd $P&&python3 extensions/agi/bin/success_metrics.py "$@" 2>$T/sm.err);}   # stdout only: the cron line is `L=$(...)`, stderr never reaches the cell
 xv(){ grep -oE "(^| )$2=(UNMEASURED\([^)]*\)|[^ ]+)"|head -1|sed "s/^ //;s/^[^=]*=//";}   # value of key $2 on the line on stdin (a reason may hold spaces)
 mt(){ (cd $P&&python3 extensions/agi/bin/metrics.py "$@" 2>&1);}
-cr(){ (cd $P&&python3 extensions/agi/bin/crons.py "$1" --root $G_ --crontab-file $T/ct $( [ "$1" = apply ]&&echo --user-crontab-dir $T/uct ) 2>&1);}
+cr(){ mkdir -p $T/uct;(cd $P&&python3 extensions/agi/bin/crons.py "$1" --root $G_ --crontab-file $T/ct $( [ "$1" = apply ]&&echo --user-crontab-dir $T/uct ) 2>&1);}
 # goal:g7.16.1.11.42 C1: the job is bound to agi-belam (option E), so `apply` puts it in THAT user's crontab (a fixture dir here). bl = every crontab the apply wrote; mcl = the cron line with board_job.py's wrapper taken off, i.e. what the writer step runs (metrics_cell.py on the scratch root)
 bl(){ cat $T/ct $T/uct/*.crontab 2>/dev/null;}
-mcl(){ bl|grep 'success_metrics.py --line'|head -1|cut -d' ' -f6-|sed -e 's#mkdir -p [^ ]* && python3 [^ ]*board_job.py commit --main [^ ]* --post belam --job metrics_cell --work [^ ]* -- python3 #python3 #' -e "s#@WROOT@#$G_#" -e "s#>> [^ ]* #>> $T/board.log #";}
+mclchk(){ l=$(cat);case "$l" in ""|*board_job.py*|*@WROOT@*) : >${MCLM:-$T/mcl.bad};; esac;printf '%s\n' "$l";}   # the rendered job line must have lost its board wrapper and @WROOT@ (a subshell cannot count: the closing row reads the marker)
+mcl(){ bl|grep 'success_metrics.py --line'|head -1|cut -d' ' -f6-|sed -e 's#mkdir -p [^ ]* && python3 [^ ]*board_job.py commit --main [^ ]* --post belam --job metrics_cell --work [^ ]* -- python3 #python3 #' -e "s#@WROOT@#$G_#" -e "s#>> [^ ]* #>> $T/board.log #"|mclchk;}
 mkp pm
 # ---- B: success_metrics.py --line
 sm --line $G_ >$T/b1.out;brc=$?;line=$(head -1 $T/b1.out);bn=$(wc -l <$T/b1.out|tr -d ' ');bb=$(wc -c <$T/b1.out|tr -d ' ')
-ok "b1-one-line-aa1s-shape success_metrics.py --line on the scratch root prints exactly ONE line ($bn) in the AA1.S shape '<UTC minute> graph: k=v ... | success: k=v ...' (got: $(echo "$line"|cut -c1-90)...), rc $brc (want 0), $bb B (bound $LINEMAX), no '&&' (write.py splits a verb on it)" '[ $brc = 0 ]&&[ "$bn" = 1 ]&&echo "$line"|grep -Eq "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}Z graph: .* \| success: .*$"&&[ "$bb" -le $LINEMAX ]&&! echo "$line"|grep -q "&&"'
+ok "b1-one-line-aa1s-shape success_metrics.py --line on the scratch root prints exactly ONE line ($bn) in the AA1.S shape '<UTC minute> graph: k=v ... | success: k=v ...' (got: $(echo "$line"|cut -c1-90)...), rc $brc (want 0), no '&&' (the retired writer split a verb on it)" '[ $brc = 0 ]&&[ "$bn" = 1 ]&&echo "$line"|grep -Eq "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}Z graph: .* \| success: .*$"&&! echo "$line"|grep -q "&&"'
 lv(){ echo "$line"|xv x $1;}
 ok "b2-exact-counts on the known graph (6 live nodes incl. a one-line ladder + 1 deprecated, 6 edges, 1 decisive verdict) the line carries node_count=$(lv node_count) (want 7) active_node_count=$(lv active_node_count) (want 6) deprecated_node_count=$(lv deprecated_node_count) (want 1) edge_count=$(lv edge_count) (want 6) decisive_verdicts=$(lv decisive_verdicts) (want 1) conclusive_verdicts=$(lv conclusive_verdicts) (want 1)" '[ "$(lv node_count)" = 7 ]&&[ "$(lv active_node_count)" = 6 ]&&[ "$(lv deprecated_node_count)" = 1 ]&&[ "$(lv edge_count)" = 6 ]&&[ "$(lv decisive_verdicts)" = 1 ]&&[ "$(lv conclusive_verdicts)" = 1 ]'
 SEVEN="avg_tokens_per_turn hierarchy_tokens_per_hour conclusive_verdicts overview_accuracy_vs_last_season subscription_tokens_per_season vision_adherence_score openrouter_subscription_spend_ratio"
@@ -135,18 +140,16 @@ ok "a1-shipped-node-declares-the-job-once crons.py show over ROOT's crons.md lis
 ng=$(grep -c '^  graph_metrics:' $G_/nodes/.geometry/crons.md);nm=$(grep -c 'metrics.py' $G_/nodes/.geometry/crons.md)
 ok "a1b-exactly-once-in-the-node the node has ONE graph_metrics cadence key ($ng, want 1) and 'metrics.py' appears on exactly ONE line of it ($nm, want 1: the cmd; the prose says nothing that would match twice)" '[ "$ng" = 1 ]&&[ "$nm" = 1 ]'
 cr apply >$T/a2.out;a2n=$(bl|grep -c 'success_metrics.py --line');bl >$T/ct.1;cr apply >/dev/null;cr show >$T/a2s.out
-ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1) at minute 23 hourly ($(bl|grep 'success_metrics.py --line'|head -1|cut -c1-14)), a second apply leaves the crontabs byte-identical ($(bl|cmp -s - $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&bl|grep "success_metrics.py --line"|head -1|grep -q "^23 \* \* \* \* "&&bl|cmp -s - $T/ct.1&&! grep -q DRIFT $T/a2s.out'
+ok "a2-apply-makes-the-crontab-agree after crons.py apply on a scratch crontab file the job is installed ONCE ($a2n line(s), want 1$( [ "$a2n" = 1 ]||echo "; apply said: $(grep -m1 -i 'honoured\|seam\|refused' $T/a2.out|cut -c1-160)")) at minute 23 hourly ($(bl|grep 'success_metrics.py --line'|head -1|cut -c1-14)), a second apply leaves the crontabs byte-identical ($(bl|cmp -s - $T/ct.1&&echo same||echo CHANGED)) and show reports no drift ($(grep -c DRIFT $T/a2s.out) DRIFT)" '[ "$a2n" = 1 ]&&bl|grep "success_metrics.py --line"|head -1|grep -q "^23 \* \* \* \* "&&bl|cmp -s - $T/ct.1&&! grep -q DRIFT $T/a2s.out'
 # a4: the rendered cron line itself, run by sh in the scratch (belam's job end to end): the town node gets the cell
 mkp pc full;: >$T/ct;rm -rf $T/uct;cr apply >/dev/null;cl=$(mcl);mkdir -p $HOME/logs
 (cd $P&&sh -c "$cl") >$T/a4.out 2>&1;a4rc=$?;cell=$(sed -n 's/^metrics_line: //p' $G_/nodes/town/local-maxxing.md|head -1);NC=$(mt $G_|sed -n 's/^METRIC node_count=//p')
 ok "a4-the-cron-line-writes-the-cell the rendered job line, run by sh in the scratch project, exits $a4rc (want 0) and leaves ONE metrics_line cell on town:local-maxxing holding the SAME node_count as metrics.py on that project ($NC) and conclusive_verdicts=1 (cell: $(echo "$cell"|cut -c1-80)...)" '[ $a4rc = 0 ]&&[ "$(grep -c "^metrics_line:" $G_/nodes/town/local-maxxing.md)" = 1 ]&&echo "$cell"|grep -q "node_count=$NC "&&echo "$cell"|grep -q "conclusive_verdicts=1"'
-# ---- D: the write (write.py set metrics_line as belam on the town node)
+# ---- D: the write (node_writer.update_node set metrics_line on the town node; the node writer script and its ring-gate dry run retired in goal:g7.16.1.11.46.23 step 4, so the old d1 dry-run row went with it)
 mkp pw full;TN=$G_/nodes/town/local-maxxing.md;sha0=$(sha256sum <$TN|cut -d' ' -f1)
 V1='2026-10-07T15:05Z graph: node_count=5813 active_node_count=5574 evidence_fraction=0.898 thought_coverage=0.521 | success: avg_tokens_per_turn=UNMEASURED(no source yet) conclusive_verdicts=1235 openrouter_subscription_spend_ratio=UNMEASURED(no source yet)'
 V2='2026-10-07T16:23Z graph: node_count=5900 active_node_count=5650 | success: conclusive_verdicts=1300'
-wr(){ (cd $P&&python3 extensions/agi/bin/write.py town:local-maxxing "set metrics_line $1" --actor belam $2 2>&1);}
-wr "$V1" --dry-run >$T/d1.out;d1rc=$?;sha1=$(sha256sum <$TN|cut -d' ' -f1)
-ok "d1-dry-run-admitted-writes-nothing (control) write.py set metrics_line as belam --dry-run: rc $d1rc, the ring gate says admitted ($(grep -c 'admitted' $T/d1.out)), the town node is byte-identical after ($([ $sha0 = $sha1 ]&&echo same||echo CHANGED))" '[ $d1rc = 0 ]&&grep -q admitted $T/d1.out&&[ $sha0 = $sha1 ]'
+wr(){ (cd $P/extensions/agi/bin&&python3 -c "import sys,node_writer as w;r=w.update_node(sys.argv[1],'town:local-maxxing',set_fm={'metrics_line':sys.argv[2]});print(r.status)" "$G_" "$1" 2>&1|tail -1);}
 wr "$V1" >$T/d2a.out;wr "$V2" >$T/d2b.out
 rt=$(cd $P&&python3 -c "
 import yaml
@@ -158,7 +161,7 @@ import yaml,subprocess
 a=yaml.safe_load(open('$R0/.agi/nodes/town/local-maxxing.md').read().split('---')[1])
 b=yaml.safe_load(open('$TN').read().split('---')[1])
 same=a.get('trajectory_standin')==b.get('trajectory_standin')
-oth={k for k in set(a)|set(b) if k not in ('metrics_line',) and a.get(k)!=b.get(k) and not (k=='edited_by' and b.get(k)=='belam')}  # write.py stamps edited_by with the ACTOR (belam here), so it differs from ROOT's whenever ROOT's last writer was someone else; any OTHER value still counts
+oth={k for k in set(a)|set(b) if k not in ('metrics_line',) and a.get(k)!=b.get(k) and not (k=='edited_by' and b.get(k)=='belam')}  # the retired writer stamped edited_by with the ACTOR (belam); update_node does not, and any OTHER value still counts
 print('TS',same,sum('metrics: HEAD + KV' in str(x) for x in b.get('trajectory_standin',[])),sorted(oth))
 PYEOF
 )
@@ -185,29 +188,30 @@ dirtyp(){ $G -C $P status --porcelain -- "$TN"|wc -l|tr -d ' ';}
 jb;r2a=$(grep -c "^metrics_line:" $TN)
 ok "r2a-clean-node-writes-one-cell (control) on a clean node with no lock the job exits $jrc (want 0), the town node carries ONE metrics_line cell ($r2a) and the scratch repo is clean after ($jdirty dirty path(s), want 0)" '[ $jrc = 0 ]&&[ "$r2a" = 1 ]&&[ "$jdirty" = 0 ]'
 # r2g (DG3, SM 04:33Z): the LIVE town node always carries a metrics_line cell (the hourly job commits it since 10-07), so a fixture copied from it starts with ONE cell. The job must REPLACE it: still ONE cell, and not the old value. (r2d / r2e want 1 / 0 cells and were RED for days because the seed carried one: mkp full now strips it, this row is the control that the seeded-cell case works.)
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;sed -i 's/^scaffold_hash:/metrics_line: OLDCELL\nscaffold_hash:/' $TN;$G -C $P commit -qam cfg;jb;r2g=$(grep -c "^metrics_line:" $TN);r2go=$(grep -c "OLDCELL" $TN)
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;sedc 's/^scaffold_hash:/metrics_line: OLDCELL\nscaffold_hash:/' $TN "the OLDCELL seed";$G -C $P commit -qam cfg;jb;r2g=$(grep -c "^metrics_line:" $TN);r2go=$(grep -c "OLDCELL" $TN)
 ok "r2g-a-node-that-already-carries-the-cell-keeps-ONE ($r2g cell(s), want 1; the old value survives in $r2go place(s), want 0; job rc $jrc, want 0; scratch repo $jdirty dirty, want 0)" '[ $jrc = 0 ]&&[ "$r2g" = 1 ]&&[ "$r2go" = 0 ]&&[ "$jdirty" = 0 ]'
 mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;printf 'a hand edit\n'>>$TN;s0=$(sha256sum <$TN|cut -d' ' -f1);h0=$($G -C $P rev-parse HEAD)
 jb;s1=$(sha256sum <$TN|cut -d' ' -f1);h1=$($G -C $P rev-parse HEAD)
-ok "r2b-dirty-node-is-skipped a node that is ALREADY dirty (a hand edit): the job exits $jrc (want 0) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', containing skip), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)) and HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED): the hand edit is not laundered into a commit)" '[ $jrc = 0 ]&&[ "$jn" = 1 ]&&grep -qi skip $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]'
+ok "r2b-dirty-node-is-refused-loud a node that is ALREADY dirty (a hand edit): the job exits $jrc (want 3) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', an ERR naming 'already dirty'), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)) and HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED): the hand edit is not laundered into a commit; V8a 3a: an hour is never skipped silently)" '[ $jrc = 3 ]&&[ "$jn" = 1 ]&&grep -q "^ERR:.*already dirty" $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]'
 mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;sleep 120 & LP=$!;echo $LP >$G_/sessions/verify-suite.lock;s0=$(sha256sum <$TN|cut -d' ' -f1);h0=$($G -C $P rev-parse HEAD)
 jb;kill $LP 2>/dev/null;s1=$(sha256sum <$TN|cut -d' ' -f1);h1=$($G -C $P rev-parse HEAD)
-ok "r2c-held-suite-lock-is-skipped with the graph's verify-suite.lock held by a LIVE pid ($LP) the job exits $jrc (want 0) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', containing skip), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)), HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED)) and the node is clean ($(dirtyp) dirty); 41956e53d5 writes the node, waits, exits 3 and leaves it dirty" '[ $jrc = 0 ]&&[ "$jn" = 1 ]&&grep -qi skip $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]&&[ "$(dirtyp)" = 0 ]'
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;printf '#!/usr/bin/env python3\nimport sys\nn = sys.argv[1]\nsys.argv = sys.argv[:2]\np = "%s"\nt = open(p).read()\nopen(p, "w").write(t.replace("\\nscaffold_hash:", "\\nmetrics_line: stub\\nscaffold_hash:", 1))\nprint("commit refused: the write landed uncommitted; exit 3")\nsys.exit(3)\n' $TN >$P/extensions/agi/bin/write.py;$G -C $P add -A;$G -C $P commit -qm stubwrite;h0=$($G -C $P rev-parse HEAD)
-jb;h1=$($G -C $P rev-parse HEAD);r2d=$($G -C $P show --stat --format= HEAD|grep -c '|');r2dn=$($G -C $P show --stat --format= HEAD|grep '|'|grep -c 'nodes/town/local-maxxing.md')
-ok "r2d-write-exit-3-leaves-the-node-clean a write that still exits 3 (a stub write.py that edits the node and exits 3, the race after the pre-check): after the job the node is clean ($(dirtyp) dirty, want 0) and the scratch repo is clean ($jdirty), the recover commit is BY EXACT PATH (HEAD moved: $([ $h0 != $h1 ]&&echo yes||echo NO); it touches $r2d path(s), want 1: the node ($r2dn)); no checkout / reset (the metrics_line cell survived: $(grep -c '^metrics_line:' $TN)); job rc $jrc" '[ "$(dirtyp)" = 0 ]&&[ "$jdirty" = 0 ]&&[ $h0 != $h1 ]&&[ "$r2d" = 1 ]&&[ "$r2dn" = 1 ]&&[ "$(grep -c "^metrics_line:" $TN)" = 1 ]'
-# R2 residue (DG1 17:17Z, probe on ed0eae1462): a human edits the node WHILE the ~65 s metrics run is going. The checks ran before it and write.py then refuses the dirty node (exit 3, 'already dirty before this write'); the job must NOT then commit the hand edit under the write.py subject (laundering). The producer step is a stub success_metrics.py in the scratch bin copy: it appends a hand-edit line to the node, then prints ONE line like the real one.
+ok "r2c-held-suite-lock-is-refused-loud with the graph's verify-suite.lock held by a LIVE pid ($LP) the job exits $jrc (want 3) after ONE output line ($jn: '$(head -1 $T/job.out|cut -c1-70)', an ERR naming the suite lock), the node bytes are unchanged ($([ $s0 = $s1 ]&&echo same||echo CHANGED)), HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED)) and the node is clean ($(dirtyp) dirty: nothing was written, so the next hour is not wedged)" '[ $jrc = 3 ]&&[ "$jn" = 1 ]&&grep -q "^ERR:.*suite lock" $T/job.out&&[ $s0 = $s1 ]&&[ $h0 = $h1 ]&&[ "$(dirtyp)" = 0 ]'
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;h0=$($G -C $P rev-parse HEAD)
+jb;h1=$($G -C $P rev-parse HEAD);r2d=$($G -C $P show --stat --format= HEAD|grep -c '|');r2dn=$($G -C $P show --stat --format= HEAD|grep '|'|grep -c 'nodes/town/local-maxxing.md');r2ds=$($G -C $P log -1 --format=%s)
+ok "r2d-the-commit-is-by-exact-path-under-the-board-subject (V8a 3a; node_commit replaced the retired writer's recover commit) one run: the node is clean ($(dirtyp) dirty, want 0), the scratch repo is clean ($jdirty), HEAD moved ($([ $h0 != $h1 ]&&echo yes||echo NO)) by ONE commit touching $r2d path(s) (want 1: the node, $r2dn), subject [$r2ds] (want 'board: town:local-maxxing (belam)'), the cell is there ($(grep -c '^metrics_line:' $TN), want 1), job rc $jrc (want 0)" '[ "$(dirtyp)" = 0 ]&&[ "$jdirty" = 0 ]&&[ $h0 != $h1 ]&&[ "$r2d" = 1 ]&&[ "$r2dn" = 1 ]&&[ "$r2ds" = "board: town:local-maxxing (belam)" ]&&[ "$(grep -c "^metrics_line:" $TN)" = 1 ]&&[ $jrc = 0 ]'
+# R2 residue (DG1 17:17Z, probe on ed0eae1462): a human edits the node WHILE the ~65 s metrics run is going. The checks ran before it and node_commit then refuses the dirty node (exit 3, 'already dirty before this write'); the job must NOT then commit the hand edit under the board subject (laundering). The producer step is a stub success_metrics.py in the scratch bin copy: it appends a hand-edit line to the node, then prints ONE line like the real one.
 mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg
 printf '#!/usr/bin/env python3\nopen("%s", "a").write("\\n# HAND EDIT by a human\\n")\nprint("2026-10-07T00:00Z graph: node_count=1 | success: conclusive_verdicts=1")\n' $TN >$P/extensions/agi/bin/success_metrics.py;$G -C $P commit -qam stubline;h0=$($G -C $P rev-parse HEAD)
 jb;h1=$($G -C $P rev-parse HEAD);hl=$($G -C $P log --all -S'HAND EDIT' --oneline -- $TN|wc -l|tr -d ' ');he=$(grep -c 'HAND EDIT by a human' $TN);sk=$(grep -ciE '^(skip|ERR)' $T/job.out);extra=$($G -C $P diff -U0 -- $TN|grep '^+'|grep -v '^+++'|grep -v '^+$'|grep -vc 'HAND EDIT');ce=$(grep -c '^metrics_line:' $TN)
 ok "r2e-hand-edit-during-the-run-is-not-laundered a hand edit lands in the node while the producer runs: HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED)), the edit is in $hl commit(s) (want 0: log -S over all refs), it is still in the working node ($he, want 1), the output carries ONE line starting skip or ERR ($sk), the node is still dirty with ONLY the hand edit ($(dirtyp) dirty path, $extra other added line(s) want 0, $ce metrics_line cell want 0: the cell is not half-written); job rc $jrc (not pinned: skip is 0, ERR is not)" '[ $h0 = $h1 ]&&[ "$hl" = 0 ]&&[ "$he" = 1 ]&&[ "$sk" = 1 ]&&[ "$(dirtyp)" = 1 ]&&[ "$extra" = 0 ]&&[ "$ce" = 0 ]'
-# r2f: the dirt after write.py is not only write.py's own cell write (a hand edit rode along, the race inside the write itself): the recover commit must not take it. A stub write.py adds the cell AND a hand-edit line and exits 3.
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;printf '#!/usr/bin/env python3\nimport sys\np = "%s"\nt = open(p).read()\nt = t.replace("\\nscaffold_hash:", "\\nmetrics_line: stub\\nscaffold_hash:", 1) + "\\n# HAND EDIT rides along\\n"\nopen(p, "w").write(t)\nprint("commit refused: the write landed uncommitted; exit 3")\nsys.exit(3)\n' $TN >$P/extensions/agi/bin/write.py;$G -C $P add -A;$G -C $P commit -qm stubwrite;h0=$($G -C $P rev-parse HEAD)
-jb;h1=$($G -C $P rev-parse HEAD);hl=$($G -C $P log --all -S'HAND EDIT' --oneline -- $TN|wc -l|tr -d ' ');he=$(grep -c 'HAND EDIT rides along' $TN);sk=$(grep -ciE '^(skip|ERR)' $T/job.out)
-ok "r2f-mixed-dirt-is-not-committed when the node is dirty after the write with MORE than the cell (write.py's cell write plus a hand-edit line) the recover commit does not take it: HEAD did not move ($([ $h0 = $h1 ]&&echo same||echo MOVED)), the hand edit is in $hl commit(s) (want 0), still in the working node ($he, want 1), ONE line starting skip or ERR ($sk), the job exits $jrc (want != 0: a node left dirty is not a clean run)" '[ $h0 = $h1 ]&&[ "$hl" = 0 ]&&[ "$he" = 1 ]&&[ "$sk" = 1 ]&&[ $jrc != 0 ]'
+# r2f (V8a 3a): a hand edit in ANOTHER file (here goal:g1, edited while the producer runs) is never swept into the node's commit: node_commit commits the town node BY EXACT PATH, the other file stays dirty and uncommitted.
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;echo '{"values":{"core":{"suite_lock":{"hold_wait_s":1}}}}'>$G_/config.json;$G -C $P commit -qam cfg;OF=$G_/nodes/goal/g1.md
+printf '#!/usr/bin/env python3\nopen("%s", "a").write("\\n# HAND EDIT rides along\\n")\nprint("2026-10-07T00:00Z graph: node_count=1 | success: conclusive_verdicts=1")\n' $OF >$P/extensions/agi/bin/success_metrics.py;$G -C $P commit -qam stubline;h0=$($G -C $P rev-parse HEAD)
+jb;h1=$($G -C $P rev-parse HEAD);hl=$($G -C $P log --all -S'HAND EDIT' --oneline -- $OF|wc -l|tr -d ' ');he=$(grep -c 'HAND EDIT rides along' $OF);r2fp=$($G -C $P show --stat --format= HEAD|grep -c '|')
+ok "r2f-an-unrelated-dirty-file-is-never-swept-in a hand edit lands in goal:g1 while the producer runs: the job commits ONE path ($r2fp, want 1: the town node), HEAD moved ($([ $h0 != $h1 ]&&echo yes||echo NO)), the hand edit is in $hl commit(s) (want 0), still in the working file ($he, want 1), job rc $jrc (want 0)" '[ $h0 != $h1 ]&&[ "$hl" = 0 ]&&[ "$he" = 1 ]&&[ "$r2fp" = 1 ]&&[ $jrc = 0 ]'
 # R3: the cell is metrics_line (sorts between master and scaffold_hash), so a town -> s2 merge-up where another writer rewrote edited_by is CLEAN
 # The base's writer is PINNED to the job's actor and the other writer is a name that is not the actor (never ROOT's edited_by, which moves: goal:g3.8, TM's c74340057f set it to thought-master and the hard-coded rewrite became a no-op). Pinned, the job's own edited_by stamp is a no-op against the base, so only the OTHER writer's line differs and the merge is clean; unpinned, a base that is neither the actor nor the other writer is a true 3-way conflict on that one line, which says nothing about the cell
-mkp pj full;TN=$G_/nodes/town/local-maxxing.md;JW=belam;ow=thought-master;[ "$ow" != "$JW" ]||ow=sanctuary-master;sed -i "s/^edited_by: .*/edited_by: $JW/" $TN;$G -C $P commit -qam pin-job-writer 2>/dev/null;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sed -i "s/^edited_by: .*/edited_by: $ow/" $TN;$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
+mkp pj full;TN=$G_/nodes/town/local-maxxing.md;JW=belam;ow=thought-master;[ "$ow" != "$JW" ]||ow=sanctuary-master;sed -i "s/^edited_by: .*/edited_by: $JW/" $TN;grep -qx "edited_by: $JW" $TN||{ echo "FAIL fixture: chg matched nothing: the edited_by pin";exit 99;};$G -C $P commit -qam pin-job-writer 2>/dev/null;base=$($G -C $P rev-parse --abbrev-ref HEAD);$G -C $P checkout -q -b other;sedc "s/^edited_by: .*/edited_by: $ow/" $TN "the other-writer edited_by";$G -C $P commit -qam other-writer;$G -C $P checkout -q $base;jb
 nb=$(cd $P&&python3 -c "
 import yaml
 fm=yaml.safe_load(open('$TN').read().split('---')[1]);k=list(fm)
@@ -219,5 +223,86 @@ ok "r3b-merge-with-an-edited_by-rewrite-is-clean a scratch merge of two branches
 # R4: --line makes NO authenticated OpenRouter call (credit_balance / key_usage replaced by recorders that raise)
 mkp p4;printf 'import os\ndef _rec(n):\n    open(os.environ["CALLS"], "a").write(n + "\\n")\n    raise RuntimeError("no network in the lane")\ndef credit_balance(*a, **k):\n    _rec("credit_balance")\ndef key_usage(*a, **k):\n    _rec("key_usage")\ndef list_all_keys(*a, **k):\n    _rec("list_all_keys")\n'>$P/extensions/agi/bin/provisioning.py;: >$T/calls;export CALLS=$T/calls;sm --line $G_ >$T/r4.out;r4rc=$?;r4n=$(wc -l <$T/calls|tr -d ' ')
 ok "r4-line-makes-no-openrouter-call success_metrics.py --line with credit_balance / key_usage / list_all_keys replaced by recorders: $r4n call(s) (want 0; the cron fires hourly and each call is a 30 s authenticated GET whose result the line discards), rc $r4rc (want 0), subscription_tokens_per_season '$(head -1 $T/r4.out|xv x subscription_tokens_per_season)' and openrouter_subscription_spend_ratio '$(head -1 $T/r4.out|xv x openrouter_subscription_spend_ratio)' both UNMEASURED(no source yet), as before" '[ "$r4n" = 0 ]&&[ $r4rc = 0 ]&&[ "$(head -1 $T/r4.out|xv x subscription_tokens_per_season)" = "UNMEASURED(no source yet)" ]&&[ "$(head -1 $T/r4.out|xv x openrouter_subscription_spend_ratio)" = "UNMEASURED(no source yet)" ]'
+# ---- M4 (goal:g7.16.1.11.46.5): the intake segment is read from the cards' §7 by the ONE writer (--line), and a §7 count change changes the next cell
+mkp pi;mkdir -p $G_/sessions/quorum
+card(){ { printf '# card\n\n## §0 x\nhi\n\n## §7 ATOMS\n\n| # | atom | source | state | lap |\n|---|---|---|---|---|\n'; cat; printf '\n## §8 after\n| a9 | "x" | src:doc | target:no | lap1 |\n'; } >$G_/sessions/quorum/$1.md;}
+card belam <<'EOC'
+| a1 | "one" | src:doc | target:x | lap10 |
+| a2 | "two" | src:doc | target:x | lap2 |
+| a3 | "three" | src:doc | leaf:g1 | lap3 |
+| a4 | "four" | src:doc | out:no | lap4 |
+| 1.1 | legacy open | target:§0 |
+| 1.2 | legacy placed | leaf:goal:g1 |
+EOC
+card dg2 <<'EOC'
+| a1 | "x" | src:doc | moved:fl | lap9 |
+EOC
+printf '# card with no atoms\n\n## §0 x\n' >$G_/sessions/quorum/alive.md
+AGI_LAP=11 sm --line $G_ >$T/m4.out;l=$(head -1 $T/m4.out);seg=$(echo "$l"|sed -n 's/.*| intake: //;s/ *|.*//;p')
+ok "m4a-intake-segment-equals-the-cards the line carries '| intake: <post>=<open>/<placed>/<red>' from each card's §7 only (belam open 3 = a1 a2 + legacy 1.1, placed 3, red 1 = a2 at lap 2 vs lap 11; the legacy row has no lap: never red, shown as the 4th field /?1 (open, age unknown); dg2 0/1/0; a card with no §7 rows is absent; the row in §8 is not read): got '$seg'" '[ "$seg" = "belam=3/3/1/?1 dg2=0/1/0" ]&&[ "$(wc -l <$T/m4.out|tr -d " ")" = 1 ]&&[ "$(grep -o "[|] intake:" $T/m4.out|wc -l|tr -d " ")" = 1 ]'
+printf '| a5 | "five" | src:doc | target:y | lap11 |\n'>$T/add5;sed -i "/^| 1.2 | legacy placed/r $T/add5" $G_/sessions/quorum/belam.md;AGI_LAP=11 sm --line $G_ >$T/m4b.out;seg2=$(head -1 $T/m4b.out|sed -n 's/.*| intake: //;s/ *|.*//;p')
+ok "m4b-a-count-change-changes-the-next-cell one more open row in belam's §7 moves belam 3/3/1/?1 -> 4/3/1/?1: got '$seg2'" '[ "$seg2" = "belam=4/3/1/?1 dg2=0/1/0" ]'
+rm -f $G_/sessions/quorum/*.md;AGI_LAP=11 sm --line $G_ >$T/m4c.out;ok "m4c-no-cards-says-none no card with a §7 reads 'intake: none' (got '$(head -1 $T/m4c.out|sed -n 's/.*| intake: //;s/ *|.*//;p')')" '[ "$(head -1 $T/m4c.out|sed -n "s/.*| intake: //;s/ *|.*//;p")" = none ]'
+mkp pj;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
+| a1 | "one" | src:doc | leaf:goal:g7.1 | lap1 |
+| a2 | "two" | src:doc | leaf:g7.2 | lap1 |
+| a3 | "three" | src:doc | leaf:g7.1 | lap1 |
+| a4 | "four" | src:doc | target:z | lap1 |
+EOC
+tl=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam '10-23 brainstorm (doc:brainstorm-unify)' 2>&1)
+ok "m4d-trajectory-line-one-per-throw the TRAJECTORY line counts the throw's rows and the leaf ids they closed to: got '$tl'" '[ "$tl" = "10-23 brainstorm (doc:brainstorm-unify) atoms=4 placed=3 → g7.1 g7.2" ]'
+# Z1 (L88 council 3/3): no quorum dir is UNMEASURED, never "none"; Z2: a legacy open row has an unknown age, shown as a 4th field, never as 0 red
+mkp pz;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+ok "m4z1-no-quorum-dir-is-unmeasured make_line(<the repo root, not .agi>) ends '| intake: UNMEASURED(no quorum dir)', never 'none' (got '$(echo "$l"|sed -n 's/.*| intake: //;s/ *|.*//;p')')" 'echo "$l"|grep -q "| intake: UNMEASURED(no quorum dir)\( |\|$\)"'
+mkp pz2;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
+| 1.1 | legacy one | target:§0 |
+| 1.2 | legacy two | target:§1 |
+| 1.3 | legacy three | target:§2 |
+| 1.4 | legacy placed | leaf:goal:g1 |
+EOC
+seg=$(AGI_LAP=11 sm --line $G_|head -1|sed -n 's/.*| intake: //;s/ *|.*//;p')
+ok "m4z2-legacy-open-rows-show-unknown-age three legacy open rows (no lap) read belam=3/1/0/?3, not 0 red alone: got '$seg'" '[ "$seg" = "belam=3/1/0/?3" ]'
+# T1 + T2: the throw line counts ONLY the throw's rows; the registered-throws cell is re-rendered by the ONE writer on every cell write
+mkp pt;mkdir -p $G_/sessions/quorum
+printf '%s\n' '---' 'id: town:local-maxxing' 'type: town' 'trajectory_throws:' '  - {"post": "belam", "label": "10-23 brainstorm", "throws": "throw"}' 'visions:' '  - vision:x' '---' 'body' >$G_/nodes/town/local-maxxing.md
+{ printf '# card\n\n## §7 ATOMS\n\n**throw 1 (10-22) -- a**\n| # | atom | state |\n|---|---|---|\n| 1.1 | one | leaf:goal:g7.1 |\n| 1.2 | two | target:§0 |\n\n**throws 4-7 (10-23)**\n| 4.1 | four | target:§1 |\n\n**added 10-23 (council)**\n| 8.1 | later | target:§9 |\n'; } >$G_/sessions/quorum/belam.md
+t1=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam 'B' --throws throw 2>&1);t0=$(cd $P&&AGI_LAP=5 python3 extensions/agi/bin/success_metrics.py $G_ --trajectory belam 'B' 2>&1)
+ok "m4t1-throw-line-counts-only-the-throws-rows --throws throw counts the 3 rows under the throw sections, not the row under 'added 10-23' (got '$t1'; without --throws all 4: '$t0')" '[ "$t1" = "B atoms=3 placed=1 → g7.1" ]&&[ "$t0" = "B atoms=4 placed=1 → g7.1" ]'
+AGI_LAP=5 sm --line $G_ >$T/t2a.out;sed -i 's/^| 8.1 | later | target:§9 |/| 8.1 | later | leaf:g7.9 |/' $G_/sessions/quorum/belam.md;AGI_LAP=5 sm --line $G_ >$T/t2b.out
+ok "m4t1b-a-row-under-added-does-not-move-the-brainstorm-line closing the 'added 10-23' row leaves '| trajectory: 10-23 brainstorm atoms=3 placed=1' as it was" 'grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=1 → g7.1 | intake:" $T/t2a.out&&grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=1 → g7.1 | intake:" $T/t2b.out'
+sed -i 's/^| 1.2 | two | target:§0 |/| 1.2 | two | leaf:g7.2 |/' $G_/sessions/quorum/belam.md;AGI_LAP=5 sm --line $G_ >$T/t2c.out
+ok "m4t2-the-registered-throw-is-rendered-by-the-line a throw registered in the town node's trajectory_throws cell is rendered into the --line, and closing a §7 row moves placed= in the NEXT write (placed=1 -> placed=2; each segment is counted by its key: '| trajectory:' once, '| intake:' once, never by position): got '$(sed -n 's/.*\(| trajectory: [^|]*\)|.*/\1/p' $T/t2c.out)'" 'grep -q "| trajectory: 10-23 brainstorm atoms=3 placed=2 → g7.1 g7.2" $T/t2c.out&&[ "$(grep -o "[|] trajectory:" $T/t2c.out|wc -l|tr -d " ")" = 1 ]&&[ "$(grep -o "[|] intake:" $T/t2c.out|wc -l|tr -d " ")" = 1 ]'
+# mutant: a writer that never renders the registered throws reads RED on m4t2
+mkp ptm;mkdir -p $G_/sessions/quorum;cp $T/pt/.agi/nodes/town/local-maxxing.md $G_/nodes/town/;cp $T/pt/.agi/sessions/quorum/belam.md $G_/sessions/quorum/
+sedc 's/^def trajectory_segment(root: Path) -> str:/def trajectory_segment(root: Path) -> str:\n    return ""/' $P/extensions/agi/bin/success_metrics.py "the trajectory_segment stub";AGI_LAP=5 sm --line $G_ >$T/t2m.out
+ok "m4t2m-never-rendering-the-registered-throws-RED a writer whose trajectory_segment returns nothing prints no '| trajectory:' (the m4t2 lane wants placed=2 there): the m4t2 lane catches it" '! grep -q "| trajectory: " $T/t2m.out'
+# T2b (L90 council): an unreadable town node is NAMED next to the quorum-dir twin; no trajectory_throws cell stays silent
+mkp pr;l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+ok "m4t2b-unreadable-town-node-is-named make_line(<the repo root, not .agi>) carries '| trajectory: UNMEASURED(no town node)' next to '| intake: UNMEASURED(no quorum dir)' (got '$(echo "$l"|sed -n 's/.*\(| trajectory: [^|]*\).*/\1/p')')" 'echo "$l"|grep -q "| trajectory: UNMEASURED(no town node)"&&echo "$l"|grep -q "| intake: UNMEASURED(no quorum dir)"&&[ "$(echo "$l"|grep -o "| trajectory:"|wc -l|tr -d " ")" = 1 ]'
+mkp pn;mkdir -p $G_/sessions/quorum;printf '%s\n' '---' 'id: town:local-maxxing' 'type: town' '---' 'body' >$G_/nodes/town/local-maxxing.md;l=$(AGI_LAP=11 sm --line $G_ 2>&1|head -1)
+ok "m4t2c-no-registered-cell-no-segment a town node without a trajectory_throws cell prints no '| trajectory:' segment at all (got '$(echo "$l"|grep -o "| trajectory:[^|]*")')" '! echo "$l"|grep -q "| trajectory:"'
+# mutant: the old silent "" for an unreadable town node reads RED on m4t2b
+mkp pq;mkdir -p $G_/sessions/quorum;sedc 's/return "| trajectory: UNMEASURED(no town node)"/return ""/' $P/extensions/agi/bin/success_metrics.py "the trajectory UNMEASURED literal";l=$(AGI_LAP=11 sm --line $P 2>&1|head -1)
+ok "m4t2bm-silent-unreadable-town-node-RED a writer that returns nothing for an unreadable town node prints no '| trajectory:' (the m4t2b lane wants the UNMEASURED name): the m4t2b lane catches it" '! echo "$l"|grep -q "| trajectory:"'
+# mutant: a cron that skips the cards (the intake segment fixed to none) reads RED on m4a
+mkp pk;mkdir -p $G_/sessions/quorum;card belam <<'EOC'
+| a1 | "one" | src:doc | target:x | lap10 |
+EOC
+sedc 's/^def intake_segment(root: Path) -> str:/def intake_segment(root: Path) -> str:\n    return "intake: none"/' $P/extensions/agi/bin/success_metrics.py "the intake_segment stub";AGI_LAP=11 sm --line $G_ >$T/m4m.out
+ok "m4m-skipping-the-cards-RED a --line that skips the cards prints 'intake: none' for a card with an open row (got '$(head -1 $T/m4m.out|sed -n 's/.*| intake: //;s/ *|.*//;p')', the m4a lane wants belam=1/0/0 there): the m4a lane catches it" '[ "$(head -1 $T/m4m.out|sed -n "s/.*| intake: //;s/ *|.*//;p")" = none ]'
+# r3/r4 (the census, council (A)): chg and sedc EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it (this lane's ok takes a name and a condition)
+ok mcl-the-rendered-cron-line-lost-its-wrapper-and-its-placeholder '[ ! -e $T/mcl.bad ]'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok chg-a-matchless-edit-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok chg-an-edit-that-changed-bytes-is-silent '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};chg $T/c1 $T/c2 "the old test";echo AFTER);rc=$?
+ok chg-mutant-the-guard-dropped-is-RED '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: chg"&&echo "$x"|grep -qx AFTER'
+printf 'a\nb\n' >$T/c1;x=$(sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo AFTER);rc=$?
+ok sedc-a-sed-i-that-matches-nothing-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted sed -i" ]'
+x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo AFTER);rc=$?
+ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+MCLM=$T/m.t;rm -f $T/m.t;echo 'x && python3 /a/board_job.py commit' >$T/w;mclchk <$T/w >/dev/null;a=$([ -e $T/m.t ]&&echo marked||echo clean);rm -f $T/m.t;echo 'python3 /a/success_metrics.py --line' >$T/w;mclchk <$T/w >/dev/null;b=$([ -e $T/m.t ]&&echo marked||echo clean);unset MCLM
+ok mclchk-marks-a-line-that-kept-its-wrapper-and-passes-a-stripped-one '[ "$a" = marked ]&&[ "$b" = clean ]'
 echo "graph-metrics: $f FAIL"
 exit $f

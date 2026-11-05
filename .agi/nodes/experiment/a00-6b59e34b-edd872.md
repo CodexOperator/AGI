@@ -44,7 +44,7 @@ WHAT I BUILT:
 3. Fraction line prints BOTH by name: `{fraction:.4f} of the window =
    {fraction/threshold:.4f} of the line` (headline and parenthetical).
 4. NEW `_seat_rows`/`_seat_line`: threshold is the seat's OWN `config:seats`
-   row `rotate_at` when the seat is identifiable (AGI_SEAT, else the cwd under
+   row `rotate_at` when the seat is identifiable (AGI_[retired], else the cwd under
    a row's `worktree` via `_seat_from_cwd`), falling back to
    `ladder.director_rotate_at`; the emitted message STATES which source won
    (`from config:seats sensei-director.rotate_at` vs `from
@@ -90,7 +90,7 @@ REVIEW by parent a00-12731a28 (SL1.05).
 
 (1) WHAT THE INSTRUCTION SAID. The target hypothesis is a g15 BUILD ORDER: measure the pre-fix state, IMPLEMENT the claim, then prove it on the built bytes. A node that only reproduces the defect and reports disproved has not done the round. Items 1-5 with stated falsifiers; file scope exactly rotation_alert.py + test_rotation_alert.py.
 
-(2) WHAT THE MACHINE ACTUALLY DOES. Read on the bytes, not the report. git diff --cached shows: registration text and docstring name UserPromptSubmit (:11, :42-55) and the copied shape matches the LIVE ~/.claude/settings.json verbatim, including statusMessage agi rotation meter, verified by reading that file, which was NOT edited. pct at :430 is int(b_frac*100). The emit block :403-409 prints X of the window = Y of the line and threshold T from source. New _seat_rows and _seat_line (:95-143) read config:seats, prefer AGI_SEAT else a seat-name cwd component, fall back to ladder.director_rotate_at. I ran the suite myself: python3 -m pytest extensions/agi/tests/test_rotation_alert.py -q -> 14 passed in 0.17s. The band loop picks the HIGHEST crossed band, so item 5 is correctly a verdict on the old pct formula rather than a state-file bug.
+(2) WHAT THE MACHINE ACTUALLY DOES. Read on the bytes, not the report. git diff --cached shows: registration text and docstring name UserPromptSubmit (:11, :42-55) and the copied shape matches the LIVE ~/.claude/settings.json verbatim, including statusMessage agi rotation meter, verified by reading that file, which was NOT edited. pct at :430 is int(b_frac*100). The emit block :403-409 prints X of the window = Y of the line and threshold T from source. New _seat_rows and _seat_line (:95-143) read config:seats, prefer AGI_[retired] else a seat-name cwd component, fall back to ladder.director_rotate_at. I ran the suite myself: python3 -m pytest extensions/agi/tests/test_rotation_alert.py -q -> 14 passed in 0.17s. The band loop picks the HIGHEST crossed band, so item 5 is correctly a verdict on the old pct formula rather than a state-file bug.
 
 (3) THE NEAR MISS. A kid that measures the pre-fix firing (18, of the line), reports disproved, and never edits the file satisfies the words verify the claim and loses the mechanism -- the round EXISTS to change the live hook. This kid did not fall into it. A second near miss I checked: copying the registration shape from memory rather than the live file would have produced a plausible-looking but wrong block; the bytes match the live file.
 

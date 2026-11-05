@@ -90,6 +90,7 @@ Explicit --harness flag now beats a differing ladder-row harness; red-first test
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-02fb5304, L3.28): accepted as proved. Independent verification — ran test_dispatch_dry_run.py (9/9) and read the dispatch.py diff myself: explicit_harness/from_seat gating is correct (seat > explicit flag > ladder row), ladder model/effort/settings correctly dropped when the flag names a different harness. The one failure in the full suite (test_bin_help_smoke[seat_status.py]) plus the two collection errors are pre-existing in files this run did not touch (git status confirms untouched). Caveat stands: the claim describes fixed behavior, so proof is red-first flip, not observation — that is the right shape for this claim.
+director-general-3 10-27 GHOST MINT (goal:g7.16.1.11.46.16.3; census --orphans double-mint): this id is also carried by the grid ref 74c04bdcebc841ffb4bed8301811a358, ONE version (09-07), adopted from origin by unify; the node's own mint carries every edit: nothing to choose, kept as a named record.
 <!-- THOUGHT:END -->
 
 Parent review passed: verdict proved accepted. Repro pre-fix, red-first test flipping green, seat/ladder precedence regression-pinned, evidence_runs self-cited correctly (experiment is the run).

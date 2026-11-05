@@ -3,18 +3,18 @@
 # each one waiting on another (02:3xZ 10-11: SM idle after a compaction, the council waiting on SM's bigger outcomes,
 # DG4 on SM's placements, DT-1 on TM). Owner 02:3xZ 10-11, verbatim: "Maybe an automated check if all posts are quiet
 # for 5 mins and no process send a mail alert to SM". A post is BUSY when its newest transcript (~/.claude/projects/
-# **/*.jsonl) is younger than Q seconds, or its claude has any descendant other than the MCP server (a tool call, a
-# background task, a Monitor). When EVERY running post but belam is quiet, spool ONE alarm for sanctuary-master (belam's spool; belam's
+# **/*.jsonl) is younger than Q seconds, or its screen log ~/o changed in the last QUIET seconds (a turn or a foreground
+# tool redraws its spinner). WAS: "or its claude has any descendant but the MCP server" -- a background shell held that true
+# for good, so the town sat idle 15 h after L121 (02:34Z-18:0xZ 10-25) and this never fired (belam 18:2xZ 10-25). When EVERY running post but belam is quiet, spool ONE alarm for sanctuary-master (belam's spool; belam's
 # drain signs and sends it as belam: the matrix allows belam -> SM); then at most once per GAP seconds until some post is busy again.
-Q=${Q:-300};GAP=${GAP:-1800};S=${S:-/run/agi-quiet-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master};AS=${AS:-/opt/agi/bin/alarm_spool.py};STORES=${STORES:-/var/lib/agi};mkdir -p "$S"
+Q=${Q:-300};QUIET=${QUIET:-60};GAP=${GAP:-1800};S=${S:-/run/agi-quiet-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master};AS=${AS:-/opt/agi/bin/alarm_spool.py};STORES=${STORES:-/var/lib/agi};mkdir -p "$S"
 now=$(date +%s);list=;n=0
-desc(){ for c in $(pgrep -P "$1");do case "$(tr '\0' ' ' </proc/$c/cmdline 2>/dev/null)" in *@gitkraken*|*'gk mcp'*)continue;;esac;echo "$c";desc "$c";done;}
 for u in $(systemctl list-units 'agi-post@*.service' --state=running --no-legend --plain | awk '{print $1}');do
  p=${u#agi-post@};p=${p%.service};case $p in ""|*[!a-z0-9-]*|"$SELF")continue;;esac
  c=$(pgrep -u "agi-$p" -x claude | head -1);[ -n "$c" ]||continue
  t=$(find "/var/lib/agi/$p/.claude/projects" -name '*.jsonl' -printf '%T@\n' 2>/dev/null | sort -n | tail -1);t=${t%.*}
- a=$((now-${t:-0}));k=$(desc "$c" | wc -l)
- if [ "$a" -lt "$Q" ] || [ "$k" -gt 0 ];then rm -f "$S/last";exit 0;fi
+ a=$((now-${t:-0}));o=$(stat -c %Y "$STORES/$p/o" 2>/dev/null||echo 0)
+ if [ "$a" -lt "$Q" ] || [ $((now-o)) -lt "$QUIET" ];then rm -f "$S/last";exit 0;fi
  list="$list $p:$((a/60))m";n=$((n+1))
 done
 [ "$n" -gt 0 ]||exit 0

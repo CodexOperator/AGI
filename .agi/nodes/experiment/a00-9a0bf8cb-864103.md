@@ -52,7 +52,7 @@ Live claim probe, `cli._claim_conjunct_numbers(<the hypothesis file>)` (body now
 [1, 2, 3]
 ```
 
-`TMPDIR=/dev/shm/... env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_cli_claim_conjunct_scope.py extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp /dev/shm/eg63-9a0bf8cb/bt`:
+`TMPDIR=/dev/shm/... env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] python3 -m pytest extensions/agi/tests/test_cli_claim_conjunct_scope.py extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp /dev/shm/eg63-9a0bf8cb/bt`:
 ```
 79 passed, 6 skipped, 1 warning in 14.28s
 ```

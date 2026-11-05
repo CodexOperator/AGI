@@ -724,30 +724,30 @@ commands:
     argv: ["bash", "<engine>/driver.sh", "--smoke"]
     about: "no dispatch"
 manifest:
-  write.py:set:
-    cli: write.py
+  node_tool.py:set:
+    cli: node_tool.py
     verb: set
-    argv: [python3, <engine>/write.py, <node-id>, "set <key> <value>"]
+    argv: [python3, <engine>/node_tool.py, <node-id>, "set <key> <value>"]
     args:
       - {name: key, type: str, required: true, choices: []}
       - {name: value, type: str, required: true, choices: []}
     purpose: set a key
     side_effects: graph-write
     proposable: true
-  write.py:read:
-    cli: write.py
+  node_tool.py:read:
+    cli: node_tool.py
     verb: read
-    argv: [python3, <engine>/write.py, <node-id>, "read body 1:2"]
+    argv: [python3, <engine>/node_tool.py, <node-id>, "read body 1:2"]
     args:
       - {name: range, type: str, required: true, choices: []}
     purpose: read a slice
     side_effects: read
     proposable: true
 excluded:
-  write.py:patch:
-    cli: write.py
+  node_tool.py:patch:
+    cli: node_tool.py
     verb: patch
-    argv: [python3, <engine>/write.py, <node-id>, "patch -"]
+    argv: [python3, <engine>/node_tool.py, <node-id>, "patch -"]
     reason: reads a unified diff on stdin
     side_effects: graph-write
     proposable: false
@@ -791,10 +791,10 @@ def test_get_commands_json_serves_the_manifest(graph) -> None:
             assert r.status == 200
             assert r.headers["Content-Type"].startswith("application/json")
             data = json.loads(r.read().decode("utf-8"))
-            assert data["write.py:set"]["proposable"] is True
-            assert data["write.py:set"]["argv"][1] == "<engine>/write.py"
-            assert data["write.py:patch"]["proposable"] is False
-            assert data["write.py:patch"]["reason"]
+            assert data["node_tool.py:set"]["proposable"] is True
+            assert data["node_tool.py:set"]["argv"][1] == "<engine>/node_tool.py"
+            assert data["node_tool.py:patch"]["proposable"] is False
+            assert data["node_tool.py:patch"]["reason"]
     finally:
         httpd.shutdown()
         httpd.server_close()
@@ -817,15 +817,15 @@ def test_post_propose_returns_the_argv_and_runs_nothing(graph, monkeypatch) -> N
     httpd, t, port = _serve_commands(graph)
     try:
         with _post(f"http://127.0.0.1:{port}/propose",
-                   {"name": "write.py:set",
+                   {"name": "node_tool.py:set",
                     "args": {"key": "title", "value": "hi"}}) as r:
             assert r.status == 200
             assert json.loads(r.read().decode("utf-8"))["argv"] == [
-                "python3", "<engine>/write.py", "<node-id>", "set title hi"]
+                "python3", "<engine>/node_tool.py", "<node-id>", "set title hi"]
 
         with pytest.raises(urllib.error.HTTPError) as exc:
             _post(f"http://127.0.0.1:{port}/propose",
-                  {"name": "write.py:patch", "args": {}})
+                  {"name": "node_tool.py:patch", "args": {}})
         assert 400 <= exc.value.code < 500
         assert b"not proposable" in exc.value.read()
     finally:
@@ -843,7 +843,7 @@ def test_post_propose_refuses_an_unplaceable_required_arg(graph) -> None:
     try:
         with pytest.raises(urllib.error.HTTPError) as exc:
             _post(f"http://127.0.0.1:{port}/propose",
-                  {"name": "write.py:read", "args": {"range": "1:2"}})
+                  {"name": "node_tool.py:read", "args": {"range": "1:2"}})
         assert exc.value.code == 400
         assert b"cannot place arg" in exc.value.read()
     finally:

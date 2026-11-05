@@ -2341,7 +2341,7 @@ def _row_launch_refusal(args, row):
         if flag is None or flag == (cell or ""):
             return None
         return (f"--{name} {flag} differs from the row: {name} {(cell or '')}; "
-                f"the row changes only through write.py by the Prime/owner "
+                f"the row changes only by an edit of its row by the Prime/owner "
                 f"ahead of the rotation")
     for name, flag, cell in (
             ("model", args.model, row.get("model")),
@@ -2357,7 +2357,7 @@ def _row_launch_refusal(args, row):
         if flag_s != _normalize_settings(row.get("settings")):
             return (f"--settings {args.settings} differs from the row: "
                     f"settings {row.get('settings') or ''}; row changes only "
-                    f"via write.py by the Prime/owner ahead of the rotation")
+                    f"by an edit of its row by the Prime/owner ahead of the rotation")
     return None
 
 
@@ -4243,7 +4243,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
       rename-file  -- pure filesystem move (performed for real, idempotent)
       rename-key   -- sidecar JSON key rewrite (performed for real)
       seam-git     -- git ref/worktree/tmux surface, routed through a seam
-      ship         -- a write.py line is PRINTED (the round never writes
+      ship         -- an edit instruction is PRINTED (the round never writes
                       config: seats rows, rotations.md, belam.md)
     Never writes config; never touches git/tmux/live tree. Dedupes by src."""
     seen: dict[str, dict] = {}
@@ -4291,18 +4291,18 @@ def _rename_surfaces(root: Path, old: str, new: str,
         nm = row.get("name")
         if nm == old:
             add("row name", f"row {old} name", f"row {new} name", "ship",
-                print_line=f"write.py {nm} 'set name {new}'")
+                print_line=f"edit the {nm} row: name: {new}")
             for k, v in row.items():
                 if k != "name" and str(v) == old and k in cols:
                     add(f"row cell {k}", f"row {old}.{k}", f"row {new}.{k}",
                         "ship",
-                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+                        print_line=f"edit the {nm} row: {k}: {new}")
         elif nm == new:
             for k, v in row.items():
                 if str(v) == old and k in cols and k != "name":
                     add(f"row cell {k}", f"row {new}.{k}",
                         f"row {new}.{k}->{new}", "ship",
-                        print_line=f"write.py {nm} 'replace {k} -- {new}'")
+                        print_line=f"edit the {nm} row: {k}: {new}")
 
     old_town = _row_town_or_refuse(root, old)
     new_row = _find_seat(root, new)
@@ -4336,7 +4336,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
                 add(f"{path.name} mention",
                     f"{path.name}:{n}", f"{path.name}:{n}(edited)", "ship",
                     print_line=(
-                        f"write.py {path.stem} 'patch'  # line {n}: {old} -> {new}"))
+                        f"edit {path.name} line {n}: {old} -> {new}"))
 
     # alerts.edges keys AND values (read-time rewrite in _load_alerts, not a
     # config write here). audit/silent are name lists too.
@@ -4407,7 +4407,7 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
     nothing -- the round never touches the live git ref or tmux server; a
     fixture injects a recorder). The old branch is deleted ONLY under
     `delete_old` (a seam push `:old`). "ship" surfaces (row cells,
-    rotations.md, belam.md) are never written: the exact write.py line is
+    rotations.md, belam.md) are never written: the exact edit line is
     PRINTED. Returns (applied, skipped). Never writes config."""
     run_git = run_git or _seam_git
     run_tmux = run_tmux or _seam_tmux
@@ -4681,7 +4681,7 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
     live pid; with --live those also run the git/tmux renames for REAL, while
     the default (no --live) keeps git/tmux on a print-only seam and runs no
     subprocess. Git/tmux surfaces ride a seam; row/prose surfaces PRINT their
-    write.py line -- the round never writes config."""
+    edit line -- the round never writes config."""
     old, new = args.old_name, args.new_name
     if getattr(args, "root", None):
         root = Path(args.root)
@@ -4735,7 +4735,7 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         nship = sum(1 for s in surfaces if s["action"] == "ship")
         ngit = sum(1 for s in surfaces if s["action"] == "seam-git")
         print(f"rename-post: {old} -> {new}: {applied} surface(s) applied, "
-              f"{skipped} skipped/idempotent, {nship} shipped (write.py "
+              f"{skipped} skipped/idempotent, {nship} shipped (edit "
               f"line printed, config untouched), {ngit} git-seam surface(s)"
               + (" [LIVE]", "")[not live])
         return 0
@@ -6417,9 +6417,9 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
 
 def _load_alerts_raw(root: Path) -> dict:
     """config:rotations frontmatter top-level `alerts:` -- the ONE routing
-    matrix the Prime writes once at merge-up as a single write.py `set alerts
-    {\u2026}` line (the round never writes it); {} when absent or not a map. A
-    quoted-JSON cell (the shape write.py produces for a nested map, exactly
+    matrix the Prime writes once at merge-up as a single edit of the `alerts:`
+    cell (the round never writes it); {} when absent or not a map. A
+    quoted-JSON cell (the shape the retired writer produced for a nested map, exactly
     like `rotate_defaults:`) yields a str, parsed here so the shape survives
     either spelling. Shape:
         {"audit": [<names>], "edges": {<seat>: [<names>]},
@@ -7171,8 +7171,7 @@ def _first_seating_key(root: Path, seat: str,
     into the seating row (``{}`` when nothing was keyed) and ``note`` is the
     ONE line the caller prints, empty when silent. ``dry_run`` mints and
     writes NOTHING: it prints the ONE ``would key <seat>`` plan line."""
-    import write as _w  # local: same dir (send.py pattern, no cycle)
-    row = next((r for r in _w._load_seats(_shared_graph_root(root))
+    row = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                 if r.get("name") == seat), None)
     if not row:
         return {}, ""
@@ -8401,6 +8400,25 @@ def _render_card(preamble: str,
     return "\n".join(lines) + "\n"
 
 
+_CARD_S7 = re.compile(r"^## (?:\S+ )?§7(?!\d)")
+
+
+def _card_guard_lines(full: str) -> int:
+    """Lines the HANDOFF_CARD_LIMIT_LINES guard counts: the card WITHOUT its
+    `## §7` ATOMS section (goal:g7.16.1.11.46.2 M1, owner 10-23: §7 is
+    bounded by age -- an open atom older than one lap is a red -- never by
+    length). The count is `full.count("\n")` minus the §7 span, header to
+    the next `## ` header or EOF."""
+    n = 0
+    skip = False
+    for ln in full.splitlines():
+        if ln.startswith("## "):
+            skip = bool(_CARD_S7.match(ln))
+        if not skip:
+            n += 1
+    return n
+
+
 def _section_tag(header: str) -> str | None:
     """Which of §0 / §3 / §6 a `## ...` header names, or None. Headers like
     `## 🔴 §6 BANKED` still resolve to §6 (the token is searched, not the
@@ -8855,9 +8873,11 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         ]
 
     full = _render_card(preamble, new_sections)
-    line_count = full.count("\n")
+    line_count = _card_guard_lines(full)
     if line_count > HANDOFF_CARD_LIMIT_LINES:
-        biggest = max(new_sections, key=lambda hs: len(hs[1].splitlines()))[0]
+        biggest = max((hs for hs in new_sections
+                       if not _CARD_S7.match(hs[0])),
+                      key=lambda hs: len(hs[1].splitlines()))[0]
         print(f"ERR: composed card is {line_count} lines, over the "
               f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
               f"section ({biggest}).", file=sys.stderr)
@@ -9084,9 +9104,11 @@ def _closeout_apply(root: Path, seat: str, role: str,
             new_sections[target] = (new_sections[target][0], v)
 
     full = _render_card(preamble, new_sections)
-    line_count = full.count("\n")
+    line_count = _card_guard_lines(full)
     if line_count > HANDOFF_CARD_LIMIT_LINES:
-        biggest = max(new_sections, key=lambda hs: len(hs[1].splitlines()))[0]
+        biggest = max((hs for hs in new_sections
+                       if not _CARD_S7.match(hs[0])),
+                      key=lambda hs: len(hs[1].splitlines()))[0]
         return None, None, (
             f"composed card is {line_count} lines, over the "
             f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
@@ -9219,11 +9241,11 @@ MAIN_POST_CLOSEOUT_STEPS = [
     "push",             # push origin the seat branch (the ONE _stops_push)
 ]
 
-#: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
-#: it lands its g17.1 note and pushes (GOALS.md and its render retired,
-#: goal:g7.16.1.4.1 W-G).
+#: PRIME closeout list: the Prime does not merge up / ask itself for a grant; it pushes. (The `g17_1_note` step
+#: that landed a numbers note on goal:g17.1 RETIRED with goal:g7.16.1.11.46.23 V8a 3a, belam's decision 10-26:
+#: goal:g17.1 was renumbered to goal:g7.16 by da2edb3f9e (09-20, same mint), the step was never re-pointed and
+#: refused at every Prime closeout for 5 weeks; the closeout numbers live in COMPLETE.md, the card and git.)
 PRIME_CLOSEOUT_STEPS = [
-    "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
     "push",        # push origin the checked-out branch
 ]
 
@@ -9743,15 +9765,15 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
                 if p1 is not None else "push could not run"
             return (False, "refused",
                     f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
-        p2 = _git_proc(main, "push", "origin", grid_spec)
+        p2 = _git_proc(main, "push", "origin", *grid_spec)
         if p2 is None or p2.returncode != 0:
             _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
                 if p2 is not None else "push could not run"
             return (False, "refused",
-                    f"push: push origin {grid_spec} refused: "
+                    f"push: push origin {' '.join(grid_spec)} refused: "
                     f"{_e}")
         return (True, "ok",
-                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + {' '.join(grid_spec)} from MAIN")
 
     def _verify_stamp():
         # verification --level rotation --stamp in MAIN (cwd).
@@ -9797,39 +9819,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         # (True, 'committed')).
         return (False, "refused", out)
 
-    def _g17_1_note():
-        # The Prime's g17.1 note: write.py goal:g17.1 note <the closeout
-        # numbers line / the where-it-stops>, via subprocess (REUSE: the
-        # existing write.py executable, no second note writer). write.py's
-        # grammar is ONE script argument ('note <text>') -- never `note` and
-        # the text as two positionals (which parses 'note' with no arg and
-        # lets the text ride the unused slug slot, exiting rc 2). Resolves
-        # the project from root explicitly (--root + cwd), never the
-        # subprocess cwd. Refuses by name on a non-zero exit.
-        binp = Path(__file__).with_name("write.py")
-        text = _numbers_line(record)
-        argv = [sys.executable, str(binp), "goal:g17.1",
-                f"note {text}", "--root", str(root)]
-        if seat:
-            argv += ["--actor", seat]
-        if role:
-            argv += ["--role", role]
-        # THE CLOSEOUT HAZARD (conjunct 1, measured): this note runs AFTER the
-        # rotation wrote the seat's card, so a stamp on write.py would read as a
-        # FRESH act and re-stale the card the rotation just produced. The marker
-        # makes the subprocess WRITE, never stamp.
-        env = {**os.environ, last_act.INTERNAL_ENV: "1"}
-        try:
-            out = subprocess.run(argv, capture_output=True, text=True,
-                                 timeout=120, cwd=str(root), env=env)
-        except Exception as exc:  # noqa: BLE001
-            return (False, "refused", f"g17_1_note could not run: {exc}")
-        if out.returncode == 0:
-            return (True, "ok", "g17.1 note written (closeout numbers)")
-        return (False, "refused",
-                f"g17_1_note refused: "
-                f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
-
     return {
         "post_verify": _verify,
         "merge_up_ask": _ask,
@@ -9841,7 +9830,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         "verify_stamp": _verify_stamp,
         "numbers": _numbers,
         "pathspec_commit": _pathspec_commit,
-        "g17_1_note": _g17_1_note,
     }
 
 
@@ -10024,6 +10012,21 @@ def _shared_graph_root(root: Path) -> Path:
     return graph
 
 
+def _no_row_skip(root: Path, seat: str) -> str:
+    """The named skip when `_write_identity_cells` wrote nothing because the seat has no row
+    (goal:g7.16.1.11.46.23 V8a, council 22:32Z 10-25). TWO causes, two different lines: the
+    registry file is PRESENT and this seat has no row in it; or there is NO config:posts/seats
+    file at all. 'Throwaway' is inferred from absence alone: the bytes carry no positive
+    throwaway marker yet, so the line says so instead of asserting it."""
+    main = _shared_graph_root(root)
+    path, _ = geometry_config.resolve(main)
+    if path is None or not Path(path).exists():
+        return (f"skipped: no config:posts/seats file in {main} "
+                "(throwaway inferred from absence, not marked)")
+    return (f"skipped: no row for {seat!r} in {path} "
+            "(throwaway inferred from absence, not marked)")
+
+
 def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
                           cells: dict) -> str:
     """The ONE writer of a seat's identity cells in config:posts.
@@ -10044,11 +10047,11 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     actor's own row). Returns a truthy one-line outcome when the write
     landed, or '' when the seat has no registry row (the caller prints its
     own skip message)."""
+    import config_rows  # noqa: PLC0415  (local: same dir, no cycle)
     import geometry_config  # noqa: PLC0415  (local: same dir, no cycle)
-    import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
     locations.refuse_live_resolution(root, main_root)
-    rows = write._load_seats(main_root)
+    rows = geometry_config.load_rows(main_root)
     new_rows: list[dict] = []
     found = False
     for r in rows:
@@ -10064,10 +10067,9 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     if not found:
         return ""
     _, list_key = geometry_config.resolve(main_root)
-    node_id = f"config:{list_key}"
-    edit = write.Edit(node_id=node_id)
-    edit.set_fm[list_key] = new_rows
-    write.submit(main_root, edit, actor=actor, role=role)
+    config_rows.write_rows(
+        main_root, new_rows, actor=actor,
+        declare={seat: ("set", {c for c, v in cells.items() if v is not None})})
     return f"wrote identity cells for seat {seat!r} into MAIN {list_key}.md"
 
 
@@ -10080,7 +10082,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          first_key_cells: dict | None = None,
                          row_seat: str | None = None,
                          session_label: str | None = None) -> str:
-    """Write the successor's config:seats ROW via `write.py submit` (s6).
+    """Write the successor's config:seats ROW via `config_rows.write_rows` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
     for a PRIME role only — `generation` (goal:g15.25 claim (6-rows): a
@@ -10142,7 +10144,6 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # throwaway row with no label) so the cell exists from the seat's own
     # first spawn write, beside session_name; the ack back-fill never passes
     # it, so it stays what the spawn row write set.
-    import write as _w  # local: same dir (send.py pattern, no import cycle)
     # L5.02 clause 2: after a boundary rename the seats ROW still carries the
     # OLD name (the round never writes config), so the successor's row lookup
     # keys on `row_seat` (the applied rename's old name) and resolves through
@@ -10151,7 +10152,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # spawn passes as --remote-control), so the GUI label and the stored cell
     # AGREE. `_write_identity_cells` writes the RESOLVED row, never a phantom
     # new-named one; an unresolved row is the named skip below, never silent.
-    _rows = _w._load_seats(_shared_graph_root(root))
+    _rows = geometry_config.load_rows(_shared_graph_root(root))
     _want = row_seat or seat
     _row = next((r for r in _rows if r.get("name") == _want), None)
     if _row is None:
@@ -10171,7 +10172,6 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # The current history is read from the row the ONE writer will write
     # (MAIN's), so the append is against the live list, not a worktree copy.
     if key_rotation:
-        import write  # local: same dir (send.py pattern, no import cycle)
         # goal:g15.25 line (2) + hypothesis:l5-key-rotation-at-a-rename-
         # boundary-clobbers-key-history-instead-of-carrying-it: the history
         # READ must resolve the SAME row the ONE writer below updates, i.e.
@@ -10180,7 +10180,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
         # NOT `seat`. Keying the read on `seat` (the post-rename name) found
         # no row at read time, so `_cur == {}` and `_hist == []` and the
         # cell-replace below destroyed every prior entry.
-        _cur = next((r for r in write._load_seats(_shared_graph_root(root))
+        _cur = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                      if r.get("name") == _row_name), {})
         _ret = key_rotation.get("retired")
         cells["pubkey"] = key_rotation.get("successor_pub")
@@ -10201,8 +10201,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
         cells.update(first_key_cells)
     if not _write_identity_cells(root, seat=_row_name, actor=_row_name,
                                  role=role, cells=cells):
-        return (f"skipped: no seat-registry row with name {seat!r} "
-                "(a THROWAWAY seat never writes seats.md)")
+        return _no_row_skip(root, seat)
     box_line = _stamp_row_box(root, seat=_row_name, row=_row or {})
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
@@ -10304,8 +10303,7 @@ def _backfill_session_ref(root: Path, *, seat: str, role: str,
         cells["pid"] = pid
     if not _write_identity_cells(root, seat=seat, actor=seat, role=role,
                                  cells=cells):
-        return (f"skipped: no seat-registry row with name {seat!r} "
-                "(a THROWAWAY seat has no row to back-fill)")
+        return _no_row_skip(root, seat)
     parts = [f"session_ref={ref}"]
     if session_name:
         parts.append(f"session_name={session_name}")
@@ -12657,7 +12655,7 @@ def _button_down(*, root: Path, branch_allow: bool = True,
 
 
 # -- s11: the cheapest verification level rotate-self cites (<15s) -------
-VERIFICATION_LEVEL = "quick"  # links + write-guard (verification.py:14)
+VERIFICATION_LEVEL = "quick"  # links (verification.py:14)
 BOOTSTRAP_SHAPE = "v1"        # shape id of <sessions>/seats/<seat>.bootstrap.json
 
 
@@ -12665,7 +12663,7 @@ def _run_verification(root: Path, argv: list[str] | None = None) -> dict:
     """s11 — run verification.py at the cheapest existing level and return it.
 
     Level `quick` (`--json`) is the cheapest existing level
-    (links + write-guard, <15s — verification.py:14) and is the
+    (links, <15s — verification.py:14) and is the
     one this round actually cites; it never runs pytest (the suite window is
     the prime's, verification.py is read/ran, never edited). `argv` is the
     test seam (a fixture root has no graph to verify). NEVER raises: any
@@ -12866,7 +12864,7 @@ BOOTSTRAP_FIXED_FACTS = [
     # (SL7.71 harvest) every join-only fact is ALSO a fixed fact, so a
     # pre-spawn record carries `meter` as `pending: resolved after join`
     # whatever the template's telemetry list declares (the owner's 15:4xZ
-    # order: every wake carries its meter); test_session_start_seat_pre_spawn
+    # order: every wake carries its meter); test_session_start_post_pre_spawn
     # iterates BOOTSTRAP_JOIN_ONLY_FACTS against a three-key fixture.
     "meter",
 ]
@@ -13222,7 +13220,7 @@ def _repoint_livestream_views(*, tmux_session: str, seat: str,
 # A rotation template's `startup` block can carry a `first_turn` list —
 # commands rotate-self runs BEFORE spawn so a new rotation lands already
 # holding its telemetry (rotation record, seat row, authority, git state,
-# inbox, live spawns, write.py verbs — the measured gen-X first calls the
+# inbox, live spawns, node-writer verbs — the measured gen-X first calls the
 # owner wants folded into the rotation, see .geometry/rotations.md). Each
 # command is allowlisted (refused by executable/verb, its LABEL named, never
 # run), placeholder-resolved (an unknown placeholder is refused, never
@@ -14119,23 +14117,31 @@ def _strip_harness(text: str) -> str:
 
 
 class FactsBodyRangeError(ValueError):
-    """A `facts*` first_turn entry that names no `read body N:M`, or two
-    templates whose same label disagrees -- refused BY NAME (template +
-    label), never as a bare `no facts entry`."""
+    """A `facts*` first_turn entry that names no `node_read.py config:rotations
+    section <heading>`, or two templates whose same label disagrees -- refused
+    BY NAME (template + label), never as a bare `no facts entry`."""
 
 
-def facts_body_ranges(templates: dict) -> list:
-    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive,
-    resolved from the templates' OWN `facts*` first_turn cmd(s) -- `write.py
-    config:rotations 'read body N:M'` (SM.55 residue, item 11).
+_FACTS_SECTION_RE = re.compile(r"node_read\.py\s+config:rotations\s+section\s+(\S+)")
+
+
+def facts_body_ranges(templates: dict, body_lines: list) -> list:
+    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive in
+    BODY coordinates (`<!-- BODY:BEGIN -->` is line 1), resolved from the
+    templates' OWN `facts*` first_turn cmd(s) -- `node_read.py config:rotations
+    section <heading>` -- against `body_lines`, the node's body split on "\n"
+    (goal:g7.16.1.11.46.23 3b: the retired `write.py ... 'read body N:M'`
+    named line numbers, which drift; the section is found by CONTENT with
+    node_read's own `section_span`, the rule the wake prints by).
 
     A template may carry several entries (`facts`, `facts-2`, `facts-N`) and
     each is returned; every template carrying the SAME label must agree; a
-    `facts*` cmd that names no body range raises `FactsBodyRangeError` naming
-    both the template and the label. Ordered `facts` first, then `facts-2`,
-    `facts-3` … This is the PRODUCTION half of the guard's rule: the guard in
-    `test_rotate_templates.py` imports it, so the rule and production are the
-    same rule."""
+    `facts*` cmd that names no section, or a heading that is absent or
+    duplicated, raises `FactsBodyRangeError` naming both the template and the
+    label. Ordered `facts` first, then `facts-2`, `facts-3` ... This is the
+    PRODUCTION half of the guard's rule: the guard in `test_rotate_templates.py`
+    imports it, so the rule and production are the same rule."""
+    import node_read as _node_read  # local: same dir (send.py pattern)
     by_label: dict = {}
     for name, ent in templates.items():
         if not isinstance(ent, dict):
@@ -14148,16 +14154,20 @@ def facts_body_ranges(templates: dict) -> list:
             if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
                                                               label):
                 continue
-            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
+            m = _FACTS_SECTION_RE.search(e.get("cmd", ""))
             if not m:
                 raise FactsBodyRangeError(
-                    f"template {name!r} {label!r} cmd does not name a body "
-                    f"range: {e!r}")
-            by_label.setdefault(label, set()).add(
-                (int(m.group(1)), int(m.group(2))))
+                    f"template {name!r} {label!r} cmd does not name a "
+                    f"`node_read.py config:rotations section <heading>`: {e!r}")
+            try:
+                s, end = _node_read.section_span(body_lines, m.group(1))
+            except _node_read.Refused as exc:
+                raise FactsBodyRangeError(
+                    f"template {name!r} {label!r}: {exc} config:rotations")
+            by_label.setdefault(label, set()).add((s + 1, end))
     if not by_label:
         raise FactsBodyRangeError(
-            "no template declares a `facts` read body N:M first_turn")
+            "no template declares a `facts` node_read section first_turn")
     out = []
     for label in sorted(by_label, key=lambda l: (l != "facts",
                                                  0 if l == "facts"
@@ -17985,8 +17995,7 @@ def _key_finding(root: Path, seat: str, line: str) -> str:
         mark = locations.shared_sessions_dir(root) / "seats" / f"{seat}.key-finding"
         if mark.is_file() and mark.read_text(encoding="utf-8") == line:
             return line
-        import write as _w
-        prime = next((str(r.get("name")) for r in _w._load_seats(_shared_graph_root(root))
+        prime = next((str(r.get("name")) for r in geometry_config.load_rows(_shared_graph_root(root))
                       if r.get("role") == "prime_director" and r.get("name")), "")
         if prime:
             send.send(root, prime, line, "heal")
@@ -18008,9 +18017,8 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     if tmpl.get("missing_key") != "remint_on_own_box":
         return ""
     import boxes
-    import write as _w  # local: same dir (send.py pattern, no cycle)
     # the row's box from MAIN's posts node, never the caller's row dict
-    node_row = next((r for r in _w._load_seats(_shared_graph_root(root))
+    node_row = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                      if r.get("name") == seat), {})
     own = str(node_row.get("box") or "").strip()
     try:
@@ -18197,8 +18205,7 @@ def ensure_post_key(root: Path, post: str, dry_run: bool = False) -> str:
     cells written and committed. No model runs keygen. Returns the one-line
     note ('' = nothing to do). Never raises: a key never blocks a stand-up."""
     try:
-        import write as _w  # local: same dir (send.py pattern, no cycle)
-        row = next((r for r in _w._load_seats(_shared_graph_root(root))
+        row = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                     if r.get("name") == post), None)
         return _rotate_first_key(root, None, post, row, dry_run=dry_run)
     except Exception as exc:  # noqa: BLE001 -- see docstring
@@ -18270,8 +18277,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         # own-row clause (1), Prime XIII ask (a)). Best-effort, exactly as
         # before: a refused / unadmitted row write never fails the rotation
         # (the key file is still minted; the note says which half landed).
-        import write as _w  # local: same dir (send.py pattern, no cycle)
-        _cur = next((r for r in _w._load_seats(_shared_graph_root(root))
+        _cur = next((r for r in geometry_config.load_rows(_shared_graph_root(root))
                      if r.get("name") == seat), {})
         if _write_identity_cells(
                 root, seat=seat, actor=seat,
@@ -19249,6 +19255,26 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
                                  f"load ({_seats_refused})" if _seats_refused else ""))
 
 
+def _pushing_seat_branch(root: Path) -> tuple[str | None, str]:
+    """goal:g7.16.1.11.46.28: the branch of the ONE seat that pushes a post
+    branch to origin -- `posts/<name>` of the config:posts row whose role is
+    prime_director -- and '' as the reason; (None, reason) when the rows do
+    not read or name zero or several such rows. Never raises."""
+    try:
+        rows = _load_seats(root)
+    except Exception as exc:  # noqa: BLE001
+        return None, f"config:posts unread: {exc}"
+    pr = [r for r in rows if isinstance(r, dict)
+          and r.get("role") == "prime_director"]
+    if len(pr) != 1:
+        return None, (f"{len(pr)} config:posts rows with role prime_director, "
+                      f"want 1")
+    name = str(pr[0].get("name") or "").strip()
+    if not name:
+        return None, "the prime_director row has no name"
+    return f"posts/{name}", ""
+
+
 def _stops_push(root: Path, label: str = "stops") -> str | None:
     """goal:g15.25 line (3) -- push the branch a rotate-out commit landed on.
     Returns None on success (one push line printed to stderr) or a NAMING
@@ -19315,6 +19341,22 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
         print(f"{label} push: OK -- {_info['ref']} <- {_info['sha']} "
               f"(proved_by ls-remote)", file=sys.stderr)
         return None
+    # goal:g7.16.1.11.46.28 (alive [decision] 23:50:53Z 10-28): a posts/<post>
+    # branch that is NOT the pushing seat's never reaches origin (goal:g15.25:
+    # a post branch is local-only; branches.parse does not know posts/<post>,
+    # so it has no mirror ref). Keyed on the SEAT: the config:posts row whose
+    # role is prime_director names the one branch that pushes, never on a
+    # missing github helper (that is the pushing seat's own loud refusal).
+    if branch.startswith("posts/"):
+        _pusher, _why = _pushing_seat_branch(root)
+        if _pusher is None:
+            print(f"{label} push: pushing seat unread ({_why}); the head push "
+                  f"is attempted", file=sys.stderr)
+        elif branch != _pusher:
+            print(f"{label} push: SKIPPED -- {branch} is not the pushing "
+                  f"seat's branch ({_pusher}, config:posts role "
+                  f"prime_director); it stays local", file=sys.stderr)
+            return None
     try:
         push = subprocess.run(["git", "-C", str(top), "push", "origin",
                                branch], capture_output=True, text=True,
@@ -19462,7 +19504,7 @@ def _load_rotate_defaults(root: Path) -> dict:
     map the Prime writes as a single JSON value on config:rotations (shape
     {"timeout_s": {<role>: int}, "closeout": {<role>: bool}}) -- {} when
     absent or not a map. A quoted-JSON cell yields a str, parsed here so the
-    shape survives either spelling (write.py nests nothing -- the SL7.114/115
+    shape survives either spelling (the retired writer nested nothing -- the SL7.114/115
     per-template reads named keys the Prime can never write, so both reads go
     through THIS top-level map only)."""
     path = _rotations_node_path(root)
@@ -19487,7 +19529,7 @@ def _role_timeout(root: Path, role: str) -> int:
     int -- or a digit-only string, the shape a QUOTED yaml cell yields (seat
     re-cut at the SL7.114 harvest: accepted by design, not by accident) --
     else 600 (the CLI default). The ONE reader on the Prime-writable map; the
-    old templates.<role>.timeout_s cell is DEAD (write.py cannot nest it)."""
+    old templates.<role>.timeout_s cell is DEAD (the retired writer could not nest it)."""
     tmap = _load_rotate_defaults(root).get("timeout_s")
     if not isinstance(tmap, dict):
         return 600
@@ -21046,7 +21088,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                                 "note": "identity supplied by internal seam"}
         else:
             handover["join"] = joined
-        # (s6.1) write the successor's config:seats ROW via `write.py submit`.
+        # (s6.1) write the successor's config:seats ROW via `config_rows.write_rows`.
         #     Admitted by the self_row DATA declaration (L4.110/r3); a
         #     THROWAWAY seat has no registry row, so this records 'skipped',
         #     never writes seats.md.
@@ -22396,9 +22438,8 @@ def _migrate_post_ref(root: Path, post: str) -> str:
 
 def _migrate_row(root: Path, post: str) -> dict:
     """The post's committed identity row (MAIN's graph), {} when absent."""
-    import write
     try:
-        rows = write._load_seats(_shared_graph_root(root))
+        rows = geometry_config.load_rows(_shared_graph_root(root))
     except Exception:  # noqa: BLE001 -- no readable graph = no known row
         return {}
     for r in rows:
@@ -22520,8 +22561,8 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     answers with ONE `stage: seated` line on the same channel. An unverified
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
+    import config_rows
     import send
-    import write
     try:
         me = boxes.this_box(root)
     except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
@@ -22603,8 +22644,8 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                          if cells.get(k) is not None}
         seat_cells = {k: cells[k] for k in ("box", "worktree")
                       if cells.get(k) is not None}
-        # FR-B2 conjunct B: an inadmissible grant raises write.EditError from
-        # the ONE writer; catch it BY NAME so a later good record still seats.
+        # FR-B2 conjunct B: an inadmissible grant raises config_rows.RowWriteRefused
+        # from the ONE writer; catch it BY NAME so a later good record still seats.
         try:
             line = ""
             if session_cells:
@@ -22616,7 +22657,7 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                 seated_line = _write_identity_cells(
                     root, seat=post, actor=master, role="", cells=seat_cells)
                 line = f"{line}; {seated_line}" if line else seated_line
-        except write.EditError as exc:
+        except config_rows.RowWriteRefused as exc:
             print(f"SKIP: migrate record {path.name} for {post} identity write "
                   f"refused ({exc}); record skipped, tick lives")
             continue
@@ -22681,7 +22722,7 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # Prime writes as roadtrip JSON value) when present, else False; the verb
     # passes closeout=True ONLY when the map says so or --closeout was given --
     # and it NEVER writes config:rotations (read-only, like _ranks). The old
-    # templates.<role>.rotate_defaults cell is DEAD (write.py cannot nest it).
+    # templates.<role>.rotate_defaults cell is DEAD (the retired writer could not nest it).
     _closeout = bool(args.closeout)
     _rotate_defaults = _load_rotate_defaults(root)
     _closeout_map = _rotate_defaults.get("closeout")

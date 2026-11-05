@@ -631,3 +631,27 @@ def test_g4_the_grid_keeps_working_on_a_refused_node_and_names_it_on_stderr(tmp_
     named = [l for l in r.stderr.splitlines() if re.fullmatch(r"grid: crons node invalid \(.*mirror_towns.*\); grid NOT retired", l)]
     assert len(named) == 1, (named, r.stderr[-500:])
     assert git(fx.repo, "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid") != before, "the grid did not write: it was treated as retired"
+
+
+def test_a7_the_grid_unify_lap_row_needs_grid_sync(tmp_path, monkeypatch):
+    """goal:g7.16.1.11.46.16 G1a lap (SM [red] 08:2xZ 10-26): the REAL node's grid_unify_lap row (`grid.py unify --write`, a scheduled refs/grid writer) carries
+    `needs: grid_sync`: it renders ONCE on BOX while grid_sync is enabled and NOT at all once grid_sync is off (as every grid writer); a `needs` naming no known job is refused BY NAME.
+    MUTANT: drop the render skip in crons.py -> the off half renders the line -> RED."""
+    assert real_fm()["cadences"]["grid_unify_lap"].get("needs") == "grid_sync"
+    lap = lambda ls: [l for l in ls if "grid.py unify --write" in l]
+    (tmp_path / "on").mkdir()
+    (tmp_path / "off").mkdir()
+    (tmp_path / "bad").mkdir()
+    assert len(lap(Fx(tmp_path / "on", monkeypatch, None).render())) == 1
+    assert lap(Fx(tmp_path / "off", monkeypatch, flip_off).render()) == []
+    bad = Fx(tmp_path / "bad", monkeypatch, lambda fm: fm["cadences"]["grid_unify_lap"].update(needs="no_such_job"))
+    t = refusal_text(bad)
+    assert "grid_unify_lap.needs" in t and "no_such_job" in t, t
+    # MUTANTS (council 3/3 alive 08:28:23Z (i)): gated on a DIFFERENT key (town_mirror, enabled) or not gated at all, the lap renders with grid_sync off -> b5 / a1 / a5 RED;
+    # the real node's `needs: grid_sync` (asserted first above) is what holds the invariant.
+    (tmp_path / "other").mkdir()
+    (tmp_path / "none").mkdir()
+    other = Fx(tmp_path / "other", monkeypatch, lambda fm: (flip_off(fm), fm["cadences"]["grid_unify_lap"].update(needs="town_mirror")))
+    assert len(lap(other.render())) == 1
+    none = Fx(tmp_path / "none", monkeypatch, lambda fm: (flip_off(fm), fm["cadences"]["grid_unify_lap"].pop("needs")))
+    assert len(lap(none.render())) == 1

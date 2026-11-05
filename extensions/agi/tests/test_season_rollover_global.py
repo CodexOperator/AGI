@@ -315,7 +315,7 @@ def test_partial_cut_refusal_bumps_no_cell(repo: Path):
 def test_global_default_actor_without_delete_old_performs(repo: Path):
     """SM.106 residue (a00-4323cedc): the pre-flight was gated on `apply`
     ALONE. Cells are written ONLY with --delete-old; without it every cell is
-    HELD, no write.py call happens, and no admission is needed. Gating the
+    HELD, no cell write happens, and no admission is needed. Gating the
     pre-flight on `apply and delete_old` restores the documented no-delete
     mode for the DEFAULT actor: rc 0, heads +3, cells stay at G."""
     g = _graph(repo)
@@ -330,32 +330,24 @@ def test_global_default_actor_without_delete_old_performs(repo: Path):
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
 
 
-# ---- (8) SM.106 auth defect: the DEFAULT actor refuses before any step ---
-def test_global_default_actor_refuses_before_any_step(repo: Path):
-    """SM.106 auth defect: the documented command with NO --actor defaults to
-    `season.py`, which is not admitted for town cells (written_by
-    [prime_director, owner]). The pre-fix code performed all five steps,
-    pushed every origin ref, and only then had write.py refuse the FIRST town
-    cell -- leaving ladder=G+1 and towns=G. PASS 0 must now refuse by name
-    with NOTHING performed: every origin ref and every node byte unchanged,
-    and the ladder and every town cell still agreeing at G."""
+# ---- (8) V8a 3a: the SM.106 PASS 0 pre-check is GONE with the retired writer; the gap is R-land's ----------
+def test_global_default_actor_is_no_longer_preflighted_and_the_rollover_performs(repo: Path):
+    """SM.106 auth defect, as it stands after V8a 3a (council decision alive 23:28:02Z 10-25): the documented
+    command with NO --actor defaults to `season.py`, which the town schema's written_by [prime_director, owner]
+    does not admit. PASS 0 (the written_by pre-check of every cell) was the retired writer's admission and is
+    deleted; the NAMED GAP is that a written_by-violating season cell write lands with only R-land's would-refuse
+    line at land time until the flip to enforce. So the rollover now PERFORMS with the default actor: every trunk
+    is cut, and the ladder and every town cell AGREE at G+1, committed by node_commit under `season: <node>`."""
     g = _graph(repo)
-    before = _heads(repo)
-    paths = [g / "nodes" / ".geometry" / "ladder.md"] + [
-        g / "nodes" / "town" / f"{slug}.md" for slug, _c, _v in TOWNS]
-    nbytes = {p: p.read_bytes() for p in paths}
     _on_new_trunk(repo)
     res = _run(g, "--global", "--apply", "--delete-old")  # NO --actor
-    assert res.returncode != 0
-    assert "REFUSED" in res.stderr and "not admitted" in res.stderr
-    assert "nothing performed" in res.stderr
-    assert _heads(repo) == before                     # no origin push happened
-    for p, b in nbytes.items():
-        assert p.read_bytes() == b                    # no node byte changed
-    # the ladder and every town cell AGREE at G
-    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "REFUSED" not in res.stderr and "not admitted" not in res.stderr
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 3
     for slug, _c, _v in TOWNS:
-        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 3
+    subjects = _git(repo, "log", "--format=%s", "-12").stdout.splitlines()
+    assert any(sub.startswith("season: ") and "(season.py)" in sub for sub in subjects), subjects
 
 
 # ===========================================================================
@@ -670,7 +662,7 @@ def test_r4_a_step_5_stop_prints_the_recovery_and_the_plain_stop_mutant_is_red(r
         assert f"git push origin refs/agi/archive/{old}:refs/heads/{old}" in res.stderr
         assert f"refs/heads/{old}" not in _heads(repo)                          # really half-rolled: deleted ...
         assert _remote_sha(repo, f"refs/agi/archive/{old}")                      # ... and restorable
-    mut = _mutant(tmp_path, ('return _stop5(repo, restore, h0, cur_branch, f"write.py refused for {cell_id}")', 'return _stop(5, "cell", f"write.py refused for {cell_id}")'))
+    mut = _mutant(tmp_path, ('return _stop5(repo, restore, h0, cur_branch, f"the cell write was refused for {cell_id}")', 'return _stop(5, "cell", f"the cell write was refused for {cell_id}")'))
     repo2 = _build(tmp_path / "m")
     (repo2 / ".git" / "hooks").mkdir(exist_ok=True)
     (repo2 / ".git" / "hooks" / "pre-commit").write_text((hooks / "pre-commit").read_text())

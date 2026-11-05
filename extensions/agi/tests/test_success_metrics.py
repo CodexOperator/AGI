@@ -68,3 +68,252 @@ def test_record_path_is_the_same_room_for_seat_and_main(tmp_path):
     # The unified path is the MAIN checkout's room, not the seat's fork.
     assert str(seat_path) == str(main_graph / "sessions" / f"success-metrics-{season}.json")
     assert seat_path != wt_graph / "sessions" / f"success-metrics-{season}.json"
+
+# --- goal:g7.16.1.11.46.9: the p1 segment reads the REPO whether it is given the repo or the `.agi` graph dir ------
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+P1_CFG = json.loads((REPO_ROOT / ".agi" / "config.json").read_text())
+P1_RESULTS = {"base": P1_CFG["p1"]["base"], "arms": [
+    {"arm": "glm", "model": "z-ai/glm-5.3-flash", "kids": [
+        {"leaf": P1_CFG["p1"]["leaves"][0], "landed": True, "usd": 0.1, "secs": 100.0, "red": False, "reviewed": "gate-1"}]}]}
+
+
+def _p1_repo(tmp_path: Path, *, config=True, p1=True, results=False) -> Path:
+    repo = tmp_path / "repo"
+    (repo / ".agi").mkdir(parents=True)
+    if config:
+        cfg = dict(P1_CFG) if p1 else {k: v for k, v in P1_CFG.items() if k != "p1"}
+        (repo / ".agi" / "config.json").write_text(json.dumps(cfg))
+    if results is not False:
+        path = repo / P1_CFG["p1"]["results"]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(results if isinstance(results, str) else json.dumps(results))
+    return repo
+
+
+def _stub_line(monkeypatch):
+    """make_line without the minute-long metrics.py run and without a real graph."""
+    monkeypatch.setattr(success_metrics, "_run_metrics_once", lambda root: ({}, "stub"))
+    monkeypatch.setattr(success_metrics, "SOURCE_FUNCS", [])
+
+
+def test_no_results_file_means_no_p1_segment_from_either_root(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path)
+    for root in (repo, repo / ".agi"):
+        line = success_metrics.make_line(root)
+        assert "p1:" not in line and "No such file" not in line, root
+        assert success_metrics.p1_segment(root) == ""
+
+
+def test_a_committed_results_file_renders_the_segment_from_either_root(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path, results=P1_RESULTS)
+    want = "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5 ran=1/5 rss=unmeasured"
+    for root in (repo, repo / ".agi"):
+        # a board line's segments are counted by their KEY and content, never by position (council 04:23Z)
+        line = success_metrics.make_line(root)
+        assert line.count("| p1:") == 1 and want in line, root
+
+
+def test_the_cli_root_is_the_graph_dir_and_the_line_has_no_false_red(tmp_path, monkeypatch, capsys):
+    """The live red: main() resolves the root with find_project_root(), which returns `<repo>/.agi`."""
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path)
+    monkeypatch.chdir(repo)
+    assert success_metrics.main(["--line"]) == 0
+    out = capsys.readouterr().out
+    assert "UNMEASURED(results unreadable" not in out and "p1:" not in out
+    (repo / P1_CFG["p1"]["results"]).parent.mkdir(parents=True)
+    (repo / P1_CFG["p1"]["results"]).write_text(json.dumps(P1_RESULTS))
+    assert success_metrics.main(["--line"]) == 0
+    assert "| p1: z-ai/glm-5.3-flash" in capsys.readouterr().out
+
+
+def test_a_project_without_a_p1_cell_or_without_a_config_has_no_segment(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    for kw in (dict(p1=False), dict(config=False)):
+        repo = _p1_repo(tmp_path / ("a" if "p1" in kw else "b"), **kw)
+        for root in (repo, repo / ".agi"):
+            assert success_metrics.p1_segment(root) == "", (kw, root)
+
+
+def test_a_results_file_that_exists_but_is_broken_is_named_not_dropped(tmp_path, monkeypatch):
+    _stub_line(monkeypatch)
+    repo = _p1_repo(tmp_path, results="{broken")
+    for root in (repo, repo / ".agi"):
+        seg = success_metrics.p1_segment(root)
+        assert seg.startswith("| p1: UNMEASURED(results unreadable"), root
+        assert "/" not in seg.split("(", 1)[1], "no path may ride the board line"
+
+
+# --- the council's final form: _reason is a fixed code (A2), the CLI is a SUBPROCESS row (A3) ----------------------
+
+def test_reason_is_a_fixed_code_never_exception_text():
+    r = success_metrics._reason
+    assert r(OSError(2, "No such file or directory", "/data/work/secret/x.json")) == "FileNotFoundError 2"
+    assert r(PermissionError(13, "denied", "/data/work/y")) == "PermissionError 13"
+    assert r(ValueError("/abs/path/in/the/message")) == "ValueError"
+    assert r(SystemExit(3)) == "SystemExit 3" and r(SystemExit("/a/b")) == "SystemExit"
+    assert r("/a/b/c") == "unknown" and r(None) == "unknown"
+    for e in (OSError(2, "m", "/p/q"), KeyError("/k/l"), RuntimeError("see /var/lib/x")):
+        assert "/" not in r(e)
+
+
+def test_every_unmeasured_in_the_line_is_free_of_a_box_path(tmp_path, monkeypatch):
+    """Mutant: an exception whose message holds an absolute path must give a metrics_line with no '/'."""
+    monkeypatch.setattr(success_metrics, "_run_metrics_once", lambda root: ({}, None))
+    boom = lambda root: (_ for _ in ()).throw(OSError(2, "No such file or directory", "/data/work/secret/x.json"))
+    monkeypatch.setattr(success_metrics, "SOURCE_FUNCS", [("src_a", boom), ("src_b", lambda root: (_ for _ in ()).throw(SystemExit("/var/lib/agi/x")))])
+    repo = _p1_repo(tmp_path, results="{broken")
+    for root in (repo, repo / ".agi"):
+        line = success_metrics.make_line(root)
+        assert "src_a=UNMEASURED(source failed: FileNotFoundError 2)" in line, line
+        assert "src_b=UNMEASURED(source failed: SystemExit)" in line
+        assert "| p1: UNMEASURED(results unreadable: P1Refused)" in line
+        assert "/" not in line, line
+
+
+def test_a_metrics_py_that_cannot_run_names_the_class_not_the_path(monkeypatch, tmp_path):
+    def nope(*a, **k):
+        raise OSError(2, "No such file or directory", "/usr/bin/python3-not-here")
+    monkeypatch.setattr(success_metrics.subprocess, "run", nope)
+    found, dead = success_metrics._run_metrics_once(tmp_path)
+    assert dead == "metrics.py unrunnable FileNotFoundError 2" and "/" not in dead
+
+
+def _scratch_project(tmp_path: Path, results=None) -> Path:
+    repo = tmp_path / "scratch"
+    (repo / ".agi" / "nodes").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(P1_CFG))
+    if results is not None:
+        path = repo / P1_CFG["p1"]["results"]
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(results))
+    return repo
+
+
+def _cli_line(repo: Path) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(BIN_DIR / "success_metrics.py"), "--line"], cwd=repo,
+                          capture_output=True, text=True, timeout=300)
+
+
+def test_the_cli_as_a_subprocess_has_no_p1_text_without_a_results_file(tmp_path):
+    """The live red, end to end: the real entry point, its own root resolution (find_project_root -> the .agi dir)."""
+    r = _cli_line(_scratch_project(tmp_path))
+    assert r.returncode == 0, r.stderr
+    assert "p1:" not in r.stdout and "No such file" not in r.stdout and len(r.stdout.strip().splitlines()) == 1
+
+
+def test_the_cli_as_a_subprocess_renders_the_segment_once_results_exist(tmp_path):
+    r = _cli_line(_scratch_project(tmp_path, P1_RESULTS))
+    assert r.returncode == 0, r.stderr
+    out = r.stdout.strip()
+    assert out.count("| p1:") == 1 and "| p1: z-ai/glm-5.3-flash $/landed=0.1000 s/landed=100 red=0/5 ran=1/5 rss=unmeasured" in out, out
+
+
+def test_the_notices_trunk_is_derived_through_branches_from_the_ladder_never_spelled(monkeypatch):
+    """The branch-spelling grep's ask for success_metrics.py:452 (trunk red 2): the trunk the prereq notice reads is
+    `branches.derive_names("core", current_season)`, so a new season moves it and no literal names it.
+    MUTANT: the old literal back in `_notices` -> the source assert reads RED."""
+    live = int(success_metrics.season._load_ladder(success_metrics.locations.find_project_root(Path(success_metrics.__file__).resolve()))["current_season"])
+    assert success_metrics._trunk_ref() == f"refs/heads/core/season{live}/main"
+    monkeypatch.setattr(success_metrics.season, "_load_ladder", lambda root: {"current_season": live + 1})
+    assert success_metrics._trunk_ref() == f"refs/heads/core/season{live + 1}/main"
+    src = Path(success_metrics.__file__).read_text(encoding="utf-8")
+    assert "core/season3/main" not in src and "trunk=_trunk_ref()" in src
+
+
+def test_a_ladder_without_current_season_leaves_the_notices_unmeasured_never_a_guessed_trunk(monkeypatch, tmp_path):
+    """Council 14:49:35Z later row: no `.get("current_season", 1)`. A ladder that lacks the key is a named UNMEASURED notice.
+    MUTANT: the `, 1` default back -> `_trunk_ref()` answers core/season1/main and this test reads RED."""
+    monkeypatch.setattr(success_metrics.season, "_load_ladder", lambda root: {})
+    try:
+        got = success_metrics._trunk_ref()
+    except KeyError:
+        got = None
+    assert got is None, got
+    assert success_metrics._notices(tmp_path).startswith("notices: UNMEASURED(source failed:")
+
+
+# ---- goal:g7.16.1.11.46.3 P-d: `unatomized:` keys on the GATE CELL atomize_live, never credits_live (V2, alive 14:20:53Z 10-31) ----
+def _unatomized_repo(tmp_path, cell, credits="true", age_h=5, marked=False):
+    import os  # noqa: PLC0415
+    r = tmp_path / "r"
+    g = r / ".agi" / "nodes" / ".geometry"
+    g.mkdir(parents=True)
+    (g / "secrets.md").write_text(f"---\nid: config:secrets\ncredits_live: {credits}\n" + (f"atomize_live: {cell}\n" if cell else "") + "---\n")
+    run = lambda *a, **k: subprocess.run(["git", "-C", str(r), *a], check=True, capture_output=True, text=True, **k)  # noqa: E731
+    run("init", "-q", ".")
+    run("config", "core.hooksPath", "/dev/null")   # a post uid's global hooksPath runs the ref guard on refs/box/sm/* (the census pin)
+    run("-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "add", "-A")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "commit", "-qm", "x")
+    import time as _t  # noqa: PLC0415
+    when = f"@{int(_t.time()) - age_h * 3600} +0000"
+    env = dict(os.environ, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when)
+    tree = run("hash-object", "-w", "-t", "tree", "/dev/null").stdout.strip()
+    c = subprocess.run(["git", "-C", str(r), "commit-tree", tree, "-m", "hello"], check=True, capture_output=True, text=True, env=env).stdout.strip()
+    run("update-ref", "refs/box/sm/p", c)
+    if marked:
+        run("update-ref", "refs/atomized/p/" + c, c)
+    return r
+
+
+def _unatomized(r, monkeypatch):
+    monkeypatch.setenv("AGI_TRUNK", "HEAD")
+    monkeypatch.delenv("AGI_ATOMIZE_AGE", raising=False)
+    return success_metrics.unatomized_segment(r / ".agi")
+
+
+def test_unatomized_reads_off_while_the_gate_cell_is_false_even_with_credits_live_true(tmp_path, monkeypatch):
+    assert _unatomized(_unatomized_repo(tmp_path, "false"), monkeypatch) == "unatomized: off"
+
+
+def test_unatomized_names_an_absent_cell_UNMEASURED_never_off(tmp_path, monkeypatch):
+    """T3 (alive [decision] 16:31:36Z 10-31, all three seats): an ABSENT atomize_live key is named, not off."""
+    assert _unatomized(_unatomized_repo(tmp_path, None), monkeypatch) == "unatomized: UNMEASURED(cell absent: no atomize_live key)"
+
+
+def test_unatomized_names_an_unread_cell_UNMEASURED_never_off(tmp_path, monkeypatch):
+    """T3 (sp's term): AGI_TRUNK at a missing ref with the cell true: git show fails, the segment names its rc."""
+    r = _unatomized_repo(tmp_path, "true")
+    monkeypatch.setenv("AGI_TRUNK", "refs/heads/no-such-ref")
+    monkeypatch.delenv("AGI_ATOMIZE_AGE", raising=False)
+    assert success_metrics.unatomized_segment(r / ".agi") == "unatomized: UNMEASURED(cell unread: git show rc 128)"
+
+
+def test_unatomized_mutant_without_the_rc_check_reads_an_unread_cell_off(tmp_path, monkeypatch):
+    """The mutant: the rc check cut -> an unread cell falls through to the empty-stdout path (`cell absent`), never the unread form, so the
+    unread row above is RED on it."""
+    import inspect  # noqa: PLC0415
+    src = inspect.getsource(success_metrics.unatomized_segment)
+    old = "        if sec.returncode:"
+    assert old in src
+    ns = dict(success_metrics.__dict__)
+    exec(compile(src.replace(old, "        if False:"), "m", "exec"), ns)
+    r = _unatomized_repo(tmp_path, "true")
+    monkeypatch.setenv("AGI_TRUNK", "refs/heads/no-such-ref")
+    got = ns["unatomized_segment"](r / ".agi")
+    assert got == "unatomized: UNMEASURED(cell absent: no atomize_live key)", got
+
+
+def test_unatomized_counts_an_unmarked_message_older_than_a_lap_RED_with_the_cell_true(tmp_path, monkeypatch):
+    assert _unatomized(_unatomized_repo(tmp_path, "true"), monkeypatch) == "unatomized: RED 1 (p=1)"
+
+
+def test_unatomized_a_marked_message_or_one_inside_the_lap_or_past_the_age_bound_is_not_counted(tmp_path, monkeypatch):
+    assert _unatomized(_unatomized_repo(tmp_path / "a", "true", marked=True), monkeypatch) == "unatomized: 0"
+    assert _unatomized(_unatomized_repo(tmp_path / "b", "true", age_h=1), monkeypatch) == "unatomized: 0"
+    assert _unatomized(_unatomized_repo(tmp_path / "c", "true", age_h=30), monkeypatch) == "unatomized: 0"
+
+
+def test_unatomized_mutant_keyed_on_credits_live_reads_a_false_RED(tmp_path, monkeypatch):
+    import inspect  # noqa: PLC0415
+    src = inspect.getsource(success_metrics.unatomized_segment)
+    old = r'cell = re.search(r"^atomize_live:\s*(\S+)"'
+    assert old in src
+    ns = dict(success_metrics.__dict__)
+    exec(compile(src.replace(old, r'cell = re.search(r"^credits_live:\s*(\S+)"'), "m", "exec"), ns)
+    monkeypatch.setenv("AGI_TRUNK", "HEAD")
+    r = _unatomized_repo(tmp_path, "false")
+    assert ns["unatomized_segment"](r / ".agi") == "unatomized: RED 1 (p=1)", "the mutant reads credits_live: the off row catches it"

@@ -75,7 +75,7 @@ from graph_core.identity import ensure_mint_id  # noqa: E402
 # goal:s17 -- underscore is canonical (`context/schemas/[shape].md`).
 #
 # `goal` and `level3` are deliberately absent, each with its own writer:
-# a goal is minted through `write.py create goal` against the [goal] schema
+# a goal is minted through `write_node` with the goal fields in `extra_fm`, against the [goal] schema
 # (skill agi-goal: fields, legal parents, the fixed body order), and
 # `level3.py` regenerates the census. A generic scaffold of either type skips
 # that writer's contract -- offering the option would be offering a trap.
@@ -621,14 +621,8 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
     Returns the path if this call created it, else None. **Never overwrites**:
     an existing file is linked, not replaced.
 
-    It lives here rather than in `write.py` on purpose. `write.py` holds a
-    mechanically-checked invariant that it performs **no file write at all**
-    (`test_write_py_contains_no_file_write` parses it rather than grepping),
-    and that guard is what keeps the verb layer a front end instead of a
-    second way to change a node. Creating a payload is a legitimate write, so
-    it belongs in the module that already owns writing the files behind nodes
-    — weakening the guard to make room for it would have traded a strong
-    mechanical property for a comment (L1.07).
+    It lives here, in the module that owns writing the files behind nodes (L1.07: the retired
+    node writer's verb layer was kept free of file writes; it retired in goal:g7.16.1.11.46.23 step 4).
     """
     import locations as _loc
 
@@ -651,12 +645,11 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     """Replace the bytes of an existing payload from `source`. Never creates.
 
     The other half of `ensure_payload`, and here for the same reason: a payload
-    write is a real file write, and `write.py` holds a mechanically-checked
-    invariant that it performs none (`test_edit_py_contains_no_file_write`).
-    Editing the file behind a build node was the last node operation with no
-    named command — `goal:g13.1`'s whole complaint — so it lands in the module
-    that already owns writing the files behind nodes rather than weakening the
-    guard that keeps the verb layer a front end.
+    write is a real file write, so it lives in the module that owns writing the
+    files behind nodes (`goal:g13.1`: editing the file behind a build node was the
+    last node operation with no named command). The retired node writer's verb
+    layer was kept free of file writes for this; it retired in goal:g7.16.1.11.46.23
+    step 4.
 
     Returns `(path, changed)`. Refuses rather than guesses:
 
@@ -682,18 +675,15 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     if not dest.is_file():
         raise FileNotFoundError(
             f"payload {dest} does not exist — `payload` replaces bytes, it "
-            f"never creates. A new file is `write.py create --payload`.")
+            f"never creates. A new file is written directly, its node minted by `write_node`.")
 
     new = data
     if dest.read_bytes() == new:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes
-        # re-log IS a sanction. An explicit payload verb on bytes that
-        # already match must record the (mint_id, sha256) write_guard keys on,
-        # or the guard's own hint (`write.py <id> payload <path>`) can never
-        # clear the state it reports: L3.27 measured 5 WARNs after 5
-        # successful re-logs because this branch logged nothing. Keep
-        # `changed=False` (the 'unchanged' message stays) but log the
-        # attempted payload write all the same.
+        # write is still logged with its (mint_id, sha256), `changed=False`,
+        # kept for audit. Its one reader that keyed on it, the write guard
+        # (L3.27: 5 unclearable WARNs when this branch logged nothing),
+        # retired at L269; no live reader keys on this line since.
         _log_extra = dict(log_extra) if log_extra else {}
         _log_write(root, "replace_payload", str(ref), dest,
                    mint_id=mint_id,
@@ -731,7 +721,7 @@ def judge_create(root, node_type, slug, parents=None, *, extra_fm=None,
                  bypass=False, rules=None, type_index=None, fm_for_gate=None,
                  on_exists=SKIP, announce=True):
     """The spawn gate for ONE create, verdict and messages both -- the SAME call
-    `write_node` makes before it touches disk and `write.py create --dry-run`
+    `write_node` makes before it touches disk and a dry run
     makes instead of touching it (goal:g7.33.20.3 D3: a preview that skips the
     gate says approved where the real create refuses).
 
@@ -1090,11 +1080,11 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 #: The ONE definition: brief.py, links.py, metrics.py, snapshot-goals.py and
 #: graph2sql.py read it through the functions below (`goal:s17`).
 #: The two marker strings a writer emits -- the ONE spelling (moved verbatim
-#: from snapshot-goals.py, goal:g7.16.1.2; that file and write.py import them).
+#: from snapshot-goals.py, goal:g7.16.1.2; that file and the retired writer imported them).
 THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
-#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
+#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; the retired writer imported it)
 #: THE marker head, ONE constant both regexes are built from: `[ \t]*`, never
 #: `\s*`, so a marker never spans a newline (SM 131: `<!--\nTHOUGHT:BEGIN` was a
 #: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129).
@@ -1103,7 +1093,6 @@ THOUGHT_END = "<!-- THOUGHT:END -->"
 _HEAD = r"^<!--[ \t]*"
 _MARK = _HEAD + r"THOUGHT:"
 _END = r"END[ \t]*-->"
-THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN\b|" + _END + r")")
 _THOUGHT_RE = re.compile(
     _MARK + r"BEGIN\b.*?" + _MARK + _END,
     re.DOTALL | re.MULTILINE)
@@ -1366,8 +1355,8 @@ def update_node(
             and not _retired(root / "nodes", path)):
         res.status = REJECTED
         res.reason = (f"{node_id}: status: deprecated without the move is refused "
-                      f"(goal:g4.18.5.4): use `write.py {node_id} 'retire <note>'` "
-                      f"(retire_node): status + move to nodes/deprecated/<type>/, "
+                      f"(goal:g4.18.5.4): use `node_writer.retire_node(root, '{node_id}', note='<note>')`: "
+                      f"status + move to nodes/deprecated/<type>/, "
                       f"mint id and grid ref kept")
         return res
 

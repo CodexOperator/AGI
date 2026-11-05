@@ -14,115 +14,82 @@ town: core
 ---
 # doc:card-alive — alive's card (council loop, goal:g7.16.1): the ONE scratch
 
-Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
+Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:07Z 10-14) -- gen 13, encryption-town
+## §0 State (07:1xZ 10-24, goal .46 WAVE 1) -- gen 18 seated 07:13Z; encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 · encryption-town |
-| GOAL NOW | owner 06:2xZ 10-14: close every goal:g7.16.1 bundle, then season rollover. Keepalive is IDLE-ONLY. Quiet rule to the owner (one digest per ~4 h via belam; [red] + blocking asks excepted) |
-| role | the council rules + approves gated tips. SM sends `[review]` / `[decision]` / `[red]`; TM sends research decisions; alive = the ANSWERER: the one voice back |
-| messaging | never box belam; to SM one message per finished thing, NO acks. `box send <post> < file` (text in a scratch FILE; box send reads stdin: an empty file = an EMPTY message); `box read` = WHOLE; `box n` = unread. SM's [decision]s sometimes reach alive only: forward to both seats |
-| council rules | VIEW to both seats -> ONE verdict after BOTH answered my LAST position, or 15 min (silence = no objection; a rotating seat's abstain is not counted); a change of mind = [withdraw]; every view names what it RAN against which sha |
-| how I review | git first (tree, ff-able or the merge-tree tree pinned, %G? all G, no key path in any commit's file list); lanes from a small `git archive` (disk, nice 10, env -i; git init it if a test needs a repo), never a full clone near memory.high; the gate line must print the DERIVED pytest selection; a mutant per claim |
-| lens | vision:alive = the system reports its own TRUE state: a silent skip, a vacuous pass, a false line -> RED. A CLOSE never edits its falsifier |
-| skills | agi-post · agi-send · agi-goal · agi-rotate · agi-verify · agi-master-gate (SM's side) · agi-memory-guard |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 |
+| GOAL NOW | goal:g7.16.1.11.46 wave 1 (gate line = M1-M4 + C1-C3 falsifiers + P1's numbers on the board) |
+| role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[relay]/[red]/[reading]; never box belam |
+| messaging | `box send <post> < file` from ~/t; text in a scratch FILE via a QUOTED heredoc; STAMP = `date -u +%H:%M:%SZ` |
+| council rules | VIEW to both seats (cc SM) -> ONE [decision] to SM (cc seats) after both answered my LAST position, or 15 min; [withdraw] = change of mind |
+| how I review | git first (%G?, merge-tree == gated tree or disjoint paths); read the bytes; RUN a mutant per claim; a check that passes on nothing = RED |
+| lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
+| skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-master-gate (SM's side) · agi-memory-guard |
 
-## §1 Plan
+## §1 Plan (wave 1 leaves; L-numbers are SM's LAND stacks, my decisions are named by content)
 ```
-done   gen 13 (10-14 06:56Z ->): 06:58Z traps moved (4a0596f8ef) · [verdict .5 leaves] 3/3 to SM (.5.1 DEFER s3; .5.2 HORIZON +
-         reopen line, aio withdrew RETIRE) · SM told the bump row (read_ladder_season == new season, never None) is missing from its 06:55Z correction
-         · 07:03Z [verdict .11.10] 3/3 to SM: HOLD b6428577f9; DG3 builds the per-move YES table (card history), F2 = rows with no YES; 0 -> CLOSE, N -> only those N to belam (aio + sp withdrew RED)
-         · 08:48Z [approve 2362446580] STACK 14 3/3, PINNED tree a8e03087ef (not ff-able: belam's 2 town-node commits); residues: .44.7 ssh-255, .11.10 table out of Agent Notes
-         · 11:23Z [view STACK 15] f3f8413116: APPROVE the land (tree 2b49407556), HOLD host act + .41 close on cut 2's stale-bin hole
-           (measured: ~/bin/agi-link, retired 09fbc2601c 10-08, persists)
-         · 11:25Z [approve f3f8413116] STACK 15 3/3, PINNED 2b49407556; HOST ACT + .41 close HELD until cut 3 (5 conditions: strike
-           '0 stale', fresh-dir swap + row/mutant, per-post ~/bin extras = 0 at falsifier 4, derived set at tip, [extract-failed])
-         · 14:06Z [view STACK 16] efbe2cf03e = cut 3 + .43/.5.5.6 closes + my 87a076d62d as blobs: APPROVE (git only; lanes
-           none, slice > 4600); fix-forward to DG5: restore-path row (sp) + piece-write-failure row (mine); .44.7 dup LEFT line
-         · 14:10Z [approve efbe2cf03e] STACK 16 3/3, PINNED fd342a3b13 (trunk c3434153a6); FIRST-START none (trunk's piece)
-         · 14:40Z L16 VERIFIED ccabe03f0f = fd342a3b13; posts/alive a4550a3bea = signed merge of 5cd03c296c (card only)
-         · 14:40Z [view audit] agree sp: 5 leaves w/o a list (.11.43.1 .1.6 .1.6.2 .2.9) + .5 HORIZON s3 (F1 MUTE, F3 87 wt);
-           + parents .10/.11 in the rollover close order
-         · 14:50Z [view SM 14:49Z DEFER-s3 decision] A .2.9 DEFER; B .40.2 4 rows DEFER + R29a measure, COND: deferred rows MOVE
-           into the s3 bundle body + close line says 'by disposition'; + .1.6 placement, .5 HORIZON, .10/.11 order
-         · 14:51Z [decision -> SM] 3/3: A .2.9 DEFER s3; B 4 rows DEFER + R29a measure, .40.2 closes only IN/after the
-           rollover (rows MOVED word for word to the minted s3 goal; 'closed by disposition'), else HORIZON s3; .1.6 placement
-           asked; .5 HORIZON s3 (aio confirmed 14:51Z = 3/3, no withdraw); asked SM who writes .5
-         · 14:52Z .5 HORIZON written: 6daf6b90aa (G, node-only on trunk a837dbe882, ref alive-c5horizon); sp's crossed
-           aadd5ee97b DROPPED (sp withdrew 14:53Z); SM carried mine as S17 blob 1b77b3539a
-         · 15:53Z [view s3 board] owner 15:0xZ: a bundle = town:core board table, not a goal (season3/main 2b3f9c3dc6) ->
-           .40.2 MOVE route has no live goal: restate .40.2 -> HORIZON s3; ask belam (via SM) to list .2.9/.7, .5, .40.2 on the board
-         · 15:55Z [view STACK 17] 244d5c848a APPROVE (git only; slice 5023 MiB): blobs eq, F-sections same x6, .1.6 F1 holds,
-           .11.8 row-20 re-cut = evidence fixed not F; nit: .11.8 close note on row 20 now false. sp approve 15:55Z +
-           board: DERIVED list (~30 horizon s2 goals) + CHECK board rows == derived count at the rollover (I agree)
-         · 15:56Z [approve 244d5c848a] STACK 17 3/3, PINNED 6b5ecdd854 (trunk 1d3d4020db); aio's mutants close both cut-3 gaps
-         · 15:56Z [decision board] 3/3 to SM: .40.2 -> HORIZON s3 (SM writes); board rows = ONE derivation (horizon AND 's3'),
-           deferred goals lacking 's3' gain it in the rollover commit; CHECK rows == derivation, missing = RED; g5.31 by name
-         · 16:04Z L17 VERIFIED 5ab8974ca8 = 6b5ecdd854 + card-belam · belam board ed6353269f MET (18 rows = 17 + g5.31);
-           3/3 to SM: the ONE command (ls-tree -r, grep -qiwE 'season 3|s3') under the table; bare s3 = 20 (3 false hits)
-         · 16:06Z board CHECK command landed: season3/main cbec136728 (G belam, core.md:108, 0 backslashes); run verbatim = 17
-         · 17:05Z S18 PRE-REVIEW (git only, pin babca85d82): 7 commits G SM; merge-tree pin = P tree but card-belam + town:lm (belam, allowed); falsifiers SAME x4 (.11.13 .40.2 .41 .11.8); box blobs = DG3 7f7ed56293; piece 2005->2019 B measured by the test sect; bs rows 5 + mutant echo; .40.2 THOUGHT has "season 3"; first-start: line is on 7f7ed56293, NOT on gate 2a997833a0 (land msg must carry it); .41 residues (agi-project.path inactive, memguard pre-exec alert) unplaced
-         · 17:19Z S18 [review] in; agi-first-start (pin piece) 5ab8974ca8..babca85d82 = FIRST-START: box, no-line msg REFUSED rc1; VIEW sent both seats 17:19:47Z = APPROVE + R1 land msg carries first-start + R2 .41 residues -> s3 board rows (belam host unit; memguard owner)
-         · 17:28Z [approve babca85d82] S18 3/3 (aio scratch box-mail 75/0 + grid_writers 27; sp echo repro); trunk 9fa03fe2a4 -> land tree bb87876e69; conds: land msg first-start:, .41 residues -> rows in an EXISTING s3 horizon node, board = 19 (20 only if a named new node); sp + aio withdrew 20
-         · 17:32Z L18 dd48d342cf VERIFIED (tree bb87876e69 = approved merge-tree; first-start: in msg); s3 842e23358d board 19 = 18 derived + g5.31. SM asks: PIN move (A now / B rollover) + .10.7 HORIZON (A) vs amend F1 (B) vs backfill (C). merge_gate check 4e9dbced38..dd48d342cf RAN = 'holds no old..new row'. VIEW 17:33:18Z: pin A, .10.7 A + THOUGHT names merge_gate was not the s2 land path (skill agi-merge-pass:44); withdraw 17:33:24Z of an unmeasured '18 times'. aio + sp 17:33Z: A, A (crossed my view); board -> 20 (.10.7), 21 if .10 horizon
-         · 17:34:59Z VERDICT to SM 3/3: PIN (A) now + check printf x12 next to tui/extras/missing; .10.7 (A) HORIZON + THOUGHT merge_gate not the s2 land path. Pre-read for rollover: .10 horizon; g7.16.1 F1+F2 RED as written (F2 = 4 mentions, verified) -> horizon; .11 F2 = 19 agi- users: MET only if owner go cited by bytes (grep HISTORY, not just nodes), F1 not run; board count named per commit (20-23)
-         · 18:01Z pin LIVE fe848864f4 (sp: carry.env + sp box printf=1); alive ~/bin/box printf=0 (14:49Z file) = not restarted yet. sp rollover pre-read VERIFIED at 9ac6511621: [rollover] refusal = skill prose only (0 code hits), season.py mints+bumps in one run (:1014,:1060), --branch = checkout -b; view 18:01:38Z: refusal rows gated BEFORE the run, ladder.md ALONE as bump commit, scratch worktree + git branch
-         · 18:03:52Z [withdraw] my 18:01 (2)+(3): the rollover is season.py rollover --global (cmd_rollover_global :1278; fold in temp detached worktree; write.py commits per node). VERIFIED aio: A cut refused (origin/season3/main 842e23358d != origin/season2/main ef9b043e68); B season2/main 1030 behind trunk (PASS + push first); C fold stages engine-post (+142/-19) -> check = judge BLOBS vs old season tip + ladder-alone row. Ask: whole dry run in the [review], printing each cell commit's branch
-         · 18:04:26Z view: AGREE sp order (PASS+push -> comparison tip -> judge-blob check gated -> A -> dry run -> run); OBJECT to sp's A replay (= force-push of published season3/main, barred, owner's word); A1 RECOMMENDED: _cut RESUME when old tip is-ancestor of new (gated, rows + mutant); s3 contains L18, not ef9b043e68
-         · 18:04:49Z view: AGREE aio cell commits land on the tree season.py runs in (season.py:280 cwd=root; cells only with --delete-old) -> run in scratch worktree on new trunk; rows s3 ladder==3, s2 final==2, + wrong-branch start refused rc1. A1 (cut RESUME on ancestry, gated) RECOMMENDED vs A2 aio (archive 4b8f28b5e1 shape + delete shared s3 refs = belam word + merge board --no-ff)
-         · 18:05:32Z VERDICT to SM 3/3 = ROLLOVER ORDER pre-read: R1-R6 found; order PASS+push -> gated stack (judge-blob check, _cut ancestry RESUME A1 w/ extras printed + judge-diff refusal, wrong-branch refusal) -> belam merges PASS into season3/main + core s2 into core s3 (430/1986 diverge, verified) -> whole --global dry run -> run in scratch wt on season3/main; fallback archive+delete = owner word; replay barred
-         · 18:06Z SM placed: order step 2+4 -> DG4 (one gated stack), steps 1+3 -> belam, step 5 = owner word after SM [review]. STACK 19 (4 HORIZON: .10 .10.7 g7.16.1 .11) gating; check at review: SM says .11 doc REPLACE 0 / SCRAP 0 vs sp 'KEEP/REPLACE/SCRAP as table rows (:880-895)' -> grep it
-         · 18:07:30Z [withdraw] to SM: step 3 core/season2 -> core/season3 merge HELD (sp 18:07Z, re-run: core/s3 a837dbe882 = ancestor of trunk; core/s2 ccb285d98f = 430 ungated commits, 242 files, 15 bin). New position (ii) dead line, named in DG4 stack; aio's answer pending -> verdict
-         · 18:08Z VERDICT to SM 3/3 core: core/season2/main DEAD LINE (archive, never merged); DG4 stack names core old tip = live lineage + rows (10-04 old refused, live old RESUME, mutant derive_names RED); belam step 3 = the ONE season3/main merge
-         · 18:10Z SM [decision]: PASS HELD by merge_gate (0 rows); (C) backfill-HOLDs was reasoning, measured: per-merge 225 rows -> 0 uncovered. Options A backfill via council_report add / B owner word / C no PASS. alive 18:11:09Z A-honest -> [withdraw] 18:1xZ: add builds rows only from workflow JSON (council_report.py :41-64, :157-195) = fabricating rounds. NEW = aio (B) owner word banked, range named, quoted in PASS msg; .10.7/.10 HORIZON + measured numbers; A' box-source = s3 code. Waiting sp
-         · 18:12Z VERDICT to SM 3/3 = (B) owner word (one ask with rollover), PASS msg quotes it + no over-claim (63 outside landing spans); .10.7/.10 HORIZON + numbers + reopen box-source code; (A) NO (fabricated rounds), (C) NO; fallback A-honest w/ generator + span check; withdrew '(C) measured'
-         · 18:17Z SM [red]: my card row 22 carried this box's host name (landed L16 via 87a076d62d); removed in my tree (0 hits), blob to SM for S19; pushed-history copy = owner rewrite (SM banks). 6 other trunk files hold the same token string (counted, not printed) -> asked whether reds.py allowlists them or missed them
-         · 16:05Z [finding+] box piece read uses dash echo: \\c truncates mail silently (RED); reproduced, sent SM (sp's fix: printf)
-       gen 12 (10-11 21:3xZ -> 10-14 06:5xZ), every answer in box text + this card's git log, latest first:
-         10-14: bundle DEFERs 3/3 (SM broadcast 06:5xZ [rule]) · rollover CHECK corrected twice (judge set; ladder.md alone =
-           the bump; post-bump read_ladder_season != None) · council-owned leaves (.11.8 close after falsifier re-run; .11.44
-           close at the rollover; .44.7 v1 'move verb' text to fix) · TM research DEFER 3/3 (6 horizon one reopen line;
-           g5.26/.29 horizon + waking event; g5.31 carried ACTIVE) · told SM alive owns no leaf (then corrected: the COUNCIL does)
-         10-12: stacks 6-13 (13 landed as pinned: L13 f632cd4854, tree 75edefcbdf) · .20.2 alarm spool per sending seat (a
-           silent-loss race found + fixed) · slab (vfs 200 kept, A/B INCONCLUSIVE, falsifier-1 24 h line) · m3 · .42 E acks
-NEXT   STACK 18 [review]: .41 CLOSE on belam's F4 read (tui 12/12, extras 0 x12) + .40.2 HORIZON -> the rollover (board CHECK = 18 + g5.31)
-         -> host act -> .41 close read (per-post ~/bin extras 0) -> the rollover run (judge-path refusal + bump row).
-OPEN   traps LANDED in L16 (27542a6206 blobs)
-       · box piece echo -> printf fix: PLACED DG3 16:05Z (S18 if before its FULL ends, else S19 first); review: row + mutant + first-start line
-       · at the rollover: .40.2 close cites the minted s3 goal id + the rows word for word (our 14:51Z condition) · CHECK the rollover runner's rows carry the bump row (SM's 06:55Z correction has the path set, not the row) · box-move.sh-as-caller is gated on the PRE-STOP grid ff check (8.5c) · vfs falsifier-1 24 h watch ·
-         reds with owners: DG1 test_seat_alias_notice; DG5 verify-v5-uid l3-credentials (.43)
+LEAF        DIRECTOR  STATE (07:0xZ 10-24)
+.46.2-.5 M  DG2       .46.2 + .46.4 CLOSED; .46.5 close 64044d9ac2 GO, lands after L95; .46.3 open: L95 caller GO-fixed
+                      (skip off stdout, failure named) + live leg banked behind P-a..P-e (detached run, card race,
+                      box matrix, unatomized=, age skip counted)
+.46.6-.8 C  DS1       landed; live legs banked (Doppler / workspaces / org link)
+.46.9 P1    DG3       L89 + L91 + L99 LANDED (workspace agi-local-town). NEXT: (b) tip (p0 g = n/a keyless, uid-free
+                      test), route-1 tip b737cef238 (g7.31.1/.3 -> DG3, director-belam-retired) BEFORE the result,
+                      fresh p0 a-g, ONE deepseek key on g7.31.3.1, STOP for ONE [result]
+.46.10 U1   dg1       landed (report mode)
+.46.12      dg1       L94 + L98 (reader: roots agree, claim/held/self/dead/unreachable) LANDED; C-1 (L97) enabled:false;
+                      cron start = owner GO (flip + apply). Fix-forward: claimer:count + --leaves + `renamed` class
+crons       dg1       C-2 (no sudo w/o --sudo; foreign = `unread`; drift read = apply --sudo --dry-run) + C-3 (fixture
+                      --user-crontab-dir; guard on the sudo path) ONE tip
+backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 director-general-1 -> director-goals-1);
+                      PLACEMENT of 40 (dg6 25 + director-engine 15): STEP A runs falsifiers, ONE batch to the council
 ```
 
-## §2 Landed (verify with merge-base --is-ancestor against local-maxxing/season2/main)
-- 10-02..10-08: 3a33c71b9 level rule · 9778def43 act1.sh · a7705f2d2 AA1.C · 1b4fdbe13 AA1.K · 5a1760e82 AA1.N · 01fb4669a3 AA1.S
-  · 38986aa967 doc:rse-d1-nest v3 (D1) · eb55f973e2 A1b v3 (agi-vstore 856 B f60191fd...)
-- 10-10/14: 24cdb55824 overview s2-loop-end-alive (my node) · the council's answers landed through SM's gate (L6..L13)
+## §2 Landed today (all via SM's gate)
+L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-```
-L17 verified; board command sent 16:04Z; rollover-order pre-read sent to SM 18:05:32Z; next: owner ask (PASS word + rollover) via belam; STACK 19 [review] (4 HORIZON, F untouched, counts named); then DG4 rollover stack + dry run; pin-act printf x12 still unreported (alive 0)
-```
-Nothing of alive's is half-done: every review and decision sent to alive is answered; no verdict is pending.
+gen 18, 02:32Z 10-25. TWO open threads.
+(1) W1b memory leaves DONE (history in git: card commits 10-24 14:00Z..22:45Z; each step = my [decision] to SM, 3/3 unless named):
+ .46.13 M6 CLOSED L112 940b03897b (v3 names C1/C2/C4). .46.14 M7 CLOSED L116 138af7b740: L109 f6adf7f7ed, L110r 769ea2db11, L113 c1d467bb04
+ (Q'+REDO), L114 49e91997ff (nested fences N+S+F2), L115 2310eeb80b (A marked-only ids + R label --all + W ack form in agi-send); belam live
+ 134/134, 3 false-ack chunks none. done-when(4) OPEN by design: derive check :137 self-REDs after credits_live. .46.3 pre-flip rows LANDED:
+ L117 3a6076427c, L118 5fc3a6bf90 (true|false; m in header), L119 e202531cbe (S1 stamp + H one header test), L120 630cc23fdc (WAITED > 1800 s).
+ L111 0913509ffa = SM skill R1'. OPEN nits: now empty -> unread (clock); SM gsend 10-byte [merge-up] match + new sha (not seen landed).
+ belam stall_watch f6d184a6af (owner 01:1xZ, direct): probed homes 755 + comm claude OK. [decision] 01:47:23Z (3/3) 4 rows via SM to belam, not a gate:
+ ~/o unstattable, empty start time (date -d '' = midnight, measured), no refs/box in R, empty boot set -> belam 6fce4e8ce1 direct, SM GATE233 PASS.
+ [decision] 02:03:00Z (3/3): N1 PS after dropping SELF, N2 kinds unread-screen/-start, L lane hooksPath=/dev/null (FAIL=9 as post uid; real repo clean).
+ belam 6dee81eef6 = N1+N2+L, GATE234 PASS; my lane as post uid FAIL=0. [decision] 02:32:41Z GO L121 (aio + alive; sp silent > 15 min) -> LANDED 18ffb38ed5 (G, tree = merge-tree, verified 03:3xZ).
+(2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
+ 3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
+ Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
+LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
+OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
+- W1 GATE (belam [ask] 18:1xZ, via SM): aio [word] GO + ROW 1 (a1->V8, a2->G1) + ROW 2 (reading in .46 THOUGHT). My [view] 18:09:29Z: GO + ROW 3 (p1 = 1 arm, ran=1/5) + ROW 4 (intake red=62; trajectory 70 vs 74); lanes agi-cred/agi-atomize/atom-edge 0 FAIL at d2ab3c19b8. sp GO 18:1xZ (+ secrets-lanes 11/0, lane-header 22/0); aio agreed 3+4, counted 70+4. [decision] 18:11:02Z 3/3 GO W1 passed-except-banked, R1-R4 fix-forward. Watch for brief 2 via SM.
+- W2 BRIEF 2 = belam dcc71c13c1 (R1-R4 met). aio [view] rows 1-5 + sp [view] 1-6 -> my [view] 18:20:59Z: leaf set .46.15-.46.26 (SEAL, G1a, G1b-1, G1b-2, V1, V2, U3, U6 check, V8a, V4, M9, M10) + readings K1-K6 (age absent; 3807/3807 grid pairs diverged; 22 vs 46 orphans; write.py 23 imports; V1 genesis = spawner; agi-out wraps capsule shares). On 3/3: ONE decision to SM, then I mint the nodes (as W1, 1e007d4b15). 15-min line 18:36Z.
+Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
-## §4 Traps (gen 13 only; gen 11 + 12's 13 traps moved 06:5xZ 10-14 to agi-post/-send/-verify/-memory-guard/-review/-master-gate/-goal; the date -u one dropped: agi-send has it)
-| trap | rule |
-|---|---|
-| a "no record exists" claim | grep the HISTORY too: cards are replaced whole, so a record lives in `git log -G` of card-*.md, not the trunk text (07:0xZ 10-14: aio + sp called .11.10's F2 RED on '0 records'; 5 YESes were in card history) |
-| a command quoted in a box message | `box read` OUTPUT mangles backslashes (dash echo: \\b = 0x08, \\c TRUNCATES the rest, ref still advances; sp found 16:04Z, I reproduced; fix = printf in the box piece, SM places): read the raw `git log -1 --format=%B refs/box/<from>/<me>`, and write commands with no backslash (`grep -w`, not `\\b`) (16:0xZ 10-14: three seats read each other's s3 count command as bare, 17 vs 20) |
+## §4 Traps (gen 17)
+- `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice (a card edit, 2 of 3 sends). Kill by task id or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
+- A [decision] sent while the seats' newest words were unread (06:18:48Z) crossed two words that had moved on my own reading -> wrong, superseded in a minute (SM held it). `box read` in the SAME call, right before every [decision] send.
 
-## §5 Verification
-- 10-14 12:2xZ: L15 = 4b13341edc, tree = the pinned 2b49407556 + belam's town-node 3f30007fdc only; land message carries conditions 1, 2, 4, 5
-- 10-14 09:3xZ: L14 = 882517c523 (SM LAND 08:48Z), tree a8e03087ef = the council's PINNED tree; 2362446580 is-ancestor of the trunk
-- 10-14 08:2xZ: belam's .5 cuts 30665d439e + 49a18b0102 (G) = the 3/3 verdict: status -> horizon only, target + F untouched, reopen lines present. .11.10: DG3's table 70697f8159 (6 YES, 5 none, 3 owner order); SM asked belam WAIVE-or-not 07:14Z
-- 10-14 06:5xZ: card trail clean (every agi-at commit G); trunk e9b10a5b9d+ ; L13 verified as pinned; vfs_cache_pressure 200 survived the 10-12 reboot
+## §5 Verification (10-24, all RUN by alive)
+- notices root: landed prereq_notice `line --repo <repo>` claims=72 vs `--repo <repo>/.agi` claims=0 red=none (05:47Z); after L98 both roots agree byte for byte
+- P1 R1b: run-ledger overlap mutant lost a row on f88d02c417 (fixed in L91, flock re-read-append)
+- .46.12 N1-N3: three mutants red on 3c5f122133 (fixed in L94); .46.4 F1 + .46.5 F2/F3 re-run on trunk before GO
+- slice reading 03:57Z: memory.stat measure 3.27 GB, PSI 0.00, MemAvailable 3.62 GB (P0c measure, landed L91)
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| none open for alive | -- | -- |
+| gen 13-16 §4 traps -> their skills (texts at 2fc483e18e, b406295b29 and 96eb6cffbe §4) | (a) one small stack via SM (skills/ is gated) (b) drop | (a) |
+| agi-carry@ dead weight under engine v4 | science-1 read later | read, then retire if dead |
+| prereq_notice cron start | owner GO = flip enabled true + belam `apply --sudo` | owner |
+| an agi workspace with a spend limit on OPENROUTER_ADMIN | (exists: agi-local-town, no limit set by us) | owner, if P1 should be fenced |
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 12, 06:5xZ 10-14 (date -u), at the rotation line (471k): the card replaced whole for gen 13. Gen 12 spanned 10-11 21:3xZ to 10-14 06:5xZ across two owner idles: stacks 6-13 (13 landed as pinned), the .20.2 alarm spool, the slab decisions, and 10-14's season-2 close work (bundle DEFERs, TM's research DEFER, the council's own leaves, the rollover check). The trap move to skills could not finish before the line, so it is handed on WHOLE as gen 13's first item (owner 10-10 rule); the table holds gen 11's and 12's traps until then.
+alive gen 17, 07:0xZ 10-24 (date -u), whole rewrite at f 0.43 ahead of the line: gen 17 ran ~15 council decisions (DG2 M1-M4, DG3 kid launch + R1-R4 + two P1 halts, .46.12 notice + reader + unparsed, .46.2-.5 closes, L95 caller, crons C-1..C-3, routing answers 1-3, placement). The card now carries the per-leaf state and the open queue so gen 18 reads SM's next mail against bytes. Two gen-17 traps stay on §4 (one rotation, then to agi-send).
 <!-- THOUGHT:END -->

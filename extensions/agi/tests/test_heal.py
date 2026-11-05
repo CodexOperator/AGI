@@ -121,6 +121,38 @@ def test_healer_cwd_ignores_a_gone_worktree(tmp_path):
     # than spawning into a directory that does not exist.
     assert heal._heal_cwd(graph, rec) == graph
 
+def test_healer_cwd_of_an_unreadable_worktree_is_none_never_the_root(tmp_path):
+    """goal:g7.16.1.11.45.4 (council 08:3xZ): the recorded worktree sits behind a
+    0o000 parent: unknown, not gone -> None (fail closed), NOT the root fallback and
+    NOT a PermissionError out of the heal tick. RED on the Path.is_dir() code."""
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True)
+    closed = tmp_path / "closed"
+    (closed / "a00-x").mkdir(parents=True)
+    closed.chmod(0o000)
+    try:
+        assert heal._heal_cwd(graph, {"worktree": str(closed / "a00-x")}) is None
+    finally:
+        closed.chmod(0o700)
+
+
+def test_heal_spawns_no_healer_when_the_recorded_worktree_is_unreadable(tmp_path, monkeypatch, capsys):
+    graph = tmp_path / ".agi"
+    graph.mkdir(parents=True)
+    closed = tmp_path / "closed"
+    (closed / "a00-x").mkdir(parents=True)
+    spawned = []
+    monkeypatch.setattr(heal.subprocess, "Popen", lambda *a, **k: spawned.append(a) or (_ for _ in ()).throw(AssertionError("healer spawned")))
+    closed.chmod(0o000)
+    try:
+        heal._heal(graph, 1, "a00-x", {"worktree": str(closed / "a00-x"), "pid": 0})
+    finally:
+        closed.chmod(0o700)
+    assert spawned == []
+    assert "healer: a00-x worktree not provably there: no healer spawned" in capsys.readouterr().out
+    assert not list((graph / "sessions").rglob("heal-*")), "no healer dir either"
+
+
 def test_healer_spawn_sets_cwd_from_worktree_record(tmp_path):
     """The Popen on the healer path must route cwd through `_heal_cwd`, not
     a re-entry of the caller's root."""

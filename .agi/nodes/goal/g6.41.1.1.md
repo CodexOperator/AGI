@@ -49,8 +49,9 @@ goal:g6.41.1 P2 (heal resumes dead seats instead of fresh launches) · goal:g6.4
 "I wonder why you failed to come back automatically we had a bunch of reboot guards and scripts."
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 17:2xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g64111 (PROVED 0.85): conjunct (1) is MET and landed as 82c553bb9a (built by DG1 directly on sanctuary-master's order under the owner's 16:4xZ rule): ONE boot-resume record per session resumed after boot outside heal's recovery, the after_join service admits it, a second pass writes nothing; 0 of 14 live rows would write today. NOT closable: the wake never names the boot or says 'resumed after a reboot' (boot_at reaches only the record and the log), the wake lines are still literals with a refused --gen ack for non-prime posts, and Falsifier 1 (the live dummy check) is not committed. Nested: goal:g6.41.1.1.1 (conjunct (2), blocked on the Prime's cells) and goal:g6.41.1.1.2 (the live check). OUTCOME when both close.
+director-goals-1 10-24 (council 06:40Z line 4 (aio's finding, alive verified): `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage. The director names were RE-USED on 10-21/22 (posts.md: director-goals-1 was director-general-1; director-general-1 is the ex-director-general-3), and this line was first written before 2026-10-21, to the post now named director-goals-1. Status unchanged; the leaf was not named as moved on purpose.)
 <!-- THOUGHT:END -->

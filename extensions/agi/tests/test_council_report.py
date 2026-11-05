@@ -124,12 +124,36 @@ def test_c1b_a_leaf_that_resolves_to_no_node_writes_nothing(tmp_path):
     assert "goal:g404" in str(exc.value) and store == {}
 
 
-def test_c5_the_real_write_py_writer_lands_the_row_on_a_tmp_node(tmp_path):
-    """Corrective 5: the REAL write.py writer, on a tmp project + tmp git repo."""
+def test_c5_the_real_writer_lands_the_row_on_a_tmp_node(tmp_path):
+    """Corrective 5: the REAL writer (node_commit.land over node_writer.update_node), on a tmp project."""
     root = _project(tmp_path)
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
     cr.add(root / ".agi", "k1", _flat(root), writer=cr.write_body)
     assert "| k1/a1 | verify | miss A |" in cr.node_body(root / ".agi", "goal:g7.9")
+
+
+def test_v8a_the_real_writer_commits_a_clean_node_and_refuses_a_hand_edited_one_by_name(tmp_path):
+    """V8a 3a: in a git checkout the row is ONE commit of the node; a node with a hand edit is refused before
+    anything is written, as a named SystemExit (never a skipped row, never the hand edit swept into a commit)."""
+    root = _project(tmp_path)
+    g = lambda *a: cr.subprocess.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", *a],
+                                     text=True, capture_output=True, check=True).stdout.strip()
+    args = _flat(root)                                                  # git init + two empty commits
+    g("add", "-A"); g("-c", "commit.gpgsign=false", "commit", "-q", "-m", "nodes")   # the project's nodes are tracked
+    _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
+    cr.add(root / ".agi", "k1", args, writer=cr.write_body)
+    assert g("log", "-1", "--format=%s").startswith("council_report: ")
+    assert "| k1/a1 | verify | miss A |" in cr.node_body(root / ".agi", "goal:g7.9")
+    leaf = root / ".agi/nodes/goal/g7.9.md"
+    leaf.write_text(leaf.read_text() + "\nbelam's hand edit\n")
+    kept, head = leaf.read_text(), g("rev-parse", "HEAD")
+    _run(root, key="k2", verify={"final_recommendation": "accept", "missed": ["miss B"]})
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k2", args, writer=cr.write_body)
+    assert "already dirty: refused, nothing written" in str(exc.value)
+    assert leaf.read_text() == kept                                     # the hand edit is untouched ...
+    assert "g7.9.md" not in g("log", "--name-only", "--format=", f"{head}..HEAD")   # ... and in no commit (the report node, clean, may land)
+    assert "belam's hand edit" not in g("show", "HEAD:.agi/nodes/goal/g7.9.md")
 
 
 def test_f1_one_row_per_round_and_a_re_add_never_duplicates(tmp_path):

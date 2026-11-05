@@ -257,4 +257,9 @@ tf=$(sed -n '/^```sh move.target-fit/,/^```$/p' $G 2>/dev/null|awk '$1=="data-fr
 ok "refs-the-real-target-fit-cell-exists-with-a-measured-floor $G holds move.target-fit with data-free-min-kb=[$tf] (want a number >= 1048576) and a reason naming the measured size ($tr_ line with 'measured', want >= 1)" 'case $tf in ""|*[!0-9]*)false;; *)[ $tf -ge 1048576 ];; esac&&[ $tr_ -ge 1 ]'
 ur=$(sed -n '/^```sh move.unit-required/,/^```$/p' $G 2>/dev/null|grep -E '^/[^ ]+  *[^ ]');ur1=$(echo "$ur"|head -1|awk '{print $1}');urr=$(echo "$ur"|head -1|sed 's/^[^ ]* *//'|wc -c)
 ok "refs-the-real-unit-required-cell-names-carry-env-first $G holds move.unit-required whose first entry is [$ur1] (want /etc/agi/carry.env) with a reason of $urr chars (want >= 12)" '[ "$ur1" = /etc/agi/carry.env ]&&[ $urr -ge 12 ]'
+# r3 (the census, sp's condition): mutgo's guard (L169, 14 callers) is a RUN row, not a reading -- a literal that matches nothing fails closed and runs nothing; the unguarded helper is the mutant
+x=$(f=0;mutgo 's/NO-SUCH-LITERAL-XYZ/x/' selftest 2>&1;echo "f=$f")
+ok "mutgo-a-matchless-mutant-fails-closed-and-runs-nothing: $(echo "$x"|tr '\n' '|'|cut -c1-110)" 'echo "$x"|grep -q "^FAIL mutant selftest changed nothing"&&echo "$x"|grep -qx "f=1"'
+x=$(mutgo(){ mkdir -p $T/m;sed "$1" $SRC >$T/m/box-move.sh;echo ran-on; };f=0;mutgo 's/NO-SUCH-LITERAL-XYZ/x/' selftest;echo "f=$f")
+ok "mutgo-mutant-the-unguarded-helper-runs-on-an-unmutated-copy-RED: $(echo "$x"|tr '\n' '|'|cut -c1-110) (the clean row prints the FAIL line, f=1, and never runs)" '! echo "$x"|grep -q "^FAIL mutant selftest"&&echo "$x"|grep -qx "ran-on"&&echo "$x"|grep -qx "f=0"'
 echo "box-move-refs: $f FAIL";exit $f

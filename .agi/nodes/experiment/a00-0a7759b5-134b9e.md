@@ -25,7 +25,7 @@ verdict: proved
 
 g15.25 FIX-ONLY build. Measured defect: `run_after_join`'s default `send_dm`
 closure called `_send.send(root, to, text, None)` — sender None → `send.py`
-`_detect_sender(None)` returns `'unknown'` when no `AGI_AGENT_ID`/`AGI_SEAT`
+`_detect_sender(None)` returns `'unknown'` when no `AGI_AGENT_ID`/`AGI_[retired]`
 env is exported, and `_sign_line` can never sign 'unknown' (no
 `<sessions>/seats/unknown.key`). So a service dm could arrive `from: unknown`,
 unsigned, under enforcing comms.verify.

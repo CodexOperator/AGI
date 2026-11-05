@@ -114,7 +114,7 @@ def test_pick_worst_ledger_reads_json_array_and_jsonl(tmp_path):
     assert sensei.load_ledger_rows(tmp_path / "missing") == []
 
 
-def test_apply_protected_target_never_calls_write_py_without_owner_approved(
+def test_apply_protected_target_never_writes_the_note_without_owner_approved(
         tmp_path, monkeypatch):
     root = tmp_path
     croot = tmp_path / "comms"
@@ -142,8 +142,39 @@ def test_apply_protected_target_never_calls_write_py_without_owner_approved(
                  dry_run=False)
     rc = sensei.cmd_apply(root, croot, args)
     assert rc == 0
-    assert calls == []  # write.py never reached without --owner-approved
+    assert calls == []  # the note is never written without --owner-approved
     assert (tmp_path / sensei.DRAFTS_DIR / "belam.md").is_file()
+
+
+def _note_project(tmp_path):
+    import subprocess
+    graph = tmp_path / "proj" / ".agi"
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "goal" / "g1.md").write_text("---\nid: goal:g1\ntitle: t\n---\n# g1\n")
+    g = lambda *a: subprocess.run(["git", "-C", str(graph.parent), "-c", "user.name=t", "-c", "user.email=t@t",
+                                   "-c", "commit.gpgsign=false", *a], text=True, capture_output=True, check=True).stdout.strip()
+    g("init", "-q"); g("add", "-A"); g("commit", "-q", "-m", "base")
+    return graph, g
+
+
+def test_v8a_apply_note_appends_under_agent_notes_as_one_commit_of_the_node(tmp_path):
+    graph, g = _note_project(tmp_path)
+    out = sensei.apply_note(graph, "goal:g1", "raise effort")
+    text = (graph / "nodes" / "goal" / "g1.md").read_text()
+    assert "## Agent Notes\nSENSEI: raise effort" in text and "edited_by: master-sensei" in text
+    assert g("log", "-1", "--format=%s") == "sensei: goal:g1" and "noted goal:g1" in out
+    assert g("show", "--name-only", "--format=", "HEAD") == ".agi/nodes/goal/g1.md"
+
+
+def test_v8a_apply_note_mutant_a_hand_edited_node_is_refused_untouched(tmp_path):
+    graph, g = _note_project(tmp_path)
+    f = graph / "nodes" / "goal" / "g1.md"
+    f.write_text(f.read_text() + "belam's hand edit\n")
+    kept, head = f.read_text(), g("rev-parse", "HEAD")
+    with pytest.raises(RuntimeError, match="already dirty: refused, nothing written"):
+        sensei.apply_note(graph, "goal:g1", "raise effort")
+    assert f.read_text() == kept and g("rev-parse", "HEAD") == head
 
 
 class _Args:

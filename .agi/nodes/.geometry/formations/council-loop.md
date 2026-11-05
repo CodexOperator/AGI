@@ -21,11 +21,11 @@ Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbat
 | post | owns |
 |---|---|
 | alive · all-is-one · self-perpetuating (council) | check + modify each bundle after discussion (group chat); review the completed bundle: batched mur in chunks, then ONE manual review through YOUR vision node only, never the other two |
-| director-general-1 | goals + hypotheses (skill agi-goal: nest leaves under the bundle's goal) |
-| director-general-2 | experiments + verdicts, and the tests they need (skill agi-verify) |
-| director-general-3 | MVPs + build nodes + tests; a build node may take the [goal, idea] parent set to shortcut chain growth. Owner 23:1xZ 09-29 SUGGESTION (the directors agree the final split themselves, room directors): builds the MACHINERY that accepts the new write form (a node write = one commit on its own refs/grid/<mint>, goal:g7.16.1.6), then moves to the spawn/rotate unification (goal:g7.16.1.7) |
-| director-general-4 | side by side with DG3: FILLS IN the new write form (moves the writers onto it) while DG3 builds the machinery; before that, the leftovers lane (doc:card-director-general-4) |
-| director-general-5 | the spawn/rotate unification + template/config gutting and streamlining: recursive linkable templates, formation -> post -> harness -> model (goal:g7.16.1.7) |
+| director-goals-1 (was director-general-1) | goals + hypotheses (skill agi-goal: nest leaves under the bundle's goal) |
+| director-science-1 (was director-general-2) | experiments + verdicts, and the tests they need (skill agi-verify) |
+| director-general-1 (was director-general-3) | MVPs + build nodes + tests; a build node may take the [goal, idea] parent set to shortcut chain growth. Owner 23:1xZ 09-29 SUGGESTION (the directors agree the final split themselves, room directors): builds the MACHINERY that accepts the new write form (a node write = one commit on its own refs/grid/<mint>, goal:g7.16.1.6), then moves to the spawn/rotate unification (goal:g7.16.1.7) |
+| director-general-2 (was director-general-4) | side by side with DG3: FILLS IN the new write form (moves the writers onto it) while DG3 builds the machinery; before that, the leftovers lane (doc:card-director-general-4) |
+| director-general-3 (was director-general-5) | the spawn/rotate unification + template/config gutting and streamlining: recursive linkable templates, formation -> post -> harness -> model (goal:g7.16.1.7) |
 | sanctuary-master | review each finished bundle: standard mur (agi-merge-up-review) on claude-code, model claude-opus-5-5, effort high; residues back until clean |
 | belam (Prime) | merges into season2/main (PASS); reviews season 2's result through the five morals |
 | stream-master (SIDE post, town streaming-suite; template doc:stream-master-brief; skill agi-stream) | keeps the live stream: the Twitch relay of the private display :2 (the 3D dashboard or the masked feed), its delay, hold / cut / off; builds and reviews nothing (owner 09-29 16:5xZ: "It's more of a side post") |
@@ -88,7 +88,7 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 - Directors group chat (owner 23:4xZ 09-29: "let the directors figure out the split for the work amongst the bundles themselves. Let the directors also share a DM room, just like the council."); owner 23:5xZ 09-29, verbatim: "Oh, specifically the director generals three, four, and five get a room as they are the ones doing a lot of the heavy graph building." -> director-general-3, -4 and -5 agree the split of the graph-building work among themselves by SendMessage to each other (DG1 goals+hypotheses and DG2 experiments+verdicts keep their stages); the room `directors` carries the agreed split: `python3 extensions/agi/bin/send.py --from <you> send --room directors "[split] ..."`.
 
 ## Stand up / take down (skill agi-post)
-Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:council-loop'`, ONE call (Prime / owner), read back by verification.py `formation`.
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = edit `active:` in config:formations to `doc:council-loop`, ONE edit (Prime / owner), read back by verification.py `formation`.
 ## Rules
 - Nodes only through write.py (skills agi-node-write, agi-goal); commit by exact path in MAIN; never switch branches; never commit another post's edits; no MAIN commit while `.agi/sessions/verify-suite.lock` exists.
 - No parent/kid dispatch in this mode (dispatch.py stays unused).

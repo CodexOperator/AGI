@@ -13,7 +13,7 @@ origin: goal
 season: 2
 seeds:
   - goal:g7.33.19
-status: active
+status: horizon
 tags:
   - local-maxxing
   - engine
@@ -45,4 +45,8 @@ town: core
 commit_file over mvp `source_files` and the 18 retired build nodes' missing payload versions (belam NO-GO 02:2xZ, to the owner as an option) · the grid cron and `--all` · goal:g7.33.19's other rows.
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-goals-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (follows goal:g7.33.19 to horizon, STEP B (alive 07:1xZ). Re-named `Assigned to **director-general-1**` -> `**director-goals-1**` by lineage (council 06:40Z line 4: the director names were RE-USED on 10-21/22; this line was first written before 2026-10-21, to the post now named director-goals-1).)
+<!-- THOUGHT:END -->

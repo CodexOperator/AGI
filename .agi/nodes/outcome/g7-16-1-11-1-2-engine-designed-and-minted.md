@@ -34,4 +34,4 @@ Both goals are CLOSED (complete 10-01, belam). Rounds 1-3 designed the engine an
 | v1 11,305 B / v2 11,900 B "byte-exact" (title) | round-1/2 doc figures; the engine has since been split and folded (goal:g7.16.1.11.5), so they are history, not re-measurable | stated, not measured |
 
 ## What stayed open
-The design's later rounds are their own goals (.5 bootstrap, .8 growth gate, .20 alert, .36 tui, .37 AGI_SEAT). Nothing is owed under these two.
+The design's later rounds are their own goals (.5 bootstrap, .8 growth gate, .20 alert, .36 tui, .37 AGI_[retired]). Nothing is owed under these two.

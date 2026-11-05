@@ -615,7 +615,7 @@ def _fake_proc(tmp_path, rows):
     return proc
 
 
-def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False, logger_raises=False, logger_hangs=False, mutate=None):
+def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, over=None, grow=None, flips=None, spawn=None, sysd=None, rewrite=None, no_uptime=False, kill_raises=(), break_log_at=None, fix_log_at=(), popen_raises=False, logger_raises=False, logger_hangs=False, mutate=None, iids=None):
     """Run the RENDERED loop for `passes` passes on a fake clock (`tick` s per pass); avails[i] = MemAvailable in bytes
     for pass i (default: plenty). Returns (adj, stops, runs, ev): the SIGSTOPped pids, the logger/other run() calls and
     ev = what the loop did besides: conts (SIGCONT pids), boxes ([(argv, stdin text)] of every Popen), clock.
@@ -626,6 +626,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     says for a unit ({unit: "OOMScoreAdjust=..\\nNice=.."}, an Exception instance to fail); every call lands in ev.sysd.
     rewrite = {pass: [(pid, 'cmd', text) | (pid, 'ppid', n)]} changes a process's argv or parent at that pass (a harness that loses its argv, a tree that cannot be read);
     ev.seq = [('log', text) | ('kill', pid, signal)] in the order they happened; kill_raises = pids whose SIGSTOP raises; ev.stopped = the guard's stopped map at the end.
+    iids = {unit: InvocationID | [one per call, the last repeats] | Exception} answers the guard's ONE `systemctl show UNITS -p Id -p InvocationID` (default: the same id for every unit, every call); every call lands in ev.inv as (clock, [units]).
     /proc/uptime follows the fake clock, so a process's age is the clock minus its start ticks."""
     piece = BY_NAME["memguard-script"]
     tmp_path.mkdir(parents=True, exist_ok=True)
@@ -642,7 +643,7 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
     src = src.replace("subprocess.check_output(", "_out(").replace("os.listdir(", "_ls(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     import signal as _sig
-    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], sysd_kw=[], order=[], seq=[], stopped={}, largv=[], pend=[], spools=[])
+    clock, n, ev = [10_000.0], [0], types.SimpleNamespace(conts=[], boxes=[], stops=[], nice={}, sysd=[], sysd_kw=[], order=[], seq=[], stopped={}, largv=[], pend=[], spools=[], inv=[])
     avails = avails or [33_000_000 * 1024]
     def setavail(i):
         a = avails[min(i, len(avails) - 1)]
@@ -711,6 +712,14 @@ def _guard_pass(tmp_path, rows, passes=1, avails=None, tick=5, real_box=False, o
         if logger_raises: raise OSError("no logger")
     runs = []
     def _out(argv, **k):
+        if "InvocationID" in argv:                       # the same-incarnation read: ONE call for every candidate unit, apart from the baseline reads (ev.sysd)
+            names = argv[2:argv.index("-p")]; ev.inv.append((clock[0], list(names))); ev.seq.append(("inv", list(names))); blocks = []
+            for nm in names:
+                got = (iids or {}).get(nm, "inv-1")
+                if isinstance(got, list): got = got.pop(0) if len(got) > 1 else got[0]
+                if isinstance(got, Exception): raise got
+                blocks.append("Id=%s\nInvocationID=%s\n" % (nm, got))
+            return "\n".join(blocks)
         ev.sysd.append(argv); ev.sysd_kw.append(k); ev.order.append(("fetch", argv[2])); got = (sysd or {}).get(argv[2], "OOMScoreAdjust=0\nNice=0\n")
         if isinstance(got, list): got = got.pop(0) if len(got) > 1 else got[0]          # a sequence: one answer per call, the last repeats
         if isinstance(got, Exception): raise got
@@ -1042,6 +1051,156 @@ def test_memguard_base_and_tree_alerts_are_rate_limited_per_unit_not_per_kind(tm
         assert len(texts) == 2, (to, texts)
 
 
+# 7h -- goal:g7.16.1.11.40.1.2 (council 3/3 alive 00:48:31Z 10-26, belam GO 00:5xZ): the 'no harness' ALERT fires only on the SECOND consecutive tick
+# that finds the SAME incarnation's tracer without a harness. Each row has its MUTANT: the rendered guard with ONE site changed, which must break it.
+NOH_STOP = "stop window"
+HIDE = (20, "cmd", "zzz-new --title-rewritten")
+_STOPW = "no harness for 1 tick, then the unit's cgroup emptied: a stop window"
+
+
+def _cut(old, new):
+    def f(src):
+        assert src.count(old) == 1, ("mutant anchor not unique in the rendered guard", old)
+        return src.replace(old, new)
+    return f
+
+
+def _alerts(runs): return [a[0][-1] for a in runs if "no harness found" in a[0][-1]]
+def _said(runs, text): return [a[0][-1] for a in runs if text in a[0][-1]]
+
+
+def _noh_same_id(tmp_path, mutate=None):
+    """no harness on pass 0 AND pass 1, the same InvocationID: pass 0 is only remembered, pass 1 alerts, once."""
+    adj, kills, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, rewrite={0: [HIDE]}, mutate=mutate)
+    alerts = _alerts(runs)
+    assert len(alerts) == 1 and all(len(t) == 1 for t in _tree_lines(ev)), (alerts, _tree_lines(ev))      # one journal line, one notice per recipient
+    return ev
+
+
+def test_memguard_no_harness_alerts_on_the_second_tick_of_the_same_incarnation_not_the_first(tmp_path):
+    adj, kills, runs, ev = _guard_pass(tmp_path / "one", _post_unit(), passes=1, rewrite={0: [HIDE]})
+    assert _alerts(runs) == [] and _tree_lines(ev) == [[]] * len(_tree_lines(ev)), _alerts(runs)             # the first tick is only remembered
+    assert [n for _, n in ev.inv] == [[_unit()]], ev.inv                                                     # ONE read, for the one candidate
+    _noh_same_id(tmp_path / "two")
+    prot = int(_vs()["PROTECT_OOM_ADJ"])
+    assert [adj[p] for p in (10, 11, 12)] == [prot] * 3, adj                                                 # the spine is protected through the pending tick
+
+
+def test_mutant_no_harness_alerting_on_the_first_tick_reads_red(tmp_path):
+    with pytest.raises(AssertionError):
+        adj, kills, runs, ev = _guard_pass(tmp_path / "one", _post_unit(), passes=1, rewrite={0: [HIDE]},
+                                           mutate=lambda src: _cut("elif i is not None and pending[unit] != i:", "elif i is not None and pending.get(unit, i) != i:")(
+                                               _cut("if i is not None and unit not in pending: pending[unit] = i", "if False: pass")(src)))
+        assert _alerts(runs) == [], _alerts(runs)
+
+
+def test_mutant_a_count_that_starts_over_every_tick_never_alerts_and_reads_red(tmp_path):
+    with pytest.raises(AssertionError):
+        _noh_same_id(tmp_path, mutate=_cut("elif i is not None and pending[unit] != i:", "elif i is not None:"))
+
+
+def test_memguard_one_tick_then_the_cgroup_empties_is_a_recorded_stop_window_and_not_red(tmp_path):
+    gone = [(p, None) for p, r in _post_unit().items() if r[2] == _post_cg()]
+    adj, kills, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=4, rewrite={0: [HIDE]}, flips={1: gone})
+    assert _alerts(runs) == [] and _tree_lines(ev) == [[]] * len(_tree_lines(ev)), (_alerts(runs), _tree_lines(ev))
+    said = _said(runs, NOH_STOP)
+    assert len(said) == 1 and said[0].endswith(_STOPW), said                                                  # once per episode
+    assert not any(b[1].startswith(("[memguard-tree]", "[memguard-stop")) for b in ev.boxes), [b[1] for b in ev.boxes]   # a line, never a notice
+    assert "stop window" in (tmp_path / "guard.log").read_text()                                              # and the guard's own file has it
+
+
+def test_mutants_the_stop_window_line_missing_or_red_or_never_cleared_read_red(tmp_path):
+    gone = [(p, None) for p, r in _post_unit().items() if r[2] == _post_cg()]
+    def run(mutate):
+        adj, kills, runs, ev = _guard_pass(tmp_path / ("m%d" % run.n), _post_unit(), passes=4, rewrite={0: [HIDE]}, flips={1: gone}, mutate=mutate); run.n += 1
+        assert len(_said(runs, NOH_STOP)) == 1 and _tree_lines(ev) == [[]] * len(_tree_lines(ev)), (_said(runs, NOH_STOP), _tree_lines(ev))
+    run.n = 0
+    run(None)
+    for old, new in (("log(f'{unit}: no harness for 1 tick, then {why}: a stop window')", "pass"),                                   # recorded: no line
+                     ("log(f'{unit}: no harness for 1 tick, then {why}: a stop window')", "log(f'{unit}: no harness for 1 tick, then {why}: a stop window', red=True, kind='tree')"),   # red
+                     ("for unit in [u for u in pending if u not in posts]: cleared(unit, \"the unit's cgroup emptied\")", "pass")):   # an emptied cgroup is not noticed
+        with pytest.raises(AssertionError):
+            run(_cut(old, new))
+
+
+def test_memguard_a_restart_that_changes_the_invocation_counts_afresh(tmp_path):
+    iids = lambda: {_unit(): ["inc-a", "inc-b"]}                                  # pass 0 reads inc-a, pass 1 and on read inc-b
+    adj, kills, runs, ev = _guard_pass(tmp_path / "r", _post_unit(), passes=3, rewrite={0: [HIDE]}, iids=iids())
+    assert len(_alerts(runs)) == 1 and len(_said(runs, "the unit restarted: a stop window")) == 1, [a[0][-1] for a in runs]   # pass 1: recorded, not red; pass 2: the new incarnation's 2nd tick
+    adj, kills, runs, ev = _guard_pass(tmp_path / "r1", _post_unit(), passes=2, rewrite={0: [HIDE]}, iids=iids())
+    assert _alerts(runs) == [], _alerts(runs)                                     # two ticks, two incarnations: no line
+    with pytest.raises(AssertionError):                                           # MUTANT: the id compared to nothing = the old noise
+        adj, kills, runs, ev = _guard_pass(tmp_path / "m", _post_unit(), passes=2, rewrite={0: [HIDE]}, iids=iids(),
+                                           mutate=_cut("elif i is not None and pending[unit] != i:", "elif False:"))
+        assert _alerts(runs) == [], _alerts(runs)
+
+
+def test_memguard_an_invocation_id_that_cannot_be_read_alerts_at_once_loud(tmp_path):
+    for tag, bad in (("timeout", OSError("hung")), ("empty", "")):
+        adj, kills, runs, ev = _guard_pass(tmp_path / tag, _post_unit(), passes=1, rewrite={0: [HIDE]}, iids={_unit(): bad})
+        assert len(_alerts(runs)) == 1 and "InvocationID could not be read" in _alerts(runs)[0], (tag, _alerts(runs))
+        assert all(len(t) == 1 for t in _tree_lines(ev)), _tree_lines(ev)
+    with pytest.raises(AssertionError):                                           # MUTANT: an unreadable id is remembered as if it were one
+        adj, kills, runs, ev = _guard_pass(tmp_path / "m", _post_unit(), passes=1, rewrite={0: [HIDE]}, iids={_unit(): OSError("hung")},
+                                           mutate=_cut("if i is not None and unit not in pending: pending[unit] = i", "if unit not in pending: pending[unit] = i"))
+        assert len(_alerts(runs)) == 1, _alerts(runs)
+
+
+def test_memguard_a_young_unit_is_still_not_judged_and_asks_systemd_nothing(tmp_path):
+    rows = _youngs(_post_unit(), 3); rows[20] = rows[20][:1] + ("zzz-new --title-rewritten",) + rows[20][2:]
+    adj, kills, runs, ev = _guard_pass(tmp_path / "y", rows, passes=2)
+    assert _alerts(runs) == [] and ev.inv == [], (_alerts(runs), ev.inv)
+    with pytest.raises(AssertionError):                                           # MUTANT: young() no longer consulted
+        adj, kills, runs, ev = _guard_pass(tmp_path / "m", rows, passes=2, mutate=_cut("elif young(rows): cleared(unit, 'the unit restarted')", "elif False: pass"))
+        assert ev.inv == [], ev.inv
+
+
+def test_memguard_an_unreadable_tree_is_the_tree_unread_alert_on_its_first_tick(tmp_path):
+    cut = [(10, "ppid", 11), (30, "ppid", 21)]
+    adj, kills, runs, ev = _guard_pass(tmp_path / "u", _post_unit(), passes=1, rewrite={0: cut})
+    assert len(_said(runs, "could not be read")) == 1 and ev.inv == [], ([a[0][-1] for a in runs], ev.inv)    # no pending, no systemctl
+    with pytest.raises(AssertionError):                                           # MUTANT: the unread waits for a second tick
+        adj, kills, runs, ev = _guard_pass(tmp_path / "m", _post_unit(), passes=1, rewrite={0: cut},
+                                           mutate=_cut("if unit not in unread and not young(rows): unread.add(unit)", "if unit not in unread and not young(rows) and unit in pending: unread.add(unit)"))
+        assert len(_said(runs, "could not be read")) == 1
+
+
+def test_memguard_the_invocation_read_is_one_call_for_all_units_after_the_stops_and_the_2_tick_rule_holds_under_a_low_line(tmp_path):
+    rows = _two_units()
+    for pid in (20, 120): rows[pid] = rows[pid][:1] + ("zzz-new --title-rewritten",) + rows[pid][2:]
+    adj, kills, runs, ev = _guard_pass(tmp_path / "two", rows, passes=2)
+    assert [sorted(n) for _, n in ev.inv] == [sorted([_unit(), _unit_b()])] * 2 and len(_alerts(runs)) == 2, (ev.inv, _alerts(runs))   # ONE call a tick, not one per unit
+    LOWN = "judged under the low line, no InvocationID read"
+    low = [GIB // 2] * 2                                                          # two ticks UNDER the low line: the 2-tick rule holds, systemd is asked NOTHING
+    adj, kills, runs, ev = _guard_pass(tmp_path / "low", _post_unit(), passes=2, avails=low, rewrite={0: [HIDE]})
+    assert ev.inv == [] and len(_alerts(runs)) == 1 and LOWN in _alerts(runs)[0] and all(len(t) == 1 for t in _tree_lines(ev)), (ev.inv, _alerts(runs))
+    adj, kills, runs, ev = _guard_pass(tmp_path / "low1", _post_unit(), passes=1, avails=low[:1], rewrite={0: [HIDE]})
+    assert _alerts(runs) == [] and ev.inv == [], _alerts(runs)                      # ONE low tick is only remembered
+    gone = [(q, None) for q, r in _post_unit().items() if r[2] == _post_cg()]
+    adj, kills, runs, ev = _guard_pass(tmp_path / "lowgone", _post_unit(), passes=3, avails=[GIB // 2] * 3, rewrite={0: [HIDE]}, flips={1: gone})
+    assert _alerts(runs) == [] and len(_said(runs, NOH_STOP)) == 1 and ev.inv == [], (_alerts(runs), _said(runs, NOH_STOP))   # a cgroup emptied in between: the non-red stop-window line
+    adj, kills, runs, ev = _guard_pass(tmp_path / "normal-then-low", _post_unit(), passes=2, avails=[3 * GIB, GIB // 2], rewrite={0: [HIDE]})
+    assert len(ev.inv) == 1 and len(_alerts(runs)) == 1 and LOWN in _alerts(runs)[0], (ev.inv, _alerts(runs))
+    adj, kills, runs, ev = _guard_pass(tmp_path / "low-then-normal", _post_unit(), passes=2, avails=[GIB // 2, 3 * GIB], rewrite={0: [HIDE]})
+    assert len(ev.inv) == 1 and len(_alerts(runs)) == 1 and "first tick was judged under the low line" in _alerts(runs)[0], (ev.inv, _alerts(runs))
+    with pytest.raises(AssertionError):                                           # MUTANT (d): the FIRST tick under the low line alerts
+        adj, kills, runs, ev = _guard_pass(tmp_path / "md", _post_unit(), passes=1, avails=low[:1], rewrite={0: [HIDE]}, mutate=_cut("elif p is None: pending[unit] = i or ''; continue", "elif False: pass"))
+        assert _alerts(runs) == [], _alerts(runs)
+    with pytest.raises(AssertionError):                                           # MUTANT (b): an emptied cgroup is not noticed under the low line
+        adj, kills, runs, ev = _guard_pass(tmp_path / "mb", _post_unit(), passes=3, avails=[GIB // 2] * 3, rewrite={0: [HIDE]}, flips={1: gone},
+                                           mutate=_cut("for unit in [u for u in pending if u not in posts]: cleared(unit, \"the unit's cgroup emptied\")", "pass"))
+        assert len(_said(runs, NOH_STOP)) == 1, _said(runs, NOH_STOP)
+    for old, new in (("for unit in cand:\n            i = None if low", "for unit in ([] if low else cand):\n            i = None if low"),         # MUTANT: nothing is judged under the low line (the GATE265 defect)
+                     ("ids = {} if low else invocations(cand)", "ids = invocations(cand)")):                                                    # MUTANT: systemd is read under the low line
+        with pytest.raises(AssertionError):
+            adj, kills, runs, ev = _guard_pass(tmp_path / ("m%d" % len(old)), _post_unit(), passes=2, avails=low, rewrite={0: [HIDE]}, mutate=_cut(old, new))
+            assert ev.inv == [] and len(_alerts(runs)) == 1, (ev.inv, _alerts(runs))
+    grow = {1: [(21, 7_000_000)]}                                                 # a runaway tool in the same tick: its SIGSTOP comes BEFORE the systemctl read
+    adj, kills, runs, ev = _guard_pass(tmp_path / "stop", _post_unit(), passes=2, rewrite={0: [HIDE]}, grow=grow)
+    order = [e[0] for e in ev.seq if e[0] in ("kill", "inv")]
+    assert order.index("kill") < len(order) - 1 and order[-1] == "inv" and order.index("kill") < order.index("inv", order.index("kill")), order
+
+
 PROOF2 = KIT / "memguard-proof2.py"
 
 
@@ -1352,7 +1511,7 @@ def test_memguard_says_a_tree_it_cannot_read_once_per_unit(tmp_path):
 def test_memguard_with_no_harness_found_protects_only_the_spine_chain_and_alerts(tmp_path):
     rows = _post_unit()
     rows[20] = rows[20][:1] + ("zzz-new --title-rewritten",) + rows[20][2:]      # the harness rewrote its argv
-    adj, kills, runs, ev = _guard_pass(tmp_path, rows)
+    adj, kills, runs, ev = _guard_pass(tmp_path, rows, passes=2)         # the 2nd consecutive tick is the one that alerts (goal:g7.16.1.11.40.1.2)
     prot = int(_vs()["PROTECT_OOM_ADJ"])
     assert [adj[p] for p in (10, 11, 12)] == [prot] * 3, adj     # the chain down to the tracer
     assert [adj[p] for p in (13, 15, 20, 21)] == [0, 0, 0, 0], adj    # nothing else: the harness cannot be told from a tool
@@ -2040,12 +2199,12 @@ def test_memguard_does_not_judge_a_unit_younger_than_two_ticks_plus_a_second(tmp
     assert not any("no harness found" in a[0][-1] for a in runs) and _tree_lines(ev) == [[]] * len(_tree_lines(ev)), [a[0][-1] for a in runs]
     prot = int(_vs()["PROTECT_OOM_ADJ"])
     assert [adj[p] for p in (10, 11, 12)] == [prot] * 3, adj                                                    # the spine is protected all the same
-    adj, kills, runs, ev = _guard_pass(tmp_path / "grown", fresh, passes=3)                        # the window passes: the next tick asks again and says it ONCE
+    adj, kills, runs, ev = _guard_pass(tmp_path / "grown", fresh, passes=4)                        # the window passes: the next tick asks again and says it ONCE
     assert sum("no harness found" in a[0][-1] for a in runs) == 1 and all(len(t) == 1 for t in _tree_lines(ev)), ([a[0][-1] for a in runs], _tree_lines(ev))
-    adj, kills, runs, ev = _guard_pass(tmp_path / "old", rows, passes=1)
-    assert sum("no harness found" in a[0][-1] for a in runs) == 1                                                # an old unit is judged at once
+    adj, kills, runs, ev = _guard_pass(tmp_path / "old", rows, passes=2)
+    assert sum("no harness found" in a[0][-1] for a in runs) == 1                                                # an old unit is judged at once (its 2nd tick)
     one_old = _youngs(rows, 3, pids={20})                                                                       # a young harness under an OLD tracer: the unit's oldest process decides
-    adj, kills, runs, ev = _guard_pass(tmp_path / "mixed", one_old, passes=1)
+    adj, kills, runs, ev = _guard_pass(tmp_path / "mixed", one_old, passes=2)
     assert sum("no harness found" in a[0][-1] for a in runs) == 1
 
 
@@ -2061,7 +2220,7 @@ def test_memguard_a_unit_that_is_found_again_gets_a_fresh_line_for_a_later_miss(
     tick = int(_vs()["ALERT_COOLDOWN_S"]) + 1
     good = _post_unit()[20][1]
     hide = (20, "cmd", "zzz-new --title-rewritten"); show = (20, "cmd", good)
-    adj, kills, runs, ev = _guard_pass(tmp_path / "noh", _post_unit(), passes=4, tick=tick, rewrite={0: [hide], 1: [show], 2: [hide], 3: [hide]})
+    adj, kills, runs, ev = _guard_pass(tmp_path / "noh", _post_unit(), passes=5, tick=tick, rewrite={0: [hide], 2: [show], 3: [hide]})
     assert sum("no harness found" in a[0][-1] for a in runs) == 2 and all(len(t) == 2 for t in _tree_lines(ev)), ([a[0][-1] for a in runs], _tree_lines(ev))      # race, found, later miss: two lines; a miss that goes on is still ONE
     adj, kills, runs, ev = _guard_pass(tmp_path / "noh-steady", _post_unit(), passes=4, tick=tick, rewrite={0: [hide], 1: [hide], 2: [hide], 3: [hide]})
     assert sum("no harness found" in a[0][-1] for a in runs) == 1
@@ -2077,7 +2236,7 @@ def test_memguard_a_young_unit_is_judged_when_the_age_cannot_be_read(tmp_path):
     fresh = _youngs(rows, 3)
     adj, kills, runs, ev = _guard_pass(tmp_path / "age", fresh, passes=1)
     assert not any("no harness found" in a[0][-1] for a in runs)                                                # the age reads: skipped
-    adj, kills, runs, ev = _guard_pass(tmp_path / "noage", fresh, passes=1, no_uptime=True)
+    adj, kills, runs, ev = _guard_pass(tmp_path / "noage", fresh, passes=2, no_uptime=True)
     assert sum("no harness found" in a[0][-1] for a in runs) == 1 and all(len(t) == 1 for t in _tree_lines(ev)), [a[0][-1] for a in runs]   # no /proc/uptime: judged, the line fires
     cut = _post_unit(); cut[10] = cut[10][:3] + (11,) + cut[10][4:]; cut[30] = cut[30][:3] + (21,) + cut[30][4:]
     adj, stops, runs, ev = _guard_pass(tmp_path / "noage-unread", _youngs(cut, 3), passes=1, no_uptime=True)
@@ -2086,7 +2245,7 @@ def test_memguard_a_young_unit_is_judged_when_the_age_cannot_be_read(tmp_path):
 
 def test_memguard_the_two_tree_alerts_of_one_unit_do_not_share_a_cooldown_key(tmp_path):
     hide = (20, "cmd", "zzz-new --title-rewritten"); cut = [(10, "ppid", 11), (30, "ppid", 21)]
-    adj, kills, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, rewrite={0: [hide], 1: cut})         # pass 0: no harness; pass 1: the tree unreadable, 5 s later
+    adj, kills, runs, ev = _guard_pass(tmp_path, _post_unit(), passes=3, rewrite={0: [hide], 2: cut})         # pass 0: pending; pass 1: no harness (the 2nd tick); pass 2: the tree unreadable, 5 s later
     assert sum("no harness found" in a[0][-1] for a in runs) == 1 and sum("could not be read" in a[0][-1] for a in runs) == 1, [a[0][-1] for a in runs]
     assert all(len(t) == 2 for t in _tree_lines(ev)), _tree_lines(ev)                                         # both reach the ~/.notice: one cooldown key per fault, not one per unit
 
@@ -2332,7 +2491,7 @@ def test_memguard_stops_the_runaway_anyway_when_the_log_append_raises_and_says_i
 
 def test_memguard_an_unwritable_log_never_costs_a_stop_and_is_said_once_per_episode(tmp_path):
     tos = _vs()["MEMGUARD_ALERT_TO"].split()
-    hide = {1: [(20, "cmd", "zzz-new --title-rewritten")]}                       # a SECOND red alert (no harness found) in the same tick
+    hide = {0: [(20, "cmd", "zzz-new --title-rewritten")]}                       # a SECOND red alert (no harness found) in the same tick
     # ONE tick holds a SPIKE (30 -> 20 GiB), the no-harness alert and a runaway; the log is a directory since the tick began
     adj, stops, runs, ev = _guard_pass(tmp_path / "a", _post_unit(), passes=2, avails=[30 * GIB, 20 * GIB], grow={1: [(30, 7_000_000)]}, rewrite=hide, break_log_at=1)
     assert stops == [30], stops                                                       # the runaway was stopped although the first red alerts of the tick could not be logged

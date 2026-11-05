@@ -2,7 +2,7 @@
 # box-mail.t.sh: AA1.M falsifiers for the trunk's `box` piece (hypotheses g716111-aa1m-box-send-..., ...-no-worktree-hop-...): sh + git + jq, scratch only,
 # throwaway keys, no live ref. One ok/FAIL line per case; exit = number of FAILs. The file under test is the PIECE: `sect box` from the .geometry engine*.md of ROOT
 # (default: the working tree this file sits in), exactly as box-carry.t.sh reads its pieces; case b0 pins that the box under test IS that piece, byte for byte.
-# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2904)
+# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2935)
 # BRSED=<sed script> scratch knob: mutate the box under test (b0 goes RED by design: how the cap numbers on experiment:dg2-aa1m-m3 were measured). To prove a PIECE edit turns a case RED,
 #   run on a scratch ROOT whose engine-post.md carries the edit.
 # M3M/M3RUNS = sends per writer / runs for the realistic M3 cases (default 100/5); M3BM/M3BRUNS the same for the 6-on-one-ref BOUND (150/3).
@@ -19,9 +19,11 @@ sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;}
 [ -s $BOX ]||{ echo "FAIL extract: box $(wc -c<$BOX)";exit 99;}
 [ -n "$BRSED" ]&&{ sed "$BRSED" $BOX>$T/boxm;BOX=$T/boxm;}
-BR=$BOX;CEIL=${CEIL:-2904};P=${M3_UNSENT_PCT:-5}
-sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1
-sed 's/\[unsent\]/[gone]/' $T/box1>$T/boxs   # the silent-unsent mutant: the cap cut to one attempt AND a failed send that does not say [unsent]
+BR=$BOX;CEIL=${CEIL:-2935};P=${M3_UNSENT_PCT:-5}
+# a mutant of a COPY of the piece must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
+chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
+sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1;chg $BR $T/box1 "the cap-one mutant"
+sed 's/\[unsent\]/[gone]/' $T/box1>$T/boxs;chg $T/box1 $T/boxs "the silent-unsent mutant"   # the silent-unsent mutant: the cap cut to one attempt AND a failed send that does not say [unsent]
 # keys + signers + per-post git config + a repo whose trunk (HEAD) holds the fixture matrix
 mkdir $T/k $T/c;: >$T/signers
 for u in belam sm alive dg5 dg1 dg2 dg3 all-is-one sp tm dt1 dg4;do
@@ -210,7 +212,7 @@ TS=$(printf 'c%.0s' $(seq 40) | tr c 7)
 tnb(){ bx=$1;shift;(cd $T/r&&PATH=$T/shim:$PATH AGI_POST=${TPOST:-belam} AGI_BOX=${TBOX-tw} AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/belam GIT_CONFIG_SYSTEM=/dev/null STUB_UID=${TUID:-agi-belam} sh $bx town "$@");}
 nref(){ $G -C $T/r for-each-ref --format='%(refname)' refs/box/belam|wc -l|tr -d ' ';}
 tclr(){ for r in $($G -C $T/r for-each-ref --format='%(refname)' refs/box/belam refs/box/dg1 refs/held);do $G -C $T/r update-ref -d $r;done;}
-rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;}
+rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;cmp -s $BR $T/mut&&{ echo "FAIL fixture: rep matched nothing: $1";exit 99;};}
 fk(){ ( cd $T/r&&printf '%s' "$3"|AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/$1 GIT_CONFIG_SYSTEM=/dev/null GIT_AUTHOR_EMAIL=$1@agi GIT_COMMITTER_EMAIL=$1@agi $G commit-tree -S $($G hash-object -w -t tree /dev/null)>$T/fk.sha&&$G update-ref $2 $(cat $T/fk.sha) );}
 tclr;tnb $BR down $TS;rc=$?
 ok3 t-down-rc0-one-commit-per-post-of-the-box "box town down: rc $rc (want 0), refs/box/belam/* = $(nref) (want 5: alive sm dg1 dg2 dg3; not dg4 of box xx, not belam, not the inert rows)" '[ $rc = 0 ]&&[ "$(nref)" = 5 ]&&! $G -C $T/r rev-parse -q --verify refs/box/belam/dg4 >/dev/null&&! $G -C $T/r rev-parse -q --verify refs/box/belam/council >/dev/null'
@@ -237,7 +239,7 @@ ok3 t-F6-the-template-from-a-non-belam-post-is-dropped "a dg1-signed exact '[tow
 # the MUTANTS: each one edit on the piece, each makes its row above FAIL
 mutrun(){ # $1 sed-free A $2 B ; sets MUT=1 when the edit changed the piece
  rep "$1" "$2";cmp -s $BR $T/mut&&MUT=0||MUT=1;}
-rep '[ "$(id -un)" = agi-belam ]&&' '';cmp -s $BR $T/mut&&echo "# mutant-uid: no edit made";tclr;TUID=dg2 tnb $T/mut down $TS 2>/dev/null;r=$?
+rep '[ "$(id -un)" = agi-belam ]&&' '';tclr;TUID=dg2 tnb $T/mut down $TS 2>/dev/null;r=$?
 ok3 t-mutant-no-uid-check-is-RED "the piece without the id -un check, run as uid dg2: rc $r and $(nref) ref(s) (the clean row wants rc != 0 and 0 new refs: this one must send)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" -gt 0 ]'
 rep '[ $# = 3 ]&&' '';tclr;tnb $T/mut down $TS extra 2>/dev/null;r=$?
 ok3 t-mutant-no-argument-count-is-RED "the piece without the 3-argument check accepts 'down SHA extra': rc $r and $(nref) ref(s) (want rc 0 and > 0: the clean row refuses)" '! cmp -s $BR $T/mut&&[ $r = 0 ]&&[ "$(nref)" -gt 0 ]'
@@ -257,4 +259,17 @@ ok n1-bytes-le-ceiling '[ "$(wc -c<$BR)" -le $CEIL ]'
 echo "# box (the piece) bytes=$(wc -c<$BR) ceiling=$CEIL"
 ok n2-no-python '! grep -qi python $BR'
 ok n3-no-inbox-path '! grep -q "sessions/inbox" $BR'
+# r3/r4 (the census, council (A)): rep() and chg() EXIT 99 with ONE named line on a matchless edit -- the lane stops there, no ok row runs after it
+x=$(rep 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok3 rep-a-matchless-anchor-exits-99-with-one-named-line "a drifted anchor: rc $rc (want 99), $(echo "$x"|tr '\n' '|'|cut -c1-110)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: rep matched nothing: NO-SUCH-ANCHOR-XYZ" ]'
+x=$(rep(){ A=$1 B=$2 awk '{while((i=index($0,ENVIRON["A"]))>0)$0=substr($0,1,i-1) ENVIRON["B"] substr($0,i+length(ENVIRON["A"]));print}' $BR>$T/mut;}
+rep 'NO-SUCH-ANCHOR-XYZ' q;echo AFTER);rc=$?
+ok3 rep-mutant-the-guard-dropped-is-RED "the old rep (no measure): rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-110) (want rc 0, AFTER printed and no FAIL line: the clean row exits 99 with its one line)" '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: rep"&&echo "$x"|grep -qx AFTER'
+printf a >$T/c1;printf a >$T/c2;x=$(chg $T/c1 $T/c2 "a drifted literal";echo AFTER);rc=$?
+ok3 chg-a-matchless-edit-exits-99-with-one-named-line "an edit that changed nothing: rc $rc (want 99), $(echo "$x"|tr '\n' '|'|cut -c1-110)" '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted literal" ]'
+printf b >$T/c2;x=$(chg $T/c1 $T/c2 "a live literal";echo AFTER);rc=$?
+ok3 chg-an-edit-that-changed-bytes-is-silent "an edit that changed bytes: rc $rc, $(echo "$x"|tr '\n' '|')" '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+printf a >$T/c2;x=$(chg(){ cmp -s "$1" "$2"&&echo "# NO EDIT in $3";};chg $T/c1 $T/c2 "the old test";echo AFTER);rc=$?
+ok3 chg-mutant-the-guard-dropped-is-RED "the old test: rc $rc, $(echo "$x"|tr '\n' '|'|cut -c1-110) (want rc 0, AFTER printed and no FAIL line: the clean row exits 99 with its one line)" '[ $rc = 0 ]&&! echo "$x"|grep -q "^FAIL fixture: chg"&&echo "$x"|grep -qx AFTER'
+ok3 chg-the-two-piece-mutants-are-measured "chg calls on the box1 / boxs copies: $(grep -c 'ch''g [$]BR [$]T/box1\|ch''g [$]T/box1 [$]T/boxs' $0) (want 2)" '[ "$(grep -c "ch""g [$]BR [$]T/box1\|ch""g [$]T/box1 [$]T/boxs" $0)" = 2 ]'
 exit $f

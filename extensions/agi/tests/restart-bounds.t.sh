@@ -6,7 +6,7 @@
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
-unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_SEAT AGI_POST AGI_BOX AGI_RAM AGI_STORES AGI_REPO AGI_HUB AGI_CARRY AGI_RUN
+unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_TRUNK AGI_POST AGI_BOX AGI_RAM AGI_STORES AGI_REPO AGI_HUB AGI_CARRY AGI_RUN
 sect agi-post@.service >$T/up;sect agi-carry@.service >$T/uc;sect box-carry >$T/carry;sect agi-project >$T/proj.sh
 [ -s $T/up ]&&[ -s $T/uc ]&&[ -s $T/carry ]&&[ -s $T/proj.sh ]||{ echo "FAIL extract: post unit $(wc -c <$T/up) carry unit $(wc -c <$T/uc) box-carry $(wc -c <$T/carry) agi-project $(wc -c <$T/proj.sh)";exit 99;}
 mkdir -p $T/cap $T/hm $T/cwd $T/nobin $T/withrun $T/bin

@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: e79046fba6dcd101
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -64,3 +64,7 @@ goal:g1.31 NODE-lane items (answers on nodes, no engine change) · goal:g1.31 en
 
 ## Agent Notes
 Assigned to **director-general-6** (intermediate; the leaves carry the lanes: director-general-3 · director-general-5 · director-general-6).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.31.4 FAIL  children .4.2.1 .4.2.2 .4.4 .4.5 .4.6.1 .4.6.2 .4.7 active; n2: rotate.py:17838 hit. STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

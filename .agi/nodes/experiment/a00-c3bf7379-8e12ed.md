@@ -116,9 +116,9 @@ only by the node files below, which are not production.)
 
 | # | kind | probe | command / result |
 |---|---|---|---|
-| 1 | wire (positive) | the real CLI `read` verb on a tmp project, two-sender sidecar, reaches the changed bytes live | `env -u TMUX -u TMUX_PANE -u AGI_AGENT_ID -u AGI_SEAT python3 extensions/agi/bin/send.py --from director read director` twice -> `deferred dm from arch` / `BODY-ONE`, sidecar then `{"sender": "ki", "body": "BODY-TWO", ...}`; second read -> `deferred dm from ki` / `BODY-TWO`, sidecar GONE. PAST. |
+| 1 | wire (positive) | the real CLI `read` verb on a tmp project, two-sender sidecar, reaches the changed bytes live | `env -u TMUX -u TMUX_PANE -u AGI_AGENT_ID -u AGI_[retired] python3 extensions/agi/bin/send.py --from director read director` twice -> `deferred dm from arch` / `BODY-ONE`, sidecar then `{"sender": "ki", "body": "BODY-TWO", ...}`; second read -> `deferred dm from ki` / `BODY-TWO`, sidecar GONE. PAST. |
 | 2 | wire (negative / no over-reach) | a SINGLE-sender sidecar must still be retired, leaving no residue | same command on a one-record sidecar -> `ONLY-ONE` printed once, `director.nudge.deferred` absent from the inbox dir, second read -> `inbox for director: empty`. The rotation does not resurrect delivered work. |
-| 3 | auth / no real-resource touch | tests use the `project` tmp fixture + `_plain_seats` + `_fake_tmux_pane` (monkeypatches `send_mod.subprocess.run` wholesale); wire probes ran in `/tmp/eg22wire2` and `/tmp/eg22wire3` with `env -u TMUX -u TMUX_PANE -u AGI_AGENT_ID -u AGI_SEAT` | no live pane, seat, inbox, dm file or crontab; 0 USD, pi-free tier 0 |
+| 3 | auth / no real-resource touch | tests use the `project` tmp fixture + `_plain_seats` + `_fake_tmux_pane` (monkeypatches `send_mod.subprocess.run` wholesale); wire probes ran in `/tmp/eg22wire2` and `/tmp/eg22wire3` with `env -u TMUX -u TMUX_PANE -u AGI_AGENT_ID -u AGI_[retired]` | no live pane, seat, inbox, dm file or crontab; 0 USD, pi-free tier 0 |
 | 4 | gate | full suite above on the fixed bytes | 427 passed / 6 skipped, no new skip |
 
 ## Honest limits

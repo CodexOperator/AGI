@@ -34,7 +34,7 @@ encryption-town host == town:core (ops home)
  ┌──────────────────────────────────────────────────────────┐
  │  THIS FILE  = assignment SoT (who owns which top)        │
  │  town:core  = ops bundle / spine diagrams / location     │
- │  goal:*     = live status · Agent Notes · write.py active│
+ │  goal:*     = live status · Agent Notes · plain-edit live│
  │  sessions   = who's mid-batch right now                  │
  └──────────────────────────────────────────────────────────┘
 
@@ -88,7 +88,7 @@ g7.34  geometry + trajectory (parked)    unassigned    horizon
 ## LIVE ACTIVITY → GRAPH (not here)
 
 ```
-who's running what  ──▶  goal status / Agent Notes / write.py active / sessions
+who's running what  ──▶  goal status / Agent Notes / plain-edit live / sessions
 assignment SoT      ──▶  THIS FILE
 ```
 

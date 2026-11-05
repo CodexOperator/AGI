@@ -17,21 +17,24 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-brief         1358 B  walk card+seeds+claims; record; STARTUP
+agi-brief         1382 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter          616 B  past rotate_pct of the window: out-line
-agi-at             996 B  signed CAS commit of ~/t paths to posts/<P>
-grow.py           3228 B  the growth-order check both writers call
-agi-turn           4486 B  a signed commit per changed node tree
-agi-wt            1506 B  a node's tiny RAM tree: pull; drop = turn + purge
-agi-track           89 B  strace sink: each path once
+agi-meter         2765 B  past rotate_pct: out-line; tap chat; read: atomize
+agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
+agi-atomize       10309 B  box mail -> verbatim card atoms (wake path, model)
+agi-mem           23615 B  chat tap -> own 0700 store; tap, at, view, compact
+agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
+grow.py           5140 B  the growth-order check both writers call
+agi-turn           4838 B  a signed commit per changed node tree
+agi-wt            2172 B  a node's tiny RAM tree: pull; drop = turn + purge
+agi-track          236 B  strace sink: each path once
 agi-flush           942 B  drop trees, turn (its agi-sync merges)
 agi-sync           2579 B  merge the trunk each turn; a conflict said by name
-agi-out           3357 B  the out-line: next keys, ring commit, re-wrap, swap
+agi-out           3285 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
-agi-notice          1141 B  engine->post notices: add / claim + print
-reference-transaction 1338 B  refuses a post moving a peer's ref (a mistake guard)
+agi-notice          1169 B  engine->post notices: add / claim + print
+reference-transaction 4394 B  peer-ref mistake guard + R-land (mode cell)
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
 project.sh         161 B  what the body SHOULD be
@@ -39,17 +42,17 @@ observe.sh         255 B  what the body IS
 tick.sh            254 B  diff them; start own unit; commit
 agi-frontier       460 B  each active goal runs its falsifier
 agi-first-start  1394 B  pieces BASE..TIP changes: a post's next-start diff
-box               2904 B  mail: signed ref per send; belam's town blast
+box               2935 B  mail: signed ref per send; belam's town blast
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-brief (1358 B)
+### agi-brief (1382 B)
 ~~~sh
 #!/bin/sh
 ls ~/.notice* >/dev/null 2>&1&&agi-notice;p=$AGI_POST;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac
 sect brief.py|python3 - .agi/nodes doc:card-$p,$AGI_SEEDS$(find $(git rev-parse --git-common-dir)/refs/claims -user $USER -printf ,%f 2>/dev/null) ${K:-20}>~/.brief;cat ~/.brief;cut -d' ' -f4 ~/.brief|xargs tail -n+1|head -c ${B:-0}
-w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};x=$(git rev-parse -q --verify refs/heads/posts/${AGI_POST:-$p});for r in $(git for-each-ref --format='%(refname)' refs/archive/${AGI_POST:-$p});do git log --format=%s $r ${x:+--not $x}|grep -q '^[^ ]*: kept '&&echo "[kept] $r: a stop left this tree whole; recover it, then git update-ref -d it";done;ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /'
+w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};x=$(git rev-parse -q --verify refs/heads/posts/${AGI_POST:-$p});for r in $(git for-each-ref --format='%(refname)' refs/archive/${AGI_POST:-$p});do git log --format=%s $r ${x:+--not $x}|grep -q '^[^ ]*: kept '&&echo "[kept] $r: a stop left this tree whole; recover it, then git update-ref -d it";done;ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /';agi-mem at;agi-mem view
 [ "$s" = compact ]&&exit;jq -n "{seat:\"$p\",rotation:\"engine-v4\",result:\"success\",source:\"$s\",pid:0,window:\"\",recorded_at:\"$(date -u +%FT%TZ)\"}">$O/.agi/sessions/rotations/$p.$(date -u +%Y%m%dT%H%M%SZ).json
 [ "$s" = resume ]||{ echo "## STARTUP OUTPUT";sed -n "/^  $AGI_ROLE:/,/^  [a-z_]*:\$/{/first_turn:/,/after_join:/s/^        - //p}" .agi/nodes/.geometry/rotations.md|jq -r '"\(.label)\t\(.byte_cap//3000)\t\(.cmd)"'|sed "s|{seat}|$p|g;s|{repo}|$O|g;s|{worktree}|$PWD|g;s|{prime_ref}|belam|g"|while IFS='	' read -r l b c;do echo "### $l";timeout 30 sh -c "$c" 2>&1|head -c $b;done|head -c 8000;}
 ~~~
@@ -73,30 +76,230 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (616 B)
+### agi-meter (2765 B)
 ~~~sh
 #!/bin/sh
-ls ~/.notice* >/dev/null 2>&1&&agi-notice;j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
-[ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID";:
+# FIRST the rotation line (Claude Code kills a UserPromptSubmit hook at 30 s, and the line is the only thing that rotates a post: belam 14:2xZ 10-26); then the notice and the tap (bounded: `timeout -k 2 15`, so the hook's total wall time is bounded by construction, and a killed tap prints ONE `[mem] tap unread` line, never a silent drop); `agi-atomize wake` (26 s, stdout NEVER used) runs in the BACKGROUND under a flock held by the child, its output and failure line in ~/.atomize.log, so the hook returns in seconds (the last wake's ~/.atomize.status is printed + removed inside W, under the lock, so a wake still running cannot write between the cat and the rm: alive 16:31:36Z 10-31)
+j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
+[ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID"
+ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;r=$?;case $r in 124|137)echo "[mem] tap unread (killed at 15 s)";;125|126|127)echo "[mem] tap not run (rc $r)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)al=$(git -C "$(readlink -f "${AGI_T:-$HOME/t}")" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^atomize_live: *//p'|head -1);if [ "$al" != true ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: atomize_live is ${al:-unreadable}, no request">>~/.atomize.log;[ "$al" ]||agi-notice add "[atomize] atomize_live unreadable on ${AGI_TRUNK:-trunk}: the wake stays off $(date +%Y%m%d)" 2>/dev/null;else o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ [ -s ~/.atomize.status ]&&{ echo "[atomize] last wake: $(cat ~/.atomize.status)";rm -f ~/.atomize.status;};(agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;fi;;esac;:
 ~~~
 
-### agi-at (996 B)
+### agi-at (1129 B)
 ~~~sh
 #!/bin/sh
-# agi-at PATH...: ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; a miss = [raced], exit 4, the edit stays; a kid, no AGI_POST or no posts/P = rc 5 before any write; a NEW .agi/nodes node must pass grow.py first, else rc 6 (the edit stays); once the CAS landed the final reset is best-effort (a failed one = [reset], rc 0); ~/t = a detached view of the tip
-cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x;t=$(git rev-parse $b)&&git read-tree $t&&git add -A -- "$@"&&n=$(git write-tree)||exit 1
-grow.py $t>&2||exit 6
-[ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$(echo "$P: $*"|git commit-tree -S -p $t $n)&&git update-ref $b $c $t||{ echo "[raced] $*">&2;exit 4;}
+# agi-at PATH...: ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; a miss = [raced], exit 4, the edit stays; a kid, no AGI_POST or no posts/P = rc 5 before any write; a NEW .agi/nodes node must pass grow.py first, else rc 6 (the edit stays); grow.py's report-mode `Scope:` lines ride the commit message as trailers; once the CAS landed the final reset is best-effort (a failed one = [reset], rc 0); ~/t = a detached view of the tip
+cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};x=$(mktemp -u);trap 'rm -f $x $x.s' 0;export GIT_INDEX_FILE=$x;t=$(git rev-parse $b)&&git read-tree $t&&git add -A -- "$@"&&n=$(git write-tree)||exit 1
+GROW_TRAILERS=$x.s grow.py $t>&2||exit 6
+[ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$({ echo "$P: $*";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree -S -p $t $n)&&git update-ref $b $c $t||{ echo "[raced] $*">&2;exit 4;}
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
 ~~~
 
-### grow.py (3228 B)
+### agi-atom (9255 B)
+~~~sh
+#!/bin/sh
+# agi-atom add SLICE SRC [target:X] | close ID STATE | move ID.. FLOW [ARGS] | grandfather (only rows under a `**throw ..**` heading; any other legacy row is refused by name): card §7 rows `| a<n> | "<slice>" | src:<box sha>|src:<node id>#OWNER | <state> | lap<n> |` (goal:g7.16.1.11.46.2-.4); SRC is read here, the slice must be a byte substring of it; STATE closes a target: row once into leaf:<goal id>|idea:<id>|decision:<doc>#<line>|out:<reason> (the id must exist); move writes the slices into the flow's ARGS json and closes the rows moved:<flow>, then ONE agi-at of both files
+set -f;T=$(readlink -f "${AGI_T:-$HOME/t}");C=$(readlink -f "${AGI_ATOM_CARD:-$T/.agi/sessions/quorum/${AGI_POST:?}.md}")||exit 1;N=$T/.agi/nodes;[ -f "$C" ]||{ echo "agi-atom: no card $C">&2;exit 2;}
+d(){ echo "agi-atom: $*">&2;exit 2;};V=$1;[ $# -gt 0 ]&&shift;LAP=lap${AGI_LAP:-$(($(date +%s)/14400))};tab='	'
+n(){ f=$N/${1%%:*}/${1#*:}.md;[ -f "$f" ]&&grep -qFx "id: $1" "$f";}
+row(){ awk -F'|' -v i="$1" '{y=$2;gsub(/ /,"",y)}y==i&&NF>=7{print;exit}' "$C";}
+sf(){ printf "%s\n" "$1"|awk -F'|' -v k=$(($2-0)) '{v=$(k);sub(/^ +/,"",v);sub(/ +$/,"",v);if(k==3){sub(/^"/,"",v);sub(/"$/,"",v)};printf "%s",v}';}
+put(){ w=$(mktemp "$C.XXXXXX")&&cat >"$w"&&cat "$w">"$C";rm -f "$w";}
+ins(){ export R;awk 'BEGIN{r=ENVIRON["R"]}{L[NR]=$0}END{for(i=1;i<=NR;i++)if(L[i]~/^## §7/){s=i;break}
+  if(!s){for(i=1;i<=NR;i++)print L[i];print "";print "## §7 ATOMS (agi-atom add|close; open = target:, older than one lap = red)";print ""}else{e=NR;for(i=s+1;i<=NR;i++)if(L[i]~/^## /){e=i-1;break};while(e>s&&L[e]~/^[ \t]*$/)e--;for(i=1;i<=e;i++){print L[i];if(L[i]~/^\| # \| atom .*source/)h=1}}
+  if(!h){if(s)print "";print "| # | atom (verbatim slice) | source | state | lap |";print "|---|---|---|---|---|"};print r;if(s)for(i=e+1;i<=NR;i++)print L[i]}' "$C"|put;}
+case $V in
+add)[ $# -ge 2 ]||d "add SLICE SRC [target:X]";s=$1;r=$2;g=${3:-target:?};case $s in ""|*"|"*|*'
+'*)d "[slice] empty, or carries | or a newline: cut it there";;esac;case $g in target:?*);;*)d "[state] add opens target:<x>";;esac
+ case $r in src:*#OWNER)i=${r#src:};i=${i%#OWNER};f=$N/${i%%:*}/${i#*:}.md;[ -f "$f" ]||d "[src] no node $i";S=$(awk '/^## /{p=/^## OWNER.*verbatim/}p' "$f");[ "$S" ]||d "[src] $i has no '## OWNER ... verbatim' section";;
+ src:*)h=${r#src:};case $h in *[!0-9a-f]*|"")d "[src] $r";;esac;[ "$(git -C "$T" cat-file -t "$h" 2>/dev/null)" = commit ]||d "[src] no commit $h";S=$(git -C "$T" log -1 --format=%B "$h");;*)d "[src] src:<box commit sha> or src:<node id>#OWNER";;esac
+ case $S in *"$s"*);;*)d "[verbatim] the slice is not a byte substring of $r";;esac
+ grep -qF "| \"$s\" | $r |" "$C"&&d "[dup] already on the card"
+ k=$(awk -F'|' '{gsub(/ /,"",$2)}$2~/^a[0-9]+$/&&substr($2,2)+0>m{m=substr($2,2)+0}END{print m+1}' "$C");R=$(printf '| a%s | "%s" | %s | %s | %s |' "$k" "$s" "$r" "$g" "$LAP")
+ ins;echo "a$k";;
+close)[ $# = 2 ]||d "close ID STATE";i=$1;g=$2;x=$(row "$i");[ "$x" ]||d "[row] no row $i in agi-atom form (grandfather the old rows first)";case $x in *"| target:"*|*"| red:"*);;*)d "[closed] $i is terminal";;esac
+ case $g in leaf:*)v=${g#leaf:};v=goal:${v#goal:};n "$v"||d "[state] no goal node $v";;idea:?*)v=${g#idea:};n idea:${v#idea:}||d "[state] no idea node $g";;out:?*);;
+ decision:?*)v=${g#decision:};p=${v%%#*};case $p in doc:*);;*)p=doc:$p;;esac;n "$p"||d "[state] no doc node $p";case $v in *#*)l=${v#*#};case $l in ""|*[!0-9]*)d "[state] #<line> is a number";;esac;[ "$l" -le "$(wc -l <"$N/doc/${p#doc:}.md")" ]||d "[state] $p has fewer than $l lines";;esac;;
+ *)d "[state] leaf:<goal id> | idea:<id> | decision:<doc>#<line> | out:<reason> (moved: is move's alone)";;esac
+ case $g in *"|"*)d "[state] no |";;esac;G=$g I=$i awk -F'|' -v OFS='|' '{y=$2;gsub(/ /,"",y)}y==ENVIRON["I"]&&NF>=7&&$5~/^ (target|red):/{$5=" "ENVIRON["G"]" "}{print}' "$C"|put;;
+move)a=;while [ $# -gt 0 ]&&case $1 in a[0-9]*);;*)false;;esac;do a="$a $1";shift;done;[ "$a" ]&&[ $# -ge 1 ]&&[ $# -le 2 ]||d "move ID.. FLOW [ARGS]";fl=$1;case $fl in ""|*[!a-z0-9-]*)d "[flow] $fl";;esac
+ A=$T/${2:-.agi/sessions/quorum/$fl.args.json};case $A in "$T"/*);;*)d "[args] under ~/t";;esac;case $A in *..*)d "[args] no ..";;esac;mkdir -p "${A%/*}";[ -f "$A" ]||echo '{}'>"$A";J=$(cat "$A")
+ for i in $a;do x=$(row $i);[ "$x" ]||d "[row] no row $i";case $x in *"| target:"*);;*)d "[closed] $i is terminal";;esac;case $x in *"| src:doc |"*)d "[src] $i is grandfathered, not verbatim";;esac
+  J=$(printf %s "$J"|jq -c --arg i $i --arg r "$(sf "$x" 4)" --arg s "$(sf "$x" 3)" --arg h "$(sf "$x" 3|sha256sum|cut -c1-12)" 'if (.atoms//[])|any(.src==$r and .slice==$s) then error("already in ARGS") else .atoms+=[{id:$i,src:$r,slice:$s,sha:$h}] end')||d "[args] $i would sit in two places";done
+ printf '%s\n' "$J">"$A.n"&&mv "$A.n" "$A";for i in $a;do h=$(sf "$(row $i)" 3|sha256sum|cut -c1-12);I=$i G=moved:$fl H=$h awk -F'|' -v OFS='|' '{y=$2;gsub(/ /,"",y)}y==ENVIRON["I"]&&NF>=7{$3=" \"sha:"ENVIRON["H"]"\" ";$5=" "ENVIRON["G"]" "}{print}' "$C"|put;done
+ exec ${AGI_ATOM_COMMIT:-agi-at} "${C#$T/}" "${A#$T/}";;
+grandfather)r=$(awk -F'|' '/^## /{s=/^## §7/;t=0}s&&/^\*\*/{t=/^\*\*throw/}s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/&&!t{gsub(/ /,"",$2);print "[src] "$2" is not under a throw: give it its real src"}' "$C");[ -z "$r" ]||d "$r"
+ awk -F'|' -v OFS='|' -v L="$LAP" '/^## /{s=/^## §7/}s&&/^\|[-| ]+\|$/&&NF==5{print "|---|---|---|---|---|";next}s&&$2~/^ # $/&&NF==5{print "| # | atom (owner ask, short) | source | state | lap |";next}
+ s&&NF==5&&$2~/^ [0-9]+\.[0-9]+ $/{t=$3;sub(/^ +/,"",t);sub(/ +$/,"",t);print "|"$2"| \""t"\" | src:doc |"$4"| "L" |";next}{print}' "$C"|put;;
+red)[ $# = 3 ]||d "red c:CHUNK TOKEN SLICE";grep -q "^| r$2 |" "$C"&&exit 0;case $3 in ""|*"|"*)d "[slice] empty, or carries |";;esac;agi-mem show $1|sed '1,/^---$/d'|grep -qF -- "$3"||d "[verbatim] the slice is not in chunk $1";R=$(printf '| r%s | "%s" | src:chunk:%s | red:unnamed-reply | %s |' "$2" "$3" "$1" "$LAP");ins;;
+derive)M=$(mktemp);trap 'rm -f $M $M.n' 0;agi-mem map>$M;live=$(lv=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null)&&printf %s "$lv"|sed -n 's/^credits_live: *\(.*[^[:space:]]\)[[:space:]]*$/\1/p'|head -1||echo UNREAD)
+ if [ "$1" = check ];then st=$(cat ${AGI_ATOMIZE_LAST:-$HOME/.atomize.last} 2>/dev/null);cut=;[ "$st" ]&&cut=$(date -u -d "$st" +%FT%TZ 2>/dev/null);now=$(date -u -d "${AGI_NOW:-now}" +%FT%TZ 2>/dev/null);awk -F'|' -v live="$live" -v last="$st" -v cut="$cut" -v now="$now" -v gr=${AGI_ATOMIZE_SILENT:-1800} -v M=$M 'function ep(s,  ey,em,ed,ea){ey=substr(s,1,4);em=substr(s,6,2)+0;ed=substr(s,9,2);if(em<=2){ey--;em+=12};ea=int(365.25*ey)+int(30.6001*(em+1))+ed;return ea*86400+substr(s,12,2)*3600+substr(s,15,2)*60+substr(s,18,2)}BEGIN{while((getline l<M)>0){split(l,f,"\t");a[f[1]]=" "f[5]" ";n=split(f[5],z," ");for(i=1;i<=n;i++){if(f[4]=="ask")as[z[i]]=1;if(f[4]=="ack")ak[z[i]]=1};if(f[2]=="owner"&&f[5]=="?"){q++;if(last!=""&&f[3]<last)qo++;else if(cut!=""&&now!=""&&ep(now)-ep(f[3])>gr){qs++;if(ow==""||f[3]<ow)ow=f[3]}}};for(i in as)if(i in ak)k++}
+  /^## /{s=/^## §7/}s&&NF>=8&&$7~/^ chunks:/{y=$2;gsub(/ /,"",y);m=split($7,z," ");for(j=2;j<=m;j++){t++;if(index(a[z[j]]," "y" ")==0){print "[chunks] " y ": " z[j] " names " y " in no chunk";bad=1}}}
+  END{print "chunks: " t+0 " listed";if(live=="UNREAD"){print "done-when(4): unread (credits_live unreadable)";exit 1};if(live!="true"&&live!="false"){print "done-when(4): unread (credits_live: " (live==""?"no key":live) ")";exit 1};if(live=="true"&&last==""){print "done-when(4): unread (no atomize stamp)";exit 1};if(live=="true"&&cut==""){print "done-when(4): unread (atomize stamp unreadable)";exit 1};r=(live=="true"&&(k+0==0||qo+0>0||qs+0>0));print "done-when(4): " k+0 " rows ask+ack, " q+0 " owner chunks ?" (r?" RED: the atomizer is live and " (k+0==0?"no row holds an ask and its ack":(qo+0>0?"owner chunks are still ? after the pass at " last:"not run since " last "; oldest ? waited " int((ep(now)-ep(ow))/60) " min")):" (open: the stub stands in until C1-C3)");exit bad||r}' "$C";exit;fi
+ awk -F'|' -v M=$M -v out=$M.n 'BEGIN{while((getline l<M)>0){split(l,f,"\t");n=split(f[5],z," ");for(i=1;i<=n;i++)c[z[i]]=c[z[i]]" "f[1]}}
+  /^## /{s=/^## §7/}s&&NF>=7&&$2~/^ (a[0-9]+|[0-9]+\.[0-9]+|r[0-9a-f]+) $/{y=$2;gsub(/ /,"",y);w=c[y];h=NF>=8?$7:"";gsub(/^ +| +$/,"",h);if(w==""&&h==""){print>out;next}o="";for(i=1;i<=6;i++)o=o $i "|";if(w!="")o=o " chunks:" w " |";if(h!=""&&h!="chunks:" w)print "[derive] " y ": the chunks list was [" h "], rewritten" >"/dev/stderr";t+=split(w,z," ");print o>out;next}{print>out}END{print "chunks: " t+0 " listed"}' "$C";cmp -s $M.n "$C"||put <$M.n;;
+where)[ $# -ge 1 ]||d "where WORDS";h=$(agi-mem find "$*");[ "$h" ]||{ echo "no chunk";exit 1;};echo "$h"|while IFS='	' read -r c p t k a;do for i in ${a:-?};do case $i in \?|none)e="no exit yet";st=-;;*)x=$(row $i);e=$([ "$x" ]&&sf "$x" 5||echo "no row $i");case $e in leaf:*)g=${e#leaf:};g=${g#goal:};st=$(sed -n 's/^status: //p' $N/goal/$g.md 2>/dev/null|head -1);;*)st=-;;esac;;esac;echo "asked ${t%%T*} $(echo ${t#*T}|cut -c1-5)Z ($c) · $i · $e · ${st:--}";done;done;;
+*)d "add | close | move | grandfather | red | derive [check] | where WORDS";;esac
+~~~
+
+### agi-atomize (10309 B)
+~~~sh
+#!/bin/sh
+# agi-atomize [wake]: `wake` = the call agi-meter (the UserPromptSubmit hook) makes on the prompt "mail: box read" once the gate cell atomize_live is true: credits_live not true on the trunk -> ONE named skip line appended to ~/.atomize.log and NOTHING on stdout (a hook'"'"'s stdout enters the post'"'"'s context), no model call, exit 0; true -> the run below under timeout AGI_ATOMIZE_TIMEOUT (45), stderr to ~/.atomize.log. The WAKE-PATH step after `box read` (goal:g7.16.1.11.46.3): cut each box message to this post that is not yet marked refs/atomized/P/<sha> into verbatim, non-overlapping atoms with targets (agi-infer: Haiku AGI_ATOMIZE_MODEL, Sonnet AGI_ATOMIZE_MODEL2 once if a target is ?), then `agi-atom add` each as a card §7 row and mark the commit; `>` lines never reach the model; kind fyi|report = 0 atoms, ask >= 1; a reply that paraphrases, overlaps or has no atoms for an ask marks nothing and leaves the card as it was (the next wake retries); a live run ends by stamping ~/.atomize.last (the time agi-atom derive check measures `owner chunks still ?` against)
+# P-a..P-e (council 3/3 05:26Z 10-24; the transport term, alive [decision] 14:17:17Z 10-31 D2): P-b the atoms go onto the COMMITTED card of posts/P (a temp index from its tip, commit-tree -S, then the branch CAS and every marker of that commit in ONE `update-ref --stdin` transaction: T1, alive [decision] 16:31:36Z 10-31), never the working file, ONE commit per message as it is cut (T4: a run killed at its bound keeps what it committed; a soft deadline AGI_ATOMIZE_SOFT (30) below the bound leaves the rest unread, counted deferred=<n>); a lost CAS marks nothing and reads [raced] only when the branch DID move, any other failed step names itself (T7); ~/t's detached view follows EACH commit as it lands (inside fl), and every run catches a ~/t that is behind posts/P on its chain up BEFORE its first commit and again at its end (cu; R1 + R2, goal:g7.16.1.11.46.3.1, alive [decision] 17:33:14Z + 18:29:23Z 10-31): all through fw, which moves HEAD only when ~/t sits at FROM, its card untouched, and FROM..TO changes the card alone (each refusal named for its test), writes the card through a sibling temp + mv (a failed write leaves it untouched), and names each failed step (card write, update-index, HEAD CAS); anything else is card=kept, named. P-c every sender passes `box ok FROM` (box's own matrix) and its signature, else ONE named line and the commit is NOT marked (T2: box read holds neither, and box ok cannot tell an unread posts.md from a no): counted each run, the age bound ends the retry, never a model request. P-e the run line counts what it skipped (the age window is ONE `rev-list --since-as-filter` per box ref (--max-age stops its walk at the first older commit: aio 17:18:32Z); skipped-age = the aged commits (`--min-age`) with NO marker, filtered by the run's ONE marker list: never a per-commit walk, never an atomized message counted: sp 16:43:33Z, alive 17:16:15Z 10-31); skipped-age is NOT a status trigger (T5: P-d reds an unmarked message older than a lap before it ages out). A transport failure (agi-infer rc != 0 with no reply) ends the RUN at once. Anything a post should hear (rc, refused, skipped, off-matrix, unsigned, transport, a kept card edit) goes to ~/.atomize.status, which the NEXT wake prints once; a clean run leaves no status
+set -f;P=${AGI_POST:?};T=$(readlink -f "${AGI_T:-$HOME/t}");M=refs/atomized/$P;S=$HOME/.atomize.status
+[ "$1" = wake ]&&{ c=$(git -C "$T" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^credits_live: *//p'|head -1);[ "$c" = true ]||{ echo "$(date -u +%FT%TZ) [atomize] skipped: credits_live is ${c:-unreadable}, no model call">>$HOME/.atomize.log;exit 0;};timeout ${AGI_ATOMIZE_TIMEOUT:-45} "$(readlink -f "$0")" 2>>$HOME/.atomize.log;r=$?;[ $r = 0 ]||[ -s $S ]||echo "$(date -u +%FT%TZ) rc=$r: the run did not finish (124 = its timeout); the messages it committed stay on posts/$P, marked and followed; the rest is read at the next wake">$S;exit $r;}
+W=$(mktemp -d);trap 'rm -rf $W' 0;cd "$T"||exit 1;add=0;pk=0;n=0;rf=0;sa=0;df=0;om=0;us=0;tp=;fe=;cs=;s0=$(date +%s);: >$W/mk;git for-each-ref --format='%(refname:lstrip=3)' $M>$W/am
+B=refs/heads/posts/$P;t=$(git rev-parse -q --verify $B)||{ echo "[atomize] no $B: nothing read">&2;exit 5;}
+cp=$(readlink -f "$T/.agi/sessions/quorum/$P.md"|sed "s|^$T/||");git show $t:$cp>$W/card 2>/dev/null||{ echo "[atomize] $cp is not on $B: nothing read">&2;exit 5;}
+ids=$(grep -rlE "Assigned to \*\*$P\*\*" .agi/nodes/goal 2>/dev/null|xargs -r grep -l '^status: active$'|sed 's|.*/||;s|\.md$||'|tr '\n' ' ')
+printf '%s' '{"type":"object","properties":{"kind":{"enum":["ask","fyi","report"]},"atoms":{"type":"array","items":{"type":"object","properties":{"slice":{"type":"string"},"target":{"type":"string"}},"required":["slice","target"]}}},"required":["kind","atoms"]}'>$W/s
+go(){ : >$W/r;{ printf 'Cut this message into atoms. kind: ask (it asks the recipient to do something), fyi (nothing to do), report (numbers). Only an ask has atoms: each atom is {slice, target}, a VERBATIM, non-overlapping slice of the message (never reworded, no | and no newline in a slice), target = one of the leaf ids below, idea, decision, or ?. Reply as JSON only.\nleaf ids: %s\n--- message\n' "$ids";cat $W/b;}|AGI_INFER_SCHEMA=$W/s ${AGI_ATOMIZE_INFER:-agi-infer} $1>$W/r;x=$?;[ $x = 0 ]||[ -s $W/r ]||{ tp="$c (rc $x)";return 1;};return $x;}
+ck(){ k=$(jq -er '.kind' $W/r 2>/dev/null)||return 1;case $k in fyi|report):>$W/a;return 0;;ask);;*)return 1;;esac
+ jq -r '.atoms[]|.slice+"\t"+.target' $W/r>$W/a 2>/dev/null&&[ -s $W/a ]||return 1;cut -f1 $W/a>$W/l;case $(cat $W/l) in *"	"*)return 1;;esac
+ awk 'NR==FNR{b=b $0 "\n";next}{p=index(b,$0);if(p==0||$0=="")x=1;print p+0,p+length($0)-1}END{exit x}' $W/b $W/l>$W/p&&sort -n $W/p|awk 'NR>1&&$1<=e{x=1}{e=$2}END{exit x}';}
+fl(){ [ -s $W/mk ]||return 0;m=$(git ls-tree $t -- "$cp"|cut -d' ' -f1);if ! bl=$(git hash-object -w $W/card)||! nt=$(export GIT_INDEX_FILE=$W/i;git read-tree $t&&git update-index --cacheinfo ${m:-100644},$bl,"$cp"&&git write-tree);then e="the card tree failed"
+ elif nc=$(echo "$P: atomize $pk atom(s) into $cp"|git commit-tree -S -p $t $nt);x=$?;[ $x != 0 ];then e="commit-tree -S failed rc $x"
+ elif ! { echo start;echo "update $B $nc $t";while read -r h;do echo "create $M/$h $h";done<$W/mk;echo commit;}|git update-ref --stdin >/dev/null 2>$W/ue;then [ "$(git rev-parse -q --verify $B)" = $t ]&&e="the ref transaction failed ($(head -1 $W/ue))"||e="[raced] $B moved under the run"
+ else [ "$cs" ]||fw $t $nc;t=$nc;add=$((add+pk));pk=0;: >$W/mk;return 0;fi
+ echo "[atomize] $e: nothing of $(wc -l <$W/mk) message(s) marked, the next wake retries">&2;rf=$((rf+$(wc -l <$W/mk)));pk=0;: >$W/mk;git show $t:"$cp">$W/card;fe=1;return 1;}
+fw(){ k="; the atoms are on $B only, your next agi-at of the card must keep them";[ "$(git rev-parse -q --verify HEAD)" = $1 ]||{ cs="kept: ~/t's HEAD is not at $1$k";return 1;};ob=$(git rev-parse -q --verify $1:"$cp")&&[ "$(git hash-object "$cp" 2>/dev/null)" = $ob ]&&[ "$(git ls-files -s -- "$cp"|cut -d' ' -f2)" = $ob ]||{ cs="kept: ~/t's $cp is edited (its file or index entry is not $1's)$k";return 1;}
+ [ "$(git diff --name-only $1 $2)" = "$cp" ]||{ cs="kept: $1..$2 changes a path other than the card$k";return 1;};m=$(git ls-tree $2 -- "$cp"|cut -d' ' -f1);bl=$(git rev-parse $2:"$cp");tf="${cp%/*}/.${cp##*/}.atomize"
+ git show $2:"$cp">"$tf"&&mv -f "$tf" "$cp"||{ x=$?;rm -f "$tf";cs="kept: the follow's card write failed (rc $x), the card is untouched$k";return 1;}
+ git update-index --cacheinfo ${m:-100644},$bl,"$cp"||{ cs="kept: the follow's update-index failed (rc $?)";return 1;};git update-ref --no-deref HEAD $2 $1||{ cs="kept: the follow's HEAD CAS $1 -> $2 failed (rc $?)";return 1;};}
+cu(){ h=$(git rev-parse -q --verify HEAD);tb=$(git rev-parse -q --verify $B);[ "$h" = "$tb" ]&&return 0;git merge-base --is-ancestor "$h" "$tb" 2>/dev/null||{ cs="kept: ~/t ($h) is not behind $B on its chain; the atoms are on $B only, your next agi-at of the card must keep them";return 1;};fw $h $tb;}
+cu
+for r in $(git for-each-ref --format='%(refname)' refs/box|grep "/$P$");do [ "$tp$fe" ]&&break;f=${r#refs/box/};f=${f%/*}
+ ag=$(($(date +%s)-${AGI_ATOMIZE_AGE:-86400}));ma=--since-as-filter=@$ag;sa=$((sa+$(git rev-list --min-age=$((ag-1)) $r|grep -cvxF -f $W/am)))
+ for c in $(git rev-list --reverse $ma $r);do git rev-parse -q --verify $M/$c>/dev/null&&continue;[ $(($(date +%s)-s0)) -lt ${AGI_ATOMIZE_SOFT:-30} ]||{ df=$((df+1));continue;}
+  git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[atomize] $c: not signed by $f, no atom (not marked)">&2;us=$((us+1));continue;}
+  box ok $f||{ echo "[atomize] $c: $f -> $P is off the matrix (box ok), no atom (not marked)">&2;om=$((om+1));continue;}
+  n=$((n+1));git log -1 --format=%B $c|grep -v '^>'>$W/b;grep -q '[^[:space:]]' $W/b&&! grep -q '^\[town\]' $W/b||{ git update-ref $M/$c $c "";continue;}
+  rm -f $W/a1;go ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}&&ck||{ [ "$tp" ]&&break;echo "[atomize] $c: no usable reply from ${AGI_ATOMIZE_MODEL:-claude-haiku-5-5}, nothing marked">&2;rf=$((rf+1));continue;}
+  grep -q "	[?]$" $W/a&&cp $W/a $W/a1&&go ${AGI_ATOMIZE_MODEL2:-claude-sonnet-5-5}&&ck||{ [ ! -s $W/a1 ]||cp $W/a1 $W/a;}
+  [ "$tp" ]&&break;cp $W/card $W/c0;ok=1;k=0;while IFS='	' read -r s g;do g=${g#goal:};if [ -f .agi/nodes/goal/$g.md ];then g=target:goal:$g;else case $g in idea|decision)g=target:$g;;*)g=target:?;;esac;fi
+   AGI_ATOM_CARD=$W/card agi-atom add "$s" src:$c "$g">/dev/null||{ ok=;break;};k=$((k+1));done<$W/a
+  if [ -z "$ok" ];then cp $W/c0 $W/card;rf=$((rf+1));echo "[atomize] $c: an atom was refused, the commit is not marked">&2;elif [ $k = 0 ];then git update-ref $M/$c $c "";else echo $c>>$W/mk;pk=$((pk+k));fl||break 2;fi;done;done
+fl;[ "$cs" ]||cu;[ "$cs" ]||cs=ok
+l="read=$n atoms=$add refused=$rf skipped-age=$sa deferred=$df off-matrix=$om unsigned=$us transport=${tp:-none}";echo "$(date -u +%FT%TZ) [atomize] $l card=$cs">&2
+if [ "$tp" ]||[ $rf != 0 ]||[ $df != 0 ]||[ $om != 0 ]||[ $us != 0 ]||[ "$cs" != ok ];then echo "$(date -u +%FT%TZ) $l card=$cs">$S;else rm -f $S;fi
+[ "$tp" ]&&exit 3
+date -u +%FT%TZ>${AGI_ATOMIZE_LAST:-$HOME/.atomize.last}
+~~~
+
+### agi-mem (23615 B)
+~~~sh
+#!/bin/sh
+# agi-mem tap|at|view|compact (goal:g7.16.1.11.46.13; view + compact: goal:g7.16.1.11.46.25 M9, the summary tree: `view` = the bounded view agi-brief prints, the newest summaries (refs/heads/summary, sum/<n>.md) then the newest raw chunks, cut at AGI_MEM_VIEW (4000) bytes, one log + one cat-file stream, a store unread = `mem view: unread` rc 1; `compact` = ONE request, no tools (the pull: none step class), backgrounded off tap under its OWN lock, $S/compact.lock (it guards compacts only, never a tap; with no flock binary there is no lock): the chunks of WHOLE tap commits after the last summary's `upto:`, oldest first, stopping after the first commit that reaches AGI_MEM_COMPACT_MAX (60000) B, so a slice can pass the cap by up to one tap commit (one 400-chunk commit = one 93 KB request) and `upto:` is always a whole commit; only once the slice reaches AGI_MEM_COMPACT (20000) B; NO time bound (agi-infer's curl has no -m, compact wraps no timeout: a hung request holds compact.lock and every later compact exits 0 at flock -n, silent; owed before summary_live is set true); through agi-infer with the URL forced to AGI_MEM_STUB (default a dead local port) unless the trunk's summary_live cell reads true; a failure is ONE line in the store's compact.log, nothing written): `mem: full` rows only. tap = the hook (agi-meter at UserPromptSubmit, the Stop hook): stdin = the hook JSON; sweep the session transcript from its cursor, owner lines (a user string or queued_command whose origin.kind is human, whose first non-blank text is no tag opener or [SYSTEM NOTIFICATION, never a nudge, compact summary, meta or tool_result) and the post's text blocks, REDACTED (anonymize.py redact), into ~/.mem/<mint>.git: its own bare dir, 0700, no ACL, no remote, a commit of mem/<date>/c-<sha12>.md per sweep; rc 0 always, a failure = ONE [mem] warn line. at = `mem: tapped <chunks>/<eligible>` (RED when fewer), `mem: unread`, then `owner-cite: <n> new, <v> violations` (RED when v > 0) or `owner-cite: unread` (the cite verb below, so a violation is SEEN the next turn), then the walk's check-2 lines. goal:g7.16.1.11.46.14 (M7): label [--redo c:ID..] = tier 0 on POST chunks only (an id counts only MARKED (the word atom/atoms in any case), a<n> and a dotted one alike: `atom a1` | `atoms: a1 10.2` | `[a1, 10.2]`, no version tail, a bare a1 in prose is nothing; nothing inside a > line, a fenced block (a block closes only on a fence of the opener's character at >= its length, so a ~~~ or a shorter fence inside it is text; an unmatched fence runs to the chunk end), a backtick span or a double-quoted span (even across lines) counts; none named = `none`); an owner chunk stays `?` until the atomizer is live; --redo recomputes the named chunks (one that matches no chunk, or is an owner chunk, prints `label --redo: no chunk ID` / `... is an owner chunk`, rc 1); label --all = the one recompute over EVERY live post chunk, then agi-atom derive, prints `relabelled k/m post chunks` with m counted from the store listing (speaker: post on a chunk's header line, so a body quoting it adds nothing), so an unreadable chunk leaves k < m (rc 1 unless k = m; no post chunk prints `mem: no post chunks`, rc 1; derive's rc and stderr are kept; `mem: unread` rc 1 on an unreadable store); nested = REPORT only: `nested-fence chunks: N` + their ids (live post chunks with a fence inside a fence; the recompute is label --all; an unreadable store prints `mem: unread`, rc 1, never 0); map / find RE / show c:ID read the store; scrub = RETIRE (move, bytes unchanged) an owner chunk whose body opens with a tag to mem/retired/ and clear its session cursor (at, map, find, label read mem/<date>/ only, and speaker:/s: from a chunk's HEADER only, one test hg shared by at, label, nested, scrub; at is RED on k != m); walk = after label, a `kind: ask` chunk whose next post chunk names no atom id is a red row (agi-atom red) + a [unnamed-reply] notice, a reply naming one closes it; tap ends with label, agi-atom derive, walk; goal:g7.16.1.11.46.26 (M10): cite = the check that every `## OWNER` block of a node NOT in .agi/nodes/.geometry/owner-cite-grandfather.txt (one node id per line, never a pattern) names the owner chunk id(s) (`c:<12 hex>`, in the heading or the block) of the words, each a live owner chunk of the store (a block with none, an id absent from the store, or one that is a post chunk reads RED; a bad grandfather line, an unreadable nodes dir, or a store that cannot be read while a block needs it prints `unread` INSTEAD of the summary, rc 1); it runs on any post, store or not; a question-prompt answer taps as an owner chunk `kind: answer` (one per question, body `Q: <question>` / `A: <answer>`), only when its tool_result ties by tool_use_id to an AskUserQuestion tool_use of THIS post's own (main, never a subagent's) transcript, is no error and has no origin but human; an answer that is one of that question's option labels carries `picked-from: post options` (the label is the POST's words, the owner's word is the choice; tier 0 never labels an owner chunk, so a label holding `atom 2.5` acks nothing), any other text `picked-from: owner text`; goal:g7.16.1.11.46.24 (V4): the row's `mem:` cell is the HORIZON: full = always (horizon `-`), goal = the post's owning_goal (its mint id), season = the trunk's season segment, none/absent = no tap; the store's horizon is in $S/horizon, and a tap that finds another horizon NESTS the old store (refs/heads/mem -> refs/heads/nest/<old horizon>, tip unchanged, never deleted; a name taken gets .2 .3) and starts refs/heads/mem empty from the new cursor on; `nest ls` lists the nests, `nest <horizon> map|show|find` reads one, and `at` counts a session's owner chunks over the live branch and every nest; no pi adapter is touched; the nest is a CAS (the old branch is created create-only at the tip read, the live branch dropped only if it STILL holds that tip, else `[mem] warn ... not nested` and nothing is lost; a retry reuses a nest at that tip, or advances one that is an ancestor of it, before taking a .2), the horizon FAILS CLOSED (the owning goal is read live-first, then under deprecated/; if neither reads, the stored horizon is kept, nothing nests and ONE `[mem] warn: horizon unread (goal <id>)` is printed; a fresh store with an unreadable goal taps nothing), and `at` and `cite` read the live branch AND every nest (ar)
+P=$AGI_POST;E=${AGI_ENGINE:-$HOME/t};S=${AGI_MEM_DIR:-$HOME/.mem}/${AGI_MINT:-$P}.git
+px=$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/posts.md 2>/dev/null)||{ case $1 in cite)px=;;at)echo "mem: unread";exit 0;;tap)echo "[mem] warn: posts.md unreadable at ${AGI_TRUNK:-trunk} (the turn goes on)";exit 0;;*)exit 0;;esac;}
+row=$(printf %s "$px"|sed -n 's/^  - {/{/p'|jq -cR "fromjson?|select(.name==\"$P\")"|head -1);mm=$(printf %s "$row"|jq -r '.mem//empty' 2>/dev/null);H=
+[ "$1" = cite ]||case $mm in full|goal|season);;*)exit 0;;esac
+hu=;case $mm in goal)og=$(printf %s "$row"|jq -r '.owning_goal//empty');g=$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/goal/${og#goal:}.md 2>/dev/null)||g=$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/deprecated/goal/${og#goal:}.md 2>/dev/null)||hu=1;H=$(printf %s "$g"|sed -n 's/^mint_id: //p'|head -1);H=${H:-$og};;season)H=$(printf %s "$row"|jq -r '.engine.trunk//empty'|cut -d/ -f2);;esac;[ "$hu" ]&&H=$(cat $S/horizon 2>/dev/null);H=$(printf %s "${H:--}"|tr -c 'A-Za-z0-9._-' _)
+NU='[[:space:]]*(<[a-z][a-z-]*[ >]|mail: box read|keepalive:|Caveat:|[[]Request interrupted|[[]SYSTEM NOTIFICATION|This session is being continued)'
+FZ='{l=$0;sub(/^[[:space:]]*/,"",l);c=substr(l,1,1);n=0;if(c=="`"||c=="~")while(substr(l,n+1,1)==c)n++;r=substr(l,n+1);o=n>=3&&(c=="~"||index(r,"`")==0);if(f){if(o&&c==ch&&n>=len&&r~/^[[:space:]]*$/)f=0;else if(o&&m=="n")print "nested";next}if(o){f=1;ch=c;len=n;next}if(m=="s")print}'
+HT='{p=$0;sub(/^[^:]*:/,"",p);f=p;sub(/:.*/,"",f);sub(/^[^:]*:[0-9]+:/,"",p);if(f!=cf){cf=f;d=0}if(p=="---"){d++;next}if(d==1){if(p~/^speaker: /)sp[f]=substr(p,10);if(p~/^s: /)ss[f]=substr(p,4);n[f]=1}}END{for(f in n)print f "\t" sp[f] "\t" ss[f]}'
+hg(){ git -C $S grep -n -e '^---$' -e '^speaker: ' -e '^s: ' $1 -- mem ':!mem/retired' 2>/dev/null|awk "$HT";}
+Q='def pk($qs;$q;$v):(($qs|map(select(.question==$q))|first)//{}) as $o|($o.options//[]|map(.label)) as $l|($l|index($v)!=null) or (($o.multiSelect//false) and ($v|split(", ")|all(.[];. as $p|($l|index($p))!=null)));def tx:if type=="string" then . else [.[]|select(.type=="text" and (.text|startswith("<system-reminder>")|not))|.text]|join("\n") end;select(.isSidechain!=true)|(if .type=="user" and .isMeta!=true and .isCompactSummary!=true and (.message.content|type=="string" or all(.[];.type!="tool_result")) and .origin.kind=="human" then {sp:"owner",b:(.message.content|tx)} elif .type=="attachment" and .attachment.type=="queued_command" and .attachment.origin.kind=="human" then {sp:"owner",b:(.attachment.prompt|strings)} elif .type=="user" and (.origin.kind//"human")=="human" and (.toolUseResult.answers|type)=="object" and (.message.content|type)=="array" then (.toolUseResult.answers as $an|.message.content[]|select(.type=="tool_result" and .is_error!=true and ($aq[.tool_use_id]|type)=="array")|($aq[.tool_use_id]//[]) as $qs|$an|to_entries[]|.key as $q|(.value|tostring) as $v|{sp:"owner",k:"answer",pf:(if pk($qs;$q;$v) then "post options" else "owner text" end),b:("Q: "+$q+"\nA: "+$v)}) elif .type=="assistant" then {sp:"post",b:(.message.content|tx)} else empty end)+{u:.uuid,t:.timestamp,l:input_line_number}|select((.b|length)>0 and (.sp=="post" or (.b|test("^('"$NU"')")|not)))'
+w(){ echo "[mem] warn: $* (the turn goes on)";}
+ar(){ git -C $S for-each-ref --format='%(refname)' refs/heads/mem refs/heads/nest 2>/dev/null|tr '\n' ' ';}
+AQ(){ jq -nc '[inputs|select(.type=="assistant" and .isSidechain!=true)|.message.content[]?|select(.type=="tool_use" and .name=="AskUserQuestion")|{key:.id,value:(.input.questions//[])}]|from_entries' $1 2>/dev/null||echo {};}
+cm(){ c=$(git -C $S -c user.name=mem -c user.email=mem@agi -c commit.gpgsign=false commit-tree $(git -C $S write-tree) ${tip:+-p $tip} -m "$1")&&git -C $S update-ref refs/heads/mem $c $tip;}
+case $1 in
+tap)j=$(cat);exec 2>/dev/null;f=$(printf %s "$j"|jq -r '.transcript_path//empty');s=$(printf %s "$j"|jq -r '.session_id//empty');[ "$f" ]||exit 0;D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0
+ [ -r "$f" ]||{ w "no transcript $f";exit 0;}
+ [ -d $S ]||(umask 077;mkdir -p ${S%/*}&&chmod 700 ${S%/*}&&git init -q --bare $S&&chmod 700 $S&&setfacl -bk $S ${S%/*} 2>/dev/null;git -C $S config core.hooksPath /dev/null)||{ w "store $S not creatable";exit 0;}
+ [ "$hu" ]&&{ w "horizon unread (goal $og)";[ -s $S/horizon ]||exit 0;}
+ hz=$(cat $S/horizon 2>/dev/null);if [ "$hz" != "$H" ];then if [ "$hz" ]&&ot=$(git -C $S rev-parse -q --verify refs/heads/mem);then nn=$hz;i=1;while nt=$(git -C $S rev-parse -q --verify refs/heads/nest/$nn);do [ "$nt" = "$ot" ]&&break;git -C $S merge-base --is-ancestor $nt $ot&&git -C $S update-ref refs/heads/nest/$nn $ot $nt&&{ nt=$ot;break;};i=$((i+1));nn=$hz.$i;done;{ [ "$nt" = "$ot" ]||git -C $S update-ref refs/heads/nest/$nn $ot "";}&&git -C $S update-ref -d refs/heads/mem $ot||{ w "store $S horizon $hz not nested";exit 0;};fi;echo "$H">$S/horizon||{ w "horizon not writable";exit 0;};fi
+ n=$(cat $S/cursor-$s 2>/dev/null||echo 0);tot=$(wc -l <$f);aq=$(AQ $f);tail -n +$((n+1)) $f|jq -c --argjson aq "$aq" "$Q"|head -n ${AGI_MEM_BATCH:-60}|python3 $E/extensions/agi/bin/anonymize.py redact --root $E>$D/r||{ w "redact failed";exit 0;}
+ tip=$(git -C $S rev-parse -q --verify refs/heads/mem);have=$D/h;{ [ -z "$tip" ]||git -C $S ls-tree -r --name-only $tip;}>$have;[ -z "$tip" ]||GIT_INDEX_FILE=$D/i git -C $S read-tree $tip;export GIT_INDEX_FILE=$D/i;new=0;last=$n
+ while read -r r;do printf %s "$r">$D/o;jq -j .b $D/o>$D/b;u=$(jq -r .u $D/o);sp=$(jq -r .sp $D/o);kd=$(jq -r '.k//"?"' $D/o);pf=$(jq -r '.pf//empty' $D/o);pfl=${pf:+"picked-from: $pf\n"};t=$(jq -r .t $D/o);last=$(jq .l $D/o);last=$((n+last))
+  id=$({ printf '%s\0%s\0%s\0' $sp $s $u;cat $D/b;}|sha256sum|cut -c1-12);grep -q "c-$id.md" $have&&continue
+  { printf -- '---\nid: c:%s\nspeaker: %s\ns: %s\nu: %s\nt: %s\nkind: %s\natom: ?\n%bredacted: %s\n---\n' $id $sp $s $u $t "$kd" "$pfl" $(jq .n $D/o);cat $D/b;}>$D/c
+  b=$(git -C $S hash-object -w $D/c)&&git -C $S update-index --add --cacheinfo 100644,$b,mem/${t%%T*}/c-$id.md||{ w "store $S not writable";exit 0;};new=$((new+1));done<$D/r
+ if [ $new -gt 0 ];then cm "tap $s"||{ w "store $S not writable";exit 0;};fi
+ [ $(wc -l <$D/r) -lt ${AGI_MEM_BATCH:-60} ]&&last=$tot;echo $last>$S/cursor-$s||w "cursor not writable";agi-mem label;agi-atom derive;agi-mem walk;(agi-mem compact </dev/null >/dev/null 2>&1 &);exit 0;;
+at)s=$(cat ~/.session 2>/dev/null);f=$(ls ~/.claude/projects/*/$s.jsonl 2>/dev/null|head -1);m=$(jq -c --argjson aq "$(AQ $f)" "$Q" $f 2>/dev/null|jq -s '[.[]|select(.sp=="owner")]|length' 2>/dev/null)
+ [ "$m" ]&&git -C $S rev-parse -q --git-dir>/dev/null 2>&1&&{ [ -r $S/cursor-$s ]||[ "$m" = 0 ];}||{ echo "mem: unread";exit 0;}
+ k=$(hg "$(ar)"|awk -F'\t' -v s=$s '$2=="owner"&&$3==s'|wc -l);echo "mem: tapped $k/$m$([ $k -lt $m ]&&echo ' RED')$([ $k -gt $m ]&&echo " RED ($((k-m)) owner chunk not owner by the current filter)")"
+ l=$(agi-mem cite 2>/dev/null|tail -1);case $l in "owner-cite: "[0-9]*)echo "$l"|sed 's/^owner-cite: \([0-9]*\) new OWNER blocks.* \([0-9]*\) violations.*/owner-cite: \1 new, \2 violations/;/ 0 violations$/!s/$/ RED/';;*)echo "owner-cite: unread";;esac;agi-mem walk ls;;
+map)git -C $S grep -h -m5 -E '^(id|speaker|t|kind|atom): ' ${AGI_MEM_REF:-refs/heads/mem} -- mem ':!mem/retired' 2>/dev/null|awk '/^id: /{if(i)print i"\t"p"\t"t"\t"k"\t"a;i=substr($0,5);p=t=k=a=""}/^speaker: /{p=substr($0,10)}/^t: /{t=substr($0,4)}/^kind: /{k=substr($0,7)}/^atom: /{a=substr($0,7)}END{if(i)print i"\t"p"\t"t"\t"k"\t"a}'|sort -t'	' -k3,3;;
+show)git -C $S show ${AGI_MEM_REF:-refs/heads/mem}:$(git -C $S ls-tree -r --name-only ${AGI_MEM_REF:-refs/heads/mem}|grep "c-${2#c:}.md") 2>/dev/null;;
+find)for x in $(git -C $S grep -l -i -E "$2" ${AGI_MEM_REF:-refs/heads/mem} -- mem ':!mem/retired' 2>/dev/null|sed 's/^[^:]*://');do git -C $S show ${AGI_MEM_REF:-refs/heads/mem}:$x|sed '1,/^---$/d'|grep -qiE "$2"&&echo c:${x##*c-}|sed 's/\.md$//';done|while read -r i;do agi-mem map|awk -F'	' -v i=$i '$1==i';done;;
+scrub)exec 2>/dev/null;tip=$(git -C $S rev-parse -q --verify refs/heads/mem)||exit 0;D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0;export GIT_INDEX_FILE=$D/i;git -C $S read-tree $tip;new=0
+ for x in $(hg $tip|awk -F'\t' '$2=="owner"{print $1}');do git -C $S show $tip:$x|sed '1,/^---$/d;/^[[:space:]]*$/d'|head -1|grep -qE "^$NU"&&{ printf '0 %040d\t%s\n100644 %s\tmem/retired/%s\n' 0 $x $(git -C $S rev-parse $tip:$x) ${x#mem/}|git -C $S update-index --index-info;rm -f $S/cursor-$(git -C $S show $tip:$x|sed -n 's/^s: //p'|head -1);new=$((new+1));};done
+ [ $new -gt 0 ]&&cm "speaker not human: the body opens with a tag or [SYSTEM NOTIFICATION; moved to mem/retired, bytes unchanged (agi-mem scrub)";exit 0;;
+label)exec 3>&2 2>/dev/null;shift;tip=$(git -C $S rev-parse -q --verify refs/heads/mem)||{ [ "$1" = --all ]&&{ echo "mem: unread";exit 1;};exit 0;};D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0;export GIT_INDEX_FILE=$D/i;git -C $S read-tree $tip;new=0
+ ids=" $(awk -F'|' '/^## /{s=/^## §7/}s{y=$2;gsub(/ /,"",y)}s&&y~/^(a[0-9]+|[0-9]+\.[0-9]+|r[0-9a-f]+)$/{printf "%s ",y}' ${AGI_ATOM_CARD:-$E/.agi/sessions/quorum/$P.md}) "
+ miss=0;nm=0;nk=0;R=;hg $tip>$D/hg;: >$D/rl;if [ "$1" = --all ];then R=all;nm=$(hg $tip|awk -F'\t' '$2=="post"'|wc -l|tr -d ' ');git -C $S ls-tree -r --name-only $tip -- mem|grep -v retired>$D/rl;elif [ "$1" = --redo ];then R=redo;shift;[ $# -gt 0 ]||{ echo "label --redo: no chunk named";miss=1;};for i in "$@";do git -C $S ls-tree -r --name-only $tip -- mem|grep -v retired|grep "/c-${i#c:}.md$">>$D/rl||{ echo "label --redo: no chunk $i";miss=1;};done;else git -C $S grep -l '^atom: ?$' $tip -- mem ':!mem/retired'|sed 's/^[^:]*://'>$D/rl;fi
+ for x in $(cat $D/rl);do git -C $S show $tip:$x>$D/c||continue;p=$(awk -F'\t' -v x=$x '$1==x{print $2}' $D/hg);[ "$p" = post ]||{ [ "$R" = redo ]&&{ y=${x##*c-};echo "label --redo: c:${y%.md} is an owner chunk";miss=1;};continue;};a=;b=$(sed '1,/^---$/d' $D/c|awk -v m=s "$FZ"|sed '/^[[:space:]]*>/d'|sed ':a;$!{N;ba};s/`[^`]*`//g;s/"[^"]*"//g');I='(?:a[0-9]+|[0-9]+\.[0-9]+)(?![A-Za-z0-9]|\.[0-9])';L="(?:$I[,[:space:]]*)+"
+  for i in $({ printf %s "$b"|grep -oP "\\b(?i:atoms?):?[[:space:]]+\\K$L"|grep -oE 'a[0-9]+|[0-9]+\.[0-9]+';printf %s "$b"|grep -oP "\\[\\K$L(?=\\])"|grep -oE 'a[0-9]+|[0-9]+\.[0-9]+';}|sort -u);do case "$ids" in *" $i "*)a="$a$i ";;esac;done;a=${a% };k=
+  if [ "$a" ];then v=$a;k=ack;else v=none;k=chatter;fi
+  awk -v a="$v" -v k="$k" '/^---$/{n++}n<2&&/^atom: /{print "atom: " a;next}n<2&&/^kind: /&&k!=""{print "kind: " k;next}{print}' $D/c>$D/n&&b=$(git -C $S hash-object -w $D/n)&&git -C $S update-index --cacheinfo 100644,$b,$x&&new=$((new+1))&&nk=$((nk+1));done
+ [ $new -gt 0 ]&&[ "$(git -C $S write-tree)" != "$(git -C $S rev-parse $tip^{tree})" ]&&cm label;[ "$R" = all ]&&{ if [ $nm = 0 ];then echo "mem: no post chunks";miss=1;else echo "relabelled $nk/$nm post chunks";[ $nk = $nm ]||miss=1;fi;agi-atom derive 2>&3||miss=1;};exit $miss;;
+nested)exec 2>/dev/null;D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0;tip=$(git -C $S rev-parse -q --verify refs/heads/mem)&&git -C $S ls-tree -r --name-only $tip -- mem>$D/l||{ echo "mem: unread";exit 1;};: >$D/n
+ for x in $(hg $tip|awk -F'\t' '$2=="post"{print $1}');do git -C $S show $tip:$x>$D/c||{ echo "mem: unread";exit 1;};sed '1,/^---$/d' $D/c|awk -v m=n "$FZ"|grep -q nested&&echo c:${x##*c-}|sed 's/\.md$//'>>$D/n;done
+ echo "nested-fence chunks: $(wc -l <$D/n|tr -d ' ')";cat $D/n;exit 0;;
+walk)exec 2>/dev/null;agi-mem label;C=${AGI_ATOM_CARD:-$E/.agi/sessions/quorum/$P.md};M=$(agi-mem map)
+ if [ "$2" = ls ];then for i in $(awk -F'|' '/^## /{s=/^## §7/}s{y=$2;gsub(/ /,"",y)}s&&$5~/^ target:/&&y~/^(a[0-9]+|[0-9]+\.[0-9]+)$/{print y}' $C);do echo "$M"|awk -F'	' -v i=$i '$2=="post"{n=split($5,z," ");for(j=1;j<=n;j++)if(z[j]==i)f=1}END{exit !f}'||echo "[walk] $i: no ack chunk yet";done;exit 0;fi
+ echo "$M"|awk -F'	' '$4=="ask"{q[++n]=$1;next}$2=="post"&&n{for(i=1;i<=n;i++)print ($5=="none"||$5=="?"?"RED":"OK"),q[i],$1;n=0}'|while read -r v q r;do h=$(echo ${q#c:}|cut -c1-8)
+  case $v in RED)agi-atom red $q $h "$(agi-mem show $q|sed '1,/^---$/d'|head -1|cut -c1-80)";agi-notice add "[unnamed-reply] $h $q was answered by $r naming no atom id: name the row id (a<n>) in your next reply";;OK)grep -q "^| r$h |" $C&&agi-atom close r$h out:named;; esac;done;exit 0;;
+nest)exec 2>/dev/null;if [ "$2" = ls ];then for r in $(git -C $S for-each-ref --format='%(refname)' refs/heads/nest);do printf '%s\t%s\t%s\n' ${r#refs/heads/nest/} $(git -C $S rev-parse --short=12 $r) $(git -C $S ls-tree -r --name-only $r -- mem|grep -vc retired);done;exit 0;fi
+ git -C $S rev-parse -q --verify refs/heads/nest/$2>/dev/null||{ echo "nest: no horizon ${2:-?}";exit 1;};case $3 in map|show|find)r=$2;shift 2;AGI_MEM_REF=refs/heads/nest/$r exec agi-mem "$@";;*)echo "nest: map|show|find";exit 1;;esac;;
+cite)exec 3>&2 2>/dev/null;N=$E/.agi/nodes;GF=$N/.geometry/owner-cite-grandfather.txt;D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0;: >$D/b
+ [ -d $N ]&&[ -r $GF ]||{ echo "owner-cite: unread (no nodes dir or grandfather list under $N)";exit 1;}
+ awk '!/^[a-z]+:[A-Za-z0-9._-]+$/{print "owner-cite: unread (grandfather line " NR " is not a node id)";b=1;exit}END{exit b}' $GF||exit 1
+ for x in $(grep -rlE '^## OWNER' $N);do i=$(awk '/^---$/{n++}n==1&&/^id: /{print substr($0,5);exit}' $x);[ "$i" ]||i=$x;grep -qxF -- "$i" $GF&&continue
+  awk -v m=s "$FZ" $x|awk -v id="$i" 'function e(){print id "\t" substr(h,4,60) "\t" t}/^## /{if(h!="")e();h=/^## OWNER/?$0:"";t=""}h!=""{s=$0;while(match(s,/c:[0-9a-f]+/)){if(RLENGTH==14)t=t substr(s,RSTART,RLENGTH) " ";s=substr(s,RSTART+RLENGTH)}}END{if(h!="")e()}'>>$D/b;done
+ nb=$(wc -l <$D/b 2>/dev/null|tr -d ' ');nb=${nb:-0};ng=$(wc -l <$GF|tr -d ' ');red=0;un=0
+ if awk -F'\t' '$3!=""' $D/b 2>/dev/null|grep -q .;then rs=$(ar);[ "$rs" ]&&hg "$rs">$D/hg||{ un=1;: >$D/hg;};fi
+ while IFS=$(printf '\t') read -r i h t;do if [ -z "$t" ];then echo "owner-cite: RED $i: '$h' cites no chunk id";red=$((red+1));continue;fi
+  for c in $t;do w=$(awk -F'\t' -v c="${c#c:}" 'index($1,"/c-" c ".md")>0{print $2;exit}' $D/hg);[ "$un" = 1 ]&&continue
+   [ "$w" = owner ]||{ echo "owner-cite: RED $i: '$h' cites $c, $([ "$w" ]&&echo "a $w chunk, not the owner's words"||echo "absent from the store")";red=$((red+1));};done;done <$D/b
+ [ $un = 1 ]&&{ echo "owner-cite: unread (the store $S cannot be read and a block cites a chunk id)";exit 1;}
+ echo "owner-cite: $nb new OWNER blocks ($ng grandfathered nodes), $red violations$([ $red -gt 0 ]&&echo ' RED')";[ $red = 0 ]&&[ $un = 0 ];exit;;
+view)V=${AGI_MEM_VIEW:-4000};git -C $S rev-parse -q --verify refs/heads/mem>/dev/null 2>&1||{ echo "mem view: unread";exit 1;};echo "## mem view (newest summaries, then newest chunks; <= $V B)"
+ for r in refs/heads/summary refs/heads/mem;do git -C $S rev-parse -q --verify $r>/dev/null||continue;git -C $S log --format= --name-only --diff-filter=A $r -- sum mem ':!mem/retired' 2>/dev/null|awk -v r=$r 'NF{print r ":" $0 " " $0}'|git -C $S cat-file --batch='### %(rest)' 2>/dev/null;done|head -c $V;echo;;
+compact)exec 2>/dev/null;tip=$(git -C $S rev-parse -q --verify refs/heads/mem)||exit 0;exec 9>>$S/compact.lock||exit 0;command -v flock>/dev/null&&{ flock -n 9||exit 0;};L=$S/compact.log
+ st=$(git -C $S rev-parse -q --verify refs/heads/summary);up=;[ -z "$st" ]||up=$(git -C $S log -1 --format=%B $st|sed -n 's/^upto: //p');D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0;: >$D/p;u=
+ for c in $(git -C $S rev-list --reverse ${up:+$up..}$tip);do git -C $S diff-tree --root --no-commit-id --name-only -r --diff-filter=A $c -- mem ':!mem/retired'|awk -v c=$c 'NF{print c ":" $0 " " $0}'|git -C $S cat-file --batch='### %(rest)'>>$D/p;u=$c;[ $(wc -c <$D/p) -lt ${AGI_MEM_COMPACT_MAX:-60000} ]||break;done
+ [ "$u" ]&&[ $(wc -c <$D/p) -ge ${AGI_MEM_COMPACT:-20000} ]||exit 0
+ l=$(git -C $E show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md|sed -n 's/^summary_live: *//p'|head -1);[ "$l" = true ]||export AGI_INFER_URL=${AGI_MEM_STUB:-http://127.0.0.1:9/v1}
+ { printf 'Summarize these chat chunks of the post %s in at most 1500 bytes: the decisions, the asks and who owns them, the open items, every id named. Reply with the summary only.\n--- chunks\n' "$P";cat $D/p;}|${AGI_MEM_INFER:-agi-infer} ${AGI_MEM_MODEL:-claude-haiku-5-5}>$D/r;x=$?
+ [ $x = 0 ]&&[ -s $D/r ]||{ echo "$(date -u +%FT%TZ) compact: no reply (rc $x, summary_live ${l:-unread}), nothing written">>$L;exit 0;}
+ k=$(($(git -C $S rev-list --count refs/heads/summary 2>/dev/null||echo 0)+1));cv=$(sed -n 's/^id: //p' $D/p|sed -n '1h;${x;G;s/\n/../p}')
+ { printf -- '---\nn: %s\ncovers: %s\nchunks: %s\nupto: %s\nt: %s\n---\n' $k "$cv" $(grep -c '^### ' $D/p) $u $(date -u +%FT%TZ);head -c 2000 $D/r;echo;}>$D/s
+ export GIT_INDEX_FILE=$D/i;[ -z "$st" ]||git -C $S read-tree $st;b=$(git -C $S hash-object -w $D/s)&&git -C $S update-index --add --cacheinfo 100644,$b,sum/$k.md&&c=$(git -C $S -c user.name=mem -c user.email=mem@agi -c commit.gpgsign=false commit-tree $(git -C $S write-tree) ${st:+-p $st} -m "summary $k
+upto: $u")&&git -C $S update-ref refs/heads/summary $c "$st"||echo "$(date -u +%FT%TZ) compact: summary $k not written (raced or the store refused)">>$L;;
+esac
+~~~
+
+### grow.py (5140 B)
 ~~~python
 #!/usr/bin/env python3
-# grow.py TIP: the ONE growth-order check agi-turn and agi-at call on the temp index (GIT_INDEX_FILE) after the tree is written and before the commit. Every NEW .agi/nodes/**.md (an add against TIP, --no-renames, not under deprecated/; an edit is never gated) is read from its STAGED blob (diff-index -z read as BYTES: raw NUL-split paths, never C-quoted, no newline translation; strict UTF-8) and checked in-process: its parents must resolve in the STAGED tree (a parent added in the same tree counts, except a NEW add under deprecated/; a decoy file in ~/t does not; none = refused), then spawn_gate.check_spawn must APPROVE it (REJECTED, UNVERIFIED and an unknown type are all refused), so a new node is APPROVED or REFUSED, never committed unchecked. rc 0 = pass; 1 = [growth-order] <node> (one line per refusal); 3 = [spawn-gate-missing] / [spawn-gate-broken] (an absent or crashing checker, a failed git, a non-UTF-8 path or blob: FAILS CLOSED)
-import sys,os,re,subprocess as S
+# grow.py TIP: the ONE growth-order check agi-turn and agi-at call on the temp index (GIT_INDEX_FILE) after the tree is written and before the commit. Every NEW .agi/nodes/**.md (an add against TIP, --no-renames, not under deprecated/; an edit is never gated) is read from its STAGED blob (diff-index -z read as BYTES: raw NUL-split paths, never C-quoted, no newline translation; strict UTF-8) and checked in-process: its parents must resolve in the STAGED tree (a parent added in the same tree counts, except a NEW add under deprecated/; a decoy file in ~/t does not; none = refused), then spawn_gate.check_spawn must APPROVE it (REJECTED, UNVERIFIED and an unknown type are all refused), so a new node is APPROVED or REFUSED, never committed unchecked. REPORT mode (goal:g7.16.1.11.46.10, never a refusal): an APPROVED add outside SCOPE(AGI_POST) = grow(row at TIP) x G, with every parent under closure(roots) (the walk reads parents from the STAGED blobs; '*' admits all; a row without both cells admits nothing; no posts.md at TIP = nothing to report against, silent) is said on stderr as [scope] and appended as `Scope: <post> <type> <parent>` to the file named by $GROW_TRAILERS, which agi-at and agi-turn put in the commit message as a trailer block; any failure of the report is [scope-report-broken], b unchanged. rc 0 = pass; 1 = [growth-order] <node> (one line per refusal); 3 = [spawn-gate-missing] / [spawn-gate-broken] (an absent or crashing checker, a failed git, a non-UTF-8 path or blob: FAILS CLOSED)
+import sys,os,re,json,subprocess as S
 sys.dont_write_bytecode=True
 b=0
+def rep(tip,post,m,q,Q,g,f):
+ j={};pm=tip+":.agi/nodes/.geometry/posts.md"
+ if S.run(["git","cat-file","-e",pm],capture_output=True).returncode:return
+ for l in S.run(["git","show",pm],capture_output=True,check=True).stdout.decode().split("\n"):
+  if l.startswith("  - {"):
+   try:x=json.loads(l[4:])
+   except ValueError:continue
+   if x.get("name")==post:j=x;break
+ G=j.get("grow");R=j.get("roots");t=g.canonical_type(m.get("type"))
+ def up(x,s):
+  if "*" in R or x in R:return 1
+  if x in s or len(s)>64 or x not in Q:return 0
+  s.add(x);y=f.read_frontmatter(S.run(["git","show",":"+Q[x]],capture_output=True,check=True).stdout.decode())
+  return any(up(z,s) for z in ((y or {}).get("parents") or []))
+ for y in q:
+  w=("no grow/roots cells on the row" if not isinstance(G,list) or not isinstance(R,list) else "type %s not in grow"%t if "*" not in G and t not in G else "" if up(y,set()) else "parent outside roots")
+  if w:
+   print("[scope] %s %s %s: %s (reported, not refused)"%(post,t,y,w),file=sys.stderr)
+   if os.environ.get("GROW_TRAILERS"):open(os.environ["GROW_TRAILERS"],"a").write("Scope: %s %s %s\n"%(post,t,y))
 try:
  A=[p for p in(q.decode() for q in S.run(["git","diff-index","-z","--cached","--no-renames","--name-only","--diff-filter=A",sys.argv[1],"--",".agi/nodes"],capture_output=True,check=True).stdout.split(b"\0")) if p.endswith(".md")]
  L=[p for p in A if not p.startswith(".agi/nodes/deprecated/")];D={p.encode() for p in A}-{p.encode() for p in L}
@@ -105,15 +308,15 @@ try:
   sys.path.insert(0,"extensions/agi/bin");import spawn_gate as g,frontmatter as f
   d=g.Path(".agi").joinpath(*g.SCHEMAS_SUBDIR);R=g.load_spawn_rules(d,root=g.Path(".agi"));C=g.read_ladder_season(g.resolve_nodes_root(g.Path(".agi"),d))
   r=S.run(["git","grep","--cached","-aznE",r"^(---\s*$|(id|mint_id|type):)","--",".agi/nodes/*.md"],capture_output=True);assert r.returncode<2,r.stderr
-  F={};I={}
+  F={};I={};Q={}
   for x,n,t in re.findall(rb"([^\0]+)\0(\d+)\0([^\n]*)\n",r.stdout):
    if x in D:continue
    e=F.setdefault(x,{"f":0});t=t.decode("utf-8","surrogateescape")
    if t.rstrip()=="---":e["f"]+=1 if(e["f"] or n==b"1")else 2
    elif e["f"]==1:k,_,v=t.partition(":");e.setdefault(k,v.strip().strip("\"'"))
-  for e in F.values():
+  for x,e in F.items():
    for k in("id","mint_id"):
-    if e.get(k):I[e[k]]=g.canonical_type(e.get("type"))
+    if e.get(k):I[e[k]]=g.canonical_type(e.get("type"));Q[e[k]]=x.decode()
   for p in L:
    m=f.read_frontmatter(S.run(["git","show",":"+p],capture_output=True,check=True).stdout.decode())
    if m is None:print("[growth-order] "+p+": no readable front matter");b=1;continue
@@ -121,26 +324,30 @@ try:
    if not isinstance(q,list) or [y for y in q if y not in I]:print("[growth-order] %s: parent(s) %s resolve nowhere in the staged tree"%(m.get("id") or p,q if not isinstance(q,list) else [y for y in q if y not in I]));b=1;continue
    r=g.check_spawn(m.get("type"),q,rules=R,type_index=I,fm=m,node_id=m.get("id") or p,season_parents=m.get("season_parents"),current_season=C)
    if r.status!=g.APPROVED:print("[growth-order] "+re.sub(r"^SPAWN-GATE \w+: ","",(r.messages or [r.reason])[0]).split(" Schema:")[0]);b=1
+   elif os.environ.get("AGI_POST"):
+    try:rep(sys.argv[1],os.environ["AGI_POST"],m,q,Q,g,f)
+    except BaseException as e:print("[scope-report-broken] "+repr(e)[:120],file=sys.stderr)
 except BaseException as e:print("[spawn-gate-broken] spawn_gate.py: "+repr(e)[:160]);b=3
 sys.exit(b)
 ~~~
 
-### agi-turn (4486 B)
+### agi-turn (4838 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-kid sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (called first by agi-brief and agi-meter) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
-cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l' 0;export GIT_INDEX_FILE=$x;k=0
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-in sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (its report-mode `Scope:` lines become trailers of the commit; a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (agi-brief calls it first; agi-meter right after the rotation line) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
+cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l $x.s' 0;export GIT_INDEX_FILE=$x;k=0
 c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
 [ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
 { [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;}
-[ "$1" = strand ]&&{ git symbolic-ref -q HEAD>/dev/null&&exit;h=$(git rev-parse -q --verify HEAD)||exit 0;n=$({ echo $h;git for-each-ref --format='^%(objectname)' refs/heads refs/remotes refs/archive refs/tags;}|git rev-list --count --stdin);[ $n = 0 ]&&exit
+[ "$1" = strand ]&&{ git symbolic-ref -q HEAD>/dev/null&&exit;h=$(git rev-parse -q --verify HEAD)||exit 0;u(){ m="[strand] $P: strand unread: $(echo "$1"|head -1)";echo "$m">&2;agi-notice add "$m";exit 2;}
+ r=$(git for-each-ref --format='^%(objectname)' refs/heads refs/remotes refs/archive refs/tags 2>&1)||u "$r";n=$(printf '%s\n%s\n' $h "$r"|git rev-list --count --stdin 2>&1)||u "$n";case $n in ''|*[!0-9]*)u "rev-list said '$n'";;esac;[ $n = 0 ]&&exit
  m="[strand-refused] $P: HEAD $(git rev-parse --short $h) carries $n commit(s) on no ref: HEAD left where it is, nothing moved; put them on posts/$P through agi-at";echo "$m">&2;agi-notice add "$m";exit 1;}
 [ "$1" = purge ]&&{ d=${2%/};m=${d##*/};c $d $(cat $d/.b 2>/dev/null||git rev-parse $b);[ $? = 0 ]&&{ rm -rf $d;exit;};a=refs/archive/$P/$m;o=$(git rev-parse -q --verify $a||:)
  t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-removal -f -- . ':!.p' ':!.b'&&n=$(git write-tree)&&e=$(echo "$P: kept $m"|git commit-tree -S -p $t ${o:+-p $o} $n)&&git update-ref $a $e "$o"&&s="whole tree committed to $a"||s="NOT SAVED: the ref write failed";echo "[kept] $m: ${l:-unreadable}: $s">&2;exit 1;}
 for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ echo "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')">&2;k=1;continue;}
- [ $n = $(git rev-parse $t^{tree}) ]&&continue;grow.py $t>&2||{ k=1;continue;};r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
+ [ $n = $(git rev-parse $t^{tree}) ]&&continue;: >$x.s;GROW_TRAILERS=$x.s grow.py $t>&2||{ k=1;continue;};r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
 ';set -f;git diff --quiet $(cat $d.b) $t -- $(cat $d.p))||{ r=refs/archive/$P/$m;o=$(git rev-parse -q --verify $r||:);q=${o:+-p $o};}
- c=$(echo "$P: $(sed q $d.p)"|git commit-tree -S -p $t $q $n 2>&1)||{ echo "[commit] $m: cannot sign or commit: $c">&2;k=1;continue;}
+ c=$({ echo "$P: $(sed q $d.p)";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree -S -p $t $q $n 2>&1)||{ echo "[commit] $m: cannot sign or commit: $c">&2;k=1;continue;}
  git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
  [ $r = $b ]&&{ echo $c>$d.b;continue;};agi-turn chk $d $c&&{ echo "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped">&2;rm -rf $d;continue;};echo "[moved] $m: your version is $r, the tree is KEPT">&2;k=1;done
 unset GIT_INDEX_FILE;agi-sync;if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;git status -s|grep -q .&&{ m="[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)";echo "$m">&2;agi-notice add "$m";};exit $k
@@ -154,46 +361,68 @@ unset GIT_INDEX_FILE;agi-sync;if agi-turn strand;then git checkout -q --detach $
 [ -x ~/hooks/pre-commit ]&&exec ~/hooks/pre-commit "$@";:
 ~~~
 
-### agi-notice (1141 B)
+### agi-notice (1169 B)
 ~~~sh
 #!/bin/sh
-# agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (the [label] plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart and agi-meter's prompt hook call it first), THEN remove the claims printed
+# agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (the [label] plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart calls it first; agi-meter's prompt hook right after the rotation line), THEN remove the claims printed
 case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,r){n=split(x,a," ");for(i=1;i<=n;i++)if(a[i]~/^\[/||(length(a[i])>6&&a[i]~/^[0-9a-f]+$/))r=r a[i];return r}K($0)==K(l){f=1}END{exit f}' ~/.notice&&echo "$2">>~/.notice;exit 0;;esac
 mv ~/.notice ~/.notice.$$ 2>/dev/null;f=$(ls ~/.notice.* 2>/dev/null)||exit 0;cat $f|awk '!s[$0]++';rm -f $f
 ~~~
 
-### reference-transaction (1338 B)
+### reference-transaction (4394 B)
 ~~~sh
 #!/bin/sh
-# reference-transaction (git runs it from core.hooksPath=~/bin; goal:g7.16.1.11.38.1): a post's MISTAKE cannot move a peer's ref. Git calls it for prepared, committed and aborted and honours a non-zero exit ONLY in prepared, so it acts only there: an agi-<p> user may not update refs/heads/posts/<q>, refs/box/<q>/* or refs/held/<q>/* with q != p (rc 1, one named line). Root, belam, agi-belam (the Prime's post, whose unit runs as agi-belam since the .10 move: it may move any ref), every other ref and every other user pass. It FAILS OPEN on its own error (rc 0, a stderr line, and an agi-notice once per post per day). A guard against mistakes, NOT a wall: any ref write run with git -c core.hooksPath=/dev/null still moves a peer's ref, and this file is the post's own, editable until the next unit start
+# reference-transaction (git runs it from core.hooksPath=~/bin; goal:g7.16.1.11.38.1): a post's MISTAKE cannot move a peer's ref. Git calls it for prepared, committed and aborted and honours a non-zero exit ONLY in prepared, so it acts only there: an agi-<p> user may not update refs/heads/posts/<q>, refs/box/<q>/* or refs/held/<q>/* with q != p (rc 1, one named line). Root, belam, agi-belam (the Prime's post, whose unit runs as agi-belam since the .10 move: it may move any ref), every other ref and every other user pass. It FAILS OPEN on its own error (rc 0, a stderr line, and an agi-notice once per post per day). A guard against mistakes, NOT a wall: any ref write run with git -c core.hooksPath=/dev/null still moves a peer's ref, and this file is the post's own, editable until the next unit start R-LAND (goal:g7.16.1.11.46.23, R4): for ANY user, a prepared update of refs/heads/posts/belam or refs/heads/core/season3/main whose range changes a node file under .agi/nodes (a posts.md/seats.md row, or a node of a type declaring written_by) runs BASE's extensions/agi/guard/r-land on o..n and a refusal (rc 1, named lines) stops the move; no r-land at the old tip: a pre-L140 BASE fails open with a notice, a post-L140 BASE whose r-land is absent or emptied is judged by the last non-empty blob on its FIRST-PARENT history (`r-land: judge from <sha> (<deleted|emptied> at <sha>)`), a read error / failed log walk / no tmpfile / unresolvable BASE HOLDS (names its cause, agi-notice once, and a retry clears it once that cause clears; belam's verify-land twin, GATE272). Both temp writers (the tmpfile, r-land's own mktemp -d via TMPDIR) live in the objects/ dir (group agi rwx), never the .git root (belam-only). Enforced at every trunk move except a deliberate core.hooksPath bypass: a hook guards against MISTAKES, it is not a wall (R5).
 [ "$1" = prepared ]||exit 0
 f(){ echo "[ref-guard] fail open: $1">&2;agi-notice add "[ref-guard] fail open: $1 $(date +%Y%m%d)" 2>/dev/null;exit 0;}
+L=$(cat);z=0000000000000000000000000000000000000000
+t=$(git rev-parse --path-format=absolute --git-path objects 2>/dev/null)   # ONE dir on the refs' fs for BOTH temp writers (this tmpfile + r-land's own mktemp -d via TMPDIR): objects/ is group agi rwx, the .git ROOT is belam-only
+echo "$L"|while read o n r;do case $r in refs/heads/posts/belam|refs/heads/core/season3/main);;*)continue;;esac
+ { [ "$o" = $z ]||[ "$n" = $z ];}&&continue
+ git diff --quiet $o $n -- .agi/nodes 2>/dev/null&&continue
+ H(){ echo "[r-land] $r HOLD, nothing changed: $1 (a retry clears it once that clears)">&2;agi-notice add "[r-land] HOLD $r: $1 $(date +%Y%m%d)" 2>/dev/null;rm -f $s;exit 1;}
+ s=$(mktemp -p "$t" tmp_rland.XXXXXX 2>&1)||{ m=$s;s=;H "no tmpfile under ${t:-?}: $m";}
+ P=extensions/agi/guard/r-land;git merge-base --is-ancestor ${AGI_RLAND_SINCE:-20e4947d3a0dc641340df3d07449bed0ab205325} $o 2>/dev/null;d=$?;j=
+ if [ $d != 0 ]&&[ $d != 1 ];then H "BASE $o unresolvable"
+ elif git cat-file -e $o:$P 2>/dev/null&&! git cat-file blob $o:$P >$s 2>/dev/null;then H "r-land unreadable at $o"
+ elif [ -s $s ];then j=$o
+ elif [ $d = 1 ];then rm -f $s;echo "[r-land] no r-land at $o (a pre-L140 base): fail open, $r moves unchecked">&2;agi-notice add "[r-land] no r-land at base $(date +%Y%m%d)" 2>/dev/null;continue
+ else hs=$(git log --first-parent --format=%H $o -- $P 2>/dev/null)||H "history search at $o";w=$(echo "$hs"|head -1);git cat-file -e $w:$P 2>/dev/null&&k=emptied||k=deleted
+  for c in $hs;do git cat-file -e $c:$P 2>/dev/null||continue;git cat-file blob $c:$P >$s 2>/dev/null||H "prior judge unreadable at $c";[ -s $s ]&&{ j=$c;break;};done
+  [ "$j" ]||H "no prior judge at $o";echo "r-land: judge from $j ($k at $w)">&2
+ fi
+ out=$(TMPDIR=$t sh $s $o $n 2>&1);rc=$?;rm -f $s;[ $rc = 0 ]||{ echo "[r-land] $r refused, nothing changed:">&2;echo "$out">&2;exit 1;}
+ case $out in *"would refuse"*|*"lander not provable"*)echo "[r-land] $r moves (report mode):">&2;echo "$out">&2;;esac
+done||exit 1
 u=$(id -un)&&[ "$u" ]||f "no user"
 case $u in agi-belam)exit 0;;agi-?*);;*)exit 0;;esac
-while read o n r;do [ "$r" ]||f "unparsed input"
+echo "$L"|while read o n r;do [ "$r" ]||f "unparsed input"
  case $r in refs/heads/posts/*)q=${r#refs/heads/posts/};;refs/box/*|refs/held/*)q=${r#refs/*/};;*)continue;;esac
  [ "${q%%/*}" = "${u#agi-}" ]||{ echo "[ref-guard] $u may not move $r (a peer's ref), nothing changed">&2;exit 1;}
-done
+done||exit 1
 ~~~
 
-### agi-wt (1506 B)
+### agi-wt (2172 B)
 ~~~sh
 #!/bin/sh
-# agi-wt pull ID [REV] | new PATH [PAYLOAD] | drop ID (new / pull carry NO kid guard on purpose: they write only RAM trees; every ref write is guarded in agi-at / agi-turn / agi-flush): a node's tiny tree (node + payload, ONE PATH PER LINE in .p) in RAM for the session; agi-turn versions it, drop purges it only after a proven turn
+# agi-wt pull ID [REV] (under AGI_CID, the capsule agi-in spawned a kid from; never AGI_CAPSULE, agi-out's share dir: only a pull-graph capsule pulls, and a closed or unknown reach pulls only its members + the post's card) | new PATH [PAYLOAD] | drop ID (new / pull carry NO kid guard on purpose: they write only RAM trees; every ref write is guarded in agi-at / agi-turn / agi-flush): a node's tiny tree (node + payload, ONE PATH PER LINE in .p) in RAM for the session; agi-turn versions it, drop purges it only after a proven turn
 cd ~/t;[ "$AGI_POST" ]||{ echo "agi-wt: no AGI_POST">&2;exit 5;};IFS='
 ';set -f;w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};r=${3:-posts/$AGI_POST};mkdir -p $w
 case $1 in new)n=$(basename $2 .md);case $n in ''|[!A-Za-z0-9_-]*|*[!A-Za-z0-9._-]*)echo "agi-wt: new $2: the basename [$n] must match [A-Za-z0-9_-][A-Za-z0-9._-]*">&2;exit 7;;esac;d=$w/$n;mkdir $d||exit 3;printf '%s\n' "$2" ${3:+"$3"}>$d/.p;echo $d;exit;;esac
 f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "$f" ]||exit 2;d=$w/$(git show $r:$f|sed -n 's/^mint_id: //p')
+[ "$1" = pull ]&&[ "$AGI_CID" ]&&{ C=$AGI_CID;M=$(git show refs/capsule/$C:MANIFEST)||{ echo "unread: capsule $C">&2;exit 1;}
+case $(echo "$M"|sed -n 's/^pull //p') in graph);;*)echo "agi-wt: refused: $2: capsule $C is not pull graph (ask over box)">&2;exit 3;;esac
+[ "$(echo "$M"|sed -n 's/^reach //p')" = open ]||echo "$M"|grep -q "^member ${d##*/} "||[ "$f" = .agi/nodes/doc/card-$AGI_POST.md ]||{ echo "agi-wt: refused: $2 outside closed reach $C">&2;exit 3;};}
 case $1 in pull)[ -d $d ]&&{ echo $d;exit;};[ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;}
 mkdir $d;printf '%s\n' "$f" $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')>$d/.p
 e=$(git archive -o $d.tar $r $(cat $d/.p) 2>&1&&tar -xC $d -f $d.tar 2>&1)||{ rm -rf $d $d.tar;echo "agi-wt: pull $2 failed: $e">&2;exit 6;};rm $d.tar;git rev-parse $r>$d/.b;echo $d;;
 drop)[ -d $d ]||{ echo "agi-wt: no tree $d for $2 (a 'new' tree is dropped by agi-flush)">&2;exit 2;};agi-turn&&{ [ ! -d $d ]||agi-turn chk $d $(cat $d/.b)&&rm -rf $d;};;esac
 ~~~
 
-### agi-track (89 B)
+### agi-track (236 B)
 ~~~sh
 #!/bin/sh
-grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
+grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'|while IFS= read -r l;do [ "$k" ]&&continue;e=$({ printf '%s\n' "$l">>$HOME/track;} 2>&1)||{ k=1;echo "agi-track: append failed (${e##*: }), draining">&2;};done
 ~~~
 
 ### agi-flush (942 B)
@@ -220,27 +449,22 @@ case $r in 0)c=$(echo "$P: merge $R"|git commit-tree -S -p $t -p $T $n)&&git upd
 *)agi-notice add "[trunk-merge-failed] $P: git merge-tree rc $r against $R";;esac;exit 0
 ~~~
 
-### agi-out (3357 B)
+### agi-out (3285 B)
 ~~~sh
 #!/bin/sh
-# agi-out (ExecStartPre): the out-line g -> g+1 (AB; the full account is in the node). A ring in ~/t and .fresh newer than the key: new keys in ~/.ssh/n, the capsule share re-wrapped to the next seal FIRST, ONE ring commit signed by the CURRENT key (the self-revocation), then next moves over current. A refusal (any exit after the cd; an AGI_CAPSULE off [A-Za-z0-9._/-], absolute, with .., not resolving to ~/capsule or below) writes its reason to ~/.ssh/out-refused + stderr, exits 75; with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it; every other start clears it. Dir 0700, share 0600.
+# agi-out (ExecStartPre): the out-line g -> g+1 (AB; the full account is in the node). A ring in ~/t and .fresh newer than the key: new keys in ~/.ssh/n, the capsule share re-wrapped with age to the NEXT ssh key FIRST (a share still in the retired seal format is opened once by t/extensions/agi/bin/legacy/seal-open; the ring's x25519 line is carried as LEGACY, never regenerated), ONE ring commit signed by the CURRENT key (the self-revocation), then next moves over current. A refusal (any exit after the cd; an AGI_CAPSULE off [A-Za-z0-9._/-], absolute, with .., not resolving to ~/capsule or below) writes its reason to ~/.ssh/out-refused + stderr, exits 75; with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it; every other start clears it. Dir 0700, share 0600.
 cd||exit 1;m=.ssh/out-refused;[ -e $m ]&&{ [ .fresh -nt $m ]||exit 75;};rm -f $m;x(){ echo "agi-out: $*">&2;echo "$*">$m;exit 75;};P=$AGI_POST;R=.agi/nodes/.geometry/ring;N=.ssh/n;C=${AGI_CAPSULE:+$AGI_CAPSULE/$P}
 [ -f t/$R ]&&{ [ -d $N ]||[ .fresh -nt .ssh/id_ed25519 ];}||exit 0
 c=$AGI_CAPSULE;[ -z "$c" ]||{ case $c in -*|/*|*..*|*[!A-Za-z0-9._/-]*)x "AGI_CAPSULE off the safe set";;esac;h=$(pwd -P);case $(readlink -m -- "$c") in "$h"/capsule|"$h"/capsule/?*);;*)x "AGI_CAPSULE must resolve under ~/capsule";;esac;}
-y='import sys,base64 as B,hashlib as H
-from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K,X25519PublicKey as P
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C
-a=sys.argv;h=lambda x:H.sha256(x).digest();d=lambda b:B.b64encode(b).decode()
-if a[1]=="gen":k=K.generate();open(a[2],"w").write(d(k.private_bytes_raw()));print(d(k.public_key().public_bytes_raw()))
-else:
- p,z=open(a[3]).read().split();z=B.b64decode(z);m=C(h(K.from_private_bytes(B.b64decode(open(a[2]).read())).exchange(P.from_public_bytes(z[:32])))).decrypt(bytes(12),z[32:],None);e=K.generate();print(p,d(e.public_key().public_bytes_raw()+C(h(e.exchange(P.from_public_bytes(B.b64decode(a[4]))))).encrypt(bytes(12),m,None)))'
 b=refs/heads/posts/$AGI_POST;a=$(git -C t rev-parse -q --verify $b);[ "$a" ]&&o=$(git -C t show $a:$R)||x "the ring is unreadable";umask 77
-[ -s $N/seal.pub -a "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"{print $3}')" = "$(cat $N/seal.pub 2>/dev/null)" ]||{
- { [ -f seal.key -a -z "$C" ]||[ -f "$C" -a ! -f seal.key ];}&&x "the capsule share cannot be re-wrapped (no capsule, or no seal key to open it with)"
+k=$(cut -d' ' -f2 $N/id_ed25519.pub 2>/dev/null);L=${AGI_SEAL_OPEN:-t/extensions/agi/bin/legacy/seal-open}
+w(){ if [ "$(head -c21 "$1")" = age-encryption.org/v1 ];then timeout 20 age -d -i .ssh/id_ed25519 "$1" </dev/null;else timeout 20 "$L" seal.key "$1";fi;}
+[ "$k" ]&&[ "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="ssh-ed25519"{print $3}')" = "$k" ]||{
+ [ -f seal.key -a -z "$C" ]&&x "a seal key and no AGI_CAPSULE: the capsule share cannot be re-wrapped"
+ [ -f "$C" ]&&{ command -v age >/dev/null||x "age is not installed: the capsule share cannot be re-wrapped";[ "$(head -c21 "$C")" = age-encryption.org/v1 ]||{ [ -f seal.key ]&&[ -x "$L" ];}||x "a legacy capsule share and no seal key or opener to open it with";}
  rm -rf $N ${C:+"$C.new"};mkdir -p $N ${C:+"$c"}&&ssh-keygen -qN "" -ted25519 -f$N/id_ed25519||{ rm -rf $N;x "keygen failed";}
- s=$(python3 -c "$y" gen $N/seal.key)||{ rm -rf $N;x "seal keygen failed";};echo $s>$N/seal.pub
- [ -f "$C" -a -f seal.key ]&&{ python3 -c "$y" wrap seal.key "$C" $s>"$C.new"||{ rm -rf $N "$C.new";x "the wrap failed";};}
- { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n%s x25519 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64) $P $s;}>t/$R
+ [ -f "$C" ]&&{ { w "$C"||:>$N/bad;}|timeout 20 age -R $N/id_ed25519.pub -o "$C.new"&&[ ! -e $N/bad ]||{ rm -rf $N "$C.new";x "the share could not be opened and re-wrapped (a passphrase-protected key never prompts; age timed out or failed)";};}
+ { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64);printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"';}>t/$R
  agi-at $R||{ git -C t checkout -q -- $R;[ "$(git -C t show $b:$R|awk -v p=$P '$1==p&&$2=="ssh-ed25519"{print $3}')" = "$(cut -d' ' -f2 $N/id_ed25519.pub)" ]||{ rm -rf $N ${C:+"$C.new"};x "the ring commit failed";};echo "agi-out: the ring commit landed on $b: the new key is kept">&2;}
 }
 [ -f "$C.new" ]&&mv "$C.new" "$C"
@@ -317,10 +541,10 @@ s=$({ p $1;p $2;}|sort|uniq -u|cut -d' ' -f1|sort -u|tr '\n' ' ');echo "FIRST-ST
 [ -z "$s" -o -z "$3" ]&&exit 0;grep -qi '^first-start: *[^ ]' $3||{ echo "REFUSED: $1..$2 changes ${s}self-installing piece(s); add a first-start: line (what each post kind gains and loses at its next start)";exit 1;}
 ~~~
 
-### box (2904 B)
+### box (2935 B)
 ~~~sh
 #!/bin/sh
-# box send TO <msg | box read | box n | box carry HUB POST.. | box town up|down SHA (belam only): mail = signed commits on refs (doc:radically-simple-engine §AA1)
+# box send TO <msg | box read | box n | box ok FROM | box carry HUB POST.. | box town up|down SHA (belam only): mail = signed commits on refs (doc:radically-simple-engine §AA1)
 # out refs/box/P/TO (only P) · in refs/box/*/P · held refs/held/P/FROM (only P) · unread = in --not held
 P=${AGI_POST:?};m=refs/box
 # the matrix: a and b mail iff their levels differ by <= 1; level = rows up to owner, an inert row (no harness) counts 0
@@ -337,6 +561,7 @@ read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=$
   git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[refused] $f $c";break;}
   b=$(git log -1 --format=%B $c);case $b in "[town]"*)[ $f = belam ]&&[ "$(printf '%s\n' "$b"|wc -l)" = 1 ]&&printf '%s\n' "$b"|grep -qxE '\[town\] (up|down) [0-9a-f]{40}'||{ echo "[town-dropped] $r $c">&2;[ $1 = n ]||git update-ref $h $c;continue;};;*)[ $j = 1 ]||{ echo "[off-matrix] $f";break;};;esac
   [ $1 = n ]&&echo "$f"&&continue;printf '[%s] %s\n' "$f" "$b";git update-ref $h $c;done;done;;
+ok)a ${2:?} $P;;
 carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";done;git -c transfer.fsckObjects=1 fetch -q $h "$m/*:$m/*" $x;;
 esac
 ~~~

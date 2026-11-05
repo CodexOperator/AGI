@@ -5,10 +5,9 @@
 resolves against it (`goal:g10.2`), so the interesting test is not "does it
 print JSON" but:
 
-1. **drift** — every verb of `write.py`'s `VERBS` table (plus `create`) is
-   either a declared `manifest:` entry or an `excluded:` entry declared BY
-   NAME with a reason. The test INTROSPECTS the module, never a copied list,
-   so a new verb fails here instead of shipping undeclared.
+1. **drift** — every engine CLI's verbs are a declared `manifest:` entry or an
+   `excluded:` entry declared BY NAME with a reason (the coverage test below).
+   (The node writer's own VERBS drift row retired with the writer, goal:g7.16.1.11.46.23 step 4.)
 2. **determinism** — two renders are byte-identical.
 3. **no machine state** — no absolute path, no resolved home/root/engine.
 4. **read-only** — the manifest writes no file and spawns no process.
@@ -36,44 +35,37 @@ sys.path.insert(0, str(SRC))
 import commands  # noqa: E402
 import locations  # noqa: E402
 
-#: `write.py` is a script, not a package module: load it by path. It must be
-#: registered in `sys.modules` BEFORE `exec_module` or the `@dataclass`
-#: decorator fails resolving `cls.__module__` (hit on the first attempt).
-_loader = importlib.machinery.SourceFileLoader("write_module_manifest_test",
-                                               str(BIN / "write.py"))
-_spec = importlib.util.spec_from_loader(_loader.name, _loader)
-write_module = importlib.util.module_from_spec(_spec)
-sys.modules[_loader.name] = write_module
-_loader.exec_module(write_module)
-
 NODE = """---
 commands:
   smoke:
     argv: ["bash", "<engine>/driver.sh", "--smoke"]
     about: "no dispatch"
 manifest:
-  write.py:set:
-    cli: write.py
+  node_tool.py:set:
+    cli: node_tool.py
     verb: set
-    argv: ["python3", "<engine>/write.py", "<node-id>", "set <key> <value>"]
+    argv: ["python3", "<engine>/node_tool.py", "<node-id>", "set <key> <value>"]
     args:
       - {name: key, type: str, required: true, choices: []}
       - {name: value, type: str, required: true, choices: []}
     purpose: "set a key"
     side_effects: graph-write
     proposable: true
-  write.py:read:
-    cli: write.py
+  node_tool.py:read:
+    cli: node_tool.py
     verb: read
-    argv: ["python3", "<engine>/write.py", "<node-id>", "read body 1:2"]
+    argv: ["python3", "<engine>/node_tool.py", "<node-id>", "read <target> <range>"]
+    args:
+      - {name: target, type: str, required: true, choices: [body, payload]}
+      - {name: range, type: str, required: true, choices: []}
     purpose: "read a slice"
     side_effects: read
     proposable: true
 excluded:
-  write.py:patch:
-    cli: write.py
+  node_tool.py:patch:
+    cli: node_tool.py
     verb: patch
-    argv: ["python3", "<engine>/write.py", "<node-id>", "patch -"]
+    argv: ["python3", "<engine>/node_tool.py", "<node-id>", "patch -"]
     reason: "reads a unified diff on stdin"
     side_effects: graph-write
     proposable: false
@@ -168,29 +160,18 @@ def _synthetic_multi(tmp_path: Path, rules_yaml: str = "") -> Path:
     return graph
 
 
-def test_every_write_verb_is_declared_or_excluded_by_name():
-    """Falsifier: a write.py verb neither declared nor excluded."""
-    _, man = _live_manifest()
-    write_names = {k.split(":", 1)[1] for k in man if k.startswith("write.py:")}
-    assert write_names == set(write_module.VERBS) | {"create"}, (
-        "write.py's verb table and the node's write.py entries have drifted; "
-        "add the verb to `manifest:` or `excluded:` in commands.md"
-    )
-
-
-def test_an_excluded_verb_is_not_proposable_and_carries_its_reason():
-    _, man = _live_manifest()
-    for key, entry in man.items():
-        if key.startswith("write.py:") and entry.get("proposable") is False:
-            assert entry.get("reason"), f"{key} excluded without a reason"
-    for name in ("write.py:patch", "write.py:body_patch"):
-        assert man[name]["proposable"] is False
-        assert man[name]["reason"]
+def test_the_retired_node_writer_has_no_entry_left():
+    """goal:g7.16.1.11.46.23 step 4: the node writer and its guard are retired, so the live declaration names
+    neither (no `<cli>:<verb>` entry, no bare name); a stray entry would propose a command that cannot run."""
+    root, man = _live_manifest()
+    gone = ("wri" + "te.py", "wri" + "te_guard.py")
+    stray = [k for k in man if k.split(":", 1)[0] in gone] + [k for k in ("write", "write-guard") if k in commands.load(root)]
+    assert stray == [], stray
 
 
 def test_every_entry_carries_the_typed_fields_a_proposer_reads():
     _, man = _live_manifest()
-    assert man, "the live node must declare at least the write.py surface"
+    assert man, "the live node must declare at least one entry"
     for key, entry in man.items():
         assert entry["name"] == key
         assert entry["side_effects"] in commands.SIDE_EFFECTS, key
@@ -220,17 +201,6 @@ def test_no_absolute_path_or_resolved_box_value_appears(project):
                 "an absolute path in the manifest would not survive a clone")
     for box_value in (str(Path.home()), str(project.resolve())):
         assert box_value not in text
-
-
-def test_the_write_surface_carries_no_home_placeholder():
-    """The mesh commands keep `<home>` (clone-agnostic, resolved at run time)
-    and the brief forbids editing them; every entry THIS round authored must
-    carry only `<engine>`/`<node-id>`."""
-    _, man = _live_manifest()
-    for key, entry in man.items():
-        if key.startswith("write.py:"):
-            joined = " ".join(entry["argv"])
-            assert "<home>" not in joined, key
 
 
 # --------------------------------------------------------------------------
@@ -316,18 +286,16 @@ _LISTED_CLIS += [
 # verb is declared or excluded BY NAME in `command:commands`.
 _LISTED_CLIS += [
     "lm_bench.py", "payload_boundary.py", "plan_master.py",
-    "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
+    "reconciler.py", "rolslice.py", "stall_detect.py",
     "success_metrics.py", "telemetry_rollup.py",
     "ws_raw_client.py",
 ]
 
 # EF.69 CLI GROUP F. Appended, like GROUP A-E, so sibling edits cannot collide.
 # `verification.py` has one optional positional (`window`) beside its bare
-# rotation check; `write_guard.py` is a hand-rolled dispatcher that declares
-# its vocabulary in a module-level `SUBCOMMANDS` tuple (it has no argparse at
-# all) -- so `_introspect_cli` learns both shapes below. Every verb of each is
-# declared or excluded BY NAME in `command:commands`.
-_LISTED_CLIS += ["verification.py", "write_guard.py"]
+# rotation check, declared or excluded BY NAME in `command:commands`. (Its GROUP F sibling, the write guard,
+# retired with the node writer, goal:g7.16.1.11.46.23 step 4.)
+_LISTED_CLIS += ["verification.py"]
 
 #: `memory_alarm.py` is the box's memory-pressure reader: a plain module-level
 #: `main` with a bare parser, whose EVERY threshold is a `config:crons` cell,
@@ -349,17 +317,17 @@ _LISTED_CLIS += ["reds.py"]
 #: async is only its `main`). They are still IN the coverage test --
 #: `require_parser=False` returns the single-verb `{"": set()}` vocabulary,
 #: EXCEPT when the module declares a module-level `SUBCOMMANDS` tuple (see
-#: `_declared_subcommands`): `write_guard.py` dispatches by hand and its
-#: `SUBCOMMANDS` is the vocabulary the coverage test reads. `main` is never
+#: `_declared_subcommands`): a hand-rolled dispatcher's `SUBCOMMANDS` is the
+#: vocabulary the coverage test reads. `main` is never
 #: imported or run for these.
 _PARSERLESS_CLIS = {"node_writer.py", "metrics.py", "pi_edit_forgiveness.py",
-                    "pi_trajectory.py", "ws_raw.py", "write_guard.py"}
+                    "pi_trajectory.py", "ws_raw.py"}
 
 
 def _declared_subcommands(cli: str) -> set[str] | None:
     """A hand-rolled dispatcher's module-level `SUBCOMMANDS` tuple, or None.
 
-    `write_guard.py` has no argparse for the spy to capture, so the vocabulary
+    A dispatcher with no argparse for the spy to capture has its vocabulary
     is read, never guessed: the tuple is a literal, and a computed value (an
     indirect `SUBCOMMANDS = _discover()`) returns None and the coverage test
     then treats the CLI as the single `""` verb, exactly as before.
@@ -554,50 +522,50 @@ def test_live_manifest_carries_no_absolute_path_or_box_value():
 # propose: validate against the entry and RETURN the argv, never run it
 # --------------------------------------------------------------------------
 
-def test_propose_substitutes_values_into_a_compound_token():
+def test_propose_substitutes_values_into_a_compound_token(project):
     """The compound token `"set <key> <value>"` takes both values in place."""
-    root, _ = _live_manifest()
-    argv = commands.propose(root, "write.py:set",
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
+    argv = commands.propose(root, "node_tool.py:set",
                             {"key": "title", "value": "hello world"})
     assert argv[0] == "python3"
     assert argv[-1] == "set title hello world"
 
 
-def test_propose_refuses_an_unknown_name_by_name():
-    root, _ = _live_manifest()
+def test_propose_refuses_an_unknown_name_by_name(project):
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
     with pytest.raises(commands.CommandError) as exc:
-        commands.propose(root, "write.py:nope", {})
-    assert "write.py:nope" in str(exc.value)
+        commands.propose(root, "node_tool.py:nope", {})
+    assert "node_tool.py:nope" in str(exc.value)
 
 
-def test_propose_refuses_a_non_proposable_entry_with_its_reason():
-    root, _ = _live_manifest()
+def test_propose_refuses_a_non_proposable_entry_with_its_reason(project):
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
     with pytest.raises(commands.CommandError) as exc:
-        commands.propose(root, "write.py:patch", {})
+        commands.propose(root, "node_tool.py:patch", {})
     assert "not proposable" in str(exc.value)
     assert "stdin" in str(exc.value)
 
 
-def test_propose_refuses_missing_required():
-    root, _ = _live_manifest()
+def test_propose_refuses_missing_required(project):
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
     with pytest.raises(commands.CommandError) as exc:
-        commands.propose(root, "write.py:set", {"key": "title"})
+        commands.propose(root, "node_tool.py:set", {"key": "title"})
     assert "missing required" in str(exc.value)
 
 
-def test_propose_refuses_a_value_outside_choices():
-    root, _ = _live_manifest()
+def test_propose_refuses_a_value_outside_choices(project):
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
     with pytest.raises(commands.CommandError) as exc:
-        commands.propose(root, "write.py:read",
+        commands.propose(root, "node_tool.py:read",
                          {"target": "header", "range": "1:2"})
     assert "not in" in str(exc.value)
 
 
-def test_propose_completes_a_required_arg_that_used_to_be_dropped():
-    """The old `write.py:read` validated `range` then left `<N:M>` in the
+def test_propose_completes_a_required_arg_that_used_to_be_dropped(project):
+    """The old `node_tool.py:read` validated `range` then left `<N:M>` in the
     argv -- the silent drop. It must land, and no placeholder may survive."""
-    root, _ = _live_manifest()
-    argv = commands.propose(root, "write.py:read",
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
+    argv = commands.propose(root, "node_tool.py:read",
                             {"target": "body", "range": "1:2"})
     assert argv[-1] == "read body 1:2"
 
@@ -640,7 +608,7 @@ def test_no_spend_spawn_or_destructive_entry_is_proposable():
     assert bad == [], bad
 
 
-def test_propose_substitutes_once_and_ignores_undeclared_keys():
+def test_propose_substitutes_once_and_ignores_undeclared_keys(project):
     """One pass only: a value containing a NON-kept placeholder is never
     re-scanned and lands verbatim, and a key that is not a declared arg
     substitutes nothing.
@@ -648,8 +616,8 @@ def test_propose_substitutes_once_and_ignores_undeclared_keys():
     `<foo>`/`<div>` are deliberately absent from `KEPT_METAVARS`: an earlier
     resolver scanned the SUBSTITUTED OUTPUT, so it could not tell a template
     placeholder from caller data and refused this."""
-    root, _ = _live_manifest()
-    argv = commands.propose(root, "write.py:set",
+    root = project   # the fixture node: the live one no longer carries the retired writer's entries
+    argv = commands.propose(root, "node_tool.py:set",
                             {"key": "title",
                              "value": "<foo> and <div>x</div>",
                              "engine": "BAD"})
@@ -700,21 +668,21 @@ def test_propose_writes_no_file_and_spawns_no_process(project, monkeypatch):
         monkeypatch.setattr(commands.subprocess, name, boom)
     monkeypatch.setattr(Path, "write_text", boom)
     monkeypatch.setattr(Path, "write_bytes", boom)
-    assert commands.propose(project, "write.py:set",
+    assert commands.propose(project, "node_tool.py:set",
                             {"key": "k", "value": "v"})
 
 
 def test_propose_action_prints_argv_and_exits_zero(project, capsys):
-    rc = commands.main(["propose", "write.py:set", "--args",
+    rc = commands.main(["propose", "node_tool.py:set", "--args",
                         '{"key": "k", "value": "v"}',
                         "--root", str(project.parent)])
     assert rc == 0
     assert json.loads(capsys.readouterr().out) == [
-        "python3", "<engine>/write.py", "<node-id>", "set k v"]
+        "python3", "<engine>/node_tool.py", "<node-id>", "set k v"]
 
 
 def test_propose_action_refuses_non_zero_on_stderr(project, capsys):
-    rc = commands.main(["propose", "write.py:patch",
+    rc = commands.main(["propose", "node_tool.py:patch",
                         "--root", str(project.parent)])
     assert rc != 0
     assert "not proposable" in capsys.readouterr().err
@@ -1120,26 +1088,34 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 
 #: Engine CLIs deliberately OUTSIDE the choice-surface survey, each with the
 #: reason it is not a choice. A bin/*.py with a `__main__` block that is in
-#: neither this map, `_LISTED_CLIS`, nor write.py fails
-#: `test_every_engine_cli_is_listed_write_py_or_named_outside` below.
+#: neither this map nor `_LISTED_CLIS` fails
+#: `test_every_engine_cli_is_listed_or_named_outside` below.
 _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+    "node_commit.py": "the by-exact-path commit of a node a runtime job just wrote (goal:g7.16.1.11.46.23 V8a tip 3a): a LIBRARY whose `__main__` only prints --help (the bin/ smoke lane runs every script with it); its callers are metrics_cell, council_report, failures, sensei, season and the closeout note, which import land; not an operator verb, so OUTSIDE the survey",
     "metrics_cell.py": "the graph_metrics cron job's guarded cell write (goal:g3.8 R2), run by crons.md only; not an operator verb",
     "board_job.py": "the board line's two cron steps (goal:g7.16.1.11.42 option E): `commit` in the seat's own uid, `land` the ff in the human uid's; run by crons.md only; not an operator verb",
+    "config_rows.py": "the narrow writer of config:posts / config:seats rows (goal:g7.16.1.11.46.23 V8a tip 2b): a LIBRARY whose `__main__` only prints --help (the bin/ smoke lane runs every script with it); the callers are send.py keygen and rotate.py seating, which import write_rows; not an operator verb, so OUTSIDE the survey",
+    "credpiece.py": "reads config:posts cred/slot/faces cells (capsule ids, no secret) (goal:g7.16.1.11.46.20 V2): read-only, prints a row name and a cell, never a value; run by tests/cred-piece.t.sh and the gate, not a proposable choice-surface verb",
     "nest.py": "read-only slice | log helper over a container's nest: cell (goal:g7.16.1.11.21 D1), raw argv with its own usage line; not a proposable choice-surface verb",
-    "season_report.py": "the end-of-season report's FACTS reader (goal:g5.4.1): `facts` prints one sorted JSON, writes nothing, run by the rollover's closing step after ROLLOVER COMPLETE; not a proposable choice-surface verb",
+    "p1_ab.py": "the P1 A/B's guards (goal:g7.16.1.11.46.9): `install` | `pin-check` of the pi 1.x side prefix and `old-pi` (the 0.73.1 negative); the capped mint, spawn gate and board line are library calls of the A/B run; not a proposable choice-surface verb",
+    "grid_stale.py": "the grid staleness alarm (goal:g7.16.1.11.20.4): `run` is a crons.md row in agi-sanctuary-master's uid that reads MAIN read-only and only APPENDS to the seat's own alarm spool (the alarm_drain row signs and sends); not an operator verb",
+    "prereq_notice.py": "the prereq-cleared notice step (goal:g7.16.1.11.46.12): `run` is a crons.md row in agi-sanctuary-master's uid that only APPENDS to the seat's own alarm spool (the alarm_drain row signs and sends), `seed` is the one install act, `line` the board segment; not an operator verb",
+    "season_report.py": "the end-of-season report's FACTS reader and renderer (goal:g5.4.1): `facts` prints one sorted JSON and writes nothing; `refresh-facts` rewrites only a doc node's FACTS block; `render` writes the one report page (rc 2 and no file on any broken rule); run by the rollover's closing step after ROLLOVER COMPLETE; not a proposable choice-surface verb",
+    "reader_census.py": "the reader census (goal:g7.16.1.11.46.18 G1b-2 slice (b), falsifier 2): `repo` classes every line that names the trunk at a COMMIT against reader_census.tsv, `homes` lists the installed readers by home + path + sha256; read-only, writes nothing; a lane and gate tool, not a proposable choice-surface verb",
+    "recompose.py": "the posts/P VIEW (goal:g7.16.1.11.46.17 G1b-1, rows 5-7 goal:g7.16.1.11.46.18): composes the trunk tree from refs/grid/node tips and prints the diff; read-only but for `--write`, which moves only the VIEW ref (refs/view/*, never refs/heads/posts/, refs/box/, refs/held/ or refs/grid/); a land-check and lane tool, not a proposable choice-surface verb",
+    "node_read.py": "the first_turn READ executor (goal:g7.16.1.11.46.23 3b): read-only `<id> section <heading> | lines A:B` of a TRACKED node file or a build node's payload, contained to .agi/nodes + skills on the resolved path; run by the rotations.md first_turn entries (facts, skills) only; its own refusals are the whole guard; not an operator verb",
 }
 
 
-def test_every_engine_cli_is_listed_write_py_or_named_outside():
+def test_every_engine_cli_is_listed_or_named_outside():
     """Falsifier: a `bin/*.py` with a `__main__` block the survey never
     reached. Every engine CLI is either listed in `_LISTED_CLIS` (and so has
-    its verbs read off its own argparse by the coverage test), is `write.py`
-    (covered by its own `VERBS` drift test), or is named in `_OUTSIDE_CLIS`
-    with a reason. Red on the pre-fix bytes: `verification.py` and
-    `write_guard.py` had a `__main__` block and no entry at all."""
-    covered = set(_LISTED_CLIS) | {"write.py"} | set(_OUTSIDE_CLIS)
+    its verbs read off its own argparse by the coverage test) or is named in
+    `_OUTSIDE_CLIS` with a reason. Red on the pre-fix bytes: `verification.py`
+    had a `__main__` block and no entry at all."""
+    covered = set(_LISTED_CLIS) | set(_OUTSIDE_CLIS)
     missed = sorted(
         p.name for p in BIN.glob("*.py")
         if "__main__" in p.read_text(encoding="utf-8") and p.name not in covered
@@ -1159,8 +1135,8 @@ _OPERATOR_FLAG_TOKENS = ("--suite", "--stamp")
 
 def test_no_suite_stamp_ring_or_hook_verb_is_proposable():
     """Falsifier: a proposable entry whose stored argv demands the engine
-    suite, stamps the never-lower baseline, signs a ring, or installs the
-    write-guard hook. The choice surface must not offer any of them.
+    suite, stamps the never-lower baseline, or signs a ring. The choice surface
+    must not offer any of them. (The write-guard hook retired with the guard, step 4.)
 
     Red on the pre-fix bytes: the legacy `verify-suite` entry was proposable
     with `--suite` in its argv."""
@@ -1174,18 +1150,15 @@ def test_no_suite_stamp_ring_or_hook_verb_is_proposable():
             bad.append(key)
         elif any(t.startswith("--ring-") for t in argv):
             bad.append(key)
-        elif (any(t.endswith("write_guard.py") for t in argv)
-              and "hook" in argv):
-            bad.append(key)
     assert bad == [], bad
 
 
 def test_legacy_verification_names_resolve_and_the_suite_is_refused():
-    """The legacy `verify` / `verify-suite` / `write-guard` names keep
+    """The legacy `verify` / `verify-suite` names keep
     resolving -- the commands they name still exist -- while the suite variant
     is refused by `propose` with its reason and `propose` imports nothing."""
     root, man = _live_manifest()
-    for legacy in ("verify", "verify-suite", "write-guard"):
+    for legacy in ("verify", "verify-suite"):
         assert legacy in commands.load(root), legacy
     for key in ("verification.py:", "verification.py:window", "verify-suite"):
         assert man[key]["proposable"] is False, key
@@ -1193,5 +1166,3 @@ def test_legacy_verification_names_resolve_and_the_suite_is_refused():
     with pytest.raises(commands.CommandError) as exc:
         commands.propose(root, "verify-suite", {})
     assert "not proposable" in str(exc.value)
-    # The read-only check still resolves to a complete argv.
-    assert commands.propose(root, "write-guard", {})[-1] == "check"

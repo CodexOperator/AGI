@@ -102,7 +102,7 @@ Probe 2 gate placement (`sed -n` on dispatch.py at 5a0e89753; corrected EG.71, e
 `check_key_floor` 2373 and `check_account_floor` 2394 (inside; 2397 is its `return 1`) · `if args.cap is not None:` 2399 (indent 8, outside) ·
 `cap_headroom` 2417-2419 (inside the --cap block). The observed/result text of probe 2 still matches these bytes.
 
-Tests: `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT TMPDIR=/dev/shm/... pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /dev/shm/...`
+Tests: `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired] TMPDIR=/dev/shm/... pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /dev/shm/...`
 ```
 72 passed, 7 skipped in 8.48s
 ```

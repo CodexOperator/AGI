@@ -29,7 +29,7 @@ town: core
 # goal:g7.16.1.11.27
 
 ## Why this exists
-goal:g7.16.1.11: the owner made mail box-only ("switch everyone to box only please", relayed by belam [owner] 04:5xZ, SM placement 05:0xZ). The engine still TYPES the old route into every pane: agi-run (engine-wrap.md:25, claude harness) polls the size of `.agi/sessions/inbox/$AGI_SEAT.md` and on growth types `mail: send.py read $AGI_SEAT`, and cccc.ts (engine-wrap.md:42, the pi route) watches the same inbox file and sends `mail: send.py read <seat>`. The box wakes (engine-wrap.md:26 for agi-run, :43 for cccc.ts, which type `mail: box read`) stay. Checked on the bytes at trunk 548bb9c715. Pinned by box-wake.t.sh's DUAL ROUTE rows (:93-103): s1 (an inbox append types the send.py line), s2 (a box send types the box line and never the send.py one) and s4 (both sources grow in one window).
+goal:g7.16.1.11: the owner made mail box-only ("switch everyone to box only please", relayed by belam [owner] 04:5xZ, SM placement 05:0xZ). The engine still TYPES the old route into every pane: agi-run (engine-wrap.md:25, claude harness) polls the size of `.agi/sessions/inbox/$AGI_[retired].md` and on growth types `mail: send.py read $AGI_[retired]`, and cccc.ts (engine-wrap.md:42, the pi route) watches the same inbox file and sends `mail: send.py read <seat>`. The box wakes (engine-wrap.md:26 for agi-run, :43 for cccc.ts, which type `mail: box read`) stay. Checked on the bytes at trunk 548bb9c715. Pinned by box-wake.t.sh's DUAL ROUTE rows (:93-103): s1 (an inbox append types the send.py line), s2 (a box send types the box line and never the send.py one) and s4 (both sources grow in one window).
 
 ## Target end-state
 - A pane is woken for mail only by the box route: agi-run and cccc.ts no longer watch `.agi/sessions/inbox/*.md` and never type `mail: send.py read`.
@@ -52,7 +52,7 @@ The command that decides is the first backticked one (agi-frontier, engine-post.
 The OTHER places that still name the old route, found while checking and left to their own round: rotations.md:87 and :125 (the rotation's `inbox` step runs `send.py read {seat}`) and crons.md:24 (a cron command runs `send.py read --box-local --peek`) · goal:g7.16.1.11.24 (AGI_POST in the post unit; a wake needs it) · deleting send.py or the inbox files.
 
 ## RULE SM placement 05:0xZ 10-09, from belam [decision] 04:5xZ (SM's relay text; the cites in it are SM's, re-checked above)
-"(A) BOX-ONLY WAKE (owner: mail = box only): the engine still types the OLD route into every pane -- agi-run engine-wrap.md:25 (claude*: watches .agi/sessions/inbox/$AGI_SEAT.md, types 'mail: send.py read $AGI_SEAT') and cccc.ts engine-wrap.md:42 (pi: the same inbox file watch); the box wake at :26 / :43 stays. Pinned by box-wake.t.sh's DUAL ROUTE rows (:93-103: s1 inbox growth wakes send.py read, s2 box types box read) -- the implementing round rewrites s1 to its negative."
+"(A) BOX-ONLY WAKE (owner: mail = box only): the engine still types the OLD route into every pane -- agi-run engine-wrap.md:25 (claude*: watches .agi/sessions/inbox/$AGI_[retired].md, types 'mail: send.py read $AGI_[retired]') and cccc.ts engine-wrap.md:42 (pi: the same inbox file watch); the box wake at :26 / :43 stays. Pinned by box-wake.t.sh's DUAL ROUTE rows (:93-103: s1 inbox growth wakes send.py read, s2 box types box read) -- the implementing round rewrites s1 to its negative."
 
 ## Agent Notes
 Assigned to **director-general-1**.

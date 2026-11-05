@@ -16,7 +16,7 @@ town: core
 
 ## g7171141 post-build check: hypothesis:stand-up-verb-keys-every-mode-through-key-template vs 2833cdae9f (key parts only)
 
-Judged at HEAD bd8c979491 from git-archive trees (`tree` = HEAD, `tree_pre` = 2833cdae9f^ = 877ec1c767). No later commit touches rotate.py or test_stand_up.py. Probes: `test_probe_g7171141.py` (tmp_path graphs, launch stubbed, only key-file existence / mode / mtime observed, no key bytes read). Tests one file per run under flock, `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT`. Nothing run live.
+Judged at HEAD bd8c979491 from git-archive trees (`tree` = HEAD, `tree_pre` = 2833cdae9f^ = 877ec1c767). No later commit touches rotate.py or test_stand_up.py. Probes: `test_probe_g7171141.py` (tmp_path graphs, launch stubbed, only key-file existence / mode / mtime observed, no key bytes read). Tests one file per run under flock, `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_[retired]`. Nothing run live.
 
 | # | command | observed |
 |---|---|---|

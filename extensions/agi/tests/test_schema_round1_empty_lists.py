@@ -109,10 +109,19 @@ def pair(tmp_path_factory):
     return {"base": base, "base_root": _archive(tmp, base), "new": new, "new_root": _archive(tmp, new)}
 
 
+#: a node RENAMED after round 1 (the file moved, its mint id kept): the pinned trees name the old slug, a later tree has the new one
+RENAMED = {("doc", "card-director-general-1"): "card-director-goals-1",      # goal:g7.16.1.11.45 G3, DG1 -> director-goals-1
+           ("doc", "card-director-general-2"): "card-director-science-1",     # G4, DG2 -> director-science-1
+           ("doc", "card-director-general-3"): "card-director-general-1",     # G5, DG3 -> director-general-1 (a REUSED address)
+           ("doc", "card-director-general-4"): "card-director-general-2",     # G6, DG4 -> director-general-2 (a REUSED address)
+           ("doc", "card-director-general-5"): "card-director-general-3"}     # G7, DG5 -> director-general-3 (a REUSED address)
+
+
 def _file(root: Path, typ: str, slug: str) -> Path:
-    for p in (root / "nodes" / typ / f"{slug}.md", root / "nodes" / "deprecated" / typ / f"{slug}.md"):
-        if p.is_file():
-            return p      # a node moved to deprecated/ later still carries its front matter
+    for sl in (slug, RENAMED.get((typ, slug), slug)):
+        for p in (root / "nodes" / typ / f"{sl}.md", root / "nodes" / "deprecated" / typ / f"{sl}.md"):
+            if p.is_file():
+                return p      # a node moved to deprecated/ later still carries its front matter
     pytest.fail(f"{typ}:{slug} has no file under nodes/{typ}/ or nodes/deprecated/{typ}/")
 
 

@@ -71,6 +71,25 @@ def test_a_busy_town_spools_nothing(tmp_path):
     assert _run(tmp_path, script).returncode == 0 and not spool.exists()
 
 
+
+def test_a_background_shell_is_not_busy(tmp_path):
+    """belam 18:2xZ 10-25: the town idled 15 h after L121 and this never fired, because alive and director-goals-1 each held a
+    background shell (a claude child), which the old descendant test read as busy for good. A child alone is now quiet."""
+    script, spool = _spool_for(tmp_path)
+    _stubs(tmp_path)
+    (tmp_path / "stubs" / "pgrep").write_text('#!/bin/sh\n[ "$1" = -P ] && { echo 5151; exit 0; }\necho 4242\n')   # a live child
+    (tmp_path / "dg-x").mkdir(); o = tmp_path / "dg-x" / "o"; o.write_text("x"); os.utime(o, (1, 1))   # a still screen
+    assert _run(tmp_path, script).returncode == 0
+    assert len(spool.read_text().splitlines()) == 1
+
+
+def test_a_freshly_redrawn_screen_is_busy(tmp_path):
+    """a turn or a foreground tool redraws its spinner into ~/o: a screen changed inside QUIET s means busy, nothing spooled."""
+    script, spool = _spool_for(tmp_path)
+    _stubs(tmp_path)
+    (tmp_path / "dg-x").mkdir(); (tmp_path / "dg-x" / "o").write_text("x")                 # mtime = now
+    assert _run(tmp_path, script).returncode == 0 and not spool.exists()
+
 # --- r1: the scripts every root unit/timer ExecStart's carry no `box send` and no `ssh-keygen -Y sign` -------------
 
 def _root_scripts():

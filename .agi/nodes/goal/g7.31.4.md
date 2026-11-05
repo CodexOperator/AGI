@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: a8d684b726c362da
 season: 2
 seeds: []
-status: active
+status: retired
 tags:
   - goal
   - subgoal
@@ -80,4 +80,5 @@ Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 horizon-pass not in-flight unclaimed on board
+director-goals-1 10-24 (belam [decision] 06:38Z line 2, council: RETIRED. This is season-2 harness / grok-bot `seat` work (director-helper), superseded by goal:g7.16.1.11.46 U7 (one plugin dir), U8 (harness cells) and V10 (posts, never seats). It has no child goal; the one hypothesis under goal:g7.27 (harness-arg-builders-are-templates-only) is retired with it. The Assigned-to line stays as provenance.)
 <!-- THOUGHT:END -->

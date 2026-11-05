@@ -49,7 +49,10 @@ from pathlib import Path
 
 SIGNERS = "/var/lib/agi/allowed_signers"   # the ring: uid belam's own git config names no signers file
 TRAILER = "Board-job:"
-SUBJECT_RE = re.compile(r"^write\.py: town:[a-z0-9-]+ \([a-z0-9-]+\)$")
+#: the machinery's exact subject: `board: town:<slug> (<post>)` since goal:g7.16.1.11.46.23 V8a 3a (metrics_cell writes
+#: through node_commit). The retired writer's `write.py: town:...` alternative is DROPPED in step 4: its newest commit
+#: landed 10-26 05Z, and no posts/<post> ref carries one unlanded.
+SUBJECT_RE = re.compile(r"^board: town:[a-z0-9-]+ \([a-z0-9-]+\)$")
 TAKE_PREFIX = "board: take MAIN"
 WROOT = "@WROOT@"
 

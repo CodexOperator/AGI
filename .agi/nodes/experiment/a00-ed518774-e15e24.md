@@ -59,7 +59,7 @@ tmp_path.
 ## Evidence
 
 Real CLI against a HERMETIC tmp project (fresh `.agi`, no seats, `--root` correct,
-AGI_ROLE/AGI_SEAT cleared, AGI_SEASON=2 for season stamping):
+AGI_ROLE/AGI_[retired] cleared, AGI_SEASON=2 for season stamping):
 
 == CASE A: create town novisions (visions ABSENT) ==
 rc=2

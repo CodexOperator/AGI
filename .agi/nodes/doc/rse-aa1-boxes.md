@@ -70,7 +70,7 @@ read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=$
 carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";done;git -c transfer.fsckObjects=1 fetch -q $h "$m/*:$m/*" $x;;
 esac
 ```
-`agi-run` (config:engine-wrap) loses the inbox file: `;f=$O/.agi/sessions/inbox/$AGI_SEAT.md` goes, and the claude wake line becomes
+`agi-run` (config:engine-wrap) loses the inbox file: `;f=$O/.agi/sessions/inbox/$AGI_[retired].md` goes, and the claude wake line becomes
 `case $H in claude*)(s=0;while sleep 5;do n=$(box n|wc -l);[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac`
 (211 -> 142 B; with the 38 B `f=` gone: -107 B). `s=0` at start means a successor wakes on mail its predecessor never read. cccc.ts (pi) swaps its watchFile for the same poll (self-perpetuating has the bytes in AA2).
 
@@ -89,7 +89,7 @@ esac
 
 ### What it retires, what it needs
 - RETIRES for a v5 post: send.py's send/read/wake path, the inbox dir's 2,368 files, the nudge pending/lastread/lock trio, and the read marker that cannot be written today. The old-setup posts keep send.py until each moves (no flag day: a moved post reads both until the last old post is gone).
-- NEEDS (one line each, not built): (1) `signers` from EVERY row's pubkey, written by ROOT at unit start into a root-owned file (all-is-one's measured case: a branch can plant `.agi/keys/<anyone>`, so the ring cannot come from a post-writable tree); (2) ONE principal form, agreed 23:5xZ (all-is-one's vote, AA2's ring): `<post>@agi` -- what the unit already sets (GIT_COMMITTER_EMAIL=%i@agi); `box` writes it and checks `for <post>@agi with`, and the signers file must write it too (re-tested 25/25 with @agi principals); (3) the carrier = root, holding the ONE write key per town repo ("a key stored on root on box"), run from the existing tick, so no post ever holds a transport credential; (4) AGI_POST in the unit env (it exports the deprecated AGI_SEAT today).
+- NEEDS (one line each, not built): (1) `signers` from EVERY row's pubkey, written by ROOT at unit start into a root-owned file (all-is-one's measured case: a branch can plant `.agi/keys/<anyone>`, so the ring cannot come from a post-writable tree); (2) ONE principal form, agreed 23:5xZ (all-is-one's vote, AA2's ring): `<post>@agi` -- what the unit already sets (GIT_COMMITTER_EMAIL=%i@agi); `box` writes it and checks `for <post>@agi with`, and the signers file must write it too (re-tested 25/25 with @agi principals); (3) the carrier = root, holding the ONE write key per town repo ("a key stored on root on box"), run from the existing tick, so no post ever holds a transport credential; (4) AGI_POST in the unit env (it exports the deprecated AGI_[retired] today).
 - Owner answer, keys (with AA2/AA3): no requests at all: root mints the post's capped key at unit start (ExecStartPre=+) into a root-written EnvironmentFile; mail never carries a secret (it is public on the hub by design).
 
 ### Honest limits

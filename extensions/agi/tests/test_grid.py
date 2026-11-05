@@ -115,7 +115,7 @@ def test_cron_lines_are_cwd_proof(tmp_path):
     # Regression: cron runs from $HOME; a line without cd/-C fails silently.
     lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
     assert lines[0].startswith(f"*/5 * * * * cd {tmp_path} && ")
-    assert f"'{grid.PUSH_SPEC}'" in lines[0]
+    assert all(f"'{spec}'" in lines[0] for spec in grid.PUSH_SPECS) and len(grid.PUSH_SPECS) == 2     # node/ and session/, never the wide <ns>/*
     assert "--prefix 'cron: '" in lines[0]
     assert lines[1].startswith(f"7 * * * * git -C {tmp_path} push -q origin main")
     for line in lines:
@@ -183,18 +183,99 @@ def test_push_batches_exclude_pre_split_v1_roots(tmp_path, monkeypatch):
          "refs/grid/node/child:refs/grid/node/child"]]
 
 
-def test_push_changed_stops_after_failed_batch(tmp_path, monkeypatch):
+def _porcelain(rc, out="", err=""):
+    return subprocess.CompletedProcess(["git", "push"], rc, out, err)
+
+
+def _status(specs, rejected=()):
+    """The porcelain stdout git prints for `specs`: one status line per ref, `!` non-ff for `rejected` dsts."""
+    lines = ["To r.git"]
+    for spec in specs:
+        dst = spec.rsplit(":", 1)[-1]
+        lines.append(f"!\t{spec}\t[rejected] (non-fast-forward)" if dst in rejected else f"*\t{spec}\t[new reference]")
+    return "\n".join(lines + ["Done"]) + "\n"
+
+
+NON_FF = "!\trefs/grid/node/{m}:refs/grid/node/{m}\t[rejected] (non-fast-forward)\n"
+FAILED_SOME = "error: failed to push some refs to 'r.git'\nhint: Updates were rejected\n"
+
+
+def _specs(*mints):
+    return [f"refs/grid/node/{m}:refs/grid/node/{m}" for m in mints]
+
+
+def test_push_changed_stops_after_an_unread_batch(tmp_path, monkeypatch, capsys):
+    """A batch git cannot read (rc 128, no ref status line) stops the run there: the next batch is
+    never pushed, the last line names the batch and git's first stderr line, rc 1."""
     monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
-    monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
+    monkeypatch.setattr(grid, "push_batches", lambda root: [_specs("a"), _specs("b"), _specs("c")])
     calls = []
     def push(root, *args):
         calls.append(args)
         if len(calls) == 2:
-            raise SystemExit("ERR: rejected")
-    monkeypatch.setattr(grid, "git", push)
-    with pytest.raises(SystemExit, match="rejected"):
-        grid.cmd_push_changed(tmp_path)
+            return _porcelain(128, err="fatal: 'r.git' does not appear to be a git repository\n")
+        return _porcelain(0, _status(args[3:]))
+    monkeypatch.setattr(grid, "git_try", push)
+    assert grid.cmd_push_changed(tmp_path) == 1
     assert len(calls) == 2
+    assert calls[0][:3] == ("push", "--porcelain", "origin") and "--force" not in calls[0] and "-f" not in calls[0]
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "grid push: unread at batch 2/3: fatal: 'r.git' does not appear to be a git repository")
+
+
+def test_push_changed_names_non_ff_rejections_and_goes_on(tmp_path, monkeypatch, capsys):
+    """A NAMED non-fast-forward rejection is counted by mint and the next batch still runs: every
+    batch is pushed, the old summary line stays, then `rejected N: <mints>`, rc 1."""
+    monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
+    monkeypatch.setattr(grid, "ref_ns_for", lambda root: "refs/grid")
+    monkeypatch.setattr(grid, "push_batches", lambda root: [_specs("m1", "m2"), _specs("m3"), _specs("m4")])
+    calls = []
+    def push(root, *args):
+        calls.append(args)
+        bad = {"refs/grid/node/m1", "refs/grid/node/m3"} & {a.rsplit(":", 1)[-1] for a in args[3:]}
+        return _porcelain(1 if bad else 0, _status(args[3:], bad), FAILED_SOME if bad else "")
+    monkeypatch.setattr(grid, "git_try", push)
+    assert grid.cmd_push_changed(tmp_path) == 1
+    assert len(calls) == 3
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[-2:] == ["grid push: 4 changed ref(s) in 3 batch(es)", "grid push: rejected 2: m1 m3"]
+    assert lines[0] == "grid push batch 1/3: 2 ref(s), 1 rejected"
+
+
+def test_push_changed_a_silent_rc_0_is_unread_not_landed(tmp_path, monkeypatch, capsys):
+    """sp's row (alive 20:34:49Z): a push that exits 0 printing NOTHING (a silent git on PATH) read
+    nothing; it is unread at that batch, never a batch counted as landed. So is a status line short."""
+    monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
+    monkeypatch.setattr(grid, "push_batches", lambda root: [_specs("a", "b"), _specs("c"), _specs("d")])
+    calls = []
+    def push(root, *args):
+        calls.append(args)
+        return _porcelain(0, "" if len(calls) == 2 else _status(args[3:]))
+    monkeypatch.setattr(grid, "git_try", push)
+    assert grid.cmd_push_changed(tmp_path) == 1
+    assert len(calls) == 2
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "grid push: unread at batch 2/3: no ref status line for 1 of 1 ref(s), first refs/grid/node/c (the push exited 0)")
+
+
+@pytest.mark.parametrize("res, why", [
+    (_porcelain(1, "!\tx:x\t[rejected] (fetch first)\nDone\n", FAILED_SOME), "! x:x [rejected] (fetch first)"),
+    (_porcelain(1, "!\tx:x\t[remote rejected] (hook declined)\nDone\n", FAILED_SOME), "! x:x [remote rejected] (hook declined)"),
+    (_porcelain(1, "!\tx:x\t[rejected] (non-fast-forward)\n", "fatal: the remote end hung up unexpectedly\n" + FAILED_SOME),
+     "fatal: the remote end hung up unexpectedly"),
+    (_porcelain(1, "To r.git\nDone\n", ""), "the push exited 1 with no ref status line"),
+    (_porcelain(0, "", ""), "no ref status line for 1 of 1 ref(s), first x (the push exited 0)"),
+    (_porcelain(0, "To r.git\n*\ty:y\t[new reference]\nDone\n", ""), "no ref status line for 1 of 1 ref(s), first x (the push exited 0)"),
+])
+def test_read_push_porcelain_anything_but_a_named_non_ff_is_unread(res, why):
+    assert grid.read_push_porcelain(res, ["x:x"])[1] == why
+
+
+def test_read_push_porcelain_names_only_non_ff():
+    res = _porcelain(1, "To r.git\n \ta:a\t0d3dae5..e1e752e\n" + NON_FF.format(m="m1") + "Done\n", FAILED_SOME)
+    assert grid.read_push_porcelain(res, ["a:a", "refs/grid/node/m1:refs/grid/node/m1"]) == (["refs/grid/node/m1"], None)
+    # an up-to-date ref has its own `=` line (measured, git 2.43 --porcelain): landed, not missing
+    assert grid.read_push_porcelain(_porcelain(0, "To r.git\n=\ta:a\t[up to date]\nDone\n"), ["a:a"]) == ([], None)
 
 
 def test_push_batches_exclude_seed_epoch_roots_but_keep_descendants(tmp_path, monkeypatch):
@@ -289,21 +370,20 @@ def test_push_changed_retries_after_a_failed_batch_against_a_real_remote(
     subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
     grid.git(project, "remote", "add", "origin", str(remote))
 
-    real_git = grid.git
+    real_git_try = grid.git_try
     calls = {"n": 0}
 
-    def flaky_git(root, *args):
+    def flaky_git_try(root, *args):
         if args[:1] == ("push",):
             calls["n"] += 1
             if calls["n"] == 2:
-                raise SystemExit("ERR: simulated network failure")
-        return real_git(root, *args)
+                return _porcelain(128, err="fatal: simulated network failure\n")
+        return real_git_try(root, *args)
 
-    monkeypatch.setattr(grid, "git", flaky_git)
-    with pytest.raises(SystemExit, match="simulated network failure"):
-        grid.cmd_push_changed(project)
-    monkeypatch.setattr(grid, "git", real_git)
-    capsys.readouterr()
+    monkeypatch.setattr(grid, "git_try", flaky_git_try)
+    assert grid.cmd_push_changed(project) == 1
+    assert "unread at batch 2/2: fatal: simulated network failure" in capsys.readouterr().out
+    monkeypatch.setattr(grid, "git_try", real_git_try)
 
     ref_x = grid.mint_node_ref(MINT_X)
     ref_y = grid.mint_node_ref("b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
@@ -316,7 +396,7 @@ def test_push_changed_retries_after_a_failed_batch_against_a_real_remote(
     # exactly one batch landed before the simulated failure; the other did not.
     assert bool(landed[ref_x]) != bool(landed[ref_y])
 
-    grid.cmd_push_changed(project)  # the retry -- ordinary git, no flakiness
+    assert grid.cmd_push_changed(project) == 0  # the retry -- ordinary git, no flakiness
     for ref in (ref_x, ref_y):
         tip = grid.ref_tip(project, ref)
         advertised = subprocess.run(
@@ -1160,7 +1240,7 @@ def test_checkout_materializes_payloads_for_editing(project, engine):
 
 def test_non_default_location_payload_resolves_through_locations(project, engine):
     """goal:g6.1 arrow stays for the default tree; a payload recorded under a
-    non-default `location:` key must resolve where `write.py create --payload`
+    non-default `location:` key must resolve where a payload create
     put it — the location-aware path — not silently fail because the grid only
     beheld staged/engine. Blinded before the fix (both return None for this
     key); this locks the green leg in as a permanent regression test."""
@@ -1180,7 +1260,7 @@ def test_non_default_location_payload_resolves_through_locations(project, engine
 def test_non_default_location_does_not_resolve_to_staged_or_engine(project, engine):
     """A non-default location is authoritative: a payload present in the
     staged checkout but absent at the declared base must NOT resolve — the
-    base the author recorded dominates, so grid and write.py agree."""
+    base the author recorded dominates, so grid and the payload writer agree."""
     import json
     cfg = project / "agi-tree.config.json"
     cfg.write_text(json.dumps({"locations": {"docset": "docsets"}}))
@@ -2012,14 +2092,50 @@ def test_commit_all_waits_for_holder_then_succeeds_consistent(guard_project):
     assert int(grid.git(guard_project, "rev-list", "--count", mint_ref)) == 1
 
 
-def test_single_file_commit_takes_no_lock(guard_project):
+def _count_lock_acquires(monkeypatch, mod):
+    """A counter on `mod.GridLock.acquire` (the real acquire still runs)."""
+    n = [0]
+    real = mod.GridLock.acquire
+
+    def acquire(self, *a, **k):
+        n[0] += 1
+        return real(self, *a, **k)
+    monkeypatch.setattr(mod.GridLock, "acquire", acquire)
+    return n
+
+
+def test_single_file_commit_takes_no_lock(guard_project, monkeypatch):
     """commit FILE (non-session) is NOT gated by the flock — a manual
-    per-node commit proceeds even while a commit --all holds the lock."""
+    per-node commit proceeds even while a commit --all holds the lock.
+    goal:g1.43 row 26: the property is a COUNT (GridLock.acquire never called), not a
+    wall clock: the old `< 0.3 s` bound failed 5/5 on the bare trunk under load 10
+    (SM 22:38Z 10-27). The loose `< lock_wait` bound only catches a real hang."""
+    n = _count_lock_acquires(monkeypatch, grid)
     _hold_grid_lock(guard_project, 0.5)
     f = guard_project / "nodes" / "idea" / "x.md"
     t0 = time.time()
-    grid.cmd_commit(guard_project, [str(f)], do_all=False, session=None)
-    assert time.time() - t0 < 0.3                    # returned without waiting
+    grid.cmd_commit(guard_project, [str(f)], do_all=False, session=None, lock_wait=5)
+    assert n[0] == 0                                 # never asked for the lock
+    assert time.time() - t0 < 5                      # and never hung on it
+
+
+def test_single_file_commit_lock_mutant_reads_red(guard_project, monkeypatch):
+    """The row's mutant (goal:g1.43 row 26): a grid.py whose single-file commit TAKES the
+    lock is caught by the same count (1, not 0), under any load."""
+    src = BIN.read_text()
+    a = "    if do_all and not session:\n        lock = GridLock(root, lock_wait)"
+    assert src.count(a) == 1
+    mut = importlib.util.module_from_spec(importlib.util.spec_from_loader("grid_lock_mutant", loader=None))
+    mut.__dict__["__file__"] = str(BIN)
+    sys.modules["grid_lock_mutant"] = mut
+    try:
+        exec(compile(src.replace(a, "    if not session:\n        lock = GridLock(root, lock_wait)"), str(BIN), "exec"), mut.__dict__)
+        n = _count_lock_acquires(monkeypatch, mut)
+        f = guard_project / "nodes" / "idea" / "x.md"
+        mut.cmd_commit(guard_project, [str(f)], do_all=False, session=None, lock_wait=5)
+        assert n[0] == 1
+    finally:
+        sys.modules.pop("grid_lock_mutant", None)
 
 
 def test_commit_all_on_season_branch_succeeds(guard_project):
@@ -2147,9 +2263,9 @@ def _hold_grid_lock_at(lock, seconds):
 @pytest.fixture()
 def restore_ref_ns():
     """`apply_storage_trunk` mutates module globals; no test may leak them."""
-    saved = (grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC)
+    saved = (grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPECS)
     yield
-    grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC = saved
+    grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPECS = saved
 
 
 def _configure(agi, config):
@@ -2165,8 +2281,9 @@ def test_default_tree_resolves_refs_grid(tmp_path, restore_ref_ns):
     assert grid.ref_ns_for(agi) == "refs/grid"
     assert grid.apply_storage_trunk(agi) == "refs/grid"
     assert grid.REF_NS == "refs/grid"
-    assert grid.PUSH_SPEC == "refs/grid/*:refs/grid/*"
-    assert grid.FETCH_SPEC == "+refs/grid/*:refs/grid/*"
+    assert grid.PUSH_SPECS == ["refs/grid/node/*:refs/grid/node/*", "refs/grid/session/*:refs/grid/session/*"]     # goal:g7.16.1.11.46.16 R2: never the wide refs/grid/*
+    assert grid.FETCH_SPEC == "refs/grid/node/*:refs/grid/node/*"          # goal:g7.16.1.11.46.16 R3: narrowed, never forced
+    assert grid.FETCH_SPECS == ["refs/grid/node/*:refs/grid/node/*", "refs/grid/session/*:refs/grid/session/*"]
     grid.cmd_commit(agi, [], do_all=True, session=None)
     refs = grid.git(agi, "for-each-ref", "refs/grid", "--format=%(refname)")
     assert f"refs/grid/node/{MINT_X}" in refs
@@ -2562,3 +2679,44 @@ def test_commit_of_an_unowned_path_is_refused_by_name_and_writes_nothing(project
     assert "no build node carries payload_ref" in str(exc.value)
     assert "run.sh" in str(exc.value)
     assert grid.git(project, "for-each-ref", "refs/grid") == refs
+
+
+# --- unify --check fails CLOSED (all-is-one 17:23:40Z, confirmed by self-perpetuating 17:25:10Z): an unreadable diff or tree is a RED, never the GREEN of an empty answer ---
+
+def _fake_check_git(monkeypatch, *, diff_rc=0, diff_out="", tree_of=None):
+    """Script `_check_unrelated`'s git: rev-list --parents -> 'M F L' (M = a merge taking F as first parent and L = origin's tip as second),
+    log -> the trailer, diff -> (diff_rc, diff_out), rev-parse <rev>^{tree} -> tree_of[rev] (missing = rc 1), merge-base etc. unused."""
+    import subprocess as sp
+    tree_of = {"M": "a" * 40, "F": "a" * 40} if tree_of is None else tree_of
+
+    def fake_try(root, *args, **kw):
+        if args[:2] == ("rev-list", "--parents"):
+            return sp.CompletedProcess(args, 0, "M F L\n", "")
+        if args[0] == "diff":
+            return sp.CompletedProcess(args, diff_rc, diff_out, "" if diff_rc == 0 else "fatal")
+        if args[0] == "rev-parse":
+            rev = args[-1][: -len("^{tree}")]
+            return sp.CompletedProcess(args, 0 if rev in tree_of else 1, tree_of.get(rev, ""), "")
+        return sp.CompletedProcess(args, 0, "", "")
+    monkeypatch.setattr(grid, "git_try", fake_try)
+    monkeypatch.setattr(grid, "git", lambda root, *a, **k: "Unify-Unrelated: L" if a[:1] == ("log",) else "")
+    monkeypatch.setattr(grid, "_unrelated_class", lambda *a, **k: ("live-seen", ""))
+
+
+def test_check_unrelated_a_failed_diff_is_red_never_green(monkeypatch, tmp_path):
+    _fake_check_git(monkeypatch, diff_rc=128)
+    assert grid._check_unrelated(tmp_path, "L", "N", None) == "home check unread (git diff failed)"
+
+
+def test_check_unrelated_two_unreadable_trees_are_red_never_equal(monkeypatch, tmp_path):
+    _fake_check_git(monkeypatch, tree_of={})                  # both rev-parse fail: "" == "" would have read GREEN
+    assert grid._check_unrelated(tmp_path, "L", "N", None) == "tree unread"
+    _fake_check_git(monkeypatch, tree_of={"M": "a" * 40})     # ONE unreadable is just as red
+    assert grid._check_unrelated(tmp_path, "L", "N", None) == "tree unread"
+
+
+def test_check_unrelated_all_readable_and_equal_is_green_and_an_added_literal_is_red(monkeypatch, tmp_path):
+    _fake_check_git(monkeypatch)
+    assert grid._check_unrelated(tmp_path, "L", "N", None) is None
+    _fake_check_git(monkeypatch, diff_out="+++ b/node.md\n+see /home/ubuntu/x\n")
+    assert "home-path literal" in grid._check_unrelated(tmp_path, "L", "N", None)

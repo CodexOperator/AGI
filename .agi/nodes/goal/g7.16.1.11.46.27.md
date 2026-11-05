@@ -1,0 +1,64 @@
+---
+id: goal:g7.16.1.11.46.27
+mint_id: 112b53943cf842699177ebde57f041d1
+type: goal
+parents:
+  - goal:g7.16.1.11.46
+  - goal:g7.16.1.11.46.18
+next_edges: []
+confidence: 0.4
+edited_by: director-general-3
+goal_id: G7.16.1.11.46.27
+goal_kind: subgoal
+model: claude-opus-5-5
+origin: goal
+role: director
+scaffold_hash: 1c24da36948684c5
+season: 3
+seeds:
+  - doc:brainstorm-unify
+  - hypothesis:g7161146-w2-identity-and-the-grid
+status: horizon
+tags:
+  - brainstorm
+  - wave-2
+  - G1b-3
+title: "G7.16.1.11.46.27: G1b-3 -- the trunk becomes the composed view of all mints (posts/P rebuilt from the grid, never a written branch), every named reader migrated additively, rollback kept"
+town: local-maxxing
+---
+
+# goal:g7.16.1.11.46.27
+
+## Why this exists
+goal:g7.16.1.11.46 (the brainstorm bundle, wave 2): doc:brainstorm-unify §25 (the owner's vision as the council recorded it) reads 'posts/P = a VIEW (scratch) ... rebuilt from the grid, never the other way round. The trunk = the composed view of ALL mints = a cron-free derived ref', and hypothesis:g7161146-w2-identity-and-the-grid row G1b gives its done-when ('git log posts/P empty after a recompose'). That end-state was goal:g7.16.1.11.46.18's.
+goal:g7.16.1.11.46.18 (G1b-2): its slice (b) was cut under OPTION (3) (council 3/3, alive [decision] 10:07:47Z 10-28, on director-general-3's [ask] 10:02:30Z 'what is the new path?'): posts/P keeps its name and its written land history, and 'the new path' is the land WRITER (the split + the recomposed check). So .46.18 no longer reaches §25. A20 (alive [view] 10:04:59Z): this leaf is .46.18's REMAINDER, placed now so the owner's derived view is not closed on a written branch; building it, and when, is a later placement.
+
+## OWNER 2026-10-23 19:18Z, verbatim, atom 3.3 (c:8e64be45bdd0, read from belam's store by belam 10:1xZ 10-28; its opening as belam relayed it)
+"Post branches now hold the grid as whole, but this still feels like suboptimal or somehow missing the vision I had. I was thinking each individual node would be a tiny branch inside of the grid refs as a whole, and each post just picks which grid branches belong to it as part of its package ..."
+
+## Atoms moved here
+Owner atoms 3.3 (the block above; the card row's 'grid monolith, node = branch, post = slice; spiders under council; red-team' is doc:brainstorm-unify's summary of it, §25 Q3) and a2 MOVED here from goal:g7.16.1.11.46.18 by A20 (iii) (3/3, alive [decision] 10:07:47Z 10-28): they close HERE, never on .46.18's option (3). Atom a2 ('We need to redo the renderer if needed to be a git based graph system that uses the minimal shell code matrix integrated design') has NO chunk id (it predates that session's tap, belam 10:1xZ): its source is goal:g7.16.1.11.46's '## OWNER 2026-10-24 07:2xZ' block, named in this plain line. belam re-points doc:card-belam §7 rows 3.3 (:176) + a2 (:208) to this node (M2).
+
+## Target end-state
+- posts/P is the composed view of ALL mints, rebuilt from the grid by recompose (a parentless commit carrying 'Recompose-Trunk:'), never a written branch; a land writes the grid (goal .46.18's split) and the view follows.
+- Every reader that names posts/P, its alias or a composed trunk name reads the derived ref: the installed pieces in every home migrated ADDITIVELY (the old naming still read and guarded until this leaf's real land), each by home + path + sha256 BEFORE and AFTER, the after == the repo sect (A15's additive half; all-is-one's P2: the install route and the AFTER rows).
+- Rollback: the last WRITTEN posts/P tip is kept under a named ref, and the command that restores it is named in this leaf's THOUGHT.
+
+## Invariants
+- One real land passes end to end through the derived view before the written branch stops being written.
+- Every falsifier carries a mutant that must read RED; an unreadable input prints `unread` and exits 1, never 0 or a pass.
+
+## Falsifier
+1. C2 (self-perpetuating [word] 10:06:05Z, 3/3): `git rev-list --count posts/P` == 1, that commit carries recompose's 'Recompose-Trunk:' trailer, and its tree == recompose's tree for the same grid; a ref that does not resolve = unread, rc 1. Mutant: one written land commit on posts/P -> count 2 -> RED.
+2. A15 additive + P2: every installed piece in every listed home, BEFORE and AFTER by sha256, the after == the repo sect; the old naming still guarded until falsifier 3's land; a home not readable = unread. Mutant (all-is-one's P2, A-N1 alive 10:23:42Z): a fixture home whose pieces predate the land -> 'unread <home> <piece>'; the AFTER read from the repo sect instead of the home's file -> passes -> RED.
+3. U3 (self-perpetuating 07:18:02Z, + U-b2 10:29:01Z): after the cutover, `git rev-parse` of the kept written ref == the 40-hex sha named in this leaf's THOUGHT; a THOUGHT with no 40-hex sha for the kept ref, or a kept ref that does not resolve, = unread, rc 1. 'Nothing still writes it' = a planted write to the kept ref is REFUSED by the ref guard (rc != 0, the ref unchanged). Mutant (A-N1, made readable by U-b2): the guard dropped -> the planted write lands -> the sha differs from the THOUGHT's -> RED.
+
+## Out of scope
+goal:g7.16.1.11.46.18 G1b-2 (the land writer, the census under option (3)) · goal:g7.16.1.11.46.19 V1 · goal:g7.16.1.11.46.20 V2 · goal:g7.16.1.11.46.26 M10 · season 4 (§15)
+
+## Agent Notes
+Assigned to **council**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 10-28 (mint, in goal:g7.16.1.11.46.18 slice (b)'s FIRST commit; A20 (ii), council 3/3 alive [decision] 10:07:47Z): PLACED, not built: .46.18's remainder under option (3). status horizon: building it, and when, is a later placement (alive). Falsifier 1 = C2 as worded (sp), not the hypothesis's 'git log posts/P empty', which a deleted ref passes and a parentless view never meets. Atom 3.3 is cited under an OWNER block by its chunk id c:8e64be45bdd0 (M1, aio's pick; belam read the id 10:1xZ); a2 has none, so it is a plain line citing goal .46's OWNER 2026-10-24 07:2xZ block (M1's second branch). Sibling under .46 (next free id .27), with .46.18 as its second parent, since .46.18 will close before this is built.
+<!-- THOUGHT:END -->

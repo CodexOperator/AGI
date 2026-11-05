@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 118fe7844e104790
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - pass
@@ -43,3 +43,7 @@ goal:g1.28 (PASS 12 residues) · goal:g1.27 · the thought_hygiene detector fix 
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g1.29 UNRUN  n1 is "a re-run review upholds none": prose, no command; n2 resolves (test_foreign_refusal_durability.py:357). STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
+<!-- THOUGHT:END -->

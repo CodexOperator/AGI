@@ -30,7 +30,7 @@ Measured on the bytes via RED-FIRST tests (existing SL3.04 fixtures kept, assert
 - NEW test_j: git_common_root RAISES (RuntimeError) → hook exits 0, no traceback, worktree row labelled `(worktree; main unresolved: ` and NOT `(main checkout)`. PASS.
 - NEW test_k: git_common_root bounces to a root with no graph → label `(worktree; main unresolved: unresolved:no-graph-root)`, NOT `(main checkout)`. PASS.
 
-Both new tests assert on the emitted SOURCE STRING, giving full four-outcome coverage (main / resolved-main row / resolved-main no row→worktree / unresolved→worktree). Autouse AGI_SEAT delenv retained; whole module green under `env AGI_SEAT=sensei-director`.
+Both new tests assert on the emitted SOURCE STRING, giving full four-outcome coverage (main / resolved-main row / resolved-main no row→worktree / unresolved→worktree). Autouse AGI_[retired] delenv retained; whole module green under `env AGI_[retired]=sensei-director`.
 
 ## Agent Notes
 rotation_alert._main_root returns (root, reason); source label main only for a proven main read; unresolved worktree reads labelled with why. 21/21 rotation tests green incl 2 new unresolved-outcome tests, neighbours green.

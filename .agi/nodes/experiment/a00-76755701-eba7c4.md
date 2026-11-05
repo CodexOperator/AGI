@@ -34,7 +34,7 @@ verification.py/cli.py/write.py/brief.py untouched.
 
 ### (a) dispatch.py — refuse an untrusted spawner
 New helper `_refuse_untrusted_spawner(root, seat)` (beside `_resolved_seat`):
-resolves the acting post = the resolved seat (--seat > AGI_SEAT, the same
+resolves the acting post = the resolved seat (--seat > AGI_[retired], the same
 precedence L4 already exposes), reads geometry_config.load_rows, and when the
 post's row `tier == 'untrusted'` returns a refusal naming the tier. Called in
 main() right after the push-further gate, BEFORE `iter_dir.mkdir`, the

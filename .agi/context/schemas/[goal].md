@@ -18,6 +18,7 @@ fields:
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
   tags: {type: list}
+  needs: {type: list}         # OPTIONAL, never required (goal:g7.16.1.11.46.12): node ids whose terminal status (complete | supported | retired) clears this leaf for its claimer; an id that names no node is REFUSED at mint (spawn_gate)
   nest: {type: str|list}      # OPTIONAL, never required: `subtree` (every node down the parents edges) or a list of ids -- this node holds a slice (nest.py)
 validation:
   required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, seeds, confidence, tags]

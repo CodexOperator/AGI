@@ -28,7 +28,7 @@ TEST-ONLY round (hypothesis:l4-test-only-the-real-judge-opt-in-survives-the-
 conftest-env-strip-and-the-pin-tests-never-open-a-socket): prove (c1) the
 AGI_REAL_JUDGE opt-in is read AFTER conftest's env strip, and (e) no --pin/
 spend-status test opens a socket. Measured the strip first: conftest.py
-pytest_cmdline_main pops exactly `AGI_AGENT_ID`/`AGI_SEAT`/`AGI_POST` -- NOT
+pytest_cmdline_main pops exactly `AGI_AGENT_ID`/`AGI_[retired]`/`AGI_POST` -- NOT
 the whole AGI_ prefix, NOT AGI_REAL_JUDGE. So the Prime's "whole prefix" read
 was FALSE; the true mechanism is "the strip exempts exactly that one key".
 

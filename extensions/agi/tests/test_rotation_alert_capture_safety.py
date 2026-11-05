@@ -34,7 +34,7 @@ _KWARGS: list[dict] = []
 
 @pytest.fixture(autouse=True)
 def _no_real_spawn(monkeypatch):
-    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
     monkeypatch.delenv("AGI_HOOK_NO_SPAWN", raising=False)
     _SPAWNS.clear()
     _KWARGS.clear()
@@ -100,7 +100,7 @@ def _symlinked_card(graph, state_dir, minutes_ago=600):
 
 def _run(tmp_path, monkeypatch, capsys, session, state_dir, graph, cwd,
          name="x"):
-    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_POST", "probe-director")
     monkeypatch.setenv("AGI_ROTATION_STATE_DIR", str(state_dir))
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
     tp = tmp_path / f"{name}.jsonl"

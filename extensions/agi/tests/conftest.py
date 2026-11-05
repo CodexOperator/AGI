@@ -331,14 +331,14 @@ def pytest_cmdline_main(config):
     for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
         os.environ.pop(_g, None)
     # Strip the RUNNER'S sender identity too. `send._detect_sender` reads
-    # AGI_AGENT_ID, then AGI_POST/AGI_SEAT, AHEAD of an explicit --from, so a
-    # suite run from a rotate-self-spawned seat (which exports AGI_POST +
-    # AGI_SEAT since 18a09849d) or from a dispatched kid (AGI_AGENT_ID since
+    # AGI_AGENT_ID, then AGI_POST, AHEAD of an explicit --from, so a
+    # suite run from a rotate-self-spawned seat (which exports AGI_POST
+    # since 18a09849d) or from a dispatched kid (AGI_AGENT_ID since
     # L3.20) signs every test message under the runner's name: measured
     # 2026-09-12 07:1xZ on the sensei-director seat, test_send.py 81 failed /
-    # 274 with AGI_SEAT set, 75 failed with AGI_AGENT_ID set, 274 passed with
+    # 274 with the identity variable set, 75 failed with AGI_AGENT_ID set, 274 passed with
     # neither. A test that needs one sets it with monkeypatch AFTER this pop.
-    for _g in ("AGI_AGENT_ID", "AGI_SEAT", "AGI_POST"):
+    for _g in ("AGI_AGENT_ID", "AGI_POST"):
         os.environ.pop(_g, None)
     if _effective_tier() != GATE_TIER:
         # Invisible at every tier other than kid (record-derived), and when
@@ -346,6 +346,26 @@ def pytest_cmdline_main(config):
         return
     if _is_bare_directory_run(config):
         raise pytest.UsageError(REFUSAL_REASON)
+
+
+#: goal:g1.43.2 -- the throwaway identity every test runs under (council
+#: [decision] alive 07:42:34Z 10-28, 676f5d177e).
+THROWAWAY_GIT_IDENTITY = {
+    "GIT_AUTHOR_NAME": "agi-test", "GIT_AUTHOR_EMAIL": "agi-test@invalid",
+    "GIT_COMMITTER_NAME": "agi-test", "GIT_COMMITTER_EMAIL": "agi-test@invalid",
+}
+
+
+@pytest.fixture(autouse=True)
+def _throwaway_git_identity(monkeypatch):
+    """goal:g1.43.2 (goal:g1.43 row 22): a fixture that commits without
+    setting user.name/user.email used to borrow the RUNNER's identity, so a
+    hermetic run (GIT_CONFIG_GLOBAL=/dev/null, no GIT_AUTHOR_*) read those rows
+    RED ('Please tell me who you are'). ONE place sets a throwaway identity, so
+    the next new test file cannot repeat it. A test of the MISSING-identity path
+    must `monkeypatch.delenv` these four itself, or this fixture masks it."""
+    for k, v in THROWAWAY_GIT_IDENTITY.items():
+        monkeypatch.setenv(k, v)
 
 
 @pytest.fixture(autouse=True)

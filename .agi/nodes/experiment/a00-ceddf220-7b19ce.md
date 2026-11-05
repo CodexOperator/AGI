@@ -54,7 +54,7 @@ in town T merges up to T's town branch.
 `_resolve_round_town` (one shared resolver used by the gate AND the base
 resolution) derives the round's town from: --round node's `town:` cell, then
 `town_of_branch(args.branch)`, then the record file's `node_id` town cell.
-The seat derives from --seat, else `AGI_SEAT` env (the seat the spawn
+The seat derives from --seat, else `AGI_[retired]` env (the seat the spawn
 carries). The refusal fires when both halves resolve and differ; either half
 unknowable -> None (fail open; a town-less graph is untouched). --round/--seat
 behaviour when passed is unchanged.
@@ -73,7 +73,7 @@ behaviour when passed is unchanged.
   fallback season/s2 reads `behind` (1); the record's `integration`/sync cmd
   name the town branch on the town path and `season/s2` on the fallback;
   `_merge_up_town_gate` REFUSES a cross-town merge and ALLOWS a same-town one
-  with NO --round/--seat (derived from AGI_SEAT + branch), and fails open
+  with NO --round/--seat (derived from AGI_[retired] + branch), and fails open
   (None) when neither half is derivable; the reader fails open on missing
   ladder/map; `town_of_branch` is exact-equality-only (a look-alike renamed
   branch does NOT resolve).
@@ -87,7 +87,7 @@ extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_spawn_gate.py
   1 skipped.
 
 ## Agent Notes
-Residues 4-5: opaque town_branches reader (read_town_branches/town_integration_branch/town_of_branch, exact-equality-only) wired into the dispatch stale-base guard (measures a town round against its OWN integration branch, fallback keeps season/sN byte-for-byte) and season merge-up base; merge-up town gate now fires without --round/--seat (AGI_SEAT + town_of_branch + record node_id). 219 targeted + 2717 full suite pass.
+Residues 4-5: opaque town_branches reader (read_town_branches/town_integration_branch/town_of_branch, exact-equality-only) wired into the dispatch stale-base guard (measures a town round against its OWN integration branch, fallback keeps season/sN byte-for-byte) and season merge-up base; merge-up town gate now fires without --round/--seat (AGI_[retired] + town_of_branch + record node_id). 219 targeted + 2717 full suite pass.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW, DEMOTED (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch). The kid reported proved at 0.9; the parent demotes to inconclusive_lean_proved:70, confidence 0.7. Residue 4 is proved; residue 5 carries a false-refusal defect that would block every real merge-up.
@@ -96,7 +96,7 @@ PARENT REVIEW, DEMOTED (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch)
 
 (2) WHAT THE MACHINE ACTUALLY DOES, re-run by me on this checkout. Residue 4 is real and reproduces exactly: `git grep -c town_branches -- extensions/` is 1/2/8/2/3/9 across dispatch.py, season.py, spawn_gate.py and their tests (was 0); `read_town_branches` -> {'core':'season/s2','streaming-suite':'town/streaming-suite@s2','web-app-suite':'town/web-app-suite@s2'}; `town_of_branch('town/streaming-suite@s2')` -> 'streaming-suite'; `town_of_branch('season/s2')` -> 'core'; the value is opaque, never parsed. `_stale_base_spawn`/`_stale_base_record` take an optional `town_branch` and fall back to `origin/season/s{N}` byte-for-byte when the branch maps to no town; fail-open to `unchecked` is preserved. Targeted run: test_season + test_dispatch + test_spawn_gate + test_node_writer = 288 passed.
 
-Residue 5 does NOT hold on the real graph. The prime landed `config:seats` with `town: all` on all thirteen Keep rows (e.g. sanctuary-director, seats.md:21) because the Keep is shared across towns; only the three council rows carry a specific town. `_merge_up_town_gate` compares `round_town == seat_town` literally, so `all` is treated as a town NAME. I called the shipped function with the live seats and a core round: `AGI_SEAT=sanctuary-director` + round town `core` -> `REFUSED: ... seat 'sanctuary-director' belongs to town 'all'`; the same seat with a streaming-suite round -> also REFUSED. Every merge-up performed by a Keep seat (which is every real merge-up -- the directors are the ones who run it) is refused. That is a false refusal on the live graph, the same class the gate exists to prevent.
+Residue 5 does NOT hold on the real graph. The prime landed `config:seats` with `town: all` on all thirteen Keep rows (e.g. sanctuary-director, seats.md:21) because the Keep is shared across towns; only the three council rows carry a specific town. `_merge_up_town_gate` compares `round_town == seat_town` literally, so `all` is treated as a town NAME. I called the shipped function with the live seats and a core round: `AGI_[retired]=sanctuary-director` + round town `core` -> `REFUSED: ... seat 'sanctuary-director' belongs to town 'all'`; the same seat with a streaming-suite round -> also REFUSED. Every merge-up performed by a Keep seat (which is every real merge-up -- the directors are the ones who run it) is refused. That is a false refusal on the live graph, the same class the gate exists to prevent.
 
 (3) THE NEAR MISS. Comparing two strings and refusing on inequality satisfies "fires without --round/--seat" and loses the mechanism: `town: all` is the Keep's SHARED marker, not a town, so the comparison must treat it as a wildcard (a Keep seat serves any town; two SPECIFIC towns that differ is the only refusable case). The fixture the kid wrote used two council seats with specific towns and never exercised a Keep row, so the wildcard case was invisible to it -- a fixture that mirrors the code's assumption instead of the live graph's data.
 

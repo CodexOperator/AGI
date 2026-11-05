@@ -4,7 +4,7 @@ write and verification each read (goal:g7.16.1.3 row H4): the rotation-record
 serializer and path reader, and the live-node grep behind the park tag.
 Every name here is public, so none of THESE crosses a module as a `_private`
 name (heal still reads other rotate privates, e.g. _write_rotation_record: out
-of this row's scope), and write.py reads parked carriers without importing
+of this row's scope), and the retired writer read parked carriers without importing
 the verifier."""
 from __future__ import annotations
 
@@ -100,7 +100,7 @@ def grep_live(groot: Path, needle: str, *, retired: bool = False
 
 def parked_tag(goal: str) -> str:
     """goal:g1.31.5.2 (n84) -- the ONE spelling of the park tag `parked:<goal>`;
-    the carrier grep and write.py's unpark filter both call it."""
+    the carrier grep calls it (the node writer's unpark filter, its other caller, retired with the writer)."""
     return f"parked:{goal}"
 
 

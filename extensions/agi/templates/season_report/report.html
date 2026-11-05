@@ -17,6 +17,7 @@
 :root[data-theme="dark"]{
   --bg:#0e1513; --panel:#151f1c; --fg:#e3ebe8; --muted:#93a59f; --line:#2a3834;
   --accent:#44b9ab; --accent-soft:#16332e; --signal:#f08d52; --signal-soft:#3a2417; --ok:#71c275; color-scheme:dark}
+.src{color:var(--signal);margin-left:2px}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6}
 .wrap{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:44px}
@@ -90,6 +91,8 @@ season_report template (goal:g5.4.1). Slot grammar; the renderer (S2) is the onl
   {{facts.a.b}}            a dotted path into the JSON that `season_report.py facts` prints          {{narr.x}}   a narrative section of doc:season-<N>-report
   {{#rows P}}..{{/rows}}   the body once per item of the list at P; inside, {{row.f}} is its field      {{x|n}}      the number x with thousands separators
   {{#media}}..{{/media}}   present ONLY when a media file was passed to render; absent otherwise       {{row.role}} a heads row's role: narrative, written per head name
+  {{x|hms}}                an ISO time as HH:MM:SSZ                                                    {{#rows render.box_sources}} the box cells this page printed (a † follows each)
+  a key under a {"value":"not recorded"} cell prints "not recorded"
 Everything outside a slot is standing text.
 -->
 
@@ -179,6 +182,7 @@ Everything outside a slot is standing text.
     <div class="stat"><b>{{facts.counts.engine_active|n}}</b><span>active by the engine's own metrics rule: every node file minus those marked deprecated</span></div>
     <div class="stat"><b>{{facts.goals.total|n}}</b><span>goals, {{facts.goals.carried_active|n}} of them active from season {{facts.prev_season}}</span></div>
     <div class="stat"><b>{{facts.ledger.commits|n}}</b><span>commits in season {{facts.prev_season}}, {{facts.ledger.signed|n}} of them with a signature header (not verified)</span></div>
+    <div class="stat"><b>{{facts.ledger.lands_total|n}}</b><span>first-parent LAND merges in season {{facts.prev_season}}; {{facts.ledger.names_count|n}} of them carry a stack number</span></div>
   </div>
   <div class="bars" aria-label="Active nodes by type">
 {{#rows facts.counts.type_rows}}
@@ -227,7 +231,17 @@ Everything outside a slot is standing text.
     <li>{{row.text}}</li>
 {{/rows}}
   </ul>
-  <p class="note">Season {{facts.season}} opened at {{facts.cells.opened}}, as core's season history records. {{facts.close.label}}: {{facts.close.value}}.</p>
+  <p class="note">Season {{facts.season}} opened at {{facts.cells.opened}}, as core's season history records. {{facts.close.label}}: {{facts.close.value}} (git verify {{facts.close.verify}}, read with this reader's allowed signers).</p>
+</section>
+
+<section id="sources">
+  <div class="eyebrow">Where the † times and values come from</div>
+  <ul class="open">
+{{#rows render.box_sources}}
+    <li>† <code>{{row.key}}</code>: box cell, read by {{row.reader_uid}} at {{row.read_time}}, by <code>{{row.command}}</code></li>
+{{/rows}}
+  </ul>
+  <p class="note">A value without † is read from git at the commit named below: a committer time or a count, recomputed when the page is made.</p>
 </section>
 
 <footer>Facts read from origin and this repo at {{facts.grid.read_time}}, commit {{facts.at_short}}.{{#media}} Song: {{media.title}}, {{media.credit}}.{{/media}}</footer>

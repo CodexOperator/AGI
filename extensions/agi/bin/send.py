@@ -463,20 +463,19 @@ def _place_seat_key(tmp: Path, path: Path) -> None:
         print(f"note: key placed, seats dir not fsynced ({exc})", file=sys.stderr)
 
 
-def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
-    """Write the ``config:posts`` rows through write.submit (the sanctioned
-    writer; ``config:seats``/``seats`` is the one-season alias). Returns True
-    on success, False when the write could not be admitted (no config node,
-    no admitted actor, no seating) -- a keygen never fails to mint a key
-    because the row could not be written, and it never prints the private
-    seed either way.
+def _row_write_submit(graph: Path, rows: list, actor: str, role: str, declare: dict) -> bool:
+    """Write the ``config:posts`` rows through config_rows.write_rows (``config:seats``/
+    ``seats`` is the one-season alias). ``declare`` = {row name: (op, cells)}: what this
+    caller means to write, checked against the real row diff (goal:g7.16.1.11.46.23 V8a).
+    ``role`` is accepted for the callers' signature and never read: the role is the
+    actor's own posts row's. Returns True on success, False when the write could not be
+    admitted (no config node, no admitted actor, a diff outside ``declare``) -- a keygen
+    never fails to mint a key because the row could not be written, and it never prints
+    the private seed either way.
     """
     try:
-        import write as write_mod  # local; write.py imports no send.py
-        _, list_key = geometry_config.resolve(graph)
-        e = write_mod.Edit(f"config:{list_key}")
-        write_mod.verb_set(e, list_key, json.dumps(rows))
-        write_mod.submit(graph, e, actor=actor, role=role)
+        import config_rows  # local; same dir
+        config_rows.write_rows(graph, rows, actor=actor, declare=declare)
         return True
     except Exception:                                          # noqa: BLE001
         # Reporting is the caller's job (clause (1)): `keygen` prints the ONE
@@ -488,8 +487,7 @@ def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
 def _seats_rows(graph: Path) -> list:
     """The current `config:seats` rows on disk, or [] when absent."""
     try:
-        import write as write_mod  # local
-        return list(write_mod._load_seats(graph))
+        return list(geometry_config.load_rows(graph))
     except Exception:                                          # noqa: BLE001
         return []
 
@@ -592,9 +590,11 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
             keyed_names.append(name)
             wrote_any = True
         if wrote_any:
-            if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+            import config_rows
+            if not _row_write_submit(graph, new_rows, actor=actor, role=role,
+                                     declare={n: ("set", config_rows.KEYGEN_KEYS) for n in keyed_names}):
                 # clause (1): every keyed row stayed UNKEYED; the CLI exits 2.
-                _keygen_row_refused("write.submit returned False for the keyed rows")
+                _keygen_row_refused("config_rows.write_rows returned False for the keyed rows")
             # clause (2)/(4b): ONE own-row commit whose message names EVERY
             # seat this --all-live pass keyed (`keygen --all-live: keyed<list>`),
             # staging seats.md ONLY, then the clause-(2) push leg. Best-effort;
@@ -632,9 +632,11 @@ def keygen(root: Path, seat: str = "", scheme_name: str = seatsig.DEFAULT_SCHEME
         own["sig_scheme"] = scheme_name
         own["enc_scheme"] = own.get("enc_scheme") or "none"
         own.setdefault("key_history", [])  # seed: every keyed row carries the cell
-        if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+        import config_rows
+        if not _row_write_submit(graph, new_rows, actor=actor, role=role,
+                                 declare={seat: ("set", config_rows.KEYGEN_KEYS)}):
             # clause (1): minted but the row write was refused -> CLI exits 2.
-            _keygen_row_refused(f"write.submit returned False for seat row {seat!r}")
+            _keygen_row_refused(f"config_rows.write_rows returned False for seat row {seat!r}")
         # clause (2): keygen commits its own-row hunk and pushes, like every
         # key-cell writer, through SL6.01's `_commit_spawn_row` + the push
         # leg. Best-effort; a refused commit/push never fails the mint.
@@ -5074,6 +5076,26 @@ def _whois_answer(who: dict, match_display: str, claim: str | None,
     return WHOIS_OK, f"SEAT: {match_display} -> seat {name}, role {role}{winpart}"
 
 
+def _ambiguous_refusal(token: str, axis: str, hits: list) -> tuple[int, str]:
+    """goal:g7.16.1.11.45.2: a token that more than one posts.md row carries is
+    NEVER answered by the first hit -- that is an authorization of a seat the
+    caller may not mean (the G6 4a carried an old holder's session_name onto the
+    new row while the -retired row kept it). The refusal names EVERY matching row
+    and is not an authorization: the code is NO-MATCH, so no caller can treat it
+    as a match."""
+    names = ", ".join(repr(r.get("name", "?")) for r in hits)
+    return (WHOIS_NO_MATCH,
+            f"NO-MATCH: {token!r} is ambiguous by {axis}: it is carried by "
+            f"{len(hits)} rows ({names}); never answered by the first hit")
+
+
+def _empty_token_refusal() -> tuple[int, str]:
+    """goal:g7.16.1.11.45.2 FF5: an empty token is never resolved. It only
+    looked refused while 28 rows carried session_name ""; a table where exactly
+    one row carries it would have answered that row."""
+    return WHOIS_NO_MATCH, "NO-MATCH: empty token: never resolved"
+
+
 def _resolve_rows(rows: list, session_ref: str,
                   claim: str | None, target: tuple | None = None,
                   root: Path | None = None) -> tuple[int, str]:
@@ -5096,8 +5118,12 @@ def _resolve_rows(rows: list, session_ref: str,
     that found it."""
     if target is not None:
         mode, val = target
+        if mode == "seat" and not (val or "").strip():
+            return _empty_token_refusal()
         if mode == "seat":
             hits = [r for r in rows if r.get("name") == val]
+            if len(hits) > 1:
+                return _ambiguous_refusal(val, "name", hits)
             if hits:
                 return _whois_answer(hits[0], f"by name: {val}", claim, root)
             return (WHOIS_NO_MATCH,
@@ -5118,14 +5144,18 @@ def _resolve_rows(rows: list, session_ref: str,
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
         return _whois_answer(hits[0], f"by key: {val}", claim, root)
+    if not (session_ref or "").strip():
+        return _empty_token_refusal()
     hits = [r for r in rows if (r.get("session_ref") == session_ref
                                 or r.get("session_name") == session_ref)]
+    axis = "session_ref/session_name"
     if not hits:
         # r3: prefix-match a row's session_id uuid (state min length; refuse
         # shorter as NO-MATCH rather than guessing on a too-small prefix).
         if len(session_ref) >= WHOIS_MIN_SESSION_ID_PREFIX:
             hits = [r for r in rows
                     if (r.get("session_id") or "").startswith(session_ref)]
+            axis = "session_id prefix"
             if not hits:
                 return (WHOIS_NO_MATCH,
                         f"NO-MATCH: {session_ref!r} belongs to no seat row "
@@ -5137,6 +5167,8 @@ def _resolve_rows(rows: list, session_ref: str,
                     f"{WHOIS_MIN_SESSION_ID_PREFIX} chars) is too short to "
                     "authorize by session_id prefix and matches no "
                     "session_ref")
+    if len(hits) > 1:  # every leg above: never the first hit of an ambiguous token
+        return _ambiguous_refusal(session_ref, axis, hits)
     who = hits[0]
     name = who.get("name", "?")
     role = who.get("role", "?")
@@ -6444,7 +6476,8 @@ def onboard(root: Path, name: str, sponsor: str, sponsor_sig: str,
         "key_history": [],
     }
     new_rows.append(new_row)
-    if not _row_write_submit(graph, new_rows, actor=actor, role=role):
+    if not _row_write_submit(graph, new_rows, actor=actor, role=role,
+                             declare={new_row["name"]: ("create", None)}):
         if built["minted_here"]:
             built["kpath"].unlink(missing_ok=True)
         print(f"REFUSED {name}: tier untrusted -- config write was refused; "

@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: f6fdabd3064e2539
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - write
@@ -54,4 +54,5 @@ Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Residue 6 of sanctuary-master mur wf_a56d005b-d6b (bundle 1, fixed by director-general-1): the measured gap line that narrowed this goal (director-general-3, row D) lived only in THOUGHT, which is rewritten whole each version, while goal:g7.16.1.1.4 F2 reads it; it now sits in the body under Why this exists, and this block records only why this version moved it.
+director-goals-1 10-24 (STEP B, alive 07:17:02Z, council 3/3: HORIZON. g4.18.1.2 UNRUN  "a scripted run of the step commands": no test or script in the tree names it (0 refs). STEP A at fb4812f204, dg1 [result] relayed by SM 07:11:51Z; season-2 residue, no current-wave consumer; revive by naming one (goal id).)
 <!-- THOUGHT:END -->

@@ -716,7 +716,7 @@ def resolve_old_sha(root, sha: str) -> "str | None":
 
 
 def main(argv: list[str] | None = None) -> int:
-    """`write.py links [--broken]` — report the corpus's link state."""
+    """`links.py links [--broken]` — report the corpus's link state."""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])

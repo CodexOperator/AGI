@@ -46,6 +46,7 @@ Usage:
                                     # written to PATH with its recorded mode
   grid.py checkout --all [--dir D]  # materialize payloads into <project>/payloads/
                                     # — the staged copy an author edits (goal:g6.1)
+  grid.py split --base B --gated G [--write]   # a land: one grid commit per changed node (goal:g7.16.1.11.46.18)
   grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
   grid.py migrate-trunk [--from NS] [--to NS]   # move every ref onto NS (the
                                     # configured grid.storage_trunk when --to is
@@ -63,12 +64,14 @@ import stat
 import subprocess
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 # goal:g11 — one resolver for every path. Plain sibling import; every entry
 # point under `bin/` already has this directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
+import anonymize  # noqa: E402 -- HOME_PATH_RE: the ONE home-path spelling (covers this box's passwd homes, not just /home/)
 import branches  # noqa: E402
 import locations  # noqa: E402
 import verification  # noqa: E402 -- acquire_suite_lock: the ONE suite-lock reader
@@ -86,6 +89,8 @@ PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
 DEFAULT_REF_NS = "refs/grid"
 REF_NS = DEFAULT_REF_NS
+#: Read-only namespaces (config `grid.legacy_namespaces`), filled by `apply_storage_trunk`.
+LEGACY_NS: list[str] = []
 # Tree entry names inside a node's D2 commit. `node.md` predates payloads and
 # keeps its name so every existing reader (`rev-parse <tip>:node.md`) still
 # works. `payload` is goal:g6.3's addition: one node owns exactly one
@@ -103,8 +108,12 @@ PAYLOAD_DIR = "payloads"
 GIT_MODE_REGULAR = "100644"
 GIT_MODE_EXEC = "100755"
 GIT_MODE_SYMLINK = "120000"
-FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
-PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
+FETCH_SPEC = f"{REF_NS}/node/*:{REF_NS}/node/*"
+FETCH_SPECS = [FETCH_SPEC, f"{REF_NS}/session/*:{REF_NS}/session/*"]
+#: the two kinds of ref `push_batches` lists, and the ONLY two a push may carry (goal:g7.16.1.11.46.16, council 10:50:48Z 10-26 R2): a wide
+#: `<ns>/*` refspec spans slashes and would carry `refs/grid/origin-snap/*` and every legacy namespace to origin with it.
+PUSH_KINDS = ("node", "session")
+PUSH_SPECS = [f"{REF_NS}/{k}/*:{REF_NS}/{k}/*" for k in PUSH_KINDS]
 
 
 def ref_ns_for(root: Path) -> str:
@@ -140,6 +149,52 @@ def ref_ns_for(root: Path) -> str:
     return trunk.strip().rstrip("/")
 
 
+def trunk_declared(root: Path) -> bool:
+    """True when the shared config declares `grid.storage_trunk` at all (goal:g7.16.1.11.46.16).
+
+    The branch-blind refusal exists for an UNDECLARED tree; a declared trunk, even the
+    default spelling `refs/grid`, is a project's own statement of where its refs live,
+    so the refusal is lifted for it exactly as it was for a non-default trunk."""
+    shared = locations.shared_project_root(Path(root))
+    section = locations.load_config(shared or Path(root)).get("grid")
+    trunk = section.get("storage_trunk") if isinstance(section, dict) else None
+    return isinstance(trunk, str) and bool(trunk.strip())
+
+
+def legacy_namespaces_for(root: Path) -> list[str]:
+    """Namespaces the shared config declares READ-ONLY (`grid.legacy_namespaces`, goal:g7.16.1.11.46.16).
+
+    Never written, never pushed again, exempt from the post-migration refusal; `unify` merges
+    them into the one namespace and `commit` holds a mint whose legacy tip is not yet in that
+    mint's history. Absent, unreadable or malformed -> [] (no exemption: the refusal stands)."""
+    shared = locations.shared_project_root(Path(root))
+    section = locations.load_config(shared or Path(root)).get("grid")
+    raw = section.get("legacy_namespaces") if isinstance(section, dict) else None
+    if not isinstance(raw, list):
+        return []
+    return [x.strip().rstrip("/") for x in raw if isinstance(x, str) and x.strip()]
+
+
+def legacy_config_problem(root: Path) -> str | None:
+    """Why `grid.legacy_namespaces` is unusable, or None (goal:g7.16.1.11.46.16 R4). A cell that is
+    PRESENT but not a list of namespaces under refs/grid, or that names the writer's own namespace,
+    makes `commit` and `unify` refuse by name: a mis-typed cell must never read as 'no legacy
+    namespace' (which would switch the hold off)."""
+    shared = locations.shared_project_root(Path(root))
+    section = locations.load_config(shared or Path(root)).get("grid")
+    if not isinstance(section, dict) or "legacy_namespaces" not in section:
+        return None
+    raw = section["legacy_namespaces"]
+    if not isinstance(raw, list) or not all(isinstance(x, str) and x.strip() for x in raw):
+        return "grid.legacy_namespaces must be a list of namespace strings"
+    names = [x.strip().rstrip("/") for x in raw]
+    if any(not (n == DEFAULT_REF_NS or n.startswith(DEFAULT_REF_NS + "/")) for n in names):
+        return "grid.legacy_namespaces names a namespace outside refs/grid"
+    if ref_ns_for(root) in names:
+        return "grid.legacy_namespaces names the writer's own namespace"
+    return None
+
+
 def migrated_trunk_namespaces(root: Path) -> list[str]:
     """Namespaces nested under `DEFAULT_REF_NS` that already hold refs.
 
@@ -165,18 +220,24 @@ def migrated_trunk_namespaces(root: Path) -> list[str]:
         found = re.sub(r"/(node|session)/.*$", "", line, count=1)
         if found != line and found != DEFAULT_REF_NS:
             ns.add(found)
-    return sorted(ns)
+    return sorted(ns - set(legacy_namespaces_for(root)) - {ORIGIN_SNAP_NS})
 
 
-def push_spec_for(root: Path) -> str:
-    """`REF_NS` push refspec for graph root `root` — the one spelling of it.
+def push_spec_for(root: Path) -> list[str]:
+    """`REF_NS` push refspecs for graph root `root` — THE one builder of them (the census C-blocks of
+    goal:g7.16.1.11.13 pin it by name: any other function returning a refs/grid refspec is a NEW site).
+
+    A LIST of two (`<ns>/node/*` and `<ns>/session/*`, `PUSH_KINDS`), not one `<ns>/*`: a `*` refspec spans
+    slashes (measured, git 2.43.0: `git push <bare> 'refs/grid/*:refs/grid/*'` carried node/, origin-snap/node/
+    and a legacy namespace's node/ all three), so the old one-liner pushed the private origin mirror and the
+    read-only legacy namespaces too. Callers pass them as separate arguments (`git push origin *specs`).
 
     `crons.py` imports this rather than re-hardcoding the namespace (goal:g14.14.7
     item b): the second spelling in the cron template was the gap, and a
     function is what makes `apply` and the cron line agree by construction.
     """
     ns = ref_ns_for(root)
-    return f"{ns}/*:{ns}/*"
+    return [f"{ns}/{k}/*:{ns}/{k}/*" for k in PUSH_KINDS]
 
 
 # The ONE declared home of the grid push defaults: a project that has not set
@@ -205,11 +266,14 @@ def push_batch_limit(root: Path) -> int:
 def push_batches(root: Path) -> list[list[str]]:
     """Exact post-split refspec batches for changed local tips; never a wildcard."""
     ns = ref_ns_for(root)
+    # node/ and session/ only: under the default namespace a bare `refs/grid` would also list the
+    # READ-ONLY legacy namespaces nested beneath it (goal:g7.16.1.11.46.16), which are never pushed again
+    kinds = [f"{ns}/node", f"{ns}/session"]
     local = [line.split() for line in git(
-        root, "for-each-ref", ns, "--format=%(refname) %(objectname)").splitlines()]
+        root, "for-each-ref", *kinds, "--format=%(refname) %(objectname)").splitlines()]
     remote = {parts[1]: parts[0] for parts in (
         line.split() for line in git(
-            root, "ls-remote", "--refs", "origin", f"{ns}/*").splitlines())}
+            root, "ls-remote", "--refs", "origin", *[f"{k}/*" for k in kinds]).splitlines())}
     cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
     grid_cfg = cfg.get("grid") or {}
     split_epoch = int(grid_cfg.get("push_split_epoch", 0))
@@ -253,7 +317,7 @@ def grid_retired(root: Path) -> bool:
     (the operator's verb, ungated by design) can only republish tips that
     already exist locally: a non-force push, idempotent, nothing new written
     (whether root pushes refs/grid at all is E2d, belam's). The `cron_lines` snap
-    line (`commit --all && git push -q origin PUSH_SPEC`, installed only by
+    line (`commit --all && git push -q origin PUSH_SPECS`, installed only by
     `grid.py cron install`) is EXEMPT with `sync`: it never calls the push verbs
     gated here, and a retired `commit --all` exits 0, so its `&&` push
     republishes pre-existing tips.
@@ -270,38 +334,114 @@ def grid_retired(root: Path) -> bool:
         return False
 
 
-def cmd_push_changed(root: Path) -> None:
-    """Advance only changed local grid tips, stopping at the first bad batch."""
+PUSH_NON_FF = "[rejected] (non-fast-forward)"
+PUSH_GENERIC_ERROR = "error: failed to push some refs"
+
+
+PUSH_STATUS_FLAGS = " *+-!="
+
+
+def read_push_porcelain(res: "subprocess.CompletedProcess[str]", batch: list[str]) -> tuple[list[str], str | None]:
+    """Read one batch pushed with `--porcelain`: (the dst refs NAMED as non-fast-forward rejections, unread).
+
+    `unread` is None only when every failure is a `!<TAB><src>:<dst><TAB>[rejected] (non-fast-forward)`
+    line: that ref stays where the remote has it and the rest of the batch landed (a push is per ref
+    unless --atomic). Anything else is unread, with the first line that says why: a non-zero rc with no
+    `!` line (transport, auth, a missing remote), a `!` line with another summary (`[remote rejected]`,
+    `(fetch first)`: the remote holds a tip this repo never fetched), or an `error:`/`fatal:` on stderr
+    other than git's own `error: failed to push some refs` (goal:g7.16.1.11.46.16, alive 19:09:47Z).
+    A batch is landed only when EVERY `<src>:<dst>` of `batch` has its own status line: git prints one
+    per ref, `=` for one already up to date (measured, git 2.43), so a missing line (a silent rc 0, a
+    git on PATH that printed nothing) is unread, never counted as landed (sp, alive 20:34:49Z)."""
+    named, other, seen = [], [], set()
+    for line in res.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3 and len(parts[0]) == 1 and parts[0] in PUSH_STATUS_FLAGS:
+            seen.add(parts[1].rsplit(":", 1)[-1])
+        if len(parts) >= 3 and parts[0] == "!":
+            if parts[2].strip() == PUSH_NON_FF:
+                named.append(parts[1].rsplit(":", 1)[-1])
+            else:
+                other.append(" ".join(p.strip() for p in parts))
+    errors = [l.strip() for l in res.stderr.splitlines()
+              if l.startswith(("error:", "fatal:")) and not l.startswith(PUSH_GENERIC_ERROR)]
+    if errors:
+        return named, errors[0]
+    if other:
+        return named, other[0]
+    if res.returncode != 0 and not named:
+        first = next((l.strip() for l in res.stderr.splitlines() if l.strip()), "")
+        return named, first or f"the push exited {res.returncode} with no ref status line"
+    missing = [dst for dst in (spec.rsplit(":", 1)[-1] for spec in batch) if dst not in seen]
+    if missing:
+        return named, (f"no ref status line for {len(missing)} of {len(batch)} ref(s), first {missing[0]} "
+                       f"(the push exited {res.returncode})")
+    return named, None
+
+
+def push_ref_names(root: Path, refs: list[str]) -> str:
+    """The names rejections are reported by: the mint for `<ns>/node/<mint>`, else the whole ref."""
+    prefix = f"{ref_ns_for(root)}/node/"
+    return " ".join(r[len(prefix):] if r.startswith(prefix) else r for r in refs)
+
+
+def cmd_push_changed(root: Path) -> int:
+    """Advance only changed local grid tips, batch by batch: a NAMED non-fast-forward rejection is
+    counted and the next batch still runs; any other failure stops at that batch, unread. Never --force.
+    rc 0 only when every changed ref reached the remote; the last line is always a `grid push:` line."""
     if grid_retired(root):
         print(RETIRED_LINE)
-        return
+        return 0
     ensure_repo(root)
     batches = push_batches(root)
+    rejected: list[str] = []
     for number, batch in enumerate(batches, 1):
-        git(root, "push", "-q", "origin", *batch)
-        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s)")
+        named, unread = read_push_porcelain(git_try(root, "push", "--porcelain", "origin", *batch), batch)
+        rejected.extend(named)    # counted by name; the remote keeps its tip and the next batch still runs
+        if unread is not None:
+            if rejected:
+                print(f"grid push: rejected {len(rejected)}: {push_ref_names(root, rejected)}")
+            print(f"grid push: unread at batch {number}/{len(batches)}: {unread}")
+            return 1
+        note = f", {len(named)} rejected" if named else ""
+        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s){note}")
     print(f"grid push: {sum(map(len, batches))} changed ref(s) in {len(batches)} batch(es)")
+    if rejected:
+        print(f"grid push: rejected {len(rejected)}: {push_ref_names(root, rejected)}")
+        return 1
+    return 0
+
+
+def fetch_specs_for(root: Path) -> list[str]:
+    """`REF_NS` fetch refspecs for graph root `root`: node/ and session/ ONLY, and NEVER forced
+    (goal:g7.16.1.11.46.16 R3). The old `+<ns>/*:<ns>/*` would, after `unify`, let a plain fetch from
+    a remote still at the frozen tips move a merged tip BACK, and would also reach the read-only legacy
+    namespaces nested under `refs/grid`; a non-forced spec refuses a non-fast-forward instead."""
+    ns = ref_ns_for(root)
+    return [f"{ns}/node/*:{ns}/node/*", f"{ns}/session/*:{ns}/session/*"]
 
 
 def fetch_spec_for(root: Path) -> str:
-    """`REF_NS` fetch refspec for graph root `root` (see `push_spec_for`)."""
-    ns = ref_ns_for(root)
-    return f"+{ns}/*:{ns}/*"
+    """The node/ fetch refspec (see `fetch_specs_for`, which `cmd_init` configures in full)."""
+    return fetch_specs_for(root)[0]
 
 
 def apply_storage_trunk(root: Path) -> str:
     """Resolve `grid.storage_trunk` for `root` into this module's globals.
 
-    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+    `REF_NS`, `FETCH_SPEC` and `PUSH_SPECS` are the values every other function
     here derives from, so one call makes all of them config-aware with no
     further edits. `main()` calls it once, before dispatch; a test or a caller
     holding a configured tree calls it directly. Returns the resolved
     namespace so a caller can report it without re-reading the config.
     """
-    global REF_NS, FETCH_SPEC, PUSH_SPEC
+    global REF_NS, FETCH_SPEC, PUSH_SPECS
+    global FETCH_SPECS, LEGACY_NS
     REF_NS = ref_ns_for(root)
-    FETCH_SPEC = fetch_spec_for(root)
-    PUSH_SPEC = push_spec_for(root)
+    LEGACY_NS = [n for n in legacy_namespaces_for(root) if n != REF_NS]
+    FETCH_SPECS = fetch_specs_for(root)
+    FETCH_SPEC = FETCH_SPECS[0]
+    PUSH_SPECS = push_spec_for(root)
     return REF_NS
 
 
@@ -588,7 +728,7 @@ def resolve_payload(root: Path, payload_ref: str,
     **Non-default (`location` names a key declared under the project config's
     `locations:` map)** — resolve through the SAME location-aware mechanism
     `node_writer.ensure_payload`/`replace_payload` use, so the grid agrees
-    with `write.py create --payload`'s link_ref about where the payload
+    with the node's `link_ref` (written when it was minted) about where the payload
     lives (`locations.resolve_payload_path`). The staged/engine pair does not
     apply here: that pairing only ever described the default tree.
 
@@ -620,7 +760,11 @@ def parse_parents(path: Path) -> list[str]:
     additive provenance, never a value a caller should treat as load-bearing
     for correctness.
     """
-    text = path.read_text(encoding="utf-8")
+    return parents_from_text(path.read_text(encoding="utf-8"))
+
+
+def parents_from_text(text: str) -> list[str]:
+    """`parse_parents` over a node's TEXT (a disk file or a blob of a gated tree: split's A19 trailer reads the blob)."""
     fm_end = text.find("\n---", 3)
     fm_text = text[:fm_end] if fm_end != -1 else text
 
@@ -729,6 +873,27 @@ def build_parent_mint_trailer(path: Path, id_index: dict[str, Path], resolve=Non
         parent_mint = parse_mint_id(parent_path) if parent_path is not None else None
         token = parent_mint if parent_mint else "UNRESOLVED"
         lines.append(f"Parent-Mint-Id: {token} {parent_id}")
+    return "\n".join(lines)
+
+
+def split_parent_trailer(body: str, view: dict[str, set[str]]) -> str | None:
+    """goal:g7.16.1.11.46.18 A19: goal:g2.7's `Parent-Mint-Id: <mint> <parent id>` lines for a SPLIT version, read from the
+    node's blob in the GATED tree and resolved through that tree's view {mint: ids}, never the checkout (U4: a land is judged
+    by the tree it lands). A parent written as a mint id is named by its address when the view carries exactly one;
+    UNRESOLVED (never a fabricated id) when the gated tree has no node of that id, or two."""
+    parents = parents_from_text(body)
+    if not parents:
+        return None
+    by_id: dict[str, list[str]] = {}
+    for m, ids in view.items():
+        for i in ids:
+            by_id.setdefault(i, []).append(m)
+    lines = []
+    for p in parents:
+        if re.fullmatch(r"[0-9a-f]{32}", p) and len(view.get(p, ())) == 1:
+            p = next(iter(view[p]))
+        ms = by_id.get(p, [])
+        lines.append(f"Parent-Mint-Id: {ms[0] if len(ms) == 1 else 'UNRESOLVED'} {p}")
     return "\n".join(lines)
 
 
@@ -883,10 +1048,11 @@ def cmd_init(root: Path) -> None:
     if "origin" in remotes:
         specs = git(root, "config", "--get-all", "remote.origin.fetch",
                     check=False).splitlines()
-        if FETCH_SPEC not in specs:
-            git(root, "config", "--add", "remote.origin.fetch", FETCH_SPEC)
-            print(f"grid: added fetch refspec {FETCH_SPEC} to origin")
-        else:
+        added = [x for x in FETCH_SPECS if x not in specs]
+        for spec in added:
+            git(root, "config", "--add", "remote.origin.fetch", spec)
+            print(f"grid: added fetch refspec {spec} to origin")
+        if not added:
             print("grid: origin refspec already configured")
     else:
         print("grid: no origin remote yet — refs work locally; run "
@@ -899,6 +1065,176 @@ def cmd_init(root: Path) -> None:
 #: refs whose update-ref failed for a reason other than a CAS miss (goal:g4.13.1 N1):
 #: the run goes on, then `cmd_commit` exits 1 after its summary line.
 UPDATE_REF_FAILURES: list[str] = []
+
+
+LEGACY_HELD: list[str] = []
+#: refs whose NEW mint was refused because another mint already carries the same `id:` (the double mint).
+DOUBLE_MINT_REFUSED: list[str] = []
+#: mints whose ref this run created (they carry their id from then on); the per-run view cache; reset per run.
+MINTED_THIS_RUN: dict[str, str] = {}
+#: the double-mint views, KEYED by the view (I18, all-is-one 08:37:09Z): "worktree" = the checkout commit --all versions,
+#: ("tree", <sha>) = a gated tree a split judges; one process that runs both never judges one by the other's view
+_DM_CACHE: dict = {}
+#: {legacy ref: tip}, read ONCE per run by one `for-each-ref` whose rc is checked (R4): an absent ref
+#: and a failed rev-parse can no longer look alike. None = not loaded yet.
+LEGACY_TIPS: dict[str, str] | None = None
+
+
+def legacy_tips(root: Path) -> dict[str, str]:
+    global LEGACY_TIPS
+    if LEGACY_TIPS is None:
+        tips: dict[str, str] = {}
+        for ns in LEGACY_NS:
+            res = git_try(root, "for-each-ref", f"{ns}/node", "--format=%(refname) %(objectname)")
+            if res.returncode != 0:
+                sys.exit(f"grid: unread (for-each-ref {ns}/node failed: {res.stderr.strip()[:120]}); nothing written")
+            for line in res.stdout.splitlines():
+                ref, _, oid = line.partition(" ")
+                tips[ref] = oid
+        LEGACY_TIPS = tips
+    return LEGACY_TIPS
+
+
+def legacy_unmerged(root: Path, ref: str, tip: str | None) -> str | None:
+    """The read-only legacy ref of the same mint whose tip is NOT in `ref`'s history, or None.
+
+    goal:g7.16.1.11.46.16 G1a-W: once the writer is pointed at the one namespace, a mint whose live
+    history still sits in a legacy namespace must be unified FIRST (`cmd_unify`); writing before that
+    would fork a second line from the frozen tip. Only `<ns>/node/<mint>` refs are held."""
+    if not LEGACY_NS or not ref.startswith(f"{REF_NS}/node/"):
+        return None
+    rest = ref[len(REF_NS) + 1:]
+    for ns in LEGACY_NS:
+        lref = f"{ns}/{rest}"
+        ltip = legacy_tips(root).get(lref)
+        if ltip is None:
+            continue
+        if tip and git_try(root, "merge-base", "--is-ancestor", ltip, tip).returncode == 0:
+            continue
+        return lref
+    return None
+
+
+def _dm_view(root: Path, files: dict[str, set[str]] | None = None, key="worktree") -> dict:
+    """The per-run read the double-mint refusal needs, built ONCE per VIEW (`key`) and only when a new mint is about to be
+    created (goal:g7.16.1.11.46.18 U4: the VIEW is an argument: `files` None = the checkout on disk, which commit --all
+    versions; a split hands the GATED tree's {mint: ids}; `bad` lists the mints whose ref tip has no node.md blob):
+    `files` {mint: {ids its FILE names}} over the commit's own view (every node file under nodes/, deprecated/ too),
+    `refs` {mint: tip} for every mint with a ref in the one namespace, and `tip_ids` {mint: the id its ref TIP names}
+    for the refs whose mint has NO file in the view (ghosts, never-landed): the only mints read from a tip."""
+    if key in _DM_CACHE:
+        return _DM_CACHE[key]
+    view, files = files, {}
+    for p in (iter_node_files(root) if view is None else []):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        mi, ii = MINT_ID_RE.search(text), ID_RE.search(text)
+        if mi and ii:
+            files.setdefault(mi.group(1), set()).add(ii.group(1))
+    if view is not None:
+        files = view
+    res = git_try(root, "for-each-ref", f"{REF_NS}/node", "--format=%(objectname) %(refname)")
+    if res.returncode != 0:
+        sys.exit(f"grid: unread (for-each-ref {REF_NS}/node failed: {res.stderr.strip()[:120]}); nothing written")
+    refs = {x.split()[1][len(REF_NS) + 6:]: x.split()[0] for x in res.stdout.splitlines() if len(x.split()) == 2}
+    loose = {m: t for m, t in refs.items() if m not in files}
+    tip_ids: dict[str, str] = {}
+    bad: list[str] = []
+    if loose:
+        out = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"],
+                             input="".join(f"{t}:{NODE_ENTRY}\n" for t in loose.values()).encode(), capture_output=True)
+        if out.returncode != 0:
+            sys.exit("grid: unread (cat-file over the tips of the mints with no file); nothing written")
+        pos = 0
+        for m in loose:
+            nl = out.stdout.find(b"\n", pos)
+            head = out.stdout[pos:nl].split() if nl >= 0 else []
+            if len(head) != 3 or head[1] != b"blob":
+                bad.append(m)                             # commit --all reads no holder here; a split reads it as unread
+                pos = nl + 1 if nl >= 0 else len(out.stdout)
+                continue
+            size = int(head[2])
+            body = out.stdout[nl + 1:nl + 1 + size].decode("utf-8", "replace")
+            pos = nl + 1 + size + 1
+            ii = ID_RE.search(body)
+            if ii:
+                tip_ids[m] = ii.group(1)
+    _DM_CACHE[key] = {"files": files, "refs": refs, "tip_ids": tip_ids, "bad": bad}
+    return _DM_CACHE[key]
+
+
+def double_mint_holder(root: Path, mint: str, node_id: str, files: dict[str, set[str]] | None = None,
+                       key="worktree") -> tuple[str, str] | None:
+    """goal:g7.16.1.11.46.16 (the leaf of the census-orphans decision, alive 07:42:38Z 10-26): when a NEW `<ns>/node/<mint>`
+    ref is about to be created, the OTHER mint that already carries `node_id`, as `(mint, where)`, else None.
+    Where another mint's id is READ: from its FILE in the commit's own view (so a renumber that lands `g7.1 (M1) -> g7.2`
+    and `a NEW g7.1 (M2)` in one commit never refuses M2, whatever order the files are processed in); from its ref TIP
+    only for a mint with no file in that view. A mint carries its id only once it HAS a ref (or this run created it), so of
+    two new files with one id the first processed is minted and the second is refused."""
+    v = _dm_view(root, files, key)
+    pool = v["refs"].keys() | MINTED_THIS_RUN.keys()
+    if key != "worktree":    # a TREE view (a split writes nothing between prepares): a file-only NEW mint holds its id too (A16)
+        pool |= v["files"].keys()
+    for m in sorted(pool):
+        if m == mint:
+            continue
+        if m in v["files"]:
+            if node_id in v["files"][m]:
+                return m, "its node file"
+        elif v["tip_ids"].get(m, MINTED_THIS_RUN.get(m)) == node_id:
+            return m, "its ref tip (no node file)"
+    return None
+
+
+def prepare_version(root: Path, ref: str, tip: str | None, tree: str, node_id: str, mint: str | None, *,
+                    dm_files: dict[str, set[str]] | None = None, dm_key="worktree") -> tuple[str, str, int, object]:
+    """PREPARE, the first half of the ONE per-version helper (goal:g7.16.1.11.46.18 U5; A14 read whole: commit_file, which
+    grid_sync's commit --all runs, and `split` both call it): every read and every refusal for one version of `ref`, writing
+    nothing. Returns (verdict, tree, n, why): `held` (a legacy tip not in this ref's history; why = that ref), `double-mint`
+    (a NEW mint whose id another mint carries in the VIEW; why = (mint, where)), `nest` (the tip's nest/ unreadable or not a
+    non-empty tree of trees), `unchanged`, or `ok` with the tree (a collapse's nest/ carried) and the version number."""
+    held = legacy_unmerged(root, ref, tip)
+    if held:
+        return "held", tree, 0, held
+    if tip is None and mint and ref == mint_node_ref(mint):    # a MINT ref only: the legacy node-id-keyed refs are not mints
+        other = double_mint_holder(root, mint, node_id, dm_files, dm_key)
+        if other:
+            return "double-mint", tree, 0, other
+    if tip:
+        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
+        # a non-empty tree of trees; anything else skips THIS node and the run goes on
+        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
+        ent = er.stdout.strip()
+        built = None
+        if er.returncode == 0 and ent:
+            head = ent.split("\t")[0].split()
+            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
+            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
+            if rows and all(r.split()[1] == "tree" for r in rows):
+                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
+                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
+        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
+            return "nest", tree, 0, None
+        if ent:
+            tree = built.stdout.strip()
+        old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
+        if old_tree == tree:
+            return "unchanged", tree, 0, None
+    # --first-parent: a collapse's members are extra parents, not versions
+    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
+    return "ok", tree, n, None
+
+
+def write_version(root: Path, ref: str, tip: str | None, tree: str, message: str) -> "subprocess.CompletedProcess[str]":
+    """WRITE, the second half (U5): the commit and ONE compare-and-swap of `ref` on `tip`, the tip PREPARE read; it re-reads
+    nothing else. A refusal is the caller's to name (commit_file: skip; split: a held merge row)."""
+    parent = ["-p", tip] if tip else []
+    commit = git(root, "commit-tree", tree, *parent, "-m", message)
+    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
+    res = git_try(root, "update-ref", ref, commit, tip or "")
+    return res
 
 
 def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
@@ -928,36 +1264,29 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
         return None
     tree = build_tree(root, path, payload)
     tip = ref_tip(root, ref)
-    if tip:
-        # goal:g4.13.1: carry a collapse's nest/ forward (unedited = unchanged), but only
-        # a non-empty tree of trees; anything else skips THIS node and the run goes on
-        er = git_try(root, "ls-tree", tip, "--", "nest")  # a failing read is a skip, never "no nest"
-        ent = er.stdout.strip()
-        built = None
-        if er.returncode == 0 and ent:
-            head = ent.split("\t")[0].split()
-            kids = git_try(root, "ls-tree", head[2]) if head[:2] == ["040000", "tree"] else None
-            rows = kids.stdout.split("\n")[:-1] if kids is not None and kids.returncode == 0 else []
-            if rows and all(r.split()[1] == "tree" for r in rows):
-                lines = git(root, "ls-tree", tree) + "\n" + f"040000 tree {head[2]}\tnest\n"
-                built = git_try(root, "mktree", input_text=lines.lstrip("\n"))
-        if er.returncode != 0 or (ent and (built is None or built.returncode != 0)):
-            print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
-                  f"trees; the ref is untouched): {ref}", file=sys.stderr)
-            return None
-        if ent:
-            tree = built.stdout.strip()
-        old_tree = git(root, "rev-parse", f"{tip}^{{tree}}", check=False)
-        if old_tree == tree:
-            return None  # unchanged — versions record change, not time
-    # --first-parent: a collapse's members are extra parents, not versions
-    n = int(git(root, "rev-list", "--count", "--first-parent", tip)) + 1 if tip else 1
-    parent = ["-p", tip] if tip else []
+    mint = parse_mint_id(path)
+    verdict, tree, n, why = prepare_version(root, ref, tip, tree, node_id, mint)
+    if verdict == "held":    # goal:g7.16.1.11.46.16: a version written now would fork from the live history
+        print(f"hold (the read-only {why} is not in this ref's history; "
+              f"`grid.py unify --write` first): {ref}", file=sys.stderr)
+        LEGACY_HELD.append(ref)
+        return None
+    if verdict == "double-mint":    # a second mint for an id that is taken: the file is left for review, nothing is written
+        print(f"refuse (double mint: {node_id} is already carried by mint {why[0]} ({why[1]}); "
+              f"this file's mint is {mint}; the file is left for review): {path}", file=sys.stderr)
+        DOUBLE_MINT_REFUSED.append(ref)
+        return None
+    if verdict == "nest":
+        print(f"skip (the nest entry of {node_id} is unreadable or not a non-empty tree of "
+              f"trees; the ref is untouched): {ref}", file=sys.stderr)
+        return None
+    if verdict == "unchanged":
+        return None  # unchanged — versions record change, not time
     subject = f"{msg_prefix}v{n} {node_id}"
     message = f"{subject}\n\n{trailer}\n" if trailer else subject
-    commit = git(root, "commit-tree", tree, *parent, "-m", message)
-    # CAS (goal:g4.13.1): "" = the ref must not exist; a refusal skips this node only
-    res = git_try(root, "update-ref", ref, commit, tip or "")
+    res = write_version(root, ref, tip, tree, message)
+    if res.returncode == 0 and tip is None and (parse_mint_id(path) or "") and ref == mint_node_ref(parse_mint_id(path)):
+        MINTED_THIS_RUN[parse_mint_id(path)] = node_id
     if res.returncode != 0:
         # ONE line whatever git said: a held ref lock is 7 lines (the lock path, a blank,
         # a 5-line "Another git process" hint); the join keeps the hint, drops the blanks
@@ -1165,6 +1494,11 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     # the config-aware `ref_ns_for(root)` against writes still going to the
     # module-global `REF_NS` default -- guard and writer, two namespaces.
     apply_storage_trunk(root)
+    global LEGACY_TIPS
+    LEGACY_TIPS = None
+    problem = None if session else legacy_config_problem(root)
+    if problem:    # goal:g7.16.1.11.46.16 R4: fail closed, write no ref
+        sys.exit(f"grid: refusing commit: {problem}; nothing written")
 
     # hypothesis:grid-old-namespace-refilled-and-forked conjunct 2 -- refuse by
     # name after a storage-trunk migration. `ref_ns_for` now reads the shared
@@ -1204,7 +1538,9 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     # (correct only after `apply_storage_trunk()` has run). It returns
     # `DEFAULT_REF_NS` for absent/unreadable/empty config, so an unconfigured
     # tree refuses EXACTLY as before and `--allow-branch` stays its override.
-    if not session and not allow_branch and ref_ns_for(root) == DEFAULT_REF_NS:
+    # goal:g7.16.1.11.46.16: the lift keys on the trunk being DECLARED (`trunk_declared`), so a
+    # project that declares the default spelling `refs/grid` plus `grid.legacy_namespaces` keeps it.
+    if not session and not allow_branch and not trunk_declared(root):
         # resolve the checked-out branch of the repo that owns the graph
         # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
         # work); on detached HEAD it fails (exit != 0) which we treat as not
@@ -1276,6 +1612,10 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         written = 0
         errors = 0
         UPDATE_REF_FAILURES.clear()
+        LEGACY_HELD.clear()
+        DOUBLE_MINT_REFUSED.clear()
+        MINTED_THIS_RUN.clear()
+        _DM_CACHE.clear()
         payloads = 0
         payload_missing = 0
         payload_retired = 0
@@ -1327,8 +1667,204 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
               f"{payload_retired} retired with their node, "
               f"{demoted} demoted by the evidence gate")
-        if UPDATE_REF_FAILURES:   # goal:g4.13.1 N1: the run went on; it is not clean
+        if LEGACY_HELD:    # goal:g7.16.1.11.46.16: held, not forked; not clean
+            print(f"grid: {len(LEGACY_HELD)} held (a read-only legacy tip is not yet in the ref's "
+                  f"history): run `grid.py unify --write`", file=sys.stderr)
+        if DOUBLE_MINT_REFUSED:    # goal:g7.16.1.11.46.16: refused by name above; the run went on, not clean
+            print(f"grid: {len(DOUBLE_MINT_REFUSED)} new mint(s) refused (the id is already carried by another mint)", file=sys.stderr)
+        if UPDATE_REF_FAILURES or LEGACY_HELD or DOUBLE_MINT_REFUSED:   # goal:g4.13.1 N1: the run went on; it is not clean
             sys.exit(1)
+    finally:
+        if lock is not None:
+            lock.release()
+
+
+SPLIT_HELD: list[str] = []
+STATUS_RE = re.compile(r'^status:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
+
+
+def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], dict[str, set[str]], int, list[str]]:
+    """The changed nodes of the land base..gated, read from the two trees only (no checkout): every node file the gated tree
+    adds or modifies, and every node whose `payload_ref` path changed (its payload is NODE-owned, goal:g6.3). Each item is
+    {mint, id, path, node (blob sha), payload (mode, sha) | None}. Also returns the GATED tree's double-mint view
+    {mint: ids} over EVERY gated node file (U4: the land is judged by the tree it lands, never by a checkout) and the count
+    of retired nodes whose payload is absent (counted apart, A17). Unread: a node path deleted with no gated file of the
+    same mint (retire, never delete), a node file with an id and no mint_id, two gated files of one mint, a blob that
+    cannot be read, a LIVE node whose payload_ref names no path in the gated tree (A17)."""
+    unread: list[str] = []
+    res = git_try(root, "diff-tree", "-r", "-z", "--no-renames", "--no-commit-id", base, gated)
+    if res.returncode != 0:
+        return [], {}, 0, [f"unread (diff-tree {base[:12]} {gated[:12]} rc {res.returncode})"]
+    parts = res.stdout.split("\0")
+    changed: dict[str, str] = {}                          # path -> status letter
+    for i in range(0, len(parts) - 1, 2):
+        changed[parts[i + 1]] = parts[i].split()[-1]
+    is_node = lambda q: q.startswith(".agi/nodes/") and q.endswith(".md")
+    lst = git_try(root, "ls-tree", "-r", "-z", "--full-tree", gated)
+    if lst.returncode != 0:
+        return [], {}, 0, [f"unread (ls-tree {gated[:12]} rc {lst.returncode})"]
+    tree: dict[str, tuple[str, str]] = {}                 # path -> (mode, sha) in the gated tree
+    for e in lst.stdout.split("\0"):
+        if e:
+            meta, q = e.split("\t", 1)
+            mode, _, sha = meta.split()
+            tree[q] = (mode, sha)
+    # every gated node blob (the double-mint view needs them all), and the base blob of each deleted node path
+    want = [(gated, q) for q in tree if is_node(q)] + [(base, q) for q, st in changed.items() if st == "D" and is_node(q)]
+    out = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"], capture_output=True,
+                         input="".join(f"{rev}:{q}\n" for rev, q in want).encode())
+    if out.returncode != 0:
+        return [], {}, 0, [f"unread (cat-file --batch over {len(want)} node blob(s) rc {out.returncode})"]
+    text: dict[tuple[str, str], str] = {}
+    pos = 0
+    for w in want:
+        nl = out.stdout.find(b"\n", pos)
+        head = out.stdout[pos:nl].split()
+        if len(head) != 3 or head[1] != b"blob":
+            unread.append(f"unread {w[1]} (its blob at {w[0][:12]} is not readable)")
+            pos = nl + 1
+            continue
+        size = int(head[2])
+        text[w] = out.stdout[nl + 1:nl + 1 + size].decode("utf-8", "replace")
+        pos = nl + 1 + size + 1
+    items: dict[str, dict] = {}
+    view: dict[str, set[str]] = {}
+    gated_mints: dict[str, str] = {}
+    retired_gone = 0
+    for (rev, q), body in text.items():
+        if rev != gated:
+            continue
+        ii, mi = ID_RE.search(body), MINT_ID_RE.search(body)
+        if not ii:
+            continue                                      # not a node (no id): carried, never versioned
+        if not mi:
+            unread.append(f"unread {q} ({ii.group(1)} has no mint_id)")
+            continue
+        view.setdefault(mi.group(1), set()).add(ii.group(1))
+        if mi.group(1) in gated_mints and gated_mints[mi.group(1)] != q:
+            unread.append(f"unread {q} (mint {mi.group(1)} is also {gated_mints[mi.group(1)]})")
+            continue
+        gated_mints[mi.group(1)] = q
+        pr, loc, st = PAYLOAD_REF_RE.search(body), LOCATION_RE.search(body), STATUS_RE.search(body)
+        pref = pr.group(1) if pr and (not loc or loc.group(1) in ("source_root", "repo_root")) else None
+        if not (q in changed or (pref and pref in changed)):
+            continue
+        if pref and pref not in tree:
+            if st and st.group(1) == "deprecated":
+                retired_gone += 1                         # a retired node's payload is retired with it (counted apart)
+            else:                                         # A17: a land is gated, not cron: a live payload gone fails closed
+                unread.append(f"unread {q} (live {ii.group(1)}: its payload_ref {pref} names no path in the gated tree)")
+                continue
+        items[mi.group(1)] = {"mint": mi.group(1), "id": ii.group(1), "path": q, "node": tree[q][1],
+                              "payload": tree.get(pref) if pref else None, "body": body}
+    for (rev, q), body in text.items():
+        if rev == base:
+            mi = MINT_ID_RE.search(body)
+            if mi and mi.group(1) not in gated_mints:
+                unread.append(f"unread {q} (deleted with no gated file of its mint {mi.group(1)}: retire, never delete)")
+    return [items[m] for m in sorted(items)], view, retired_gone, unread
+
+
+def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 120) -> int:
+    """goal:g7.16.1.11.46.18 G1b-2 (A14 + I14 + U5): a land is a SPLIT. One grid commit per changed node of base..gated on
+    its `mint_node_ref` (the builder), under GridLock, through the ONE per-version helper commit_file uses
+    (prepare_version + write_version). EVERY prepare runs before the FIRST write, against the tips read once: a failed read
+    or any refusal (double mint judged by the GATED tree's view, a live payload gone, a nest unreadable, a legacy hold) is
+    `unread` and NOTHING is written, rc 1. The write half re-reads nothing but the CAS: a tip that moved since it was read
+    (grid_sync's `commit --all`, a single-file commit) is a `held merge` row for that mint, that node not written, never a
+    whole-tree merge, rc 1, the earlier nodes written (I19: exactly two non-clean outcomes, the summary names which; slice
+    (c)'s land check reads a held merge as NOT landed). Without --write the plan is printed and nothing is written."""
+    if grid_retired(root):
+        print(RETIRED_LINE)
+        return 1
+    ensure_repo(root)
+    problem = legacy_config_problem(root)
+    if problem:
+        print(f"split: unread ({problem}); nothing written")
+        return 1
+    revs = []
+    for name in (base, gated):
+        r = git_try(root, "rev-parse", "-q", "--verify", f"{name}^{{commit}}")
+        if r.returncode != 0:
+            print(f"split: unread ({name} does not name a commit); nothing written")
+            return 1
+        revs.append(r.stdout.strip())
+    b, g = revs
+    print(f"split: base {b} gated {g}")
+    items, view, retired_gone, unread = _split_plan(root, b, g)
+    if unread:
+        for u in unread:
+            print(f"  {u}")
+        print(f"split: unread {len(unread)}; nothing written")
+        return 1
+    SPLIT_HELD.clear()
+    lock = GridLock(root, lock_wait) if write else None
+    if lock is not None:
+        lock.acquire()
+    try:
+        global LEGACY_TIPS
+        LEGACY_TIPS = None
+        refs = [mint_node_ref(it["mint"]) for it in items]
+        res = git_try(root, "for-each-ref", "--format=%(refname) %(objectname)", *refs) if refs else None
+        if res is not None and res.returncode != 0:
+            print(f"split: unread (for-each-ref over {len(refs)} ref(s) rc {res.returncode}); nothing written")
+            return 1
+        read = dict(x.split() for x in res.stdout.splitlines()) if res is not None else {}   # the tips, read ONCE
+        # PREPARE, every node, before any write (U5)
+        prepared = []
+        for it, ref in zip(items, refs):
+            lines = f"{GIT_MODE_REGULAR} blob {it['node']}\t{NODE_ENTRY}\n"
+            if it["payload"]:
+                lines += f"{it['payload'][0]} blob {it['payload'][1]}\t{PAYLOAD_ENTRY}\n"
+            built = git_try(root, "mktree", input_text=lines)
+            if built.returncode != 0:
+                unread.append(f"unread {it['mint']} {it['path']} (its tree could not be built)")
+                continue
+            verdict, tree, n, why = prepare_version(root, ref, read.get(ref), built.stdout.strip(), it["id"], it["mint"],
+                                                    dm_files=view, dm_key=("tree", g))
+            if verdict == "held":
+                unread.append(f"unread {it['mint']} {it['path']} (held: the read-only {why} is not in its history)")
+            elif verdict == "double-mint":
+                unread.append(f"unread {it['mint']} {it['path']} (double mint: {it['id']} is already carried by mint "
+                              f"{why[0]} ({why[1]}))")
+            elif verdict == "nest":
+                unread.append(f"unread {it['mint']} {it['path']} (the nest entry of its tip is unreadable or not a "
+                              f"non-empty tree of trees)")
+            prepared.append((it, ref, verdict, tree, n))
+        dmv = _DM_CACHE.get(("tree", g))                  # built only when a NEW mint was judged; U4: its unread tips fail closed
+        bad = dmv["bad"] if dmv else []
+        unread += [f"unread {m} (its grid tip carries no node.md blob: the double-mint view cannot read its id)" for m in bad]
+        if unread:
+            for u in unread:
+                print(f"  {u}")
+            print(f"split: unread {len(unread)}; nothing written")
+            return 1
+        # WRITE: the commit and ONE CAS per node; nothing else is read
+        written = same = planned = 0
+        for it, ref, verdict, tree, n in prepared:
+            if verdict == "unchanged":
+                same += 1                                 # already on the grid (a version records change, not time)
+                continue
+            if not write:
+                planned += 1
+                print(f"  plan v{n} {it['mint']} {it['path']}")
+                continue
+            trailer = split_parent_trailer(it["body"], view)  # A19: goal:g2.7's lines, from the gated tree
+            cas = write_version(root, ref, read.get(ref), tree,
+                                f"v{n} {it['id']}\n\n" + (trailer + "\n" if trailer else "") + f"Split-Land: {g}\nSplit-Base: {b}\n")
+            if cas.returncode != 0:                       # I14: never a second write, never a merge of the whole tree
+                now = ref_tip(root, ref)
+                print(f"  held merge {it['mint']} {it['path']} (its tip moved since it was read: "
+                      f"{(read.get(ref) or 'absent')[:12]} -> {(now or 'absent')[:12]}; this node not written)")
+                SPLIT_HELD.append(ref)
+                continue
+            written += 1
+            print(f"  v{n} {it['mint']} {it['path']}")
+        verb = "grid commit(s) written" if write else "grid commit(s) planned (no --write: nothing written)"
+        print(f"split: {len(items)} changed node(s); {written if write else planned} {verb}, {same} already on the grid, "
+              f"{len(SPLIT_HELD)} held, {retired_gone} retired payload(s) absent with their node; "
+              + (f"held merge {len(SPLIT_HELD)}: NOT landed" if SPLIT_HELD else "clean"))
+        return 1 if SPLIT_HELD else 0
     finally:
         if lock is not None:
             lock.release()
@@ -1910,6 +2446,1041 @@ def cmd_migrate_trunk(root: Path, target: str | None, write: bool,
           f"{conflicts} conflict(s)")
 
 
+def _is_ancestor(root: Path, a: str, b: str) -> bool | None:
+    """True/False for `a` an ancestor of `b`; None when git could not say (rc other than 0/1)."""
+    rc = git_try(root, "merge-base", "--is-ancestor", a, b).returncode
+    return True if rc == 0 else False if rc == 1 else None
+
+
+#: goal:g7.16.1.11.46.16 (the third history): origin's `refs/grid/node` as ONE private, read-only-by-convention
+#: mirror. `origin-snap` writes it (forced: it is a local mirror, never a shared ref), `unify --legacy` reads it,
+#: nothing pushes it and the writer's nested-namespace refusal exempts it.
+ORIGIN_SNAP_NS = "refs/grid/origin-snap"
+#: one grid_sync lap, minutes: the least a snapshot pair may be apart for the second to call origin QUIET.
+ORIGIN_LAP_MIN = 30
+#: goal:g7.16.1.11.46.16 (council 14:21:47Z, condition (2) REPLACED by a BYTE TEST in alive's [correction] 14:53:03Z, council 3/3, 10-26): a diverged
+#: origin pair with NO merge-base and a DIFFERENT tree is a CONFLICT unless EVERY blob of origin's tip tree was SEEN, each at its own path class (below).
+#: No date compare survives: tip-vs-tip passed 10 origin-only edits and a root date is a re-mint coincidence (live roots: 1721 on 09-21, 225 on 10-08).
+#: WHOLE-VERDICT CADENCE of `unify --write` (alive 16:36Z: say what the code does): `_origin_quiet` runs (1) in the pre-run gate, (2) immediately before the FIRST
+#: unrelated-root write, (3) before every UNRELATED_QUIET_EVERY-th unrelated-root write after it (so at most this many writes sit between two whole reads; a
+#: banked or tree-equal row does not count), and (4) once after the run. A whole-listing read is ~0.17 s; one per write would hold the grid lock ~5 min over
+#: ~1900 pairs. What EVERY write does re-read, immediately before its compare-and-swap, is that pair's own two tips (a moved tip -> CONFLICT, nothing written).
+UNRELATED_QUIET_EVERY = 50
+UNRELATED_CLASSES = ("live-seen", "trunk-seen")
+_PAYLOAD_REF_RE = re.compile(r"[A-Za-z0-9_.][A-Za-z0-9_./+-]*")    # a leading dot is legal (`.agi/config.json`); `:` (pathspec magic) and a leading `-` are not
+_ZERO_SHA = "0" * 40
+
+
+def _raw_blobs(text: str) -> dict[str, set[str]]:
+    """{path: {blob}} from `git log --raw --no-abbrev --format=` output: the NEW side of every change that is not a delete."""
+    out: dict[str, set[str]] = {}
+    for line in text.splitlines():
+        if not line.startswith(":") or "\t" not in line:
+            continue
+        meta, _, path = line.partition("\t")
+        fields = meta.split()
+        if len(fields) >= 5 and fields[3] != _ZERO_SHA:
+            out.setdefault(path, set()).add(fields[3])
+    return out
+
+
+class _TrunkSeen:
+    """The trunk's blob evidence for `_unrelated_class`, built ONCE per run (alive 14:53:03Z): every blob that was ever at a `.agi/nodes` path
+    (live or deprecated/) on `trunk`'s history -- ONE path-limited `git log --raw --no-abbrev -m --format= <trunk> -- .agi/nodes` (`-m`: a blob that
+    entered the trunk only in a MERGE's resolution is trunk history too; alive 16:50Z C2, 1441 such blobs on 10-26) -- plus, on
+    demand and cached, the blobs ever at ONE `payload_ref` path (`at_path`). FAIL CLOSED: a walk that errors or yields 0 blobs sets `problem`, and
+    `_unrelated_class` then answers CONFLICT for every pair; an empty set is never read as a real one. `cost` quotes the walk (wall seconds, the
+    git child's peak RSS) under the memory guard."""
+
+    def __init__(self, root: Path, trunk: str) -> None:
+        import resource  # noqa: PLC0415
+        self.root, self.trunk, self.problem, self.nodes, self._paths, self.cost = root, trunk, "", set(), {}, ""
+        t0 = time.time()
+        res = git_try(root, "log", "--raw", "--no-abbrev", "--no-renames", "-m", "--format=", trunk, "--", ".agi/nodes")
+        if res.returncode != 0:
+            self.problem = f"git log {trunk} -- .agi/nodes failed rc {res.returncode}: {(res.stderr.strip().splitlines() or ['no reason'])[0][:120]}"
+            return
+        for blobs in _raw_blobs(res.stdout).values():
+            self.nodes |= blobs
+        if not self.nodes:
+            self.problem = f"git log {trunk} -- .agi/nodes yielded 0 blobs"
+            return
+        self.cost = (f"{len(self.nodes)} blobs at .agi/nodes paths of {trunk}, one walk, {time.time() - t0:.1f} s, "
+                     f"git child peak RSS {resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss // 1024} MB")
+
+    def at_path(self, path: str) -> set[str] | None:
+        """Blobs ever at `path` on the trunk (cached); None when git could not say or the path is not a plain repo path."""
+        if not _PAYLOAD_REF_RE.fullmatch(path) or not path.strip("./") or any(seg in ("", ".", "..") for seg in path.split("/")):
+            return None
+        if path not in self._paths:
+            res = git_try(self.root, "log", "--raw", "--no-abbrev", "--no-renames", "-m", "--format=", self.trunk, "--", path)
+            self._paths[path] = None if res.returncode != 0 else {b for bs in _raw_blobs(res.stdout).values() for b in bs}
+        return self._paths[path]
+
+
+def _live_seen(root: Path, tip: str) -> dict[str, set[str]] | None:
+    """{path: {blob}} the live ref's WHOLE history held (merges included), or None when git could not say."""
+    res = git_try(root, "log", "--raw", "--no-abbrev", "--no-renames", "-m", "--format=", tip)
+    return _raw_blobs(res.stdout) if res.returncode == 0 else None
+
+
+def _payload_ref(root: Path, *tips: str) -> str | None:
+    """`payload_ref:` from the first tip whose node.md frontmatter has one (origin's first, then live's); None when neither is readable."""
+    for tip in tips:
+        res = git_try(root, "show", f"{tip}:node.md")
+        if res.returncode != 0:
+            continue
+        seen_fence = 0
+        for line in res.stdout.splitlines():
+            if line.strip() == "---":
+                seen_fence += 1
+                if seen_fence == 2:
+                    break
+            elif seen_fence == 1 and line.startswith("payload_ref:"):
+                ref = line.split(":", 1)[1].strip().strip("\"'")
+                if ref:
+                    return ref
+    return None
+
+
+def _unrelated_class(root: Path, otip: str, live: str, seen: "_TrunkSeen | None") -> tuple[str | None, str]:
+    """(class, why) of a diverged origin pair (origin tip `otip`, live tip `live`) whose trees differ. class is `live-seen` / `trunk-seen`
+    (tree = LIVE may be written), None (stays a CONFLICT; `why` says which condition), or "unread" (git could not say).
+    (1) NO merge-base; (2) EVERY blob of origin's tip tree was SEEN at its own path class: `node.md` in the node's own live grid history OR at an
+    `.agi/nodes` path in the trunk's history; `payload` in the node's own live grid history OR at that node's `payload_ref` path in the trunk's
+    history (a `payload_ref` that cannot be read -> CONFLICT, named); any other path -> CONFLICT. `trunk-seen` = at least one blob needed the
+    trunk, else `live-seen`. Judged per pair, at write time, from the bytes in front of it, never from a precomputed list and never from a date."""
+    mb = git_try(root, "merge-base", otip, live)
+    if mb.returncode == 0 and mb.stdout.strip():
+        return None, "has a merge-base"
+    if mb.returncode not in (0, 1):
+        return "unread", "merge-base unread"
+    if seen is None or seen.problem:
+        return None, f"trunk blob set unread: {seen.problem if seen else 'no trunk'}"
+    tree = git_try(root, "ls-tree", "-r", otip)
+    ours = _live_seen(root, live)
+    if tree.returncode != 0 or ours is None:
+        return "unread", "tree / live history unread"
+    absent, used_trunk, ref = [], False, None
+    for line in tree.stdout.splitlines():
+        meta, _, path = line.partition("\t")
+        blob = meta.split()[-1]
+        if blob in ours.get(path, ()):
+            continue
+        if path == "node.md" and blob in seen.nodes:
+            used_trunk = True
+        elif path == "payload":
+            ref = ref or _payload_ref(root, otip, live)
+            if ref is None:
+                return None, "payload_ref unreadable"
+            at = seen.at_path(ref)
+            if at is None:
+                return None, f"payload_ref {ref} unreadable (not a plain repo path, or its walk failed)"
+            if blob in at:
+                used_trunk = True
+            else:
+                absent.append(f"payload@{ref}")
+        else:
+            absent.append(path)
+    if absent:
+        return None, "bytes unseen: " + ", ".join(absent)
+    return ("trunk-seen" if used_trunk else "live-seen"), ""
+
+
+def _cas(root: Path, ref: str, new: str, old: str) -> bool:
+    """The ONE ref write of `unify`: compare-and-swap (old "" = the ref must not exist). Never a delete."""
+    return git_try(root, "update-ref", ref, new, old).returncode == 0
+
+
+def _unify_dir(root: Path) -> Path:
+    """Where `unify --write` keeps its own pre-write snapshots (scratch, never versioned, one dir for
+    every worktree like the grid lock)."""
+    base = locations.shared_sessions_dir(root) if locations.is_graph_dir(root) else root / ".agi" / "sessions"
+    return base / "unify"
+
+
+class _Snapshot:
+    """R2: `unify --write` records `for-each-ref <ns>/node` ITSELF, under the lock, immediately before its
+    FIRST compare-and-swap (so it is the state the write starts from), into a file that is created
+    exclusively and never overwritten. A run that writes nothing leaves no file. `--check` trusts only the
+    EARLIEST such file: a caller-supplied or late file cannot make the old-tip half of the check vacuous."""
+
+    def __init__(self, root: Path, ns: str, write: bool) -> None:
+        self.root, self.ns, self.write, self.path = root, ns, write, None
+
+    def ensure(self) -> None:
+        if not self.write or self.path is not None:
+            return
+        listing = git(self.root, "for-each-ref", f"{self.ns}/node", "--format=%(refname) %(objectname)")
+        d = _unify_dir(self.root)
+        d.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        n = 0
+        while True:
+            path = d / f"{stamp}-{os.getpid()}-{n}.refs"
+            try:
+                with open(path, "x") as f:    # 'x': never overwrites a snapshot
+                    f.write(listing + "\n")
+                break
+            except FileExistsError:
+                n += 1
+        self.path = path
+        print(f"grid unify: pre-write snapshot {path.name} ({len(listing.splitlines())} refs, in {d.name}/)")
+
+
+def _unify_one(root: Path, ns: str, lns: str, mint: str, write: bool, snap: _Snapshot, classes: list | None = None,
+               seen: "_TrunkSeen | None" = None) -> str:
+    """One mint of `cmd_unify`: merge the read-only `lns` tip into `ns`. Returns
+    merged | adopted | unchanged | conflict | unread. Every ref write goes through `_cas`
+    (a compare-and-swap); there is no delete anywhere in this verb.
+
+    The merged tree is the LEGACY side's, which is right for the writer's own old namespace (the live side
+    wins by construction). For `ORIGIN_SNAP_NS` (a second writer's history) it is NEVER an automatic pick: a
+    diverged pair merges only when the two tips' trees are EQUAL, and is a CONFLICT otherwise (origin has
+    versions after the merge-base that this namespace does not carry), listed by mint, nothing written. The ONE
+    narrow exception (goal:g7.16.1.11.46.16, council 14:21:47Z, condition (2) a BYTE TEST since alive's 14:53:03Z [correction]):
+    `_unrelated_class` -- a pair with NO merge-base whose origin tip's blobs were ALL seen (live's own history, or the trunk's, each at its
+    own path class) gets a 2-parent commit, tree = LIVE (never origin's), first parent the live tip, origin's tip the second. A pair
+    that fails the byte test is a CONFLICT and, when it failed on unseen bytes, is BANKED (a `banked` row in `classes`, the reason as its
+    4th field) for the owner's one batch look. `classes`, when given, collects (class, mint, origin tip, written commit | reason)."""
+    lref, nref = f"{lns}/node/{mint}", f"{ns}/node/{mint}"
+    ltip, ntip = ref_tip(root, lref), ref_tip(root, nref)
+    if ltip is None:
+        return "unread"
+    if ntip == ltip:
+        return "unchanged"
+    if ntip is None:
+        if write:
+            snap.ensure()
+            if not _cas(root, nref, ltip, ""):
+                return "conflict"
+        return "adopted"
+    live_in_new = _is_ancestor(root, ltip, ntip)
+    new_in_live = _is_ancestor(root, ntip, ltip)
+    if live_in_new is None or new_in_live is None:
+        return "unread"
+    if live_in_new:
+        return "unchanged"
+    if new_in_live:    # the frozen side is already inside the live history: a fast-forward
+        if write:
+            snap.ensure()
+            if not _cas(root, nref, ltip, ntip):
+                return "conflict"
+        return "adopted"
+    if lns == ORIGIN_SNAP_NS and git(root, "rev-parse", f"{ltip}^{{tree}}", check=False) != git(
+            root, "rev-parse", f"{ntip}^{{tree}}", check=False):
+        sub, why = _unrelated_class(root, ltip, ntip, seen)
+        if sub == "unread":
+            return "unread"
+        if sub is None:
+            if classes is not None and (why.startswith("bytes unseen") or why.startswith("payload_ref")):
+                classes.append(("banked", mint, ltip, why))
+            return "conflict"    # an origin-side edit after the base, or bytes nobody saw: never an automatic tree pick
+        if write:
+            # immediately before the write: this pair's own two tips are still the ones judged; the whole QUIET verdict is re-read on the cadence above
+            if ref_tip(root, lref) != ltip or ref_tip(root, nref) != ntip:
+                return "conflict"
+            if (classes is None or sum(1 for c in classes if c[0].startswith("unrelated-root/")) % UNRELATED_QUIET_EVERY == 0) and _origin_quiet(root):
+                return "unread"
+            snap.ensure()
+            n = int(git(root, "rev-list", "--count", "--first-parent", ntip)) + 1
+            msg = (f"unify v{n} {mint}\n\nUnify-Unrelated: {ltip}\nUnify-Class: unrelated-root/{sub}\n")
+            res = git_try(root, "commit-tree", f"{ntip}^{{tree}}", "-p", ntip, "-p", ltip, "-m", msg)
+            if res.returncode != 0 or not _cas(root, nref, res.stdout.strip(), ntip):
+                return "conflict"
+            if classes is not None:
+                classes.append((f"unrelated-root/{sub}", mint, ltip, res.stdout.strip()))
+        elif classes is not None:
+            classes.append((f"unrelated-root/{sub}", mint, ltip, ""))
+        return "merged"
+    if write:
+        snap.ensure()
+        n = int(git(root, "rev-list", "--count", "--first-parent", ltip)) + 1
+        # tree = the LIVE side's tree; first parent = the live tip, so `--first-parent` versions keep counting the live chain;
+        # the Unify-Frozen trailer records the new-namespace tip this merge took in (what `--check` asserts against the snapshot)
+        msg = f"unify v{n} {mint}\n\nUnify-Live: {ltip}\nUnify-Frozen: {ntip}\n"
+        res = git_try(root, "commit-tree", f"{ltip}^{{tree}}", "-p", ltip, "-p", ntip, "-m", msg)
+        if res.returncode != 0 or not _cas(root, nref, res.stdout.strip(), ntip):
+            return "conflict"
+        if classes is not None:
+            classes.append(("tree-equal", mint, ltip, res.stdout.strip()))
+    elif classes is not None:
+        classes.append(("tree-equal", mint, ltip, ""))
+    return "merged"
+
+
+def _unify_check(root: Path, ns: str, lns: str, mints: list[str], before: dict[str, str],
+                 seen: "_TrunkSeen | None" = None, owner: "_OwnerView | None" = None) -> tuple[int, list[str]]:
+    """The per-mint falsifier of G1a-T, read-only. `before` is the verb's OWN earliest pre-write snapshot.
+    Per mint: the live tip and the snapshot's old tip are ancestors of the new tip, `rev-list --count` new
+    >= max(old), and the merge commit that took the live tip as its first parent (a) carries the live tip's
+    tree and (b) records `Unify-Frozen: T` with T != the current tip, T its second parent, and the snapshot
+    tip equal to T or an ancestor of T (a later delta merge records the earlier merge, which holds it)."""
+    good, bad = 0, []
+    for m in mints:
+        ltip, ntip = ref_tip(root, f"{lns}/node/{m}"), ref_tip(root, f"{ns}/node/{m}")
+        otip = before.get(m)
+        if not ltip or not ntip:
+            bad.append(f"{m} (a ref is missing)")
+            continue
+        ancestors = [_is_ancestor(root, t, ntip) for t in (ltip, otip) if t]
+        counts = [git_try(root, "rev-list", "--count", t) for t in (ltip, otip, ntip) if t]
+        if any(a is None for a in ancestors) or any(c.returncode != 0 for c in counts):
+            bad.append(f"{m} (unread: an ancestry or count read failed)")    # a ref at a missing object, never folded into 'not an ancestor'
+            continue
+        if any(a is not True for a in ancestors):
+            bad.append(f"{m} (an old tip is not an ancestor of the new tip)")
+            continue
+        c = [int(x.stdout) for x in counts]
+        if c[-1] < max(c[:-1]):
+            bad.append(f"{m} (fewer commits than an old side)")
+            continue
+        if ntip == ltip or otip is None:    # adopted: no merge commit; an old tip, if any, is inside the live history (checked above)
+            good += 1                       # (otip None: no ref before the write, so nothing to preserve beyond the live tip)
+            continue
+        live_tips = [x.split(":", 1)[1].strip() for x in git_try(root, "log", "--format=%B", ntip).stdout.splitlines()
+                     if x.startswith("Unify-Live:")]
+        if _is_ancestor(root, ltip, otip) is True and not any(
+                x.startswith("Unify-Live:") for x in git_try(root, "log", "--format=%B", otip).stdout.splitlines()):
+            good += 1    # the live tip was already inside the pre-write tip (nothing to merge): sound ONLY while the snapshot
+            continue     # is early, so a pre-write tip that already carries a unify merge (a late snapshot) never takes this exit
+        if lns == ORIGIN_SNAP_NS:
+            why = _check_unrelated(root, ltip, ntip, seen, owner)
+            if why is None:
+                good += 1
+                continue
+            if why:
+                bad.append(f"{m} ({why})")
+                continue
+            why = _own_write_tip(root, ltip, ntip)
+            if why is None:
+                good += 1
+                continue
+            if why:
+                bad.append(f"{m} ({why})")
+                continue
+        merge = None
+        # first-parent first (the merge this namespace took last); then the whole history: a LATER namespace's
+        # merge (the third history) sits on top and holds this one as its second parent
+        for walk in (("--first-parent",), ()):
+            for line in git_try(root, "rev-list", *walk, "--parents", ntip).stdout.splitlines():
+                parts = line.split()
+                if len(parts) > 2 and parts[1] == ltip:
+                    merge, second = parts[0], parts[2]
+                    break
+            if merge is not None:
+                break
+        if merge is None:
+            # another namespace's merge may already hold this tip: a unify merge of ANOTHER live tip L' in the history with
+            # this tip inside L' (L' != the tip itself, so a merge that dropped its own parent never covers itself)
+            if any(lt != ltip and _is_ancestor(root, ltip, lt) is True for lt in live_tips):
+                good += 1
+                continue
+            bad.append(f"{m} (no merge commit takes the live tip as its first parent)")
+            continue
+        if git(root, "rev-parse", f"{merge}^{{tree}}", check=False) != git(root, "rev-parse", f"{ltip}^{{tree}}", check=False):
+            bad.append(f"{m} (the merge does not carry the live tree)")
+            continue
+        trailer = next((x.split(":", 1)[1].strip() for x in git(root, "log", "-1", "--format=%B", merge).splitlines()
+                        if x.startswith("Unify-Frozen:")), None)
+        if trailer is None or trailer == ntip or trailer != second:
+            bad.append(f"{m} (the Unify-Frozen trailer is missing, is the current tip, or is not the second parent)")
+            continue
+        if otip and otip != trailer and _is_ancestor(root, otip, trailer) is not True:
+            bad.append(f"{m} (the snapshot tip is not the trailer's tip or inside it)")
+            continue
+        good += 1
+    return good, bad
+
+
+def _set_unify_namespaces(into: str | None, legacy: list[str] | None) -> bool:
+    """`unify --into/--legacy`: name the namespaces on the command line, so the merge can run BEFORE the
+    config that declares them lands (the writer is still on the old namespace then). Returns False when
+    set; a name outside refs/grid prints `unread` and exits 1."""
+    global REF_NS, LEGACY_NS
+    for ns in [x for x in [into, *(legacy or [])] if x is not None]:
+        if not ns.strip().rstrip("/").startswith("refs/grid"):
+            print(f"grid unify: unread (namespace {ns!r} is not under refs/grid)")
+            sys.exit(1)
+    if into:
+        REF_NS = into.strip().rstrip("/")
+    if legacy:
+        LEGACY_NS = [x.strip().rstrip("/") for x in legacy if x.strip().rstrip("/") != REF_NS]
+    return False
+
+
+def _class_line(counts: "Counter[str]") -> str:
+    """`classes: tree-equal K, unrelated-root tree=live N (origin bytes in live's history X, in the trunk's Y), banked B` -- the ONE line
+    `unify` and `--check` print (banked = the pairs the byte test left CONFLICT on unseen bytes, for the owner's one batch look)."""
+    x, y = counts.get("unrelated-root/live-seen", 0), counts.get("unrelated-root/trunk-seen", 0)
+    return (f"classes: tree-equal {counts.get('tree-equal', 0)}, unrelated-root tree=live {x + y} "
+            f"(origin bytes in live's history {x}, in the trunk's {y}), banked {counts.get('banked', 0)}"
+            + (f", owner-batch tree=live {counts['owner-batch/live']}" if counts.get("owner-batch/live") else ""))
+
+
+def _write_class_record(root: Path, ns: str, classes: list[tuple[str, str, str, str]]) -> str:
+    """The stamped record of one `unify --write`: a line per merged mint, `<class> <mint> <origin tip> <written commit>`, and a `banked` line per pair
+    the byte test left CONFLICT on unseen bytes (`banked <mint> <origin tip> <reason>`), created exclusively (never overwritten), under `_unify_dir` with the
+    suffix `.classes` (`--check` reads `*.refs` as snapshots and `*.classes` as records). The banked pairs also get a `.batch` file beside it: per mint the
+    reason and the DIFF of origin's node.md against live's (<= 150 lines), the one batch the owner / a reader looks at."""
+    d = _unify_dir(root)
+    d.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    n = 0
+    while True:
+        path = d / f"{stamp}-{os.getpid()}-{n}.classes"
+        try:
+            with open(path, "x") as f:
+                f.write("".join(f"{c} {m} {o} {w}\n" for c, m, o, w in sorted(classes)))
+            break
+        except FileExistsError:
+            n += 1
+    banked = sorted(c for c in classes if c[0] == "banked")
+    if banked:
+        with open(path.with_suffix(".batch"), "x") as f:
+            for _, m, o, why in banked:
+                live = ref_tip(root, f"{ns}/node/{m}") or ""
+                diff = git_try(root, "diff", "--no-color", f"{live}:node.md", f"{o}:node.md").stdout.splitlines()
+                f.write(f"== {m} origin {o} live {live}\n   {why}\n" + "".join(f"   {x}\n" for x in diff[:150])
+                        + (f"   ... {len(diff) - 150} more diff lines\n" if len(diff) > 150 else ""))
+    return path.name + (f" + {path.with_suffix('.batch').name}" if banked else "")
+
+
+def _home_added(root: Path, first: str, merge: str) -> bool | None:
+    """Did `merge` ADD a home-path literal (anonymize.HOME_PATH_RE) against its first parent? `git diff first merge` is empty when the trees are equal.
+    None = git could not say (a failed diff is NOT an empty one: it must never read as 'no literal')."""
+    res = git_try(root, "diff", "--no-color", "-U0", first, merge)
+    if res.returncode != 0:
+        return None
+    return any(x.startswith("+") and not x.startswith("+++") and anonymize.HOME_PATH_RE.search(x) for x in res.stdout.splitlines())
+
+
+def _tree_sha(root: Path, rev: str) -> str | None:
+    """`<rev>^{tree}` as a 40-hex sha, or None when git could not say (`git(..., check=False)` would return "" and two unreadable trees would compare equal)."""
+    res = git_try(root, "rev-parse", "--verify", "-q", f"{rev}^{{tree}}")
+    sha = res.stdout.strip()
+    return sha if res.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", sha) else None
+
+
+def _own_write_tip(root: Path, otip: str, ltip: str) -> str | None:
+    """goal:g7.16.1.11.46.16.4: an origin-snap mirror tip that is OUR OWN pushed version the live ref then moved past. None = sound: the mirror tip
+    ITSELF is on the live tip's first-parent chain and `otip..ltip` carries 0 merges (only our own appends); "" = not one (fall through: a FOREIGN tip,
+    reached only through a second parent, stays RED); else `unread` -- a rev-list git could not read prints 0 lines, and 0 lines is never 0 merges."""
+    chain = git_try(root, "rev-list", "--first-parent", ltip)
+    merges = git_try(root, "rev-list", "--merges", f"{otip}..{ltip}")
+    for what, res in (("--first-parent", chain), ("--merges", merges)):
+        if res.returncode != 0:
+            return f"unread: rev-list {what} rc {res.returncode}"
+    return None if otip in chain.stdout.split() and not merges.stdout.strip() else ""
+
+
+def _check_unrelated(root: Path, ltip: str, ntip: str, seen: "_TrunkSeen | None",
+                     owner: "_OwnerView | None" = None) -> str | None:
+    """`--check` for a pair `_unify_one` merged as an UNRELATED ROOT: None = sound, "" = this pair is not one (fall through to the ordinary
+    check), else why it is RED. The merge is found by its SECOND parent (origin's tip) and its `Unify-Unrelated` trailer; it must carry the tree of
+    its FIRST parent (the live tip it took in), and the class is judged AGAIN on that first parent (origin's tip is inside ntip's history now, so
+    the live tip itself would read `live-seen` for everything)."""
+    for line in git_try(root, "rev-list", "--parents", ntip).stdout.splitlines():
+        parts = line.split()
+        if len(parts) != 3 or parts[2] != ltip:
+            continue
+        merge, first = parts[0], parts[1]
+        body = git(root, "log", "-1", "--format=%B", merge, check=False)
+        by_owner = f"Unify-Owner: {ltip}" in body.splitlines()
+        if f"Unify-Unrelated: {ltip}" not in body.splitlines() and not by_owner:
+            continue
+        # the home-path count is over what the merge ADDED against its first parent (empty when the trees are equal): a live tip that already carries a
+        # literal merges as tree = LIVE and must read GREEN; the count is computed even when the tree check is RED (the tree = ORIGIN mutant reads RED twice)
+        added = _home_added(root, first, merge)
+        mtree, ftree = _tree_sha(root, merge), _tree_sha(root, first)
+        if added is None:    # FAIL CLOSED: an unreadable diff / tree is a RED of its own, never the GREEN of an empty answer
+            return "home check unread (git diff failed)"
+        if mtree is None or ftree is None:
+            return "tree unread"
+        if mtree != ftree:
+            return "the unrelated-root merge does not carry the live tree" + ("; a written tip carries a home-path literal" if added else "")
+        if added:
+            return "a written tip carries a home-path literal"
+        if by_owner:    # the owner's ruling, not the byte test: every link of the chain is its own RED (goal:g7.16.1.11.46.16.2 R2)
+            rec = next((x.split(":", 1)[1].strip() for x in body.splitlines() if x.startswith("Unify-Record:")), "")
+            if owner is None or (ltip, merge) not in owner.rows:
+                return "an owner-batch merge no stamped owner-batch record names"
+            if (rec, ltip) not in owner.banked:
+                return f"an owner-batch merge for an origin tip its record {rec or '(no Unify-Record)'} did not bank"
+            if owner.rulings is None:
+                return f"owner rulings unread at {owner.trunk}"
+            if rec not in owner.rulings:
+                return f"an owner-batch merge under a record no owner ruling names ({rec})"
+            if owner.rulings[rec] is None:
+                return f"an owner-batch merge under a record whose rulings pin different bytes ({rec})"
+            if owner.sha.get(rec) != owner.rulings[rec]:
+                return f"an owner-batch merge under a record that is not the bytes the owner ruled ({rec})"
+            return None
+        cls, why = _unrelated_class(root, ltip, first, seen)
+        if cls in (None, "unread"):
+            return f"the unrelated-root merge is outside the class ({why})"
+        return None
+    return ""
+
+
+#: the class an owner-batch write records (`_write_class_record`), and the trailer `--check` knows it by (`_check_unrelated`)
+OWNER_CLASS = "owner-batch/live"
+
+
+#: the ONE line an owner ruling carries (goal:g7.16.1.11.46.16.2 R1), at column 0 of a doc node under .agi/nodes/doc: `owner-batch-ruling: <record>`
+RULING_KEY = "owner-batch-ruling"
+
+
+#: a ruling is a doc node BY NAME: a card, a review or a THOUGHT that quotes the line is not one (self-perpetuating 21:36:33Z 10-27)
+RULING_GLOB = ":(glob).agi/nodes/doc/owner-ruling-*.md"    # the GATE's own literal (land.rules_paths): `*` never crosses `/`
+
+
+def _owner_rulings(root: Path, trunk: str) -> dict[str, str | None] | None:
+    """{record: the sha256 its ruling PINS} of every record an owner RULED, read from a COMMIT: the anchored two-token line
+    `^owner-batch-ruling: <record> sha256:<64 hex>$` in a ruling node BY NAME (`RULING_GLOB`) in the TREE of `trunk` (a signed land carries it),
+    never the working tree and never the sessions dir, so a file dropped on the box rules nothing. Each ruling node names ONE record (a node with
+    two such lines rules none); two ruling nodes that pin ONE record to DIFFERENT bytes map it to None (they disagree: unread by name, never "any
+    one matches"). None = git could not say."""
+    res = git_try(root, "grep", "-E", f"^{RULING_KEY}: [^ ]+ sha256:[0-9a-f]{{64}}$", trunk, "--", RULING_GLOB)
+    if res.returncode == 1:
+        return {}
+    if res.returncode != 0:
+        return None
+    per: dict[str, list[str]] = {}
+    for x in res.stdout.splitlines():    # `<trunk>:<path>:<line>`
+        path, _, line = x[len(trunk) + 1:].partition(f":{RULING_KEY}: ")
+        per.setdefault(path, []).append(line.strip())
+    out: dict[str, str | None] = {}
+    for v in per.values():
+        if len(v) != 1:
+            continue
+        rec, sha = v[0].split(" sha256:")
+        out[rec] = sha if out.get(rec, sha) == sha else None
+    return out
+
+
+def _read_record(path: Path) -> tuple[str, list[list[str]]] | None:
+    """ONE read of a stamped record: (sha256 of its bytes, its rows) from the SAME buffer, so an append between a hash and a second open cannot
+    slip past the ruling's pin. None = unreadable."""
+    import hashlib
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    return hashlib.sha256(data).hexdigest(), [x.split() for x in data.decode("utf-8", "replace").splitlines()]
+
+
+class _OwnerView:
+    """What `--check` judges an `Unify-Owner` merge against: the stamped owner rows {(origin tip, merge)}, the {(record, origin tip)} each
+    stamped record BANKED (keyed BY RECORD, never pooled: alive 22:47:08Z), each record's sha256 as read, and the records an owner ruled at
+    `trunk` with the bytes each ruling pins (None = unread)."""
+
+    def __init__(self, root: Path, trunk: str) -> None:
+        self.banked, self.rows, self.sha = set(), set(), {}
+        for rec in sorted(_unify_dir(root).glob("*.classes")):
+            got = _read_record(rec)
+            if got is None:
+                continue
+            self.sha[rec.name] = got[0]
+            for r in got[1]:
+                if len(r) >= 3 and r[0] == "banked":
+                    self.banked.add((rec.name, r[2]))
+                elif len(r) == 4 and r[0] == OWNER_CLASS:
+                    self.rows.add((r[2], r[3]))
+        self.trunk, self.rulings = trunk, _owner_rulings(root, trunk)
+
+
+class _OwnerStamp:
+    """The stamped record of ONE `--owner-batch --write`, written PER ROW: the `.classes` file (and its `.batch`) is created exclusively at the
+    first write and each pair is APPENDED (flushed + fsynced) right after its compare-and-swap, so a run that dies between two pairs (a raise,
+    a power loss) leaves every written merge stamped. The `.batch` entry is `git diff <live tip> <origin tip>` over EVERY path, uncapped: it is
+    where origin's version is SAVED (the owner's words); a diff git cannot read is ONE named `diff unread: <reason>` line, never an empty body."""
+
+    def __init__(self, root: Path) -> None:
+        self.root, self.path = root, None
+
+    def _open(self) -> None:
+        d = _unify_dir(self.root)
+        d.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        n = 0
+        while True:
+            path = d / f"{stamp}-{os.getpid()}-{n}.classes"
+            try:
+                with open(path, "x"), open(path.with_suffix(".batch"), "x"):
+                    pass
+                break
+            except FileExistsError:
+                n += 1
+        self.path = path
+
+    def add(self, mint: str, live: str, otip: str, commit: str) -> None:
+        if self.path is None:
+            self._open()
+        res = git_try(self.root, "diff", "--no-color", "--binary", live, otip)    # --binary: a binary path is SAVED, not 'Binary files differ'
+        body = (res.stdout.splitlines() if res.returncode == 0 else
+                [f"diff unread: {(res.stderr.strip().splitlines() or ['git diff rc ' + str(res.returncode)])[0]}"])
+        if not body:    # read, and printed nothing: say so, never an empty body
+            body = ["diff empty: trees equal"]
+        for path, text in ((self.path.with_suffix(".batch"), f"== {mint} origin {otip} live {live}\n   owner rule: tree = LIVE, origin's tip kept "
+                            f"as the 2nd parent of {commit}\n" + "".join(f"   {x}\n" for x in body)),
+                           (self.path, f"{OWNER_CLASS} {mint} {otip} {commit}\n")):
+            with open(path, "a") as f:
+                f.write(text)
+                f.flush()
+                os.fsync(f.fileno())
+
+
+def _unify_owner_batch(root: Path, ns: str, record: str, write: bool, trunk: str = "HEAD") -> int:
+    """goal:g7.16.1.11.46.16, the OWNER's ruling of the banked batch (10-27, belam relaying the owner: "Sounds good" to "keep the live
+    version for all 40 and save origin's differing version in a stamped record"): the SELECTOR is the `banked` rows of ONE stamped record
+    `<record>` (a `.classes` file under `_unify_dir`, by name). Per selected mint: origin's tip must still be the one the record banked
+    (moved = CONFLICT, named), and the pair is written as ONE two-parent commit, tree = LIVE, first parent the live tip, origin's tip the
+    second (`Unify-Owner: <origin tip>`), by `_cas`: the push of it is a fast-forward of origin's ref, never a force, and origin's version
+    stays in the history. A pair already holding origin's tip is unchanged; one git cannot read is UNREAD, named, never skipped. `--write`
+    needs the QUIET verdict and the grid lock, like every origin write; `_OwnerStamp` stamps each written pair right after its
+    compare-and-swap (`owner-batch/live` rows) with origin's full diff in the `.batch` beside it. Dry-run unless `--write`."""
+    if "/" in record or not record.endswith(".classes") or not (_unify_dir(root) / record).is_file():
+        print(f"grid unify: unread (--owner-batch names no stamped record: {record!r}; a `.classes` file name under {_unify_dir(root).name}/)")
+        return 1
+    got = _read_record(_unify_dir(root) / record)    # ONE read: the hash the ruling pins and the rows selected come from the same bytes
+    if got is None:
+        print(f"grid unify: unread (record {record} cannot be read)")
+        return 1
+    sha, rows = got
+    picked = [(r[1], r[2]) for r in rows if len(r) >= 3 and r[0] == "banked"]
+    if not picked:
+        print(f"grid unify: unread (record {record} banks no pair)")
+        return 1
+    rulings = _owner_rulings(root, trunk)    # goal:g7.16.1.11.46.16.2 R1: only a record an owner RULED, read from the trunk's commit
+    if rulings is None or record not in rulings:
+        print(f"grid unify: unread ({'owner rulings unread' if rulings is None else 'no owner ruling names ' + record} at {trunk}; "
+              f"a ruling is ONE `{RULING_KEY}: <record> sha256:<hex>` line in a {RULING_GLOB} node the trunk carries)")
+        return 1
+    if rulings[record] is None:
+        print(f"grid unify: unread (the rulings for {record} at {trunk} pin different bytes)")
+        return 1
+    if rulings[record] != sha:
+        print(f"grid unify: unread (record {record} is not the bytes the owner ruled at {trunk}: sha256 {sha[:16]} != {rulings[record][:16]})")
+        return 1
+    if write:
+        why = _origin_quiet(root)
+        if why:
+            print(f"grid unify: unread ({ORIGIN_SNAP_NS} is not QUIET: {why})")
+            return 1
+    lock = None
+    if write:
+        lock = GridLock(root, 120)
+        lock.acquire()
+    tally = {"merged": 0, "unchanged": 0, "conflict": 0, "unread": 0}
+    named: list[str] = []
+    stamp = _OwnerStamp(root)
+    try:
+        snap = _Snapshot(root, ns, write)
+        for mint, want in picked:
+            oref, nref = f"{ORIGIN_SNAP_NS}/node/{mint}", f"{ns}/node/{mint}"
+            otip, ntip = ref_tip(root, oref), ref_tip(root, nref)
+            held = _is_ancestor(root, otip, ntip) if otip and ntip else None
+            ltree = _tree_sha(root, ntip) if ntip else None
+            if otip is None or ntip is None or held is None or ltree is None:
+                tally["unread"] += 1
+                named.append(f"  UNREAD {mint} (a ref, an ancestry or the live tree cannot be read: origin {otip or '-'}, live {ntip or '-'})")
+                continue
+            if otip != want:
+                tally["conflict"] += 1
+                named.append(f"  CONFLICT {mint} (origin moved since the record banked it: {want} -> {otip}; nothing written)")
+                continue
+            if held:
+                tally["unchanged"] += 1
+                continue
+            if write:
+                snap.ensure()
+                n = int(git(root, "rev-list", "--count", "--first-parent", ntip)) + 1
+                msg = f"unify v{n} {mint}\n\nUnify-Owner: {otip}\nUnify-Class: {OWNER_CLASS}\nUnify-Record: {record}\n"
+                res = git_try(root, "commit-tree", ltree, "-p", ntip, "-p", otip, "-m", msg)
+                if res.returncode != 0:
+                    tally["unread"] += 1
+                    named.append(f"  UNREAD {mint} (the merge commit could not be built: {(res.stderr.strip().splitlines() or ['rc ' + str(res.returncode)])[0]}; nothing written)")
+                    continue
+                if not _cas(root, nref, res.stdout.strip(), ntip):
+                    tally["conflict"] += 1
+                    named.append(f"  CONFLICT {mint} (a lost compare-and-swap; nothing written)")
+                    continue
+                stamp.add(mint, ntip, otip, res.stdout.strip())    # stamped NOW: a death before the next pair leaves this one recorded
+            tally["merged"] += 1
+        print(f"grid unify ({'write' if write else 'dry-run'}) --owner-batch {record}: selected {len(picked)} banked pair(s): "
+              + ", ".join(f"{v} {k}" for k, v in tally.items()) + " (tree = LIVE, origin's tip the 2nd parent)")
+        if stamp.path is not None:
+            print(f"grid unify: record {stamp.path.name} + {stamp.path.with_suffix('.batch').name} (the owner-batch rows, each stamped after its "
+                  f"compare-and-swap; origin's full diff per mint)")
+        for line in named:
+            print(line)
+    finally:
+        if lock is not None:
+            lock.release()
+    return 1 if tally["conflict"] or tally["unread"] else 0
+
+
+def cmd_unify(root: Path, write: bool, check: bool = False, trunk: str = "HEAD", owner_batch: str | None = None) -> int:
+    """goal:g7.16.1.11.46.16 G1a: ONE namespace, written ADDITIVELY. Words: LEGACY = `refs/grid/local-maxxing`,
+    the namespace every writer used until this land (6025 refs, live until then); `refs/grid/node` = the 09-21
+    FREEZE (3807 refs), which becomes the one namespace. For every mint in each read-only legacy namespace
+    (config `grid.legacy_namespaces`), make `<REF_NS>/node/<mint>`'s history include the legacy tip: a mint
+    with no ref there points at the legacy tip; a mint whose ref is inside the legacy history fast-forwards;
+    a diverged pair gets ONE two-parent merge whose tree is the LEGACY (current) side's tree, first parent the
+    legacy tip, with an `Unify-Frozen: <old tip>` trailer. No ref is ever deleted and the legacy refs are only
+    read. Dry-run unless `--write`; idempotent; `--write` takes the commit-all flock and writes its OWN
+    pre-write snapshot (path printed) before its first compare-and-swap. `--check` is the read-only falsifier:
+    it reads only the EARLIEST such snapshot and prints `unified m/m` (rc 0 only when every mint passes and
+    m > 0); anything unreadable prints `unread` and returns 1."""
+    ensure_repo(root)
+    ns = REF_NS
+    problem = legacy_config_problem(root)
+    if problem:
+        print(f"grid unify: unread ({problem})")
+        return 1
+    if not LEGACY_NS:
+        print("grid unify: unread (grid.legacy_namespaces names no read-only namespace)")
+        return 1
+    listing = {}
+    for lns in LEGACY_NS:
+        res = git_try(root, "for-each-ref", f"{lns}/node", "--format=%(refname)")
+        names = [x[len(lns) + 6:] for x in res.stdout.splitlines() if x.startswith(f"{lns}/node/")]
+        if res.returncode != 0 or not names:
+            print(f"grid unify: unread ({lns} lists no node refs)")
+            return 1
+        listing[lns] = sorted(names)
+    if owner_batch is not None:
+        if check or ORIGIN_SNAP_NS not in listing:
+            print(f"grid unify: unread (--owner-batch reads {ORIGIN_SNAP_NS} only, and never with --check)")
+            return 1
+        return _unify_owner_batch(root, ns, owner_batch, write, trunk)
+    if check:
+        snaps = sorted(_unify_dir(root).glob("*.refs"))
+        if not snaps:
+            print("grid unify: unread (no pre-write snapshot: `unify --write` has not run here)")
+            return 1
+        before = {}
+        for line in snaps[0].read_text().splitlines():
+            parts = line.split()
+            if len(parts) == 2 and parts[0].startswith(f"{ns}/node/") and re.fullmatch(r"[0-9a-f]{40}", parts[1]):
+                before[parts[0][len(ns) + 6:]] = parts[1]
+        if not before:    # an empty snapshot would make the old-tip half of the check vacuous
+            print(f"grid unify: unread (snapshot {snaps[0].name} lists no {ns}/node ref)")
+            return 1
+        print(f"grid unify check: snapshot {snaps[0].name} ({len(before)} refs)")
+        rc = 0
+        bad_mints: set[str] = set()
+        seen = _TrunkSeen(root, trunk) if ORIGIN_SNAP_NS in listing else None
+        owner = _OwnerView(root, trunk)
+        for lns, names in listing.items():
+            good, bad = _unify_check(root, ns, lns, names, before, seen, owner)
+            print(f"grid unify check: unified {good}/{len(names)} ({lns} -> {ns})")
+            if lns == ORIGIN_SNAP_NS:
+                recs = Counter()
+                for rec in sorted(_unify_dir(root).glob("*.classes")):
+                    recs.update(x.split(" ", 1)[0] for x in rec.read_text().splitlines() if x.strip())
+                print(f"grid unify check: {_class_line(recs)} (from the stamped record{'s' if len(list(_unify_dir(root).glob('*.classes'))) != 1 else ''})")
+                print(f"grid unify check: anonymize over the written tips: {sum('home-path literal' in b for b in bad)} carry a home-path literal")
+            for b in bad[:10]:
+                print(f"  RED {b}")
+            bad_mints.update(b.split()[0] for b in bad)
+            rc = rc or (0 if good == len(names) else 1)
+        if len(listing) > 1:    # the UNION of every namespace's names, never the first one alone
+            union = set().union(*listing.values())
+            print(f"grid unify check: unified {len(union) - len(bad_mints & union)}/{len(union)} "
+                  f"(union of {len(listing)} namespaces -> {ns})")
+            rc = rc or (1 if bad_mints & union else 0)
+        return rc
+    if write and ORIGIN_SNAP_NS in listing:
+        why = _origin_quiet(root)
+        if why:    # a one-shot merge cannot settle a two-writer namespace: only a QUIET lap opens the write
+            print(f"grid unify: unread ({ORIGIN_SNAP_NS} is not QUIET: {why})")
+            return 1
+    lock = None
+    if write:
+        lock = GridLock(root, 120)
+        lock.acquire()
+    try:
+        snap = _Snapshot(root, ns, write)
+        total: dict[str, int] = {}
+        seen = _TrunkSeen(root, trunk) if ORIGIN_SNAP_NS in listing else None
+        if seen is not None:    # ONE walk per run, its cost quoted; a failed / empty walk makes every unrelated-root pair a CONFLICT
+            print(f"grid unify: trunk blob set unread: {seen.problem} (every unrelated-root pair stays CONFLICT)" if seen.problem
+                  else f"grid unify: trunk blob set: {seen.cost}")
+        for lns, names in listing.items():
+            tally = {"merged": 0, "adopted": 0, "unchanged": 0, "conflict": 0, "unread": 0}
+            conflicts: list[str] = []
+            classes: list[tuple[str, str, str, str]] = []
+            for m in names:
+                got = _unify_one(root, ns, lns, m, write, snap, classes, seen)
+                tally[got] += 1
+                if got == "conflict":
+                    conflicts.append(m)
+            for k, v in tally.items():
+                total[k] = total.get(k, 0) + v
+            print(f"grid unify ({'write' if write else 'dry-run'}): {lns} -> {ns}: "
+                  + ", ".join(f"{v} {k}" for k, v in tally.items()) + f" of {len(names)}")
+            if lns == ORIGIN_SNAP_NS:
+                print(f"grid unify ({'write' if write else 'dry-run'}): {_class_line(Counter(c[0] for c in classes))}")
+                if write and classes:
+                    print(f"grid unify: record {_write_class_record(root, ns, classes)} (every merged mint by class, the banked pairs with their diffs)")
+                if write and _origin_quiet(root):    # the mirror moved while this ran: the writes are additive, but say so
+                    print(f"grid unify: unread (the mirror is no longer QUIET after the write: {_origin_quiet(root)}); the writes above stand")
+                    total["unread"] = total.get("unread", 0) + 1
+            banked = {c[1]: c[3] for c in classes if c[0] == "banked"}    # the byte test's own reason, listed in full: the owner's one batch
+            shown = [m for m in conflicts if m in banked] + [m for m in conflicts if m not in banked][:50]
+            for m in shown:    # listed by mint; never an automatic tree pick
+                print(f"  CONFLICT {m} ({lns}: " + (f"banked, {banked[m]}" if m in banked else
+                      "a version after the merge-base with a different tree, or a lost compare-and-swap") + ")")
+            if len(shown) < len(conflicts):
+                print(f"  ... {len(conflicts) - len(shown)} more CONFLICT mints")
+    finally:
+        if lock is not None:
+            lock.release()
+    return 1 if total.get("conflict") or total.get("unread") else 0
+
+
+def _origin_dir(root: Path) -> Path:
+    """Where `origin-snap` keeps its listings and its QUIET verdict (scratch, never versioned, one dir for
+    every worktree). NOT `_unify_dir`: `unify --check` reads every `*.refs` there as a pre-write snapshot."""
+    base = locations.shared_sessions_dir(root) if locations.is_graph_dir(root) else root / ".agi" / "sessions"
+    return base / "origin-snap"
+
+
+def _origin_listing(root: Path) -> dict[str, str] | None:
+    """{mint: tip} of `ORIGIN_SNAP_NS/node`, or None when git could not list it (never 'empty')."""
+    res = git_try(root, "for-each-ref", f"{ORIGIN_SNAP_NS}/node", "--format=%(refname) %(objectname)")
+    if res.returncode != 0:
+        return None
+    out = {}
+    for line in res.stdout.splitlines():
+        ref, _, tip = line.partition(" ")
+        out[ref[len(ORIGIN_SNAP_NS) + 6:]] = tip
+    return out
+
+
+def _listing_digest(listing: dict[str, str]) -> str:
+    import hashlib
+    return hashlib.sha256("".join(f"{m} {t}\n" for m, t in sorted(listing.items())).encode()).hexdigest()
+
+
+def _origin_quiet(root: Path) -> str | None:
+    """Why `unify --write` may NOT merge `ORIGIN_SNAP_NS`, or None when origin read QUIET for a lap: the
+    verdict `origin-snap` wrote names the digest of the listing it judged, and the mirror still has it."""
+    verdict = _origin_dir(root) / "quiet"
+    try:
+        want = verdict.read_text().split()[0]
+    except (OSError, IndexError):
+        return "no QUIET verdict: run `grid.py origin-snap` twice, one lap apart"
+    have = _origin_listing(root)
+    if not have:
+        return f"{ORIGIN_SNAP_NS} cannot be listed"
+    if _listing_digest(have) != want:
+        return "the mirror changed since the QUIET verdict: run `grid.py origin-snap` again"
+    return None
+
+
+def cmd_origin_snap(root: Path, remote: str = "origin", lap_min: int = ORIGIN_LAP_MIN) -> int:
+    """goal:g7.16.1.11.46.16 (the third history, council 07:47Z 10-26): O1 + O2 for origin's `refs/grid/node`,
+    which holds tips this repo never fetched (another box's grid wrote them), so `push-changed` is rejected on
+    every name whose origin tip is not in MAIN.
+
+    O1 SNAPSHOT: `git fetch <remote> '+<ns>/node/*:refs/grid/origin-snap/node/*'`. The `+` forces a PRIVATE local
+    mirror, never a shared ref; nothing pushes it and nothing else writes it. A fetch that errors or lists 0
+    refs prints `unread` and returns 1 (an empty side would 'succeed' with 0 merged).
+    O2 LIVENESS: print the newest mirror tip's committer date and name, record the listing, and diff it against
+    the most recent listing at least `lap_min` minutes old (else the latest one). A tip that MOVED, or a name
+    that appeared, to a commit that is NOT inside this repo's own `<ns>/node/<mint>` history is another writer:
+    `LIVE second writer`, rc 2, STOP and bank ONE question (one writer per namespace, or per-box namespaces).
+    Moves to our own history are our own `push-changed` landing and are not a second writer. No foreign move
+    over a baseline >= one lap old writes the QUIET verdict `unify --write` demands for `ORIGIN_SNAP_NS`."""
+    ensure_repo(root)
+    ns = REF_NS
+    if ns == ORIGIN_SNAP_NS or ns.startswith(ORIGIN_SNAP_NS + "/"):
+        print(f"grid origin-snap: unread (the one namespace {ns} is the mirror itself)")
+        return 1
+    d = _origin_dir(root)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "quiet").unlink(missing_ok=True)    # every run re-earns the verdict
+    # `--refmap=` (empty): a refspec given on the command line is ALSO mapped through the remote's configured refspecs (the ones
+    # `grid.py init` wrote), so without it this "private mirror" read moves, or rejects (rc 1), the LIVE `<ns>/node/*` names (alive 12:15Z 10-26, F1).
+    res = git_try(root, "fetch", "--no-tags", "--prune", "-q", "--refmap=", remote, f"+{ns}/node/*:{ORIGIN_SNAP_NS}/node/*")
+    if res.returncode != 0:
+        print(f"grid origin-snap: unread (fetch from {remote} failed: {(res.stderr.strip().splitlines() or ['no reason'])[0][:160]})")
+        return 1
+    have = _origin_listing(root)
+    if not have:
+        print(f"grid origin-snap: unread ({remote} lists no {ns}/node refs; nothing to merge)")
+        return 1
+    top = git_try(root, "for-each-ref", f"{ORIGIN_SNAP_NS}/node", "--sort=-committerdate", "--count=1",
+                  "--format=%(committerdate:iso-strict) %(committername) %(refname)")
+    line = top.stdout.strip()
+    date, _, rest = line.partition(" ")
+    who, _, ref = rest.rpartition(" ")
+    print(f"grid origin-snap: fetched {len(have)} refs into {ORIGIN_SNAP_NS} (remote {remote}); "
+          f"newest tip {date} by {who} ({ref[len(ORIGIN_SNAP_NS) + 6:]})")
+    now = int(time.time())
+    # the earlier listings, newest first: `<epoch>-<pid>-<n>.refs`, header `# fetched <epoch>`
+    earlier = []
+    for p in d.glob("*.refs"):
+        try:
+            head, *body = p.read_text().splitlines()
+            earlier.append((int(head.split()[2]), p, dict(tuple(x.split(" ", 1)) for x in body if " " in x)))
+        except (OSError, ValueError, IndexError):
+            continue
+    earlier.sort(key=lambda e: (e[0], e[1].stat().st_mtime_ns), reverse=True)    # newest first, even within one second
+    n = 0
+    while True:
+        path = d / f"{now:011d}-{os.getpid()}-{n}.refs"
+        try:
+            with open(path, "x") as f:
+                f.write(f"# fetched {now}\n" + "".join(f"{m} {t}\n" for m, t in sorted(have.items())))
+            break
+        except FileExistsError:
+            n += 1
+    if not earlier:
+        print(f"grid origin-snap: first look ({path.name}); run it again after one lap ({lap_min} min) to read liveness")
+        return 0
+    base = next((e for e in earlier if now - e[0] >= lap_min * 60), earlier[0])
+    age = (now - base[0]) // 60
+    foreign, own = [], 0
+    for m, t in sorted(have.items()):
+        if base[2].get(m) == t:
+            continue
+        ours = ref_tip(root, f"{ns}/node/{m}")
+        if ours and _is_ancestor(root, t, ours):
+            own += 1
+        else:
+            foreign.append(m)
+    gone = sorted(m for m in base[2] if m not in have)    # --prune dropped a name origin no longer lists: a delete is a write too
+    print(f"grid origin-snap: against {base[1].name} ({age} min earlier): {len(foreign)} foreign move(s), "
+          f"{own} landing of this repo's own push, {len(gone)} name(s) origin no longer lists")
+    foreign += gone
+    if foreign:
+        for m in foreign[:10]:
+            print(f"  MOVED {m}")
+        print("grid origin-snap: LIVE second writer: origin's tips are still being written by someone else -- STOP; "
+              "bank ONE question (one writer per namespace, or per-box namespaces). A one-shot unify cannot settle it.")
+        return 2
+    if age < lap_min:
+        print(f"grid origin-snap: not yet a lap ({age} min < {lap_min}): no verdict; run it again later")
+        return 0
+    (d / "quiet").write_text(f"{_listing_digest(have)} {now}\n")
+    print(f"grid origin-snap: QUIET for the lap ({age} min >= {lap_min}): `grid.py unify --into {ns} "
+          f"--legacy {ORIGIN_SNAP_NS} --write` may run")
+    return 0
+
+
+def _classify_orphan(mint: str, last_id: str | None, id_mints: dict[str, set[str]]) -> str:
+    """goal:g7.16.1.11.46.16 (the census-orphans decision, alive 07:40:32Z 10-26): an orphan is a mint with no node file
+    in the view of `rev`. `double-mint`: ANOTHER mint carries the same `id:` on the trunk (a ghost, the trunk mint is
+    the node); `never-landed`: no file under any mint carries that id; `unclassified`: its tip names no id at all.
+    A third class can never hide inside the total: unclassified is its own number and makes the census rc 1."""
+    if not last_id:
+        return "unclassified"
+    return "double-mint" if id_mints.get(last_id, set()) - {mint} else "never-landed"
+
+
+def cmd_census(root: Path, rev: str = "HEAD", orphans: bool = False) -> int:
+    """goal:g7.16.1.11.46.16 (doc §34.5): five numbers over the ONE namespace, mints counted by their tip.
+
+        mints    git for-each-ref <ns>/node                       (tips, not versions)
+        live     } git cat-file --batch over the tips' node.md      status != deprecated / == deprecated
+        retired  }                                                 live + retired = mints
+        versions git rev-list --count --stdin over the tips        distinct commits (a unify merge is one)
+        orphans  git grep '^mint_id:' <rev> -- <nodes>             mints with no node file in the view of <rev>
+
+    `orphans` = double_mints + never_landed + unclassified, each its OWN printed number (`_classify_orphan`);
+    an unclassified orphan prints its mint and makes the cell rc 1. `--orphans` lists every orphan as
+    `<mint> <last id> <versions> <class>` before the numbers.
+
+    The ONE pinned command behind the 22-vs-46 gap (K3): `git grep -h '^mint_id:' <rev> -- .agi/nodes`
+    against `git for-each-ref <ns>/node` is a SET difference (22 at 695c008dfd); 46 was 5991 minus 5945,
+    two counts that were not the same population. A failing git command or an empty listing in the
+    namespace or in a declared legacy namespace prints `unread (...)` and returns 1, never a zero."""
+    ensure_repo(root)
+    ns = REF_NS
+
+    def unread(what: str) -> int:
+        print(f"grid census: unread ({what})")
+        return 1
+
+    for space in [ns, *LEGACY_NS]:
+        res = git_try(root, "for-each-ref", f"{space}/node", "--format=%(refname)")
+        if res.returncode != 0 or not res.stdout.split():
+            return unread(f"{space} lists no node refs")
+    res = git_try(root, "for-each-ref", f"{ns}/node", "--format=%(objectname) %(refname)")
+    rows = [x.split() for x in res.stdout.splitlines()]
+    tips = [r[0] for r in rows]
+    mints = {r[1][len(ns) + 6:] for r in rows}
+    last_id: dict[str, str] = {}    # mint -> the `id:` its tip's node.md names
+    tip_of = {r[1][len(ns) + 6:]: r[0] for r in rows}
+    res = subprocess.run(["git", "-C", str(repo_root(root)), "cat-file", "--batch"],
+                         input="".join(f"{t}:{NODE_ENTRY}\n" for t in tips).encode(), capture_output=True)
+    if res.returncode != 0:
+        return unread("cat-file over the tips")
+    out, pos, live, retired = res.stdout, 0, 0, 0
+    for t in tips:
+        nl = out.find(b"\n", pos)
+        head = out[pos:nl].split() if nl >= 0 else []
+        if len(head) != 3 or head[1] != b"blob":
+            return unread(f"{t[:12]} has no {NODE_ENTRY}")
+        size = int(head[2])
+        body = out[nl + 1:nl + 1 + size].decode("utf-8", "replace")
+        pos = nl + 1 + size + 1
+        lines = body.split("\n")
+        if lines[0].strip() != "---" or "---" not in [x.rstrip() for x in lines[1:]]:
+            return unread(f"{t[:12]} has no frontmatter")
+        front = "\n".join(lines[1:[x.rstrip() for x in lines[1:]].index("---") + 1])
+        mi = re.search(r"^id:\s*[\"']?(\S+?)[\"']?\s*$", front, re.M)
+        if mi is not None:
+            last_id[next(k for k, v in tip_of.items() if v == t)] = mi.group(1)
+        m = re.search(r"^status:\s*[\"']?([A-Za-z_-]+)", front, re.M)    # no status line = live (status != deprecated)
+        if m is not None and m.group(1) == "deprecated":
+            retired += 1
+        else:
+            live += 1
+    res = git_try(root, "rev-list", "--count", "--stdin", input_text="\n".join(tips) + "\n")
+    if res.returncode != 0:
+        return unread("rev-list over the tips")
+    versions = int(res.stdout)
+    nodes = (Path(root) / "nodes").resolve().relative_to(repo_root(root).resolve()).as_posix()
+    res = git_try(root, "grep", "-z", "-n", "-e", "^id:", "-e", "^mint_id:", rev, "--", nodes)
+    if res.returncode not in (0, 1):
+        return unread(f"git grep {rev}")
+    per_file: dict[str, dict[str, str]] = {}    # path -> {"id": ..., "mint_id": ...}: the FIRST of each (the frontmatter)
+    for line in res.stdout.split("\n"):
+        parts = line.split("\0", 2)
+        if len(parts) != 3 or not parts[1].isdigit():
+            continue
+        key, _, val = parts[2].partition(":")
+        val = re.sub(r"[\"']", "", val).strip().split()
+        if val:
+            per_file.setdefault(parts[0].partition(":")[2], {}).setdefault(key, val[0])
+    filed = {v["mint_id"] for v in per_file.values() if "mint_id" in v}
+    id_mints: dict[str, set[str]] = {}
+    for v in per_file.values():
+        if "id" in v and "mint_id" in v:
+            id_mints.setdefault(v["id"], set()).add(v["mint_id"])
+    if not filed:
+        return unread(f"no node file under {nodes} at {rev}")
+    classes = {m: _classify_orphan(m, last_id.get(m), id_mints) for m in sorted(mints - filed)}
+    n_dm = sum(1 for c in classes.values() if c == "double-mint")
+    n_nl = sum(1 for c in classes.values() if c == "never-landed")
+    n_un = sum(1 for c in classes.values() if c == "unclassified")
+    if orphans:
+        for m in sorted(classes, key=lambda x: (classes[x], x)):
+            n = git_try(root, "rev-list", "--count", tip_of[m])
+            print(f"{m} {last_id.get(m, '-')} {n.stdout.strip() if n.returncode == 0 else '?'} {classes[m]}")
+    for m, c in classes.items():
+        if c == "unclassified":
+            print(f"grid census: UNCLASSIFIED orphan {m} (its tip names no id)")
+    print(f"grid census: mints={len(mints)} live={live} retired={retired} versions={versions} orphans={len(classes)} "
+          f"double_mints={n_dm} never_landed={n_nl} unclassified={n_un}")
+    return 1 if n_un else 0
+
+
 def cmd_sync(root: Path, remote: str | None) -> None:
     ensure_repo(root)
     remotes = git(root, "remote").splitlines()
@@ -1920,7 +3491,7 @@ def cmd_sync(root: Path, remote: str | None) -> None:
     if "origin" not in git(root, "remote").splitlines():
         sys.exit("ERR: no origin — grid.py sync <remote-url> once to set it")
     cmd_init(root)  # keep the fetch refspec aligned on every sync
-    out = git(root, "push", "origin", PUSH_SPEC)
+    out = git(root, "push", "origin", *PUSH_SPECS)
     print(out or "grid: synced")
 
 
@@ -1962,7 +3533,7 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path) -> list[str]:
     repo = repo_root(root)
     snap = (f"*/{mins} * * * * cd {repo} && "
             f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
-            f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
+            f"git push -q origin {' '.join(repr(x) for x in PUSH_SPECS)} >> {log} 2>&1")
     d1 = f"7 * * * * git -C {repo} push -q origin {branch} >> {log} 2>&1"
     return [snap, d1]
 
@@ -2081,6 +3652,36 @@ def main() -> None:
                     help="destination namespace (default: the configured "
                          "grid.storage_trunk); a trailing / is stripped")
     mt.add_argument("--write", action="store_true")
+    un = sub.add_parser("unify",
+                        help="goal:g7.16.1.11.46.16 -- merge each tip of the LEGACY namespace (refs/grid/"
+                             "local-maxxing, the namespace every writer used until this land) into the one "
+                             "namespace (refs/grid/node, the 09-21 freeze), additive (no delete); dry-run unless "
+                             "--write (which writes its own pre-write snapshot); --check is the read-only falsifier")
+    un.add_argument("--write", action="store_true")
+    un.add_argument("--check", action="store_true")
+    un.add_argument("--into", default=None,
+                    help="the namespace to merge INTO (refs/grid: the 09-21 freeze, the one namespace), overriding the config (run BEFORE the config lands)")
+    un.add_argument("--legacy", action="append", default=None,
+                    help="a LEGACY namespace to merge FROM (repeatable; refs/grid/local-maxxing, the namespace every writer used until this land), overriding grid.legacy_namespaces")
+    un.add_argument("--owner-batch", default=None, metavar="RECORD",
+                    help="the owner's ruling of a banked batch: write every `banked` pair of the stamped record RECORD (a .classes name) as tree = LIVE, origin's tip the 2nd parent (with --legacy refs/grid/origin-snap)")
+    un.add_argument("--trunk", default="HEAD",
+                    help="the ref whose history is the TRUNK's blob evidence for the origin mirror's byte test (default HEAD; pass the land branch when HEAD is not it)")
+    os_ = sub.add_parser("origin-snap",
+                         help="goal:g7.16.1.11.46.16 -- mirror origin's refs/grid/node into the PRIVATE refs/grid/origin-snap and "
+                              "read whether origin is still being written (rc 2 = a LIVE second writer); the QUIET verdict "
+                              "`unify --legacy refs/grid/origin-snap --write` demands")
+    os_.add_argument("remote", nargs="?", default="origin")
+    os_.add_argument("--lap", type=int, default=ORIGIN_LAP_MIN, help="minutes that make a lap (default 30, grid_sync's cadence)")
+    ce = sub.add_parser("census", help="goal:g7.16.1.11.46.16 -- mints, live, retired, versions, orphans")
+    ce.add_argument("--rev", default="HEAD")
+    ce.add_argument("--orphans", action="store_true",
+                    help="list every orphan as `<mint> <last id> <versions> <class>` (double-mint | never-landed | unclassified)")
+    sp = sub.add_parser("split", help="goal:g7.16.1.11.46.18 -- a land as one grid commit per changed node of BASE..GATED (CAS; a moved tip = held merge)")
+    sp.add_argument("--base", required=True)
+    sp.add_argument("--gated", required=True)
+    sp.add_argument("--write", action="store_true")
+    sp.add_argument("--lock-wait", type=int, default=120)
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
     sub.add_parser("push-changed", help="push only changed grid tips in bounded batches")
@@ -2123,10 +3724,22 @@ def main() -> None:
         cmd_migrate_mint_refs(root, args.write)
     elif args.cmd == "migrate-trunk":
         cmd_migrate_trunk(root, args.to, args.write, args.from_ns)
+    elif args.cmd == "unify" and (args.into or args.legacy) and _set_unify_namespaces(args.into, args.legacy):
+        pass
+    elif args.cmd == "unify" and not args.check and _retired_write(root, args.write):
+        pass
+    elif args.cmd == "unify":
+        sys.exit(cmd_unify(root, args.write, args.check, args.trunk, args.owner_batch))
+    elif args.cmd == "origin-snap":
+        sys.exit(cmd_origin_snap(root, args.remote, args.lap))
+    elif args.cmd == "census":
+        sys.exit(cmd_census(root, args.rev, args.orphans))
+    elif args.cmd == "split":
+        sys.exit(cmd_split(root, args.base, args.gated, args.write, args.lock_wait))
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "push-changed":
-        cmd_push_changed(root)
+        sys.exit(cmd_push_changed(root))
     elif args.cmd == "cron":
         cmd_cron(root, args.action, args.snapshot_mins)
 

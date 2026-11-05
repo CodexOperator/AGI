@@ -80,13 +80,6 @@ commands:
       - show
     about: the crontab the graph declares
     workflow: read
-  write-guard:
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write_guard.py
-      - check
-    about: goal:g4.18 — unsanctioned node writes; silent is healthy
-    workflow: verify
   dispatch-help:
     argv:
       - python3
@@ -129,12 +122,6 @@ commands:
       - "--emit"
       - both
     about: human and llm views side by side, from ONE stream
-    workflow: see
-  write:
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-    about: goal:g4.18 — named node operations; a hand edit becomes an engine action
     workflow: see
   session-complete:
     argv:
@@ -200,28 +187,6 @@ excluded:
       - {"name": "name", "type": "str", "required": false, "choices": []}
     reason: "the cron-only per-uid cap runner (goal:g7.16.1.11.42.1): the last line of a foreign user's crontab block runs it every 5 minutes IN that uid, so its logs are bounded by itself with no sudo and no key; it rotates the logs dir of whoever runs it, so an operator has no business calling it by hand (--dry-run reports only)"
     side_effects: destructive
-    proposable: false
-  write.py:patch:
-    cli: write.py
-    verb: patch
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - patch -
-    reason: reads a unified diff on stdin (fail-closed) -- not expressible as argv
-    side_effects: graph-write
-    proposable: false
-  write.py:body_patch:
-    cli: write.py
-    verb: body_patch
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - body_patch -
-    reason: reads a diff on stdin onto the node BODY -- not expressible as argv
-    side_effects: graph-write
     proposable: false
   node_writer.py::
     cli: node_writer.py
@@ -313,6 +278,34 @@ excluded:
       - <engine>/extensions/agi/bin/grid.py
       - push-changed
     reason: "network: pushes refs to a remote"
+    side_effects: network
+    proposable: false
+  grid.py:unify:
+    cli: grid.py
+    verb: unify
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - unify
+    args:
+      - {"name": "write", "type": "bool", "required": false, "choices": []}
+      - {"name": "check", "type": "bool", "required": false, "choices": []}
+      - {"name": "into", "type": "str", "required": false, "choices": []}
+      - {"name": "legacy", "type": "str", "required": false, "choices": []}
+    reason: "graph-write: --write adds merge commits to the grid refs (additive only, compare-and-swap, no delete); a host act of the grid unify, run once by belam after the gate (goal:g7.16.1.11.46.16). The bare form is a dry run."
+    side_effects: graph-write
+    proposable: false
+  grid.py:origin-snap:
+    cli: grid.py
+    verb: origin-snap
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - origin-snap
+    args:
+      - {"name": "remote", "type": "str", "required": false, "choices": []}
+      - {"name": "lap", "type": "int", "required": false, "choices": []}
+    reason: "network: fetches origin's refs/grid/node into the PRIVATE mirror refs/grid/origin-snap (forced, never pushed) and reads whether origin is still written (rc 2 = a LIVE second writer); a host act of the third-history route, run by belam twice one lap apart (goal:g7.16.1.11.46.16)"
     side_effects: network
     proposable: false
   provisioning.py:reap:
@@ -525,6 +518,8 @@ excluded:
       - {"name": "crit_psi_full_avg60", "type": "float", "required": true, "choices": []}
       - {"name": "warn_cgroup_max_frac", "type": "float", "required": true, "choices": []}
       - {"name": "warn_slab_mib", "type": "float", "required": true, "choices": []}
+      - {"name": "warn_root_free_mib", "type": "float", "required": true, "choices": []}
+      - {"name": "disk_path", "type": "str", "required": true, "choices": []}
       - {"name": "repeat_mins", "type": "float", "required": true, "choices": []}
       - {"name": "clear_margin_frac", "type": "float", "required": true, "choices": []}
       - {"name": "clear_hold_mins", "type": "float", "required": true, "choices": []}
@@ -795,7 +790,7 @@ excluded:
       - python3
       - <engine>/extensions/agi/bin/telemetry_rollup.py
       - <report_id>
-    reason: attaches summed telemetry to a report node via write.py; --dry-run only previews
+    reason: attaches summed telemetry to a report node; --dry-run only previews
     side_effects: graph-write
     proposable: false
   ws_raw_client.py::
@@ -826,235 +821,7 @@ excluded:
     reason: the merge-up window shares verification.py's --suite-ring/--ring-sig signer flags -- excluded with the bare check
     side_effects: read
     proposable: false
-  write_guard.py:hook:
-    cli: write_guard.py
-    verb: hook
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write_guard.py
-      - hook
-    reason: prints a pre-commit hook that installs itself -- an install, not a choice
-    side_effects: graph-write
-    proposable: false
 manifest:
-  write.py:create:
-    cli: write.py
-    verb: create
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - create
-      - <type>
-      - <slug>
-    args:
-      - {"name": "type", "type": "str", "required": true, "choices": []}
-      - {"name": "slug", "type": "str", "required": true, "choices": []}
-      - {"name": "parent", "type": "list", "required": false, "choices": []}
-      - {"name": "payload", "type": "str", "required": false, "choices": []}
-      - {"name": "body_file", "type": "str", "required": false, "choices": []}
-    purpose: mint a node of <type>/<slug>, linked to the schema's legal parents
-    side_effects: graph-write
-    proposable: true
-  write.py:set:
-    cli: write.py
-    verb: set
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - set <key> <value>
-    args:
-      - {"name": "key", "type": "str", "required": true, "choices": []}
-      - {"name": "value", "type": "str", "required": true, "choices": []}
-    purpose: set a frontmatter key to a value, one typed coercion
-    side_effects: graph-write
-    proposable: true
-  write.py:retire:
-    cli: write.py
-    verb: retire
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - retire <note>
-    args:
-      - {"name": "note", "type": "str", "required": true, "choices": []}
-    purpose: retire the node, status deprecated AND the move to nodes/deprecated/<type>/ in one commit (a status-only deprecate is refused)
-    side_effects: graph-write
-    proposable: true
-  write.py:unset:
-    cli: write.py
-    verb: unset
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - unset <key>
-    args:
-      - {"name": "key", "type": "str", "required": true, "choices": []}
-    purpose: remove a frontmatter key
-    side_effects: graph-write
-    proposable: true
-  write.py:link:
-    cli: write.py
-    verb: link
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - link <ref>
-    args:
-      - {"name": "ref", "type": "str", "required": true, "choices": ["self", "parent", "next"]}
-    purpose: add a parent/next edge reference to this node
-    side_effects: graph-write
-    proposable: true
-  write.py:thought:
-    cli: write.py
-    verb: thought
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - thought <prose>
-    args:
-      - {"name": "prose", "type": "str", "required": true, "choices": []}
-    purpose: replace the authored THOUGHT block with why this version differs
-    side_effects: graph-write
-    proposable: true
-  write.py:note:
-    cli: write.py
-    verb: note
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - note <prose>
-    args:
-      - {"name": "prose", "type": "str", "required": true, "choices": []}
-    purpose: append a whole-sentence Agent Notes line to the node
-    side_effects: graph-write
-    proposable: true
-  write.py:sub:
-    cli: write.py
-    verb: sub
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - sub <old> => <new>
-    args:
-      - {"name": "old", "type": "str", "required": true, "choices": []}
-      - {"name": "new", "type": "str", "required": true, "choices": []}
-    purpose: replace exactly ONE literal occurrence anywhere in the node file (0 or 2+ matches refused, nothing written)
-    side_effects: graph-write
-    proposable: true
-  write.py:sub!:
-    cli: write.py
-    verb: sub!
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - sub! <old> => <new>
-    args:
-      - {"name": "old", "type": "str", "required": true, "choices": []}
-      - {"name": "new", "type": "str", "required": true, "choices": []}
-    purpose: replace EVERY literal occurrence in the node file, the count printed
-    side_effects: graph-write
-    proposable: true
-  write.py:payload:
-    cli: write.py
-    verb: payload
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - payload <path>
-    args:
-      - {"name": "path", "type": "str", "required": true, "choices": []}
-    purpose: replace the bytes of the file this build node points at
-    side_effects: graph-write
-    proposable: true
-  write.py:payload_text:
-    cli: write.py
-    verb: payload_text
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - payload_text <text>
-    args:
-      - {"name": "text", "type": "str", "required": true, "choices": []}
-    purpose: replace the payload with literal text, no file needed
-    side_effects: graph-write
-    proposable: true
-  write.py:read:
-    cli: write.py
-    verb: read
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - read <target> <range>
-    args:
-      - {"name": "target", "type": "str", "required": true, "choices": ["body", "payload"]}
-      - {"name": "range", "type": "str", "required": true, "choices": []}
-    purpose: read a body or payload slice; replace's exact inverse
-    side_effects: read
-    proposable: true
-  write.py:replace:
-    cli: write.py
-    verb: replace
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - replace <target> <range> <source>
-    args:
-      - {"name": "target", "type": "str", "required": true, "choices": ["body", "payload"]}
-      - {"name": "range", "type": "str", "required": true, "choices": []}
-      - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
-    purpose: replace a body or payload slice with text on stdin
-    side_effects: graph-write
-    proposable: true
-  write.py:row:
-    cli: write.py
-    verb: row
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - row <ref> <source>
-    args:
-      - {"name": "ref", "type": "str", "required": true, "choices": []}
-      - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
-    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>), or ONE nested frontmatter row (<top>.<key>, an empty source removes it)
-    side_effects: graph-write
-    proposable: true
-  write.py:adopt:
-    cli: write.py
-    verb: adopt
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - adopt
-    args: []
-    purpose: adopt the current on-disk payload/body bytes as this node's version
-    side_effects: graph-write
-    proposable: true
-  write.py:canonicalize:
-    cli: write.py
-    verb: canonicalize
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write.py
-      - <node-id>
-      - canonicalize
-    args: []
-    purpose: re-render the node file in the ONE canonical form (node_writer.render_frontmatter + _serialize_node) and change nothing else; a node patch refuses on a non-canonical node and names this verb (council ruling on SM 154, goal:g4.18.1.6)
-    side_effects: graph-write
-    proposable: true
   cli.py:branch-reshuffle:
     cli: cli.py
     verb: branch-reshuffle
@@ -1370,10 +1137,39 @@ manifest:
       - {"name": "what", "type": "str", "required": false, "choices": ["env-file", "template", "node"]}
       - {"name": "check", "type": "bool", "required": false, "choices": []}
       - {"name": "json", "type": "bool", "required": false, "choices": []}
+      - {"name": "lanes", "type": "bool", "required": false, "choices": []}
       - {"name": "set", "type": "str", "required": false, "choices": []}
     purpose: envfile.py
     side_effects: graph-write
     proposable: true
+  grid.py:census:
+    cli: grid.py
+    verb: census
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - census
+    args:
+      - {"name": "rev", "type": "str", "required": false, "choices": []}
+      - {"name": "orphans", "type": "bool", "required": false, "choices": []}
+    purpose: grid.py census (goal:g7.16.1.11.46.16 -- mints / live / retired / versions / orphans split into double_mints + never_landed + unclassified, each from one git command; --orphans lists them; unread or an unclassified orphan rc 1)
+    side_effects: read
+    proposable: true
+  grid.py:split:
+    cli: grid.py
+    verb: split
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - split
+    args:
+      - {"name": "base", "type": "str", "required": true, "choices": []}
+      - {"name": "gated", "type": "str", "required": true, "choices": []}
+      - {"name": "write", "type": "bool", "required": false, "choices": []}
+      - {"name": "lock_wait", "type": "int", "required": false, "choices": []}
+    reason: "graph-write: --write adds ONE grid commit per changed node of BASE..GATED on that mint's grid ref, named by grid.py's builder (CAS per node under GridLock; a moved tip = a held merge row, rc 1; never a delete); the land path of goal:g7.16.1.11.46.18 G1b-2, not wired into any land until its slice (c). The bare form is a dry run."
+    side_effects: graph-write
+    proposable: false
   grid.py:commit:
     cli: grid.py
     verb: commit
@@ -2855,6 +2651,19 @@ manifest:
     purpose: check bytes for physical-token leaks
     side_effects: read
     proposable: true
+  anonymize.py:redact:
+    cli: anonymize.py
+    verb: redact
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/anonymize.py
+      - redact
+    args:
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: stdin JSON lines, b redacted to placeholders
+    side_effects: read
+    proposable: false
+    reason: reads stdin lines for the chat tap (agi-mem); not a standalone command
   anonymize.py:install-hook:
     cli: anonymize.py
     verb: install-hook
@@ -2877,8 +2686,6 @@ manifest:
     side_effects: graph-write
     args:
       - {"name": "iter_n", "type": "str", "required": true, "choices": []}
-  write:
-    side_effects: graph-write
   mesh-local-town:
     side_effects: network
   mesh-core-town:
@@ -3109,29 +2916,6 @@ manifest:
     purpose: slice SKILL.md for one role from the machine-readable hierarchy
     side_effects: read
     proposable: true
-  seat_status.py::
-    cli: seat_status.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/seat_status.py
-    args:
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-      - {"name": "list", "type": "bool", "required": false, "choices": []}
-    purpose: one live read of every seat, the spawn budget and the telemetry roll-up
-    side_effects: read
-    proposable: true
-  write_guard.py:check:
-    cli: write_guard.py
-    verb: check
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/write_guard.py
-      - check
-    args: []
-    purpose: goal:g4.18 — unsanctioned node writes; silent is healthy
-    side_effects: read
-    proposable: true
   verify-suite:
     cli: verification.py
     verb: "--suite"
@@ -3303,8 +3087,6 @@ placement:
     kind: positional
   payload_boundary.py:.repo:
     kind: positional
-  seat_status.py:.root:
-    kind: positional
 season: 1
 status: active
 tags:
@@ -3330,7 +3112,6 @@ workflows:
     - view
     - view-llm
     - view-both
-    - write
   mesh:
     - mesh-local-town
     - mesh-core-town

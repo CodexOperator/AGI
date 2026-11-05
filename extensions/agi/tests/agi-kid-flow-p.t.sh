@@ -3,8 +3,8 @@
 # Same harness as agi-kid-flow-guard.t.sh (sh + git + jq + ssh-keygen, scratch HOME, a stub pi/box, 0 USD). PIECE = the file under test (default: `sect agi-kid` of ROOT; a mutation = PIECE=<edited copy>). One ok/FAIL line per case; exit = number of FAILs.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
-[ -n "$PIECE" ]||{ sect agi-kid>$T/piece;PIECE=$T/piece;}
-[ -s $PIECE ]||{ echo "FAIL extract: agi-kid $(wc -c<$PIECE) B";exit 99;}
+[ -n "$PIECE" ]||{ sect agi-in>$T/piece;PIECE=$T/piece;}
+[ -s $PIECE ]||{ echo "FAIL extract: agi-in $(wc -c<$PIECE) B";exit 99;}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE;H=$T/home;mkdir -p $H/.ssh $T/bin;LOG=$T/log;: >$LOG;MAIL=$T/mail;: >$MAIL
 ssh-keygen -q -t ed25519 -N '' -f $H/.ssh/id_ed25519 -C inv>/dev/null;echo "inv@agi namespaces=\"git\" $(cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub)">$T/allowed

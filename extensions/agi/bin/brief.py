@@ -226,8 +226,8 @@ _LADDER = Path("nodes/.geometry/ladder.md")
 _SOUL_MIND_BODY = (
     "The hypergraph is the soul and the grid is its memory. "
     "An agent is a mind and a session is one lifetime of it. "
-    "A payload is a body and write.py is the only hand allowed "
-    "to touch one. Soul and body each have a consciousness; "
+    "A payload is a body and a committed node edit is the only hand "
+    "allowed to touch one. Soul and body each have a consciousness; "
     "consciousness is will is energy is life force is electricity."
 )
 
@@ -986,7 +986,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "         | decompose\n"
         "     +---+---+\n"
         "     |       |\n"
-        "   g16.a   g16.b    write.py create goal <slug> --parent goal:g16\n"
+        "   g16.a   g16.b    mint goal <slug>, parent goal:g16 (agi-goal)\n"
         "     |       |\n"
         "   parent  parent   dispatch.py ... --tier parent --ladder-tier 0\n"
         "     |           --target <slug>\n"
@@ -998,7 +998,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "                     # continue | adjust | done\n"
         "\n"
         "   Chain the three commands for every subgoal, in order: decompose,\n"
-        "   mint the subgoal with `write.py create goal`, drive it with a\n"
+        "   mint the subgoal (skill agi-goal), drive it with a\n"
         "   dispatched parent (`dispatch.py --tier parent --ladder-tier 0`),\n"
         "   and judge the outcome with `season.py judge`.\n"
         "4. NEVER do kid work. Your job is to judge, not to do.\n"
@@ -1014,8 +1014,8 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "8. Speak up ONE tier — to any director above you — when a decision\n"
         "   needs escalation. Use send.py send for that.\n"
         "9. Your artifact is the goals' node versions and your HANDOFF.md\n"
-        "   edits. You write into the goal nodes' THOUGHT blocks through\n"
-        "   write.py, not by hand.",
+        "   edits. You write into the goal nodes' THOUGHT blocks by a plain\n"
+        "   in-place edit (skill agi-node-write), the block rewritten whole.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic.",
         PAID_FOR_PATH_GUARD,
@@ -1033,7 +1033,7 @@ def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
     (never itself), so the owner no longer reaches the directors through
     Belam alone. Sonnet 5 at effort high (ladder row tier=1/liaison). Sits
     the tier3-quorum to relay quorum questions to the owner and carry owner
-    decisions back; banks every decision in the graph through write.py.
+    decisions back; banks every decision in the graph by a plain node edit.
     """
     return [
         f"You are the OWNER LIAISON agent {agent_id}. You are the owner's "
@@ -1046,7 +1046,7 @@ def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
         "and carry owner decisions back to them. NEVER address Belam "
         "directly — the quorum, not you, is the channel to the prime.\n"
         "2. BANK every owner decision in the graph so it is never lost: "
-        "`write.py <node-id> 'thought <decision>'` on the node it governs, "
+        "the decision written into the THOUGHT block of the node it governs, "
         "or a new idea node under goal:g17 (ideas-as-memos).\n"
         "3. THE QUORUM ROTATES YOU — you do not rotate yourself and you "
         "never write your own successor. Rotation is the quorum's call, "
@@ -1056,10 +1056,10 @@ def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
         PAID_FOR_PATH_GUARD,
-        "Route every node edit through the logged writer: "
-        "`python3 extensions/agi/bin/write.py <node-id> 'thought <text>'` "
-        "(or `note <text>`). A hand edit to a node file is an unsanctioned "
-        "write.",
+        "Edit a node file in place (skill agi-node-write section 1): read it "
+        "by content anchor, rewrite its THOUGHT block whole (or add a line "
+        "under Agent Notes), run `python3 extensions/agi/bin/links.py schema` "
+        "and `links.py links`, then commit it by exact path.",
     ]
 
 
@@ -1489,8 +1489,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # git` segment below forbids writes; this sentence authorises the read
         # (option (a) of the contradiction: the brief names its own tool).
         f"Record the measured count in your experiment node's frontmatter "
-        f"before you continue: `write.py <node-id> 'set production_lines N'` "
-        f"-- the whole verb line is ONE quoted argument. NEVER write "
+        f"before you continue: add the line `production_lines: N` to its "
+        f"frontmatter by a plain edit. NEVER write "
         f"`line_ceiling` on your own node: the number above is "
         f"the dispatching node's, and dispatch stamps it on your scaffold "
         f"ONLY when that node declares its ceiling ACROSS more than one kid "
@@ -1500,8 +1500,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         f"that sets it overwrites the parent's hand-set ceiling with the "
         f"number it was briefed with (goal:g15.27.5 FR-C2). If you are above "
         f"2x, also write "
-        f"`write.py <node-id> 'set rebrief_request <what remains, the ceiling "
-        f"you need>'` before you stop; harvest reads these fields and names an "
+        f"a `rebrief_request: \"<what remains, the ceiling you need>\"` line in "
+        f"the same frontmatter before you stop; harvest reads these fields and names an "
         f"overage with no re-brief entry as a defect. That one `git diff "
         f"--numstat` read is the ONLY git you may run: a read-only "
         f"measurement, nothing staged, committed or pushed."
@@ -1535,29 +1535,19 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "not the same claim. A failing assertion you did not expect is usually "
         "the assertion working. A test of live config reads the live node, "
         "never a copied list.",
-        # write.py verb syntax: the WHOLE verb line is ONE shell-quoted
-        # argument (goal:g13.1). Unquoted, argparse reads `set` as the script
-        # and `verdict` as the slug and the call dies on the extra positional
-        # -- the struggle an L3.30 kid recorded. Fields inside the quoted line
-        # stay space separated, not k=v.
-        "WRITE.PY SYNTAX: `write.py <node-id> '<verbs>'` -- the whole verb "
-        "line is ONE quoted argument; chain verbs with `&&` inside the same "
-        "quotes. Fields inside the line stay space separated, not k=v. "
-        "Example:\n"
-        "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
-        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs [\"experiment:x\"]'\n"
-        "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'\n"
-        # hypothesis:l3-write-partial-diffs-as-writes -- the partial verbs.
-        # `read` fetches a line range (read-only, never restamps edited_by);
-        # `patch` applies a unified diff to a BUILD node's payload file;
-        # `body_patch` applies one to a node's BODY. Diff bytes arrive by
-        # path or '-', NEVER inline -- a diff can contain the doubled `&&`
-        # that splits the script form.
-        "  python3 extensions/agi/bin/write.py build:bin-x 'read payload 10:20'\n"
-        "  python3 extensions/agi/bin/write.py build:bin-x 'replace payload 10:20 -'  # new text on stdin, NO diff\n"
-        "  python3 extensions/agi/bin/write.py hypothesis:x 'replace body 4:9 -'      # same verb, node BODY\n"
-        "  python3 extensions/agi/bin/write.py build:bin-x 'patch -'   # unified diff on stdin (fail-closed)\n"
-        "  python3 extensions/agi/bin/write.py hypothesis:x 'body_patch -'  # diff onto the node BODY",
+        # goal:g7.16.1.11.46.23 -- the node writer is retired: a node is a
+        # plain file, read by content anchor and edited in place.
+        "NODE EDITS: a node is the plain file `.agi/nodes/<type>/<slug>.md`. "
+        "Read a section by CONTENT anchor, never a file line number:\n"
+        "  sed -n '/^## Falsifier/,/^## /p' .agi/nodes/experiment/x.md\n"
+        "Edit it in place with your editor: a frontmatter field (quote a text "
+        "value; a bare none/null/true parses as YAML null/bool), the body, the "
+        "THOUGHT block rewritten whole. A validated frontmatter set (a verdict, "
+        "evidence_runs) is\n"
+        "  node_writer.update_node(root, 'experiment:x', set_fm={'verdict': 'proved'})\n"
+        "A build node's payload is the file itself, edited in place. Before the "
+        "commit run `python3 extensions/agi/bin/links.py schema` and "
+        "`links.py links`.",
         # hypothesis:l3w4-handoff-sections-claimable -- name the section tool
         # so a seat that reads a handoff knows it exists (SD.16). Keep SHORT.
         "HANDOFF SECTIONS: `python3 extensions/agi/bin/handoff.py sections` "
@@ -1566,11 +1556,10 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # l3w4 read-then-hunk recipe; measured trap -- the applier's body view
         # is offset one from a naive split on BODY:BEGIN, and `read body`
         # shares that exact view, so number the hunk from those bytes.
-        "PARTIAL EDITS, no offset arithmetic: `write.py <id> 'read <body|payload> "
-        "N:M'` then `write.py <id> 'replace <body|payload> N:M -'` with the new text "
-        "on stdin. The two ranges are the SAME -- replace is the exact inverse of "
-        "read -- and it behaves identically on a node BODY and a build PAYLOAD. "
-        "Reach for `patch`/`body_patch` only when you already hold a diff.",
+        "PARTIAL EDITS: read the span you will change by CONTENT anchor "
+        "(`sed -n '/^## X/,/^## /p' <file>`), then change just those lines in "
+        "place with your edit tool. It behaves identically on a node BODY and "
+        "a build PAYLOAD (the payload is the file itself).",
         # L3.37/38: the edit tool rejected, across two independent kids in one
         # round, an `edits` argument passed as a single JSON string and one
         # wrapped a level too deep as `[{ edits: [...] }]`. Each cost a turn.
@@ -1597,9 +1586,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "carries a title DERIVED from its filename (`A00 f067c356 b0ad80`), "
         "which renders as an opaque id in every map and is harvested as an "
         "untitled defect (`untitled=[<node-id>]`). Before you signal done, "
-        "set a real title on your own node with\n"
-        "  python3 extensions/agi/bin/write.py <node-id> 'set title <your "
-        "own words>'\n"
+        "set a real title on your own node: edit the `title:` line of its "
+        "frontmatter to your own words (a quoted value).\n"
         "A round whose node still carries its derived title has not finished.",
         # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
         # per-round -- the shape, named once, in the brief the kid reads.
@@ -1622,8 +1610,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
             f"{parent_line}\n"
             f"FILL IN the body of that file. Edit below the closing `---` "
             f"only -- never rewrite the frontmatter (the `---` block at the\n"
-            f"top of the file). Set frontmatter fields with `write.py "
-            f"<node-id> 'set FIELD VALUE'` -- ONE quoted argument, never by hand.\n"
+            f"top of the file). To set a frontmatter field, edit that one line "
+            f"(a text value quoted), never the block as a whole.\n"
             f"`cli.py done` writes `verdict`, `confidence` and\n"
             f"`evidence_runs` into it for you. Seeing those keys on a node\n"
             f"is not a request to maintain them by hand.\n"
@@ -1951,9 +1939,8 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "EVERY KID SETS ITS OWN NODE TITLE IN ITS OWN WORDS, and you do not "
         "accept a kid round whose node still carries the title derived from "
         "its filename (`A00 f067c356 b0ad80`). Before you accept it, the "
-        "kid's experiment node must carry a real title, set by the kid with\n"
-        "  python3 extensions/agi/bin/write.py <kid-node> 'set title <the "
-        "kid's own words>'\n"
+        "kid's experiment node must carry a real title, set by the kid in "
+        "the `title:` line of the node's frontmatter (the kid's own words).\n"
         "A kid node still carrying its derived title is harvested as an "
         "untitled defect (`untitled=[<node-id>]`).",
         # hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
@@ -1974,10 +1961,9 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "ANSWER EVERY RE-BRIEF BEFORE YOU CONTINUE. Before dispatching the "
         "next kid or signalling done, read each owned kid's node for a "
         "`rebrief_request`. A re-brief with no answer is the failure this "
-        "rule prevents: answer it IN THE NODE with\n"
-        "  python3 extensions/agi/bin/write.py <node-id> 'set rebrief_answer "
-        "<proceed with ceiling N | cut>'\n"
-        "and, if you proceed, also 'set line_ceiling <new N>' on that same "
+        "rule prevents: answer it IN THE NODE, in its frontmatter, with "
+        "`rebrief_answer: <proceed with ceiling N | cut>` "
+        "and, if you proceed, also `line_ceiling: <new N>` on that same "
         "node, BEFORE that kid is resumed or a replacement is cut. A "
         "`rebrief_request` left without a `rebrief_answer` is harvested as "
         "a named defect. WHEN YOU ANSWER A RE-BRIEF, ALSO DM YOUR DIRECTOR "
@@ -1986,7 +1972,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "answer alone is the measured SL7.135 failure: the rebrief at "
         "99/120 was answered with no dm (F31).",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
-        # parent edits kids' nodes and shells out to `write.py` and
+        # parent edits kids' nodes and shells out to
         # `dispatch.py` by relative path, so it too is told which checkout it
         # owns before any relative source instruction appears.
         (f"YOUR CHECKOUT: {source_root}. Every source path below is relative "
@@ -2081,14 +2067,11 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "is legitimately yours. Rewrite it from scratch; never append. Never "
         "fabricate one \u2014 absent means empty.\n"
         "\n"
-        "THROUGH THE LOGGED WRITER. A hand edit to a node file is an "
-        "unsanctioned write: write_guard.py flags it and will warn. Route "
-        "every review edit through the sanctioned writer so the node's sha "
-        "lands in the write log (verb and text are ONE quoted argument):\n"
-        "  python3 extensions/agi/bin/write.py <node-id> 'thought <content>'\n"
-        "  python3 extensions/agi/bin/write.py <node-id> 'note <content>'\n"
-        "Use `thought` for the THOUGHT block (carried across regenerating "
-        "scans), `note` for review summary. Do NOT edit node files directly.\n"
+        "BY A PLAIN EDIT. Edit the node file in place (skill agi-node-write "
+        "section 1): the THOUGHT block (carried across regenerating scans) "
+        "rewritten whole, and a review summary as a line under Agent Notes. "
+        "Run `python3 extensions/agi/bin/links.py schema` and "
+        "`links.py links` before the commit.\n"
         "\n"
         "This is a stopgap and is meant to be: once sessions are linked to the "
         "versions they produced (goal:g2.7, goal:g10.1), your full review "

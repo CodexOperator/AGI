@@ -52,7 +52,7 @@ def test_real_judge_flag_survives_conftest_strip_and_reads_live_env():
     Two legs prove it without that hole:
 
       * mechanism -- parsed with ``ast``: the strip tuple that pops the
-        sender-identity three (AGI_AGENT_ID/AGI_SEAT/AGI_POST) does NOT name
+        sender-identity pair (AGI_AGENT_ID/AGI_POST) does NOT name
         AGI_REAL_JUDGE, so the opt-in lives past the strip by construction.
       * differential -- a REAL child pytest run (not a plain import) with the
         flag in the ACTUAL child env and no key: flag=1 must skip with the KEY
@@ -76,7 +76,7 @@ def test_real_judge_flag_survives_conftest_strip_and_reads_live_env():
             names = [c.value for c in node.iter.elts
                      if isinstance(c, ast.Constant)
                      and isinstance(c.value, str)]
-            if {"AGI_AGENT_ID", "AGI_SEAT", "AGI_POST"} <= set(names):
+            if {"AGI_AGENT_ID", "AGI_POST"} <= set(names):
                 stripped = names
     assert "AGI_AGENT_ID" in stripped, "strip tuple parsed from conftest"
     assert "AGI_REAL_JUDGE" not in stripped, \

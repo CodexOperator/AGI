@@ -1,0 +1,22 @@
+{
+ "base": "77ac7517237e9f384ca0d4f91fbb3eb0dd543137",
+ "arms": [
+  {
+   "arm": "deepseek",
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "kids": [
+    {
+     "leaf": "goal:g7.31.3.1",
+     "landed": true,
+     "usd": 0.02497669,
+     "secs": 76.6,
+     "red": false,
+     "brief_sha256": "4a67c2c669b96e942eeade187b3cb21a8af478ed3d6cf5fce1a04737a37cd237",
+     "peak_rss_kb": null,
+     "reviewed": "SMR-P1-1",
+     "rss_floor_kb": null
+    }
+   ]
+  }
+ ]
+}

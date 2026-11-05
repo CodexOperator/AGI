@@ -7,7 +7,7 @@ Template current: `handoff-head` ran (no hand HANDOFF reads — 2 calls saved vs
 | # | ts | call | class |
 |---|---|---|---|
 | 1 | 21:25:01 | ListAgents | d |
-| 2 | 21:25:06 | `ack --gen 12 --ref fda770 continue` + AGI_SEAT echo | d |
+| 2 | 21:25:06 | `ack --gen 12 --ref fda770 continue` + AGI_[retired] echo | d |
 | 3 | 21:25:15 | `git diff seats.md` ±lines | a — the verify-before-commit habit, FOURTH seat today (→ ack-commits line) |
 | 4 | 21:25:26 | scratchpad dm draft + commit | d |
 | 5 | 21:25:37 | status + `meter --seat belam` + record re-read | b — F1: the record in STARTUP is `started` by construction; one read is allowed, this is it |

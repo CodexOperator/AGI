@@ -14,3 +14,4 @@ Repeat until rc 0, by the rc:
 The step order is the `town start` row of the engine matrix (main host posts crons units blast); a second start changes nothing. `a start is in progress since <UTC>` → finish it with start, never stop it. Boot unlock (tang / passphrase) comes before agi.sh exists: out of scope.
 - `[ring] no ring at <pin>` → ring: unverified (the old gate): no agi-out ring commit exists yet, so start verifies no post key and goes on.
 - By design start enables agi-boot even when town.state recorded `boot disabled`: a stopped town's boot is brought back by start, not by hand.
+- A oneshot still running after stop (the trigger skip and the oneshot rule) is left to finish and is never recorded; a HUNG oneshot (TimeoutStartSec=infinity by default) is yours to kill by hand.
