@@ -7,6 +7,8 @@ parents:
 next_edges: []
 ceiling: 0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under <scratch>; never reboot; the box is local-town.
 confidence: 0.5
+demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
+demoted_from: disproved
 edited_by: director-thought-goals
 falsifier: "S-OUT PROVED iff S valid >= 0.5 AND S - G(sigma* on val) on score > 0 on 5/5 paired seeds with mean > 0.05. S-MECH PROVED iff STEP 0's BLEND share >= 50% of g5.39's invalid samples AND S's BLEND share of its own invalid samples is below G's on 5/5 seeds (STEP 0 < 50% = S-MECH RED at the pre-run). G-CHAMFER PROVED iff valid >= 0.5 AND coverage among valid >= 0.9 AND G-chamfer - G(sigma* on val) > 0 on 5/5 paired seeds with mean > 0.05. Mutants: M1-S <= 0.05 every seed (else S-OUT, S-MECH VOID); M1-C <= 0.05 every seed (else G-CHAMFER VOID); M2 true lines >= 0.9 and Bernoulli(0.5) valid <= 0.05 (else every line VOID)."
 file_scope: .agi/context/local-maxxing/plasma/{g541_blend_race.py, g541_falsifier.py, g541_blend_race_test.py} (NEW; g537 and g539 imported, never edited) · datasets/plasma/2026-11-05-g5.41-blend-race/{params.json, step0.json, results.json, verdict.json} · this node.
@@ -16,7 +18,7 @@ testable_claim: "g5.39's 21% validity has ONE attributable cause, raced on share
 tests: .agi/context/local-maxxing/plasma/g541_blend_race_test.py (blend split hand cases, the chamfer trainer reduces to g539's at lam 0, byte-identical replay, Z = 2304 params, every falsifier line and mutant route on fake results, exit 2 at mint); 25 green together with the g537 + g539 suites.
 title: "lm g539 validity failure raced topology vs loss: stochastic binary core (S) vs chamfer precision term (G-CHAMFER) on shared seeds, blend split first (goal:g5.41)"
 town: local-maxxing
-verdict: disproved
+verdict: inconclusive_lean_disproved:50
 ---
 # hypothesis:lm-g539-validity-failure-raced-topology-vs-loss
 
