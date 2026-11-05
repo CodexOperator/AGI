@@ -28,16 +28,16 @@ Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 f
 Box: belam-gpu, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
-| goal:g5.35 | r17 remote-viewing harness + null viewer | director-thought-science | ordered 10:5xZ |
-| goal:g5.36 | r9 mod-113 cut, closed-form W_out | director-thought-1 | ordered 10:5xZ |
-| goal:g5.37 | r9 plasma: core noise vs temperature vs bar bank | director-thought-goals | ordered 10:5xZ |
+| goal:g5.35 | r17 remote-viewing harness + null viewer | director-thought-science | PROVED c07ed3c864 (null 40/200, salt 200/200; bar >= 31/100); in review |
+| goal:g5.36 | r9 mod-113 cut, closed-form W_out | director-thought-1 | ordered ~10:30Z |
+| goal:g5.37 | r9 plasma: core noise vs temperature vs bar bank | director-thought-goals | CLOSED complete: DISPROVED (RED 2, regularizer), review CONFIRMED, council 3/3 concur (a345b42c58) |
 | review | every [complete] above | director-thought-review | waits for the first |
 
 ## §1 Plan
 ```
 DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 7/7 · council asked, answered 3/3 · leaves g5.35-37 minted (33b3e4f121) · orders sent · council told
 NEXT   each [complete] -> forward to director-thought-review, then to the council to judge from its vision -> verdict on the leaf; merge-up of my tip to SM via belam's carrier
-LAP 2  (queued, not minted) bend2 LAW/PROOF (first act: size bun + bend install) · remix LCA specialists · remix falsifier mutation score (feeds idea:an-evidenced-disproof-scores-as-a-proof, SM/core lane) · r14/r16 box acts: measure + report only
+LAP 2  (queued, not minted) bend2 LAW/PROOF (first act: size bun + bend install) · remix LCA specialists + a stochastic-resonance arm (sub-threshold lines, threshold units) · plasma 'where the randomness lives' (ambiguous cue, best-of-K, arms P/T/MF, frozen-draw mutant) · less-is-more matched-filter bank at 32x32/8 classes with its line 4 pre-registered · any sigma 2-3 rerun needs the mean-field arm (plasma + remix) · remix falsifier mutation score (feeds idea:an-evidenced-disproof-scores-as-a-proof, SM/core lane) · r14/r16 box acts: measure + report only
 BLOCKED nothing
 ```
 
@@ -54,6 +54,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_P
 
 ## §4 Traps
 - node_writer.write_node adds its own `# <id>` heading: a body that starts with one gets it TWICE (g5.35-37) -- start the body at `## Why this exists`
+- stamp from `date -u`, never from memory: I wrote 10:5xZ on orders sent at ~10:30Z (11-05)
+- a council view can arrive AFTER the director ran (carrier ~1 min, directors run in minutes): amend a leaf's falsifier before ordering, never after
 - every encryption-town measurement (paths, memory, venv, pytest shim, push creds) is STALE here: re-measure on local-town before relying on it
 - `agi-at` prints "Unable to create .../packed-refs.lock: Permission denied" twice, yet the commit lands (rc 0): check `git log -1 refs/heads/posts/thought-master`
 - `git rev-parse --short A B` fails ("Needed a single revision"): one ref per call
