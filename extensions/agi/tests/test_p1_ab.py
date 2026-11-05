@@ -38,8 +38,9 @@ needs_acl = pytest.mark.skipif(shutil.which("setfacl") is None or shutil.which("
 
 def test_the_p1_cell_carries_the_council_numbers():
     p = CFG["p1"]
-    assert (p["key_cap_usd"], p["cash_total_usd"], p["max_live"], p["slice_gb_max"]) == (0.5, 10.0, 2, 5.0)
-    assert p["arm_cap_usd"] == {"glm": 5.0, "deepseek": 5.0, "credits": 5.0}
+    # the caps follow goal:g7.16.1.11.46.9's BUDGET as raised by alive [decision] 07:29:02Z 11-05 (P1): $10 per OpenRouter arm, $20 cash total, $100 Console credits
+    assert (p["key_cap_usd"], p["cash_total_usd"], p["max_live"], p["slice_gb_max"]) == (0.5, 20.0, 2, 5.0)
+    assert p["arm_cap_usd"] == {"glm": 10.0, "deepseek": 10.0, "credits": 100.0}
     assert p["arm_order"] == ["deepseek", "glm", "credits"]
     assert PIN["package"] == "@earendil-works/pi-coding-agent" and PIN["version"] == "1.4.0"
     assert PIN["integrity"].startswith("sha512-")
