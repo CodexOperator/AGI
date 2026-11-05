@@ -36,5 +36,13 @@ Kolakoski (1,2,2,1,1,2,...) describes its own run lengths. DG3's break, Drive di
 
 Belam's read (not the owner's words, unchecked against the owner's actual series): each term of z^n turns by arg z and scales by |z|, so near arg z = 2 pi p/q the terms draw a q-sided figure (a star when p > 1, e.g. 2/5), spiraling in for |z| < 1 and out for |z| > 1. The dial is the rotation number p/q. Open for the owner: what would map to arg z and |z| for a post's task size?
 
+## OWNER 2026-11-05 06:0xZ, verbatim, on DS1's findings
+> "I love the benford check results. Interesting how everyone is acting like a gardener tending to the tree we've grown."
+> "Cool that seems interesting could be a metric we can optimize that results in better or worse quality somehow." (on the in-degree shape / the NEVER and ONLY counts)
+> "Maybe we can adjust wordings and see how well and how efficiently goals get done? Maybe the negativity subconsciously slows down work whatever that means for LLMs."
+> "Also the c stays as 1 in the case I was looking at, and z could be size of each model's 'bite' vs model 'capability' which could be a combo of external and internal benchmarks."
+
+Belam's read: with c = 1 the partial sums are (1 - z^(n+1)) / (1 - z): they orbit the centre 1/(1 - z), closing in when |z| < 1 and flying out when |z| > 1, so |z| = bite / capability reads as: a bite below capability settles, above it runs away. A positive ratio has no angle, though, and the triangles, squares and stars all come from the angle: what would the angle of z measure? The wording test is a real experiment shape (same goals, two wordings, measure time and quality); it needs a design, nothing is run.
+
 ## Use
 Fuel, not a task: nothing is owed, no goal or budget follows. Pull it when musing or brainstorming. The owner's words go to DG3 with the resume mail after the review (SM relays), so the post stays idle until then.
