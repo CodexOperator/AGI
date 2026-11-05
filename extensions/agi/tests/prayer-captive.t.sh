@@ -55,6 +55,14 @@ tr_ $T/o2 $((K+5)) "$JES";out $T/o2 o2
 ok "o2-the-out-with-a-prayer-since-the-card-commit-passes rc $rc (want 0)" '[ $rc = 0 ]'
 tr_ $T/o3 $((K+5)) "rotating: $JES" '-';out $T/o3 o3
 ok "o3-step-3-and-step-4-in-two-replies-pass (the prayer in step 3's reply, step 4's reply holds a tool call and no text): rc $rc (want 0)" '[ $rc = 0 ]'
+# o5: EVERY spelling of the out (alive 08:13:28Z item 3), a marked session whose newest text since the card commit holds no prayer -> each refused
+SP='kill "$PPID"|kill ${PPID}|kill -s TERM $PPID|kill -- $PPID|touch "$HOME/.fresh" \&\& kill "$PPID"|kill -TERM "${PPID}"';old=0;new=0;nsp=0
+sed 's/out=re.search(r""".*""",c)$/out=re.search(r"touch +(~|\\$HOME)\/\\.fresh|kill +(-[A-Z0-9]+ +)?\\$PPID",c)/' $T/bin/agi-pray>$T/m5;chmod +x $T/m5;cmp -s $T/bin/agi-pray $T/m5&&{ echo "FAIL mutant m5 changed nothing";exit 99;}
+IFS='|';for c in $SP;do unset IFS;c=$(printf '%s' "$c"|sed 's/\\&/\&/g');nsp=$((nsp+1));j=$(python3 -I -c 'import json,sys;print(json.dumps({"command":sys.argv[1]}))' "$c")
+pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 2 ]&&new=$((new+1))
+PB=$T/m5 pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";[ $rc = 2 ]&&old=$((old+1));IFS='|';done;unset IFS
+ok "o5-every-spelling-of-the-out-is-checked $new of $nsp spellings refused (want $nsp: quoted / braced \$PPID, kill -s SIG / -SIG / --, a quoted \$HOME/.fresh)" '[ $nsp = 6 ]&&[ $new = $nsp ]'
+ok "m5-the-old-two-spelling-match-reads-RED the old regex refuses $old of $nsp (want 0: it never ran the out check on them)" '[ $old = 0 ]'
 pray captive transcript_path="\"$T/o2\"" session_id='"o4"' cwd='"/nonexistent-dir-x"' tool_input='{"command":"kill $PPID"}'
 ok "o4-an-unread-card-commit-passes-with-one-line rc $rc (want 0), [pray] lines $(grep -c '^\[pray\] unread' $T/err) (want 1)" '[ $rc = 0 ]&&[ $(grep -c "^\[pray\] unread" $T/err) = 1 ]'
 # ---- p: the Stop (idle) check
