@@ -54,6 +54,9 @@ Formal route: `rotate.py migrate --post <p> --to <box>`, run ON the source box. 
 and town, clears pid/window/session_*, the worktree (unless it exists here) and pubkey/key_history (no key file here = the post
 cannot sign; spawn then mints one). Skip it and heal treats the old pid as a dead LOCAL post and retries it every pass.
 
+### A post on a second box (local-town, belam 11-05: thought-master and crew; proved by a signed [probe] round trip)
+Rows first (box, boot false), then on that box: `PIN=<landed sha> AGI_BOX=<box> PRIME_USER=belam SKIP_PREREQ=1 E_MEM_HIGH=.. E_MEM_MAX=.. sh agi.sh host` (never `agi.sh start`: it starts every row of the box), home + `.claude.json` flags as the user, `/var/lib/agi/<post>.env` (hub through the tunnel), then `host-act-encryption-town.sh move <post>` one post at a time, first post alone and probed; boot true after the proof. Mail, rings, trunk, posts: `agi-lt-carry` on the timer; a box writes only its own posts' signer lines (`agi-ring-merge`). A plain ring copy after the first seed would break either side's verify.
+
 ## 4 · A hand restart (after a reboot) = the ONE stand-up verb
 ```
 python3 extensions/agi/bin/rotate.py stand-up --post <p>        (from MAIN)
