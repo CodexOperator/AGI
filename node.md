@@ -1,0 +1,59 @@
+---
+id: goal:g5.42
+mint_id: 4050ad102d004200b39f8b20bc36c97d
+type: goal
+parents:
+  - goal:g5
+next_edges: []
+confidence: 0.5
+goal_id: G5.42
+goal_kind: subgoal
+model: claude-opus-5-5
+origin: goal
+role: director
+scaffold_hash: ff85b9412ac72913
+season: 3
+seeds: []
+status: retired
+tags: []
+title: "G5.42: bend2's first LAW: the int8 readout of g5.38's 24-neuron cut is kernel-checked correct on exactly X of 12769 pairs, and its X+-1 and weight-flip counter-proofs are refused just as hard (owner's bend2 ask; council lap 3, Y)"
+town: local-maxxing
+---
+
+# goal:g5.42
+
+## Why this exists
+goal:g5 (Local-maxxing): the owner asked (11-05 06:11Z, verbatim below) to start playing with bend2 because "our structured graph and bend's proof-based structure could be an interesting mathematical match". goal:g5.38 (complete) measured a small cut worth proving: OMP on train-only features keeps 24 of the mod-113 net's 512 neurons at 0.998 held-out. council-local-maxxing (Y, 3/3, 11:42Z-11:4xZ 11-05) chose that cut as bend2's FIRST LAW, with a counter-proof checked exactly as hard as the proof (the owner's disproof ask), and a toolchain smoke test first.
+
+## OWNER 2026-11-05 06:11Z, verbatim (owner chunk c:6e83f39da840)
+"I also think we really need to start playing around with bend2 and the upcoming bend3 as ways to help organize the graph or the key pieces? Not necessarily to improve codebase, it'll likely grow, but our structured graph and bend's proof-based structure could be an interesting mathematical match. That's more for thought master thought I want it to be expanded more."
+
+## Target end-state
+- STEP A, install: bend2 (github.com/bendlang/bend) + its runtime sized BEFORE any download (repo / release bytes read, refused over 5 GiB), installed under /data/scratch/<post>, checker RAM measured.
+- STEP 0, toolchain smoke (less-is-more): the 8-bit parity staircase net (h_k = [sum x >= k], k = 1..8, input weights 1, output = sum_k (-1)^(k+1) h_k) as LAWS.bend "for every x in {0,1}^8, net(x) = parity(x)", discharged by PROOF.bend and rechecked with --verdict; its mutant (h_8's output weight +1, wrong on exactly the all-ones input) must be REFUSED.
+- STEP 1, the LAW (remix's scope): the kernel certifies the INTEGER READOUT stage of goal:g5.38's OMP-24 cut over a committed TAPE. Per pair (a, b) the tape holds the 24 neurons' activations quantized int8 (symmetric per-tensor in [-127, 127], never -128; scale s_h fixed before quantizing); readout W = W_out composed with U (24 x 113) in int8 [-127, 127] at scale s_W; the non-MLP logits and b quantized at the ACCUMULATOR scale, nonmlp_q = round(nonmlp / (s_h x s_W)) and b_q = round(b / (s_h x s_W)), stored as int32, so every term of the sum shares one scale (the LAW, the reference and the tape all use this; X is defined only under it); the tape's sha256 is committed, and the float upstream is checked by replay + that sha, not by the kernel. LAW: argmax(nonmlp_q + h_q . W_q + b_q) = (a + b) mod 113 on EXACTLY X of the 12769 pairs; a tie in argmax counts as wrong. X computed by a Python reference with the SAME integer semantics (python ints), never by the float net. Report X_all, X_test (of the 8939 held-out), the check's wall time and peak memory, and the same count by a Python loop (plasma C3).
+
+## Invariants
+- The falsifier AND the mutant that must read RED are committed BEFORE the first run (pre-registration, option (v) of idea:an-evidenced-disproof-scores-as-a-proof); an evidenced RED is a full result and is recorded as `disproved`, never as a failure.
+- Every random draw comes from a recorded stream: the seed (or tape) is committed with the run, so a reviewer replays it byte for byte (council veto, remix 10:2xZ 11-05: "keep the chaos, log the dice").
+- No bolt-on onto a frozen big pretrained base as a FIRST experiment (council vetoes, plasma + less-is-more 10:2xZ 11-05); TwIL-8B is at most an inference baseline.
+- local-town limits: 0 USD; ONE process; <= 3 GiB RAM (the per-post cap); CPU unless the leaf says GPU; a private venv under /data/scratch/<post>, no download over 5 GiB; never reboot anything (the disk is served from encryption-town).
+- The CHECKER evaluates the integer readout on all 12769 pairs itself; a proof that imports X as a constant only restates a trusted number (plasma C1: VOID).
+- A full-integer forward (attention softmax and rescales in integer arithmetic inside the law, less-is-more's 11:42Z ask) is the NEXT rung, not this one.
+
+## Falsifier
+1. STEP 0 RED (toolchain, the leaf stops there): not discharged within 10 min wall + 3 GiB, OR the mutant is accepted.
+2. STEP 1 RED iff X_all < 12642 (0.99 x 12769) or X_test / 8939 < 0.99: quantization broke the cut.
+3. COUNTER-PROOFS, each must FAIL the checker, else VOID: (a) "exactly X+1" and "exactly X-1"; (b) the one-weight flip: the LAW with X on the readout with its largest-|w| entry negated (if that leaves the count at X, the next-largest; the choice computed by Python and committed before the run).
+4. VOID also if: the check needs the network, takes > 3 GiB, or the wall exceeds 1200 s (pre-declared fallback: 113 LAWs, one per a, 113 pairs each, summed, one process); or the reference and the law's integer semantics differ on any pair; or the install exceeds 5 GiB.
+
+## Out of scope
+goal:g5.41. A LAW over GRAPH claims (plasma: the owner's real match; queued after this). A full-integer forward (next rung).
+
+## Agent Notes
+Assigned to **director-thought-1**.
+Round 1 11-05 (results 9aed191589, review CONFIRMED 12:27Z): STEP A + STEP 0 GREEN; STEP 1 readout NOT RED by reference; STEP 1 kernel VOID (resource). RETIRED 11-05 12:4xZ (council: plasma + less-is-more close, remix profile-first; all three: bend2 moves to GRAPH claims, goal:g5.45).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v4 (thought-master 12:4xZ 11-05): RETIRED, not complete: the target end-state (the kernel certifies the int8 readout on all 12769 pairs) was not reached, and it stopped making sense at the measured cost, so the falsifier is NOT amended to fit. Round 1 (results 9aed191589, review CONFIRMED 12:27Z; labels scoped by DT-1 at a683117fe0): STEP A + STEP 0 GREEN (the parity LAW is kernel-checked and its value mutants are refused); readout NOT RED by the same-semantics reference (X_all 12738/12769, X_test 8909/8939); STEP 1 kernel VOID by the pre-declared resource rule. Why retire (council 12:32Z-12:3xZ 11-05): plasma's C3 measured the kernel at ~15 s per pair vs 0.17 ms per pair for the Python loop, ~8 x 10^4 times the cost for a count two independent integer recounts already agree on; less-is-more and plasma: close the readout line; remix: a 5-minute profile (literal elaboration vs unary arithmetic) before closing, which is carried as a REPORTED step of goal:g5.45, with its pre-declared rule (T_slice <= 0.09 s per pair reopens this LAW inside the old caps under a new leaf). All three: bend2's next leaf is GRAPH claims (the owner's match), goal:g5.45. v3 text: round 1's facts above stand.
+<!-- THOUGHT:END -->
