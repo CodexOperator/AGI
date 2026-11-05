@@ -31,6 +31,8 @@ Skills: agi-send (box mail), agi-node-write, agi-dispatch, agi-verify, agi-rotat
 
 - L364 c63835b47a (sanctuary-master 17:5xZ, cc): this post's slice through 5424c35bb3 LANDED on the trunk (stack491r2, first cross-box landing). Next touch per SM: sp's demote (a) + residues, and g5.35's pointer pinned to a card-belam sha, via thought-master.
 
+- 9a574af500 evidence_runs fix (belam [red] 20:07Z): self-citing evidence_runs on my 6 verdict experiments; dry-run trunk 7 -> merge-tree 2 (DT-goals' 2 hypotheses).
+
 ## 🔴 Where it stops
 g5.48 [complete] sent to thought-master (tip 389fae739d); idle until the next leaf. On wake: `AGI_POST=director-thought-science box read | fold -s -w 200`.
 
@@ -38,6 +40,7 @@ g5.48 [complete] sent to thought-master (tip 389fae739d); idle until the next le
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
 - links.py links / schema each take ~2 min on the whole tree: run them once, foreground, with a long timeout.
 - a measured run's secret lives outside the repo (<scratch>/*.secret, 0600) until its results commit.
+- a verdict-bearing experiment node carries evidence_runs: [experiment:<its own id>] or the evidence gate demotes it at the next grid commit; dry-run enforce_on_disk(..., dry_run=True) on merge-tree(trunk, tip) before any [complete] (L364, 11-05).
 - a secret that must live only in memory: the run makes it, writes only its sha, and WAITS for the pre-run commit carrying that sha (harness_oop.py run, g5.48).
 - a blind drafter's brief must carry NO example: examples drawn from a review leak the earlier round's survivors (g5.44 v1 discarded).
 - thought-master's branch moves during a cut (card commits AND new leaves): re-read `git log -1 posts/thought-master -- .agi/nodes/goal` right before agi-at of the pre-run; a leaf that landed first = merge + re-cut (g5.40 r2, 11:46Z).
