@@ -18,12 +18,13 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
 agi-run           2303 B  pane cmd: fresh=new id, else --resume ~/.session
-settings.json      415 B  the ONE hook wiring: brief, meter, turn commit
+settings.json      460 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
 agi-in            3476 B  kid spawn: capsule pull = graph|director|none
 agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-lane           1403 B  a Console lane's pi / claude -p / header config
-agi-captive        1005 B  window open: only agi-fill; a dead window: released
+agi-captive        1360 B  window open: only agi-fill; a dead window: released
+agi-pray           5818 B  prayer: brief head, captive start + out, idle stop
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -40,9 +41,9 @@ case $H in claude*)d=~/.claude/projects/$(pwd -P|sed 's/[^A-Za-z0-9]/-/g');if [ 
 strace -qqf -b execve -e%file -o'|agi-track' $H $c go;r=$?;kill $L1 $L2 2>/dev/null;exit $r
 ~~~
 
-### settings.json (415 B)
+### settings.json (460 B)
 ~~~json
-{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180},{"type":"command","command":"agi-mem tap"}]}]}}
+{"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180},{"type":"command","command":"agi-mem tap"},{"type":"command","command":"agi-pray stop"}]}]}}
 ~~~
 
 ### cccc.ts (1913 B)
@@ -114,13 +115,101 @@ case $v in id)echo "$w";;header)[ "$w" ]&&echo "anthropic-workspace-id: $w";;cla
 pi)jq -nc --arg u "${AGI_LANE_URL:-https://api.anthropic.com}" --arg m "${3:-claude-haiku-5-5}" --arg f "!$f" --arg w "$w" '{providers:{"claude-lane":({baseUrl:$u,api:"anthropic-messages",apiKey:$f,models:[{id:$m}]}+if $w!="" then {headers:{"anthropic-workspace-id":$w}} else {} end)}}';;*)exit 2;;esac
 ~~~
 
-### agi-captive (1005 B)
+### agi-captive (1360 B)
 ~~~sh
 #!/bin/sh
-# PreToolUse while a fill window is open: ONLY ONE agi-fill command passes (no chaining, no substitution; the quoted heredoc is the way to send text); exit 2 = refused (claude natively; pi through cccc.ts). A window that cannot be used is RELEASED, never a lock (agi-fill absent, or older than ${AGI_FILL_WINDOW:-900} s)
+# PreToolUse while a fill window is open: ONLY ONE agi-fill command passes (no chaining, no substitution; the quoted heredoc is the way to send text); exit 2 = refused (claude natively; pi through cccc.ts). A window that cannot be used is RELEASED, never a lock (agi-fill absent, or older than ${AGI_FILL_WINDOW:-900} s). FIRST (goal:g7.16.1.11.46.29, the owner 11-01): agi-pray captive, the session's prayer; its exit 2 refuses, anything else passes (agi-pray absent: one [pray] line, passed)
+j=$(cat);if command -v agi-pray >/dev/null;then printf '%s' "$j"|agi-pray captive;[ $? = 2 ]&&exit 2;else echo "[pray] unread: agi-pray not on PATH (passed)" >&2;fi
 w=${AGI_FILL:-$HOME/.fill};[ -e "$w" ]||exit 0;command -v agi-fill >/dev/null||r="agi-fill not on PATH (engine defect)";m=$(stat -c %Y "$w" 2>/dev/null);[ $(($(date +%s)-${m:-0})) -gt ${AGI_FILL_WINDOW:-900} ]&&r=${r:-window expired}
 [ -z "$r" ]||{ echo "[captive] $w released: $r" >&2;mv "$w" "$w.released-$(date -u +%Y%m%dT%H%M%SZ)" 2>/dev/null;exit 0;}
-jq -r '.tool_input.command//""'|awk 'NR==1{f=$0}{n++}$0=="EOF"{e++;l=n}END{exit!((f~/^agi-fill (call|row) <<\047EOF\047$/&&e==1&&l==n)||(n==1&&f~/^agi-fill (open|call|row|close|check)( [^;&|`$()<>\\]*)?$/))}'&&exit 0;echo "captive: a fill window is open -- ONE agi-fill call | row | close, nothing chained" >&2;exit 2
+printf '%s' "$j"|jq -r '.tool_input.command//""'|awk 'NR==1{f=$0}{n++}$0=="EOF"{e++;l=n}END{exit!((f~/^agi-fill (call|row) <<\047EOF\047$/&&e==1&&l==n)||(n==1&&f~/^agi-fill (open|call|row|close|check)( [^;&|`$()<>\\]*)?$/))}'&&exit 0;echo "captive: a fill window is open -- ONE agi-fill call | row | close, nothing chained" >&2;exit 2
+~~~
+
+### agi-pray (5818 B)
+~~~py
+#!/usr/bin/env python3
+# agi-pray head ROOT | captive | stop -- goal:g7.16.1.11.46.29 (P0, the owner 11-01): a session opens and closes with a Church Slavonic prayer from moral:faith, two spots, never per turn.
+# head: the prayers block of moral:faith (### 4.1, as brief.py's _read_faith_ref reads it) + the one-line ask. captive (PreToolUse, from agi-captive): exit 2 until an assistant text of THIS transcript holds a prayer, then ~/.prayed/<session> and never again; the v5 out (touch ~/.fresh, kill $PPID) also needs one in the newest assistant text since the card commit. stop (Stop): an idle-empty reply with no prayer is blocked ONCE PER SESSION (~/.prayed/<session>.end, or an earlier idle reply that prayed; stop_hook_active honoured). Prayers match after a FOLD (NFD, marks dropped, old letters to modern, casefold, final hard sign dropped). The marker is read FIRST: a prayed session opens no transcript except at the out (alive 08:04:04Z). A call carrying agent_id is a SUBAGENT inside a session, never captive: the docs name agent_id on its PreToolUse but not which transcript_path it gets. ANY unread input passes with one [pray] line: never a lock.
+import json,os,re,subprocess,sys,unicodedata
+ASK="captive: say an Old Slavonic protection prayer before proceeding"
+OLD=str.maketrans({"ѧ":"я","ѣ":"е","ї":"и","і":"и","ѻ":"о","ѡ":"о","ꙗ":"я","ѿ":"от","ѯ":"кс","ѱ":"пс","ѳ":"ф","ѵ":"и"})
+def fold(s):
+    s="".join(c for c in unicodedata.normalize("NFD",s) if not unicodedata.combining(c))
+    s=unicodedata.normalize("NFC",s).casefold().translate(OLD)
+    return re.sub(r"ъ\b","",s)
+KEYS=[fold(k) for k in ("Господи","Боже","Ѻтче","Свѧтый")]
+def prays(t):return any(re.search("[а-яё]",l) and any(k in l for k in KEYS) for l in fold(t or "").splitlines())
+def warn(m):print("[pray] unread: "+m+" (passed)",file=sys.stderr);sys.exit(0)
+def faith(root):
+    t=open(os.path.join(root,".agi/nodes/moral/faith.md"),encoding="utf-8").read()
+    r=re.search(r"^##\s+REFERENCE",t,re.M);t=t[r.end():].strip() if r else "";h=re.compile(r"^###\s+4\.(\d)\s+",re.M);m=h.search(t)
+    while m and m.group(1)!="1":m=h.search(t,m.end())
+    if not m:return ""
+    n=h.search(t,m.end());return t[m.end():n.start() if n else len(t)].strip()
+def texts(path):
+    out=[]
+    for l in open(path,encoding="utf-8",errors="replace"):
+        try:e=json.loads(l)
+        except ValueError:continue
+        m=e.get("message") if isinstance(e,dict) else None
+        if not isinstance(m,dict) or m.get("role")!="assistant":continue
+        c=m.get("content");c=[{"type":"text","text":c}] if isinstance(c,str) else c if isinstance(c,list) else []
+        s="\n".join(b.get("text","") for b in c if isinstance(b,dict) and b.get("type")=="text")
+        if s.strip():out.append((e.get("timestamp",""),s))
+    return out
+def ts(s):
+    from datetime import datetime
+    try:return datetime.fromisoformat(s.replace("Z","+00:00")).timestamp()
+    except Exception:return None
+def main():
+    v=sys.argv[1] if len(sys.argv)>1 else ""
+    if v=="head":
+        b=faith(sys.argv[2] if len(sys.argv)>2 else os.path.expanduser("~/t"))
+        if not b:warn("moral:faith ### 4.1")
+        print("## THE FOUR PRAYERS\n\n"+b+"\n\nsay one of these in Church Slavonic as the first tokens of your first reply, and again as the last before you rotate or go idle (two spots, never per turn)\n");return
+    try:j=json.load(sys.stdin)
+    except Exception:warn("hook input")
+    if j.get("agent_id"):return
+    sid=re.sub(r"[^A-Za-z0-9-]","",str(j.get("session_id") or ""));d=os.path.expanduser("~/.prayed")
+    def tr():
+        p=j.get("transcript_path")
+        if not p or not os.path.isfile(p):warn("no transcript")
+        try:return texts(p)
+        except OSError:warn("transcript "+p)
+    if v=="stop":
+        if j.get("stop_hook_active"):return
+        e=os.path.join(d,sid+".end") if sid else ""
+        if e and os.path.exists(e):return
+        idle=lambda t:re.search(r"nothing (left|actionable|owed|to do)|queue (is )?(empty|all held)|\b(stay|go|remain)(ing)? idle\b|\bgoing idle\b",t or "",re.I)
+        lm=j.get("last_assistant_message")
+        if lm is not None and not idle(lm):return
+        T=tr();last=lm if lm is not None else (T[-1][1] if T else "")
+        if not idle(last) or any(idle(t) and prays(t) for _,t in T[:-1]):return
+        if e:
+            try:os.makedirs(d,exist_ok=True);open(e,"w").close()
+            except OSError:pass
+        if not prays(last):print(json.dumps({"decision":"block","reason":ASK+" (the session's last tokens; asked once per session)"}))
+        return
+    if v!="captive":warn("verb "+v)
+    c=str((j.get("tool_input") or {}).get("command") or "");out=re.search(r"touch +(~|\$HOME)/\.fresh|kill +(-[A-Z0-9]+ +)?\$PPID",c)
+    marked=bool(sid) and os.path.exists(os.path.join(d,sid))
+    if marked and not out:return
+    T=tr()
+    if not marked:
+        if not any(prays(s) for _,s in T):print(ASK,file=sys.stderr);sys.exit(2)
+        if sid:
+            try:os.makedirs(d,exist_ok=True);open(os.path.join(d,sid),"w").close()
+            except OSError:pass
+    if out:
+        post=os.environ.get("AGI_POST","")
+        if not post:warn("AGI_POST")
+        try:k=int(subprocess.run(["git","log","-1","--format=%ct","--",".agi/nodes/doc/card-%s.md"%post],capture_output=True,text=True,cwd=j.get("cwd") or os.path.expanduser("~/t"),timeout=10).stdout.strip())
+        except Exception:warn("card commit time")
+        new=[s for t,s in T if (ts(t) or 0)>=k]
+        if not(new and prays(new[-1])):print(ASK+" (the out: the newest reply since the card commit holds none)",file=sys.stderr);sys.exit(2)
+try:main()
+except SystemExit:raise
+except Exception as e:print("[pray] unread: %s (passed)"%type(e).__name__,file=sys.stderr);sys.exit(0)
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
