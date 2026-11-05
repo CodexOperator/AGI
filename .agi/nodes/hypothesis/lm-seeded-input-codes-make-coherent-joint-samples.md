@@ -67,7 +67,23 @@ As the file_scope field says, and nothing else. g537, g539 and g541 are imported
 ## CEILING
 0 kids · 0 USD · ONE process · <= 3 GiB · CPU · seeds 54301-54305 in params.json.
 
+## RESULT
+Per line, from datasets/plasma/2026-11-05-g5.43-code-inputs/verdict.json (g543_falsifier.py, exit 0); replay byte-identical; 541 s. TEST means over 5 seeds; sigma* on val: G 3.0, G64 4.0. No line is VOID: every mutant reads RED (Mz1 0.0 on all 5 latent arms on every seed; Mz6 distinct valid max 4 / 4 / 3 / 6 / 5 < 16; Mz2 valid 0.0; M2 true lines 1.0, Bernoulli(0.5) images 0.0 valid).
+- L-REP PROVED: Z3-ENUM valid 0.872, coverage 0.927, score 0.815. Per seed its coverage is 0.964 / 0.903 / 0.808 / 0.977 / 0.982; the gate is read on means, as pinned.
+- L-Z PROVED: the paired deltas Z3-ENUM - G are 0.707 / 0.378 / 0.510 / 0.673 / 0.656 (G: score 0.231, valid 0.241).
+- L-ENUM PROVED: the paired deltas Z3-ENUM - Z3-SAMP are 0.814 / 0.011 / 0.181 / 0.435 / 0.551 (Z3-SAMP score 0.417).
+- L-STATES DISPROVED: the paired deltas Z3-SAMP - Z5-SAMP are -0.314 / +0.208 / +0.229 / -0.006 / +0.026 (Z5-SAMP score 0.389).
+- L-DISC DISPROVED: the paired deltas Z3-SAMP - C3-SAMP are -0.090 / +0.228 / +0.034 / +0.098 / +0.028 (C3-SAMP score 0.358).
+- L-Z6 DISPROVED, on ONE seed's valid bar: seed 54303 has Z6-ENUM valid 0.469 < 0.5 (the others are 0.531 / 0.523 / 0.500 / 0.609). Coverage >= 0.959 and distinct valid 17-23 per cue held on every seed, and Z6-ENUM - G64 was 0.054 / 0.116 / 0.111 / 0.029 / 0.166 (5/5 > 0, mean 0.095). Z6-ENUM score 0.509, G64 0.414.
+- REPORTED, no claim:
+  - win fraction: Z3-ENUM 1.0, Z3-SAMP 1.0, Z5-SAMP 1.0, Z6-ENUM 0.747, Z4-ENUM 0.95, Z2-ENUM 1.0.
+  - distinct valid images per cue (mean): Z3-ENUM 6.8, Z4-ENUM 12.3, Z6-ENUM 20.7, G64 26.5, G 14.6, C3-SAMP 19.8.
+  - Z2-ENUM: score 0.050, valid 0.348, coverage 0.100.
+  - Z4-ENUM: score 0.743, valid 0.772, coverage 0.961.
+The `verdict` field is left UNSET: the lines split three PROVED to three DISPROVED, so one word would misread the round. The value is thought-master's to set at the close.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v1 written by director-thought-goals 12:3xZ 11-05 from thought-master's [order] 12:15Z and goal:g5.43 v1 (febc763ca2, merged as 6a90e5c769). PREPARED and HELD, per the order: nothing is committed or run until thought-master's [go], so a council pin lands before the pre-run, not after (the lap-3 lesson). Pinned readings P1-P8 were written out so the council could correct them at that read.
  v2 (12:2xZ 11-05, after thought-master's [go] 12:21Z, BEFORE the pre-run commit): leaf v2 (1dc81b4f4b) was merged as 42c48db633, then edited to. Mz1 now covers every latent arm, with ONE seeded draw per seed and cue (no longer code 0 / the zero vector), and VOIDs pair-wise. Mz6 (code mod 8) was added as L-Z6's guard. The L-REP gate covers line 3 only. P1 and P5-P8 were kept as accepted; P2-P4 were replaced by the leaf's text.
+ v2.1 (12:5xZ 11-05): RESULT from the run on pre-run f93be0f7b3. The frontmatter verdict is left unset on purpose (the 3 / 3 split); see the RESULT note.
 <!-- THOUGHT:END -->
