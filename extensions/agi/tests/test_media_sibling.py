@@ -66,7 +66,7 @@ def test_no_grep_lines_is_not_green(tmp_path, capsys):
 def test_mutant_the_old_c12_heading_restored_is_red(tmp_path, capsys):
     """The heading overclaim (council 06:34Z): a `## C` heading is a rendered sentence, so the grep scans it. The old heading back in the
     script -> its `fixed` row names a sentence that is still there (not_fixed) and the hit is no longer the listed one."""
-    new = "## C12 · The guards: a post's mistake is refused when it tries to move a peer's ref"
+    new = "## C12 · The guards: a mistake on a peer's ref is refused"
     text = SCRIPT.read_text()
     assert new in text
     s = tmp_path / "script.md"
@@ -77,4 +77,4 @@ def test_mutant_the_old_c12_heading_restored_is_red(tmp_path, capsys):
 
 def test_a_heading_is_in_the_scope(tmp_path):
     got = media_sibling.sentences(SCRIPT.read_text())
-    assert ("C12", "The guards: a post's mistake is refused when it tries to move a peer's ref") in got
+    assert ("C12", "The guards: a mistake on a peer's ref is refused") in got
