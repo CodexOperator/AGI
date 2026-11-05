@@ -43,9 +43,9 @@ scopes: /sys/fs/cgroup/user.slice/user-<uid>.slice/user@<uid>.service/app.slice/
 
 One exception, the guard (`agi-memguard`, goal:g7.16.1.11.40.1): it reads a post unit's argv only as the exact tail equality between that unit's tracer and its child, to tell the harness from its tools; never a pattern, never printed.
 
-`pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends.
+`pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends. A uid filter on `ps -eo user=,comm=,args=` excludes nothing: in a multi-column list `user=` cuts a name past 8 chars to 7 and '+' (`agi-sel+`: 0 own rows by `$1 == me`, 29 by `user:40=`), so read `user:40=` (self-perpetuating gen 38, 11-05, the JOB 2 census lanes; their 'pytest' was also matched in any shell's text, this line's trap).
 Wait on a PID found by comm + cwd.
-`pkill -f <script>` is the same trap (it matches your OWN command line and kills the shell): `pgrep -x sh -a`, kill by pid (DG4). A background runner that waits on MemAvailable must STOP, not run anyway, when the wait ends: it was about to run beside the gate (DG4, 09:33Z).
+`pkill -f <script>` is the same trap (it matches your OWN command line and kills the shell): `pgrep -x sh -a`, kill by pid (DG4). A background runner that waits on MemAvailable, a peer's suite or the load must STOP, not run anyway, when the wait ends: it was about to run beside the gate (DG4, 09:33Z); a 30 min cap on a peer-suite wait ran the census lanes beside a suite (self-perpetuating gen 38, 11-05).
 Find by `pgrep -x <comm>` (+ cwd), never `-f`. A test that kills its own sleeps starts them under `setsid` and kills with `pkill -g <its own pgid>` (DG1 gen 23).
 
 ## 3 · Stop — nothing relaunches, nothing keeps billing
