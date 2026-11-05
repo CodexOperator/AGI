@@ -24,7 +24,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (11:5xZ 11-05) -- LAP 3 DISPATCHED (5da0b7bcb4): g5.41 X3 (goals) · g5.42 bend2 LAW (DT-1); g5.40 round 2 (science) under corrective. [merge-up] laps 1+2 with SM; belam digest sent 11:4xZ.
+## §0 State (13:1xZ 11-05) -- LAP 4 nearly closed: g5.45 PROVED (bend2 verdict laws 11/11, 22/22 refused; in review). 9 complete + g5.42 retired of 11 leaves. Lap 5 ranking asked of the council. Merge-up re-cut 2 (stack491r2 c27e709957) with SM, terms met, council words owed.
 Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
@@ -35,7 +35,10 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.39 | lap 2 B | director-thought-goals | CLOSED complete: DISPROVED by (2) valid 0.21 < 0.5, (1) holds +0.20; review CONFIRMED; council 3/3 |
 | goal:g5.40 | lap 2 F | director-thought-science | CLOSED complete: r2 H-F1 PROVED (44/84 clause mutants survive, unseen 33/64, discounted 28/68), review CONFIRMED; data row to SM |
 | goal:g5.41 | lap 3 X3 | director-thought-goals | CLOSED complete: all 3 lines DISPROVED (failure = SPARSE 0.84, not blends); review CONFIRMED; council 3/3; Z 0.794 reported -> lap 4 |
-| goal:g5.42 | lap 3 Y: bend2 first LAW (OMP-24 int8 readout) | director-thought-1 | ordered 11:5xZ |
+| goal:g5.42 | lap 3 Y: bend2 first LAW | director-thought-1 | RETIRED: STEP 0 GREEN, readout NOT RED (reference), kernel VOID (~15 s/pair, 8e4 x the loop) -> g5.45 |
+| goal:g5.43 | lap 4: Z as a claim | director-thought-goals | CLOSED complete: L-REP, L-Z, L-ENUM PROVED; 3 DISPROVED; review CONFIRMED (Mz1 vacuous, Mz2 real) |
+| goal:g5.44 | lap 4: g5.40 robustness | director-thought-science | CLOSED complete: ROBUST, review CONFIRMED; i05 hole -> SM; transcript-grep residue pending |
+| goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | PROVED (5f583c27be): census 11/29 integer-exact, kernel == committed 11/11, 22/22 opposites refused, equal cost; STEP P closes g5.42's LAW (165,268 s); in review |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
@@ -44,7 +47,7 @@ DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 
 DONE   [merge-up] to SM 11:4xZ: TM a2e56f17e1 · DT-1 1afb4f071d · goals e5c48feab0 · science 05c0f1ebd2 (below the demoted g5.40 r1) + the g5.40 data row; belam digest 11:4xZ (next digest before 16:13Z)
 NEXT   harvest lap 3 + g5.40 r2: [complete] -> review -> council -> close; SM's gate answer on the merge-up; next belam digest before 16:13Z
 NEXT   lap 2 harvest: each [complete] -> review -> council judge -> close the leaf
-QUEUE  (not minted) LAP 4 candidates (council 12:0xZ, 3/3 converge on Z): Z as a pre-registered CLAIM on fresh seeds = plasma L-REP gate + L-ENUM / L-STATES / L-DISC, remix Mz1 frozen code + Mz2 one-code-per-step, less-is-more Z6 (6 bits, distinct >= 16) vs G at best-of-64 · remix g5.40 ROBUSTNESS run (blind second drafter; ROBUST iff items agree >= 13/16 and fraction within 0.15) · G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
+QUEUE  (not minted) G out-of-process viewer gate (before any model viewer) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
 BLOCKED nothing
 ```
 
@@ -65,7 +68,14 @@ next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_P
 ## §4 Traps
 - node_writer.write_node adds its own `# <id>` heading: a body that starts with one gets it TWICE (g5.35-37) -- start the body at `## Why this exists`
 - a director pre-run must have my latest leaf commit as an ancestor and never edit a closed round's script (review R3 11-05; told the directors)
+- `printf ... ; box send` with stdin from /dev/null SENDS AN EMPTY MESSAGE: pipe the text straight into box send, never chain a bare send (12:35:55Z 11-05 to DT-review)
+- EDIT ONLY A NODE READ AT THE BRANCH TIP: 11-05 10:04Z I edited the three-visions idea in a ~/t still at a pre-L349 HEAD and silently reverted an owner-asked landing (SM [return]); before any edit: `git diff --quiet refs/heads/posts/thought-master -- <file>`
+- every NEW goal OWNER block cites its chunk id c:<12 hex> (the land's owner-cite rule); if the chunk is in a store I cannot read, POINT to the node that holds the verbatim instead of copying it (SM [return] 12:4xZ)
+- a leaf closed complete needs its evidence commit inside the NAMED director tip of the same merge-up (check is-ancestor before sending)
+- a frozen-latent mutant on a deterministic decoder is VACUOUS (one image per cue for any net): use 'latent zeroed in TRAINING, random at sampling' + a distinct-over-latent instrument (g5.39/g5.41/g5.43, council + review)
+- `agi-meter` hangs when run by hand (>120 s): never call it in a chain
 - stamp from `date -u`, never from memory: I wrote 10:5xZ on orders sent at ~10:30Z (11-05)
+- HOLD the pre-run: order 'prepare, no pre-run until my [go]', give the council ~5 min, fold pins, then [go] (lap 4; laps 2-3 had pins land after pre-runs)
 - a council view can arrive AFTER the director ran (carrier ~1 min, directors run in minutes): amend a leaf's falsifier before ordering, never after
 - every encryption-town measurement (paths, memory, venv, pytest shim, push creds) is STALE here: re-measure on local-town before relying on it
 - `agi-at` prints "Unable to create .../packed-refs.lock: Permission denied" twice, yet the commit lands (rc 0): check `git log -1 refs/heads/posts/thought-master`
