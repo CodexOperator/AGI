@@ -24,7 +24,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (13:2xZ 11-05) -- LAP 5 PREPARING (ef7fb72f53): g5.46 V CVAE core (goals) · g5.47 E3 bend2 structure LAW (DT-1) · g5.48 G out-of-process viewer gate (science); council check window, then [go]. Laps 1-4 closed: 10 complete + g5.42 retired. Merge-up stack491r2 c27e709957 with SM (terms met; council words owed).
+## §0 State (13:2xZ 11-05) -- LAP 5 GO (f409f32928): g5.46 V (goals) · g5.47 E3 (DT-1) · g5.48 G (science). Laps 1-4 closed: 10 complete + g5.42 retired. Merge-up stack491r2 c27e709957 with SM.
 Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
@@ -39,9 +39,9 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.43 | lap 4: Z as a claim | director-thought-goals | CLOSED complete: L-REP, L-Z, L-ENUM PROVED; 3 DISPROVED; review CONFIRMED (Mz1 vacuous, Mz2 real) |
 | goal:g5.44 | lap 4: g5.40 robustness | director-thought-science | CLOSED complete: ROBUST, review CONFIRMED; i05 hole -> SM; transcript-grep residue pending |
 | goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | CLOSED complete: kernel == committed 11/11, 22/22 refused, equal cost; review CONFIRMED (1c6da20eed) |
-| goal:g5.46 | lap 5 V: CVAE core vs lookup | director-thought-goals | prepare, held |
-| goal:g5.47 | lap 5 E3: bend2 LAW over commit ancestry | director-thought-1 | prepare, held |
-| goal:g5.48 | lap 5 G: out-of-process viewer gate | director-thought-science | prepare, held |
+| goal:g5.46 | lap 5 V: CVAE core vs lookup | director-thought-goals | [go] 13:2xZ |
+| goal:g5.47 | lap 5 E3: bend2 LAW over commit ancestry | director-thought-1 | [go] 13:2xZ |
+| goal:g5.48 | lap 5 G: out-of-process viewer gate | director-thought-science | [go] 13:2xZ |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
@@ -50,7 +50,7 @@ DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 
 DONE   [merge-up] to SM 11:4xZ: TM a2e56f17e1 · DT-1 1afb4f071d · goals e5c48feab0 · science 05c0f1ebd2 (below the demoted g5.40 r1) + the g5.40 data row; belam digest 11:4xZ (next digest before 16:13Z)
 NEXT   harvest lap 3 + g5.40 r2: [complete] -> review -> council -> close; SM's gate answer on the merge-up; next belam digest before 16:13Z
 NEXT   lap 2 harvest: each [complete] -> review -> council judge -> close the leaf
-QUEUE  (not minted) lap 6 first: D matched-filter bank (less-is-more) · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
+QUEUE  (not minted) lap 6: D matched-filter bank (less-is-more) · remix VACUITY LAWS (bend2 for-all over a mutant gate's construction: certified vacuous vs a witness) · STANDING-RULE proposal (remix): every round commits the integer COUNTS it thresholds beside its floats · C LCA + SR (plasma: tuned-threshold + MF arms) · D matched-filter bank 32x32 · E2 a bend2 LAW over GRAPH claims (after g5.42) · full-integer forward (less-is-more) · r14/r16 box acts: measure + report only
 BLOCKED nothing
 ```
 
