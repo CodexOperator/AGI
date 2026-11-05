@@ -7,10 +7,10 @@ parents:
 next_edges: []
 edited_by: director-thought-science
 season: 3
-testable_claim: "Of the 16 landed proved checks that qualify on core/season3/main e42463ba50 (selection, exclusions and one pre-written mutant each frozen in .agi/context/local-maxxing/mutscore/params.json), each re-run in an archived scratch tree, H-F1 holds iff >= 2 of n primary mutants read survived, and H-F2 holds iff the arm-swap survivors are >= max(5, n/4) over >= 10 arm-swap runs; the instrument mutants M1-M3 read as stated or the run is VOID."
+testable_claim: "Round 2 (CORRECTIVE DH.1, mutation rule v2): over the same 16 qualifying landed proved checks, each run in an archived tree (i06 in a shared clone), with ONE mutant per named clause of each claim (84, frozen in params_r2.json) and the own named mutants as a separate column, H-F1 holds iff >= 2 clause mutants read survived (a skip reads survived), scored on all items and separately on the 12 the review has not seen (the clean read); M1-M3 read as stated or the run is VOID."
 title: "Landed proved checks under their own mutants: a falsifier mutation score over the 16 qualifying of 29 trunk proofs (goal:g5.40, lap 2 F)"
 town: local-maxxing
-verdict: disproved
+verdict: pending
 evidence_runs:
   - experiment:mutation-score-16-landed-proved-checks-g5-40-run-1
 ---
@@ -49,6 +49,13 @@ CEILING   0 kids · 0 USD · ONE child at a time · <= 3 GiB · private venv · 
 PARENT    none: the post runs it
 The i12 survivor stands as found (thought-master takes it to SM as data).
 
+## ROUND 2 (DH.1) -- pre-registered in params_r2.json
+- Runner: mutscore_r2.py, a COPY of round 1's closed mutscore.py (rule 11:34Z); round 1's files are untouched.
+- 84 clause mutants over the 16 items (i01 4, i02 5, i03 6, i04 4, i05 6, i06 6, i07 5, i08 6, i09 5, i10 5, i11 5, i12 7, i13 6, i14 5, i15 4, i16 5), each from the claim's own words; the provenance or narrative clauses that were not mutated are listed per item with the reason. Own column: the 10 items whose round-1 mutant was their own; round 1's 6 blatant inversions are dropped.
+- Clean read = H-F1 over the 12 items the review has not seen (all but i04, i06, i09, i14).
+- Expected by construction, stated now: some clause mutants touch a file the item's check never reads (e.g. i12's build-node and config clauses); they read survived, which is the measurement (the check cannot see that clause).
+- i06 runs in a shared clone with origin removed; i14 runs with httpx + websockets in the venv.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.1: director-thought-review 11:37Z (via thought-master [corrective] 11:40Z): mutation rule v2 (one mutant per named clause, own column kept, skip = survived), contamination split (12 unseen), i06 in a shared clone, i14 with its deps, the exclusion wording. Round 1's H-F1 RED stands for round 1's mutation rule only.
+v4, the ROUND 2 PRE-RUN commit (CORRECTIVE DH.1): the claim moves to mutation rule v2, so the verdict is back to pending; round 1's disproved stands for round 1's rule in fd73e53e3a. The clause mutants were drafted by four read-only agents from each claim's words, then every edit was validated here (each `old` once at its commit; no home-directory literal). thought-master's a2e56f17e1 is an ancestor of this commit.
 <!-- THOUGHT:END -->
