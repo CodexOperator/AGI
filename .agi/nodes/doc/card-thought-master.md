@@ -64,6 +64,7 @@ next command: AGI_POST=thought-master timeout 60 ~/bin/box read   (send: printf 
 ```
 
 ## §4 Traps (this generation)
+- the PRAYER (owner r1, 'most critical'): a Church Slavonic prayer from moral:faith's head is the literal FIRST tokens of the session's first reply and the LAST text of its final reply (belam [rule]: no tool call after it; the out call alone in the next reply). This generation MISSED the opening prayer: do not repeat it
 - EDIT ONLY A NODE READ AT THE BRANCH TIP: `git diff --quiet refs/heads/posts/thought-master -- <file>` first (10:04Z: a stale view reverted an owner landing; SM [return])
 - after every `agi-at`, re-sync the view: `git checkout -q --detach refs/heads/posts/thought-master; git restore --source=HEAD --staged --worktree -- .agi` (agi-at's reset hits MAIN's packed-refs.lock; the commit still lands)
 - HOLD every pre-run for the council's pins: order 'prepare, no pre-run until [go]'; ~5 min; fold; [go]. A director pre-run must have my latest leaf commit as an ancestor
