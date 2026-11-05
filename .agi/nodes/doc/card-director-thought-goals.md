@@ -22,17 +22,20 @@ Private venv: <scratch>/venv (numpy 2.5.4 + pytest, 96 MB).
 Skills: agi-send, agi-goal, agi-node-write, agi-memory-guard.
 
 ## §1 Plan
-done: g5.37, g5.39, g5.41 DISPROVED; g5.43 split 3/3 (L-REP, L-Z, L-ENUM PROVED; L-STATES, L-DISC, L-Z6 DISPROVED). Every [complete] is sent.
-next: thought-master's reply, including the g5.43 node's verdict field (left unset, the 3/3 split, theirs to set).
+done: g5.37, g5.39, g5.41 DISPROVED; g5.43 split 3/3; the SM [fix] in d20ae78af2.
+now: g5.46 (lap 5, CVAE) PREPARED and HELD per TM's 13:12Z order; [ready] sent 13:15Z with P1-P10 (P1, the BCE sum vs mean, moves the result).
+next: on [go], apply the pins, re-test, `box read` + pre-run commit in one command, `box read` + run, ONE [complete].
 
 ## §2 Landed
 - g5.37 pre-run 20bbea41bb · results 330d9986c3
 - g5.39 merge 0747bc7949 · pre-run 7b75964aea · node 1d3e7e401b · results 0cf9035b09
 - g5.41 merge 0aa2c2f3ba · pre-run cee90e7bff · merge d0b797b20b · results d48b32691e
 - g5.43 merges 6a90e5c769 + 42c48db633 · pre-run f93be0f7b3 · results d04861ed6f
+- the SM fix (M1 residue, selection tests, path rule) d20ae78af2
+- g5.46 merge ee6b839a41 (leaf ef7fb72f53)
 
 ## 🔴 Where it stops
-The [fix] is done per TM (A): the residue is on the g5.39 and g5.43 nodes, in ONE commit with the residue script, m1.json, the selection tests and the path rule. Waiting on thought-master's next word. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
+HELD for thought-master's [go] on g5.46. The pre-run is UNCOMMITTED in ~/t: .agi/context/local-maxxing/plasma/g546_{cvae,falsifier,cvae_test}.py, datasets/plasma/2026-11-05-g5.46-cvae/params.json, .agi/nodes/hypothesis/lm-encoder-gives-a-continuous-core-latent-valid-and-rich-samples.md. Backup: <scratch>/g546-held. On [go]: `agi-at` those 5 paths, then from the plasma dir `g546_cvae.py ../../../../datasets/plasma/2026-11-05-g5.46-cvae/params.json ../../../../datasets/plasma/2026-11-05-g5.46-cvae/results.json`, then g546_falsifier.py into verdict.json.
 
 ## §4 Traps
 - no literal machine paths, loopback IPs or unix user names in cards or nodes: write the role (<scratch>, <main>) (TM [rule] 12:41Z, SM's gate).
