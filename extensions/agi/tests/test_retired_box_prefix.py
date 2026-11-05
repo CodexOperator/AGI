@@ -18,6 +18,7 @@ committed test") made satisfiable:
 | T4 | the frozen fixture exemption is by name and still exists |
 | T5 | the guard itself carries the prefix only inside `PREFIX`/`EXEMPT`/`BOX_BOUND` |
 | T6 | the scanner FINDS every `EXEMPT` entry: without it T1-T5 all pass on a `_hits()` that records nothing |
+| T7 | a line planted under EVERY declared root comes back from `_hits()`: a narrowed scan set reads RED |
 
 Docstrings are marked by SPAN (`lineno..end_lineno`), not by first line: a guard
 that only marks the first line flags 7 prose lines forever, and the first person
@@ -27,6 +28,7 @@ from __future__ import annotations
 
 import ast
 import io
+import sys
 import tokenize
 from pathlib import Path
 
@@ -42,6 +44,10 @@ PREFIX = "/home/ubuntu/work/agi"
 SCAN_DIRS = ("bin", "hooks", "briefs", "tests", "workflows")
 SCAN_ROOTS = (".claude",)
 SCAN_FILES = (REPO / ".agi" / "config.json",)
+# The declared scan set, pinned apart from the tuples above so that NARROWING them (the PASS 8
+# item 5 class) reads RED in T7: every root here gets a planted line that _hits() must return.
+DECLARED = ("extensions/agi/bin", "extensions/agi/hooks", "extensions/agi/briefs", "extensions/agi/tests",
+            "extensions/agi/workflows", ".claude", ".agi/config.json")
 # Exempt BY NAME and for a stated reason: recorded argv of a past run
 # (l4_85_frozen). Rewriting those bytes would falsify the record.
 FROZEN_PREFIX = "extensions/agi/tests/fixtures/l4_85_frozen"
@@ -231,11 +237,31 @@ def test_t5_the_guard_only_names_the_prefix_it_bans():
 def test_t6_the_scanner_finds_every_exemption():
     """T1 is vacuous on a scanner that finds nothing, and T2/T4 read the files
     themselves, never through _hits(): the mutant `if PREFIX in line and False:`
-    in _hits() left T1, T2, T4 and T5 all passing (director-thought-review,
+    in _hits() left T1-T5 all passing (T3 iterates _hits() too; director-thought-review,
     goal:g5.44 item i05, 11-05). So: every EXEMPT entry (none is frozen; the
     frozen tree is skipped by name) must be among the scanner's own hits."""
     found = {(rel, text) for rel, text, _n in _hits()}
     missing = [f"{rel}: {text!r}" for (rel, text) in EXEMPT if (rel, text) not in found]
-    assert found, "vacuous: the scanner found no hit at all"
     assert not missing, ("the scanner misses an exemption it must find (T2 says the line "
                          "is live, so _hits() is broken):\n  " + "\n  ".join(missing))
+
+
+def test_t7_every_declared_root_is_scanned(tmp_path, monkeypatch):
+    """T6 only proves the scanner reaches tests/, where every EXEMPT entry sits: SCAN_DIRS = ("tests",)
+    with SCAN_ROOTS and SCAN_FILES emptied still passed T1-T6 (all-is-one + self-perpetuating 13:27Z
+    11-05). So one line holding PREFIX is planted under each DECLARED root of a scratch tree and
+    _hits() must return every one; it does not depend on EXEMPT, so it stays live at the goal's own
+    end state (no exemption left)."""
+    mod = sys.modules[__name__]
+    files = [p.relative_to(REPO).as_posix() for p in SCAN_FILES]
+    monkeypatch.setattr(mod, "REPO", tmp_path)
+    monkeypatch.setattr(mod, "EXT", tmp_path / "extensions" / "agi")
+    monkeypatch.setattr(mod, "SCAN_FILES", tuple(tmp_path / f for f in files))
+    want = set()
+    for root in DECLARED:
+        rel = root if root.endswith(".json") else f"{root}/planted.txt"
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("planted " + PREFIX + "\n", encoding="utf-8")
+        want.add(rel)
+    got = {rel for rel, _t, _n in _hits()}
+    assert want <= got, "a declared scan root is no longer scanned: " + ", ".join(sorted(want - got))
