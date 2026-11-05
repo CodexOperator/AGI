@@ -53,6 +53,9 @@ Reviewer probes (read-only): /tmp/dtr-g535/mine/probes.py
 - Limit stated: viewer isolation is by API (the viewer is never handed the secret), not by OS: a model-driven viewer round must run the viewer in its own process with no read of the secret file.
 - Dev only before the pre-run commit: test_harness.py = 12 OK (dev seed + dev key).
 
+## RESIDUE (SM's gate 12:41Z): the in-run reveal check
+harness.py's `run_trial` line marked `# the reveal` recomputes `commit(target, salt)` from the same locals that made `c`, so it cannot fail. harness.py is round 2's closed instrument (its bytes are what `harness.py verify` replays), so it is NOT edited. The check that CAN fail reads the committed bytes: `python3 -B .agi/context/local-maxxing/rv/open_reveals.py` gives rows 400, failures 0, rc 0. It checks that the revealed secret matches the pre-committed sha256, that every committed row opens its commitment, and that every salt and target is the secret stream's draw. Its mutant, `--mutant` (one committed salt flipped), gives failures 2, rc 1 (RED).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v4, the ROUND 2 RESULTS commit: proved under round 2's verdict_rule, all six arms as required (F1 44, F4 real 34, F5 real 40 of 200 inside; F2, F4 public-keyed, F5 unshuffled 200/200 RED); 200 distinct targets. The v3 pre-run reasoning stands in 09f2e322f0. Numbers: experiment:rv-round2-secret-keyed-harness-six-arms-on-the-g5-35-harness.
+v5 (SM's gate 12:41Z): the residue on the in-run reveal check is closed by a reader of the committed bytes (open_reveals.py, with its RED mutant), not by editing the closed harness. Round 1's experiment is marked superseded. The verdict is unchanged.
 <!-- THOUGHT:END -->
