@@ -10,7 +10,9 @@ unset AGI_FILL AGI_FILL_WINDOW
 sect agi-captive >$T/piece;[ -s $T/piece ]||{ echo "FAIL extract: agi-captive";exit 99;}
 mkdir -p $T/bin $T/fillbin $T/hm
 printf '#!/bin/sh\nexit 0\n'>$T/fillbin/agi-fill;chmod +x $T/fillbin/agi-fill
-SYS=/usr/bin:/bin
+# goal:g7.16.1.11.46.29: agi-captive runs agi-pray captive FIRST; a stub that passes keeps these rows on the fill gate alone (prayer-captive.t.sh tests agi-pray and its absence)
+mkdir -p $T/praybin;printf '#!/bin/sh\ncat >/dev/null;exit 0\n'>$T/praybin/agi-pray;chmod +x $T/praybin/agi-pray
+SYS=$T/praybin:/usr/bin:/bin
 # gate PIECE PATHPREFIX COMMAND [env words]: the piece on a stub HOME, a stub PATH, the PreToolUse JSON; stderr -> $T/err, stdout -> $T/out
 gate(){ p=$1;pp=$2;c=$3;shift 3;printf '{"tool_input":{"command":"%s"}}' "$c"|env -i HOME=$T/hm PATH=$pp$SYS "$@" sh $p 2>$T/err >$T/out;}
 win(){ rm -f $T/hm/.fill $T/hm/.fill.released-*;printf 'window\n'>$T/hm/.fill;[ -z "$1" ]||touch -d "$1 seconds ago" $T/hm/.fill;}
