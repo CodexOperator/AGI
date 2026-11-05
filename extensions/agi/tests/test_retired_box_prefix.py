@@ -17,6 +17,7 @@ committed test") made satisfiable:
 | T3 | every exemption is prose (comment / docstring span) or is in `BOX_BOUND`; every entry owes a one-line reason |
 | T4 | the frozen fixture exemption is by name and still exists |
 | T5 | the guard itself carries the prefix only inside `PREFIX`/`EXEMPT`/`BOX_BOUND` |
+| T6 | the scanner FINDS every `EXEMPT` entry: without it T1-T5 all pass on a `_hits()` that records nothing |
 
 Docstrings are marked by SPAN (`lineno..end_lineno`), not by first line: a guard
 that only marks the first line flags 7 prose lines forever, and the first person
@@ -225,3 +226,16 @@ def test_t5_the_guard_only_names_the_prefix_it_bans():
     assert not stray, ("the guard must not carry the banned prefix outside "
                        "PREFIX/EXEMPT/BOX_BOUND:\n  " + "\n  ".join(stray))
     assert allowed, "vacuous: the guard does not even mention the prefix"
+
+
+def test_t6_the_scanner_finds_every_exemption():
+    """T1 is vacuous on a scanner that finds nothing, and T2/T4 read the files
+    themselves, never through _hits(): the mutant `if PREFIX in line and False:`
+    in _hits() left T1, T2, T4 and T5 all passing (director-thought-review,
+    goal:g5.44 item i05, 11-05). So: every EXEMPT entry (none is frozen; the
+    frozen tree is skipped by name) must be among the scanner's own hits."""
+    found = {(rel, text) for rel, text, _n in _hits()}
+    missing = [f"{rel}: {text!r}" for (rel, text) in EXEMPT if (rel, text) not in found]
+    assert found, "vacuous: the scanner found no hit at all"
+    assert not missing, ("the scanner misses an exemption it must find (T2 says the line "
+                         "is live, so _hits() is broken):\n  " + "\n  ".join(missing))
