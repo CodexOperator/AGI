@@ -1,0 +1,1602 @@
+{
+ "goal": "goal:g5.40",
+ "trunk": "e42463ba50e03649f91c4972679e87b7ead6349f",
+ "trunk_ref": "core/season3/main at the leaf's mint (7387e6afd3, 11:09:02Z 11-05)",
+ "selection_rule": "live hypotheses on trunk with `verdict: proved` (29), ordered by the first-parent trunk commit that introduced `verdict: proved` (git log --first-parent -G'^verdict: proved'), newest first; keep those whose falsifier names an in-tree runnable check; excluded by name: any check that calls or loads rotate/heal/send/dispatch/crons. 16 qualify (< 20): all 16 taken, n stated.",
+ "mutation_order": "own named mutant, else arm swap, else one-line inversion of the claimed property; none = NOT KILLABLE",
+ "n_rule": "pin 11:14Z (remix): n = qualifying items that have a mutant AND ran; NOT KILLABLE and NOT RUNNABLE reported beside n, never as survived; VOID '> 5 cannot run' counts NOT RUNNABLE only. A baseline whose pytest run reports any skipped test counts as NOT RUNNABLE (a skip is not a pass).",
+ "falsifier": {
+  "H_F1": "remix: the proved ledger holds vacuous proofs. PROVED iff >= 2 of n primary mutants read survived; RED iff <= 1.",
+  "H_F2": "plasma: the tilt is a number. PROVED iff arm-swap survivors >= max(5, n/4); RED if fewer; scored on the arm-swap runs only; VOID if that n < 10.",
+  "VOID": "more than 5 NOT RUNNABLE, or n < 10, or an instrument mutant not as stated",
+  "instrument": "M1 an `exit 0` check scores survived; M2 a strong check reads RED under its mutant; M3 goal:g5.35 r2's check with null and salt rows swapped scores killed"
+ },
+ "scratch": "/data/scratch/director-thought-science/g540r2",
+ "venv_bin": "/data/scratch/director-thought-science/venv/bin",
+ "ulimit_v_kb": 3145728,
+ "timeout_s": 900,
+ "pythonhashseed": 0,
+ "excluded": [
+  {
+   "hypothesis": "hypothesis:a00-da06914d-d133b6",
+   "landed": "2026-09-30T17:31:38Z",
+   "reason": "dispatch: test_dispatch_dry_run.py runs dispatch.py as a subprocess"
+  },
+  {
+   "hypothesis": "hypothesis:l3-done-lifts-testable-claim",
+   "landed": "2026-09-30T02:39:12Z",
+   "reason": "send + dispatch: cli.cmd_done lazily imports send (alarm) and dispatch (kid report)"
+  },
+  {
+   "hypothesis": "hypothesis:born-valid-without-touching-frontmatter",
+   "landed": "2026-09-30T02:39:12Z",
+   "reason": "dispatch: test_node_writer.py loads dispatch at module level"
+  },
+  {
+   "hypothesis": "hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only",
+   "landed": "2026-09-28T11:37:46Z",
+   "reason": "send + dispatch + heal: a named row calls cli.cmd_done; falsifier 3 names test_heal_watch.py and test_dispatch.py"
+  },
+  {
+   "hypothesis": "hypothesis:conftest-spawn-fence-install-is-idempotent-across-a-second-conftest-exec",
+   "landed": "2026-09-28T00:14:02Z",
+   "reason": "rotate: test_conftest_guard.py imports rotate"
+  },
+  {
+   "hypothesis": "hypothesis:a00-d89b6c11-b6e73f",
+   "landed": "2026-09-28T00:14:02Z",
+   "reason": "heal: test_heal_mem_cap.py loads heal and calls heal._heal"
+  },
+  {
+   "hypothesis": "hypothesis:a00-955a27ff-64bc5a",
+   "landed": "2026-09-28T00:14:02Z",
+   "reason": "rotate: rotate.py launch wrapper (its named test also exists at no ref)"
+  },
+  {
+   "hypothesis": "hypothesis:a00-32f358d3-4ee42d",
+   "landed": "2026-09-10T08:21:56Z",
+   "reason": "dispatch: test_dispatch.py loads dispatch"
+  }
+ ],
+ "not_qualifying": [
+  {
+   "hypothesis": "hypothesis:a01-1f2762d5-1d90c0",
+   "landed": "2026-09-30T05:00:44Z",
+   "reason": "no in-tree check: a /tmp probe.py plus a links.py before/after diff on a /tmp copy"
+  },
+  {
+   "hypothesis": "hypothesis:a00-05c5c2b4-547067",
+   "landed": "2026-09-30T05:00:44Z",
+   "reason": "no check: a one-off corpus census via a /tmp load.py"
+  },
+  {
+   "hypothesis": "hypothesis:a00-8f215541-f95365",
+   "landed": "2026-09-23T07:17:06Z",
+   "reason": "its git merge-tree inputs (3 commits) resolve in this repo at no ref"
+  },
+  {
+   "hypothesis": "hypothesis:gpu-local-town-openai-endpoint",
+   "landed": "2026-09-16T09:27:56Z",
+   "reason": "needs the local-town GPU + tunnel, and dispatch.py --dry-run (excluded by name); no in-tree script carries its threshold"
+  },
+  {
+   "hypothesis": "hypothesis:a00-a111bc47-ff00ea",
+   "landed": "2026-09-09T15:35:04Z",
+   "reason": "no in-tree check (a /tmp probe); the claim reads false at its own landing commit"
+  }
+ ],
+ "items": [
+  {
+   "key": "i01",
+   "hypothesis": "hypothesis:a00-1b70098e-011986",
+   "pre_run_commit": "72dff76359",
+   "landed": "2026-09-30T18:06:57Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/write.py",
+    "edits": [
+     [
+      "    out: set = set()\n    paths = [node_writer.find_node_file(root, node_id)]",
+      "    return frozenset()\n    out: set = set()\n    paths = [node_writer.find_node_file(root, node_id)]"
+     ]
+    ],
+    "why": "experiment R4: _pre_dirty stubbed to frozenset()"
+   },
+   "claim": "A hand edit to the SAME node a `write.py` verb names is never laundered into that write's commit: the write lands on disk, stays UNCOMMITTED, and is refused BY NAME (exit `EXIT_UNCOMMITTED` == 3), so `write_guard.py check` still lists the path and the hand-edit bytes appear in no commit.",
+   "skipped_clauses": [
+    "`write_guard.py check` still lists the path: a consequence of 'stays UNCOMMITTED' (the same git-diff-HEAD property), no separate mechanism to break",
+    "the hand-edit bytes appear in no commit: the same property as 'stays UNCOMMITTED' for a single-file write (the write and the hand edit share one path); covered by that mutant",
+    "the SAME node a verb names (scope qualifier): breaking only the node-path sample without the payload path is the round-1 own mutant's blatant form (_pre_dirty -> frozenset()); no closer distinct edit"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "the write lands on disk",
+     "file": "extensions/agi/bin/write.py",
+     "edits": [
+      [
+       "    if laundered:\n        return (f\"commit refused: {' '.join(laundered)} was already dirty against HEAD \"",
+       "    if laundered:\n        git(\"checkout\", \"HEAD\", \"--\", *laundered)\n        return (f\"commit refused: {' '.join(laundered)} was already dirty against HEAD \""
+      ]
+     ],
+     "why": "the refusal still fires (exit 3, named, uncommitted) but reverts the path to HEAD, so the write's bytes are not left on disk"
+    },
+    {
+     "kind": "clause",
+     "clause": "stays UNCOMMITTED",
+     "file": "extensions/agi/bin/write.py",
+     "edits": [
+      [
+       "    if laundered:\n        return (f\"commit refused: {' '.join(laundered)} was already dirty against HEAD \"",
+       "    if laundered:\n        git(\"add\", \"--\", *paths), git(\"commit\", \"-q\", \"-m\", msg, \"--\", *paths)\n        return (f\"commit refused: {' '.join(laundered)} was already dirty against HEAD \""
+      ]
+     ],
+     "why": "the refusal message and exit 3 stay, but the path (hand edit included) is committed first: laundered while claiming refusal"
+    },
+    {
+     "kind": "clause",
+     "clause": "refused BY NAME",
+     "file": "extensions/agi/bin/write.py",
+     "edits": [
+      [
+       "        return (f\"commit refused: {' '.join(laundered)} was already dirty against HEAD \"",
+       "        return (f\"commit refused: the node was already dirty against HEAD \""
+      ],
+      [
+       "its `git commit -- <paths>` is in: {recover} (never auto-committed)\"), True",
+       "its `git commit -- <paths>` is in the recovery line (never auto-committed)\"), True"
+      ]
+     ],
+     "why": "still refused, uncommitted, exit 3, but the message no longer names the path (neither the laundered list nor the recover line carrying it)"
+    },
+    {
+     "kind": "clause",
+     "clause": "exit `EXIT_UNCOMMITTED` == 3",
+     "file": "extensions/agi/bin/write.py",
+     "edits": [
+      [
+       "its `git commit -- <paths>` is in: {recover} (never auto-committed)\"), True",
+       "its `git commit -- <paths>` is in: {recover} (never auto-committed)\"), False"
+      ]
+     ],
+     "why": "the laundering refusal still blocks the commit and names the path, but reports uncommitted=False so the verb exits 0 instead of 3"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i02",
+   "hypothesis": "hypothesis:a00-50b210d5-b85ee2",
+   "pre_run_commit": "4f74d29696",
+   "landed": "2026-09-28T00:14:02Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_stage_seam_cfg.py",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)",
+      "        cmd = mem_cap.wrap_argv(cmd, cap)"
+     ]
+    ],
+    "why": "the node's red-today column: the 2-arg call that drops the caller's cfg"
+   },
+   "claim": "workflow.py:1803 is the only live mem_cap.wrap_argv call handed no cfg; threading the caller s own cfg into _run_stage_proc makes the stage seam read the declared values.memcap cells exactly as dispatch.py does, shipped defaults unchanged when the cell is absent -- proven by a recording systemd_run_usable that sees the caller s dict by identity, plus the stage still dying of its cap",
+   "skipped_clauses": [
+    "workflow.py:1803 is the only live mem_cap.wrap_argv call handed no cfg: a census of the pre-fix tree whose one-site break is exactly the round-1 own mutant (the 2-arg call); not re-drawn"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "threading the caller s own cfg into _run_stage_proc",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "                view=view, cap=cap, cfg=cfg)",
+       "                view=view, cap=cap)"
+      ]
+     ],
+     "why": "_run_stage_proc keeps its cfg parameter and passes it on, but the one live caller (_run_stage_pi) stops threading its cfg in"
+    },
+    {
+     "kind": "clause",
+     "clause": "sees the caller s dict by identity",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)",
+       "        cfg = dict(cfg) if cfg is not None else None\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)"
+      ]
+     ],
+     "why": "same values and same 3-arg call bytes, but the cap helper gets a copy, not the caller's dict object"
+    },
+    {
+     "kind": "clause",
+     "clause": "read the declared values.memcap cells exactly as dispatch.py does",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)",
+       "        (cfg or {}).get(\"values\", {}).pop(\"memcap\", None)\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)"
+      ]
+     ],
+     "why": "identity preserved, but the values.memcap cells are stripped from the dict before wrap_argv reads it, so declared cells are ignored"
+    },
+    {
+     "kind": "clause",
+     "clause": "shipped defaults unchanged when the cell is absent",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "        cmd = mem_cap.wrap_argv(cmd, cap, cfg)",
+       "        cfg = cfg if cfg is not None else {\"values\": {\"memcap\": {\"probe_cache_file\": \"stage-probe\"}}}\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)"
+      ]
+     ],
+     "why": "a caller with no cfg no longer gets the shipped defaults: a non-default probe_cache_file is substituted"
+    },
+    {
+     "kind": "clause",
+     "clause": "the stage still dying of its cap",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "    if cap is not None and subprocess.Popen is _REAL_POPEN:\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)",
+       "    if cap is not None and cfg is None and subprocess.Popen is _REAL_POPEN:\n        cmd = mem_cap.wrap_argv(cmd, cap, cfg)"
+      ]
+     ],
+     "why": "threading a cfg in un-wraps the stage: only cfg-less callers stay capped"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i03",
+   "hypothesis": "hypothesis:a00-1ff9316d-177aae",
+   "pre_run_commit": "4f74d29696",
+   "landed": "2026-09-28T00:14:02Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_mem_cap_tasks_max.py",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/mem_cap.py",
+    "edits": [
+     [
+      "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+      ""
+     ]
+    ],
+    "why": "red-on-old: the TasksMax property line deleted from wrap_argv"
+   },
+   "claim": "A round's kid cannot fan out processes past the box's bound. (What would prove it: the wrapped scope carries a per-TREE process bound on the SAME scope as `MemoryMax` (one bound, one scope, one argv); a fan-out past that bound is REFUSED ... while the unwrapped path (`cap is None`) is byte-for-byte unchanged; a config with no cell still gets a shipped default ...; the fallback that cannot enforce it says so by name rather than by silence.)",
+   "skipped_clauses": [
+    "the memory ordering (6.000 GiB round cap vs user@ memory.high 5.123 GiB): a measurement reported in Outcome, explicitly not edited; not a claim clause",
+    "DH.419 127-fork incident: narrative provenance"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "a per-TREE process bound",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "edits": [
+      [
+       "        return [\"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=MemoryMax={cap}\",\n                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+       "        return [\"prlimit\", f\"--nproc={resolve_tasks_max(cfg)}\", \"--\",\n                \"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=MemoryMax={cap}\",\n"
+      ]
+     ],
+     "why": "the process bound becomes RLIMIT_NPROC (per-USER) instead of the scope's TasksMax; MemoryMax scope intact"
+    },
+    {
+     "kind": "clause",
+     "clause": "on the SAME scope as `MemoryMax` (one bound, one scope, one argv)",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "edits": [
+      [
+       "        return [\"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=MemoryMax={cap}\",\n                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+       "        return [\"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=TasksMax={resolve_tasks_max(cfg)}\", \"--\",\n                \"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=MemoryMax={cap}\",\n"
+      ]
+     ],
+     "why": "TasksMax rides an outer scope and MemoryMax a second scope: two scopes, the bound no longer on the MemoryMax scope"
+    },
+    {
+     "kind": "clause",
+     "clause": "a fan-out past that bound is REFUSED (cannot fan out processes past the box's bound)",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "edits": [
+      [
+       "                f\"--property=TasksMax={resolve_tasks_max(cfg)}\",\n",
+       "                f\"--property=TasksMax={resolve_tasks_max(cfg) + 1}\",\n"
+      ]
+     ],
+     "why": "off-by-one: the scope admits one process past the declared/default bound"
+    },
+    {
+     "kind": "clause",
+     "clause": "the unwrapped path (`cap is None`) is byte-for-byte unchanged",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "edits": [
+      [
+       "    if cap is None:\n        return argv\n    if systemd_run_usable(cfg):",
+       "    if cap is None:\n        return [\"systemd-run\", \"--user\", \"--scope\", \"-q\",\n                f\"--property=TasksMax={resolve_tasks_max(cfg)}\", \"--\", *argv]\n    if systemd_run_usable(cfg):"
+      ]
+     ],
+     "why": "an uncapped caller now gets a TasksMax-only scope instead of its own argv unchanged"
+    },
+    {
+     "kind": "clause",
+     "clause": "a config with no cell still gets a shipped default",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "edits": [
+      [
+       "    raw = env if env not in (None, \"\") else _spawn_block(cfg).get(\"tasks_max\")\n",
+       "    raw = env if env not in (None, \"\") else _spawn_block(cfg).get(\"tasks_max\")\n    if raw is None:\n        return 16384\n"
+      ]
+     ],
+     "why": "an absent cell resolves to the box's user@ pids.max (no per-round bound) instead of the shipped 96; unreadable cells still fall back"
+    },
+    {
+     "kind": "clause",
+     "clause": "the fallback that cannot enforce it says so by name rather than by silence",
+     "file": "extensions/agi/bin/mem_cap.py",
+     "edits": [
+      [
+       "    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds ADDRESS SPACE per\n    # process and NOTHING about the tree's width -- RLIMIT_NPROC is per-USER,\n    # so a per-tree process cap has no prlimit spelling. A box without a\n    # usable systemd-run still fans out unbounded; the fix is the systemd\n    # path, not a second limit here.\n",
+       ""
+      ]
+     ],
+     "why": "the prlimit fallback is unchanged but silent: the named-residual comment in wrap_argv is removed"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i04",
+   "hypothesis": "hypothesis:a00-f855c944-ee9673",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_template_seam_js.py",
+   "round1_inversion_dropped": {
+    "kind": "inversion",
+    "file": "extensions/agi/workflows/agi-brief-drafting.js",
+    "edits": [
+     [
+      "const ROOT = (args && args.project_root) || '.'\n",
+      ""
+     ]
+    ],
+    "why": "no own mutant named: the declared root seam removed from one migrated script"
+   },
+   "claim": "The `.js` half of each workflow pair takes the SAME `{project_root}` seam the `.json` half was migrated to last round \u2014 a zero-literal guard can then cover BOTH halves of every registered pair, and a run started in a git worktree stops pointing its readers at the main checkout.",
+   "skipped_clauses": [
+    "'the .json half was migrated to last round': provenance of the sibling round"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "takes the SAME `{project_root}` seam",
+     "file": "extensions/agi/workflows/agi-trove-survey.js",
+     "edits": [
+      [
+       "const ROOT = (args && args.project_root) || '.'",
+       "const ROOT = (args && args.root) || '.'"
+      ]
+     ],
+     "why": "one script declares a ROOT but reads a different arg than the project_root the runner injects"
+    },
+    {
+     "kind": "clause",
+     "clause": "the .js half of each workflow pair",
+     "file": "extensions/agi/workflows/agi-round-review.js",
+     "edits": [
+      [
+       "from ${ROOT} (each is read-only",
+       "from . (each is read-only"
+      ]
+     ],
+     "why": "one use site in one migrated script drops the seam (back to a fixed root) while the declaration stays"
+    },
+    {
+     "kind": "clause",
+     "clause": "a zero-literal guard can then cover BOTH halves of every registered pair",
+     "file": "extensions/agi/tests/test_workflow_template_seam_js.py",
+     "edits": [
+      [
+       "    hits = [p.name for p in sorted(WF.glob(\"*.js\")) if STALE in",
+       "    hits = [p.name for p in sorted(WF.glob(\"*.js\"))[1:] if STALE in"
+      ]
+     ],
+     "why": "the clause is about the guard itself: it silently stops covering one registered .js script"
+    },
+    {
+     "kind": "clause",
+     "clause": "a run started in a git worktree stops pointing its readers at the main checkout",
+     "file": "extensions/agi/workflows/agi-prime-open-questions.js",
+     "edits": [
+      [
+       "const ROOT = (args && args.project_root) || '.'",
+       "const ROOT = (args && args.project_root) || '.'; const MAIN = ROOT.replace(/\\/\\.claude\\/worktrees\\/[^/]+\\/?$/, '')"
+      ],
+      [
+       "Repo: \" + ROOT + \", branch season/s2",
+       "Repo: \" + MAIN + \", branch season/s2"
+      ]
+     ],
+     "why": "the seam is declared, but the reader's Repo line strips a worktree path back to its main checkout"
+    }
+   ],
+   "seen_by_review": true
+  },
+  {
+   "key": "i05",
+   "hypothesis": "hypothesis:a00-b9700763-8d8657",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_retired_box_prefix.py::test_t1_no_live_hit_outside_a_named_and_reasoned_exemption extensions/agi/tests/test_retired_box_prefix.py::test_t2_every_exemption_is_still_live extensions/agi/tests/test_retired_box_prefix.py::test_t4_the_frozen_fixture_is_the_only_exempted_tree extensions/agi/tests/test_retired_box_prefix.py::test_t5_the_guard_only_names_the_prefix_it_bans",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/tests/test_workflow_template_seam_js.py",
+    "edits": [
+     [
+      "checkout literal in 14 lines across 9 files",
+      "checkout literal in 15 lines across 9 files"
+     ]
+    ],
+    "why": "the parent's probe 'reword one exempt prose line' (T2 must fail)"
+   },
+   "claim": "\"**The goal's count-based falsifier (\\\"0 grep hits outside the frozen fixture\\\") can be enforced as a committed test without deleting a single prose warning, provided the test keys its exemptions by (relpath, exact line text) and enforces the CLASS of each exemption \u2014 and the guard must mark docstring SPANS, not first lines, or it fails on prose forever.**\"",
+   "skipped_clauses": [
+    "The goal's count-based falsifier ... can be enforced as a committed test: framing (the test's existence), not a separately breakable property",
+    "disproved-by 'line numbers fail on every file shift': covered by the 'exact line text' and 'relpath' mutants (keying), not a distinct clause"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "keys its exemptions by (relpath, ...)",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "for rel, text, n in _hits() if (rel, text) not in EXEMPT",
+       "for rel, text, n in _hits() if not any(text == t for _r, t in EXEMPT)"
+      ]
+     ],
+     "why": "T1 keys by line text only: an exempted line copied into ANY other file is silently exempt"
+    },
+    {
+     "kind": "clause",
+     "clause": "keys its exemptions by (..., exact line text)",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "for rel, text, n in _hits() if (rel, text) not in EXEMPT",
+       "for rel, text, n in _hits() if not any(rel == r and text[:30] == t[:30] for r, t in EXEMPT)"
+      ]
+     ],
+     "why": "T1 matches on a 30-char text prefix, not the exact line: a reworded tail of an exempt line passes"
+    },
+    {
+     "kind": "clause",
+     "clause": "without deleting a single prose warning",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "for rel, text, n in _hits() if (rel, text) not in EXEMPT",
+       "for rel, text, n in _hits() if (rel, text) not in EXEMPT or EXEMPT[(rel, text)][0] == \"P\""
+      ]
+     ],
+     "why": "T1 stops honouring class-P (prose) exemptions, so the only way to pass is deleting the prose warnings"
+    },
+    {
+     "kind": "clause",
+     "clause": "enforces the CLASS of each exemption",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "        if cls == \"P\" and not prose:\n",
+       "        if cls == \"P\" and not prose and cls != \"P\":\n"
+      ]
+     ],
+     "why": "one sub-case of class enforcement dropped: a class-P entry on an executing line is accepted; F/B check kept"
+    },
+    {
+     "kind": "clause",
+     "clause": "the guard must mark docstring SPANS, not first lines",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "            dead.update(range(first.lineno, (first.end_lineno or first.lineno) + 1))",
+       "            dead.add(first.lineno)"
+      ]
+     ],
+     "why": "_prose_lines marks only a docstring's first line (the named false-positive generator)"
+    },
+    {
+     "kind": "clause",
+     "clause": "0 grep hits outside the frozen fixture",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "FROZEN_PREFIX = \"extensions/agi/tests/fixtures/l4_85_frozen\"",
+       "FROZEN_PREFIX = \"extensions/agi/tests/fixtures\""
+      ]
+     ],
+     "why": "the exemption widens from the named frozen fixture to the whole fixtures tree"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i06",
+   "hypothesis": "hypothesis:a00-acc4e078-35fa9a",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_retired_box_prefix.py::test_t3_every_exemption_is_prose_or_carries_a_stated_reason extensions/agi/tests/test_unify.py::test_preflight_refuses_the_real_repos extensions/agi/tests/test_unify.py::test_preflight_force_does_not_bypass_real_repo_guard extensions/agi/tests/test_unify.py::test_real_repo_guard_names_this_checkout_without_a_box_cell",
+   "round1_inversion_dropped": {
+    "kind": "inversion",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "\"the one code-level exemption left: the box.root CELL, owned by group a00-3b546363; correcting the cell removes the hit and this entry with it (T2)\"",
+      "\"box cell\""
+     ]
+    ],
+    "why": "the node's own mutant (a live hit) is T1's, not in this check: inversion of T3's property, one exemption reason cut below 20 chars"
+   },
+   "claim": "\"\\\"The guard can drop its magic len(BOX_BOUND)==5 for the property \\\\\\\"every non-prose exemption carries a real one-line reason\\\\\\\", and the three coupled test_unify literals plus the dead test_provisioning ROOT can be repointed to box-independent seams, leaving only the config cell code-level \u2014 0 production lines, idempotent w.r.t. group A.\\\"\"",
+   "skipped_clauses": [
+    "0 production lines: provenance of the diff (what the landing touched), not a property of bytes at a commit",
+    "idempotent w.r.t. group A: the only close break is editing the box.root cell in .agi/config.json, whose line is a home-directory path literal (forbidden in old/new); the box-dependence it guards is instead broken by the test_unify and test_provisioning mutants below"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "drop its magic len(BOX_BOUND)==5 for the property",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "    assert BOX_BOUND <= set(EXEMPT), \"BOX_BOUND must stay derived from EXEMPT\"",
+       "    assert len(BOX_BOUND) == 1, \"BOX_BOUND must stay derived from EXEMPT\""
+      ]
+     ],
+     "why": "the derived-subset property is replaced by a tally again (true today, the magic-count shape)"
+    },
+    {
+     "kind": "clause",
+     "clause": "carries a real ... reason",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "\"the one code-level exemption left: the box.root CELL, owned by group a00-3b546363; correcting the cell removes the hit and this entry with it (T2)\"",
+       "\"reason reason reason reas\""
+      ]
+     ],
+     "why": "the code-level exemption keeps a 25-char vacuous reason that clears the 20-char floor"
+    },
+    {
+     "kind": "clause",
+     "clause": "carries a real one-line reason",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "\"inert data: negative-fixture constant, asserted absent from rendered .js output\"",
+       "\"inert data: negative-fixture constant,\\nasserted absent from rendered .js output\""
+      ]
+     ],
+     "why": "one non-prose (F) exemption's reason becomes two lines"
+    },
+    {
+     "kind": "clause",
+     "clause": "leaving only the config cell code-level",
+     "file": "extensions/agi/tests/test_retired_box_prefix.py",
+     "edits": [
+      [
+       "(\"F\", \"inert data: negative-fixture constant, asserted absent from rendered .json output\")",
+       "(\"B\", \"inert data: negative-fixture constant, asserted absent from rendered .json output\")"
+      ]
+     ],
+     "why": "a second exemption is filed code-level (B), so BOX_BOUND is no longer just the config cell"
+    },
+    {
+     "kind": "clause",
+     "clause": "the three coupled test_unify literals ... repointed to box-independent seams",
+     "file": "extensions/agi/tests/test_unify.py",
+     "edits": [
+      [
+       "    result = unify.preflight(unify._git_common_root(), tree, force=True)",
+       "    result = unify.preflight(Path(unify.boxes.box_cells(unify._git_common_root())[\"root\"]), tree, force=True)"
+      ]
+     ],
+     "why": "one of the three repointed literals goes back to the box.root cell (box-dependent) instead of the git seam"
+    },
+    {
+     "kind": "clause",
+     "clause": "the dead test_provisioning ROOT ... repointed to box-independent seams",
+     "file": "extensions/agi/tests/test_provisioning.py",
+     "edits": [
+      [
+       "ROOT = str(BIN.parent.parent.parent)",
+       "ROOT = str(Path.home() / \"work\" / \"agi\")"
+      ]
+     ],
+     "why": "ROOT names a per-box home-relative checkout again rather than the checkout the file lives in"
+    }
+   ],
+   "seen_by_review": true,
+   "tree_mode": "clone"
+  },
+  {
+   "key": "i07",
+   "hypothesis": "hypothesis:a00-7c59d4d4-195565",
+   "pre_run_commit": "e603662ba3",
+   "landed": "2026-09-26T03:01:03Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_workflow_template_seam_json.py",
+   "round1_inversion_dropped": {
+    "kind": "inversion",
+    "file": "extensions/agi/workflows/review.json",
+    "edits": [
+     [
+      "Inspect the repo at {project_root} and report",
+      "Inspect the repo at /tmp/elsewhere and report"
+     ]
+    ],
+    "why": "no own mutant named: review.json's one injected root replaced by a fixed path"
+   },
+   "claim": "The 7 stale `extensions/agi/workflows/*.json` manifests can be migrated to the runner's EXISTING `{project_root}` seam (`run_workflow` `args.setdefault( \"project_root\", str(repo))`; `render_stage_prompt` falls back to `_loc.find_project_root()`) with no new placeholder and no new resolver \u2014 and every stage still renders.",
+   "skipped_clauses": [
+    "The 7 stale manifests can be migrated (count 7 / which files): the per-manifest literal is round 1's mutant on review.json; a second copy on another manifest would be the same clause",
+    "no <home>/work/agi literal (C1): any close break needs a home-directory literal in new, forbidden"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "run_workflow args.setdefault(\"project_root\", str(repo))",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "    args.setdefault(\"project_root\", str(repo))",
+       "    args.setdefault(\"project_root\", str(repo.parent))"
+      ]
+     ],
+     "why": "the runner injects the wrong root (the checkout's parent) into every stage"
+    },
+    {
+     "kind": "clause",
+     "clause": "render_stage_prompt falls back to _loc.find_project_root()",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "            ctx[\"project_root\"] = str(_pr.parent)",
+       "            ctx[\"project_root\"] = str(_pr)"
+      ]
+     ],
+     "why": "the fallback yields the .agi dir itself, not the project root containing it"
+    },
+    {
+     "kind": "clause",
+     "clause": "no new resolver",
+     "file": "extensions/agi/bin/workflow.py",
+     "edits": [
+      [
+       "        _pr = _loc.find_project_root()\n        if _pr is not None:",
+       "        _pr = Path.cwd() / \".agi\"\n        if _pr is not None:"
+      ]
+     ],
+     "why": "the fallback uses an ad-hoc cwd resolver instead of the existing _loc.find_project_root()"
+    },
+    {
+     "kind": "clause",
+     "clause": "no new placeholder",
+     "file": "extensions/agi/workflows/drafting.json",
+     "edits": [
+      [
+       "for the agi thoughtgraph repo at {project_root}.",
+       "for the agi thoughtgraph repo at {repo_root}."
+      ]
+     ],
+     "why": "one migrated manifest references a new placeholder the runner does not inject"
+    },
+    {
+     "kind": "clause",
+     "clause": "every stage still renders",
+     "file": "extensions/agi/workflows/review.json",
+     "edits": [
+      [
+       "\"prompt\": \"You run the global health checks",
+       "\"prompt_text\": \"You run the global health checks"
+      ]
+     ],
+     "why": "review.json's one stage loses its prompt key, so render_stage_prompt cannot render it"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i08",
+   "hypothesis": "hypothesis:a00-95b6cd1c-6f642c",
+   "pre_run_commit": "e8240bf684",
+   "landed": "2026-09-26T02:17:57Z",
+   "check": "python -m pytest -q -p no:cacheprovider .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py",
+   "mutant": {
+    "kind": "own",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "sys.path[:0] = [os.path.dirname(HERE)]   # paths.py, discovered -- cwd-independent",
+      "pass"
+     ]
+    ],
+    "why": "the experiment's negative control: the sys.path discovery line deleted"
+   },
+   "claim": "\"The band-call runner is wire-live iff a CLEAN interpreter (neutral cwd, scrubbed env, no inherited sys.path) reaches the rule: python3 osc_band_call_run_a00-66d002ad.py must exit 2 with one reasoned row per real cell and no ModuleNotFoundError, identically from any cwd. Its suite must not seed sys.path for its subject -- an in-process test that repairs the environment cannot witness an entry point; only a subprocess can.\"",
+   "skipped_clauses": [
+    "no ModuleNotFoundError: its close form (the discovery line deleted) IS the item's own round-1 mutant; not duplicated",
+    "only a subprocess can [witness an entry point]: narrative justification, folded into the 'must not seed sys.path' test-file mutant"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "must exit 2",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "edits": [
+      [
+       "    return 2 if tally.get(\"unresolved\") else 0",
+       "    return 1 if tally.get(\"unresolved\") else 0"
+      ]
+     ],
+     "why": "an unresolved run exits 1 (the DEAD code) instead of 2"
+    },
+    {
+     "kind": "clause",
+     "clause": "one reasoned row",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "edits": [
+      [
+       "            print(\"%-12s %-30s %s | %s\" % (word, os.path.relpath(f, root), label, reason))",
+       "            print(\"%-12s %-30s %s\" % (word, os.path.relpath(f, root), label))"
+      ]
+     ],
+     "why": "rows still print per cell but the reason is dropped"
+    },
+    {
+     "kind": "clause",
+     "clause": "per real cell",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "edits": [
+      [
+       "    for f in files:\n",
+       "    for f in files[:1]:\n"
+      ]
+     ],
+     "why": "only the first cells.jsonl is reported; the other real cells get no row"
+    },
+    {
+     "kind": "clause",
+     "clause": "identically from any cwd",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "edits": [
+      [
+       "sys.path[:0] = [os.path.dirname(HERE)]   # paths.py, discovered -- cwd-independent",
+       "sys.path[:0] = [os.path.join(os.getcwd(), \".agi/context/local-maxxing\")]   # paths.py, discovered -- cwd-independent"
+      ]
+     ],
+     "why": "paths.py is reached via the cwd (the sibling's cwd-literal convention), not __file__"
+    },
+    {
+     "kind": "clause",
+     "clause": "a CLEAN interpreter (... scrubbed env ...)",
+     "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+     "edits": [
+      [
+       "sys.path[:0] = [os.path.dirname(HERE)]   # paths.py, discovered -- cwd-independent",
+       "sys.path[:0] = [os.path.dirname(HERE)] if os.environ.get(\"HOME\") else []   # paths.py, discovered -- cwd-independent"
+      ]
+     ],
+     "why": "discovery only happens with an inherited env (HOME set); a scrubbed env cannot reach paths"
+    },
+    {
+     "kind": "clause",
+     "clause": "Its suite must not seed sys.path for its subject",
+     "file": ".agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py",
+     "edits": [
+      [
+       "env={\"PATH\": \"/usr/bin:/bin\"},",
+       "env={\"PATH\": \"/usr/bin:/bin\", \"PYTHONPATH\": os.path.dirname(HERE)},"
+      ]
+     ],
+     "why": "the suite's subprocess is handed the subject's import path, so it no longer witnesses a clean interpreter"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i09",
+   "hypothesis": "hypothesis:a00-fcfbc2f9-7d809f",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_grok_row_resolves extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv extensions/agi/tests/test_grok_bot_adapter.py::test_dispatch_still_has_zero_grok_hits",
+   "round1_inversion_dropped": {
+    "kind": "inversion",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN",
+      "    return DEFAULT_BIN"
+     ]
+    ],
+    "why": "no own mutant named: resolve_bin ignores the live bin cell"
+   },
+   "claim": "Adopting grok_bot_adapter.py with a bare DEFAULT_BIN=\"grok-bot\" removes the config_max box literal while resolve_bin precedence ($GROK_BOT_BIN > harness bin > DEFAULT_BIN) is unchanged, adapters.load(\"grok_bot\") satisfies all of adapters.REQUIRED, and zero edits to dispatch.py are needed",
+   "skipped_clauses": [
+    "(4) evidence_runs names a real experiment node (Hypothesis section): graph provenance, not a property of the code under test"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "a bare DEFAULT_BIN=\"grok-bot\" removes the config_max box literal",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "DEFAULT_BIN = \"grok-bot\"",
+       "DEFAULT_BIN = \"/usr/local/lib/.npm-global/bin/grok-bot\""
+      ]
+     ],
+     "why": "DEFAULT_BIN is a baked absolute box path, not a bare PATH name; precedence untouched"
+    },
+    {
+     "kind": "clause",
+     "clause": "resolve_bin precedence ($GROK_BOT_BIN > harness bin ...) is unchanged",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN",
+       "    return harness.get(\"bin\") or os.environ.get(\"GROK_BOT_BIN\") or DEFAULT_BIN"
+      ]
+     ],
+     "why": "swaps the first two arms: harness bin cell now beats $GROK_BOT_BIN; DEFAULT_BIN still last"
+    },
+    {
+     "kind": "clause",
+     "clause": "resolve_bin precedence (... harness bin > DEFAULT_BIN) is unchanged",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN",
+       "    return os.environ.get(\"GROK_BOT_BIN\") or DEFAULT_BIN or harness.get(\"bin\")"
+      ]
+     ],
+     "why": "swaps the last two arms: DEFAULT_BIN now beats the harness bin cell; env still first"
+    },
+    {
+     "kind": "clause",
+     "clause": "adapters.load(\"grok_bot\") satisfies all of adapters.REQUIRED",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "def needs_credential(harness: dict) -> bool:",
+       "def _needs_credential(harness: dict) -> bool:"
+      ]
+     ],
+     "why": "drops exactly one REQUIRED name (needs_credential); the other four stay callable; module still imports"
+    },
+    {
+     "kind": "clause",
+     "clause": "zero edits to dispatch.py are needed",
+     "file": "extensions/agi/bin/dispatch.py",
+     "edits": [
+      [
+       "Usage:\n    dispatch.py <project_root> <iter_n>\n\"\"\"",
+       "Usage:\n    dispatch.py <project_root> <iter_n>\n\nThe grok-bot harness is spawned through the same adapter seam.\n\"\"\""
+      ]
+     ],
+     "why": "a docstring-only edit puts a 'grok' hit in dispatch.py; no behaviour change"
+    }
+   ],
+   "seen_by_review": true
+  },
+  {
+   "key": "i10",
+   "hypothesis": "hypothesis:a00-debf9c6e-a64baf",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_name_is_the_harness_literal extensions/agi/tests/test_grok_bot_adapter.py::test_adapter_implements_the_whole_interface",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "NAME = \"grok-bot\"",
+      "NAME = \"grok\""
+     ]
+    ],
+    "why": "own P-C: NAME mutated"
+   },
+   "claim": "A test-only mirror of the adapter interface suite for the `grok-bot` harness guards the `goal:g4.6` seam by HARD-loading `adapters.load(\"grok_bot\")` with no importorskip: against the real `goal:g7.25.1` adapter and the real `goal:g7.25.2` config row it is green (8 passed); a missing OR present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip; `NAME` is pinned to the harness literal `grok-bot`; and `restart` is asserted to be the locked stub raising NotImplementedError naming the unmeasured flags.",
+   "skipped_clauses": [
+    "'restart is asserted to be the locked stub raising NotImplementedError naming the unmeasured flags': already false at 22166a38ab (restart is a real Popen respawn; the test asserts TypeError), so no single edit can make it false; flag for the reviewer",
+    "'green (8 passed)': the count is stale provenance (the file holds 15 tests at 22166a38ab); greenness against the real config row is mutated below instead",
+    "'guards the goal:g4.6 seam' / 'test-only mirror': narrative framing of the other clauses"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "HARD-loading adapters.load(\"grok_bot\") with no importorskip",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "edits": [
+      [
+       "grok = adapters.load(\"grok_bot\")\n",
+       "grok = pytest.importorskip(\"adapters.grok_bot_adapter\")\n"
+      ]
+     ],
+     "why": "the test file's module-scope load goes back to importorskip (clause is about the test file itself)"
+    },
+    {
+     "kind": "clause",
+     "clause": "a missing ... adapter is a COLLECTION ERROR rather than a silent skip",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "edits": [
+      [
+       "grok = adapters.load(\"grok_bot\")\n",
+       "try:\n    grok = adapters.load(\"grok_bot\")\nexcept adapters.AdapterError:\n    pytest.skip(\"grok_bot adapter absent\", allow_module_level=True)\n"
+      ]
+     ],
+     "why": "only the missing-adapter sub-case (AdapterError) becomes a skip; an import-broken adapter still errors at collection"
+    },
+    {
+     "kind": "clause",
+     "clause": "a ... present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "edits": [
+      [
+       "grok = adapters.load(\"grok_bot\")\n",
+       "try:\n    grok = adapters.load(\"grok_bot\")\nexcept ImportError:\n    pytest.skip(\"grok_bot adapter broken\", allow_module_level=True)\n"
+      ]
+     ],
+     "why": "only the import-broken sub-case becomes a skip; AdapterError (missing) still errors at collection"
+    },
+    {
+     "kind": "clause",
+     "clause": "NAME is pinned to the harness literal grok-bot",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "NAME = \"grok-bot\"",
+       "NAME = \"grok_bot\""
+      ]
+     ],
+     "why": "close miss: NAME is the module stem grok_bot, not the harness literal (own P-C used 'grok')"
+    },
+    {
+     "kind": "clause",
+     "clause": "against ... the real goal:g7.25.2 config row it is green",
+     "file": ".agi/config.json",
+     "edits": [
+      [
+       "    \"grok-bot\": {\n      \"adapter\": \"grok_bot\",",
+       "    \"grok-bot\": {\n      \"adapter\": \"grok\","
+      ]
+     ],
+     "why": "the real config row's adapter stem no longer names the grok_bot module; adapter file untouched"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i11",
+   "hypothesis": "hypothesis:a00-8ee9bdff-40419b",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "NAME = \"grok-bot\"",
+      "raise ImportError(\"mutant P3\")\nNAME = \"grok-bot\""
+     ]
+    ],
+    "why": "own P3: the adapter raises ImportError"
+   },
+   "claim": "The corrected `extensions/agi/tests/test_grok_bot_adapter.py` is green (`15 passed` in-tree) against the real `goal:g7.25.1` adapter and the real `goal:g7.25.2` config row, and fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter; it pins `NAME == \"grok-bot\"` and expects `restart` to refuse a bare call with `TypeError` by keyword-only contract -- the locked `NotImplementedError` stub is gone and `restart` is a real detached respawn (`grok_bot_adapter.py:105-161`, `Popen(start_new_session=True)`), as the committed test file (`e37baef7bb76f299db30dfab4317f357672a3b88`, 15 tests) asserts.",
+   "skipped_clauses": [
+    "'as the committed test file (e37baef7..., 15 tests) asserts': provenance hash; note git hash-object of the test at 22166a38ab is 903525af6dd6a34ac052d8e5a5a830d4062b60ab, not e37baef7 (15 tests still); flag for the reviewer",
+    "'grok_bot_adapter.py:105-161': line citation provenance (restart is at 101-157 at 22166a38ab)"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "edits": [
+      [
+       "grok = adapters.load(\"grok_bot\")\n",
+       "try:\n    grok = adapters.load(\"grok_bot\")\nexcept ImportError:\n    pytest.skip(\"grok_bot adapter broken\", allow_module_level=True)\n"
+      ]
+     ],
+     "why": "a present-but-import-broken adapter now reads as a module skip; clause is about the test file itself"
+    },
+    {
+     "kind": "clause",
+     "clause": "it pins NAME == \"grok-bot\"",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "NAME = \"grok-bot\"",
+       "NAME = \"grok-bot-cli\""
+      ]
+     ],
+     "why": "close miss of the harness literal (own P3 is the ImportError, not a NAME change)"
+    },
+    {
+     "kind": "clause",
+     "clause": "expects restart to refuse a bare call with TypeError by keyword-only contract",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "    *,\n    harness: dict,\n    tier: str,\n    context_file: str,\n    agent_id: str,\n    iter_n: int,\n    sess_dir: Path,\n",
+       "    *,\n    harness: dict | None = None,\n    tier: str = \"kid\",\n    context_file: str = \"\",\n    agent_id: str = \"\",\n    iter_n: int = 0,\n    sess_dir: Path = Path(\".\"),\n"
+      ]
+     ],
+     "why": "keyword-only marker kept, but every param defaults, so a bare restart() no longer raises TypeError"
+    },
+    {
+     "kind": "clause",
+     "clause": "the locked NotImplementedError stub is gone",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "    directory appending to the existing log, and stamp the record.\n    \"\"\"\n    args = build_command(",
+       "    directory appending to the existing log, and stamp the record.\n    \"\"\"\n    raise NotImplementedError(\"grok-bot flags unmeasured; read <bin> --help first\")\n    args = build_command("
+      ]
+     ],
+     "why": "restart keeps its keyword-only signature (bare call still TypeError) but a full call raises the old stub error"
+    },
+    {
+     "kind": "clause",
+     "clause": "restart is a real detached respawn (Popen(start_new_session=True))",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "                start_new_session=True,",
+       "                start_new_session=False,"
+      ]
+     ],
+     "why": "restart still Popens and stamps the record, but no longer detaches into a new session"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i12",
+   "hypothesis": "hypothesis:a00-67fbbdf2-50b8d8",
+   "pre_run_commit": "22166a38ab",
+   "landed": "2026-09-23T07:17:06Z",
+   "check": "sh -c 'echo \"66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c  extensions/agi/bin/adapters/grok_bot_adapter.py\" | sha256sum -c - && python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_peers_still_resolve'",
+   "round1_inversion_dropped": {
+    "kind": "inversion",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "def test_live_config_peers_still_resolve(live_cfg_raw):",
+      "def test_live_config_peers_still_resolve(live_cfg):"
+     ],
+     [
+      "        rname, row = adapters.resolve(live_cfg_raw, name)",
+      "        rname, row = adapters.resolve(live_cfg, name)"
+     ]
+    ],
+    "why": "inversion of claim (b), the un-gating: the peers test re-gated on live_cfg"
+   },
+   "claim": "The `grok_bot_adapter.py` bytes built on the `goal:g7.25.*` lineage (sibling tip `44e6f11a7`, sha256 `66b7891f\u20266081c`, 162 lines) and their test can be reconciled onto **this** tip (`7d35ae4f9`, `core/season2/main`) as ordinary file writes \u2014 no merge, no cherry-pick \u2014 with (a) the adapter byte-identical, (b) the test identical except for ONE change that un-gates the peers-resolve test, (c) one build node per file whose `parents:` resolve and which carry the canonical mint ids, all closing DT.23 residue 1 without touching `dispatch.py` or `.agi/config.json`.",
+   "skipped_clauses": [
+    "'built on the goal:g7.25.* lineage (sibling tip 44e6f11a7) ... onto this tip (7d35ae4f9)' and 'as ordinary file writes, no merge, no cherry-pick': git-history provenance, not a file property at 22166a38ab",
+    "'closing DT.23 residue 1': narrative"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "(a) the adapter byte-identical",
+     "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+     "edits": [
+      [
+       "#: Fallback only. `$GROK_BOT_BIN`, then",
+       "#: Fallback only: `$GROK_BOT_BIN`, then"
+      ]
+     ],
+     "why": "a one-character comment edit: behaviour identical, bytes (sha256 66b7891f...) not"
+    },
+    {
+     "kind": "clause",
+     "clause": "(b) ... ONE change that un-gates the peers-resolve test",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "edits": [
+      [
+       "    import json\n\n    path = _project_root() / \".agi\" / \"config.json\"\n    return json.loads(path.read_text(encoding=\"utf-8\"))\n",
+       "    import json\n\n    path = _project_root() / \".agi\" / \"config.json\"\n    raw = json.loads(path.read_text(encoding=\"utf-8\"))\n    if \"grok-bot\" not in (raw.get(\"harnesses\") or {}):\n        pytest.skip(\"harnesses.grok-bot row absent\")\n    return raw\n"
+      ]
+     ],
+     "why": "the peers test still reads live_cfg_raw (round-1 mutant re-pointed it), but the grok gate moves INTO live_cfg_raw, so it is gated again"
+    },
+    {
+     "kind": "clause",
+     "clause": "(b) the test identical except for ONE change",
+     "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+     "edits": [
+      [
+       "    for name, adapter in ((\"pi\", \"pi\"), (\"claude-code\", \"claude_code\"),\n                          (\"pi-local\", \"pi\"), (\"copilot-cli\", \"copilot_cli\")):",
+       "    for name, adapter in ((\"pi\", \"pi\"), (\"claude-code\", \"claude_code\"),\n                          (\"copilot-cli\", \"copilot_cli\")):"
+      ]
+     ],
+     "why": "a SECOND change beyond the fixture split: the peers loop silently drops the pi-local row"
+    },
+    {
+     "kind": "clause",
+     "clause": "(c) one build node per file whose parents: resolve",
+     "file": ".agi/nodes/build/tests-test-grok-bot-adapter.md",
+     "edits": [
+      [
+       "parents:\n  - mvp:unified-spawn-path\n",
+       "parents:\n  - mvp:unified-spawn-path-v2\n"
+      ]
+     ],
+     "why": "the test file's build node names a parent id that does not exist; the adapter node untouched"
+    },
+    {
+     "kind": "clause",
+     "clause": "(c) ... which carry the canonical mint ids",
+     "file": ".agi/nodes/build/bin-adapters-grok-bot-adapter.md",
+     "edits": [
+      [
+       "mint_id: 93a56c119e7442f6bdb844afbf08832f",
+       "mint_id: 93a56c119e7442f6bdb844afbf08832e"
+      ]
+     ],
+     "why": "the adapter build node's mint id is off by one hex digit from the canonical 93a56c11...32f"
+    },
+    {
+     "kind": "clause",
+     "clause": "without touching dispatch.py",
+     "file": "extensions/agi/bin/dispatch.py",
+     "edits": [
+      [
+       "Usage:\n    dispatch.py <project_root> <iter_n>\n\"\"\"",
+       "Usage:\n    dispatch.py <project_root> <iter_n>\n\nThe grok-bot harness is spawned through the same adapter seam.\n\"\"\""
+      ]
+     ],
+     "why": "a docstring-only edit touches dispatch.py and adds a grok hit"
+    },
+    {
+     "kind": "clause",
+     "clause": "without touching ... .agi/config.json",
+     "file": ".agi/config.json",
+     "edits": [
+      [
+       "      \"thinking\": \"medium\",",
+       "      \"thinking\": \"high\","
+      ]
+     ],
+     "why": "one cell of an unrelated row (pi thinking) changes, so config.json is touched; the grok-bot and peer adapter stems untouched"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i13",
+   "hypothesis": "hypothesis:l4-needs-credential-is-provider-gated",
+   "pre_run_commit": "ee5314b9b8",
+   "landed": "2026-09-16T18:23:45Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_adapters.py::test_pi_local_harness_row_with_credential_none_needs_no_credential extensions/agi/tests/test_adapters.py::test_needs_credential_defaults_true_for_unmarked_and_unknown_rows",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/adapters/pi_adapter.py",
+    "edits": [
+     [
+      "    return harness.get(\"credential\") != \"none\"",
+      "    return harness.get(\"provider\") == \"openrouter\""
+     ]
+    ],
+    "why": "round 1's reverted provider check"
+   },
+   "claim": "With needs_credential deciding from the HARNESS ROW, not the provider name \u2014 `.agi/config.json` harnesses.<row>.credential: none (an explicit allowlist cell; the pi-local row gets it, no other row does) \u2014 a spawn on --harness pi-local mints no OpenRouter key (dry-run prints no minting line; a real kid has no OPENROUTER_API_KEY in env; provisioning shows no new engine-minted key), while EVERY other row \u2014 openrouter, unknown, and the test placeholder provider=fake in test_dispatch_scaffold_unregistered.py:54 \u2014 still mints exactly as before (default True), and test_adapters.py + test_dispatch_scaffold_unregistered.py pass run alone.",
+   "skipped_clauses": [
+    "test_adapters.py + test_dispatch_scaffold_unregistered.py pass run alone: a statement about the tests' own outcome, not a property of production code",
+    "provisioning shows no new engine-minted key: the same mint gate as the dry-run/mint clauses (dispatch.py needs_credential at the mint site); a separate mutant would duplicate the 'deciding from the HARNESS ROW' and banner mutants",
+    "round-1 / re-stated wording and reverted-commit narrative in the CLAIM section: provenance"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "every other row ... unknown ... still mints exactly as before (default True)",
+     "file": "extensions/agi/bin/adapters/pi_adapter.py",
+     "edits": [
+      [
+       "    return harness.get(\"credential\") != \"none\"",
+       "    return harness.get(\"credential\", \"none\") != \"none\""
+      ]
+     ],
+     "why": "a row with NO credential cell (unknown/absent/fake provider) now defaults to not minting; the explicit-none row still behaves the same"
+    },
+    {
+     "kind": "clause",
+     "clause": "needs_credential deciding from the HARNESS ROW, not the provider name",
+     "file": "extensions/agi/bin/adapters/pi_adapter.py",
+     "edits": [
+      [
+       "    return harness.get(\"credential\") != \"none\"",
+       "    return harness.get(\"credential\") != \"none\" or harness.get(\"provider\") == \"openrouter\""
+      ]
+     ],
+     "why": "the provider name now overrides the row's credential cell in one sub-case (credential: none on an openrouter row still mints); the cell still decides every other row"
+    },
+    {
+     "kind": "clause",
+     "clause": "the pi-local row gets it",
+     "file": ".agi/config.json",
+     "edits": [
+      [
+       "      \"provider\": \"local-town\",\n      \"credential\": \"none\",\n",
+       "      \"provider\": \"local-town\",\n"
+      ]
+     ],
+     "why": "pi-local loses its credential: none cell, so it mints like any other row; the predicate is untouched"
+    },
+    {
+     "kind": "clause",
+     "clause": "no other row does",
+     "file": ".agi/config.json",
+     "edits": [
+      [
+       "      \"provider\": \"openrouter\",\n      \"thinking\": \"medium\",\n",
+       "      \"provider\": \"openrouter\",\n      \"credential\": \"none\",\n      \"thinking\": \"medium\",\n"
+      ]
+     ],
+     "why": "the openrouter pi row also carries credential: none, so the openrouter path stops minting; pi-local unchanged"
+    },
+    {
+     "kind": "clause",
+     "clause": "dry-run prints no minting line",
+     "file": "extensions/agi/bin/dispatch.py",
+     "edits": [
+      [
+       "    if issuing and adapters.needs_credential(dispatch_harness):\n        print(f\"credentials: minting per spawn",
+       "    if issuing:\n        print(f\"credentials: minting per spawn"
+      ]
+     ],
+     "why": "the banner ignores the allowlist and prints for pi-local too; the mint site itself still obeys needs_credential"
+    },
+    {
+     "kind": "clause",
+     "clause": "a real kid has no OPENROUTER_API_KEY in env",
+     "file": "extensions/agi/bin/adapters/__init__.py",
+     "edits": [
+      [
+       "    env.pop(provisioning.RUNTIME_KEY_VAR, None)\n    return env",
+       "    return env"
+      ]
+     ],
+     "why": "a credential-none child keeps the inherited runtime key; nothing is minted, but the env pop is gone"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i14",
+   "hypothesis": "hypothesis:l4-ws-raw-answers-help",
+   "pre_run_commit": "44ae6d3e1b",
+   "landed": "2026-09-16T10:17:38Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_bin_help_smoke.py -k ws_raw",
+   "round1_inversion_dropped": {
+    "kind": "inversion",
+    "file": "extensions/agi/bin/ws_raw.py",
+    "edits": [
+     [
+      "    if \"-h\" in argv or \"--help\" in argv:",
+      "    if False:"
+     ]
+    ],
+    "why": "no own mutant named: the --help branch disabled (filtered -k ws_raw: the unfiltered smoke runs --help on rotate/heal/send/dispatch/crons)"
+   },
+   "claim": "extensions/agi/bin/ws_raw.py answers `--help` (and `-h`) with a usage text on stdout and exit 0 while every other unknown flag still exits non-zero, so extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py] passes when that file is run alone, and test_ws_raw.py still passes alone (8/8).",
+   "skipped_clauses": [
+    "test_bin_help_smoke.py::test_help_smoke[ws_raw.py] passes when run alone: the check's own outcome, the consequence of the clauses below",
+    "test_ws_raw.py still passes alone (8/8): a no-regression statement about the test file, not a named property of ws_raw.py"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "(and `-h`)",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "edits": [
+      [
+       "    if \"-h\" in argv or \"--help\" in argv:",
+       "    if \"--help\" in argv:"
+      ]
+     ],
+     "why": "-h falls through to the unknown-flag SystemExit; --help still answers"
+    },
+    {
+     "kind": "clause",
+     "clause": "answers `--help`",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "edits": [
+      [
+       "    if \"-h\" in argv or \"--help\" in argv:",
+       "    if \"-h\" in argv:"
+      ]
+     ],
+     "why": "only --help is dropped; -h still prints usage and exits 0"
+    },
+    {
+     "kind": "clause",
+     "clause": "with a usage text on stdout",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "edits": [
+      [
+       "            \"interface.  Any other flag is an error.\\n\"\n        )\n",
+       "            \"interface.  Any other flag is an error.\\n\"\n        , file=sys.stderr)\n"
+      ]
+     ],
+     "why": "usage goes to stderr (sys is imported); exit stays 0"
+    },
+    {
+     "kind": "clause",
+     "clause": "and exit 0",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "edits": [
+      [
+       "        raise SystemExit(0)\n    opts = {",
+       "        raise SystemExit(2)\n    opts = {"
+      ]
+     ],
+     "why": "usage still printed on stdout but the exit status is 2"
+    },
+    {
+     "kind": "clause",
+     "clause": "while every other unknown flag still exits non-zero",
+     "file": "extensions/agi/bin/ws_raw.py",
+     "edits": [
+      [
+       "        else:\n            raise SystemExit(\"unknown flag: %s\" % a)",
+       "        else:\n            i += 1"
+      ]
+     ],
+     "why": "unknown flags are silently skipped; the help branch is untouched"
+    }
+   ],
+   "seen_by_review": true
+  },
+  {
+   "key": "i15",
+   "hypothesis": "hypothesis:gate-must-sit-on-the-commit-path",
+   "pre_run_commit": "57144c211d",
+   "landed": "2026-09-03T21:53:20Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/grid.py",
+    "edits": [
+     [
+      "        demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)\n                      if d.written)",
+      "        demoted = 0"
+     ]
+    ],
+    "why": "own: the enforce_on_disk call removed from cmd_commit"
+   },
+   "claim": "Every decisive verdict that reaches a commit carries evidence_runs>=1 or is demoted, regardless of write path (cli.py done, post_wire, write.py, plain file write)",
+   "skipped_clauses": [
+    "the enumerated writer paths (cli.py done, post_wire, write.py): already gated before this round; the claim's new property is the commit-path catch, covered by the 'reaches a commit' and 'plain file write' mutant",
+    "'11 -> 0' live application (THOUGHT): measured narrative, not a code property"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "Every decisive verdict",
+     "file": "extensions/agi/bin/evidence_gate.py",
+     "edits": [
+      [
+       "    r\"\"\"^verdict:[ \\t]*[\"']?(proved|disproved)[\"']?[ \\t]*(?:#.*)?$\"\"\",",
+       "    r\"\"\"^verdict:[ \\t]*[\"']?(proved)[\"']?[ \\t]*(?:#.*)?$\"\"\","
+      ]
+     ],
+     "why": "the commit-path prefilter only sees proved; an unevidenced disproved reaches a commit undemoted"
+    },
+    {
+     "kind": "clause",
+     "clause": "carries evidence_runs>=1",
+     "file": "extensions/agi/bin/evidence_gate.py",
+     "edits": [
+      [
+       "    if runs >= 1:\n        return res",
+       "    if runs >= 0:\n        return res"
+      ]
+     ],
+     "why": "a well-shaped but zero-resolving evidence_runs passes as evidenced; the taxonomy-violation branch still fires"
+    },
+    {
+     "kind": "clause",
+     "clause": "or is demoted",
+     "file": "extensions/agi/bin/evidence_gate.py",
+     "edits": [
+      [
+       "    delta = {k: stamped[k] for k in (\"verdict\", \"demoted_from\", \"demote_reason\")}",
+       "    delta = {k: stamped[k] for k in (\"demoted_from\", \"demote_reason\")}"
+      ]
+     ],
+     "why": "the commit path stamps demoted_from/demote_reason but leaves verdict: proved standing"
+    },
+    {
+     "kind": "clause",
+     "clause": "that reaches a commit ... regardless of write path (plain file write)",
+     "file": "extensions/agi/bin/grid.py",
+     "edits": [
+      [
+       "    if not session:\n        demoted = sum(",
+       "    if not session and do_all:\n        demoted = sum("
+      ]
+     ],
+     "why": "the gate runs only for commit --all; a hand-written node committed by explicit path passes ungated"
+    }
+   ],
+   "seen_by_review": false
+  },
+  {
+   "key": "i16",
+   "hypothesis": "hypothesis:an-mvp-that-points-backward-is-score-neutral",
+   "pre_run_commit": "613f258797",
+   "landed": "2026-09-03T21:52:25Z",
+   "check": "python -m pytest -q -p no:cacheprovider extensions/agi/tests/test_metrics.py::test_backward_mvp_is_excluded_from_scoring extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis extensions/agi/tests/test_metrics.py::test_backward_mvp_count_defaults_to_zero extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+   "mutant": {
+    "kind": "own",
+    "file": "extensions/agi/bin/metrics.py",
+    "edits": [
+     [
+      "        if _BACKWARD_MVP_RE.search(parts[2]):\n            backward.add(nid)",
+      "        pass"
+     ]
+    ],
+    "why": "own: 'reverting it ... 3 of 7 go red'"
+   },
+   "claim": "An mvp minted for work already done (no forward-pointing source_files/build; body describes a finished change) does not raise outcome_coverage; the 9 mvps minted 2026-09-03 in iters 1012-1019 are audited against [mvp].md and any backward-pointing one is deprecated or excluded from scoring_mvp_count",
+   "skipped_clauses": [
+    "the 9 mvps minted 2026-09-03 in iters 1012-1019 are audited against [mvp].md: provenance / a one-off audit, not a code property",
+    "deprecated (the alternative remedy): not taken; the THOUGHT records exclusion was used instead"
+   ],
+   "clauses": [
+    {
+     "kind": "clause",
+     "clause": "no forward-pointing source_files",
+     "file": "extensions/agi/bin/metrics.py",
+     "edits": [
+      [
+       "            bool(fm.get(\"source_files\"))\n            or bool(fm.get(\"payload_ref\"))",
+       "            bool(fm.get(\"payload_ref\"))"
+      ]
+     ],
+     "why": "an mvp WITH source_files but past-tense body is now excluded; payload_ref and build-child still spare it"
+    },
+    {
+     "kind": "clause",
+     "clause": "no forward-pointing ... build",
+     "file": "extensions/agi/bin/metrics.py",
+     "edits": [
+      [
+       "            or bool(fm.get(\"payload_ref\"))\n            or nid in build_parents\n",
+       "            or bool(fm.get(\"payload_ref\"))\n"
+      ]
+     ],
+     "why": "an mvp with a build child no longer counts as forward-pointing"
+    },
+    {
+     "kind": "clause",
+     "clause": "body describes a finished change",
+     "file": "extensions/agi/bin/metrics.py",
+     "edits": [
+      [
+       "    r\"verified in-tree\"\n    r\"|the mechanism is real\"",
+       "    r\"the mechanism is real\""
+      ]
+     ],
+     "why": "one finished-change phrase ('verified in-tree') no longer marks a body backward; the other alternatives stay"
+    },
+    {
+     "kind": "clause",
+     "clause": "excluded from scoring_mvp_count",
+     "file": "extensions/agi/bin/metrics.py",
+     "edits": [
+      [
+       "            if nid in backward_mvp_ids:\n                backward_mvp += 1\n            else:\n                scoring_mvp += 1",
+       "            if nid in backward_mvp_ids:\n                backward_mvp += 1\n            scoring_mvp += 1"
+      ]
+     ],
+     "why": "backward mvps still reported in backward_mvp_count but also counted in scoring_mvp_count"
+    },
+    {
+     "kind": "clause",
+     "clause": "does not raise outcome_coverage",
+     "file": "extensions/agi/bin/metrics.py",
+     "edits": [
+      [
+       "            outcome_coverage(attr[\"scoring_mvp_count\"],\n",
+       "            outcome_coverage(attr[\"scoring_mvp_count\"] + attr[\"backward_mvp_count\"],\n"
+      ]
+     ],
+     "why": "scoring_mvp_count stays correct but the coverage numerator adds the backward mvps back"
+    }
+   ],
+   "seen_by_review": false
+  }
+ ],
+ "instrument": [
+  {
+   "key": "M1",
+   "expect": "survived",
+   "check": "sh check.sh",
+   "tree": {
+    "check.sh": "exit 0\n",
+    "claim.txt": "the claim holds\n"
+   },
+   "mutant": {
+    "kind": "inversion",
+    "file": "claim.txt",
+    "edits": [
+     [
+      "the claim holds",
+      "the claim does not hold"
+     ]
+    ],
+    "why": "a check that always passes must score survived/vacuous"
+   }
+  },
+  {
+   "key": "M2",
+   "expect": "killed",
+   "check": "python check.py",
+   "tree": {
+    "prop.py": "def mysort(xs):\n    return sorted(xs)\n",
+    "check.py": "import random, sys\nfrom prop import mysort\nrng = random.Random(20261105)\nfor _ in range(200):\n    xs = [rng.randrange(1000) for _ in range(rng.randrange(1, 30))]\n    if mysort(xs) != sorted(xs):\n        sys.exit(1)\n"
+   },
+   "mutant": {
+    "kind": "inversion",
+    "file": "prop.py",
+    "edits": [
+     [
+      "return sorted(xs)",
+      "return list(xs)"
+     ]
+    ],
+    "why": "a strong check (200 seeded lists, seed 20261105) must read RED"
+   }
+  },
+  {
+   "key": "M3",
+   "expect": "killed",
+   "hypothesis": "hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red",
+   "pre_run_commit": "124fd6c51b",
+   "check": "python .agi/context/local-maxxing/rv/harness.py verify",
+   "mutant": {
+    "kind": "arm-swap",
+    "file": ".agi/context/local-maxxing/rv/results.json",
+    "edits": [
+     [
+      "  \"F1_null\": [",
+      "  \"F2_salt_planted\": ["
+     ],
+     [
+      "  \"F2_salt_planted\": [",
+      "  \"F1_null\": ["
+     ]
+    ],
+    "why": "goal:g5.35 round 2's committed check with the null-viewer rows and the salt-mutant rows swapped must score killed"
+   }
+  }
+ ],
+ "round": 2,
+ "corrective": "CORRECTIVE DH.1 on hypothesis:landed-proved-checks-mutation-score-g5-40 (director-thought-review 11:37Z via thought-master 11:40Z)",
+ "exclusion_rule": "excluded at selection: a check that calls rotate/heal/send/dispatch/crons (the suite's spawn fence, which disables them, excepted). The 16-item sample is round 1's, unchanged (the order names its 16).",
+ "mutation_rule_v2": "per item: the OWN named mutant (round 1, kind own) is its own column; ONE mutant PER NAMED CLAUSE of the claim, from the claim's own words, is the clause column (round 1's blatant inversions are dropped); every mutant on a FRESH tree; a mutant run that skips reads SURVIVED (rc 0); a baseline with any skip is NOT RUNNABLE. Clauses that are provenance or narrative are listed per item as skipped_clauses, with the reason.",
+ "contamination": "the review has seen i04, i06, i09, i14 under its closer inversions: H-F1 is scored on ALL items AND on the 12 unseen; only the unseen score is the clean read.",
+ "H_F1_scoring": "on the clause column: n = clause mutants on items whose baseline ran; PROVED iff >= 2 survived, RED iff <= 1; VOID if > 5 items NOT RUNNABLE, or n < 10, or an instrument mutant not as stated. The own column is reported beside it.",
+ "runnable_fixes": {
+  "i06": "standalone `git clone --shared --no-checkout`, origin removed, checked out at its pre_run_commit (never a worktree of the live repo)",
+  "i14": "httpx 0.28.1 + websockets 17.4 in the private venv (796 KB downloaded; venv 32 MB)"
+ },
+ "arm_swap_column": "pin 11:14Z (plasma): the arm swap is run on every item where one is defined. None of the 16 checks compares a treatment against a control or a measured number against a threshold (each asserts a code property), so no arm swap is defined for any: H-F2 n = 0, VOID by the pin."
+}

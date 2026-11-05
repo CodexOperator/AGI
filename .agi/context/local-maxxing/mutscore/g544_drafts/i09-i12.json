@@ -1,0 +1,370 @@
+{
+ "i09": {
+  "clauses": [
+   {
+    "clause": "a bare DEFAULT_BIN=\"grok-bot\" removes the config_max box literal",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "DEFAULT_BIN = \"grok-bot\"\n",
+      "DEFAULT_BIN = str(Path.home() / \".npm-global\" / \"bin\" / \"grok-bot\")\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a static property of the file's DEFAULT_BIN value; nothing has to execute for it to hold or fail",
+    "why": "DEFAULT_BIN becomes the box path under the user's home (built without a /home/ literal), so the fallback is no longer bare; resolve_bin precedence, REQUIRED and dispatch.py are untouched"
+   },
+   {
+    "clause": "resolve_bin precedence ($GROK_BOT_BIN > harness bin ...) is unchanged",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN\n",
+      "    return harness.get(\"bin\") or os.environ.get(\"GROK_BOT_BIN\") or DEFAULT_BIN\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "precedence is behaviour of resolve_bin; only a call with both env and harness bin set exercises it",
+    "why": "harness bin now beats $GROK_BOT_BIN; harness bin > DEFAULT_BIN still holds and DEFAULT_BIN stays bare"
+   },
+   {
+    "clause": "resolve_bin precedence (... harness bin > DEFAULT_BIN) is unchanged",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN\n",
+      "    return os.environ.get(\"GROK_BOT_BIN\") or DEFAULT_BIN or harness.get(\"bin\")\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "precedence is behaviour of resolve_bin; only a call with harness bin set and no env exercises it",
+    "why": "the always-truthy DEFAULT_BIN now beats harness bin, so the config cell is never used; $GROK_BOT_BIN still wins over both"
+   },
+   {
+    "clause": "adapters.load(\"grok_bot\") satisfies all of adapters.REQUIRED",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "def needs_credential(harness: dict) -> bool:\n",
+      "def _needs_credential(harness: dict) -> bool:\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the claim is that adapters.load (the REQUIRED check) runs and passes on this module",
+    "why": "the module still imports, but needs_credential (a REQUIRED name) is no longer exposed, so adapters.load raises AdapterError; DEFAULT_BIN and resolve_bin unchanged"
+   },
+   {
+    "clause": "zero edits to dispatch.py are needed",
+    "file": "extensions/agi/bin/dispatch.py",
+    "edits": [
+     [
+      "\"\"\"dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts.\n",
+      "\"\"\"dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts (grok-bot included).\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a static property of dispatch.py's bytes (no grok mention), not of any code path running",
+    "why": "dispatch.py gains a grok-bot mention in its module docstring, i.e. it was edited for the harness; parses, adapter untouched"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+   "edits": [
+    [
+     "    return os.environ.get(\"GROK_BOT_BIN\") or harness.get(\"bin\") or DEFAULT_BIN\n",
+     "    return DEFAULT_BIN\n"
+    ]
+   ],
+   "count_check": 1,
+   "why": "resolve_bin ignores both $GROK_BOT_BIN and the harness bin cell, so the box path in the config cell never reaches argv and the stated precedence is gone"
+  }
+ },
+ "i10": {
+  "clauses": [
+   {
+    "clause": "HARD-loading adapters.load(\"grok_bot\") with no importorskip",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "grok = adapters.load(\"grok_bot\")\n",
+      "grok = pytest.importorskip(\"adapters.grok_bot_adapter\")\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a static property of how the test file obtains the module",
+    "why": "the test imports the module through pytest.importorskip instead of a hard adapters.load, so the REQUIRED-checked load is gone and a missing/broken module would skip; NAME pin and the rest unchanged"
+   },
+   {
+    "clause": "a missing ... adapter is a COLLECTION ERROR rather than a silent skip",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "grok = adapters.load(\"grok_bot\")\n",
+      "try:\n    grok = adapters.load(\"grok_bot\")\nexcept adapters.AdapterError as exc:\n    pytest.skip(str(exc), allow_module_level=True)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the claim is about what happens when the load path runs against a missing adapter",
+    "why": "a missing adapter (AdapterError from adapters.load) now becomes a module-level skip; a present-but-import-broken adapter still raises ImportError at collection; NAME pin unchanged"
+   },
+   {
+    "clause": "a ... present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "grok = adapters.load(\"grok_bot\")\n",
+      "try:\n    grok = adapters.load(\"grok_bot\")\nexcept ImportError as exc:\n    pytest.skip(str(exc), allow_module_level=True)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the claim is about what happens when the load path runs against a broken adapter",
+    "why": "an adapter that raises ImportError on import now skips the module; a missing adapter still raises AdapterError (a RuntimeError, not caught) at collection; NAME pin unchanged"
+   },
+   {
+    "clause": "NAME is pinned to the harness literal grok-bot",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "    assert grok.NAME == \"grok-bot\"\n",
+      "    assert grok.NAME\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the pin is an assertion that must execute in test_name_is_the_harness_literal",
+    "why": "the test no longer pins NAME to the literal (any non-empty NAME passes); the clause is about the mirror test itself, so the test file is the artifact; production NAME untouched"
+   },
+   {
+    "clause": "against ... the real goal:g7.25.2 config row it is green",
+    "file": ".agi/config.json",
+    "edits": [
+     [
+      "\"adapter\": \"grok_bot\"",
+      "\"adapter\": \"grok_bots\""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the claim is that the suite reads the real config row and passes; a run that never reads the row (or skips the live tests) leaves it unexercised",
+    "why": "the real config grok-bot row now names a non-existent adapter stem, so the live-config tests cannot resolve it to the adapter; adapter and test file untouched"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+   "edits": [
+    [
+     "grok = adapters.load(\"grok_bot\")\n",
+     "grok = pytest.importorskip(\"adapters.grok_bot_adapter_absent\")\n"
+    ]
+   ],
+   "count_check": 1,
+   "why": "the mirror no longer hard-loads anything: it importorskips a module that does not exist, so the whole file is a silent `1 skipped` -- never green, never loud, NAME never pinned"
+  }
+ },
+ "i11": {
+  "clauses": [
+   {
+    "clause": "fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "grok = adapters.load(\"grok_bot\")\n",
+      "try:\n    grok = adapters.load(\"grok_bot\")\nexcept ImportError as exc:\n    pytest.skip(str(exc), allow_module_level=True)\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the claim concerns the behaviour of the load path when it runs against a broken adapter",
+    "why": "a present-but-import-broken adapter now yields a module-level skip instead of a collection error; green-on-real-bytes, NAME pin and restart expectations unchanged"
+   },
+   {
+    "clause": "it pins NAME == \"grok-bot\"",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "    assert grok.NAME == \"grok-bot\"\n",
+      "    assert grok.NAME.startswith(\"grok\")\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the pin is an assertion that must execute in test_name_is_the_harness_literal",
+    "why": "the test only checks a grok prefix, so NAME == \"grok\" would pass; the clause is about the test, so the test file is the artifact"
+   },
+   {
+    "clause": "expects restart to refuse a bare call with TypeError by keyword-only contract",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "    with pytest.raises(TypeError):\n",
+      "    with pytest.raises(Exception):\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the expectation is an assertion that must execute in test_adapter_implements_the_whole_interface",
+    "why": "the test now accepts any exception from a bare restart() (including the old NotImplementedError), so it no longer expects the keyword-only TypeError; adapter untouched"
+   },
+   {
+    "clause": "the locked NotImplementedError stub is gone",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "    args = build_command(\n        harness=harness, tier=tier, context_file=context_file,\n        agent_id=agent_id,",
+      "    if not harness.get(\"bin\"):\n        raise NotImplementedError(\"grok-bot flags unmeasured: build_command is a stub\")\n    args = build_command(\n        harness=harness, tier=tier, context_file=context_file,\n        agent_id=agent_id,"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the stub is a branch inside restart; only a restart call with a bin-less harness reaches it",
+    "why": "a NotImplementedError stub naming the unmeasured flags is back in restart (for a harness with no bin cell); with a bin cell restart is still the detached Popen respawn, keyword-only signature unchanged"
+   },
+   {
+    "clause": "restart is a real detached respawn (Popen(start_new_session=True))",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "                start_new_session=True,\n",
+      "                start_new_session=False,\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "detachment is a keyword of the Popen call inside restart; restart must run to observe it",
+    "why": "restart still respawns via Popen and no NotImplementedError stub exists, but the child stays in the parent's session (not detached); keyword-only contract intact"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+   "edits": [
+    [
+     "    args = build_command(\n        harness=harness, tier=tier, context_file=context_file,\n        agent_id=agent_id,",
+     "    raise NotImplementedError(\"grok-bot flags unmeasured: restart is a locked stub until <bin> --help is read\")\n    args = build_command(\n        harness=harness, tier=tier, context_file=context_file,\n        agent_id=agent_id,"
+    ]
+   ],
+   "count_check": 1,
+   "why": "restart reverts to the locked NotImplementedError stub on every keyword call: no respawn, no Popen, no pid -- the corrected test's restart tests cannot be green and the claim's restart half is inverted"
+  }
+ },
+ "i12": {
+  "clauses": [
+   {
+    "clause": "(a) the adapter byte-identical",
+    "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+    "edits": [
+     [
+      "\"\"\"The Grok Bot harness — REQUIRED surface, stub argv (goal:g17.14.1).\n",
+      "\"\"\"The Grok Bot harness — REQUIRED surface, stub argv (goal:g17.14.1). \n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "byte identity is a property of the file's bytes (its sha256), not of any code path running",
+    "why": "one trailing space in the module docstring changes the adapter's sha256 while leaving behaviour, the test file, nodes, dispatch.py and config untouched"
+   },
+   {
+    "clause": "(b) ... ONE change that un-gates the peers-resolve test",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "def test_live_config_peers_still_resolve(live_cfg_raw):\n",
+      "def test_live_config_peers_still_resolve(live_cfg_raw, live_cfg):\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the claim is that the peers test PASSES (not skips), i.e. it must actually run",
+    "why": "the peers test now also requests the grok-gated live_cfg fixture, so it is gated behind the grok-bot row again; adapter untouched"
+   },
+   {
+    "clause": "(b) the test identical except for ONE change",
+    "file": "extensions/agi/tests/test_grok_bot_adapter.py",
+    "edits": [
+     [
+      "\"\"\"Tests for bin/adapters/grok_bot_adapter.py. `goal:g17.14.3`, fourth harness.\n",
+      "\"\"\"Tests for bin/adapters/grok_bot_adapter.py. `goal:g17.14.3`, the fourth harness.\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a property of the test file's bytes vs the sibling, not of any code path running",
+    "why": "a second, unrelated change (docstring wording) now sits in the test file beside the fixture split; the peers test is still ungated, adapter byte-identical"
+   },
+   {
+    "clause": "(c) one build node per file whose parents: resolve",
+    "file": ".agi/nodes/build/tests-test-grok-bot-adapter.md",
+    "edits": [
+     [
+      "parents:\n  - mvp:unified-spawn-path\n",
+      "parents:\n  - mvp:unified-spawn-path-retired\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a property of the node's frontmatter (a dangling parent link), not of any code path running",
+    "why": "the test-file build node's parent now names a node that does not exist; mint ids, adapter and test bytes unchanged"
+   },
+   {
+    "clause": "(c) ... which carry the canonical mint ids",
+    "file": ".agi/nodes/build/bin-adapters-grok-bot-adapter.md",
+    "edits": [
+     [
+      "mint_id: 93a56c119e7442f6bdb844afbf08832f\n",
+      "mint_id: 93a56c119e7442f6bdb844afbf08832e\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a property of the node's frontmatter, not of any code path running",
+    "why": "the adapter build node's mint_id no longer matches the canonical 93a56c11...832f; its parents still resolve and the files are unchanged"
+   },
+   {
+    "clause": "without touching dispatch.py",
+    "file": "extensions/agi/bin/dispatch.py",
+    "edits": [
+     [
+      "\"\"\"dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts.\n",
+      "\"\"\"dispatch.py — spawn N pi agents in parallel with zoom-targeted contexts (grok-bot too).\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a property of dispatch.py's bytes, not of any code path running",
+    "why": "dispatch.py is edited (a docstring mention of grok-bot); adapter, test, nodes and config untouched"
+   },
+   {
+    "clause": "without touching ... .agi/config.json",
+    "file": ".agi/config.json",
+    "edits": [
+     [
+      "\"provider\": \"local-town\",",
+      "\"provider\": \"local-town\" ,"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a property of config.json's bytes, not of any code path running",
+    "why": "config.json is edited (whitespace in the pi-local row, JSON-equivalent) so it is touched without disturbing any row the tests resolve; adapter, test, nodes and dispatch.py untouched"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/adapters/grok_bot_adapter.py",
+   "edits": [
+    [
+     "NAME = \"grok-bot\"\n",
+     "NAME = \"grok\"\n"
+    ]
+   ],
+   "count_check": 1,
+   "why": "the adapter is no longer the sibling's bytes (sha256 differs) and its NAME no longer matches the harness literal, so the reconciliation is neither byte-identical nor a faithful landing"
+  }
+ }
+}
