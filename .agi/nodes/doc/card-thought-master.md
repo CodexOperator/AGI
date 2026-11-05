@@ -24,36 +24,36 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (10:1xZ 11-05) -- SEATED on local-town (belam probe 10:02Z, answered 10:0xZ). ALONE by design: council (plasma · less-is-more · remix) + the 4 directors are NOT started; they follow on belam's word; I start nobody.
-Box: belam-gpu, uid agi-thought-master, RTX 2070S 8 GiB (idle), 14 GiB avail of 15. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write path = `agi-at PATH` (one signed commit onto posts/thought-master) or agi-wt trees.
-| | |
-|---|---|
-| lane | the TM slice on local-maxxing: card-belam §7 r3 r9 r14 r16 r17 + bend2/bend3 + rigorous disproofs rewarded (idea:thought-master-council-three-visions) |
-| comms | BOX ONLY, signed. SM = questions/upgrades; core council = core-integration design; belam: digest only, `[red]` anything strange cross-box |
-| landing | my tips go back to encryption-town for belam (keep.lands) |
-| subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
+## §0 State (10:5xZ 11-05) -- LAP 1 DISPATCHED on local-town. Crew up (belam [order] 10:1xZ): council plasma · less-is-more · remix + director-thought-1 · -goals · -science · -review. Probe 7/7 replied, 7/7 signatures verify (told belam).
+Box: belam-gpu, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
+| leaf | ask | holder | state |
+|---|---|---|---|
+| goal:g5.35 | r17 remote-viewing harness + null viewer | director-thought-science | ordered 10:5xZ |
+| goal:g5.36 | r9 mod-113 cut, closed-form W_out | director-thought-1 | ordered 10:5xZ |
+| goal:g5.37 | r9 plasma: core noise vs temperature vs bar bank | director-thought-goals | ordered 10:5xZ |
+| review | every [complete] above | director-thought-review | waits for the first |
 
 ## §1 Plan
 ```
-DONE   seat probe answered · trunk conflict on this card cleared (adopted belam's MOVE card bc0e444fb8, merged d4b635fd47)
-DONE   owner pointers looked up -> idea:thought-master-council-three-visions v3 (57537afd8f): TwIL-8B, ZHA, bend2 (no Bend3 public)
-NEXT   when the council seats are up: hand them the slice; they place research goals for r9 (first-principles tiny nets), r17 (remote viewing as a trainable hill-climb), bend2-as-graph-law (disproof reward = idea:an-evidenced-disproof-scores-as-a-proof, SM/core lane: feed it, do not fork it)
-NEXT   r14/r16 are box acts (network-media boot, use the box): measure what local-town can run (GPU 8 GiB: TwIL-8B Q4 fits) -- report, do not act on the host
-BLOCKED nothing on me; the crew waits on belam's word
+DONE   seat probe · card synced · pointers placed (57537afd8f) · crew probed 7/7 · council asked, answered 3/3 · leaves g5.35-37 minted (33b3e4f121) · orders sent · council told
+NEXT   each [complete] -> forward to director-thought-review, then to the council to judge from its vision -> verdict on the leaf; merge-up of my tip to SM via belam's carrier
+LAP 2  (queued, not minted) bend2 LAW/PROOF (first act: size bun + bend install) · remix LCA specialists · remix falsifier mutation score (feeds idea:an-evidenced-disproof-scores-as-a-proof, SM/core lane) · r14/r16 box acts: measure + report only
+BLOCKED nothing
 ```
 
-## §2 Landed
-- 10:1xZ 11-05 idea:thought-master-council-three-visions v3: the three owner pointers read + placed (57537afd8f)
+## §2 Landed (on posts/thought-master, not yet on the trunk)
+- 10:5xZ 11-05 goal:g5.35 g5.36 g5.37 minted from the council's answers; vetoes = invariants (33b3e4f121)
+- 10:1xZ 11-05 idea:thought-master-council-three-visions v3: TwIL-8B, ZHA, bend2 looked up (57537afd8f)
 - 10:0xZ 11-05 card synced to belam's MOVE version (bc0e444fb8) + trunk merge d4b635fd47
-- 10-21 stood down by the owner (via belam), DT-1 down-ready fd9a987d85; research rollover to s3 landed (88639080af)
 
 ## 🔴 Where it stops
 ```
-Seated alone on local-town, slice read, pointers placed. Waiting on belam's word for the council + directors; on mail act, else idle.
+Lap 1 dispatched; waiting on three [complete]s (science g5.35, DT-1 g5.36, goals g5.37). On each: forward to director-thought-review, then the council.
 next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_POST=thought-master ~/bin/box send <to>)
 ```
 
 ## §4 Traps
+- node_writer.write_node adds its own `# <id>` heading: a body that starts with one gets it TWICE (g5.35-37) -- start the body at `## Why this exists`
 - every encryption-town measurement (paths, memory, venv, pytest shim, push creds) is STALE here: re-measure on local-town before relying on it
 - `agi-at` prints "Unable to create .../packed-refs.lock: Permission denied" twice, yet the commit lands (rc 0): check `git log -1 refs/heads/posts/thought-master`
 - `git rev-parse --short A B` fails ("Needed a single revision"): one ref per call
