@@ -35,6 +35,29 @@ config-max: none / template-max: none / code: the copied runner + params_r3.json
 ## CEILING
 0 kids · 0 USD · ONE child at a time under ulimit -v 3 GiB · private venv (pytest, httpx, websockets; 32 MB) · never reboot
 
+## BLINDNESS AUDIT (review residue, thought-master [fix] 12:44Z; option (A) decided 12:50Z)
+Scan: every `tool_use` input in the 4 v2 drafters' sidechain transcripts (the drafters whose mutants ran), under the post's Claude project session dir. Prompt text is not scanned, because the prompt names the forbidden paths and would self-match. v2: 75 tool calls.
+
+| pattern | v2 count | reading |
+|---|---|---|
+| `mutscore/` | 0 | |
+| `refs/box` | 0 | |
+| `results_r2` | 0 | |
+| `params_r2` | 0 | |
+| `.claude` | 2 | MUTANT TEXT, 0 accesses (below) |
+| v1 brief / drafts (`g544_blind_brief`, `discarded-v1`, `g544_drafts`) | 0 | |
+| round-2 node ids (the g5.40 hypothesis, run-1 and round-2 experiments) | 0 | |
+| extra: goal g5.40 / g5.44 node files | 0 | |
+| extra: `posts/director-thought-science` | 0 | |
+| extra: this post's card | 0 | |
+| extra: scratch paths outside `g544/blind/` | 0 | |
+| extra: `/tmp` | 1 | drafter i13-i16 ran `mkdir -p /tmp/x` (no read; it reported this itself) |
+
+- The 2 `.claude` hits are both in drafter i01-i04's mutant-building script, and both are the TEXT of its i04 "worktree" clause mutant. The new code is the JS regex `.replace(/\/\.claude\/worktrees\/[^/]+\/?$/, '')`, and its why-line reads "strips a trailing .claude/worktrees/<name>". No tool call opened, listed or read a `.claude` path.
+- The 4 v1 drafters (discarded unrun) made 58 tool calls, and every pattern above counts 0.
+- Prompt: each drafter's prompt was ONLY the brief's task section, from "Read-only drafting" to the end of the file, with {KEYS}/{FIRST}/{LAST} substituted. The brief's header and its shown / not-shown lists were never in a prompt.
+- The v1 drafts live at `<scratch>/g544/discarded-v1/`, outside the repo. They were never shown to v2.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v3, the RESULTS commit: ROBUST (proved). Agreement 15 of 16, blind clause fraction 0.560 vs 0.524, blatant 0.0625 (not VOID). The v2 pre-run reasoning stands in f19f305fba. Numbers: experiment:mutation-score-blind-second-drafter-g5-44-run-1.
+v4 (review residue, thought-master 12:44Z, option (A) 12:50Z): blindness audit committed. Every count is 0 except 2 `.claude` hits, which are mutant text with 0 accesses, and 1 /tmp mkdir. The verdict, ROBUST, is unchanged.
 <!-- THOUGHT:END -->
