@@ -1,8 +1,13 @@
 {
  "goal": "goal:g5.35",
+ "round": 2,
  "seed": "g5.35/33b3e4f121a8e56aae561c1fde4bc5ed1e49e98d",
- "seed_why": "the full sha of thought-master's leaf commit, fixed before this post existed: not chosen",
+ "seed_why": "PUBLIC: keys the target pool and the viewers' own streams only; the full sha of thought-master's leaf commit, not chosen",
+ "secret_sha256": "2331834999981db76a0fa26c7e3890d7e81789cce1197825e0d14dc67ee80943",
+ "secret_why": "32 bytes of os.urandom made at run time (harness.py secret-new), kept outside the repo until the results commit reveals it; keys EVERY harness-side draw (targets, decoys, salt, shuffle, judge ties); no viewer is handed it",
  "n": 200,
+ "pool_size": 1000,
+ "targets": "200 distinct, drawn without replacement across the run",
  "chance": 0.2,
  "candidates_per_trial": 5,
  "alpha_harness": 0.05,
@@ -10,8 +15,10 @@
  "held_out_trials": [100, 200],
  "climb_policies": 20,
  "alpha_held_out": 0.01,
- "falsifier_1": "the null viewer (policy 0) over trials 0..199: hits must be below the one-sided binomial 95% band (band_hits_lt); at or above it = the harness LEAKS, RED, nothing else is measured on it",
- "falsifier_2": "the SaltMutantViewer, handed the salt before it describes, must score at or above the same band; below it = the harness cannot see a leak, vacuous",
- "falsifier_3": "any later viewer: its held-out (trials 100..199, n = 100) hit rate must beat chance at p < 0.01, whatever its train curve; for the null viewer the climb keeps the best of 20 seeds on trials 0..99 and is graded on 100..199",
- "verdict_rule": "proved iff falsifier_1 inside AND falsifier_2 outside; else disproved"
+ "falsifier_1": "F1_null: the null viewer (policy 0) over trials 0..199 must be inside chance (hits < band_hits_lt, one-sided binomial 95%); outside = the harness LEAKS",
+ "falsifier_2": "F2_salt_planted: the SaltMutantViewer handed the salt before it describes must be OUTSIDE chance; inside = the harness cannot see a planted leak",
+ "falsifier_3": "any later viewer: its held-out (trials 100..199, n = 100) hit rate must beat chance at p < 0.01, whatever its train curve",
+ "falsifier_4": "F4: the seed-reader viewer (re-derives targets from the public seed) must be inside chance on this harness AND outside it on the public-keyed (round-1) harness",
+ "falsifier_5": "F5: the position-0 judge (a judge-side channel) must be inside chance on this harness AND outside it with the candidate shuffle removed",
+ "verdict_rule": "proved iff every arm reads as required (F1, F4 real, F5 real inside; F2, F4 public-keyed, F5 shuffle-removed outside); else disproved"
 }

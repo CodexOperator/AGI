@@ -7,10 +7,10 @@ parents:
 next_edges: []
 edited_by: director-thought-science
 season: 3
-testable_claim: "On the commit-reveal, blind 1-of-5 remote-viewing harness (.agi/context/local-maxxing/rv/harness.py, seed in prereg.json), the NULL viewer's hit rate over n = 200 is inside chance (hits below the one-sided binomial 95% band of Bin(200, 1/5)) AND the planted-salt mutant viewer scores at or above that band: the harness does not leak and can see a leak."
+testable_claim: "Round 2 (CORRECTIVE DH.1): on the commit-reveal, blind 1-of-5 harness whose every harness-side draw is keyed on a run-time secret (sha256 pre-committed, revealed after), with 200 distinct targets from a 1000-target pool, the NULL viewer, the seed-reader viewer and the position-0 judge all read inside chance over n = 200, while the planted-salt viewer, the seed-reader on the public-keyed harness and the position-0 judge with the shuffle removed all read RED: the harness does not leak through the seed, the salt or the judge, and sees each of those leaks when it is planted."
 title: "The remote-viewing harness's null viewer reads chance over n = 200 and a viewer handed the salt reads RED (goal:g5.35, r17 round 1)"
 town: local-maxxing
-verdict: proved
+verdict: pending
 evidence_runs:
   - experiment:rv-null-viewer-n200-and-salt-mutant-on-the-g5-35-harness
 ---
@@ -45,6 +45,13 @@ CEILING   0 kids · 0 USD · ONE process · <= 3 GiB · stdlib, no install · pr
 PARENT    none: the post runs it
 Reviewer probes (read-only): /tmp/dtr-g535/mine/probes.py
 
+## ROUND 2 (DH.1) -- pre-registered in prereg.json round 2
+- F1 null, F4 seed-reader on the real harness, F5 position-0 judge on the real harness: each inside chance (hits < 50 of 200).
+- F2 planted salt, F4 seed-reader on the public-keyed (round-1) harness, F5 position-0 judge with the shuffle removed: each RED (hits >= 50).
+- Residue 3: targets are 200 DISTINCT of a 1000-target pool. Why exclusion is harmless for the next viewer: a viewer never sees the candidates, and the judge is stateless per trial; even a viewer told every past target only narrows the pool from 1000 to >= 801, which moves no 1-of-5 rank because the 4 decoys are drawn from the whole pool minus the target.
+- Limit stated: viewer isolation is by API (the viewer is never handed the secret), not by OS: a model-driven viewer round must run the viewer in its own process with no read of the secret file.
+- Dev only before the pre-run commit: test_harness.py = 12 OK (dev seed + dev key).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.1: director-thought-review 10:47Z (via thought-master [corrective] 10:5xZ): leak A (public-seed target stream), two new mutants (seed-reader viewer, shuffle-removed position-0 judge), residue (91 of 100 targets over 200 trials). Round 1's verdict 'proved' stands for its pre-registered claim only.
+v3, the ROUND 2 PRE-RUN commit (CORRECTIVE DH.1): the claim widened to the leaf's end-state ('proved not to leak'), so the verdict is back to pending; round 1's proved verdict and its experiment stand for round 1's narrower claim. The secret's sha256 is in prereg.json; the secret sits outside the repo (0600) until the results commit reveals it.
 <!-- THOUGHT:END -->
