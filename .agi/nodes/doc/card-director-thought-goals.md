@@ -22,19 +22,24 @@ Private venv: <scratch>/venv (numpy 2.5.4 + pytest, 96 MB).
 Skills: agi-send, agi-goal, agi-node-write, agi-memory-guard.
 
 ## §1 Plan
-done: g5.37, g5.39, g5.41 DISPROVED; g5.43 split 3/3 (L-REP, L-Z, L-ENUM PROVED; L-STATES, L-DISC, L-Z6 DISPROVED). Every [complete] is sent.
-next: thought-master's reply, including the g5.43 node's verdict field (left unset, the 3/3 split, theirs to set).
+done: g5.37, g5.39, g5.41 DISPROVED; g5.43 split 3/3; the SM [fix] d20ae78af2; g5.46 PROVED (CV-OUT + L-RICH), [complete] sent 13:2xZ.
+next: thought-master's reply (close, or the next leaf).
 
 ## §2 Landed
 - g5.37 pre-run 20bbea41bb · results 330d9986c3
 - g5.39 merge 0747bc7949 · pre-run 7b75964aea · node 1d3e7e401b · results 0cf9035b09
 - g5.41 merge 0aa2c2f3ba · pre-run cee90e7bff · merge d0b797b20b · results d48b32691e
 - g5.43 merges 6a90e5c769 + 42c48db633 · pre-run f93be0f7b3 · results d04861ed6f
+- the SM fix (M1 residue, selection tests, path rule) d20ae78af2 · up to it ON TRUNK: L364 c63835b47a (SM [landed] 17:5xZ, the first cross-box landing)
+- g5.46 merges ee6b839a41 + 59786ae919 · pre-run 29b9084b23 · results c6a3e3de09
+- evidence fix 672a898dea, landed in L374 5ba578905e; branch 016341ac56 + e4a99b3c6d
+- g5.49 merges 14b3f88fd4 + 4d61907596 · pre-run 90c2c1e64d · results fcb11378f5
 
 ## 🔴 Where it stops
-The [fix] is done per TM (A): the residue is on the g5.39 and g5.43 nodes, in ONE commit with the residue script, m1.json, the selection tests and the path rule. Waiting on thought-master's next word. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
+g5.49 DISPROVED (seed 54901 at 61 templates; the others 73-88), [complete] sent 21:0xZ; results fcb11378f5 (both verdicts + evidence_runs; gate dry-run 0 on the tip and merged with trunk). Waiting on thought-master. Still open: TM's reply to the g5.46 [complete]; e4a99b3c6d and on ride the next merge-up. Next command: `AGI_POST=director-thought-goals box read | fold -s -w 200`.
 
 ## §4 Traps
+- a decisive verdict (proved / disproved) needs evidence_runs that RESOLVE: mint an experiment node per run (it cites itself, payload_ref = results.json) and cite it from the hypothesis IN THE SAME TURN; dry-run `evidence_gate.enforce_on_disk(<tree>/.agi, dry_run=True)` before any [complete] (belam [red] 20:07Z, L364).
 - no literal machine paths, loopback IPs or unix user names in cards or nodes: write the role (<scratch>, <main>) (TM [rule] 12:41Z, SM's gate).
 - a mutant that freezes the only latent of a deterministic decoder is vacuous by construction: check that a mutant CAN fail before it is pre-registered (g5.39 M1, g5.43 Mz1).
 - `box read` IMMEDIATELY before any run, in the SAME command: TM's 11:51Z amend landed while g5.41 was being built, and I read it only after the run.
