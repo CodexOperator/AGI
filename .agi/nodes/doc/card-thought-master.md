@@ -24,7 +24,7 @@ Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; own
 Mail: SM for questions and upgrades; the core council for core-integration design. Landing: your tips come back to encryption-town for belam (keep.lands). Cross-box mail is new on this engine: `[red]` anything strange.
 Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 for the graph; reward disproves as rigorous as proofs; TwIL-8B and ZHA's hierarchical kv cache compression are the owner's pointers, not yet looked up.
 
-## §0 State (12:4xZ 11-05) -- LAP 4 running: g5.43 Z claim (goals, [go]) · g5.44 ROBUST (science, in review) · g5.45 bend2 verdict laws (DT-1, prepare, council check). g5.42 RETIRED. SM has laps 1+2 queued.
+## §0 State (12:5xZ 11-05) -- LAP 4: g5.43 back (3 PROVED / 3 DISPROVED, in review) · g5.44 ROBUST (in review) · g5.45 bend2 verdict laws ([go] DT-1). SM: my merge-up RETURNED on one term (stale-view overwrite of the three-visions idea) -> re-cut 0e6a03e29f, TM tip 9f5a760cfe re-sent. L361 (belam's tm-crew rows) LANDED 8aaf6b0549.
 Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
@@ -36,9 +36,9 @@ Box: local-town, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB p
 | goal:g5.40 | lap 2 F | director-thought-science | CLOSED complete: r2 H-F1 PROVED (44/84 clause mutants survive, unseen 33/64, discounted 28/68), review CONFIRMED; data row to SM |
 | goal:g5.41 | lap 3 X3 | director-thought-goals | CLOSED complete: all 3 lines DISPROVED (failure = SPARSE 0.84, not blends); review CONFIRMED; council 3/3; Z 0.794 reported -> lap 4 |
 | goal:g5.42 | lap 3 Y: bend2 first LAW | director-thought-1 | RETIRED: STEP 0 GREEN, readout NOT RED (reference), kernel VOID (~15 s/pair, 8e4 x the loop) -> g5.45 |
-| goal:g5.43 | lap 4: Z as a claim | director-thought-goals | [go] 12:2xZ after the council's pins (held pre-run worked) |
+| goal:g5.43 | lap 4: Z as a claim | director-thought-goals | L-REP, L-Z, L-ENUM PROVED; L-STATES, L-DISC, L-Z6 DISPROVED (d04861ed6f); in review (Mz1 vacuity check first) |
 | goal:g5.44 | lap 4: g5.40 robustness | director-thought-science | ROBUST: agree 15/16, blind 47/84 vs 44/84, blatant 1/16 (e4ac31e618); in review |
-| goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | prepare; council check 12:4xZ; [go] next |
+| goal:g5.45 | lap 4: verdicts as bend2 LAWs | director-thought-1 | [go] 12:4xZ at 9f5a760cfe (council pins in) |
 | review | all rounds | director-thought-review | 4 returns: g5.37 CONFIRMED · g5.35 DEMOTE then CONFIRMED · g5.36 CONFIRMED |
 
 ## §1 Plan
@@ -69,6 +69,8 @@ next command: AGI_POST=thought-master ~/bin/box read   (send: printf msg | AGI_P
 - node_writer.write_node adds its own `# <id>` heading: a body that starts with one gets it TWICE (g5.35-37) -- start the body at `## Why this exists`
 - a director pre-run must have my latest leaf commit as an ancestor and never edit a closed round's script (review R3 11-05; told the directors)
 - `printf ... ; box send` with stdin from /dev/null SENDS AN EMPTY MESSAGE: pipe the text straight into box send, never chain a bare send (12:35:55Z 11-05 to DT-review)
+- EDIT ONLY A NODE READ AT THE BRANCH TIP: 11-05 10:04Z I edited the three-visions idea in a ~/t still at a pre-L349 HEAD and silently reverted an owner-asked landing (SM [return]); before any edit: `git diff --quiet refs/heads/posts/thought-master -- <file>`
+- `agi-meter` hangs when run by hand (>120 s): never call it in a chain
 - stamp from `date -u`, never from memory: I wrote 10:5xZ on orders sent at ~10:30Z (11-05)
 - HOLD the pre-run: order 'prepare, no pre-run until my [go]', give the council ~5 min, fold pins, then [go] (lap 4; laps 2-3 had pins land after pre-runs)
 - a council view can arrive AFTER the director ran (carrier ~1 min, directors run in minutes): amend a leaf's falsifier before ordering, never after
