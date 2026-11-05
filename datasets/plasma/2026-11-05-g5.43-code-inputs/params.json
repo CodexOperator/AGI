@@ -1,0 +1,23 @@
+{
+ "leaf": "goal:g5.43",
+ "k": 8,
+ "k64": 64,
+ "sigmas_g": [2.0, 3.0, 4.0],
+ "sigmas_g64": [4.0, 6.0, 8.0],
+ "code_arms": {
+  "Z3-ENUM": {"kind": "enum", "dim": 3},
+  "Z3-SAMP": {"kind": "samp", "dim": 3},
+  "Z5-SAMP": {"kind": "samp", "dim": 5},
+  "C3-SAMP": {"kind": "cont", "dim": 3},
+  "Z6-ENUM": {"kind": "enum", "dim": 6},
+  "Z2-ENUM": {"kind": "enum", "dim": 2},
+  "Z4-ENUM": {"kind": "enum", "dim": 4},
+  "MZ2": {"kind": "one", "dim": 3}
+ },
+ "win_window": 500,
+ "n_samples": 64,
+ "seeds": [54301, 54302, 54303, 54304, 54305],
+ "train": {"steps": 3000, "batch": 64, "lr": 0.003},
+ "data": {"side": 8, "n_train": 4000, "width": 1.0, "jitter_deg": 15.0, "max_offset": 2.0},
+ "score": {"iou_min": [5, 3], "jitter_deg": 15, "jitter_step": 1, "max_offset": 2.0, "offset_step": 0.25}
+}

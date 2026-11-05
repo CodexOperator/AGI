@@ -1,0 +1,255 @@
+{
+ "L-DISC": "DISPROVED",
+ "L-ENUM": "PROVED",
+ "L-REP": "PROVED",
+ "L-STATES": "DISPROVED",
+ "L-Z": "PROVED",
+ "L-Z6": "DISPROVED",
+ "arms": {
+  "C3-SAMP": {
+   "coverage": 0.942314002709497,
+   "distinct_valid_mean": 19.8,
+   "distinct_valid_min": 13,
+   "score": 0.3577196914529591,
+   "valid": 0.375
+  },
+  "G": {
+   "coverage": 0.9561314305521613,
+   "distinct_valid_mean": 14.6,
+   "distinct_valid_min": 10,
+   "score": 0.23069842935095214,
+   "valid": 0.240625
+  },
+  "G64": {
+   "coverage": 0.978051330683639,
+   "distinct_valid_mean": 26.5,
+   "distinct_valid_min": 19,
+   "score": 0.4141962776316682,
+   "valid": 0.4234375
+  },
+  "MZ2": {
+   "coverage": 0.0,
+   "distinct_valid_mean": 0.0,
+   "distinct_valid_min": 0,
+   "score": 0.0,
+   "valid": 0.0,
+   "win_fraction": 1.0,
+   "win_fraction_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "Z2-ENUM": {
+   "coverage": 0.1,
+   "distinct_valid_mean": 1.4,
+   "distinct_valid_min": 0,
+   "score": 0.05,
+   "valid": 0.3484375,
+   "win_fraction": 1.0,
+   "win_fraction_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "Z3-ENUM": {
+   "coverage": 0.9267088759961355,
+   "distinct_valid_mean": 6.8,
+   "distinct_valid_min": 4,
+   "score": 0.8154088087712035,
+   "valid": 0.871875,
+   "win_fraction": 1.0,
+   "win_fraction_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "Z3-SAMP": {
+   "coverage": 0.8550581818771119,
+   "distinct_valid_mean": 3.7,
+   "distinct_valid_min": 2,
+   "score": 0.41721295562160454,
+   "valid": 0.453125,
+   "win_fraction": 1.0,
+   "win_fraction_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "Z4-ENUM": {
+   "coverage": 0.9607643644426209,
+   "distinct_valid_mean": 12.3,
+   "distinct_valid_min": 10,
+   "score": 0.743273900539246,
+   "valid": 0.771875,
+   "win_fraction": 0.95,
+   "win_fraction_per_seed": [
+    1.0,
+    0.875,
+    1.0,
+    0.9375,
+    0.9375
+   ]
+  },
+  "Z5-SAMP": {
+   "coverage": 0.9519260483466289,
+   "distinct_valid_mean": 10.1,
+   "distinct_valid_min": 5,
+   "score": 0.3886549187916996,
+   "valid": 0.409375,
+   "win_fraction": 1.0,
+   "win_fraction_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "Z6-ENUM": {
+   "coverage": 0.9666126695366651,
+   "distinct_valid_mean": 20.7,
+   "distinct_valid_min": 17,
+   "score": 0.5091020619951802,
+   "valid": 0.5265625,
+   "win_fraction": 0.746875,
+   "win_fraction_per_seed": [
+    0.828125,
+    0.734375,
+    0.71875,
+    0.703125,
+    0.75
+   ]
+  }
+ },
+ "deltas": {
+  "Z3-ENUM - G": [
+   0.7066369961625114,
+   0.3778742117768317,
+   0.5100620108981222,
+   0.673022972830719,
+   0.6559557054330722
+  ],
+  "Z3-ENUM - Z3-SAMP": [
+   0.8135231259228692,
+   0.010647647715193775,
+   0.18090690684505206,
+   0.43522218271034185,
+   0.5506794025545375
+  ],
+  "Z3-SAMP - C3-SAMP": [
+   -0.09013379864353208,
+   0.2281142240100078,
+   0.033754467337373195,
+   0.09797212547791057,
+   0.0277593026614677
+  ],
+  "Z3-SAMP - Z5-SAMP": [
+   -0.3143997931681709,
+   0.20827334888961024,
+   0.22899930370808325,
+   -0.006351532414613392,
+   0.026268857134615575
+  ],
+  "Z6-ENUM - G64": [
+   0.053894653115765356,
+   0.11577055238600531,
+   0.11051311362220861,
+   0.0287087358042854,
+   0.1656418668892945
+  ]
+ },
+ "mutants": {
+  "M2_coin_valid": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "M2_red": true,
+  "M2_true": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "Mz1": {
+   "C3-SAMP": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Z3-ENUM": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Z3-SAMP": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Z5-SAMP": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Z6-ENUM": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "Mz1_red": {
+   "C3-SAMP": true,
+   "Z3-ENUM": true,
+   "Z3-SAMP": true,
+   "Z5-SAMP": true,
+   "Z6-ENUM": true
+  },
+  "Mz2_red": true,
+  "Mz2_valid": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "Mz6_distinct_valid_max": [
+   4,
+   4,
+   3,
+   6,
+   5
+  ],
+  "Mz6_red": true
+ },
+ "sigma_star": {
+  "G": "3.0",
+  "G64": "4.0"
+ },
+ "z6_every_seed": false
+}

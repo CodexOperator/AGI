@@ -1,0 +1,392 @@
+{
+ "i05": {
+  "clauses": [
+   {
+    "clause": "keys its exemptions by (relpath, ...)",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "for rel, text, n in _hits() if (rel, text) not in EXEMPT",
+      "for rel, text, n in _hits() if text not in {t for _r, t in EXEMPT}"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the keying is behaviour of T1's membership test, which only exists when T1 runs",
+    "why": "T1 now matches a hit against exemption TEXT alone, ignoring relpath: the same line text in any file is exempted; exact-text keying, classes, spans, prose all untouched"
+   },
+   {
+    "clause": "keys its exemptions by (..., exact line text)",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "for rel, text, n in _hits() if (rel, text) not in EXEMPT",
+      "for rel, text, n in _hits() if rel not in {r for r, _t in EXEMPT}"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the keying is behaviour of T1's membership test, which only exists when T1 runs",
+    "why": "T1 now exempts any hit in a file that has ANY exemption, regardless of the line text: keyed by relpath only, not by exact line text"
+   },
+   {
+    "clause": "without deleting a single prose warning",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "for rel, text, n in _hits() if (rel, text) not in EXEMPT",
+      "for rel, text, n in _hits() if (rel, text) not in EXEMPT or EXEMPT[(rel, text)][0] == \"P\""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "whether the gate can pass with prose intact is decided when T1 runs over the live hits",
+    "why": "class-P (prose warning) hits are no longer honoured as exemptions, so the gate can only reach green by deleting the prose warnings; relpath+text keying and class/span machinery stay as they are"
+   },
+   {
+    "clause": "enforces the CLASS of each exemption",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "    assert not misfiled, \"\\n  \".join(misfiled)",
+      "    assert True or not misfiled, \"\\n  \".join(misfiled)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "class enforcement is the T3 misfiled assertion executing",
+    "why": "T3 still computes misfiled class mismatches but never fails on them: a P entry that executes or an F/B entry that is prose passes; the reason-substance check and keying are untouched"
+   },
+   {
+    "clause": "the guard must mark docstring SPANS, not first lines",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "dead.update(range(first.lineno, (first.end_lineno or first.lineno) + 1))",
+      "dead.add(first.lineno)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the span marking is _prose_lines executing (reached via T3)",
+    "why": "_prose_lines marks only a docstring's first line, the exact first-line-only scheme the claim says fails on prose; everything else in the guard unchanged"
+   },
+   {
+    "clause": "0 grep hits outside the frozen fixture",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "FROZEN_PREFIX = \"extensions/agi/tests/fixtures/l4_85_frozen\"",
+      "FROZEN_PREFIX = \"extensions/agi/tests\""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the skip set is applied inside _hits when T1/T3/T4 run",
+    "why": "the blanket skip now covers the whole extensions/agi/tests tree, so hits outside the frozen fixture are no longer counted: the falsifier is no longer enforced as '0 hits outside the frozen fixture'; T4 still finds the fixture, keying/classes untouched"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/tests/test_retired_box_prefix.py",
+   "edits": [
+    [
+     "            if PREFIX in line:\n",
+     "            if PREFIX in line and False:\n"
+    ]
+   ],
+   "count_check": 1,
+   "why": "_hits never records any hit, so the guard enforces nothing: every live prefix occurrence passes T1, and T3 checks nothing"
+  }
+ },
+ "i06": {
+  "clauses": [
+   {
+    "clause": "drop its magic len(BOX_BOUND)==5 for the property",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "    assert BOX_BOUND <= set(EXEMPT), \"BOX_BOUND must stay derived from EXEMPT\"",
+      "    assert BOX_BOUND <= set(EXEMPT), \"BOX_BOUND must stay derived from EXEMPT\"\n    assert len(BOX_BOUND) == 5"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the tally is an assertion that only matters when T3 executes",
+    "why": "the magic count is back in T3 alongside the reason property: the count was not dropped; the reason checks and repoints are unchanged"
+   },
+   {
+    "clause": "carries a real ... reason",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      " or len(reason.strip()) < 20",
+      ""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the reason-substance check is T3 executing over EXEMPT",
+    "why": "T3 no longer has the length floor that stands in for 'real': any non-empty one-line reason (e.g. 'x') passes; one-line check, count-free design and repoints unchanged"
+   },
+   {
+    "clause": "carries a real one-line reason",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      " or \"\\n\" in reason",
+      ""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the one-line check is T3 executing over EXEMPT",
+    "why": "T3 no longer refuses a multi-line reason: the property is no longer 'one-line'; the length floor and the rest are unchanged"
+   },
+   {
+    "clause": "leaving only the config cell code-level",
+    "file": "extensions/agi/tests/test_retired_box_prefix.py",
+    "edits": [
+     [
+      "(\"F\", \"inert data: negative-fixture constant, asserted absent from rendered .js output\")",
+      "(\"B\", \"inert data: negative-fixture constant, asserted absent from rendered .js output\")"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a static fact about the EXEMPT table's class-B set, true or false without running anything",
+    "why": "the seam_js STALE constant is reclassified code-level (B), so BOX_BOUND holds two entries, not only the config cell; T3's class check still accepts it (B is non-prose)"
+   },
+   {
+    "clause": "the three coupled test_unify literals ... repointed to box-independent seams",
+    "file": "extensions/agi/tests/test_unify.py",
+    "edits": [
+     [
+      "    result = unify.preflight(unify._git_common_root(), tree, force=True)",
+      "    result = unify.preflight(Path(json.loads((Path(__file__).resolve().parents[3] / \".agi\" / \"config.json\").read_text())[\"box\"][\"root\"]), tree, force=True)"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "box-dependence is a property of the test's source (which root it reads), not of a path that must run",
+    "why": "one of the three repointed literals (the force=True preflight) reads the box.root CELL from .agi/config.json again instead of unify._git_common_root(): coupled to the box again; the other two and test_provisioning untouched"
+   },
+   {
+    "clause": "the dead test_provisioning ROOT ... repointed to box-independent seams",
+    "file": "extensions/agi/tests/test_provisioning.py",
+    "edits": [
+     [
+      "ROOT = str(BIN.parent.parent.parent)",
+      "ROOT = json.loads((BIN.parent.parent.parent / \".agi\" / \"config.json\").read_text())[\"box\"][\"root\"]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "ROOT feeds only @live-skipped tests; the claim is that its definition is box-independent, a static fact",
+    "why": "ROOT is read from the box.root config cell again (box-dependent) rather than the checkout the file lives in; module still imports (json, BIN present)"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/tests/test_retired_box_prefix.py",
+   "edits": [
+    [
+     "    unsaid = [\n        f\"{rel}:{text[:40]!r} -> {reason!r}\"\n        for (rel, text), (cls, reason) in EXEMPT.items()\n        if not reason.strip() or \"\\n\" in reason or len(reason.strip()) < 20\n    ]\n    assert not unsaid, (\"every exemption owes a one-line reason of real \"\n                        \"substance, especially the code-level ones:\\n  \"\n                        + \"\\n  \".join(unsaid))",
+     "    assert len(BOX_BOUND) == 5, \"five box-bound literals\""
+    ]
+   ],
+   "count_check": 1,
+   "why": "T3 drops the reason property entirely and reinstates the magic tally, which the single remaining B entry cannot satisfy: the guard is count-based again with no reason check"
+  }
+ },
+ "i07": {
+  "clauses": [
+   {
+    "clause": "run_workflow args.setdefault(\"project_root\", str(repo))",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "    args.setdefault(\"project_root\", str(repo))\n",
+      ""
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the injection happens only when run_workflow executes",
+    "why": "run_workflow no longer injects project_root; stages fall back to render_stage_prompt's cwd resolution; manifests and fallback unchanged"
+   },
+   {
+    "clause": "render_stage_prompt falls back to _loc.find_project_root()",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "_pr = _loc.find_project_root()",
+      "_pr = None"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the fallback is a branch that only matters when render_stage_prompt runs without project_root",
+    "why": "the absent-project_root fallback never resolves, so {project_root} expands to '' for a direct caller; run_workflow injection unchanged"
+   },
+   {
+    "clause": "no new resolver",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "def render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) -> str:",
+      "def _stage_root_resolver():\n    \"\"\"A second, stage-local resolver for the project root.\"\"\"\n    return _loc.find_project_root()\n\n\ndef render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) -> str:"
+     ],
+     [
+      "_pr = _loc.find_project_root()",
+      "_pr = _stage_root_resolver()"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "whether a new resolver exists is a structural fact about the module source",
+    "why": "a new resolver function is introduced and the fallback goes through it; it delegates to _loc.find_project_root so behaviour and every rendered stage are unchanged"
+   },
+   {
+    "clause": "no new placeholder",
+    "file": "extensions/agi/bin/workflow.py",
+    "edits": [
+     [
+      "    tmpl = stage.get(\"prompt\")\n",
+      "    tmpl = (stage.get(\"prompt\") or \"\").replace(\"{project_root}\", \"{checkout_root}\")\n"
+     ],
+     [
+      "    if prior:\n",
+      "    ctx[\"checkout_root\"] = ctx.get(\"project_root\", \"\")\n    if prior:\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "whether a new placeholder exists is a structural fact about the renderer source",
+    "why": "the renderer now expands roots through a NEW {checkout_root} placeholder (rewritten from {project_root} and filled from it); output bytes, the seam and the fallback are the same"
+   },
+   {
+    "clause": "every stage still renders",
+    "file": "extensions/agi/workflows/review.json",
+    "edits": [
+     [
+      "Inspect the repo at {project_root} and report",
+      "Inspect the repo at { project_root} and report"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "rendering is what render_stage_prompt does when it is called over the stage",
+    "why": "review.json's global-checks stage no longer renders the root (the placeholder regex does not match '{ project_root}', so it passes through literally); JSON still parses, no stale literal, other 9 stages render"
+   }
+  ],
+  "blatant": {
+   "file": "extensions/agi/bin/workflow.py",
+   "edits": [
+    [
+     "    return _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)",
+     "    return tmpl"
+    ]
+   ],
+   "count_check": 1,
+   "why": "render_stage_prompt returns the raw template: no stage renders the injected root or the fallback, so the migration onto the seam renders nothing"
+  }
+ },
+ "i08": {
+  "clauses": [
+   {
+    "clause": "must exit 2",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "return 2 if tally.get(\"unresolved\") else 0",
+      "return 1 if tally.get(\"unresolved\") else 0"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the exit code is produced when main() runs to its end",
+    "why": "with unresolved cells the runner exits 1 instead of 2; rows, reasons, discovery and suite unchanged"
+   },
+   {
+    "clause": "one reasoned row",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "print(\"%-12s %-30s %s | %s\" % (word, os.path.relpath(f, root), label, reason))",
+      "print(\"%-12s %-30s %s\" % (word, os.path.relpath(f, root), label))"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "rows are printed only when main() iterates the reports",
+    "why": "each row still prints its word and label but no reason; one row per cell, exit code and discovery unchanged"
+   },
+   {
+    "clause": "per real cell",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "for word, reason, label in report(f):",
+      "for word, reason, label in report(f)[:1]:"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "rows are printed only when main() iterates the reports",
+    "why": "only the first row of each cells.jsonl is printed and tallied, so cells after the first get no row; reasons, exit-2 rule (on the first rows) and discovery unchanged"
+   },
+   {
+    "clause": "identically from any cwd",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "sys.path[:0] = [os.path.dirname(HERE)]",
+      "sys.path[:0] = [os.path.join(os.getcwd(), \".agi\", \"context\", \"local-maxxing\")]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the discovery line runs at import; its effect shows only when the no-arg default path imports paths",
+    "why": "paths is discovered relative to cwd (the sibling's cwd literal) instead of __file__: works from the repo root, ModuleNotFoundError elsewhere; env scrub irrelevant"
+   },
+   {
+    "clause": "a CLEAN interpreter (... scrubbed env ...)",
+    "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "sys.path[:0] = [os.path.dirname(HERE)]",
+      "sys.path[:0] = [os.environ.get(\"AGI_LOCAL_MAXXING_DIR\", HERE)]"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": true,
+    "requires_path_why": "the discovery line runs at import; its effect shows only when the no-arg default path imports paths",
+    "why": "paths is reached only through an env var: with the env set it works from any cwd, but a scrubbed env falls back to HERE (osc/, no paths.py) and dies with ModuleNotFoundError"
+   },
+   {
+    "clause": "Its suite must not seed sys.path for its subject",
+    "file": ".agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py",
+    "edits": [
+     [
+      "HERE = os.path.dirname(os.path.abspath(__file__))\n",
+      "HERE = os.path.dirname(os.path.abspath(__file__))\nsys.path.insert(0, os.path.dirname(HERE))\n"
+     ]
+    ],
+    "count_check": 1,
+    "claim_requires_path": false,
+    "requires_path_why": "a static property of the suite's source (does it seed sys.path), true regardless of what runs",
+    "why": "the runner's test file seeds sys.path with the local-maxxing dir again; the runner and the subprocess tests are unchanged"
+   }
+  ],
+  "blatant": {
+   "file": ".agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py",
+   "edits": [
+    [
+     "sys.path[:0] = [os.path.dirname(HERE)]   # paths.py, discovered -- cwd-independent\n",
+     ""
+    ]
+   ],
+   "count_check": 1,
+   "why": "the discovery line is gone: a clean interpreter dies at `import paths` with ModuleNotFoundError, exit 1, no row, from every cwd"
+  }
+ }
+}

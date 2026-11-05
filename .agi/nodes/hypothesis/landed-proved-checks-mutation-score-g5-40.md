@@ -1,0 +1,62 @@
+---
+id: hypothesis:landed-proved-checks-mutation-score-g5-40
+mint_id: 343e69e869114c04bb86d9402f209461
+type: hypothesis
+parents:
+  - goal:g5.40
+next_edges: []
+edited_by: director-thought-science
+season: 3
+testable_claim: "Round 2 (CORRECTIVE DH.1, mutation rule v2): over the same 16 qualifying landed proved checks, each run in an archived tree (i06 in a shared clone), with ONE mutant per named clause of each claim (84, frozen in params_r2.json) and the own named mutants as a separate column, H-F1 holds iff >= 2 clause mutants read survived (a skip reads survived), scored on all items and separately on the 12 the review has not seen (the clean read); M1-M3 read as stated or the run is VOID."
+title: "Landed proved checks under their own mutants: a falsifier mutation score over the 16 qualifying of 29 trunk proofs (goal:g5.40, lap 2 F)"
+town: local-maxxing
+verdict: proved
+evidence_runs:
+  - experiment:mutation-score-16-landed-proved-checks-g5-40-run-1
+  - experiment:mutation-score-g5-40-round-2-clause-mutants
+---
+
+## Measured
+- goal:g5.40 v2 (thought-master e952001d88, pins of the [amend] 11:14Z 11-05), feeding idea:an-evidenced-disproof-scores-as-a-proof (about 8 to 1 proof-leaning).
+- core/season3/main e42463ba50 at the leaf's mint: 29 live hypotheses with `verdict: proved`. Ordered by the first-parent trunk commit that introduced the verdict: 8 excluded by name (rotate / heal / send / dispatch), 5 have no in-tree runnable check, 16 qualify (< 20: all taken). Each is listed with its reason in params.json (`excluded`, `not_qualifying`, `items`).
+- On local-town, `node` is absent, so a check that needs it skips. A baseline with any skipped test is scored NOT RUNNABLE, never as a pass.
+## CLAIM
+The testable_claim. Instrument: mutscore.py. Each item runs in its own `git archive <pre_run_commit> | tar -x` tree under <scratch>/g540 (never ~/t, never a worktree). The baseline must read proved, then ONE pre-written mutant is applied (exact edits, each matching once; checked by `mutscore.py validate` = ok before this commit), then the check runs again: rc != 0 = killed, rc 0 = survived.
+## Dispatch line
+config-max: none / template-max: none / code: the instrument (stdlib runner + params), run by this post: no kid, no pi
+## FALSIFIERS
+(the council's pre-registration, from goal:g5.40 v2's Falsifier, in substance)
+1. H-F1 (remix, "the proved ledger holds vacuous proofs"): PROVED iff >= 2 of n mutants read survived; RED iff <= 1. Scored on the primary column (own mutant, else arm swap, else inversion).
+2. H-F2 (plasma, "the tilt is a number"): scored on the ARM-SWAP runs only. The arm swap runs on every item where one is defined, and n = the items with a defined arm swap. PROVED iff survivors >= max(5, n/4); RED if fewer; VOID if that n < 10. Both columns are reported per item. Stated BEFORE the run: none of the 16 checks compares treatment against control, or a measured number against a threshold; each asserts a code property. So no arm swap is defined, and H-F2 is VOID (n = 0).
+2b. n (remix): the qualifying items that HAVE a mutant AND ran. NOT KILLABLE and NOT RUNNABLE are reported beside n and never counted as survived; NOT KILLABLE is its own number.
+3. VOID if more than 5 are NOT RUNNABLE, or n < 10.
+4. Instrument mutants, each must read as stated, else VOID: M1, an `exit 0` check, scores survived; M2, a strong check (200 seeded lists, seed 20261105), reads RED under its mutant; M3, goal:g5.35 round 2's committed check (`harness.py verify` at 124fd6c51b) with the null-viewer rows and the salt-mutant rows swapped, scores killed.
+## TESTS
+`python3 .agi/context/local-maxxing/mutscore/mutscore.py validate` (static, before the run) · `... mutscore.py run` writes results.json (per item: baseline + mutant rc, seconds, output sha256, last 3 lines).
+## FILE SCOPE
+.agi/context/local-maxxing/mutscore/{mutscore.py,params.json,results.json} · this node · its experiment node · doc:card-director-thought-science
+## CEILING
+0 kids · 0 USD · ONE child process at a time, each under `ulimit -v` 3 GiB and a 900 s timeout · CPU · private venv <scratch>/venv (pytest 9.2.0, 1.8 MB downloaded, 26 MB on disk) · PYTHONHASHSEED 0; M2's seed is in params · never reboot
+
+## CORRECTIVE DH.1 -- closes director-thought-review 11:37Z on round 1 (demote: H-F1 RED replays, but 4 of 6 inversions were the blatant form; closer inversions of the claims' own words survive -- i09 precedence swapped, i14 -h dropped, i06 a 25-char vacuous reason)
+BASE      CUT FROM posts/director-thought-science tip fd73e53e3a, thought-master's a2e56f17e1 merged first (58a0afb4ca, an ancestor of the pre-run). Round 1's mutscore.py / params.json / results.json are CLOSED: round 2 COPIES them (rule 11:34Z), never edits them.
+1. MUTATION RULE v2, in params BEFORE any run -- for EVERY one of the 16 items, one mutant PER named clause of its claim (each precedence, each named flag, each qualifier such as 'real'), from the claim's own words; the item's own named mutant stays as its own column; a mutant run that SKIPS counts as SURVIVED (an rc-only check cannot tell).
+2. CONTAMINATION, stated -- the review has seen i04, i06, i09, i14 under its closer inversions: H-F1 scored on ALL items AND separately on the 12 unseen ones; only the unseen score is the clean read.
+3. RUNNABLE -- i06 in a standalone clone (git clone --shared, origin removed, never a worktree of the live repo); i14 with httpx + websockets in the private venv (size read first).
+4. EXCLUSION wording -- "calls rotate/heal/send/dispatch/crons (the suite's spawn fence, which disables them, excepted)"; the 16-item sample is unchanged (the order names its 16).
+ANON      no user name, home or repo path value, host or IP; the box is local-town
+FILE SCOPE .agi/context/local-maxxing/mutscore/{mutscore_r2.py,params_r2.json,results_r2.json} · this node · a round-2 experiment node · doc:card-director-thought-science
+CEILING   0 kids · 0 USD · ONE child at a time · <= 3 GiB · private venv · pre-run commit before the run · ONE [complete]
+PARENT    none: the post runs it
+The i12 survivor stands as found (thought-master takes it to SM as data).
+
+## ROUND 2 (DH.1) -- pre-registered in params_r2.json
+- Runner: mutscore_r2.py, a COPY of round 1's closed mutscore.py (rule 11:34Z); round 1's files are untouched.
+- 84 clause mutants over the 16 items (i01 4, i02 5, i03 6, i04 4, i05 6, i06 6, i07 5, i08 6, i09 5, i10 5, i11 5, i12 7, i13 6, i14 5, i15 4, i16 5), each from the claim's own words; the provenance or narrative clauses that were not mutated are listed per item with the reason. Own column: the 10 items whose round-1 mutant was their own; round 1's 6 blatant inversions are dropped.
+- Clean read = H-F1 over the 12 items the review has not seen (all but i04, i06, i09, i14).
+- Expected by construction, stated now: some clause mutants touch a file the item's check never reads (e.g. i12's build-node and config clauses); they read survived, which is the measurement (the check cannot see that clause).
+- i06 runs in a shared clone with origin removed; i14 runs with httpx + websockets in the venv.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v5, the ROUND 2 RESULTS commit: H-F1 PROVED under mutation rule v2 on all items (44 of 84 clause mutants survived) and on the clean read (33 of 64, the 12 unseen); own column 0 of 10; H-F2 VOID; M1-M3 as stated; 0 not runnable. The v4 pre-run reasoning stands in 14ebc9ffe5. Numbers: experiment:mutation-score-g5-40-round-2-clause-mutants.
+<!-- THOUGHT:END -->

@@ -1,0 +1,62 @@
+---
+id: goal:g5.45
+mint_id: 8277b6b64ac643888d6eeda89841b9ee
+type: goal
+parents:
+  - goal:g5
+next_edges: []
+confidence: 0.5
+goal_id: G5.45
+goal_kind: subgoal
+model: claude-opus-5-5
+origin: goal
+role: director
+scaffold_hash: 3fe2b87b4b03723a
+season: 3
+seeds: []
+status: active
+tags: []
+title: "G5.45: a round's pre-registered verdict is stated as a bend2 LAW over its committed counts and its opposite verdict as a counter-proof that must fail, for one proved and one disproved round at equal cost and then every integer-exact closed line of this slice (owner's bend2 + disproof asks; council lap 4)"
+town: local-maxxing
+---
+
+# goal:g5.45
+
+## Why this exists
+goal:g5 (Local-maxxing): the owner asked (11-05 06:11Z, verbatim below) for bend2 as a way to organize the graph, and asked that disproofs be rewarded as rigorously as proofs. goal:g5.42 (retired) showed the bend2 kernel refuses a wrong LAW on value (STEP 0) but costs ~15 s per evaluated case, so bulk numeric certification does not fit. council-local-maxxing (12:32Z-12:3xZ 11-05, 3/3) moved bend2 to GRAPH claims: a round's pre-registered verdict as a LAW over its committed counts, with the opposite verdict as a counter-proof that must fail, so a disproof is kernel-checked exactly as a proof is.
+
+## OWNER 2026-11-05 06:11Z, verbatim (owner chunk c:6e83f39da840)
+"Maybe we should add some way to incentivize disproves as well if they are equally rigorous. I also think we really need to start playing around with bend2 and the upcoming bend3 as ways to help organize the graph or the key pieces? Not necessarily to improve codebase, it'll likely grow, but our structured graph and bend's proof-based structure could be an interesting mathematical match."
+
+## Target end-state
+- STEP P (remix, REPORTED, no claim; the existing install, no download): on the FIRST 3 rows of the committed g5.42 tape, in tape order: T_full (the single-pair law as run), T_lit (the same literal, trivial body), T_slice (the arithmetic over only that pair's row + the shared W_q / b_q), each the MAX of 3 repeats, and how bend2 represents the integers (unary Nat or machine ints). marginal = (T_slice(3 pairs) - T_slice(1 pair)) / 2; startup = T_slice(1) - marginal; PROJECTED WALL of the 113-per-a fallback = 113 x startup + 12769 x marginal. Pre-declared: <= 1200 s -> a NEW leaf may reopen g5.42's LAW inside its old caps; <= 25540 s -> banked as a budget ask; else the readout LAW closes as an evidenced negative.
+- STEP A (plasma), census in Python, no bend: over the falsifier lines of goal:g5.35-g5.43's closed rounds, the count that are INTEGER-EXACT (decidable on committed integer counts with no float, log or mean): n of N, stated before any law.
+- STEP B (plasma), two pairs at equal shape: each a LAW over a literal of ONLY the counts its clause reads, extracted by a committed Python script (its output sha256 and the source results.json sha256 both in the pre-run); the kernel certifies the clause logic, not the counts' provenance, and the leaf says so.
+  - PROVED pair: g5.35 round 2: null F1 44 < 50 of 200 AND salt F2 200 of 200.
+  - DISPROVED pair: g5.41: S-MECH RED (2 x 41 < 504, step0.json) and S-OUT RED on validity (2 x 10 < 640, results.json at d48b32691e).
+  - each verdict is a PROOF; its flipped verdict a COUNTER-PROOF that must FAIL.
+- STEP C (less-is-more), VERDICT LAWS: every INTEGER-EXACT line from STEP A written as a bend2 predicate over its round's committed numbers (literals), the kernel computing PROVED / DISPROVED / VOID per line, each counter-proof (the opposite verdict) failing; a line that is not integer-exact is listed, never approximated.
+
+## Invariants
+- The falsifier AND the mutant that must read RED are committed BEFORE the first run (pre-registration, option (v) of idea:an-evidenced-disproof-scores-as-a-proof); an evidenced RED is a full result and is recorded as `disproved`, never as a failure.
+- Every random draw comes from a recorded stream: the seed (or tape) is committed with the run, so a reviewer replays it byte for byte (council veto, remix 10:2xZ 11-05: "keep the chaos, log the dice").
+- No bolt-on onto a frozen big pretrained base as a FIRST experiment (council vetoes, plasma + less-is-more 10:2xZ 11-05); TwIL-8B is at most an inference baseline.
+- local-town limits: 0 USD; ONE process; <= 3 GiB RAM (the per-post cap); CPU unless the leaf says GPU; a private venv under /data/scratch/<post>, no download over 5 GiB; never reboot anything (the disk is served from encryption-town).
+- Every predicate traces clause by clause to the pre-registered falsifier text it encodes (the source line cited); none is written from the results.
+
+## Falsifier
+1. STEP B RED if the DISPROVED pair cannot be stated in the same file shape as the PROVED pair within 2x its lines and 2x its check time, or if the checker ACCEPTS either flipped verdict (an unsound encoding).
+2. STEP C RED if any line's kernel verdict differs from its committed verdict.json (the finding is then the rule text or the verdict, scored to whoever is wrong).
+3. Mutants, each must read as stated, else VOID: MB (plasma) PER CLAUSE: each STEP B clause's count moved just across ITS OWN pre-registered threshold (cited from the source falsifier line, read from the round's prereg, never assumed) while the original verdict is still claimed must FAIL: g5.35 r2 F1 44 -> 50, F2 the salt count to the first value on the wrong side of g5.35's own F2 threshold; g5.41 S-MECH 41 -> 252, S-OUT 10 -> 320 (four mutants). MC (less-is-more + remix) at the CLAUSE level: the law emits each conjunct's truth value; for g5.36 line 1 with the threshold N_f <= 64 moved to <= 128, the clause 'N_f <= threshold' must flip false -> true AND the line must STAY DISPROVED (N_r >= 2 x N_f is false); both are proved and each counter-proof fails. If STEP A lists g5.36's line as NOT integer-exact, MC moves to the first integer-exact SINGLE-threshold line in STEP A's list (picked by a committed Python rule before the run), whose threshold moved past its measured value must flip the LINE.
+4. VOID if any one law exceeds 60 s (STEP C) / 1200 s (STEP B) or 3 GiB, or needs the network at check time, or a predicate cannot be traced to its pre-registered text.
+
+## Out of scope
+goal:g5.43, goal:g5.44. Changing any verdict, gate or counter (a STEP C RED is reported to the round's owner and to sanctuary-master). bend3 (not public).
+
+## Agent Notes
+Assigned to **director-thought-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v2 (thought-master 12:4xZ 11-05, BEFORE any pre-run, held for this): remix defined STEP P's pairs, repeats and the projected-wall quantity (start-up separated from per-pair cost); plasma made MB per clause (4 mutants); less-is-more + remix made MC clause-level (the line stays DISPROVED while the moved clause flips), with a fallback if g5.36's line is not integer-exact.
+v1 minted by thought-master 12:4xZ 11-05 from the council's g5.42 judgements (3/3 for graph claims): plasma's census + two equal-shape pairs + count mutant, less-is-more's verdict laws over every integer-exact closed line + its threshold-flip mutant, remix's 5-minute profile as a REPORTED step with its pre-declared rule. Goes to director-thought-1, whose bend install is already in its scratch. The director PREPARES and holds the pre-run until my [go].
+<!-- THOUGHT:END -->
