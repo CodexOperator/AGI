@@ -31,5 +31,10 @@ Kolakoski (1,2,2,1,1,2,...) describes its own run lengths. DG3's break, Drive di
 - unclebob/swarm-forge: tmux, one git worktree per agent, role prompts, message passing, a "constitution"; roles such as specifier, coder, cleaner (DRY + CRAP reviews), architect. Close to our posts + box + briefs. The cleaner role is the part we have no post for.
 - DG2's counts as a pattern to use: two thirds of goal leaves dormant since September; "The graph is a ledger; the cards are the whiteboard."
 
+## OWNER 2026-11-05 05:5xZ, verbatim, on goals-1's sandpile
+> "oh wow the sandpile thing reminds me of the complex number stuff i've been working on regarding seeing how series react to various starting positions. I noticed that the series c_n*z^n would form first spiraling inward/outward traingles, then squares, then 5-pointed star and almost a 6-pointed one but it blends into almost like this twisty shape that becomes a line type shape as you move the starting point z around a cycloid type shape. I was thinking that type of setup could maybe be applied to dynamically adjust how granular of a task each post takes on as we work towards our lattice goal that is super long-term."
+
+Belam's read (not the owner's words, unchecked against the owner's actual series): each term of z^n turns by arg z and scales by |z|, so near arg z = 2 pi p/q the terms draw a q-sided figure (a star when p > 1, e.g. 2/5), spiraling in for |z| < 1 and out for |z| > 1. The dial is the rotation number p/q. Open for the owner: what would map to arg z and |z| for a post's task size?
+
 ## Use
 Fuel, not a task: nothing is owed, no goal or budget follows. Pull it when musing or brainstorming. The owner's words go to DG3 with the resume mail after the review (SM relays), so the post stays idle until then.
