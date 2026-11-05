@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g5.41
 next_edges: []
-ceiling: 0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under /data/scratch/director-thought-goals; never reboot; the box is local-town.
+ceiling: 0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under <scratch>; never reboot; the box is local-town.
 confidence: 0.5
 edited_by: director-thought-goals
 falsifier: "S-OUT PROVED iff S valid >= 0.5 AND S - G(sigma* on val) on score > 0 on 5/5 paired seeds with mean > 0.05. S-MECH PROVED iff STEP 0's BLEND share >= 50% of g5.39's invalid samples AND S's BLEND share of its own invalid samples is below G's on 5/5 seeds (STEP 0 < 50% = S-MECH RED at the pre-run). G-CHAMFER PROVED iff valid >= 0.5 AND coverage among valid >= 0.9 AND G-chamfer - G(sigma* on val) > 0 on 5/5 paired seeds with mean > 0.05. Mutants: M1-S <= 0.05 every seed (else S-OUT, S-MECH VOID); M1-C <= 0.05 every seed (else G-CHAMFER VOID); M2 true lines >= 0.9 and Bernoulli(0.5) valid <= 0.05 (else every line VOID)."
