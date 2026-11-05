@@ -181,13 +181,13 @@ body{margin:0;background:var(--ground);color:var(--ink);font:1.125rem/1.6 Georgi
 .wrap{padding:0 16px;max-width:76rem;margin:0 auto}
 @media (min-width:700px){.wrap{padding:0 32px}}
 .top{padding:40px 0 64px}
-.how{margin:0 0 48px;padding:16px;background:var(--ground2);max-width:46rem}
+.how{margin:0 0 48px;padding:16px;background:var(--ground2);max-width:60ch}
 h1{font-size:clamp(2.4rem,8vw,6.5rem);line-height:.98;letter-spacing:-.03em;margin:0 0 24px;max-width:15ch}
 .lede{font-size:1.4rem;line-height:1.4;max-width:34ch;margin:0 0 40px}
 nav ol{columns:2 16rem;column-gap:32px;margin:0;padding-left:1.6em}
 nav a{color:var(--ink);text-underline-offset:.2em}nav li{margin:0 0 .35em}
 article{padding:96px 0 40px}article:nth-of-type(even){background:var(--ground2)}
-article>*{max-width:46rem}article>.bytes,article>details,article>.facts{max-width:62rem}
+article>*{max-width:60ch}article>.bytes,article>details{max-width:62rem}
 h2{font-size:clamp(1.9rem,5vw,3.4rem);line-height:1.05;letter-spacing:-.02em;margin:0 0 24px;max-width:24ch}
 h3{font-size:1.6rem;line-height:1.2;margin:48px 0 16px}
 audio{display:block;width:100%;max-width:34rem;margin:0 0 24px}

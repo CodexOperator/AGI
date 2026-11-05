@@ -67,4 +67,5 @@ hit H23 | kept:the html summary was already tagged C16.6 | At this revision noth
 hit H23 | kept:now tagged C16.6 | It is a built tool waiting for its trigger.
 hit H23 | kept:now tagged C13.16 | The skill is the hand that does it now.
 hit H23 | kept:now tagged C13.14 | The tool is the engine's design for the climb.
-hit R3U2 | fixed | The guards: a mistake cannot move a peer's ref => The guards: a post's mistake is refused when it tries to move a peer's ref
+A7 11-05 (SM [ask] 07:23:42Z; the inspector's headline-lines FAIL: 3 lines at 1440, 768 and 390 px): the C12 heading R3U2 fixed to "The guards: a post's mistake is refused when it tries to move a peer's ref" is cut to "The guards: a mistake on a peer's ref is refused" (48 chars; 49 chars already holds to 2 lines at every width), keeping C12.8's qualifier 'mistake' (engine-post.md: a post's MISTAKE), no 'cannot'. The row below names the CURRENT heading because media_sibling.check reads a `fixed` row's NEW sentence against the script now (`n.strip() not in new_s` -> not_fixed); re-cut 2's own text is the row at fe1f7ec30a.
+hit R3U2 | fixed | The guards: a mistake cannot move a peer's ref => The guards: a mistake on a peer's ref is refused
