@@ -28,8 +28,8 @@ Owner's asks for this slice: card-belam §7 r3, r9, r14, r16, r17; bend2/bend3 f
 Box: belam-gpu, uid agi-thought-master, RTX 2070S 8 GiB, 15 GiB shared, 3 GiB per post. AGI_BOX=local-town, AGI_TRUNK=core/season3/main. ~/t = detached read view; write = `agi-at PATH` (or agi-wt trees). Tips go back to encryption-town; belam lands through SM's gate.
 | leaf | ask | holder | state |
 |---|---|---|---|
-| goal:g5.35 | r17 remote-viewing harness + null viewer | director-thought-science | round 1 PROVED c07ed3c864 -> review DEMOTE (leak A: target+salt derivable from the public seed, seed-reader 200/200; leak B: shuffle unchecked) -> [corrective] DH.1 sent 10:5xZ |
-| goal:g5.36 | r9 mod-113 cut, closed-form W_out | director-thought-1 | ordered ~10:30Z |
+| goal:g5.35 | r17 remote-viewing harness + null viewer | director-thought-science | r1 DEMOTED (seed leak) -> DH.1 -> r2 PROVED 124fd6c51b (secret-keyed, 6 arms); in review |
+| goal:g5.36 | r9 mod-113 cut, closed-form W_out | director-thought-1 | CLOSED complete: DISPROVED (random beats the top-peakiness pick; phase-duplicate picks), review CONFIRMED; council judging |
 | goal:g5.37 | r9 plasma: core noise vs temperature vs bar bank | director-thought-goals | CLOSED complete: DISPROVED (RED 2, regularizer), review CONFIRMED, council 3/3 concur (a345b42c58) |
 | review | every [complete] above | director-thought-review | waits for the first |
 
