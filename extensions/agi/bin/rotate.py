@@ -3727,6 +3727,125 @@ def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
         time.sleep(min(2.0, max(0.05, deadline - time.monotonic())))
 
 
+#: goal:g7.16.1.11.27.1 (2): the v5 out writes no rotation record (owner
+#: '10. Yes', 11-01, goal:g7.16.1.11.46.28 retired), so a newest record from
+#: before this date is not this generation's memory.
+V5_OUT_DATE = datetime(2026, 11, 1, tzinfo=timezone.utc)
+
+
+def _record_age_suffix(name: str, now: datetime | None = None) -> str:
+    """` (age 35d 4h; none since the v5 out)` for a `<seat>.<YYYYMMDDTHHMMSSZ>
+    .json` record name (goal:g7.16.1.11.27.1 (2)); ` (age unknown)` when the
+    name carries no stamp. Every memory line states its time (invariant 4)."""
+    m = re.search(r"\.(\d{8}T\d{6}Z)\.json$", name)
+    if not m:
+        return " (age unknown)"
+    at = datetime.strptime(m.group(1), "%Y%m%dT%H%M%SZ").replace(
+        tzinfo=timezone.utc)
+    now = now or datetime.now(timezone.utc)
+    secs = max(0, int((now - at).total_seconds()))
+    age = f"age {secs // 86400}d {secs % 86400 // 3600}h"
+    if at < V5_OUT_DATE:
+        age += "; none since the v5 out"
+    return f" ({age})"
+
+
+def _iso_key(stamp: str):
+    """Order %cI stamps by instant, not by text (alive 14:12:41Z: a string
+    max orders right only on one UTC offset); '' sorts first."""
+    try:
+        return datetime.fromisoformat(stamp).timestamp() if stamp else 0.0
+    except ValueError:
+        return 0.0
+
+
+def _box_unread(repo: str, post: str, run=subprocess.run) -> tuple:
+    """The box's own unread set for `post` (goal:g7.16.1.11.27.1 (1)):
+    refs/box/F/<post> --not refs/held/<post>/F (engine-post.md, the box
+    script's line 3), counted per sender with the newest unread commit's
+    time. NEVER consuming: no refs/held write, no `send.py read`. A commit
+    the box would refuse (not signed `for F@agi with`) stops that sender's
+    count, as `box n` does. Returns (rows, last, reason): rows = [(sender,
+    count, newest_iso, refused)], last = the newest inbound box ref's time (read
+    or not; sp 13:45:15Z: a 0-unread row still states a time), reason =
+    None, or why NOTHING was read: a non-zero
+    rc OR any stderr (outside a repo, `box n` exits 0 with only a stderr
+    line, sp [note] 11:58:31Z 11-05), never read as 'no mail'."""
+    if not post:
+        return [], "", "no post named (AGI_POST unset?)"
+
+    def git(*a):
+        return run(["git", "-C", repo, *a], capture_output=True, text=True)
+
+    p = git("for-each-ref", "--format=%(refname)", "refs/box/")
+    err = (p.stderr or "").strip()
+    if p.returncode != 0 or err:
+        return [], "", (err.splitlines()[0] if err else f"git rc {p.returncode}")
+    rows, last = [], ""
+    for ref in (p.stdout or "").split():
+        tail = ref[len("refs/box/"):]
+        if not tail.endswith("/" + post):
+            continue
+        sender = tail[:-len(post) - 1]
+        if not sender or "/" in sender:
+            continue
+        tip = (git("log", "-1", "--format=%cI", ref).stdout or "").strip()
+        last = max(last, tip, key=_iso_key)
+        held = git("rev-parse", "-q", "--verify", f"refs/held/{post}/{sender}")
+        held_sha = (held.stdout or "").strip() if held.returncode == 0 else ""
+        lst = git("rev-list", "--reverse", ref,
+                  *(["--not", held_sha] if held_sha else []))
+        err = (lst.stderr or "").strip()
+        if lst.returncode != 0 or err:
+            return [], "", (err.splitlines()[0] if err
+                            else f"git rev-list rc {lst.returncode}")
+        count, newest, refused = 0, "", False
+        for c in (lst.stdout or "").split():
+            v = git("verify-commit", "--raw", c)
+            said = (v.stdout or "") + (v.stderr or "")
+            # sp 14:19:40Z: the VERIFIER read nothing (signers file unset:
+            # 'gpg.ssh.allowedSignersFile needs to be configured', or set but
+            # unreadable: 'Unable to open allowed keys file'), which is not a
+            # refusal of the sender's commit
+            line = next((x for x in said.splitlines()
+                         if "allowedSignersFile" in x
+                         or "allowed keys file" in x), None)
+            if line:
+                return [], last, line.strip()
+            if f"for {sender}@agi with" not in said:
+                refused = True
+                break
+            count += 1
+            newest = (git("log", "-1", "--format=%cI", c).stdout or "").strip()
+        if count or refused:
+            rows.append((sender, count, newest, refused))
+    return rows, last, None
+
+
+def cmd_box_unread(args: argparse.Namespace, root: Path | None = None) -> int:
+    """goal:g7.16.1.11.27.1: the wake brief's inbox row. Prints the read time,
+    then one line per sender with unread box mail (count + newest time), or
+    `none`; `unread: <reason>` (rc 2) when nothing could be read."""
+    post = getattr(args, "seat", None) or ""
+    repo = getattr(args, "repo", None) or os.getcwd()
+    rows, last, reason = _box_unread(repo, post)
+    if reason:
+        print(f"unread: {reason}")
+        return 2
+    stamp = datetime.now(timezone.utc).strftime("%H:%M:%SZ %m-%d")
+    if not rows:
+        print(f"box unread for {post} (read {stamp}): none; newest box ref "
+              f"{last or 'none ever'}")
+        return 0
+    print(f"box unread for {post} (read {stamp}): "
+          f"{sum(r[1] for r in rows)} message(s)")
+    for sender, count, newest, refused in rows:
+        print(f"  {sender}: {count}, newest {newest or '-'}"
+              + (f"; a later commit REFUSED (not signed for {sender}@agi)"
+                 if refused else ""))
+    return 0
+
+
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
     """List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in
     sessions whose name starts with agi-master or belam; with `--seats`, list the registry seats instead — one line per
@@ -3774,14 +3893,16 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
                                             deadline - time.monotonic())))
             terminal, last_txt = _poll_record_terminal(latest, deadline)
             if not terminal:
-                print(f"# latest rotation record: {latest.name}")
+                print(f"# latest rotation record: {latest.name}"
+                      f"{_record_age_suffix(latest.name)}")
                 print(last_txt, end="")
                 print(f"ERR: still not terminal after {wait}s",
                       file=sys.stderr)
                 return 2
         if latest is not None:
             try:
-                print(f"# latest rotation record: {latest.name}")
+                print(f"# latest rotation record: {latest.name}"
+                      f"{_record_age_suffix(latest.name)}")
                 print(latest.read_text(encoding="utf-8").rstrip())
             except OSError as exc:
                 print(f"ERR: could not read latest record: {exc}",
@@ -23331,6 +23452,16 @@ def main(argv: list[str] | None = None) -> int:
     p_bb.add_argument("--quiet", action="store_true",
                       help="print nothing on success (exit code only)")
     p_bb.set_defaults(func=cmd_bootstrap_block)
+
+    # box-unread: goal:g7.16.1.11.27.1 -- the wake's inbox row reads the box's
+    # unread set, never consuming; `unread: <reason>` when nothing was read.
+    p_bu = sub.add_parser(
+        "box-unread", help="print unread box mail per sender (count + newest "
+                           "time), never consuming; 'unread: <reason>' rc 2")
+    p_bu.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True, help="post name")
+    p_bu.add_argument("--repo", default=None,
+                      help="the repo whose refs/box to read (default: cwd)")
+    p_bu.set_defaults(func=cmd_box_unread)
 
     # seats-launch
     p_sl = sub.add_parser(

@@ -70,7 +70,7 @@ a14(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1"
  refs >$T/$OUT.before;grid split --base $TR --gated $GT --write --lock-wait 1 >$T/$OUT.out 2>&1;r=$?;refs >$T/$OUT.after;kill $HP 2>/dev/null;wait $HP 2>/dev/null;HP=;return $r;}
 OUT=a14;a14 a14;a14=$?
 ok "a14-the-split-waits-on-GridLock with the grid lock held elsewhere: rc $a14 (2), nothing written: $(grep -o 'could not acquire the grid lock' $T/a14.out|head -1)" '[ $a14 = 2 ]&&cmp -s $T/a14.before $T/a14.after&&[ -s $T/a14.before ]'
-OUT=a14m;a14 a14m '    lock = GridLock(root, lock_wait) if write else None' '    lock = None';a14m=$?
+OUT=a14m;a14 a14m '    lock = GridLock(root, lock_wait, taker="split") if write else None' '    lock = None';a14m=$?
 ok "m-a-split-without-the-lock-reads-RED the lock dropped: the split writes while grid_sync would hold it, rc $a14m (want rc 2 + nothing written, so moved refs = caught)" '! cmp -s $T/a14m.before $T/a14m.after'
 # --- fail closed: a node DELETED (not retired) is unread, nothing written; mutant: the delete check cut -> the split writes the rest
 dl(){ cp_ $1;shift;while [ $# -ge 2 ];do mut $P/extensions/agi/bin/grid.py "$1" "$2";shift 2;done;$G -C $P checkout -q $GT 2>/dev/null;$G -C $P rm -q .agi/nodes/idea/n4.md;$G -C $P commit -qm del
