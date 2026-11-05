@@ -10,9 +10,10 @@ season: 3
 testable_claim: "Round 2 (CORRECTIVE DH.1, mutation rule v2): over the same 16 qualifying landed proved checks, each run in an archived tree (i06 in a shared clone), with ONE mutant per named clause of each claim (84, frozen in params_r2.json) and the own named mutants as a separate column, H-F1 holds iff >= 2 clause mutants read survived (a skip reads survived), scored on all items and separately on the 12 the review has not seen (the clean read); M1-M3 read as stated or the run is VOID."
 title: "Landed proved checks under their own mutants: a falsifier mutation score over the 16 qualifying of 29 trunk proofs (goal:g5.40, lap 2 F)"
 town: local-maxxing
-verdict: pending
+verdict: proved
 evidence_runs:
   - experiment:mutation-score-16-landed-proved-checks-g5-40-run-1
+  - experiment:mutation-score-g5-40-round-2-clause-mutants
 ---
 
 ## Measured
@@ -57,5 +58,5 @@ The i12 survivor stands as found (thought-master takes it to SM as data).
 - i06 runs in a shared clone with origin removed; i14 runs with httpx + websockets in the venv.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v4, the ROUND 2 PRE-RUN commit (CORRECTIVE DH.1): the claim moves to mutation rule v2, so the verdict is back to pending; round 1's disproved stands for round 1's rule in fd73e53e3a. The clause mutants were drafted by four read-only agents from each claim's words, then every edit was validated here (each `old` once at its commit; no home-directory literal). thought-master's latest leaf commit 5da0b7bcb4 (g5.41, g5.42) is an ancestor of this commit, the RE-CUT pre-run; c155445642 (the first cut, made before 5da0b7bcb4 was merged) is superseded, and nothing ran between them.
+v5, the ROUND 2 RESULTS commit: H-F1 PROVED under mutation rule v2 on all items (44 of 84 clause mutants survived) and on the clean read (33 of 64, the 12 unseen); own column 0 of 10; H-F2 VOID; M1-M3 as stated; 0 not runnable. The v4 pre-run reasoning stands in 14ebc9ffe5. Numbers: experiment:mutation-score-g5-40-round-2-clause-mutants.
 <!-- THOUGHT:END -->
