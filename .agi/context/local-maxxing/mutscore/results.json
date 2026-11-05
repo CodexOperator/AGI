@@ -1,0 +1,556 @@
+{
+ "H_F1": {
+  "rule": "primary column: proved iff survived >= 2",
+  "verdict": "disproved",
+  "void_reasons": []
+ },
+ "H_F2": {
+  "rule": "arm-swap column: proved iff survived >= max(5, n/4) = 5",
+  "verdict": "void",
+  "void_reasons": [
+   "H-F2 n = 0 < 10"
+  ]
+ },
+ "counts_arm_swap": {
+  "killed": 0,
+  "n": 0,
+  "survived": 0
+ },
+ "counts_primary": {
+  "killed": 13,
+  "n": 14,
+  "not_killable": 0,
+  "not_runnable": 2,
+  "survived": 1
+ },
+ "goal": "goal:g5.40",
+ "instrument": [
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "as_expected": true,
+   "baseline": {
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rc": 0,
+    "seconds": 0.0,
+    "skipped": false,
+    "tail": []
+   },
+   "expect": "survived",
+   "hypothesis": null,
+   "key": "M1",
+   "mutant": {
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rc": 0,
+    "seconds": 0.0,
+    "skipped": false,
+    "tail": []
+   },
+   "outcome": "survived",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "as_expected": true,
+   "baseline": {
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rc": 0,
+    "seconds": 0.0,
+    "skipped": false,
+    "tail": []
+   },
+   "expect": "killed",
+   "hypothesis": null,
+   "key": "M2",
+   "mutant": {
+    "out_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rc": 1,
+    "seconds": 0.0,
+    "skipped": false,
+    "tail": []
+   },
+   "outcome": "killed",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": true,
+   "arm_swap_outcome": "killed",
+   "as_expected": true,
+   "baseline": {
+    "out_sha256": "ec26ba1ea2691d1b5f7b08ffd58a0d3d28889122e372af42f8b147461107a958",
+    "rc": 0,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     "replay: identical"
+    ]
+   },
+   "expect": "killed",
+   "hypothesis": "hypothesis:rv-harness-null-viewer-reads-chance-and-a-planted-salt-reads-red",
+   "key": "M3",
+   "mutant": {
+    "out_sha256": "6b3bddb4620cb8800917311da1c4db476c758a1cea3762ed6b12083643cad7e8",
+    "rc": 1,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     "replay: DIFFERS"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "arm-swap"
+  }
+ ],
+ "items": [
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "19c494b599d09c4547df227d055b4be4299ff8549740a730ea1b681aaac97821",
+    "rc": 0,
+    "seconds": 0.8,
+    "skipped": false,
+    "tail": [
+     "",
+     "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+     "1 passed, 3 warnings in 0.28s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-1b70098e-011986",
+   "key": "i01",
+   "mutant": {
+    "out_sha256": "7a2e5417facb1d2bc243dce6684b8ba8056002433cdfda332981186f09562d1d",
+    "rc": 1,
+    "seconds": 0.8,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_write_guard.py::test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered",
+     "1 failed, 2 warnings in 0.29s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "ffe2a4a341462d569b35e1e292ac1aa0fb4d5f4f8c0cc6d1855131d67100244c",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.16s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-50b210d5-b85ee2",
+   "key": "i02",
+   "mutant": {
+    "out_sha256": "b736413ec30332cc16dd45a8481a77d748e00932945bc54a16084da6b76b2ee3",
+    "rc": 1,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_stage_seam_hands_the_callers_cfg_to_the_cap_helper",
+     "FAILED extensions/agi/tests/test_workflow_stage_seam_cfg.py::test_the_seam_reads_the_cfg_aware_call",
+     "2 failed, 2 passed in 0.17s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "a3a035c0a1954d50955063c38f419bc95528dad397e611a442da2a0ee0beafea",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "..............                                                           [100%]",
+     "14 passed in 0.12s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-1ff9316d-177aae",
+   "key": "i03",
+   "mutant": {
+    "out_sha256": "0247d7e9786d6c12e34ca30031aedaa41ceeee49c31adb04e5bbf348d527613f",
+    "rc": 1,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_no_cell_means_the_shipped_default_on_the_argv",
+     "FAILED extensions/agi/tests/test_mem_cap_tasks_max.py::test_the_wrapped_argv_carries_both_bounds",
+     "3 failed, 11 passed in 0.13s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "775b7aa27d0c17f48b3feff20c836f14b6ed8ebcb90ec7e0b76d2a13c579268a",
+    "rc": 0,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     ".......                                                                  [100%]",
+     "7 passed in 0.10s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-f855c944-ee9673",
+   "key": "i04",
+   "mutant": {
+    "out_sha256": "b63c2386a401ae956d58b011533a2ce39f3a235e692ad820cbbd6f5eda869f87",
+    "rc": 1,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_every_migrated_script_declares_the_root_seam",
+     "FAILED extensions/agi/tests/test_workflow_template_seam_js.py::test_root_is_declared_before_it_is_used",
+     "2 failed, 5 passed in 0.11s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "ffe2a4a341462d569b35e1e292ac1aa0fb4d5f4f8c0cc6d1855131d67100244c",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.16s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-b9700763-8d8657",
+   "key": "i05",
+   "mutant": {
+    "out_sha256": "e50f58bd44d5d88b673b4c8c488a76ae0b7d704987d5f0d85763220c4f1de909",
+    "rc": 1,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t1_no_live_hit_outside_a_named_and_reasoned_exemption",
+     "FAILED extensions/agi/tests/test_retired_box_prefix.py::test_t2_every_exemption_is_still_live",
+     "2 failed, 2 passed in 0.18s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "14ab4e8197eb8bf6c959ebe16622f0cd25b7df2c55a044d674ee831ebde23ad3",
+    "rc": 1,
+    "seconds": 0.9,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_unify.py::test_preflight_force_does_not_bypass_real_repo_guard",
+     "FAILED extensions/agi/tests/test_unify.py::test_real_repo_guard_names_this_checkout_without_a_box_cell",
+     "3 failed, 1 passed in 0.44s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-acc4e078-35fa9a",
+   "key": "i06",
+   "outcome": "not_runnable",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     ".....                                                                    [100%]",
+     "5 passed in 0.11s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-7c59d4d4-195565",
+   "key": "i07",
+   "mutant": {
+    "out_sha256": "ca44edb18663f73dc22d702957c6deecf46eb868617aa8855db67029f6d3adc0",
+    "rc": 1,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_workflow_template_seam_json.py::test_migrated_stages_render_the_injected_project_root",
+     "1 failed, 4 passed in 0.12s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "6b9ffd6b9a3baa1f0f65b43fd8e9939ac47909d796917593222ef0ccd5a23556",
+    "rc": 0,
+    "seconds": 0.2,
+    "skipped": false,
+    "tail": [
+     ".....                                                                    [100%]",
+     "5 passed in 0.11s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-95b6cd1c-6f642c",
+   "key": "i08",
+   "mutant": {
+    "out_sha256": "02dfc1494ee6cb84f8ab066648c77fcb5b4135226a68c2a0685c01ccd1f1c5b0",
+    "rc": 1,
+    "seconds": 0.3,
+    "skipped": false,
+    "tail": [
+     "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_reach_is_cwd_independent",
+     "FAILED .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py::test_todays_own_data_is_total_and_calls_nothing",
+     "3 failed, 2 passed in 0.11s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "28f94f35a697eb110a559cd36372f2edb63dbb960fb282482e1dcc485cb9a73e",
+    "rc": 0,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "...                                                                      [100%]",
+     "3 passed in 0.10s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-fcfbc2f9-7d809f",
+   "key": "i09",
+   "mutant": {
+    "out_sha256": "3b6a0b33e586db769acd99ccb566793e75a3194eee366bdb273c33e75f3d4a65",
+    "rc": 1,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_live_config_grok_row_resolves",
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_live_bin_cell_threads_through_to_argv",
+     "2 failed, 1 passed in 0.11s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "449f48faab28952069f2e297454c2a3b0f42069bcbc27c7b2b56439fc80297ed",
+    "rc": 0,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed in 0.11s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-debf9c6e-a64baf",
+   "key": "i10",
+   "mutant": {
+    "out_sha256": "03546c07f60ec1b765c17016f37938267a3d2289a84d58ce1335d7fe8759fd0d",
+    "rc": 1,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_grok_bot_adapter.py::test_name_is_the_harness_literal",
+     "1 failed, 1 passed in 0.11s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "f6b63ab48fd291f4dd9170b2691fcc402cf5b4a7400c78b64b7e38af65a4a50b",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "...............                                                          [100%]",
+     "15 passed in 0.12s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-8ee9bdff-40419b",
+   "key": "i11",
+   "mutant": {
+    "out_sha256": "f5823346ef4d68657ccbc9b6d55bddda4fd2da4eef87d599fe9167017481275b",
+    "rc": 2,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "ERROR extensions/agi/tests/test_grok_bot_adapter.py",
+     "!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!",
+     "1 error in 0.10s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+    "rc": 0,
+    "seconds": 0.6,
+    "skipped": false,
+    "tail": [
+     "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+     ".                                                                        [100%]",
+     "1 passed in 0.10s"
+    ]
+   },
+   "hypothesis": "hypothesis:a00-67fbbdf2-50b8d8",
+   "key": "i12",
+   "mutant": {
+    "out_sha256": "e6d75c19c409a01fec80447e9e13266d240d8e16a8cde2c69c3c826022d90ae6",
+    "rc": 0,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "extensions/agi/bin/adapters/grok_bot_adapter.py: OK",
+     ".                                                                        [100%]",
+     "1 passed in 0.10s"
+    ]
+   },
+   "outcome": "survived",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "19e95f03931508bcb63d5f1f276741db94fd3f8f0399d2690ed306a73c3ba6c7",
+    "rc": 0,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed in 0.08s"
+    ]
+   },
+   "hypothesis": "hypothesis:l4-needs-credential-is-provider-gated",
+   "key": "i13",
+   "mutant": {
+    "out_sha256": "38a1abb7e58f08d859db4264c933d6c46bcac3f9ed7b064d6f354a6637844356",
+    "rc": 1,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     "=========================== short test summary info ============================",
+     "FAILED extensions/agi/tests/test_adapters.py::test_needs_credential_defaults_true_for_unmarked_and_unknown_rows",
+     "1 failed, 1 passed in 0.08s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "011cb1d4944d5d099da31f34f2a7b2d0be21117db8005c9c59911fe226222f97",
+    "rc": 1,
+    "seconds": 0.5,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py]",
+     "FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw_client.py]",
+     "2 failed, 66 deselected in 0.17s"
+    ]
+   },
+   "hypothesis": "hypothesis:l4-ws-raw-answers-help",
+   "key": "i14",
+   "outcome": "not_runnable",
+   "primary_kind": "inversion"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "fa665775964cf05a4b8c9ca6f3bb541d55819b03a8e9277e22b2aa4799804700",
+    "rc": 0,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     "..                                                                       [100%]",
+     "2 passed in 0.25s"
+    ]
+   },
+   "hypothesis": "hypothesis:gate-must-sit-on-the-commit-path",
+   "key": "i15",
+   "mutant": {
+    "out_sha256": "4ab69911fd115c2cdb043dd936b5b6877d1045e706da5154a506179550f970b7",
+    "rc": 1,
+    "seconds": 0.4,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_grid.py::test_commit_path_demotes_a_hand_written_unevidenced_proved",
+     "FAILED extensions/agi/tests/test_grid.py::test_commit_path_drives_the_metric_to_zero",
+     "2 failed in 0.26s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  },
+  {
+   "arm_swap_defined": false,
+   "arm_swap_outcome": null,
+   "baseline": {
+    "out_sha256": "566b533769efda184c621fadcbb3499a3de7b732897627c27b430e8565082bbb",
+    "rc": 0,
+    "seconds": 0.3,
+    "skipped": false,
+    "tail": [
+     "....                                                                     [100%]",
+     "4 passed in 0.14s"
+    ]
+   },
+   "hypothesis": "hypothesis:an-mvp-that-points-backward-is-score-neutral",
+   "key": "i16",
+   "mutant": {
+    "out_sha256": "a338e52c540cc23a8c99f6425d56a1b0950fd58f81d0f49d81f7709fd7c21fd5",
+    "rc": 1,
+    "seconds": 0.3,
+    "skipped": false,
+    "tail": [
+     "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_does_not_spare_its_own_hypothesis",
+     "FAILED extensions/agi/tests/test_metrics.py::test_backward_mvp_count_reaches_the_metric_lines",
+     "3 failed, 1 passed in 0.18s"
+    ]
+   },
+   "outcome": "killed",
+   "primary_kind": "own"
+  }
+ ],
+ "n_excluded_at_selection": 8,
+ "n_listed": 16,
+ "params_sha256": "0c484e5445d9c1639dc343066f56a9f759722c5f1f179074aa334ddbe7331b27"
+}

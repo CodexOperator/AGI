@@ -1,0 +1,293 @@
+{
+ "leaf": "goal:g5.39",
+ "max_score": {
+  "a_per_sample_pass": 0.0,
+  "b_per_sample_draw": 0.23010639960681523,
+  "committed": 0.0
+ },
+ "numpy": "2.5.4",
+ "residue": "M1 broadcast (SM gate, 12:41Z 11-05)",
+ "seeds": [
+  {
+   "a_equals_committed_bytes": true,
+   "a_per_sample_pass": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": -0.0,
+      "score": -0.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.5
+   },
+   "b_per_sample_draw": {
+    "coverage": 0.9683681822194312,
+    "cues": [
+     {
+      "coverage": 0.9456603046006401,
+      "score": 0.16253536485323503,
+      "valid": 0.171875
+     },
+     {
+      "coverage": 0.9910760598382222,
+      "score": 0.2787401418295,
+      "valid": 0.28125
+     }
+    ],
+    "score": 0.22063775334136754,
+    "valid": 0.2265625
+   },
+   "committed": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": -0.0,
+      "score": -0.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.5
+   },
+   "committed_matches_results_json": true,
+   "seed": 53901
+  },
+  {
+   "a_equals_committed_bytes": true,
+   "a_per_sample_pass": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "b_per_sample_draw": {
+    "coverage": 0.9742321072009608,
+    "cues": [
+     {
+      "coverage": 0.954434002924965,
+      "score": 0.11930425036562063,
+      "valid": 0.125
+     },
+     {
+      "coverage": 0.9940302114769566,
+      "score": 0.17084894259760192,
+      "valid": 0.171875
+     }
+    ],
+    "score": 0.14507659648161128,
+    "valid": 0.1484375
+   },
+   "committed": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "committed_matches_results_json": true,
+   "seed": 53902
+  },
+  {
+   "a_equals_committed_bytes": true,
+   "a_per_sample_pass": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "b_per_sample_draw": {
+    "coverage": 0.9793695755459957,
+    "cues": [
+     {
+      "coverage": 0.9975025463691153,
+      "score": 0.26496161387929623,
+      "valid": 0.265625
+     },
+     {
+      "coverage": 0.961236604722876,
+      "score": 0.1952511853343342,
+      "valid": 0.203125
+     }
+    ],
+    "score": 0.23010639960681523,
+    "valid": 0.234375
+   },
+   "committed": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "committed_matches_results_json": true,
+   "seed": 53903
+  },
+  {
+   "a_equals_committed_bytes": true,
+   "a_per_sample_pass": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "b_per_sample_draw": {
+    "coverage": 0.8011671348467655,
+    "cues": [
+     {
+      "coverage": 0.6840384356390417,
+      "score": 0.11756910612546029,
+      "valid": 0.171875
+     },
+     {
+      "coverage": 0.9182958340544894,
+      "score": 0.17218046888521676,
+      "valid": 0.1875
+     }
+    ],
+    "score": 0.14487478750533853,
+    "valid": 0.1796875
+   },
+   "committed": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "committed_matches_results_json": true,
+   "seed": 53904
+  },
+  {
+   "a_equals_committed_bytes": true,
+   "a_per_sample_pass": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": -0.0,
+      "score": -0.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.5
+   },
+   "b_per_sample_draw": {
+    "coverage": 0.8104865080515115,
+    "cues": [
+     {
+      "coverage": 0.9709505944546688,
+      "score": 0.227566545575313,
+      "valid": 0.234375
+     },
+     {
+      "coverage": 0.6500224216483541,
+      "score": 0.0609396020295332,
+      "valid": 0.09375
+     }
+    ],
+    "score": 0.1442530738024231,
+    "valid": 0.1640625
+   },
+   "committed": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": -0.0,
+      "score": -0.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.5
+   },
+   "committed_matches_results_json": true,
+   "seed": 53905
+  }
+ ],
+ "sigma": 2.0
+}
