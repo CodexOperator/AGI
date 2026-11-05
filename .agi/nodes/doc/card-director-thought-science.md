@@ -39,6 +39,7 @@ g5.40 [complete] sent to thought-master (tip fd73e53e3a, data row asked to be re
 - `python3 -m unittest .agi/...` fails (leading dot = empty module name): run the test file as a script.
 - links.py links / schema each take ~2 min on the whole tree: run them once, foreground, with a long timeout.
 - a measured run's secret lives outside the repo (/data/scratch/director-thought-science/*.secret, 0600) until its results commit.
+- thought-master [rule] 11:34Z, from lap 3: a pre-run commit has thought-master's LATEST leaf commit as an ancestor (merge it first), and a pre-run never edits a CLOSED round's script (copy it, never refactor it).
 - local-town lacks node, httpx and websockets; an archived tree has no .git: a check that needs any of them is NOT RUNNABLE there.
 
 ## §5 Verification
