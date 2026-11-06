@@ -1,0 +1,79 @@
+{
+ "params_sha256": "614acc927851e74e10d8f3f5b57c802a1ddf5bae7c98c4f2b39595fd1e2e63b0",
+ "step0": {
+  "main": {
+   "check": {
+    "status": "check",
+    "rc": 0,
+    "wall_s": 13.16,
+    "peak_rss_mib": 108,
+    "tail": [
+     "ALL PROOFS CHECK",
+     "Use --verdict for mathematical validity."
+    ]
+   },
+   "verdict": {
+    "status": "check",
+    "rc": 0,
+    "wall_s": 47.42,
+    "peak_rss_mib": 124,
+    "tail": [
+     "ALL PROOFS CHECK"
+    ]
+   }
+  },
+  "mutant": {
+   "check": {
+    "status": "fail",
+    "rc": 1,
+    "wall_s": 0.33,
+    "peak_rss_mib": 78,
+    "tail": [
+     "Error:",
+     "- expected : 2",
+     "- observed : 0",
+     "Location: Laws.net_is_parity",
+     "6 |     case True{} True{} True{} True{} True{} True{} True{} True{}:",
+     "7>|       {==}",
+     "  |       ^^^^",
+     "8 |     case True{} True{} True{} True{} True{} True{} True{} False{}:"
+    ]
+   },
+   "verdict": {
+    "status": "fail",
+    "rc": 1,
+    "wall_s": 0.34,
+    "peak_rss_mib": 78,
+    "tail": [
+     "Error:",
+     "- expected : 2",
+     "- observed : 0",
+     "Location: Laws.net_is_parity",
+     "6 |     case True{} True{} True{} True{} True{} True{} True{} True{}:",
+     "7>|       {==}",
+     "  |       ^^^^",
+     "8 |     case True{} True{} True{} True{} True{} True{} True{} False{}:"
+    ]
+   }
+  },
+  "discharged": true,
+  "mutant_refused": true,
+  "red": false
+ },
+ "step1_law": {
+  "status": "rss_cap",
+  "rc": -9,
+  "wall_s": 6.09,
+  "peak_rss_mib": 2468,
+  "tail": []
+ },
+ "step1_fallback": {
+  "status": "rss_cap",
+  "rc": -9,
+  "wall_s": 6.67,
+  "peak_rss_mib": 2535,
+  "tail": []
+ },
+ "step1_discharged": false,
+ "launch_params_sha256": "614acc927851e74e10d8f3f5b57c802a1ddf5bae7c98c4f2b39595fd1e2e63b0"
+}

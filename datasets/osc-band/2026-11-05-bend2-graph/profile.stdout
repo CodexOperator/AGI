@@ -1,0 +1,10 @@
+slice_k0 {'status': ['check', 'check', 'check'], 'wall_s': [14.79, 15.51, 15.0], 'max_wall_s': 15.51, 'peak_rss_mib': 372}
+full_k0 {'status': ['rss_cap', 'rss_cap', 'rss_cap'], 'wall_s': [5.42, 5.9, 5.56], 'max_wall_s': 5.9, 'peak_rss_mib': 2511}
+slice_k1 {'status': ['check', 'check', 'check'], 'wall_s': [15.47, 14.98, 15.27], 'max_wall_s': 15.47, 'peak_rss_mib': 373}
+full_k1 {'status': ['rss_cap', 'rss_cap', 'rss_cap'], 'wall_s': [5.09, 5.43, 5.02], 'max_wall_s': 5.43, 'peak_rss_mib': 2520}
+slice_k2 {'status': ['check', 'check', 'check'], 'wall_s': [13.89, 13.78, 14.17], 'max_wall_s': 14.17, 'peak_rss_mib': 372}
+full_k2 {'status': ['rss_cap', 'rss_cap', 'rss_cap'], 'wall_s': [5.33, 5.32, 5.05], 'max_wall_s': 5.33, 'peak_rss_mib': 2518}
+slice_3 {'status': ['check', 'check', 'check'], 'wall_s': [41.35, 41.03, 41.3], 'max_wall_s': 41.35, 'peak_rss_mib': 391}
+lit {'status': ['rss_cap', 'rss_cap', 'rss_cap'], 'wall_s': [6.12, 6.58, 6.58], 'max_wall_s': 6.58, 'peak_rss_mib': 2473}
+{"marginal_s": 12.920000000000002, "startup_s": 2.589999999999998, "projected_wall_s": 165268.15000000002, "rule": "close (an evidenced negative)"}
+exit 0

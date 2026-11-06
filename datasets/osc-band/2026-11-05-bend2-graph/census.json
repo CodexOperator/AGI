@@ -1,0 +1,840 @@
+{
+ "rule": "a line's committed verdict is the SAME for every truth value of its\nnon-integer clauses. Its integer clauses read committed JSON integers (or null with the meaning the line's own text gives\nit); its non-integer clauses (a float, a mean, a band, a p-value, a string, node prose) enter as universally quantified\nBools (`for r: Bool` in the LAW), so the kernel proves the verdict holds whatever they are. A line with no integer clause\nthat decides it is listed, never approximated.",
+ "n_integer_exact": 11,
+ "N_lines": 29,
+ "lines": [
+  {
+   "id": "g535_l1",
+   "goal": "goal:g5.35",
+   "line": "1",
+   "reason": "PROVED needs the conjunct 'the harness's own test passes', recorded only in node prose: not decided by integers",
+   "committed": "proved",
+   "committed_src": [
+    [
+     "124fd6c51bd4e3e121e90cb6c666e852f3b060bd",
+     ".agi/context/local-maxxing/rv/results.json"
+    ],
+    "verdict"
+   ],
+   "proved": [
+    "and",
+    [
+     "free",
+     "r_harness_test_passes"
+    ],
+    [
+     "lt",
+     [
+      "var",
+      "g535_null_hits"
+     ],
+     [
+      "var",
+      "g535_band"
+     ]
+    ]
+   ],
+   "cite": "The harness's own test passes, and the null run's committed results.json shows the null hit rate inside chance (1/5) at the one-sided binomial 95% band over n = 200. A null rate outside it = the harness LEAKS: RED for the harness, and nothing else is measured on it.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.35.md",
+    "blob_sha256_at_HEAD": "a6e2d1fca070dd6e083956704ba510ea836a29e10ea978c023d84466206d1479"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved",
+    "proved"
+   ],
+   "integer_exact": false,
+   "python_verdict": null
+  },
+  {
+   "id": "g535_l2",
+   "goal": "goal:g5.35",
+   "line": "2",
+   "kind": "gate",
+   "committed": "proved",
+   "committed_src": [
+    [
+     "124fd6c51bd4e3e121e90cb6c666e852f3b060bd",
+     ".agi/context/local-maxxing/rv/results.json"
+    ],
+    "arms.F2_salt_planted.as_required"
+   ],
+   "note": "a mutant gate: reads as required (above the band) -> proved; inside the band -> void",
+   "proved": [
+    "ge",
+    [
+     "var",
+     "g535_salt_hits"
+    ],
+    [
+     "var",
+     "g535_band"
+    ]
+   ],
+   "void": [
+    "lt",
+    [
+     "var",
+     "g535_salt_hits"
+    ],
+    [
+     "var",
+     "g535_band"
+    ]
+   ],
+   "cite": "Mutant, which must read RED: a viewer that is GIVEN the revealed salt (a planted leak) must score above the band. If it does not, the harness cannot detect a leak and is vacuous.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.35.md",
+    "blob_sha256_at_HEAD": "a6e2d1fca070dd6e083956704ba510ea836a29e10ea978c023d84466206d1479"
+   },
+   "verdicts_over_free_clauses": [
+    "proved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "proved"
+  },
+  {
+   "id": "g535_l3",
+   "goal": "goal:g5.35",
+   "line": "3",
+   "reason": "a rule for later rounds; no verdict is committed for this round",
+   "cite": "Later rounds, stated now: a viewer whose held-out hit rate is not above chance at p < 0.01 over a pre-declared n = 100 reads RED (it climbed noise), whatever its train curve shows.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.35.md",
+    "blob_sha256_at_HEAD": "a6e2d1fca070dd6e083956704ba510ea836a29e10ea978c023d84466206d1479"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g536_l1",
+   "goal": "goal:g5.36",
+   "line": "1",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "f157dedb99",
+     "datasets/osc-band/2026-11-05-neuron-period-cut/results.json"
+    ],
+    "verdict"
+   ],
+   "note": "N_f null = its own text's 'none -> N_f > 64': nf_reached 0, so the clause N_f <= 64 is false",
+   "proved": [
+    "and",
+    [
+     "eq",
+     [
+      "var",
+      "g536_nf_reached"
+     ],
+     1
+    ],
+    [
+     "le",
+     [
+      "var",
+      "g536_nf"
+     ],
+     64
+    ],
+    [
+     "ge",
+     [
+      "var",
+      "g536_nr"
+     ],
+     [
+      "mul",
+      2,
+      [
+       "var",
+       "g536_nf"
+      ]
+     ]
+    ]
+   ],
+   "cite": "PROVED iff N_f <= 64 AND the random picks (5 seeds, same solve) need N_r >= 2 x N_f to reach 0.99. RED if N_f > 64, or if the random picks reach 0.99 at N_r < 2 x N_f (the circuit knowledge did not matter).",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.36.md",
+    "blob_sha256_at_HEAD": "8c143e154e806f19f8c7b2c77fd4faf138a85160f3d12ffe5f61fe87a3f12228"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g536_l2",
+   "goal": "goal:g5.36",
+   "line": "2",
+   "reason": "reads the twin's held-out accuracy (a float, mutant_max)",
+   "cite": "Mutant, which must read RED: the same solve on 64 neurons of the random-init twin (seed 1001) stays < 0.5; if it does not, the solve, not the trained features, does the work, and the round is VOID.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.36.md",
+    "blob_sha256_at_HEAD": "8c143e154e806f19f8c7b2c77fd4faf138a85160f3d12ffe5f61fe87a3f12228"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g537_l1",
+   "goal": "goal:g5.37",
+   "line": "1",
+   "reason": "reads float gains and max-min bands over seeds",
+   "cite": "RED for plasma if P's best nonzero sigma does not beat BOTH P(sigma = 0) and T's best tau by more than the 5-seed band (max - min over seeds) on the shifted test.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.37.md",
+    "blob_sha256_at_HEAD": "69895cfbe5631ad9a3de0155e8c13f36c9eaa0a981e62a8f9d3f635485cd58b7"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g537_l2",
+   "goal": "goal:g5.37",
+   "line": "2",
+   "reason": "reads a float gain within a float band",
+   "cite": "ALSO RED for plasma if P0 keeps the gain within the band: then the noise was a training regularizer, not dynamics at the core.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.37.md",
+    "blob_sha256_at_HEAD": "69895cfbe5631ad9a3de0155e8c13f36c9eaa0a981e62a8f9d3f635485cd58b7"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g537_l3",
+   "goal": "goal:g5.37",
+   "line": "3",
+   "reason": "reads float accuracies (<= 0.35)",
+   "cite": "Mutant, which must read RED: arm B with its filters rotated by one class falls to <= 0.35 (chance 0.25); if it does not, the task does not need orientation and the round is VOID.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.37.md",
+    "blob_sha256_at_HEAD": "69895cfbe5631ad9a3de0155e8c13f36c9eaa0a981e62a8f9d3f635485cd58b7"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g538_l1",
+   "goal": "goal:g5.38",
+   "line": "1",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "29798337de",
+     "datasets/osc-band/2026-11-05-neuron-period-phase/results.json"
+    ],
+    "H1"
+   ],
+   "note": "N_b null = the pin's N_b := '>32': nb_reached 0",
+   "proved": [
+    "and",
+    [
+     "eq",
+     [
+      "var",
+      "g538_nb_reached"
+     ],
+     1
+    ],
+    [
+     "le",
+     [
+      "var",
+      "g538_nb"
+     ],
+     32
+    ],
+    [
+     "ge",
+     [
+      "var",
+      "g538_nr"
+     ],
+     [
+      "mul",
+      2,
+      [
+       "var",
+       "g538_nb"
+      ]
+     ]
+    ]
+   ],
+   "cite": "H1 (remix) PROVED iff (b) reaches 0.99 held-out at N_b <= 32 AND N_r >= 2 x N_b; else RED.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.38.md",
+    "blob_sha256_at_HEAD": "94c6872fe41adfde74f00531adf8dbaa9753590b5de2bb21376c527528295c8b"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g538_l2",
+   "goal": "goal:g5.38",
+   "line": "2",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "29798337de",
+     "datasets/osc-band/2026-11-05-neuron-period-phase/results.json"
+    ],
+    "H2"
+   ],
+   "note": "H2 is stated as a RED rule: RED -> disproved, not RED -> proved, 'no verdict' (neither reaches) -> void",
+   "void": [
+    "and",
+    [
+     "eq",
+     [
+      "var",
+      "g538_nb_reached"
+     ],
+     0
+    ],
+    [
+     "eq",
+     [
+      "var",
+      "g538_nc_reached"
+     ],
+     0
+    ]
+   ],
+   "proved": [
+    "not",
+    [
+     "and",
+     [
+      "eq",
+      [
+       "var",
+       "g538_nc_reached"
+      ],
+      1
+     ],
+     [
+      "or",
+      [
+       "eq",
+       [
+        "var",
+        "g538_nb_reached"
+       ],
+       0
+      ],
+      [
+       "lt",
+       [
+        "var",
+        "g538_nc"
+       ],
+       [
+        "var",
+        "g538_nb"
+       ]
+      ]
+     ]
+    ]
+   ],
+   "cite": "H2 (remix): RED iff (c) reaches 0.99 at a grid step below N_b: circuit knowledge picks worse than plain numerics, a disproof in its own right. If (b) never reaches 0.99 at N <= 32, N_b := '>32' and H2 is RED iff (c) reaches 0.99 at any N <= 32; if neither does, H2 is reported with no verdict.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.38.md",
+    "blob_sha256_at_HEAD": "94c6872fe41adfde74f00531adf8dbaa9753590b5de2bb21376c527528295c8b"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g538_l3",
+   "goal": "goal:g5.38",
+   "line": "3",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "29798337de",
+     "datasets/osc-band/2026-11-05-neuron-period-phase/results.json"
+    ],
+    "H3"
+   ],
+   "note": "PROVED iff some N_w <= 32 qualifies: the committed N_w_hits list is non-empty",
+   "proved": [
+    "ge",
+    [
+     "var",
+     "g538_nw_hits"
+    ],
+    1
+   ],
+   "cite": "H3 (less-is-more) PROVED iff some N_w <= 32 reaches >= 0.99 held-out AND (c) at that same N stays < 0.99; RED otherwise.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.38.md",
+    "blob_sha256_at_HEAD": "94c6872fe41adfde74f00531adf8dbaa9753590b5de2bb21376c527528295c8b"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g538_l4",
+   "goal": "goal:g5.38",
+   "line": "4",
+   "reason": "the mutant gates M1-M4 read held-out accuracies and kept fractions (floats)",
+   "cite": "Mutants, each must read RED, else the named claim is VOID: M1 phase-twin (same n_k, greedy MAXIMISING R_sum) stays < 0.99 at every N <= 32 (else H1's mechanism is VOID); M2 the init twin (seed 1001) < 0.5 for picks (a)-(c) (arm (d) on the twin is item 5 and never VOIDs H3); M3 equal-phase write (phi_j = psi_j = 0) at N_w = 32 stays < 0.5 (else H3 is VOID); M4 model_s3.pt: if (b) or (c) keeps >= 0.99 x its own train baseline at N <= 32, small cuts are not circuit evidence and H1 is VOID.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.38.md",
+    "blob_sha256_at_HEAD": "94c6872fe41adfde74f00531adf8dbaa9753590b5de2bb21376c527528295c8b"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g538_l5",
+   "goal": "goal:g5.38",
+   "line": "5",
+   "reason": "reported, no claim",
+   "cite": "Reported, no claim: (d) on model_s3.pt (dropped if (e) finds no families), and (d) on the random-init twin (a full-rank embedding may let the probe read cos(w a + phi) there too).",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.38.md",
+    "blob_sha256_at_HEAD": "94c6872fe41adfde74f00531adf8dbaa9753590b5de2bb21376c527528295c8b"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g539_l1",
+   "goal": "goal:g5.39",
+   "line": "1",
+   "reason": "(1) reads float deltas and their mean; (2) the valid fraction is committed only as floats (k/64 per cue), no integer key",
+   "cite": "PROVED iff (1) the PAIRED per-seed delta P - T is > 0 on all 5 seeds (sign test, p = 1/32) AND its mean is > 0.05, AND (2) P's valid fraction is >= 0.5 (the samples are lines, not noise). RED if (1) or (2) fails.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.39.md",
+    "blob_sha256_at_HEAD": "b0e1fe430da927c6cb42abeed1107c09df778502b107bfe0106e150e50e9358c"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g539_l2",
+   "goal": "goal:g5.39",
+   "line": "2",
+   "reason": "the mutants read float scores and valid fractions",
+   "cite": "Mutants, each must read RED, else VOID: M1 P with ONE noise draw frozen per seed and cue scores <= 0.05 on every seed (the diversity must come from the noise); M2 the scorer: 64 true target lines per cue (32 per class) score >= 0.9, and 64 Bernoulli(0.5) images have valid fraction <= 0.05.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.39.md",
+    "blob_sha256_at_HEAD": "b0e1fe430da927c6cb42abeed1107c09df778502b107bfe0106e150e50e9358c"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g539_l3",
+   "goal": "goal:g5.39",
+   "line": "3",
+   "reason": "withdrawn before mint",
+   "cite": "Withdrawn before mint (plasma CORRECTION 1, 11:07Z): \"RED if MF matches P\" (MF's coverage is 0 by construction).",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.39.md",
+    "blob_sha256_at_HEAD": "b0e1fe430da927c6cb42abeed1107c09df778502b107bfe0106e150e50e9358c"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g540_l1",
+   "goal": "goal:g5.40",
+   "line": "1",
+   "kind": "claim",
+   "committed": "proved",
+   "committed_src": [
+    [
+     "df6ddf4d06ddbb28448ef90314680d78aaddaf42",
+     ".agi/context/local-maxxing/mutscore/results_r2.json"
+    ],
+    "H_F1_all.verdict"
+   ],
+   "proved": [
+    "ge",
+    [
+     "var",
+     "g540_survived"
+    ],
+    2
+   ],
+   "cite": "H-F1 (remix, \"the proved ledger holds vacuous proofs\") PROVED iff >= 2 of n mutants read survived; RED iff <= 1.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.40.md",
+    "blob_sha256_at_HEAD": "3c9214e700fc6803eb0f780152ac0750073de8ac172fbf2e323dd8ca03138f78"
+   },
+   "verdicts_over_free_clauses": [
+    "proved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "proved"
+  },
+  {
+   "id": "g540_l2",
+   "goal": "goal:g5.40",
+   "line": "2",
+   "reason": "round 2 commits H-F2's n only inside a text void reason, never as an integer key",
+   "cite": "H-F2 (plasma, \"the tilt is a number\") is scored on the ARM-SWAP runs only: the arm swap is run on EVERY item where one is defined (a second run where an own mutant also exists), its n = the items with a defined arm swap; PROVED iff survivors >= max(5, n/4); RED if fewer; VOID if that n < 10. Both columns reported per item. Either way the counts are the deliverable.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.40.md",
+    "blob_sha256_at_HEAD": "3c9214e700fc6803eb0f780152ac0750073de8ac172fbf2e323dd8ca03138f78"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g540_l2b",
+   "goal": "goal:g5.40",
+   "line": "2b",
+   "reason": "a definition of n, no verdict",
+   "cite": "n (remix): the qualifying items that HAVE a mutant AND ran; NOT KILLABLE and NOT RUNNABLE are reported beside n and never counted as survived; NOT KILLABLE is its own reported number (a vacuity signal).",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.40.md",
+    "blob_sha256_at_HEAD": "3c9214e700fc6803eb0f780152ac0750073de8ac172fbf2e323dd8ca03138f78"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g540_l3",
+   "goal": "goal:g5.40",
+   "line": "3",
+   "kind": "gate",
+   "committed": "proved",
+   "committed_src": [
+    [
+     "df6ddf4d06ddbb28448ef90314680d78aaddaf42",
+     ".agi/context/local-maxxing/mutscore/results_r2.json"
+    ],
+    "H_F1_all.void_reasons"
+   ],
+   "note": "a VOID rule: not void -> proved (the gate holds); n = the qualifying items with a mutant that ran (line 2b) = H_F1_all.items",
+   "void": [
+    "or",
+    [
+     "gt",
+     [
+      "var",
+      "g540_not_runnable"
+     ],
+     5
+    ],
+    [
+     "lt",
+     [
+      "var",
+      "g540_items"
+     ],
+     10
+    ]
+   ],
+   "proved": [
+    "not",
+    [
+     "or",
+     [
+      "gt",
+      [
+       "var",
+       "g540_not_runnable"
+      ],
+      5
+     ],
+     [
+      "lt",
+      [
+       "var",
+       "g540_items"
+      ],
+      10
+     ]
+    ]
+   ],
+   "cite": "VOID if more than 5 of 20 are NOT RUNNABLE, or n < 10.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.40.md",
+    "blob_sha256_at_HEAD": "3c9214e700fc6803eb0f780152ac0750073de8ac172fbf2e323dd8ca03138f78"
+   },
+   "verdicts_over_free_clauses": [
+    "proved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "proved"
+  },
+  {
+   "id": "g540_l4",
+   "goal": "goal:g5.40",
+   "line": "4",
+   "reason": "the instrument mutants are scored as outcome strings (survived / killed)",
+   "cite": "Instrument mutants, each must read as stated, else VOID: M1 a planted item whose check is `exit 0` (always passes) is scored survived/vacuous; M2 a planted strong check reads RED under its mutant; M3 goal:g5.35 round 2's committed check with the null-viewer rows and the salt-mutant rows swapped scores killed.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.40.md",
+    "blob_sha256_at_HEAD": "3c9214e700fc6803eb0f780152ac0750073de8ac172fbf2e323dd8ca03138f78"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g541_l1",
+   "goal": "goal:g5.41",
+   "line": "1",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "d48b32691e7f6c337c3bfab673cab7e9d401baab",
+     "datasets/plasma/2026-11-05-g5.41-blend-race/verdict.json"
+    ],
+    "S-OUT"
+   ],
+   "proved": [
+    "and",
+    [
+     "ge",
+     [
+      "mul",
+      2,
+      [
+       "var",
+       "g541_s_valid"
+      ]
+     ],
+     [
+      "var",
+      "g541_s_total"
+     ]
+    ],
+    [
+     "free",
+     "r_s_minus_g_5of5_mean"
+    ]
+   ],
+   "note": "valid fraction >= 0.5  <=>  2 x valid >= total (exact); the score-delta clause (floats) is quantified",
+   "cite": "S-OUT (plasma) PROVED iff S's valid fraction >= 0.5 AND the paired per-seed delta S - G(sigma* on val) on score is > 0 on 5/5 seeds with mean > 0.05; RED if either fails.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.41.md",
+    "blob_sha256_at_HEAD": "f7fc6935e505a0d9a7bab3472e4091898b0745003920871575781d649d7fad94"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g541_l2",
+   "goal": "goal:g5.41",
+   "line": "2",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "d48b32691e7f6c337c3bfab673cab7e9d401baab",
+     "datasets/plasma/2026-11-05-g5.41-blend-race/verdict.json"
+    ],
+    "S-MECH"
+   ],
+   "proved": [
+    "and",
+    [
+     "ge",
+     [
+      "mul",
+      2,
+      [
+       "var",
+       "g541_blend0"
+      ]
+     ],
+     [
+      "var",
+      "g541_invalid0"
+     ]
+    ],
+    [
+     "free",
+     "r_step1_s_below_g_5of5"
+    ]
+   ],
+   "note": "step 0's BLEND share >= 50%  <=>  2 x blend >= invalid; step 1's per-seed share comparison (floats) is quantified",
+   "cite": "S-MECH (plasma) PROVED iff step 0's BLEND share >= 50% of g5.39's invalid samples AND, in step 1, S's BLEND share of its own invalid samples is below G's on 5/5 seeds; RED if either fails. A seed where an arm has ZERO invalid samples has BLEND share 0 for that arm; if S and G both have zero invalid on a seed, that seed counts as NOT below. If step 0 reads < 50%, S-MECH is RED at the pre-run; S-OUT still runs but cannot be credited to topology.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.41.md",
+    "blob_sha256_at_HEAD": "f7fc6935e505a0d9a7bab3472e4091898b0745003920871575781d649d7fad94"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g541_l3",
+   "goal": "goal:g5.41",
+   "line": "3",
+   "kind": "claim",
+   "committed": "disproved",
+   "committed_src": [
+    [
+     "d48b32691e7f6c337c3bfab673cab7e9d401baab",
+     "datasets/plasma/2026-11-05-g5.41-blend-race/verdict.json"
+    ],
+    "G-CHAMFER"
+   ],
+   "proved": [
+    "and",
+    [
+     "ge",
+     [
+      "mul",
+      2,
+      [
+       "var",
+       "g541_gc_valid"
+      ]
+     ],
+     [
+      "var",
+      "g541_gc_total"
+     ]
+    ],
+    [
+     "free",
+     "r_coverage_ge_0_9"
+    ],
+    [
+     "free",
+     "r_gc_minus_g_5of5_mean"
+    ]
+   ],
+   "note": "valid >= 0.5  <=>  2 x valid >= total; coverage and the score delta (floats) are quantified",
+   "cite": "G-CHAMFER (remix) PROVED iff (i) valid fraction >= 0.5 AND coverage among valid >= 0.9 (means over seeds and cues, sigma* on val), AND (ii) the paired per-seed delta G-chamfer - G(sigma* on val) on score is > 0 on 5/5 seeds with mean > 0.05; RED if either fails.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.41.md",
+    "blob_sha256_at_HEAD": "f7fc6935e505a0d9a7bab3472e4091898b0745003920871575781d649d7fad94"
+   },
+   "verdicts_over_free_clauses": [
+    "disproved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "disproved"
+  },
+  {
+   "id": "g541_l4",
+   "goal": "goal:g5.41",
+   "line": "4",
+   "reason": "the mutants read float scores (<= 0.05) and float scorer fractions",
+   "cite": "Mutants, each must read RED, else the named lines are VOID: M1-S = S with every unit frozen at its likelier state scores <= 0.05 on every seed (else S-OUT and S-MECH VOID); M1-C = G-chamfer with ONE draw frozen per seed and cue scores <= 0.05 on every seed (else G-CHAMFER VOID); M2 = the scorer arm as in g5.39 (true lines >= 0.9, Bernoulli(0.5) valid <= 0.05; else the whole round VOID).",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.41.md",
+    "blob_sha256_at_HEAD": "f7fc6935e505a0d9a7bab3472e4091898b0745003920871575781d649d7fad94"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g542_l1",
+   "goal": "goal:g5.42",
+   "line": "1",
+   "reason": "reads check statuses and wall seconds",
+   "cite": "STEP 0 RED (toolchain, the leaf stops there): not discharged within 10 min wall + 3 GiB, OR the mutant is accepted.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.42.md",
+    "blob_sha256_at_HEAD": "04b87c57406c5940a4fce8986b6e9321576c3db08ddcf30408fc7404fa2552bc"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g542_l2",
+   "goal": "goal:g5.42",
+   "line": "2",
+   "kind": "claim",
+   "committed": "proved",
+   "committed_src": [
+    "experiment:dt1-bend2-law-1105",
+    "readout: NOT RED"
+   ],
+   "note": "a RED rule: not RED -> proved; X_test / 8939 < 0.99  <=>  100 x X_test < 99 x n_test (exact)",
+   "proved": [
+    "and",
+    [
+     "ge",
+     [
+      "var",
+      "g542_x_all"
+     ],
+     12642
+    ],
+    [
+     "ge",
+     [
+      "mul",
+      100,
+      [
+       "var",
+       "g542_x_test"
+      ]
+     ],
+     [
+      "mul",
+      99,
+      [
+       "var",
+       "g542_n_test"
+      ]
+     ]
+    ]
+   ],
+   "cite": "STEP 1 RED iff X_all < 12642 (0.99 x 12769) or X_test / 8939 < 0.99: quantization broke the cut.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.42.md",
+    "blob_sha256_at_HEAD": "04b87c57406c5940a4fce8986b6e9321576c3db08ddcf30408fc7404fa2552bc"
+   },
+   "verdicts_over_free_clauses": [
+    "proved"
+   ],
+   "integer_exact": true,
+   "python_verdict": "proved"
+  },
+  {
+   "id": "g542_l3",
+   "goal": "goal:g5.42",
+   "line": "3",
+   "reason": "the counter-proofs were not reached: no verdict",
+   "cite": "COUNTER-PROOFS, each must FAIL the checker, else VOID: (a) \"exactly X+1\" and \"exactly X-1\"; (b) the one-weight flip: the LAW with X on the readout with its largest-|w| entry negated (if that leaves the count at X, the next-largest; the choice computed by Python and committed before the run).",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.42.md",
+    "blob_sha256_at_HEAD": "04b87c57406c5940a4fce8986b6e9321576c3db08ddcf30408fc7404fa2552bc"
+   },
+   "integer_exact": false
+  },
+  {
+   "id": "g542_l4",
+   "goal": "goal:g5.42",
+   "line": "4",
+   "reason": "reads check statuses, RSS and wall seconds",
+   "cite": "VOID also if: the check needs the network, takes > 3 GiB, or the wall exceeds 1200 s (pre-declared fallback: 113 LAWs, one per a, 113 pairs each, summed, one process); or the reference and the law's integer semantics differ on any pair; or the install exceeds 5 GiB.",
+   "cite_src": {
+    "path": "../../../nodes/goal/g5.42.md",
+    "blob_sha256_at_HEAD": "04b87c57406c5940a4fce8986b6e9321576c3db08ddcf30408fc7404fa2552bc"
+   },
+   "integer_exact": false
+  }
+ ],
+ "excluded": [
+  {
+   "goal": "goal:g5.43",
+   "reason": "goal status active: not a closed round (its results landed 12:41Z, during this leaf)"
+  }
+ ],
+ "mc": {
+  "pinned": "g5.36 line 1, the clause 'N_f <= threshold' moved 64 -> 128, the line staying DISPROVED",
+  "pinned_feasible": false,
+  "why": "g5.36 committed N_f only as null (its own text: none -> N_f > 64); the 128 is a float accuracy on the extension grid, never a committed integer, so 'N_f <= 128' is undecidable on committed integers",
+  "fallback": "g535_l2",
+  "fallback_rule": "MC fallback rule (committed before the run): the first integer-exact line, in census order, whose proved\npredicate has exactly ONE comparison; its threshold is moved one past the measured value."
+ }
+}
