@@ -47,3 +47,7 @@ Void checks, all clear: both checkpoint shas match (pc `8e174e98...`, s3 `04f96c
 (R_sum, R_diff) per family at N = 32: joint 5 (0.29, 0.70), 1 (0.05, 1.00), 45 (0.21, 0.93), 34 (0.94, 1.00); random seed 0: (0.22, 1.00), (0.51, 1.00), (0.21, 0.98), (0.86, 1.00); M1: all >= 0.93. **R_diff is ~1 under every pick, random included:** the neurons of this net carry phi_a ~ phi_b + c (a+b is symmetric in a and b), so phi_a - phi_b barely varies, max(R_sum, R_diff) is pinned near 1 by R_diff, and the greedy optimises noise in R_diff instead of spreading R_sum (family 34: 0.94 joint vs 0.86 random). The pre-registered objective cannot express joint-phase spread on a symmetric net; that, not the phase idea itself, is what this RED measures. A sum-phase-only spread pick (minimise R_sum) is the untested neighbour, not run here.
 
 **Verdict: disproved** (H1 RED, H2 RED, H3 RED; no claim void).
+
+## Test record (stated per SM's gate, thought-master [fix] 12:41Z)
+The tests ran in the private <scratch> venv WITH torch 2.14.0+cpu: phase 9 passed, 0 skipped (10 after the 12:4xZ forward fix). The module calls pytest.importorskip("torch"), so WITHOUT torch the whole module SKIPS: a skip is not a pass, and no skipped run is part of this round's record.
+Forward fix (12:4xZ, a new commit; the round's run used the pre-fix bytes): `verdicts()` read a MISSING write-arm cell as 0.0, i.e. H3 'disproved'; it now reads H3 VOID. This round is unaffected: results.json carries every write cell (8, 16, 24, 32) and every OMP cell, so H3 = disproved stands.
