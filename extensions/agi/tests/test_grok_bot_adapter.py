@@ -391,9 +391,12 @@ def _flags_in(argv: list[str]) -> list[str]:
 
 
 def _stub_p_hits(root: Path, paths=ADAPTER_PATH) -> tuple[int, int]:
-    """(files scanned, files holding the old stub's argv token `"-p"`)."""
+    """(files scanned, files holding the old stub's argv token `-p`, in
+    either quote form: a single-quoted `'-p'` passed a double-quote-only
+    grep (sp 21:49:21Z 11-05))."""
     files = [root / p for p in paths if (root / p).is_file()]
-    hits = [f for f in files if '"-p"' in f.read_text(encoding="utf-8")]
+    hits = [f for f in files
+            if any(t in f.read_text(encoding="utf-8") for t in ('"-p"', "'-p'"))]
     return len(files), len(hits)
 
 
@@ -444,10 +447,11 @@ def test_the_stub_p_token_is_gone_from_the_landed_adapter_path(capsys):
 
 
 def test_the_stub_p_grep_reads_red_on_a_planted_token(tmp_path):
-    """Mutant row for the grep: a planted `"-p"` reads as a hit, and an empty
-    tree reads 0 files scanned."""
+    """Mutant row for the grep: a planted `-p` reads as a hit in EITHER quote
+    form, and an empty tree reads 0 files scanned."""
     planted = tmp_path / ADAPTER_PATH[0]
     planted.parent.mkdir(parents=True)
-    planted.write_text('ARGV = ["bin", "-p", prompt]\n', encoding="utf-8")
-    assert _stub_p_hits(tmp_path) == (1, 1)
+    for line in ('ARGV = ["bin", "-p", prompt]\n', "ARGV = ['bin', '-p', prompt]\n"):
+        planted.write_text(line, encoding="utf-8")
+        assert _stub_p_hits(tmp_path) == (1, 1), line
     assert _stub_p_hits(tmp_path / "nothing") == (0, 0)
