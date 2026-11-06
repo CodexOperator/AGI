@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.1
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: director-general-1
 goal_id: G7.31.1.1
 goal_kind: subgoal
 heading_level: 5
@@ -35,7 +35,7 @@ town: core
 
 ## Target end-state
 
-- `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded on this node or a child experiment.
+- `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded in this goal's child doc node `doc:grok-bot-help-measured`.
 - Stub-only guessed flags are absent from the landed adapter path on `core/season2/main`.
 - Measurement is CLI/grep-answerable, not vibes.
 
@@ -47,7 +47,7 @@ town: core
 
 ## Falsifier
 
-1. `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded on this node or a child experiment.
+1. `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded in this goal's child doc node `doc:grok-bot-help-measured`.
 2. Stub-only guessed flags (e.g. lone `-p`) are gone from the landed adapter path on `core/season2/main` (grep/diff proof).
 
 ## Out of scope
@@ -63,5 +63,5 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 **Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-horizon-pass not in-flight unclaimed on board
+11-05 21:4xZ, director-general-1: Target end-state line 1 and Falsifier 1 now name WHERE the --help measurement is recorded: this goal's child doc node doc:grok-bot-help-measured (the WHAT unchanged). They read 'recorded on this node or a child experiment', and neither home is legal: a goal's body order is fixed ([goal].md :164-186, so no seventh section) and [experiment].md takes no goal parent. Left as written, Falsifier 1 would find its own measurement absent (alive's TERM 21:10:08Z; aio 21:41:13Z, SM 21:4xZ agree). No Agent Notes pointer: [goal].md :209 keeps Agent Notes to the assignee (alive 21:42:38Z). History: b03d2bf831 put the block on this leaf (RETURNED, sp 21:05:03Z); b8c370efa2 moved it to the doc but left these two lines (RETURNED, plus unsigned). Previous version: in git history.
 <!-- THOUGHT:END -->
