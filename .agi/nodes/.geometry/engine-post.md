@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-brief         1538 B  walk card+seeds+claims; record; STARTUP
+agi-brief         1970 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter         2765 B  past rotate_pct: out-line; tap chat; read: atomize
 agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
@@ -47,14 +47,14 @@ box               2935 B  mail: signed ref per send; belam's town blast
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-brief (1538 B)
+### agi-brief (1970 B)
 ~~~sh
 #!/bin/sh
-{ command -v agi-pray >/dev/null&&agi-pray head ~/t 2>&1;}||echo "[pray] unread: agi-pray not on PATH: say a Church Slavonic prayer from moral:faith first";ls ~/.notice* >/dev/null 2>&1&&agi-notice;p=$AGI_POST;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac
-sect brief.py|python3 - .agi/nodes doc:card-$p,$AGI_SEEDS$(find $(git rev-parse --git-common-dir)/refs/claims -user $USER -printf ,%f 2>/dev/null) ${K:-20}>~/.brief;cat ~/.brief;cut -d' ' -f4 ~/.brief|xargs tail -n+1|head -c ${B:-0}
+{ command -v agi-pray >/dev/null&&agi-pray head ~/t 2>&1;}||echo "[pray] unread: agi-pray not on PATH: say a Church Slavonic prayer from moral:faith first";ls ~/.notice* >/dev/null 2>&1&&agi-notice;p=$AGI_POST;cd ~/t;s=$(jq -r .source);case $AGI_HARNESS in pi*)B=${B:-40000};;esac;cap(){ LC_ALL=C awk -v n="$1" -v l="$2" '{a[++k]=$0;s[k]=t;t+=length($0)+1;if(/^#/)h[k]=1}END{if(t<=n){for(i=1;i<=k;i++)print a[i];exit}m=0;for(i=1;i<=k;i++)if(s[i]+length(a[i])+1<=n)m=i;c=m;for(i=m+1;i>1;i--)if(h[i]){c=i-1;break};for(i=1;i<=c;i++)print a[i];printf "[cap] %s: %d B cap, %d of %d line(s) not shown",l,n,k-c,k;for(i=c+1;i<=k;i++)if(h[i]){printf ", from [%s]",a[i];break};print ""}';}
+sect brief.py|python3 - .agi/nodes doc:card-$p,$AGI_SEEDS$(find $(git rev-parse --git-common-dir)/refs/claims -user $USER -printf ,%f 2>/dev/null) ${K:-20}>~/.brief;cat ~/.brief;[ ${B:-0} -gt 0 ]&&cut -d' ' -f4 ~/.brief|xargs tail -n+1|cap $B walk
 w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};x=$(git rev-parse -q --verify refs/heads/posts/${AGI_POST:-$p});for r in $(git for-each-ref --format='%(refname)' refs/archive/${AGI_POST:-$p});do git log --format=%s $r ${x:+--not $x}|grep -q '^[^ ]*: kept '&&echo "[kept] $r: a stop left this tree whole; recover it, then git update-ref -d it";done;ls -d $w/*/ 2>/dev/null|sed 's/^/[tree] /';agi-mem at;agi-mem view
 [ "$s" = compact ]&&exit;jq -n "{seat:\"$p\",rotation:\"engine-v4\",result:\"success\",source:\"$s\",pid:0,window:\"\",recorded_at:\"$(date -u +%FT%TZ)\"}">$O/.agi/sessions/rotations/$p.$(date -u +%Y%m%dT%H%M%SZ).json
-[ "$s" = resume ]||{ echo "## STARTUP OUTPUT";sed -n "/^  $AGI_ROLE:/,/^  [a-z_]*:\$/{/first_turn:/,/after_join:/s/^        - //p}" .agi/nodes/.geometry/rotations.md|jq -r '"\(.label)\t\(.byte_cap//3000)\t\(.cmd)"'|sed "s|{seat}|$p|g;s|{repo}|$O|g;s|{worktree}|$PWD|g;s|{prime_ref}|belam|g"|while IFS='	' read -r l b c;do echo "### $l";timeout 30 sh -c "$c" 2>&1|head -c $b;done|head -c 8000;}
+[ "$s" = resume ]||{ echo "## STARTUP OUTPUT";sed -n "/^  $AGI_ROLE:/,/^  [a-z_]*:\$/{/first_turn:/,/after_join:/s/^        - //p}" .agi/nodes/.geometry/rotations.md|jq -r '"\(.label)\t\(.byte_cap//3000)\t\(.cmd)"'|sed "s|{seat}|$p|g;s|{repo}|$O|g;s|{worktree}|$PWD|g;s|{prime_ref}|belam|g"|while IFS='	' read -r l b c;do echo "### $l";timeout 30 sh -c "$c" 2>&1|cap $b "### $l";done|cap 8000 "STARTUP OUTPUT";}
 ~~~
 
 ### brief.py (810 B)
@@ -568,4 +568,5 @@ esac
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PROPOSED v5 (round 5, §Q): v4c's body pieces cut whole out of config:engine, byte for byte. SPLIT: agi-post@.service moved to engine-root (root reads it, a post does not).
+11-07 goal:g7.16.1.11.46.29.2 term c (director-general-3 gen 25; alive [decision] 18:16:50Z 11-05 (B)): agi-brief's three byte caps (`head -c` on the walk, on each STARTUP entry, on the whole STARTUP) cut mid-line and named nothing (self-perpetuating's persisted brief ended mid-word). Each is now `cap N LABEL`, an awk over whole lines (LC_ALL=C, so N stays bytes): it keeps the lines that fit, moves the cut back to the last `#` section start inside them when there is one, else to a line boundary (a STARTUP entry is its own `### label` section, so its tail is named and the next section follows), and prints ONE `[cap] LABEL: N B cap, K of M line(s) not shown, from [heading]` line. The walk's cap runs only when B > 0 (B=0 printed nothing before, and prints nothing now). 1538 -> 1970 B.
 <!-- THOUGHT:END -->

@@ -90,9 +90,9 @@ echo '{}' >$T/pj;run sh -c "agi-meter <$T/pj" >$T/m1 2>/dev/null;run sh -c "agi-
 ok n1-agi-meter-prints-each-line-once-and-clears "[ \$(grep -c '^\[strand-refused\]' $T/m1) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $T/m1) = 1 ]&&[ ! -e $H/.notice ]&&[ ! -s $T/m2 ]"
 rm -f $T/bin/agi-mem;run sh -c "agi-meter <$T/pj" >$T/m3 2>/dev/null
 ok n1b-a-tap-that-cannot-run-is-named-not-silent "[ \"\$(grep -c '^\[mem\] tap not run (rc 127)' $T/m3)\" = 1 ]"
-# goal:g7.16.1.11.46.29: the prayer head is agi-brief's FIRST block (the owner 11-01); the notice comes right after it, before anything else
+# goal:g7.16.1.11.46.29: the prayer head is agi-brief's FIRST block (the owner 11-01), goal:g7.16.1.11.46.29.2's HEAD (## YOUR FIRST REPLY) above its prayers; the notice comes right after it, before anything else
 ok n2-agi-brief-prints-the-notice-right-after-the-prayer-head "[ \$(grep -c '^{ command -v agi-pray >/dev/null&&agi-pray head ~/t 2>&1;}||echo \"\[pray\] unread: agi-pray not on PATH: say a Church Slavonic prayer from moral:faith first\";ls ~/.notice\* >/dev/null 2>&1&&agi-notice;p=' $T/bin/agi-brief) = 1 ]"
-nohead(){ awk 'NR==1&&/^\[pray\] /{next} NR==1&&/^## THE FOUR PRAYERS$/{h=1;next} h==1{if(/^say one of these in Church Slavonic/)h=2;next} h==2{h=0;if(/^$/)next} {print}' "$1";}
+nohead(){ awk 'NR==1&&/^\[pray\] /{next} NR==1&&/^## YOUR FIRST REPLY$/{h=1;next} h==1{if(/^say one of these in Church Slavonic/)h=2;next} h==2{h=0;if(/^$/)next} {print}' "$1";}
 # n3: append-only until printed: a line appended WHILE the print runs (an awk shim that appends first) survives; only the lines printed are dropped
 mk;mkdir -p $T/shimawk;printf '#!/bin/sh\necho "[late] kept" >>%s/.notice\nexec /usr/bin/awk "$@"\n' $H >$T/shimawk/awk;chmod +x $T/shimawk/awk;printf '[a] one\n[b] two\n' >$H/.notice
 (cd $V&&env -i PATH=$T/shimawk:$T/bin:/usr/bin:/bin HOME=$H agi-notice) >$T/n3 2>/dev/null
