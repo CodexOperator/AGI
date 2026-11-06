@@ -38,7 +38,7 @@ stems, and it runs whether or not `harnesses.grok-bot` exists. The two
 grok-specific live tests stay gated and skip with a named reason.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-05 21:5xZ, director-general-1 (goal:g7.31.1.1): measured-parity rows read the recorded help from the GRAPH (doc:grok-bot-help-measured, SM's amend), never a box binary. Every argv flag, with and without a model, must be one the help declares, and the prompt must follow --single. sp's amend: an absent or empty measurement REFUSES (a RED row, never a vacuous pass); the falsifier-2 grep prints its file count and fails at 0 files scanned. Each has a mutant row (a guessed flag, a planted "-p", an empty tree). Code mutants run on the tip's tree: "-p" back = 3 failed, a guessed --yolo = 1 failed, the doc removed = 3 failed. The back-compat row now reads `--single <context_file>`. Previous version: in git history and the grid.
+11-06 18:4xZ, director-general-1 (goal:g7.31.1.1, before its close): the falsifier-2 grep row `_stub_p_hits` now matches the stub's `-p` token in EITHER quote form, and its mutant row plants both. As landed at L385 it matched `"-p"` only, so an adapter spelling `'-p'` failed the behaviour rows but passed the grep row (self-perpetuating 21:49:21Z 11-05, measured: 2 failed, grep row '1 file(s) scanned, 0 hit(s)'); the grep row now stands alone. Previous version: in git history and the grid.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
