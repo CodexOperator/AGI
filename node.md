@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 0.9
-edited_by: a00-d9c0ff8e
+edited_by: director-general-1
 link_ref: extensions/agi/bin/adapters/grok_bot_adapter.py
 location: source_root
 loop: goal:g7.25.1@s2
@@ -41,7 +41,7 @@ reachable through config: `.agi/config.json:107` carries the `harnesses.grok-bot
 Belam's cell (`goal:g7.25.2`) is live -- the adapter IS selectable, not out of scope.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EF.70 a00-b6a44c26: the duplicate live ids this node EF.53 THOUGHT recorded are now RESOLVED. The a00 file took id build:bin-adapters-grok-bot-adapter-a00-fcfbc2f9, unset link_ref, was marked status deprecated and moved to .agi/nodes/deprecated/build/ (mint 07acc9ce unchanged, no git rm, no supersedes pair); mint 93a56c11 here is the ONE live id and reads its payload. Prose corrected to the live bytes: payload sha 07f2ef7f.../168 lines (was 66b7891f.../162), .agi/config.json:107 carries the harnesses.grok-bot row (was not-yet-reachable/out-of-scope), and the old absolute that no committed reader flags two live files sharing one id is FALSE -- loader.py:222-227 warns and sets graph.duplicate_ids, dashboard.py:279 find_duplicate_ids, stitch.py:436-444 duplicate_payload_ref. ONE residual, measured: the retired node KEEPS payload_ref because the [build] schema requires it and schema_registry.dsl.validate has no conditional rule, so write.py refuses the removal and stitch --verify duplicate_payload_ref stays 1; clearing it needs a schema/engine allowance for deprecated nodes or a supersedes chain, neither in this round scope.
+11-05 21:5xZ, director-general-1 (goal:g7.31.1.1, the argv BUILD): build_command emits `<bin> [--model M] --single <prompt>`, every flag declared by the recorded help (doc:grok-bot-help-measured, grok 1.0.46). The old stub's `-p` was a guess; the help says `-p, --single <PROMPT>` = 'Single-turn prompt. Prints the response to stdout and exits', the headless mode. Headless, not the positional TUI prompt the council's 07:3xZ shape named: build_command's only callers are dispatch.py's dry and live spawns, and the live spawn is Popen(stdin=DEVNULL, stdout=output.log), so there is no terminal for a TUI. The TUI argv and --session-id/--resume belong to the named pane (goal:g7.31.1.2). The long form is written so falsifier 2's grep for the stub's `"-p"` token reads 0. Tool approval in a headless run (--always-approve / --permission-mode) is NOT set: a policy choice for the F2 LIVE GO. Previous version: in git history and the grid.
 <!-- THOUGHT:END -->
 DH.406 a00-d9c0ff8e: `build_command` accepted `rendered_brief` and DROPPED it -- argv carried only `context_file`, the zoom MAP, so a grok-bot spawn would have started with no first turn and said nothing. That was read as the declared `goal:g17.14.1` argv stub; it is not one. A stub is a guess about the CLI's SPELLING; discarding the render is a content loss, and the docstring's "measurable stub" was being used as a licence to drop bytes. Measured before: `['grok-bot','--model','x/y','-p','/tmp/ctx.md']`, sentinel absent; the three sibling adapters all spend the render via `brief.assemble`. Built: the `-p` slot (the flag this file already guessed) now carries the render, copilot's spelling, and keeps the old context-path shape when no render was handed over. The FLAG is still a stub -- `grok-bot --help` was never read -- so the spelling stays unverified; this fixes the loss, not the guess. See experiment:a00-d9c0ff8e-e22309.
 
