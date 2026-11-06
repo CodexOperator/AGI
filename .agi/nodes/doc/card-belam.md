@@ -156,11 +156,11 @@ r17 | remote viewing as a formal, trainable, hill-climbable process (owner 11:4x
 | r11 | benchmarks: agi vs raw models, harnesses, swarm harnesses; publishable data with the code + graph; stream + local-town as "outside projects" | src:chat | target: leaf | lap1101 |
 | r12 | node count = grid refs (nodes), never versions; at rollover most of the graph moves to a trunk so node size shrinks | src:chat | target: leaf (metric) + rollover plan | lap1101 |
 | r13 | other masters / systems see only the latest graph (latest build nodes), not core's full history | src:chat | target: leaf | lap1101 |
-| r14 | local-town: may be shut down / restarted to run from network media instead of the local OS ("play town") | src:chat | src:chat | CLOSED 05:1xZ 11-06: done differently by the owner's word, the crew runs in a container on the PC with the NAS here (TM CREW row) |
+| r14 | local-town: may be shut down / restarted to run from network media instead of the local OS ("play town") | src:chat | CLOSED 05:1xZ 11-06: done differently by the owner's word, the crew runs in a container on the PC with the NAS here (TM CREW row) | lap1101 |
 | r15 | results + a live visual that captures everything, within ~2 weeks | src:chat | target: leaf (dashboard) | lap1101 |
-| r16 | use the extra box (local-town) and its resources | src:chat | src:chat | CLOSED 05:1xZ 11-06: done differently by the owner's word, the crew runs in a container on the PC with the NAS here (TM CREW row) |
-| h1 | Hermes hackathon, 7 days from 11-06 (owner: "we need to apply"); TM found Nous Hermes Agent Plugin Hackathon, closes 11-11, draft "falsify" | src:chat | TM builds privately; owner owes: GitHub + X account, deadline time zone; every outward act on the owner's yes | lap1106 |
-| h2 | TM to try cloud console keys via pi / droid / the other harness, Claude Code mods, until the Sunday limit | src:chat | TM leads; a key only on TM's box naming provider + purpose | lap1106 |
+| r16 | use the extra box (local-town) and its resources | src:chat | CLOSED 05:1xZ 11-06: done differently by the owner's word, the crew runs in a container on the PC with the NAS here (TM CREW row) | lap1101 |
+| hk1 | Hermes hackathon (owner: "we need to apply ... we have a week"); TM found Nous Hermes Agent Plugin Hackathon, closes 11-11, draft "falsify" | src:chat | TM builds privately; owner owes: GitHub + X account, deadline time zone; every outward act on the owner's yes | lap1106 |
+| hk2 | TM to try cloud console keys via pi / droid / the other harness, Claude Code mods, until the Sunday limit | src:chat | TM leads; a key only on TM's box naming provider + purpose | lap1106 |
 
 **owner 10-26 20:27:57Z (chat, to belam) — timed model order**
 | # | atom (owner ask, short) | source | state | lap |
