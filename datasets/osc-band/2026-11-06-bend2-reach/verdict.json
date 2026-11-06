@@ -1,0 +1,112 @@
+{
+ "H_REACH": "proved",
+ "calls": {
+  "O_one_image": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": null,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "U_synth": {
+   "as_predicted": true,
+   "call": "WITNESSED",
+   "conjunct": 0,
+   "draw": 0,
+   "draw0_exact": null,
+   "predicted": "WITNESSED",
+   "seed": 55100001
+  },
+  "U_z3enum": {
+   "as_predicted": true,
+   "call": "WITNESSED",
+   "conjunct": 0,
+   "draw": 0,
+   "draw0_exact": true,
+   "predicted": "WITNESSED",
+   "seed": 55100001
+  },
+  "g539_M1": {
+   "as_predicted": true,
+   "call": "VACUOUS",
+   "predicted": "VACUOUS"
+  },
+  "g539_M2": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "g541_M1C": {
+   "as_predicted": true,
+   "call": "VACUOUS",
+   "predicted": "VACUOUS"
+  },
+  "g541_M1S": {
+   "as_predicted": true,
+   "call": "VACUOUS",
+   "predicted": "VACUOUS"
+  },
+  "g541_M2": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "g543_M2": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "g543_Mz1": {
+   "as_predicted": true,
+   "call": "VACUOUS",
+   "predicted": "VACUOUS"
+  },
+  "g543_Mz2": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "g543_Mz6": {
+   "as_predicted": true,
+   "call": "VACUOUS",
+   "predicted": "VACUOUS"
+  },
+  "g546_M2": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "g546_MC": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  },
+  "g546_MK": {
+   "as_predicted": true,
+   "call": "UNKNOWN",
+   "draw0_exact": true,
+   "predicted": "UNKNOWN",
+   "reach_bound_95": "< 0.003 (rule of three, N = 1000)"
+  }
+ },
+ "check_sha256": "720d208dba654b0f06ffd074f6baec26b786a376ee1a7854d31b50188fe79c3b",
+ "counterproofs_all_fail": true,
+ "max_peak_rss_mib": 85,
+ "max_wall_s": 0.33,
+ "n_calls": 15,
+ "params_sha256": "58a9371703d8528ff1cfd0fcb30a4b6cc290c72e1887e3718fe56420f3f8a620",
+ "predicted_right": 15,
+ "void": []
+}

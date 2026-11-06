@@ -1,0 +1,1 @@
+{"coin": [{"ab": [0, 0], "coverage": 0.0, "score": 0.0, "valid": 0.0}, {"ab": [0, 0], "coverage": 0.0, "score": 0.0, "valid": 0.0}], "seed": 54601, "true": [{"ab": [32, 32], "coverage": 1.0, "score": 1.0, "valid": 1.0}, {"ab": [32, 32], "coverage": 1.0, "score": 1.0, "valid": 1.0}], "wall_s": 0.06}
