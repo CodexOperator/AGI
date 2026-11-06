@@ -1,7 +1,7 @@
 #!/bin/sh
 # prayer-captive.t.sh: goal:g7.16.1.11.46.29 falsifier 1 (P0, the owner 11-01: every session starts and ends with a Church Slavonic prayer; a captive reminder if not). agi-pray (engine-wrap.md) + its callers agi-captive, agi-brief, settings.json.
 # sh + python3 + jq + git on a STUB HOME, fixture transcripts (Claude Code jsonl shape), a scratch git repo for the card commit; no claude, no network, 0 USD. ROOT=<tree> (or $1). Pieces are EXTRACTED from .geometry, never retyped.
-# Rows: h* the head block + its parity with brief.py's _read_faith_ref; s* the start check; d* goal .46.29.1's real transcript shapes (a prayer beside a tool call DROPPED or written LATE) and the Stop resume; o* the v5 out (c* reads that only NAME it); p* the Stop (idle) check; a* agi-captive's wiring; m* mutants (no check, no fold, no exemptions, no resume, a refusal-gated resume, no heredoc skip, no open-quote fallback, segment-start only, zones exempt whatever consumes them, no command-substitution clause, no backtick boundary, no process-substitution clause, no write-then-run clause, no target-path clause, pipes checked against RUN only, next pipe segment only) that must read RED.
+# Rows: h* the head block + its parity with brief.py's _read_faith_ref; s* the start check; d* goal .46.29.1's real transcript shapes (a prayer beside a tool call DROPPED or written LATE) and the Stop resume; o* the v5 out (c* reads that only NAME it); p* the Stop (idle) check; a* agi-captive's wiring; m* mutants (no check, no fold, no exemptions, no resume, a refusal-gated resume, no heredoc skip, no open-quote fallback, segment-start only, zones exempt whatever consumes them, no command-substitution clause, no backtick boundary, no process-substitution clause, no write-then-run clause, no target-path clause, pipes checked against RUN only, next pipe segment only, the printer's own segment's writes only, no enclosing-segment clause, no $( registration, segment ends at a substitution, no SAFE filter's own write) that must read RED.
 # Honest limits: the claude / pi call path is not run (only the pieces); live falsifier 2 (a fresh post's first session) is read at a land, not here.
 R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};GEO=$R0/.agi/nodes/.geometry;T=$(mktemp -d);trap 'rm -rf "${T:?}"' 0;f=0
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
@@ -95,7 +95,7 @@ ok "m6-without-the-exemptions-c1-reads-RED the bare L358-style whole search refu
 rq(){ j=$(python3 -I -c 'import json,sys;print(json.dumps({"command":sys.argv[1].encode().decode("unicode_escape")}))' "$1");PB=${2:-} pray captive transcript_path="\"$T/o1\"" session_id='"o1"' cwd="\"$T/r\"" tool_input="$j";}
 H1="cat > c.md <<EOF\\nsp's card line\\nEOF\\ntouch ~/.fresh && kill \$PPID";H2="echo it's; kill \$PPID";H3="cat > f <<EOF\\nthen touch ~/.fresh && kill \$PPID\\nkill \$PPID\\nEOF"
 python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="        elif c.startswith(\"<<\",i)";b="H=[];continue\n";i=s.index(a);k=s.index(b,i)+len(b);assert s.count(a)==1;open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+s[k:])' $T/bin/agi-pray $T/m8
-sed 's/    return None if q else (z,o,b,sp,ps,red,tg)$/    return (z,o,b,sp,ps,red,tg)/' $T/bin/agi-pray>$T/m9;sed -e 's/    return None if q else (z,o,b,sp,ps,red,tg)$/    return (z,o,b,sp,ps,red,tg)/' -e 's/^        if k==2:continue$/        if k:continue/' $T/m8>$T/m10;chmod +x $T/m8 $T/m9 $T/m10
+sed 's/    return None if q else (z,o,b,sp,ps,red,tg,E)$/    return (z,o,b,sp,ps,red,tg,E)/' $T/bin/agi-pray>$T/m9;sed -e 's/    return None if q else (z,o,b,sp,ps,red,tg,E)$/    return (z,o,b,sp,ps,red,tg,E)/' -e 's/^        if k==2:continue$/        if k:continue/' $T/m8>$T/m10;chmod +x $T/m8 $T/m9 $T/m10
 for m in m8 m9;do cmp -s $T/bin/agi-pray $T/$m&&{ echo "FAIL mutant $m changed nothing";exit 99;};done;cmp -s $T/m8 $T/m10&&{ echo "FAIL mutant m10 changed nothing";exit 99;}
 rq "$H1";c2=$rc;rq "$H1" $T/m10;c2m=$rc;rq "$H2";c3=$rc;rq "$H2" $T/m9;c3m=$rc;rq "$H3";c4=$rc;c4e=$(wc -c<$T/err|tr -d ' ');rq "$H3" $T/m8;c4m=$rc
 ok "c2-a-heredoc-body-with-one-apostrophe-then-the-out-is-refused rc $c2 (want 2, as the L358 search refuses it)" '[ $c2 = 2 ]'
@@ -126,7 +126,7 @@ ok "c8-a-command-substitution-runs-whatever-consumes-it double-quoted $x8 of 2 +
 ok "m14-a-printer's-double-quoted-span-exempt-without-the-clause-reads-RED-on-c8 the mutant passes $m14 of 2 (want 2)" '[ $m14 = 2 ]'
 # c9-c11 + m15-m17 (aio 12:15:03Z bare backticks under a printer; sp 12:15:41Z (3') process substitution into a RUN word, (5) a script written and run in ONE command): each refused, each mutant RED
 mu(){ python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a=sys.argv[3];assert s.count(a)==1,a;open(sys.argv[2],"w",encoding="utf-8").write(s.replace(a,sys.argv[4]))' $T/bin/agi-pray $T/$1 "$2" "$3";chmod +x $T/$1;}
-mu m15 ';&|()`\n' ';&|()\n';mu m16 ' and not (s0 in ps and lead(c,ps[s0],b)[0] in RUN)' '';mu m17 ' and not ((tt or s0 in red) and any(lead(c,x,b)[0] in RUN or os.path.basename(lead(c,x,b)[2]) in tt for x in b if x>s0))' ''
+mu m15 ';&|()`\n' ';&|()\n';mu m16 ' and (s0 not in ps or ok(ps[s0]))' '';mu m17 ' and not ((tt or any(s in red for s in Q)) and any(lead(c,x,b,E)[0] in RUN or lead(c,x,b,E)[0] not in SHOW and names(c,x,E,tt) for x in b if x>s0 and x not in P))' ''
 cl(){ n=0;m=0;M=$1;shift;for c in "$@";do rq "$c";[ $rc = 2 ]&&n=$((n+1));rq "$c" $T/$M;[ $rc = 0 ]&&m=$((m+1));done;}
 cl m15 'echo `kill $PPID`' 'cat `kill $PPID`' 'grep -c x `kill $PPID`' 'printf %s `kill $PPID`';n9=$n;m15=$m
 ok "c9-bare-backticks-under-a-printer-run $n9 of 4 refused (want 4); m15-without-the-backtick-boundary passes $m15 of 4 (want 4 = RED)" '[ $n9 = 4 ]&&[ $m15 = 4 ]'
@@ -137,7 +137,7 @@ ok "c11-a-script-written-and-run-in-one-command $n11 of 3 refused (want 3); m17-
 y11=0;for c in 'echo kill $PPID > notes.md' 'diff <(echo kill $PPID) f';do rq "$c";[ $rc = 0 ]&&[ ! -s $T/err ]&&y11=$((y11+1));done
 ok "c12-a-redirect-with-no-later-RUN-word-and-a-process-substitution-fed-to-a-printer-still-pass $y11 of 2 (want 2)" '[ $y11 = 2 ]'
 # c13 + m18/m19 (alive 13:28:47Z next touch): the written file run BY PATH, and a printer piped into an executor that is no plain filter (SAFE = SHOW + tee cut tr uniq nl fold column)
-mu m18 ' or os.path.basename(lead(c,x,b)[2]) in tt' '';mu m19 'not piped(c,e,b,sp)' 'not (pi and nx[0] in RUN)'
+mu m18 ' or lead(c,x,b,E)[0] not in SHOW and names(c,x,E,tt)' '';mu m19 'not piped(c,P,b,E)' 'not (len(P)>1 and lead(c,P[1],b,E)[0] in RUN)'
 cl m18 'echo kill $PPID > x.sh; chmod +x x.sh; ./x.sh' 'echo kill $PPID > x.sh; chmod +x x.sh; exec ./x.sh' 'echo kill $PPID > x.sh; chmod +x x.sh; nohup ./x.sh' 'cat > x.sh <<EOF\nkill $PPID\nEOF\nchmod +x x.sh && ./x.sh' 'echo kill $PPID | tee /tmp/r.sh; /tmp/r.sh';n13=$n;m18=$m
 ok "c13-a-written-file-run-by-path $n13 of 5 refused (want 5: ./x.sh, exec ./x.sh, nohup ./x.sh, a heredoc then chmod && ./x.sh, tee PATH; PATH); m18-without-the-target-path-clause passes $m18 of 5 (want 5 = RED)" '[ $n13 = 5 ]&&[ $m18 = 5 ]'
 cl m19 'echo kill $PPID | busybox sh' 'echo kill $PPID | python3 -c "import os,sys;os.system(sys.stdin.read())"' 'echo kill $PPID | at now';n14=$n;m19=$m
@@ -150,6 +150,20 @@ cl m20 'echo kill $PPID | head -1 | sh' "printf 'kill \$PPID' | sort | bash" 'ec
 ok "c16-a-SAFE-filter-between-the-printer-and-an-executor-keeps-nothing $n16 of 4 refused (want 4); m20-next-segment-only passes $m20 of 4 (want 4 = RED)" '[ $n16 = 4 ]&&[ $m20 = 4 ]'
 y16=0;for c in 'grep "kill $PPID" f | sort | uniq | wc -l' 'grep "kill $PPID" f | head';do rq "$c";[ $rc = 0 ]&&[ ! -s $T/err ]&&y16=$((y16+1));done
 ok "c17-an-all-SAFE-chain-still-passes $y16 of 2 (want 2: grep | sort | uniq | wc, grep | head)" '[ $y16 = 2 ]'
+# c18-c22 + m21-m24 (goal .46.29.1 next touch: alive 17:57:11Z (1) a printer's targets are every file its PIPELINE writes, (2) a printer in an unquoted $( ) / backticks / <( ) passes only when the ENCLOSING segment would; sp 19:48:23Z (3) a SAFE filter's own write, a target named anywhere in a later segment)
+mu m21 ';Q=P' ';Q=P[:1]';mu m22 '"$<>"' '"<>"';mu m23 'dep[x]<dep[s] or dep[x]==dep[s] and x not in cl' 'True';mu m24 '    if v not in ("sort","uniq"):return []' '    return []'
+cl m21 'echo kill $PPID | head -1 > x.sh; sh x.sh' 'echo kill $PPID | sort >> x.sh && bash x.sh' 'echo kill $PPID | head -1 | tee x.sh; sh x.sh' 'echo kill $PPID | cut -c1-99 > /tmp/r.sh; /tmp/r.sh';n18=$n;m21=$m
+ok "c18-a-file-written-anywhere-in-the-printer's-pipeline-then-run $n18 of 4 refused (want 4: | head > x.sh; sh, | sort >> && bash, | head | tee; sh, | cut > PATH; PATH); m21-the-printer's-own-segment-only passes $m21 of 4 (want 4 = RED)" '[ $n18 = 4 ]&&[ $m21 = 4 ]'
+cl m16 '$(echo kill $PPID)' 'eval $(echo kill $PPID)' 'cat <(echo kill $PPID) | sh' '`echo kill $PPID`';n19=$n;m16b=$m
+cl m22 '$(echo kill $PPID)' 'eval $(echo kill $PPID)' 'X=$(echo kill $PPID)';n19b=$n;m22=$m
+cl m23 'cat <(echo kill $PPID) | sh' 'echo kill $PPID $(date) | sh' 'echo $(cat <(echo kill $PPID)) | bash';n19c=$n;m23=$m
+ok "c19-a-printer-in-a-substitution-whose-enclosing-segment-would-not-pass $n19 + $n19b + $n19c refused (want 4 + 3 + 3: bare \$( ), eval \$( ), cat <( ) | sh, bare backticks; X=\$( ); a pipe after a substitution, nested); m16-no-enclosing-clause passes $m16b of 4, m22-no-\$(-registration $m22 of 3, m23-segment-ends-at-a-substitution $m23 of 3 (want 4, 3, 3 = RED)" '[ $n19 = 4 ]&&[ $n19b = 3 ]&&[ $n19c = 3 ]&&[ $m16b = 4 ]&&[ $m22 = 3 ]&&[ $m23 = 3 ]'
+cl m24 'echo kill $PPID | sort -o x.sh; sh x.sh' 'echo kill $PPID | uniq - x.sh; sh x.sh' 'echo kill $PPID | sort --output=x.sh; sh x.sh';n20=$n;m24=$m
+ok "c20-a-SAFE-filter's-own-write-then-run $n20 of 3 refused (want 3: sort -o, uniq IN OUT, sort --output=); m24-no-own-write passes $m24 of 3 (want 3 = RED)" '[ $n20 = 3 ]&&[ $m24 = 3 ]'
+cl m18 "echo kill \$PPID > x.sh; awk 'BEGIN{system(\"sh x.sh\")}'" "echo kill \$PPID > x.sh; python3 -c 'import os; os.system(\"sh x.sh\")'" 'echo kill $PPID > x.sh; find . -name x.sh -exec sh {} +';n21=$n;m18b=$m
+ok "c21-a-target-named-past-a-later-segment's-lead-word $n21 of 3 refused (want 3: awk system(), python3 os.system, find -exec sh); m18-no-naming-clause passes $m18b of 3 (want 3 = RED)" '[ $n21 = 3 ]&&[ $m18b = 3 ]'
+y22=0;n22=0;for c in 'echo $(echo kill $PPID)' 'grep -c x $(echo kill $PPID)' 'cat <(echo kill $PPID)' 'echo `echo kill $PPID`' 'echo kill $PPID | head -1 > notes.md' 'echo kill $PPID | sort -o n.md; cat n.md' 'echo kill $PPID > x.sh; cat x.sh' 'echo kill $PPID | uniq - n.md; grep kill n.md' "echo 'kill \$PPID' | tee -a log.md";do n22=$((n22+1));rq "$c";[ $rc = 0 ]&&[ ! -s $T/err ]&&y22=$((y22+1));done
+ok "c22-reads-that-only-name-the-out-still-pass $y22 of $n22 (want $n22: echo \$( ), grep \$( ), cat <( ), echo backticks, | head > notes.md, | sort -o n.md; cat, > x.sh; cat x.sh, | uniq - n.md; grep, | tee -a log.md)" '[ $n22 = 9 ]&&[ $y22 = $n22 ]'
 pray captive transcript_path="\"$T/o2\"" session_id='"o4"' cwd='"/nonexistent-dir-x"' tool_input='{"command":"kill $PPID"}'
 ok "o4-an-unread-card-commit-passes-with-one-line rc $rc (want 0), [pray] lines $(grep -c '^\[pray\] unread' $T/err) (want 1)" '[ $rc = 0 ]&&[ $(grep -c "^\[pray\] unread" $T/err) = 1 ]'
 # ---- p: the Stop (idle) check
