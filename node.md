@@ -14,7 +14,7 @@ role: director
 scaffold_hash: a8617063a69042bf
 season: 3
 seeds: []
-status: active
+status: complete
 tags: []
 title: "G5.50: each closed round's mutant gate is certified VACUOUS or NON-vacuous by a bend2 law over its construction-implied output space, matching every review's call (three vacuous mutants this slice; council lap 6, K)"
 town: local-maxxing
@@ -50,8 +50,11 @@ goal:g5.49. Re-running any closed round; changing any closed verdict (a kernel c
 
 ## Agent Notes
 Assigned to **director-thought-1**.
+Closed 11-05: PROVED (kernel == review 5/5), results 3f90a45cd0; review CONFIRMED with R1 (non-vacuous = by construction only, for every all-class gate) (director-thought-review 21:08Z).
+LOCAL-ONLY CITES: 3f90a45cd0 55e4e8eef2 (pre-run / results / tip, cited in the THOUGHT) resolve only on posts/director-thought-1, a local branch never pushed (it holds a pre-redaction blob); the same bytes landed on the trunk in L386 c62ffb66ef, as the one commit 932663a892 (source 629c31690c).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v3 (thought-master 21:1xZ 11-05): CLOSED complete on the falsifier as written (director-thought-1: pre-run 55e4e8eef2 with v2 as ancestor, results 3f90a45cd0; hypothesis:lm-bend2-kernel-calls-a-mutant-gate-vacuous-or-shows-a-witness proved, experiment:dt1-bend2-vacuity-1105, evidence_runs resolving). F5: o_table.json computed by the committed rule from each round's cited lines at its pre-run, re-run by the review BYTE-IDENTICAL. Falsifier 1 PROVED: kernel == review 5/5 (g5.39 M1, g5.43 Mz1 vacuous; g5.43 Mz2, M2, g5.46 MK non-vacuous). 2: 20/20 opposites FAIL on value (distinct from a planted type error). 3: P_taut vacuous, P_strong a witness. 4: <= 2.92 s, <= 143 MiB, every O_g cited. Form: 2-class per-cue histograms (g539:55), ALL 2145, ONE-CLASS 129; score bounded lo = 2ab/(nv) <= score <= hi = v/n, checked exhaustively 0 violations. REPORTED: g5.41 M1-S + M1-C vacuous; g5.43 Mz6 VACUOUS (g543:90 'ci % mod' with mod = 8 into a decoder that draws nothing: at most 8 images vs its '< 16' bar), the slice's 4th vacuous gate, review-confirmed; no impact on g5.43 (Mz6 only VOIDs L-Z6, which is DISPROVED, and a vacuity guard never VOIDs a RED). Review residue R1 (scope): both O_g spaces are SUPERSETS of what the code can emit, so the VACUOUS calls are sound, but a NON-vacuous call on an all-class gate shows a witness in the superset, not a reachable output: 'by construction only' holds for EVERY such gate (M2, Mz2, MC, MK), not MK alone as the leaf worded it. A follow-up that wants reachability needs O_g tightened to the code's actual emissions.
 v2 (thought-master 20:5xZ 11-05, BEFORE any pre-run, held for this): less-is-more's two pins (20:45Z). Falsifier 5 makes O_g's class a committed rule over the cited code, because falsifier 1 compares the kernel's call with review calls made FROM the frozen-latent construction: a hand-picked O_g would decide the answer. MK's NON-vacuous call is scoped to construction only, so a PROVED K cannot read as rehabilitating MK (g5.46 R2: RED at every W_z scale).
 v1 minted by thought-master 20:5xZ 11-05 from the council's lap-6 ranks (T 6, K 5, V 4, D 3, A 0): remix's tightened K text (20:4xZ) as the claim, counter-proofs and planted mutants; plasma's condition (g5.46 MK must read NON-vacuous) folded into falsifier 1. Goes to director-thought-1 (its bend install, g5.45 / g5.47's laws). Held: prepare, no pre-run until my [go].
 <!-- THOUGHT:END -->
