@@ -24,7 +24,7 @@ agi-in            3476 B  kid spawn: capsule pull = graph|director|none
 agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-lane           1403 B  a Console lane's pi / claude -p / header config
 agi-captive        1360 B  window open: only agi-fill; a dead window: released
-agi-pray           10777 B  prayer: brief head, captive start + out, idle stop
+agi-pray           12097 B  prayer: brief head, captive start + out, idle stop
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -125,16 +125,16 @@ w=${AGI_FILL:-$HOME/.fill};[ -e "$w" ]||exit 0;command -v agi-fill >/dev/null||r
 printf '%s' "$j"|jq -r '.tool_input.command//""'|awk 'NR==1{f=$0}{n++}$0=="EOF"{e++;l=n}END{exit!((f~/^agi-fill (call|row) <<\047EOF\047$/&&e==1&&l==n)||(n==1&&f~/^agi-fill (open|call|row|close|check)( [^;&|`$()<>\\]*)?$/))}'&&exit 0;echo "captive: a fill window is open -- ONE agi-fill call | row | close, nothing chained" >&2;exit 2
 ~~~
 
-### agi-pray (10777 B)
+### agi-pray (12097 B)
 ~~~py
 #!/usr/bin/env python3
 # agi-pray head ROOT | captive | stop -- goal:g7.16.1.11.46.29 (P0, the owner 11-01): a session opens and closes with a Church Slavonic prayer from moral:faith, two spots, never per turn.
-# head: the prayers block of moral:faith (### 4.1, as brief.py's _read_faith_ref reads it) + the one-line ask. captive (PreToolUse, from agi-captive): exit 2 until an assistant text of THIS transcript holds a prayer, then ~/.prayed/<session> and never again; the v5 out (touch ~/.fresh, kill $PPID) also needs one in the newest assistant text since the card commit. stop (Stop): an idle-empty reply with no prayer is blocked ONCE PER SESSION (~/.prayed/<session>.end, or an earlier idle reply that prayed; stop_hook_active honoured). Prayers match after a FOLD (NFD, marks dropped, old letters to modern, casefold, final hard sign dropped). The marker is read FIRST: a prayed session opens no transcript except at the out (alive 08:04:04Z). A call carrying agent_id is a SUBAGENT inside a session, never captive: the docs name agent_id on its PreToolUse but not which transcript_path it gets. ANY unread input passes with one [pray] line: never a lock. goal .46.29.1: a Stop whose reply-final text prays in an UNMARKED session marks it and blocks once with GO, so the post resumes with no outside input; the out is the L358 whole search (OUT); a match is exempt only in a # comment, or when the segment that consumes it (its own, or the one holding the quote / the heredoc's <<) leads, past WRAP words, with a printer (SHOW) not piped to a RUN word; $( ) or backticks, bare (a segment boundary) or in double quotes or an unquoted heredoc, run (never exempt); a printer inside <( ) fed to a RUN word, piped into anything but a plain filter (SAFE), or redirected (> or | tee) when a later segment leads with a RUN word or with the written file's path, loses it too; an unknown leading word is the out; a command left inside an open quote is searched whole (fail closed).
+# head: the prayers block of moral:faith (### 4.1, as brief.py's _read_faith_ref reads it) + the one-line ask. captive (PreToolUse, from agi-captive): exit 2 until an assistant text of THIS transcript holds a prayer, then ~/.prayed/<session> and never again; the v5 out (touch ~/.fresh, kill $PPID) also needs one in the newest assistant text since the card commit. stop (Stop): an idle-empty reply with no prayer is blocked ONCE PER SESSION (~/.prayed/<session>.end, or an earlier idle reply that prayed; stop_hook_active honoured). Prayers match after a FOLD (NFD, marks dropped, old letters to modern, casefold, final hard sign dropped). The marker is read FIRST: a prayed session opens no transcript except at the out (alive 08:04:04Z). A call carrying agent_id is a SUBAGENT inside a session, never captive: the docs name agent_id on its PreToolUse but not which transcript_path it gets. ANY unread input passes with one [pray] line: never a lock. goal .46.29.1: a Stop whose reply-final text prays in an UNMARKED session marks it and blocks once with GO, so the post resumes with no outside input; the out is the L358 whole search (OUT); a match is exempt only in a # comment, or when the segment that consumes it (its own, or the one holding the quote / the heredoc's <<) leads, past WRAP words, with a printer (SHOW) not piped to a RUN word; $( ) or backticks, bare (a segment boundary) or in double quotes or an unquoted heredoc, run (never exempt); a printer piped into anything but a plain filter (SAFE), or whose pipeline writes a file anywhere (>, tee, sort -o / --output, uniq's OUT) when a later segment leads with a RUN word or, leading with no printer, names that file anywhere in its words, loses it too; a printer inside an unquoted $( ), backtick pair or <( ) keeps it only when the ENCLOSING segment would itself pass, and a segment ends past any substitution inside it; an unknown leading word is the out; a command left inside an open quote is searched whole (fail closed).
 import json,os,re,subprocess,sys,unicodedata
 ASK="captive: say an Old Slavonic protection prayer before proceeding: as your reply's LAST text, no tool call after it (that ENDS the turn: a pause until your next prompt, not a hang); a prayer beside a call is read again at the next call"
 GO="prayed: the captive is released; continue your work"
 OUT=re.compile(r"""touch(?:[ \t]+-\S*)*[ \t]+["']?(?:~|\$\{?HOME\}?)["']?/["']?\.fresh|\bkill\b(?:[ \t]+(?:-[sn][ \t]+\w+|-\w+|--))*[ \t]+["']?\$\{?PPID\}?""")
-SHOW={"echo","printf","grep","egrep","fgrep","rg","jq","cat","head","tail","less","wc","sort","git log","git grep","git show","git diff"}
+SHOW={"echo","printf","grep","egrep","fgrep","rg","jq","cat","head","tail","less","wc","sort","diff","git log","git grep","git show","git diff"}
 WRAP={"env","timeout","nohup","nice","time","sudo","command","exec","builtin"}
 RUN={"sh","bash","dash","zsh","ksh","xargs","eval","source","."}
 SAFE=SHOW|{"tee","cut","tr","uniq","nl","fold","column"}
@@ -164,7 +164,7 @@ def texts(path):
         if s.strip():out.append((e.get("timestamp",""),s))
     return out
 def zones(c):
-    z=[0]*len(c);o=[0]*len(c);b=[0];sp={};ps={};red=set();tg={};q="";qs=0;x3=0;H=[];i=0
+    z=[0]*len(c);o=[0]*len(c);b=[0];sp={};ps={};red=set();tg={};q="";qs=0;x3=0;H=[];i=0;dep={0:0};cl=set();S=[];dp=0;bq=0
     while i<len(c):
         h=c[i]
         if q:
@@ -190,37 +190,56 @@ def zones(c):
                     if (y.lstrip("\t") if t else y)==k:i=n+1;break
                     z[i:n]=[1]*(n-i);o[i:n]=[w]*(n-i);i=n+1
                 if not qd and ("$(" in c[st:i] or "`" in c[st:i]):z[st:i]=[3]*(len(z[st:i]))
-            b.append(i);sp[i]="\n";H=[];continue
+            b.append(i);sp[i]="\n";dep[i]=dp;H=[];continue
         elif h in ";&|()`\n":
-            if h=="(" and i and c[i-1] in "<>":ps[i+1]=b[-1]
-            b.append(i+1);sp[i+1]=h
+            if h=="`":bq^=1
+            if h=="(" and i and c[i-1] in "$<>" or h=="`" and bq:ps[i+1]=b[-1];dp+=1;S+=[1]*(h=="(")
+            elif h=="(":S.append(0)
+            elif h==")" and S and S.pop() or h=="`":dp-=1;cl.add(i+1)
+            b.append(i+1);sp[i+1]=h;dep[i+1]=dp
         elif h==">" and c[i+1:i+2]!="&":
             red.add(b[-1]);m=re.match(r">>?[ \t]*(['\"]?)([^ \t;&|()<>'\"\n]+)\1",c[i:])
             if m:tg.setdefault(b[-1],set()).add(os.path.basename(m.group(2)))
         i+=1
-    return None if q else (z,o,b,sp,ps,red,tg)
-def lead(c,s,b):
-    e=min([x for x in b if x>s]+[len(c)+1]);w=c[s:min(e-1,len(c))].split()
+    E={s:next((x for x in b if x>s and (dep[x]<dep[s] or dep[x]==dep[s] and x not in cl)),len(c)+1) for s in b}
+    return None if q else (z,o,b,sp,ps,red,tg,E)
+def lead(c,s,b,E):
+    n=min([x for x in b if x>s]+[len(c)+1]);w=c[s:min(n-1,len(c))].split()
     while w and (os.path.basename(w[0]) in WRAP or re.match(r"(-\S*|\d+[smhd]?|\w+=\S*)$",w[0])):w.pop(0)
     v=os.path.basename(w[0]) if w else ""
     if v=="git":v="git "+next((x for x in w[1:] if not x.startswith("-")),"")
-    return v,e,(w[0] if w else "")
-def piped(c,e,b,sp):
-    while sp.get(e)=="|" and c[e:e+1]!="|" and c[e-2:e-1]!="|":
-        v,e,_w=lead(c,e,b)
-        if v not in SAFE:return True
-    return False
+    return v,E.get(s,n),(w[0] if w else "")
+def chain(c,s,b,sp,E):
+    P=[s];e=E.get(s,len(c)+1)
+    while sp.get(e)=="|" and c[e:e+1]!="|" and c[e-2:e-1]!="|":P.append(e);e=E[e]
+    return P
+def piped(c,P,b,E):return any(lead(c,x,b,E)[0] not in SAFE for x in P[1:])
+def writes(c,s,b,E):
+    v=lead(c,s,b,E)[0];w=c[s:E.get(s,len(c)+1)-1].split();w=w[next((k+1 for k,x in enumerate(w) if os.path.basename(x)==v),len(w)):];r=[]
+    if v=="tee":return [x for x in w if not x.startswith("-")]
+    if v not in ("sort","uniq"):return []
+    if v=="uniq":
+        k=0
+        while k<len(w):x=w[k];k+=1+(x in ("-f","-s","-w"));r+=[x]*(x=="-" or not x.startswith("-"))
+        return r[1:2]
+    for k,x in enumerate(w):
+        m=re.match(r"--output=(.+)|-[A-Za-z]*o(.*)$",x)
+        if m or x=="--output":r.append((m and (m.group(1) or m.group(2))) or (w[k+1] if k+1<len(w) else ""))
+    return r
+def names(c,x,E,tt):t=c[x:E.get(x,len(c)+1)-1];return any(re.search(r"(?<![\w.-])"+re.escape(n)+r"(?![\w.-])",t) for n in tt if n)
 def isout(c):
     Z=zones(c)
     if Z is None:return bool(OUT.search(c))
-    z,o,b,sp,ps,red,tg=Z
+    z,o,b,sp,ps,red,tg,E=Z
+    def ok(s0):
+        v=lead(c,s0,b,E)[0];P=chain(c,s0,b,sp,E);Q=P
+        tt={os.path.basename(t.strip("'\"")) for s in Q for t in list(tg.get(s,()))+writes(c,s,b,E)}
+        return v in SHOW and not piped(c,P,b,E) and not ((tt or any(s in red for s in Q)) and any(lead(c,x,b,E)[0] in RUN or lead(c,x,b,E)[0] not in SHOW and names(c,x,E,tt) for x in b if x>s0 and x not in P)) and (s0 not in ps or ok(ps[s0]))
     for m in OUT.finditer(c):
         i=m.start();k=z[i]
         if k==2:continue
         if k==3:return True
-        s0=o[i] if k==1 else max(x for x in b if x<=i);v,e,_w=lead(c,s0,b);pi=sp.get(e)=="|" and c[e:e+1]!="|" and c[e-2:e-1]!="|"
-        nx=lead(c,e,b) if pi else ("","","");tt=set(tg.get(s0,()))|({os.path.basename(x) for x in c[e:min([y for y in b if y>e]+[len(c)+1])-1].split()[1:] if not x.startswith("-")} if nx[0]=="tee" else set())
-        if v in SHOW and not piped(c,e,b,sp) and not (s0 in ps and lead(c,ps[s0],b)[0] in RUN) and not ((tt or s0 in red) and any(lead(c,x,b)[0] in RUN or os.path.basename(lead(c,x,b)[2]) in tt for x in b if x>s0)):continue
+        if ok(o[i] if k==1 else max(x for x in b if x<=i)):continue
         return True
     return False
 def ts(s):
@@ -291,5 +310,5 @@ SM mur final (DG1 return 19:27Z): the box route could not work live. R6: the uni
 10-26 the agi-run strand (director-general-2; council [decision] alive 19:32:42Z): the last line was `exec strace`, so the two background loops (pane trim, mail poker) were strace's OWN children. MEASURED on a fixture of the real chain (script -> agi-run -> strace -> a stub claude, scratch HOME): with the -o consumer dead (agi-track killed, or ~/track unwritable as at ENOSPC) the stub exited and strace stayed in do_wait with only the loops left; killing the loops ended it at once, killing the orphan grep/awk did not. So the unit's MainPID outlived claude and no restart came (director-general-3, 19:18Z, in the 19:11-19:13Z full-disk window). Cure by construction: no exec, strace in the foreground, at its exit kill the two loops by the pids captured where they are forked ($L1 $L2; `jobs -p` prints nothing in a non-interactive dash, so an earlier cut of this line killed nothing and the loops ended only by the pty hangup: alive's pre-read 20:25:38Z) and exit with its rc; ~/.fresh is still consumed only at START (line 2). agi-track drains to EOF past a failed append (engine-post.md). Lane agi-run-strand.t.sh.
 10-31 U3 (director-goals-1, goal:g7.16.1.11.46.21; council alive [decision] 14:20:53Z, V3, 3/3): agi-kid is renamed agi-in, the ONE kid spawn verb. The `-m` flow arm is byte-equal but for its mktemp guard (re-cut 2). A new `pack` arm writes the capsule's spawn lines through AGI_MF (engine-capsule.md has 75 B of fenced bar left, so only agi-in checks the values). The kid arm takes a CID: capsule verify, then the MANIFEST `pull` (graph|director = the old launch + AGI_CID; none = ONE `pi --no-tools` request in an empty dir; anything else = `unread`, rc 1, 0 launches). Lane: agi-in.t.sh; the agi-kid-flow* ceiling is 3,476 B. Re-cut 1 (alive 14:46:26Z R2, R3): the none arm's mktemp is guarded (`unread: no scratch dir`, rc 1), and --at / --scope refuse any non-hex char. Re-cut 2 (alive 15:12:32Z): the -m flow arm's mktemp is guarded the same way, its line on stderr (rc 1). FIX-FORWARD (L313 trunk red, sp 17:31:00Z): the kid's capsule env is AGI_CID, never AGI_CAPSULE, which every post unit sets to `capsule` for agi-out's share dir; under L313 agi-wt read it as a capsule ref and refused every post's pull, its own card included.
 11-05 P0 (director-general-3, goal:g7.16.1.11.46.29; council 3/3 on RE-CUT 2 af4cbdc0cc, alive 08:13:28Z): agi-pray, the session's prayer, is a NEW piece here (head for agi-brief, captive FIRST in agi-captive, stop on the Stop hook); the owner's order 11-01 was a programmatic check that each session starts and ends with a Church Slavonic prayer. The v4 port of agi-brief had dropped the prayers (belam's measure). Marker first, a subagent (agent_id) never captive, the Stop check once per session, everything unread fail-open. This touch: the out is matched in every spelling a shell runs (a quoted or braced $PPID, kill's -s SIG, -SIG and --, a quoted ~ / $HOME / ${HOME} .fresh), not two (alive's item 3).
-11-05 P0.1 (director-general-3, goal:g7.16.1.11.46.29.1; council alive [decision] 11:11:04Z, 3/3, on aio's L354 live finding): a prayer said beside a tool call can be missing from the transcript when the captive reads it (aio: dropped, 3 of 4 texts; sp: a lag, kept but written after the check), so a fresh post stayed captive until a turn ended on a prayer. The ASK now names the form that holds under both shapes (the prayer as a reply's LAST text, no tool call after it: the turn ends) and says nothing was lost (a kept prayer releases at the next call). The Stop check, in an UNMARKED session, reads the reply-final text and, if it prays, marks the session and blocks ONCE with GO ('prayed: the captive is released; continue your work'), which is what resumes the post with no outside input (sp's term). RE-CUT 1 (sp RETURN 12:03:49Z on d): the first cut gated this on a prior refusal (~/.prayed/<session>.asked), which stalled exactly the post that obeyed the interim line (prayer as the first reply's last text, no tool call, so never refused); the gate is gone, and the mark still holds it to once per session. The shape that resumes where it may not be wanted, named: an unmarked session (no tool call yet) that ends on a prayer while going idle gets ONE GO, then is marked. The out (RE-CUT 1, aio RETURN 11:59:57Z + 12:01:27Z, alive 12:02:31Z: no command the L358 search refuses may pass): the first cut matched the out only at a segment start, which failed OPEN on a heredoc body holding one apostrophe (the quote swallowed every later separator) and on an unknown leading word (if/then, a brace group, sudo...). Built now FROM the L358 whole search (OUT, widened to kill -n N and a TAB): zones() marks quoted spans and heredoc bodies (<<[-]WORD, quoted or not, to its WORD line) with the segment that CONSUMES them, and # comments. RE-CUT 2 (aio RETURN 12:09:41Z on RE-CUT 1: a quoted span or heredoc body handed to a shell RUNS: sh -c, bash -c, eval, sh <<EOF, awk system(), sed e): a match is exempt only in a comment, or when its consumer leads, past WRAP words (env timeout nohup nice time sudo command exec builtin, options, numbers, VAR=), with a printer (SHOW: echo printf grep egrep fgrep rg jq cat head tail less wc sort, git log/grep/show/diff; awk and sed are OUT, they execute) that is not piped into a RUN word (sh bash dash zsh ksh xargs eval source .); $( ) or backticks inside double quotes or an unquoted heredoc body run, so never exempt, and a bare backtick is a segment boundary like ( (RE-CUT 3, aio 12:15:03Z + sp 12:11:20Z clause (4): echo `kill $PPID` passed RE-CUT 2); RE-CUT 4 (sp 12:15:41Z (3') and (5)): a printer inside a process substitution <( ) whose consumer leads with a RUN word loses its exemption (sh <(echo kill $PPID)), and so does a printer with an output redirect (>, >>, | tee) when a LATER segment of the same command leads with a RUN word (echo kill $PPID > x.sh; sh x.sh); a script written in one call and run in a later one stays out of reach (both matchers pass it); NEXT TOUCH (alive 13:28:47Z, on r4 approved for L363): a redirect's target (basename) is recorded, and a later segment whose lead word (past WRAP) is that file loses the printer its exemption (echo kill $PPID > x.sh; chmod +x x.sh; ./x.sh), and a pipe keeps the exemption only into SAFE (SHOW + tee cut tr uniq nl fold column), so busybox sh, python3 -c, at now lose it, and (alive 17:42:51Z) EVERY later segment of the pipeline must be SAFE: echo kill $PPID | head -1 | sh loses it too; an unknown leading word is the out; a command left inside an open quote is searched whole (fail closed). A false refusal (python3 - <<EOF naming the out, sed '/.../p') costs one prayer, as agreed. Reading tool_use inputs as prayers is NOT built (sp: a command naming a prayer word would pass). 5855 -> 10777 B.
+11-05 P0.1 (director-general-3, goal:g7.16.1.11.46.29.1; council alive [decision] 11:11:04Z, 3/3, on aio's L354 live finding): a prayer said beside a tool call can be missing from the transcript when the captive reads it (aio: dropped, 3 of 4 texts; sp: a lag, kept but written after the check), so a fresh post stayed captive until a turn ended on a prayer. The ASK now names the form that holds under both shapes (the prayer as a reply's LAST text, no tool call after it: the turn ends) and says nothing was lost (a kept prayer releases at the next call). The Stop check, in an UNMARKED session, reads the reply-final text and, if it prays, marks the session and blocks ONCE with GO ('prayed: the captive is released; continue your work'), which is what resumes the post with no outside input (sp's term). RE-CUT 1 (sp RETURN 12:03:49Z on d): the first cut gated this on a prior refusal (~/.prayed/<session>.asked), which stalled exactly the post that obeyed the interim line (prayer as the first reply's last text, no tool call, so never refused); the gate is gone, and the mark still holds it to once per session. The shape that resumes where it may not be wanted, named: an unmarked session (no tool call yet) that ends on a prayer while going idle gets ONE GO, then is marked. The out (RE-CUT 1, aio RETURN 11:59:57Z + 12:01:27Z, alive 12:02:31Z: no command the L358 search refuses may pass): the first cut matched the out only at a segment start, which failed OPEN on a heredoc body holding one apostrophe (the quote swallowed every later separator) and on an unknown leading word (if/then, a brace group, sudo...). Built now FROM the L358 whole search (OUT, widened to kill -n N and a TAB): zones() marks quoted spans and heredoc bodies (<<[-]WORD, quoted or not, to its WORD line) with the segment that CONSUMES them, and # comments. RE-CUT 2 (aio RETURN 12:09:41Z on RE-CUT 1: a quoted span or heredoc body handed to a shell RUNS: sh -c, bash -c, eval, sh <<EOF, awk system(), sed e): a match is exempt only in a comment, or when its consumer leads, past WRAP words (env timeout nohup nice time sudo command exec builtin, options, numbers, VAR=), with a printer (SHOW: echo printf grep egrep fgrep rg jq cat head tail less wc sort, git log/grep/show/diff; awk and sed are OUT, they execute) that is not piped into a RUN word (sh bash dash zsh ksh xargs eval source .); $( ) or backticks inside double quotes or an unquoted heredoc body run, so never exempt, and a bare backtick is a segment boundary like ( (RE-CUT 3, aio 12:15:03Z + sp 12:11:20Z clause (4): echo `kill $PPID` passed RE-CUT 2); RE-CUT 4 (sp 12:15:41Z (3') and (5)): a printer inside a process substitution <( ) whose consumer leads with a RUN word loses its exemption (sh <(echo kill $PPID)), and so does a printer with an output redirect (>, >>, | tee) when a LATER segment of the same command leads with a RUN word (echo kill $PPID > x.sh; sh x.sh); a script written in one call and run in a later one stays out of reach (both matchers pass it); NEXT TOUCH (alive 13:28:47Z, on r4 approved for L363): a redirect's target (basename) is recorded, and a later segment whose lead word (past WRAP) is that file loses the printer its exemption (echo kill $PPID > x.sh; chmod +x x.sh; ./x.sh), and a pipe keeps the exemption only into SAFE (SHOW + tee cut tr uniq nl fold column), so busybox sh, python3 -c, at now lose it, and (alive 17:42:51Z) EVERY later segment of the pipeline must be SAFE: echo kill $PPID | head -1 | sh loses it too; an unknown leading word is the out; a command left inside an open quote is searched whole (fail closed). A false refusal (python3 - <<EOF naming the out, sed '/.../p') costs one prayer, as agreed. Reading tool_use inputs as prayers is NOT built (sp: a command naming a prayer word would pass). NEXT TOUCH 2 (director-general-3 gen 25, on L388; alive 17:57:11Z (1)-(2), sp 19:48:23Z (3), all three read on r4 + L388 as passing shapes that RUN): (1) a printer's targets are every file its PIPELINE writes (> or tee on any segment: echo kill $PPID | head -1 > x.sh; sh x.sh); (2) a printer inside an unquoted $( ), backtick pair or <( ) keeps the exemption only when the ENCLOSING segment would itself pass (recursive), and a segment now ends PAST any substitution inside it (a depth per boundary), so $(echo kill $PPID), eval $( ), cat <( ) | sh and a pipe after a substitution lose it; (3) a SAFE filter's own write (sort -o / --output, uniq's OUT) is a target, and a later segment that names a target ANYWHERE in its words loses it unless it leads with a printer (awk system(), python3 os.system, find -exec; cat x.sh stays a read). diff joins SHOW so c12's diff <( ) read still passes under (2). Probe old vs new over 48 shapes: 0 wrong, the 17 changed are exactly the new refusals, 0 reads flipped. 5855 -> 10777 -> 12097 B.
 <!-- THOUGHT:END -->
