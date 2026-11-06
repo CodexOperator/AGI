@@ -1,0 +1,22 @@
+{
+ "goal": "goal:g5.48",
+ "seed": "g5.35/33b3e4f121a8e56aae561c1fde4bc5ed1e49e98d",
+ "seed_why": "PUBLIC (the g5.35 pool and viewer streams); the run-time secret keys every harness-side draw",
+ "secret_sha256": "0f36e24068b57baa64d4ce89ae0ce9ff3b9e77942475b5b27013eb33f8c08347",
+ "secret_why": "32 bytes of os.urandom made INSIDE `harness_oop.py run` after prctl(PR_SET_DUMPABLE, 0); only its sha256 leaves the process before the results commit (written here in the pre-run commit, which the waiting run checks before any trial)",
+ "n": 200,
+ "chance": 0.2,
+ "train_trials": [0, 100],
+ "held_out_trials": [100, 200],
+ "alpha_null": 0.05,
+ "alpha_astar": 0.01,
+ "mutant_floor": 150,
+ "m2_old_earlier_trial_target": 74,
+ "m2_old_any_run_target": 144,
+ "wait_s": 3600,
+ "falsifier_1": "PROVED iff A* (viewer_oop.py attacker) run OUT of process is inside the one-sided binomial alpha-0.01 bound over all 200 trials AND over train (0..99) AND over held-out (100..199), AND the F1 null viewer re-run out of process is inside chance (alpha 0.05) AND the F2 salt mutant re-run out of process scores 200/200; RED (disproved) if A* beats the bound",
+ "mutant_M1": "the same A* run IN process (harness_oop.InProc) scores >= 150/200, else VOID",
+ "mutant_M2": "EXACT counts, else VOID: on the fixed draw 0 of the 800 decoys are a run target (any trial) and 0 are an earlier trial's target; on the old draw replayed from round 2's revealed secret, 74 of 800 decoys are an EARLIER trial's target (the C2 channel, the leaf's 74) and 144 are ANY run target",
+ "mutant_M3": "`harness_oop.py m3`: a parent with dumpable LEFT at 1 and its own fresh secret (revealed in results_oop_m3.json, not pre-committed: it is a mutant, not a measurement): A* reads the secret via /proc/PPID/mem (>= 150/200 hits AND >= 150 rows on channel mem), else the /proc channel of A* is VOID",
+ "limit": "same uid only (a second uid needs the owner's sudo); root or CAP_SYS_PTRACE bypasses the fence; the verdict covers exactly the same-uid reads A* tries (frame, gc, /proc/PPID environ, cmdline, fd, mem, every file under the run dir and the rv dir, its own env and argv)"
+}
