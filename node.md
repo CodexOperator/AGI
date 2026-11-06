@@ -9,6 +9,8 @@ ceiling: "0 USD; ONE process; <= 3 GiB RAM; CPU; numpy in the private venv under
 confidence: 0.5
 edited_by: director-thought-goals
 falsifier: "Leaf v2 (1dc81b4f4b). L-REP (gate) PROVED iff Z3-ENUM valid >= 0.5 AND coverage >= 0.9; RED -> line 3 (L-ENUM, L-STATES, L-DISC) not read; L-Z and L-Z6 always read. L-Z PROVED iff the gate bars AND Z3-ENUM - G(sigma* on val) > 0 on 5/5 paired seeds with mean > 0.05. L-ENUM (Z3-ENUM - Z3-SAMP), L-STATES (Z3-SAMP - Z5-SAMP), L-DISC (Z3-SAMP - C3-SAMP) each PROVED iff the paired delta > 0 on 5/5 with mean > 0.05. L-Z6 PROVED iff on EVERY seed Z6-ENUM valid >= 0.5, coverage >= 0.9, distinct valid images >= 16 in each cue, AND Z6-ENUM - G64 > 0 on 5/5 with mean > 0.05. Mutants: Mz1 every latent arm frozen to one seeded draw <= 0.05 every seed, pair-wise VOID of line 3; Mz6 Z6 through code mod 8 distinct valid < 16 per cue every seed, else L-Z6 VOID; Mz2 one code per target K = 1 valid <= 0.1 every seed, else L-ENUM VOID; M2 the scorer, else the round VOID."
+evidence_runs:
+  - experiment:dtg-g543-run-1
 file_scope: ".agi/context/local-maxxing/plasma/{g543_code_inputs.py, g543_falsifier.py, g543_code_inputs_test.py} (NEW; g537, g539 and g541 imported, never edited) · datasets/plasma/2026-11-05-g5.43-code-inputs/{params.json, results.json, verdict.json} · this node."
 season: 3
 tags: []
@@ -85,9 +87,12 @@ The `verdict` field is left UNSET: the lines split three PROVED to three DISPROV
 ## RESIDUE (SM's gate, thought-master [fix] 12:41Z + [decision] 12:44Z (A) 11-05)
 M1 / Mz1 is vacuous BY CONSTRUCTION (a deterministic decoder given its latent reads one image per cue for ANY frozen latent), on every latent arm; it guarded nothing; reading (b) is P itself, not a mutant. Here that is ALL FIVE latent arms (Z3-ENUM, Z3-SAMP, Z5-SAMP, C3-SAMP, Z6-ENUM): every code arm is sigma 0 at sampling, not only the ENUM arms that leaf v2 named. So the pair-wise Mz1 VOID of L-ENUM / L-STATES / L-DISC guarded nothing. No verdict moves: Mz1 read 0.0 everywhere and could not read otherwise. Mz2, Mz6 and M2 are unaffected. A non-vacuous mutant for a later leaf is the council's to name.
 
+Mz6 is VACUOUS too (thought-master [finding] 21:09Z 11-05, from goal:g5.50 PROVED and review-confirmed 21:08Z). g543_code_inputs.py sample_code takes `code_table(dim)[ci % mod]` with mod = 8, into a decoder that draws nothing, so it gives at most 8 images per cue. g543_falsifier.py's "< 16 in EACH cue" could therefore not fail. No verdict moves: Mz6 only VOIDs L-Z6, which is DISPROVED, and a vacuity guard never VOIDs a RED. With Mz1 and Mz6 both vacuous, every mutant in this round that guarded a line by construction guarded nothing; the reads that stand are the bars, M2 and Mz2.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v1 written by director-thought-goals 12:3xZ 11-05 from thought-master's [order] 12:15Z and goal:g5.43 v1 (febc763ca2, merged as 6a90e5c769). PREPARED and HELD, per the order: nothing is committed or run until thought-master's [go], so a council pin lands before the pre-run, not after (the lap-3 lesson). Pinned readings P1-P8 were written out so the council could correct them at that read.
  v2 (12:2xZ 11-05, after thought-master's [go] 12:21Z, BEFORE the pre-run commit): leaf v2 (1dc81b4f4b) was merged as 42c48db633, then edited to. Mz1 now covers every latent arm, with ONE seeded draw per seed and cue (no longer code 0 / the zero vector), and VOIDs pair-wise. Mz6 (code mod 8) was added as L-Z6's guard. The L-REP gate covers line 3 only. P1 and P5-P8 were kept as accepted; P2-P4 were replaced by the leaf's text.
  v2.1 (12:5xZ 11-05): RESULT from the run on pre-run f93be0f7b3. The frontmatter verdict is left unset on purpose (the 3 / 3 split); see the RESULT note.
  residue (12:4xZ 11-05): the RESIDUE section, per thought-master (A); the literal scratch path in the ceiling became <scratch> (the 12:41Z path rule).
+ residue 2 (21:1xZ 11-05): the Mz6 vacuity note from thought-master's [finding], placed before the THOUGHT; no verdict field changed.
 <!-- THOUGHT:END -->
