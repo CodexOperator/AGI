@@ -1,9 +1,13 @@
-"""The Grok Bot harness — REQUIRED surface, stub argv (goal:g17.14.1).
+"""The Grok Bot harness — REQUIRED surface, MEASURED argv (goal:g7.31.1.1).
 
-CLI flags are NOT guessed: `build_command` emits a minimal, measurable argv
-(still a stub until `<bin> --help` is read the way `copilot_cli_adapter`'s
-was). `restart` is a real respawn (`goal:g4.7`) that rebuilds that same argv —
-a stub argv is no reason to refuse the restart contract.
+CLI flags are NOT guessed: `build_command` emits only flags the recorded
+`grok-bot --help` declares (doc:grok-bot-help-measured, grok 1.0.46, read
+2026-11-05). Dispatch spawns detached with no terminal (stdin=/dev/null), so
+the argv is the HEADLESS one: `--single <PROMPT>` ("Single-turn prompt. Prints
+the response to stdout and exits"). The positional `[PROMPT]` opens the
+INTERACTIVE session and `--session-id`/`--resume` name it; both belong to the
+named-pane seat (goal:g7.31.1.2), not to this spawn. `restart` is a real
+respawn (`goal:g4.7`) that rebuilds that same argv.
 `needs_credential` is False — Grok Bot authenticates through its own channel,
 so no OpenRouter key is minted.
 
@@ -63,19 +67,22 @@ def child_env(*, harness: dict, base: dict[str, str],
 
 def build_command(*, harness: dict, tier: str, context_file: str,
                   rendered_brief: str | None = None, **kwargs) -> list[str]:
-    """argv: `<bin> [--model M] -p <prompt>`, the copilot spelling.
+    """argv: `<bin> [--model M] --single <prompt>`, measured (goal:g7.31.1.1).
+
+    `--single` is the long form of `-p` in the recorded help; the long form is
+    spelled out so a reader (and falsifier 2's grep for the old stub's lone
+    `-p`) sees the measured flag. `-m, --model <MODEL>` is measured too.
 
     `<prompt>` is dispatch's ONE render when it handed one over
-    (`rendered_brief`), else the zoom-context path. The flag SHAPE is still a
-    stub (`<bin> --help` has not been read, goal:g17.14.1) -- but DISCARDING
-    the render was not a stub, it was a silent loss: `context_file` is the
+    (`rendered_brief`), else the zoom-context path. DISCARDING the render was
+    a silent loss: `context_file` is the
     agent's MAP, not its brief, so a grok-bot spawn would have started with no
     first turn at all. Carrying the render is the one thing here that is
     certain (hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief).
 
     Neither input present is the OTHER arm of the claim, and it is the arm
     that used to be missing: a falsy `rendered_brief` plus an empty
-    `context_file` produced `-p ''` -- an EMPTY PROMPT, i.e. the same silent
+    `context_file` produced an empty prompt argument -- an EMPTY PROMPT, i.e. the same silent
     loss as the discarded render, one layer down, and with nothing to name
     it. So that state now refuses by name, the way copilot refuses a missing
     context file.
@@ -89,7 +96,7 @@ def build_command(*, harness: dict, tier: str, context_file: str,
             f"nor its map is not a cheaper agent, it is a mute one)"
         )
     prompt = rendered_brief if rendered_brief else str(context_file)
-    return [resolve_bin(harness), *model_args(harness, tier), "-p", prompt]
+    return [resolve_bin(harness), *model_args(harness, tier), "--single", prompt]
 
 
 def is_alive(pid: int) -> bool:

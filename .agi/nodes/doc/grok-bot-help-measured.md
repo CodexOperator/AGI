@@ -1,0 +1,251 @@
+---
+id: doc:grok-bot-help-measured
+mint_id: a10ed5499fdf4b5f84b4587e47f6c229
+type: doc
+parents:
+  - goal:g7.31.1.1
+next_edges: []
+edited_by: director-general-1
+season: 2
+tags: []
+title: grok-bot --help, measured 2026-11-05 07:30Z (goal:g7.31.1.1)
+town: core
+---
+## MEASURED 2026-11-05 07:30Z, grok-bot --help (verbatim, director-general-1)
+Read-only, no spawn, no API call. `/usr/local/bin/grok-bot` -> grok, xAI 'Grok Build TUI' 1.0.46 (2765805b9442). `grok-bot --help`: rc 0, 174 lines, sha256 cda6873e2f90a7d7; `grok-bot agent --help`: 44 lines, sha256 056e71951a4badab. This is the measurement falsifier 1 reads ("recorded on this node").
+Read from it: `-p` is `--single` (one turn, prints, exits), so it is not a seat argv; the interactive session takes the prompt POSITIONALLY (`grok [OPTIONS] [PROMPT]`); `-s/--session-id <UUID>` starts a new conversation and `-r/--resume <UUID>` re-attaches it (goal:g7.31.1.2).
+
+### grok-bot --help
+```
+Grok Build TUI
+
+Usage: grok [OPTIONS] [PROMPT] [COMMAND]
+
+Arguments:
+  [PROMPT]
+          Initial prompt for the interactive session, e.g. `grok "fix the bug"` or `grok --worktree=feat "create this feature"`
+
+Options:
+      --agent <NAME>
+          Agent name or definition file path
+
+      --agents <JSON>
+          Inline subagent definitions as JSON
+
+      --allow <RULE>
+          Permission allow rule (compat alias: --allowedTools)
+
+      --always-approve
+          Auto-approve all tool executions
+
+  -c, --continue
+          Continue the most recent session for the current working directory
+
+      --cwd <CWD>
+          Working directory
+
+      --debug
+          Enable debug logging
+
+      --debug-file <FILE>
+          Write debug logs to FILE
+
+      --deny <RULE>
+          Permission deny rule (compat alias: --disallowedTools)
+
+      --disable-web-search
+          Disable web search and web fetch tools
+
+      --disallowed-tools <TOOLS>
+          Built-in tools to remove (comma-separated)
+
+      --fork-session
+          When resuming (`--resume` / `--continue`), create a new session ID instead of reusing the original (optionally set via `--session-id`)
+
+      --fullscreen
+          Open in the standard fullscreen TUI for this session, overriding a config `[ui] screen_mode = "minimal"` preference. Session-scoped only, does not write config. Fullscreen-vs-inline still follows the alt-screen policy (--no-alt-screen, [terminal] alt_screen, terminal auto-detection)
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+      --include-partial-messages
+          Emit incremental `stream_event` lines (text/thinking deltas) alongside whole messages. Only affects `--output-format streaming-messages-json`
+
+      --json-schema <SCHEMA>
+          JSON Schema for structured output. When set, the model is constrained to produce JSON matching this schema. Implies --output-format json. Example: --json-schema '{"type":"object","properties":{"name":{"type":"string"}}}'
+
+      --leader-socket <PATH>
+          Use a custom leader socket path instead of the default `~/.grok/leader.sock`. A local/branch build can thus run an isolated leader without colliding with the default one already running on the machine Name it `~/.grok/leader-*.sock` to keep `grok leader list/kill` able to find it; any other location works but won't be auto-discovered
+
+  -m, --model <MODEL>
+          Model ID to use
+
+      --max-turns <N>
+          Maximum number of agent turns
+
+      --minimal
+          Experimental: scrollback-native rendering. Finalized blocks are printed into the terminal's native scrollback (use the terminal's own scroll / selection). Session-scoped only, does not write config
+
+      --no-alt-screen
+          Run inline instead of using the terminal alternate screen
+
+      --no-plan
+          Disable plan mode
+
+      --no-subagents
+          Disable subagent spawning
+
+      --oauth
+          Use OAuth when the welcome screen starts authentication
+
+      --output-format <OUTPUT_FORMAT>
+          Output format for headless mode
+
+          Possible values:
+          - plain
+          - json
+          - streaming-json:          NDJSON: one ACP session update per line, the agent's native format
+          - streaming-messages-json: NDJSON in the Anthropic Messages API wire format
+          
+          [default: plain]
+
+  -p, --single <PROMPT>
+          Single-turn prompt. Prints the response to stdout and exits
+
+      --permission-mode <MODE>
+          Permission mode
+          
+          [possible values: default, acceptEdits, auto, dontAsk, bypassPermissions, plan]
+
+      --prompt-file <PATH>
+          Single-turn prompt from a file
+
+      --prompt-json <JSON>
+          Single-turn prompt as JSON content blocks
+
+  -r, --resume [<SESSION_ID_OR_TITLE>]
+          Resume a session by ID or title, or the most recent if omitted. Non-ID values match session titles for the current directory, ignoring letter case; UUID-shaped values always mean IDs. Among duplicate titles a sole renamed match wins; otherwise the resume fails as ambiguous
+
+      --reasoning-effort <EFFORT>
+          Reasoning effort for reasoning models
+          
+          [aliases: --effort]
+
+      --restore-code
+          Restore the original session's repository snapshot when resuming. Remote sessions require `--worktree` (never checks out into the current directory). Without this flag, resume restores conversation only
+
+      --rules <RULES>
+          Extra rules to append to the system prompt
+
+  -s, --session-id <SESSION_ID>
+          Use a specific session UUID for a **new** conversation (must be a valid UUID and must not already exist under the target session directory). With `--resume`/`--continue`, only valid together with `--fork-session` (names the forked session). Does not resume existing sessions, use `--resume` / `--continue` instead
+
+      --sandbox <PROFILE>
+          Sandbox profile for filesystem and network access
+          
+          [env: GROK_SANDBOX=]
+
+      --system-prompt-override <PROMPT>
+          Override the agent's system prompt (compat alias: --system-prompt)
+
+      --tools <TOOLS>
+          Built-in tools to allow (comma-separated)
+
+  -v, --version
+          Print version
+
+      --verbatim
+          Send the prompt exactly as given
+
+  -w, --worktree [<WORKTREE>]
+          Start the session in a new git worktree, optionally named. With `--resume` of a remote session, pass `--restore-code` to apply the snapshot codebase (conversation is restored either way)
+
+      --worktree-ref <WORKTREE_REF>
+          Branch, tag, or commit to base the worktree on (with `--worktree`). Defaults to the current HEAD of the source checkout when omitted
+          
+          [aliases: --ref]
+
+Commands:
+  agent          Run Grok without the interactive UI
+  clone          Lazy-clone a git repository via grove (NFS on macOS, FUSE on Linux)
+  completions    Generate shell completion scripts (bash, zsh, fish, powershell, ...)
+  cursor-worker  Register this machine as a Cursor private worker (via the leader)
+  dashboard      Open the Agent Dashboard view at startup. The dashboard shows every session, top-level and subagents. Disabled when `[dashboard].enabled = false` in `~/.grok/config.toml` or when the `GROK_AGENT_DASHBOARD=0` env var is set
+  doctor         Check terminal, clipboard, color, and input support without starting Grok
+  du             Show what the grok home (~/.grok) uses on disk [aliases: disk-usage]
+  export         Export a session transcript as Markdown
+  help           Print this message or the help of the given subcommand(s)
+  inspect        Show the configuration Grok discovers for this directory
+  leader         Manage running leader processes
+  login          Sign in to Grok
+  logout         Sign out and clear cached credentials
+  mcp            Manage MCP server configurations
+  memory         Manage cross-session memory
+  models         List available models and exit
+  plugin         Manage plugins and marketplace sources
+  sessions       List, search, or restore sessions
+  setup          Fetch and install managed configuration
+  trace          Export or upload session trace data
+  update         Check for updates or install a specific version
+  usage          Print persisted token and cost usage for a session
+  version        Print version information [aliases: v]
+  worktree       Manage git worktrees
+  wrap           Run any command with local clipboard support (forwards OSC 52 to the system clipboard)
+```
+
+### grok-bot agent --help
+```
+Run Grok without the interactive UI
+
+Usage: grok agent [OPTIONS] [COMMAND]
+
+Commands:
+  stdio     Run the agent over stdio
+  headless  Run the agent headlessly over the Grok WebSocket relay
+  serve     Run the agent as a WebSocket server
+  leader    Run as the shared leader process for other clients
+  help      Print this message or the help of the given subcommand(s)
+
+Options:
+      --reauth
+          Run authentication before starting the agent [aliases: ----reauthenticate]
+  -m, --model <MODEL>
+          Model ID to use
+      --reasoning-effort <EFFORT>
+          Reasoning effort for reasoning models [aliases: --effort]
+      --always-approve
+          Auto-approve all tool executions
+      --agent-profile <PATH>
+          Path to an agent profile file
+      --plugin-dir <DIR>
+          Load a plugin from this directory for this process only (repeatable). Highest-priority plugin scope; always trusted: hooks and MCP servers activate without a prompt. Used by the Agent SDKs to inject per-connection plugins
+      --leader
+          Connect to a shared leader process instead of starting a new agent. Allows multiple clients to share one backend. Defaults to [cli] use_leader in config.toml
+      --no-leader
+          Start a new agent even when config enables leader mode
+      --grok-ws-origin <GROK_WS_ORIGIN>
+          
+      --grok-ws-url <GROK_WS_URL>
+          
+      --cli-chat-proxy-base-url <CLI_CHAT_PROXY_BASE_URL>
+          Override the CLI chat proxy base URL
+      --xai-api-base-url <XAI_API_BASE_URL>
+          Override the public xAI API base URL
+      --debug
+          Enable debug logging
+      --debug-file <FILE>
+          Write debug logs to FILE
+  -h, --help
+          Print help
+      --leader-socket <PATH>
+          Use a custom leader socket path instead of the default `~/.grok/leader.sock`. A local/branch build can thus run an isolated leader without colliding with the default one already running on the machine Name it `~/.grok/leader-*.sock` to keep `grok leader list/kill` able to find it; any other location works but won't be auto-discovered
+```
+
+
+## Notes outside the verbatim block (dated)
+- 11-05 21:10Z, alive (gen 54), re-read on a scratch HOME: both outputs diff 0 against this block (174 + 44 lines, sha256 cda6873e2f90a7d7). The block's 'Read-only' covers the repo and the API only: `grok-bot --help` left a `.grok` entry in the scratch HOME.
+- 11-05 21:4xZ, director-general-1 (goal:g7.31.1.1's argv build): the block's 'so it is not a seat argv' is about a SEAT in a terminal. The adapter's argv is not a seat's: build_command's only callers are dispatch.py's spawns, detached with stdin=/dev/null and stdout to a log, so there is no terminal. Its argv is therefore the HEADLESS `--single <PROMPT>` (the block's `-p, --single`: one flag, two spellings). The positional TUI prompt and `--session-id`/`--resume` are the seat's, goal:g7.31.1.2.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+11-05 21:4xZ, director-general-1 (the argv build): one dated note added OUTSIDE the verbatim block saying why the dispatch argv is --single, headless. Read alone, the block's own line 'so it is not a seat argv' states the reverse of the build (aio's NOTE 21:41:13Z, alive SUPPORT 21:42:38Z). The block itself is unchanged. Previous version: in git history and the grid.
+<!-- THOUGHT:END -->
