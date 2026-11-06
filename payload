@@ -1,0 +1,1086 @@
+{
+ "leaf": "goal:g5.49",
+ "n_dedup": 836,
+ "n_templates": 2108,
+ "numpy": "2.5.4",
+ "params": {
+  "beta": 1.0,
+  "data": {
+   "jitter_deg": 15.0,
+   "max_offset": 2.0,
+   "n_train": 4000,
+   "side": 8,
+   "width": 1.0
+  },
+  "k": 8,
+  "leaf": "goal:g5.49",
+  "n_rich": 512,
+  "n_samples": 64,
+  "score": {
+   "iou_min": [
+    5,
+    3
+   ],
+   "jitter_deg": 15,
+   "jitter_step": 1,
+   "max_offset": 2.0,
+   "offset_step": 0.25
+  },
+  "seeds": [
+   54901,
+   54902,
+   54903,
+   54904,
+   54905
+  ],
+  "train": {
+   "batch": 64,
+   "lr": 0.003,
+   "steps": 3000
+  },
+  "win_window": 500
+ },
+ "peak_rss_kib": 105076,
+ "seeds": [
+  {
+   "CV2": {
+    "kl_nats": 3.702361824813991,
+    "rich": [
+     {
+      "coverage": 0.9981498963480788,
+      "images": 128,
+      "score": 0.6160456391523299,
+      "templates": 61,
+      "valid": 0.6171875
+     },
+     {
+      "coverage": 0.9898737329489157,
+      "images": 218,
+      "score": 0.6534713315170576,
+      "templates": 114,
+      "valid": 0.66015625
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9352691398683567,
+      "images": 29,
+      "score": 0.5407024714863937,
+      "templates": 21,
+      "valid": 0.578125
+     },
+     {
+      "coverage": 0.9932338197397066,
+      "images": 31,
+      "score": 0.48109763143642037,
+      "templates": 28,
+      "valid": 0.484375
+     }
+    ]
+   },
+   "JV": {
+    "kl_nats": 2.915565239933433,
+    "rich": [
+     {
+      "coverage": 0.971715080223734,
+      "images": 193,
+      "score": 0.576955828882842,
+      "templates": 100,
+      "valid": 0.59375
+     },
+     {
+      "coverage": 0.9658465578023805,
+      "images": 222,
+      "score": 0.4961282123086447,
+      "templates": 138,
+      "valid": 0.513671875
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9011701959974223,
+      "images": 39,
+      "score": 0.5773121568108487,
+      "templates": 32,
+      "valid": 0.640625
+     },
+     {
+      "coverage": 0.9672947789468945,
+      "images": 33,
+      "score": 0.4987613703944925,
+      "templates": 28,
+      "valid": 0.515625
+     }
+    ]
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MC-T": [
+    {
+     "coverage": 1.0,
+     "images": 193,
+     "score": 1.0,
+     "templates": 166,
+     "valid": 1.0
+    },
+    {
+     "coverage": 1.0,
+     "images": 398,
+     "score": 1.0,
+     "templates": 293,
+     "valid": 1.0
+    }
+   ],
+   "MK": {
+    "kl_nats": 0.5229831195877738,
+    "rich": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ]
+   },
+   "MS": [
+    {
+     "coverage": -0.0,
+     "images": 299,
+     "score": -0.0,
+     "templates": 4,
+     "valid": 1.0
+    },
+    {
+     "coverage": -0.0,
+     "images": 278,
+     "score": -0.0,
+     "templates": 5,
+     "valid": 1.0
+    }
+   ],
+   "Z6-ENUM": {
+    "rich": [
+     {
+      "coverage": 0.9973716177249363,
+      "images": 32,
+      "score": 0.4519340142816118,
+      "templates": 32,
+      "valid": 0.453125
+     },
+     {
+      "coverage": 0.916988243682839,
+      "images": 32,
+      "score": 0.4584941218414195,
+      "templates": 32,
+      "valid": 0.5
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9940302114769566,
+      "images": 21,
+      "score": 0.5125468277928057,
+      "templates": 21,
+      "valid": 0.515625
+     },
+     {
+      "coverage": 0.9182958340544894,
+      "images": 16,
+      "score": 0.4304511722130419,
+      "templates": 16,
+      "valid": 0.46875
+     }
+    ]
+   },
+   "seed": 54901
+  },
+  {
+   "CV2": {
+    "kl_nats": 4.002057549702093,
+    "rich": [
+     {
+      "coverage": 0.9571814385446724,
+      "images": 187,
+      "score": 0.740320018874395,
+      "templates": 86,
+      "valid": 0.7734375
+     },
+     {
+      "coverage": 0.9646606265187755,
+      "images": 238,
+      "score": 0.7008862364550478,
+      "templates": 119,
+      "valid": 0.7265625
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9426831892554923,
+      "images": 38,
+      "score": 0.7364712416058534,
+      "templates": 33,
+      "valid": 0.78125
+     },
+     {
+      "coverage": 0.8960382325345574,
+      "images": 45,
+      "score": 0.6720286744009181,
+      "templates": 35,
+      "valid": 0.75
+     }
+    ]
+   },
+   "JV": {
+    "kl_nats": 3.1777674505202524,
+    "rich": [
+     {
+      "coverage": 0.9995376224355713,
+      "images": 209,
+      "score": 0.6169021263469542,
+      "templates": 97,
+      "valid": 0.6171875
+     },
+     {
+      "coverage": 0.989394001921529,
+      "images": 230,
+      "score": 0.5584665362408631,
+      "templates": 144,
+      "valid": 0.564453125
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.8812908992306927,
+      "images": 38,
+      "score": 0.5508068120191829,
+      "templates": 33,
+      "valid": 0.625
+     },
+     {
+      "coverage": 0.9971803988942641,
+      "images": 31,
+      "score": 0.49859019944713207,
+      "templates": 30,
+      "valid": 0.5
+     }
+    ]
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MC-T": [
+    {
+     "coverage": 1.0,
+     "images": 206,
+     "score": 1.0,
+     "templates": 172,
+     "valid": 1.0
+    },
+    {
+     "coverage": 1.0,
+     "images": 396,
+     "score": 1.0,
+     "templates": 294,
+     "valid": 1.0
+    }
+   ],
+   "MK": {
+    "kl_nats": 0.32226909753393834,
+    "rich": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ]
+   },
+   "MS": [
+    {
+     "coverage": -0.0,
+     "images": 291,
+     "score": -0.0,
+     "templates": 3,
+     "valid": 1.0
+    },
+    {
+     "coverage": -0.0,
+     "images": 299,
+     "score": -0.0,
+     "templates": 6,
+     "valid": 1.0
+    }
+   ],
+   "Z6-ENUM": {
+    "rich": [
+     {
+      "coverage": 0.9700806303822102,
+      "images": 34,
+      "score": 0.5134606461593338,
+      "templates": 32,
+      "valid": 0.529296875
+     },
+     {
+      "coverage": 0.9910760598382222,
+      "images": 30,
+      "score": 0.4529527304729375,
+      "templates": 30,
+      "valid": 0.45703125
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9774178175281716,
+      "images": 22,
+      "score": 0.5192532155618411,
+      "templates": 20,
+      "valid": 0.53125
+     },
+     {
+      "coverage": 0.9910760598382222,
+      "images": 20,
+      "score": 0.41811021274425,
+      "templates": 20,
+      "valid": 0.421875
+     }
+    ]
+   },
+   "seed": 54902
+  },
+  {
+   "CV2": {
+    "kl_nats": 4.041054668049191,
+    "rich": [
+     {
+      "coverage": 0.9963567000600257,
+      "images": 176,
+      "score": 0.712239359808534,
+      "templates": 86,
+      "valid": 0.71484375
+     },
+     {
+      "coverage": 0.9983451760884305,
+      "images": 242,
+      "score": 0.6922119873269391,
+      "templates": 123,
+      "valid": 0.693359375
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.987380023288353,
+      "images": 47,
+      "score": 0.8176740817856673,
+      "templates": 40,
+      "valid": 0.828125
+     },
+     {
+      "coverage": 0.9824740868386409,
+      "images": 42,
+      "score": 0.6908020923084194,
+      "templates": 39,
+      "valid": 0.703125
+     }
+    ]
+   },
+   "JV": {
+    "kl_nats": 3.0749413030612502,
+    "rich": [
+     {
+      "coverage": 0.9899136543307624,
+      "images": 187,
+      "score": 0.49108997695315165,
+      "templates": 104,
+      "valid": 0.49609375
+     },
+     {
+      "coverage": 0.9582831238219734,
+      "images": 195,
+      "score": 0.4379653339342613,
+      "templates": 126,
+      "valid": 0.45703125
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9709505944546688,
+      "images": 28,
+      "score": 0.455133091150626,
+      "templates": 22,
+      "valid": 0.46875
+     },
+     {
+      "coverage": 0.8997437586982626,
+      "images": 36,
+      "score": 0.5342228567270935,
+      "templates": 35,
+      "valid": 0.59375
+     }
+    ]
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MC-T": [
+    {
+     "coverage": 1.0,
+     "images": 209,
+     "score": 1.0,
+     "templates": 175,
+     "valid": 1.0
+    },
+    {
+     "coverage": 1.0,
+     "images": 410,
+     "score": 1.0,
+     "templates": 298,
+     "valid": 1.0
+    }
+   ],
+   "MK": {
+    "kl_nats": 0.37974132427635,
+    "rich": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": -0.0,
+      "images": 1,
+      "score": -0.0,
+      "templates": 1,
+      "valid": 0.001953125
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ]
+   },
+   "MS": [
+    {
+     "coverage": -0.0,
+     "images": 291,
+     "score": -0.0,
+     "templates": 5,
+     "valid": 1.0
+    },
+    {
+     "coverage": -0.0,
+     "images": 290,
+     "score": -0.0,
+     "templates": 6,
+     "valid": 1.0
+    }
+   ],
+   "Z6-ENUM": {
+    "rich": [
+     {
+      "coverage": 0.919929125033032,
+      "images": 27,
+      "score": 0.3647375241830186,
+      "templates": 24,
+      "valid": 0.396484375
+     },
+     {
+      "coverage": 0.954434002924965,
+      "images": 35,
+      "score": 0.46230397016677993,
+      "templates": 35,
+      "valid": 0.484375
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.7219280948873623,
+      "images": 17,
+      "score": 0.2820031620653759,
+      "templates": 15,
+      "valid": 0.390625
+     },
+     {
+      "coverage": 0.9709505944546688,
+      "images": 20,
+      "score": 0.455133091150626,
+      "templates": 20,
+      "valid": 0.46875
+     }
+    ]
+   },
+   "seed": 54903
+  },
+  {
+   "CV2": {
+    "kl_nats": 3.848013031758746,
+    "rich": [
+     {
+      "coverage": 0.9960156701674574,
+      "images": 158,
+      "score": 0.6808700870285354,
+      "templates": 73,
+      "valid": 0.68359375
+     },
+     {
+      "coverage": 0.995148095654003,
+      "images": 202,
+      "score": 0.5928128304188884,
+      "templates": 107,
+      "valid": 0.595703125
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9953784388202258,
+      "images": 36,
+      "score": 0.7776394053283014,
+      "templates": 27,
+      "valid": 0.78125
+     },
+     {
+      "coverage": 0.9946937953613058,
+      "images": 31,
+      "score": 0.543973169338214,
+      "templates": 30,
+      "valid": 0.546875
+     }
+    ]
+   },
+   "JV": {
+    "kl_nats": 3.2357770965245134,
+    "rich": [
+     {
+      "coverage": 0.9977888894745002,
+      "images": 212,
+      "score": 0.5281265411085734,
+      "templates": 100,
+      "valid": 0.529296875
+     },
+     {
+      "coverage": 0.9842103114806329,
+      "images": 193,
+      "score": 0.4555817262127148,
+      "templates": 128,
+      "valid": 0.462890625
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9940302114769566,
+      "images": 22,
+      "score": 0.34169788519520383,
+      "templates": 20,
+      "valid": 0.34375
+     },
+     {
+      "coverage": 0.9656361333706097,
+      "images": 22,
+      "score": 0.34702548543006284,
+      "templates": 21,
+      "valid": 0.359375
+     }
+    ]
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MC-T": [
+    {
+     "coverage": 1.0,
+     "images": 193,
+     "score": 1.0,
+     "templates": 158,
+     "valid": 1.0
+    },
+    {
+     "coverage": 1.0,
+     "images": 396,
+     "score": 1.0,
+     "templates": 281,
+     "valid": 1.0
+    }
+   ],
+   "MK": {
+    "kl_nats": 0.5482467639747953,
+    "rich": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ]
+   },
+   "MS": [
+    {
+     "coverage": -0.0,
+     "images": 281,
+     "score": -0.0,
+     "templates": 6,
+     "valid": 1.0
+    },
+    {
+     "coverage": -0.0,
+     "images": 296,
+     "score": -0.0,
+     "templates": 3,
+     "valid": 1.0
+    }
+   ],
+   "Z6-ENUM": {
+    "rich": [
+     {
+      "coverage": 0.9953784388202258,
+      "images": 31,
+      "score": 0.4860246283301884,
+      "templates": 30,
+      "valid": 0.48828125
+     },
+     {
+      "coverage": 0.99946478523249,
+      "images": 30,
+      "score": 0.5016844722749022,
+      "templates": 30,
+      "valid": 0.501953125
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.943601631299382,
+      "images": 23,
+      "score": 0.5307759176059024,
+      "templates": 23,
+      "valid": 0.5625
+     },
+     {
+      "coverage": 0.9876925088958033,
+      "images": 16,
+      "score": 0.3549519953844293,
+      "templates": 16,
+      "valid": 0.359375
+     }
+    ]
+   },
+   "seed": 54904
+  },
+  {
+   "CV2": {
+    "kl_nats": 3.95382861562322,
+    "rich": [
+     {
+      "coverage": 0.9973363870039452,
+      "images": 194,
+      "score": 0.8337108860111104,
+      "templates": 88,
+      "valid": 0.8359375
+     },
+     {
+      "coverage": 0.9959094138937685,
+      "images": 240,
+      "score": 0.7235904335321912,
+      "templates": 117,
+      "valid": 0.7265625
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9972943816462349,
+      "images": 40,
+      "score": 0.7635535109478986,
+      "templates": 26,
+      "valid": 0.765625
+     },
+     {
+      "coverage": 0.9649567669505686,
+      "images": 38,
+      "score": 0.618175428827708,
+      "templates": 33,
+      "valid": 0.640625
+     }
+    ]
+   },
+   "JV": {
+    "kl_nats": 3.0822353105950966,
+    "rich": [
+     {
+      "coverage": 0.9862325350724501,
+      "images": 196,
+      "score": 0.5586082718183799,
+      "templates": 100,
+      "valid": 0.56640625
+     },
+     {
+      "coverage": 1.0,
+      "images": 256,
+      "score": 0.6484375,
+      "templates": 154,
+      "valid": 0.6484375
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9824740868386409,
+      "images": 43,
+      "score": 0.6908020923084194,
+      "templates": 31,
+      "valid": 0.703125
+     },
+     {
+      "coverage": 0.995252549439679,
+      "images": 35,
+      "score": 0.5753803801448144,
+      "templates": 28,
+      "valid": 0.578125
+     }
+    ]
+   },
+   "M2_coin": {
+    "coverage": 0.0,
+    "cues": [
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "score": 0.0,
+      "valid": 0.0
+     }
+    ],
+    "score": 0.0,
+    "valid": 0.0
+   },
+   "M2_true": {
+    "coverage": 1.0,
+    "cues": [
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     },
+     {
+      "coverage": 1.0,
+      "score": 1.0,
+      "valid": 1.0
+     }
+    ],
+    "score": 1.0,
+    "valid": 1.0
+   },
+   "MC-T": [
+    {
+     "coverage": 1.0,
+     "images": 209,
+     "score": 1.0,
+     "templates": 172,
+     "valid": 1.0
+    },
+    {
+     "coverage": 1.0,
+     "images": 408,
+     "score": 1.0,
+     "templates": 296,
+     "valid": 1.0
+    }
+   ],
+   "MK": {
+    "kl_nats": 0.3118611566860302,
+    "rich": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     },
+     {
+      "coverage": 0.0,
+      "images": 0,
+      "score": 0.0,
+      "templates": 0,
+      "valid": 0.0
+     }
+    ]
+   },
+   "MS": [
+    {
+     "coverage": -0.0,
+     "images": 312,
+     "score": -0.0,
+     "templates": 4,
+     "valid": 1.0
+    },
+    {
+     "coverage": -0.0,
+     "images": 319,
+     "score": -0.0,
+     "templates": 7,
+     "valid": 1.0
+    }
+   ],
+   "Z6-ENUM": {
+    "rich": [
+     {
+      "coverage": 0.9886180402927804,
+      "images": 36,
+      "score": 0.5387195961751675,
+      "templates": 34,
+      "valid": 0.544921875
+     },
+     {
+      "coverage": 0.9996842666672321,
+      "images": 30,
+      "score": 0.4666494916669306,
+      "templates": 30,
+      "valid": 0.466796875
+     }
+    ],
+    "test": [
+     {
+      "coverage": 0.9503376699710266,
+      "images": 26,
+      "score": 0.6830552002916754,
+      "templates": 26,
+      "valid": 0.71875
+     },
+     {
+      "coverage": 0.9081783472997053,
+      "images": 18,
+      "score": 0.4824697470029684,
+      "templates": 18,
+      "valid": 0.53125
+     }
+    ]
+   },
+   "seed": 54905
+  }
+ ]
+}
