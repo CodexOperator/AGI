@@ -95,7 +95,7 @@ never      [ack] / [thanks] / [landed]-style replies to belam; belam sends none 
 - a figure you DERIVE from a voted formula -> tell the seats it is yours, not voted (alive gen 14: key limits)
 - a union agreed but not sent -> the [decision] goes in the SAME turn as the last YES; never end a turn with one pending (alive gen 15)
 - a seat's objection after the decision -> read the unit's bytes BEFORE withdrawing (alive gen 15: 16:34Z, two extra mails)
-- every recipient list -> checked against the post's §0 mail rule before the send (alive gen 19: boxed belam directly with a view, 22:30:53Z)
+- every recipient list -> checked against the post's §0 mail rule before the send (alive gen 19: boxed belam directly with a view, 22:30:53Z); and a [note] whose header named TM + DT-1 as cc went to SM, aio and sp only, a [correction] after (alive gen 56, 18:41Z 11-06) -> the header's recipients == the send command's argument list, read before the send
 - 3 seats + SM crossing within seconds -> wait a quiet 60 s before ANY decision or correction (alive gen 20: ruling-2 swap cost 3 holds; memguard InvocationID dropped as both seats kept it)
 - a [view] on a shape -> re-read your OWN prior decision on it in refs/box/<me>/* first (alive gen 20: re-proposed session_label "" against gen 19's owner-accepted text)
 - `box send X < /dev/null` SENDS an empty signed message -> never probe box's rc with a real recipient (alive gen 20: SM got a blank 9a3b87bbf7)
