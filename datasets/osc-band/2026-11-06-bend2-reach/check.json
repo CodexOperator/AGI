@@ -1,0 +1,194 @@
+{
+ "params_sha256": "58a9371703d8528ff1cfd0fcb30a4b6cc290c72e1887e3718fe56420f3f8a620",
+ "sets": {
+  "U_synth_vac_opp": {
+   "peak_rss_mib": 67,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac_opp():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.21,
+   "want": "fail"
+  },
+  "U_synth_wit": {
+   "peak_rss_mib": 71,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 92,
+    "status": "check",
+    "wall_s": 0.64
+   },
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "U_z3enum_vac_opp": {
+   "peak_rss_mib": 76,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac_opp():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "U_z3enum_wit": {
+   "peak_rss_mib": 70,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 89,
+    "status": "check",
+    "wall_s": 0.42
+   },
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "g539_M1_vac_inserted": {
+   "peak_rss_mib": 82,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.33,
+   "want": "fail"
+  },
+  "g539_M1_vac_recheck": {
+   "peak_rss_mib": 71,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 103,
+    "status": "check",
+    "wall_s": 0.53
+   },
+   "wall_s": 0.32,
+   "want": "check"
+  },
+  "g541_M1C_vac_inserted": {
+   "peak_rss_mib": 85,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.33,
+   "want": "fail"
+  },
+  "g541_M1C_vac_recheck": {
+   "peak_rss_mib": 72,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 90,
+    "status": "check",
+    "wall_s": 0.53
+   },
+   "wall_s": 0.32,
+   "want": "check"
+  },
+  "g541_M1S_vac_inserted": {
+   "peak_rss_mib": 82,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.33,
+   "want": "fail"
+  },
+  "g541_M1S_vac_recheck": {
+   "peak_rss_mib": 73,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 95,
+    "status": "check",
+    "wall_s": 0.53
+   },
+   "wall_s": 0.33,
+   "want": "check"
+  },
+  "g543_Mz1_vac_inserted": {
+   "peak_rss_mib": 85,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.32,
+   "want": "fail"
+  },
+  "g543_Mz1_vac_recheck": {
+   "peak_rss_mib": 85,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 101,
+    "status": "check",
+    "wall_s": 0.53
+   },
+   "wall_s": 0.33,
+   "want": "check"
+  },
+  "g543_Mz6_vac_inserted": {
+   "peak_rss_mib": 76,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.vac():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "g543_Mz6_vac_recheck": {
+   "peak_rss_mib": 71,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "verdict": {
+    "peak_rss_mib": 93,
+    "status": "check",
+    "wall_s": 0.31
+   },
+   "wall_s": 0.22,
+   "want": "check"
+  }
+ }
+}

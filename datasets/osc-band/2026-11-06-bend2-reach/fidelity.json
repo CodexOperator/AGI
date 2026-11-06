@@ -1,0 +1,186 @@
+{
+ "O_one_image": {
+  "applies": false,
+  "why": "no committed round output (a planted control)"
+ },
+ "U_synth": {
+  "applies": false,
+  "why": "no committed round output (a planted control)"
+ },
+ "U_z3enum": {
+  "exact": true,
+  "got": {
+   "test": [
+    1.0,
+    0.9283620723948678
+   ]
+  },
+  "seed": 54301,
+  "wall_s": 2.436,
+  "want": {
+   "test": [
+    1.0,
+    0.9283620723948678
+   ]
+  }
+ },
+ "g539_M2": {
+  "exact": true,
+  "got": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  },
+  "seed": 53901,
+  "wall_s": 0.03,
+  "want": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "g541_M2": {
+  "exact": true,
+  "got": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  },
+  "seed": 54101,
+  "wall_s": 0.05,
+  "want": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "g543_M2": {
+  "exact": true,
+  "got": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  },
+  "seed": 54301,
+  "wall_s": 0.049,
+  "want": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "g543_Mz2": {
+  "exact": true,
+  "got": {
+   "test": [
+    0.0,
+    0.0
+   ]
+  },
+  "seed": 54301,
+  "wall_s": 0.795,
+  "want": {
+   "test": [
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "g546_M2": {
+  "exact": true,
+  "got": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  },
+  "seed": 54601,
+  "wall_s": 0.06,
+  "want": {
+   "coin": [
+    0.0,
+    0.0
+   ],
+   "true": [
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "g546_MC": {
+  "exact": true,
+  "got": {
+   "mc": [
+    221,
+    391
+   ]
+  },
+  "seed": 54601,
+  "wall_s": 0.07,
+  "want": {
+   "mc": [
+    221,
+    391
+   ]
+  }
+ },
+ "g546_MK": {
+  "exact": true,
+  "got": {
+   "rich": [
+    0,
+    0
+   ],
+   "test": [
+    0.0,
+    0.0
+   ]
+  },
+  "seed": 54601,
+  "wall_s": 0.748,
+  "want": {
+   "rich": [
+    0,
+    0
+   ],
+   "test": [
+    0.0,
+    0.0
+   ]
+  }
+ }
+}
