@@ -1,0 +1,72 @@
+{
+ "B_disproved_pair_g541": {
+  "peak_rss_mib": 80,
+  "status": "check",
+  "wall_s": 0.44
+ },
+ "B_proved_pair_g535_r2": {
+  "peak_rss_mib": 75,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g535_l2": {
+  "peak_rss_mib": 80,
+  "status": "check",
+  "wall_s": 0.23
+ },
+ "C_g536_l1": {
+  "peak_rss_mib": 79,
+  "status": "check",
+  "wall_s": 0.23
+ },
+ "C_g538_l1": {
+  "peak_rss_mib": 79,
+  "status": "check",
+  "wall_s": 0.23
+ },
+ "C_g538_l2": {
+  "peak_rss_mib": 82,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g538_l3": {
+  "peak_rss_mib": 80,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g540_l1": {
+  "peak_rss_mib": 77,
+  "status": "check",
+  "wall_s": 0.23
+ },
+ "C_g540_l3": {
+  "peak_rss_mib": 76,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g541_l1": {
+  "peak_rss_mib": 75,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g541_l2": {
+  "peak_rss_mib": 76,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g541_l3": {
+  "peak_rss_mib": 74,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "C_g542_l2": {
+  "peak_rss_mib": 74,
+  "status": "check",
+  "wall_s": 0.22
+ },
+ "MC_g535_l2": {
+  "peak_rss_mib": 76,
+  "status": "check",
+  "wall_s": 0.22
+ }
+}

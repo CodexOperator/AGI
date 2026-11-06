@@ -1,0 +1,23 @@
+{
+ "goal": "goal:g5.45",
+ "hypothesis": "hypothesis:lm-bend2-kernel-checks-round-verdicts-over-their-committed-counts",
+ "leaf": "goal:g5.45 v2 at 9f5a760cfe (an ancestor of the pre-run), thought-master [go] 12:41Z 11-05",
+ "toolchain": "the g5.42 install, reused, no download: bend 2.0.39 + Lean 4.34.0 (for --verdict)",
+ "bend_bin": "/data/scratch/director-thought-1/bend/bin",
+ "lean_bin": "/data/scratch/director-thought-1/lean/lean-4.34.0-linux/bin",
+ "work_dir": "/data/scratch/director-thought-1/bend/work-g545",
+ "rss_cap_bytes": 2576980377,
+ "rss_cap_note": "the leaf's 3 GiB is the post's cgroup memory.max (3221225472, measured), which ALSO holds this Claude session (~0.3-0.45 GB); the watchdog kills the bend process tree at 2.4 GiB RSS (polled every 0.1 s) so the session survives; a kill there is read as the leaf's '> 3 GiB' VOID condition and disclosed",
+ "wall_cap_c_s": 60,
+ "wall_cap_b_s": 1200,
+ "step_p": "REPORTED, no claim: on the FIRST 3 pairs of the committed g5.42 tape (tape.json sha256 ca7b9115...d097, row a = 0, b = 0, 1, 2) in tape order: T_slice_k (only pair k's entry + the shared cols W_q / b_q), T_full_k (the same single-pair law inside the FULL tape file, as g5.42 ran it), T_lit (the full tape file with a trivial law), and T_slice(3 pairs); each the MAX of profile_repeats runs; marginal = (T_slice(3) - T_slice(1 = pair 0)) / 2; startup = T_slice(1) - marginal; PROJECTED WALL = 113 x startup + 12769 x marginal; <= 1200 s -> a NEW leaf may reopen g5.42's LAW inside its old caps; <= 25540 s -> banked as a budget ask; else the readout LAW closes as an evidenced negative",
+ "profile_repeats": 3,
+ "int_repr": "read from bend2's Base source (`bend base U32`, `bend base Word`), not run: type U32 is Data: U32{data: Word(32n)}; Word(n) = WCon{head: Bool, tail: Word(p)} ... WNil{}, i.e. a cons list of 32 Bools; Word.add = Word.adc, a bit-serial ripple carry (Bool.full_add per bit); mul and shifts are built on it. So in the CHECKER a U32 is neither unary Nat nor a machine int: a 32-bit bit list, each add ~32 recursive steps, each mul ~32 shift-adds",
+ "census_rule": "see census.json 'rule' (the module docstring): integer-exact iff the committed verdict is the same for every truth value of the line's non-integer clauses",
+ "census_scope": "the numbered Falsifier lines of goal:g5.35 .. goal:g5.42 whose goal is complete or retired with a recorded round; goal:g5.43 (active) is listed as excluded; every cite is the goal node's text at HEAD (path + blob sha256 recorded per line)",
+ "step_b": "the leaf's named clauses, one LAW each, the same file shape: PROVED pair g5.35 r2 (F1 null 44 < band 50; F2 salt 200 >= band 50), DISPROVED pair g5.41 (S-MECH 2 x 41 < 504; S-OUT 2 x 10 < 640); each verdict a PROOF, its flip a COUNTER-PROOF that must FAIL; RED if the disproved pair needs > 2 x the proved pair's lines or check time, or if a flip is accepted",
+ "step_c": "every integer-exact line as LAW kernel_verdict == committed; every other verdict code a counter-proof that must FAIL; RED if a kernel verdict differs from the committed one",
+ "mb": "per clause, each count moved JUST across its own threshold while the original verdict is still claimed (must FAIL): g5.35 F1 44 -> 50 (= the band); F2 200 -> 49 (band - 1, the first value inside); g5.41 S-MECH 41 -> 252 (ceil(504 / 2)); S-OUT 10 -> 320 (ceil(640 / 2)); g5.35's band re-derived from its prereg (n 200, chance 0.2, alpha 0.05, exact binomial) and asserted equal to the committed 50",
+ "mc": "PINNED: g5.36 line 1, the clause 'N_f <= threshold' moved 64 -> 128 must flip false -> true while the line stays DISPROVED. NOT FEASIBLE on committed integers: g5.36 committed N_f = null (its own text: none -> N_f > 64); the 128 is a float accuracy on the disclosed extension grid. So the pin's own fallback is taken: the first integer-exact SINGLE-comparison line in census order (mc_pick, committed), its threshold moved one past the measured value, must flip the LINE (claim of the moved verdict CHECKS; the old verdict FAILS)",
+ "void_rule": "VOID if any one law exceeds 60 s (STEP C, incl. MC) / 1200 s (STEP B, incl. MB) or the RSS cap, needs the network at check time, or a predicate cannot be traced to its pre-registered text (each law carries its cite as a comment; census.json carries the verbatim line + goal blob sha256)"
+}

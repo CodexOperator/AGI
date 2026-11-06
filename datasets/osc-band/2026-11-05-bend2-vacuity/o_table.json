@@ -1,0 +1,492 @@
+{
+ "g539_M1": [
+  {
+   "cites": {
+    "call": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     183
+    ],
+    "dec": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     125
+    ],
+    "draw": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     122
+    ]
+   },
+   "class": "one_class",
+   "kind": "one_class",
+   "lines": {
+    "call": "frozen=True), c, tmpl, tcls, iou_min) for c in (0, 1)])",
+    "dec": "return ((a @ w2 + b2) > 0).astype(np.float64)",
+    "draw": "noise = rng.normal(0.0, sigma, size=(1 if frozen else n, h.shape[1]))"
+   },
+   "m": 1,
+   "n": 64,
+   "reading": "score_le"
+  }
+ ],
+ "g539_M2": [
+  {
+   "cites": {
+    "call": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     194
+    ],
+    "dec": null,
+    "draw": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     194
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "lines, _ = G.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)",
+    "dec": null,
+    "draw": "lines, _ = G.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "score_ge"
+  },
+  {
+   "cites": {
+    "call": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     196
+    ],
+    "dec": null,
+    "draw": [
+     "7b75964aea",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     196
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "coin = (rng_for(seed, M2_STREAM, ARM_COIN, 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5).astype(np.float64)",
+    "dec": null,
+    "draw": "coin = (rng_for(seed, M2_STREAM, ARM_COIN, 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5).astype(np.float64)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "valid_le"
+  }
+ ],
+ "g541_M1C": [
+  {
+   "cites": {
+    "call": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     260
+    ],
+    "dec": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     125
+    ],
+    "draw": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+     122
+    ]
+   },
+   "class": "one_class",
+   "kind": "one_class",
+   "lines": {
+    "call": "frozen=True), c, tmpl, tcls, iou_min, blend_min, sparse_px)",
+    "dec": "return ((a @ w2 + b2) > 0).astype(np.float64)",
+    "draw": "noise = rng.normal(0.0, sigma, size=(1 if frozen else n, h.shape[1]))"
+   },
+   "m": 1,
+   "n": 64,
+   "reading": "score_le"
+  }
+ ],
+ "g541_M1S": [
+  {
+   "cites": {
+    "call": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     266
+    ],
+    "dec": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     210
+    ],
+    "draw": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     206
+    ]
+   },
+   "class": "one_class",
+   "kind": "one_class",
+   "lines": {
+    "call": "out[\"M1_S\"] = pooled([split(sample_s(net_s, c, n_s, None, frozen=True), c, tmpl, tcls, iou_min, blend_min,",
+    "dec": "return ((a @ w2 + b2) > 0).astype(np.float64)",
+    "draw": "a = (h > 0).astype(np.float64)  # every unit at its likelier state (M1-S)"
+   },
+   "m": 1,
+   "n": 64,
+   "reading": "score_le"
+  }
+ ],
+ "g541_M2": [
+  {
+   "cites": {
+    "call": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     276
+    ],
+    "dec": null,
+    "draw": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     276
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "lines, _ = G37.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)",
+    "dec": null,
+    "draw": "lines, _ = G37.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "score_ge"
+  },
+  {
+   "cites": {
+    "call": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     278
+    ],
+    "dec": null,
+    "draw": [
+     "cee90e7bff",
+     ".agi/context/local-maxxing/plasma/g541_blend_race.py",
+     278
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "coin = (E.rng_for(seed, M2_STREAM, ARM[\"COIN\"], 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5)",
+    "dec": null,
+    "draw": "coin = (E.rng_for(seed, M2_STREAM, ARM[\"COIN\"], 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "valid_le"
+  }
+ ],
+ "g543_M2": [
+  {
+   "cites": {
+    "call": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     166
+    ],
+    "dec": null,
+    "draw": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     166
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "lines, _ = G37.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)",
+    "dec": null,
+    "draw": "lines, _ = G37.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "score_ge"
+  },
+  {
+   "cites": {
+    "call": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     168
+    ],
+    "dec": null,
+    "draw": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     168
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "coin = (E.rng_for(seed, M2_STREAM, ARM_IDS[\"COIN\"], 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5)",
+    "dec": null,
+    "draw": "coin = (E.rng_for(seed, M2_STREAM, ARM_IDS[\"COIN\"], 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "valid_le"
+  }
+ ],
+ "g543_Mz1": [
+  {
+   "cites": {
+    "call": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     155
+    ],
+    "dec": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     94
+    ],
+    "draw": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     85
+    ]
+   },
+   "class": "one_class",
+   "kind": "one_class",
+   "lines": {
+    "call": "fixed=True), c, tmpl, tcls, iou_min) for c in (0, 1)])",
+    "dec": "return ((np.maximum(xin @ w1 + b1, 0.0) @ w2 + b2) > 0).astype(np.float64)",
+    "draw": "m = 1 if fixed else n"
+   },
+   "m": 1,
+   "n": 64,
+   "reading": "score_le"
+  }
+ ],
+ "g543_Mz2": [
+  {
+   "cites": {
+    "call": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     153
+    ],
+    "dec": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     94
+    ],
+    "draw": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     85
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "cell = evals(lambda c, r: sample_code(net, c, n_s, arm, r), name, 0)",
+    "dec": "return ((np.maximum(xin @ w1 + b1, 0.0) @ w2 + b2) > 0).astype(np.float64)",
+    "draw": "m = 1 if fixed else n"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "valid_le"
+  }
+ ],
+ "g543_Mz6": [
+  {
+   "cites": {
+    "call": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     157
+    ],
+    "dec": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     94
+    ],
+    "draw": [
+     "f93be0f7b3",
+     ".agi/context/local-maxxing/plasma/g543_code_inputs.py",
+     90
+    ]
+   },
+   "class": "cap8",
+   "kind": "dist8",
+   "lines": {
+    "call": "cell[\"mz6_mod8\"] = evals(lambda c, r: sample_code(net, c, n_s, arm, r, mod=8), \"Z6-MOD8\", 0)[\"test\"]",
+    "dec": "return ((np.maximum(xin @ w1 + b1, 0.0) @ w2 + b2) > 0).astype(np.float64)",
+    "draw": "code = code_table(dim)[ci % mod if mod else ci]"
+   },
+   "m": 8,
+   "n": 64,
+   "reading": "dist_le"
+  }
+ ],
+ "g546_M2": [
+  {
+   "cites": {
+    "call": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     173
+    ],
+    "dec": null,
+    "draw": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     173
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "lines, _ = G37.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)",
+    "dec": null,
+    "draw": "lines, _ = G37.make_lines(r, n_s, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "score_ge"
+  },
+  {
+   "cites": {
+    "call": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     175
+    ],
+    "dec": null,
+    "draw": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     175
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "coin = (E.rng_for(seed, M2_STREAM, ARM_IDS[\"COIN\"], 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5)",
+    "dec": null,
+    "draw": "coin = (E.rng_for(seed, M2_STREAM, ARM_IDS[\"COIN\"], 0, c).random(size=(n_s, d[\"side\"] ** 2)) < 0.5)"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "valid_le"
+  }
+ ],
+ "g546_MC": [
+  {
+   "cites": {
+    "call": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     179
+    ],
+    "dec": null,
+    "draw": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     179
+    ]
+   },
+   "class": "all",
+   "kind": "dist512",
+   "lines": {
+    "call": "lines, _ = G37.make_lines(r, n_r, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)",
+    "dec": null,
+    "draw": "lines, _ = G37.make_lines(r, n_r, d[\"side\"], d[\"width\"], 0.0, d[\"jitter_deg\"], d[\"max_offset\"], y=yy)"
+   },
+   "m": "n",
+   "n": 512,
+   "reading": "dist_ge"
+  }
+ ],
+ "g546_MK": [
+  {
+   "cites": {
+    "call": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     159
+    ],
+    "dec": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     109
+    ],
+    "draw": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     108
+    ]
+   },
+   "class": "all",
+   "kind": "all",
+   "lines": {
+    "call": "cell = evals(lambda c, k, r: sample_cv(net, c, k, r), arm)",
+    "dec": "return (decode(net, E.onehot(cue, n), z)[0] > 0).astype(np.float64)",
+    "draw": "z = rng.normal(0.0, 1.0, size=(n, net[\"wz\"].shape[0]))"
+   },
+   "m": "n",
+   "n": 64,
+   "reading": "score_le"
+  },
+  {
+   "cites": {
+    "call": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     159
+    ],
+    "dec": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     109
+    ],
+    "draw": [
+     "29b9084b23",
+     ".agi/context/local-maxxing/plasma/g546_cvae.py",
+     108
+    ]
+   },
+   "class": "all",
+   "kind": "dist512",
+   "lines": {
+    "call": "cell = evals(lambda c, k, r: sample_cv(net, c, k, r), arm)",
+    "dec": "return (decode(net, E.onehot(cue, n), z)[0] > 0).astype(np.float64)",
+    "draw": "z = rng.normal(0.0, 1.0, size=(n, net[\"wz\"].shape[0]))"
+   },
+   "m": "n",
+   "n": 512,
+   "reading": "dist_le"
+  }
+ ],
+ "rule": "m = distinct latent draws per cue on the cited path, read from the draw line and its call site:\nR1 `1 if <flag> else n`: 1 iff the call passes <flag>=True, else n;  R2 `% mod`: the call's mod=k, else n;\nR4 (read before R3) `size=(n..` or `make_lines(r, n..`: n;  R3 no random token on the draw line: 1, and only under\na frozen=True / fixed=True call. No rule matches -> VOID (raised). -> one_class | cap<k> | all: m = 1 on a deterministic path -> one image per cue -> ONE-CLASS histograms; m = k\n-> at most k distinct images; m = n or a random decoder -> all histograms of n.",
+ "valid_pair": {
+  "cite": [
+   "7b75964aea",
+   ".agi/context/local-maxxing/plasma/g539_joint_samples.py",
+   55
+  ],
+  "text": "valid = hit & np.isin(cls, PAIRS[cue])"
+ }
+}

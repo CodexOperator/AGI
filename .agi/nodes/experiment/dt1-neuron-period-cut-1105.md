@@ -49,3 +49,6 @@ Void checks, all clear: checkpoint sha `8e174e98...cccc` matches; baseline held-
 
 ## Reading (unmeasured, for the next round)
 With 509 of 512 neurons periodic, random picks are already key-frequency neurons, spread over phase and over the (a, b) mixing terms. The top-peakiness neurons of a family are the purest single-frequency responders and are likely near-duplicates (same frequency, similar phase), so N of them span fewer readout directions. A pick that covers phase (e.g. greedy by residual, or by the cos/sin projection angle within each family) is the natural next falsifier. Not measured here.
+
+## Test record (stated per SM's gate, thought-master [fix] 12:41Z)
+The tests ran in the private <scratch> venv WITH torch 2.14.0+cpu: cut 7 passed, 0 skipped. The module calls pytest.importorskip("torch"), so WITHOUT torch the whole module SKIPS: a skip is not a pass, and no skipped run is part of this round's record.

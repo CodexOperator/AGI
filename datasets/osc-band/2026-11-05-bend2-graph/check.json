@@ -1,0 +1,562 @@
+{
+ "params_sha256": "73ddf01cc87af3be821d1cfc4b2dcaf9d3f45301119b2a373132f6a8f2765bd6",
+ "sets": {
+  "B_disproved_pair_g541": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "B_disproved_pair_g541_b_g541_smech_flipped": {
+   "as_wanted": true,
+   "peak_rss_mib": 80,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g541_smech():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "B_disproved_pair_g541_b_g541_sout_flipped": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g541_sout():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "B_proved_pair_g535_r2": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.23,
+   "want": "check"
+  },
+  "B_proved_pair_g535_r2_b_g535_f1_null_flipped": {
+   "as_wanted": true,
+   "peak_rss_mib": 75,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g535_f1_null():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "B_proved_pair_g535_r2_b_g535_f2_salt_flipped": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g535_f2_salt():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g535_l2": {
+   "as_wanted": true,
+   "peak_rss_mib": 79,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g535_l2_not_disproved": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g535_l2():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g535_l2_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g535_l2():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g536_l1": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g536_l1_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g536_l1():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g536_l1_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 16,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g536_l1():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g538_l1": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g538_l1_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g538_l1():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g538_l1_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g538_l1():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g538_l2": {
+   "as_wanted": true,
+   "peak_rss_mib": 81,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.23,
+   "want": "check"
+  },
+  "C_g538_l2_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 74,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g538_l2():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g538_l2_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g538_l2():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g538_l3": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.23,
+   "want": "check"
+  },
+  "C_g538_l3_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 79,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g538_l3():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g538_l3_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 73,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g538_l3():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g540_l1": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g540_l1_not_disproved": {
+   "as_wanted": true,
+   "peak_rss_mib": 76,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g540_l1():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g540_l1_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g540_l1():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g540_l3": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g540_l3_not_disproved": {
+   "as_wanted": true,
+   "peak_rss_mib": 81,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g540_l3():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g540_l3_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 78,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g540_l3():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g541_l1": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g541_l1_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "fail",
+   "tail": [
+    "6 |     case True{}:",
+    "7>|       {==}",
+    "  |       ^^^^",
+    "8 |     case False{}:"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g541_l1_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "6 |     case True{}:",
+    "7>|       {==}",
+    "  |       ^^^^",
+    "8 |     case False{}:"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g541_l2": {
+   "as_wanted": true,
+   "peak_rss_mib": 79,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "C_g541_l2_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 20,
+   "status": "fail",
+   "tail": [
+    "6 |     case True{}:",
+    "7>|       {==}",
+    "  |       ^^^^",
+    "8 |     case False{}:"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g541_l2_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 79,
+   "status": "fail",
+   "tail": [
+    "6 |     case True{}:",
+    "7>|       {==}",
+    "  |       ^^^^",
+    "8 |     case False{}:"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g541_l3": {
+   "as_wanted": true,
+   "peak_rss_mib": 79,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.23,
+   "want": "check"
+  },
+  "C_g541_l3_not_proved": {
+   "as_wanted": true,
+   "peak_rss_mib": 76,
+   "status": "fail",
+   "tail": [
+    "6 |     case True{} True{}:",
+    "7>|       {==}",
+    "  |       ^^^^",
+    "8 |     case True{} False{}:"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g541_l3_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "6 |     case True{} True{}:",
+    "7>|       {==}",
+    "  |       ^^^^",
+    "8 |     case True{} False{}:"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "C_g542_l2": {
+   "as_wanted": true,
+   "peak_rss_mib": 79,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.23,
+   "want": "check"
+  },
+  "C_g542_l2_not_disproved": {
+   "as_wanted": true,
+   "peak_rss_mib": 74,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g542_l2():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "C_g542_l2_not_void": {
+   "as_wanted": true,
+   "peak_rss_mib": 81,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g542_l2():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "MB_b_g535_f1_null": {
+   "as_wanted": true,
+   "peak_rss_mib": 77,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g535_f1_null():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "MB_b_g535_f2_salt": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g535_f2_salt():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  },
+  "MB_b_g541_smech": {
+   "as_wanted": true,
+   "peak_rss_mib": 14,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g541_smech():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "MB_b_g541_sout": {
+   "as_wanted": true,
+   "peak_rss_mib": 75,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.b_g541_sout():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.22,
+   "want": "fail"
+  },
+  "MC_g535_l2": {
+   "as_wanted": true,
+   "peak_rss_mib": 17,
+   "status": "check",
+   "tail": [
+    "ALL PROOFS CHECK",
+    "Use --verdict for mathematical validity."
+   ],
+   "wall_s": 0.22,
+   "want": "check"
+  },
+  "MC_g535_l2_unflipped": {
+   "as_wanted": true,
+   "peak_rss_mib": 18,
+   "status": "fail",
+   "tail": [
+    "4 | def Laws.g535_l2_mc():",
+    "5>|   {==}",
+    "  |   ^^^^",
+    "6 |"
+   ],
+   "wall_s": 0.23,
+   "want": "fail"
+  }
+ }
+}

@@ -112,6 +112,7 @@ def test_8_verdicts_read_each_claim_and_each_mutant_gate():
     assert V["H3"] == "proved" and V["N_w_hits"] == [24]   # OMP < 0.99 at 24
     assert Q.verdicts(base(write=step(32)), P)["H3"] == "disproved"   # OMP also reaches 0.99 at 32
     assert Q.verdicts(base(write=step(24), m3=0.5), P)["H3"] == "void"
+    assert Q.verdicts(base(write={n: 0.995 for n in (8, 16, 32)}), P)["H3"] == "void"   # a MISSING write cell (24) is VOID, not disproved
 
 
 def test_9_g5_36_modules_are_imported_not_copied():

@@ -118,8 +118,9 @@ def verdicts(A, P):
     h1_void = not (m1_red and m2_red and m4_red)
     h1 = "void" if h1_void else "proved" if nb is not None and (nr is None or nr >= 2 * nb) else "disproved"
     h2 = "void" if not m2_red else "no_verdict" if nb is None and nc is None else "red" if nc is not None and (nb is None or nc < nb) else "not_red"
-    hits = [n for n in g if A["write"].get(n, 0.0) >= th and A["omp"][n] < th]
-    h3 = "void" if not m3_red else "proved" if hits else "disproved"
+    missing = [n for n in g if n not in A["write"] or n not in A["omp"]]   # forward fix (SM gate 12:41Z): a missing cell is VOID, never 'disproved'
+    hits = [n for n in g if n not in missing and A["write"][n] >= th and A["omp"][n] < th]
+    h3 = "void" if not m3_red or missing else "proved" if hits else "disproved"
     return {"N_b": nb, "N_c": nc, "N_r": nr, "N_r_by_seed": nrs, "N_w_hits": hits, "M1_red": m1_red, "M2_red": m2_red,
             "M3_red": m3_red, "M4_red": m4_red, "H1": h1, "H2": h2, "H3": h3}
 

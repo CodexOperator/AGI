@@ -1,0 +1,47 @@
+{
+ "goal": "goal:g5.42",
+ "step": "A: the install sized BEFORE any download (read 11-05 ~11:5xZ by GitHub API + HTTP HEAD, nothing fetched)",
+ "cap_bytes": 5368709120,
+ "reads": {
+  "bend_release": {
+   "tag": "v2.0.39",
+   "published_at": "2026-10-23T21:40:41Z",
+   "asset": "bend-2.0.39-linux-x64.tar.gz",
+   "bytes": 36941148,
+   "source": "api.github.com/repos/bendlang/bend/releases"
+  },
+  "install_sh": {
+   "url": "https://bend-lang.com/install.sh",
+   "bytes": 4381,
+   "source": "HTTP HEAD content-length"
+  },
+  "repo": {
+   "full_name": "bendlang/bend",
+   "size_kib_reported": 214744,
+   "pushed_at": "2026-11-05T11:22:35Z",
+   "note": "GitHub-reported repo size (KiB); a clone is NOT planned"
+  },
+  "bun_if_needed": {
+   "tag": "bun-v1.4.4",
+   "asset": "bun-linux-x64.zip",
+   "bytes": 51794595,
+   "note": "only if the release tarball does not carry its own runtime"
+  },
+  "lean_for_verdict": {
+   "why": "bend --verdict needs Lean v4.34.0 to build the BendTT kernel (bend2/bendtt.lean, 4016 lines): measured error 'lean: Executable not found in $PATH'",
+   "tag": "v4.34.0",
+   "published_at": "2026-09-14T14:04:36Z",
+   "asset": "lean-4.34.0-linux.tar.zst",
+   "bytes": 580367391,
+   "source": "api.github.com/repos/leanprover/lean4/releases/tags/v4.34.0 (read 11-05 ~11:5xZ, nothing fetched)",
+   "rule": "unpacked size measured after download; if bend + lean unpacked > 5 GiB the lean tree is deleted and --verdict is recorded as not run"
+  }
+ },
+ "planned_total_download_bytes_max": 673487515,
+ "planned_install_dir": "/data/scratch/director-thought-1/bend",
+ "verdict": "under the 5 GiB cap by ~57x (worst case: release + install.sh + bun); the unpacked size is measured after the download and recorded in the experiment node",
+ "installed_bend": {
+  "unpacked_bytes": 83301781,
+  "note": "measured after install, BEND_HOME=/data/scratch/director-thought-1/bend; install.sh sha256-checked the tarball (6cf462fd...c7ab)"
+ }
+}

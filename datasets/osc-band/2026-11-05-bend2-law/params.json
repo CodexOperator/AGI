@@ -1,0 +1,51 @@
+{
+ "goal": "goal:g5.42",
+ "hypothesis": "hypothesis:lm-bend2-kernel-checks-the-int8-readout-of-the-mod-113-cut",
+ "run": "STEP 0 parity LAW + mutant; STEP 1 the int8 readout LAW of goal:g5.38's OMP-24 cut over a committed tape, checked by bend 2.0.39 (+ --verdict, the BendTT kernel built by Lean 4.34.0); 0 training, 0 USD",
+ "p": 113,
+ "model": {
+  "d_model": 128,
+  "n_heads": 4,
+  "d_mlp": 512,
+  "n_ctx": 3,
+  "act": "relu",
+  "layernorm": false,
+  "pos": "learned",
+  "vocab_in": 114,
+  "vocab_out": 113,
+  "note": "1 layer: tokens (a, b, '=') with '=' = id 113; causal attention (no biases on Q/K/V/O), MLP W_in+b_in -> ReLU -> W_out+b_out, residual stream only (no LayerNorm), unembed (no bias) read at the '=' position (index 2) -> logits over 113 classes = (a+b) mod 113. Init: W_E, W_pos ~ N(0, 1/d_model); Linear layers PyTorch default"
+ },
+ "train_fraction": 0.3,
+ "split_seed": 0,
+ "split_def": "all 113*113 pairs (a, b), index a*113+b; numpy default_rng(split_seed).permutation; first floor(0.3*12769) = 3830 = train, the rest (8939) = held-out test",
+ "threads": 1,
+ "checkpoint": {
+  "path": "datasets/osc-band/2026-10-01-neuron-period-pc/model.pt",
+  "sha256": "8e174e98261aa4995d69a65911cefcbe5f6cdef4388577f8a3209ec64e5ccccc",
+  "train_seed": 0
+ },
+ "omp24_source": {
+  "path": "datasets/osc-band/2026-11-05-neuron-period-phase/results.json",
+  "sha256": "061670de81df8f3bc10a9cb89345feb53ba208f43be827804963807eb1859c40",
+  "key": "24",
+  "note": "goal:g5.38's OMP pick at N = 24 (results.json picks.omp['24']): 0.9984 held-out under g5.36's float solve"
+ },
+ "readout_def": "g5.36's solve (osc_neuron_period_cut, IMPORTED) on the TRAIN rows with keep = the OMP-24 set -> W' (25 x 128); W = W'[:24] U^T (24 x 113, W_out composed with U), b = W'[24] U^T (113); nonmlp = the non-MLP logit path L - U(W_out h + b_out) on all 12769 pairs; h = the 24 kept neurons' post-ReLU on all 12769 pairs",
+ "quant_def": "council pins (thought-master [amend] 11:51Z 11-05): s_h = max|h| / 127 and s_W = max|W| / 127 over the WHOLE tensor, fixed before quantizing; h_q = clip(rint(h / s_h), -127, 127), W_q = clip(rint(W / s_W), -127, 127) (int8, never -128); nonmlp_q = rint(nonmlp / (s_h s_W)), b_q = rint(b / (s_h s_W)) as int32 (the ACCUMULATOR scale); rint = numpy round-half-to-even",
+ "law_def": "per pair (a, b): L_j = nonmlp_q[j] + b_q[j] + sum_i h_q[i] W_q[i][j]; correct iff the argmax is unique and equals (a + b) mod 113 (a tie counts as wrong); X = the number of correct pairs; the LAW states count == X over all 12769 pairs and the CHECKER evaluates the count itself (the tape is literal data in LAWS.bend; X is never imported)",
+ "bend_semantics": "U32 arithmetic mod 2^32 (two's complement for negatives), signed compare by the sign-bit flip x ^ 0x80000000, the scan starts at best = 0x80000000 (the most negative value), > replaces and clears the tie flag, == sets it; VOID unless the Python int reference and this emulation agree on EVERY pair and every |L_j| bound < 2^31 - 1",
+ "fallback": "pre-declared (leaf): if the single law exceeds the RSS cap or the wall cap, 113 LAWs, one per a (113 pairs each, X_a from the reference, sum X_all), in ONE bend process",
+ "counter_proofs": "run only if the law (or the fallback) is discharged: 'count == X+1', 'count == X-1', and 'count == X' on the readout with the largest-|w| entry of W_q negated (ties smallest flat index i*113+j; if that leaves the count at X, the next-largest; chosen by the reference and committed before the bend run); each must FAIL, else VOID",
+ "step0_def": "8-bit parity staircase: h_k = [sum x >= k], k = 1..8, input weights 1, output sum_k (-1)^(k+1) h_k (U32); LAW for every x in {0,1}^8 (8 Bool params), net(x) = parity(x); PROOF = a 256-case match, each {==}; mutant = h_8's output weight +1 (wrong on exactly the all-ones input) under the same PROOF; files committed with the pre-run (step0_files.json)",
+ "step0_wall_cap_s": 600,
+ "wall_cap_s": 1200,
+ "rss_cap_bytes": 2576980377,
+ "rss_cap_note": "the leaf's 3 GiB is the post's cgroup memory.max (3221225472, measured), which ALSO holds this Claude session (~0.3-0.45 GB); the watchdog kills the bend process tree at 2.4 GiB RSS (polled every 0.1 s) so the session survives; a kill there is read as the leaf's '> 3 GiB' VOID condition and disclosed",
+ "bend_bin": "/data/scratch/director-thought-1/bend/bin",
+ "lean_bin": "/data/scratch/director-thought-1/lean/lean-4.34.0-linux/bin",
+ "work_dir": "/data/scratch/director-thought-1/bend/work",
+ "work_note": "the STEP 1 LAWS.bend files (~ the whole tape as literals) are regenerated deterministically from tape.json by the gen stage into work_dir and NOT committed; their sha256s are (step1_files.json)",
+ "step1_red": "X_all < 12642 (0.99 x 12769) or X_test / 8939 < 0.99",
+ "void_rule": "VOID if: the check needs the network, the RSS cap or the 1200 s wall cap hits on the law AND on the fallback, the reference and the law's integer semantics differ on any pair, a logit bound reaches 2^31 - 1, a counter-proof is accepted, the install exceeds 5 GiB, a checkpoint / source sha differs, or params.json changes between the stages",
+ "toolchain_probe_note": "BEFORE this commit, toy files unrelated to the tape (U32 wrap, list sums, a 3-bit parity, a 4-pair synthetic readout) measured the checker at ~1.7-3.5 ms and ~45-100 KB RSS per arithmetic step, i.e. STEP 1 (~36 M multiply-adds) is predicted to hit the RSS cap; that prediction is disclosed here and changes no rule"
+}

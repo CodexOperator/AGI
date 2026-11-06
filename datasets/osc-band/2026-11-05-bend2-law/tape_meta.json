@@ -1,0 +1,14 @@
+{
+ "s_h": 0.2698546281949742,
+ "s_W": 0.129452266043773,
+ "acc_scale": 0.034933293122239244,
+ "u_err": 3.232969447708456e-13,
+ "float_cut_test_acc": 0.9984338292873923,
+ "int32_ok": true,
+ "logit_bound": 388253,
+ "logit_bound_ok": true,
+ "torch": "2.14.0+cpu",
+ "numpy": "2.5.4",
+ "tape_sha256": "ca7b91151a97586c11d30dfae5f82d0994329546edc875ba97896d88ba6ad097",
+ "params_sha256": "614acc927851e74e10d8f3f5b57c802a1ddf5bae7c98c4f2b39595fd1e2e63b0"
+}

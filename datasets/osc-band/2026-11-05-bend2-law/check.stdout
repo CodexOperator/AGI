@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<home>/t/.agi/context/local-maxxing/osc/osc_bend2_law.py", line 294, in <module>
+    {"gen0": stage_gen0, "tape": stage_tape, "reference": stage_reference, "gen": stage_gen, "check": stage_check}[sys.argv[1]]()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<home>/t/.agi/context/local-maxxing/osc/osc_bend2_law.py", line 290, in stage_check
+    print(json.dumps({k: (v if not isinstance(v, dict) else {kk: (vv if not isinstance(vv, dict) else {x: vv[x] for x in ("status", "wall_s", "peak_rss_mib")}) for kk, vv in v.items()} if "status" not in v else {x: v[x] for x in ("status", "wall_s", "peak_rss_mib")}) for k, v in res.items()}, indent=1))
+                                                                                                          ~~^^^
+KeyError: 'status'
+exit 1

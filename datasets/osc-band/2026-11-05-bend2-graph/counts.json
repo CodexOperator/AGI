@@ -1,0 +1,39 @@
+{
+ "g535_band_from_prereg": 50,
+ "source_sha256": {
+  "09f2e322f0:.agi/context/local-maxxing/rv/prereg.json": "59ad55476cff3dcc475544b3cf75f8a1b2c4744627cd89c8f749f4a1ea0ebec2",
+  "124fd6c51bd4e3e121e90cb6c666e852f3b060bd:.agi/context/local-maxxing/rv/results.json": "edda460f93aec9cd2f5acdcca30638ed8d5b0712629e62439d888b1b6e0cd454",
+  "29798337de:datasets/osc-band/2026-11-05-neuron-period-phase/results.json": "061670de81df8f3bc10a9cb89345feb53ba208f43be827804963807eb1859c40",
+  "a87b8558c0:datasets/osc-band/2026-11-05-bend2-law/reference.json": "ab1cfa8927ef585a45d4ee6313dd39c72539d6ffbdaafecd0a2fff5883b79e87",
+  "cee90e7bff7816b994470a8f5c029455baf31747:datasets/plasma/2026-11-05-g5.41-blend-race/step0.json": "32d1f16c1d29c35df3784db0655e1d8eec34bd77d806e1b8a6587479376b1125",
+  "d48b32691e7f6c337c3bfab673cab7e9d401baab:datasets/plasma/2026-11-05-g5.41-blend-race/results.json": "f1894ec781f0d72e33ce812a46ab701f89f473f0f8951f5462d90186b6a37114",
+  "df6ddf4d06ddbb28448ef90314680d78aaddaf42:.agi/context/local-maxxing/mutscore/results_r2.json": "d7a55e40ff09ed1ef5c9b9fdc4fbd661ccd2c37c2f494cf1862c59e4c70c2af8",
+  "f157dedb99:datasets/osc-band/2026-11-05-neuron-period-cut/results.json": "2dd333ececb5e946dea48d92983e7e80d71393119723605ef7a8b23eb4d9672a"
+ },
+ "values": {
+  "g535_band": 50,
+  "g535_null_hits": 44,
+  "g535_salt_hits": 200,
+  "g536_nf": 0,
+  "g536_nf_reached": 0,
+  "g536_nr": 64,
+  "g538_nb": 0,
+  "g538_nb_reached": 0,
+  "g538_nc": 24,
+  "g538_nc_reached": 1,
+  "g538_nr": 64,
+  "g538_nw_hits": 0,
+  "g540_items": 16,
+  "g540_not_runnable": 0,
+  "g540_survived": 44,
+  "g541_blend0": 41,
+  "g541_gc_total": 640,
+  "g541_gc_valid": 303,
+  "g541_invalid0": 504,
+  "g541_s_total": 640,
+  "g541_s_valid": 10,
+  "g542_n_test": 8939,
+  "g542_x_all": 12738,
+  "g542_x_test": 8909
+ }
+}

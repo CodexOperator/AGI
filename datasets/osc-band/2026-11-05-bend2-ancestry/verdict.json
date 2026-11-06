@@ -1,0 +1,269 @@
+{
+ "check_sha256": "7bd6208c6891214709d99ddf65df9bcf006f1b117a7d1db3ad72522b004003be",
+ "disproof_literal_bytes": [
+  410,
+  414,
+  420
+ ],
+ "honest_all_check_and_verdict": true,
+ "kernel_vs_git": {
+  "g535r1_pin": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g535r1_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g535r2_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g536_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g537_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g538_pin": {
+   "agrees": true,
+   "git_ancestor": false,
+   "kernel": "not_ancestor"
+  },
+  "g538_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g539_pin": {
+   "agrees": true,
+   "git_ancestor": false,
+   "kernel": "not_ancestor"
+  },
+  "g539_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g540r1_pin": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g540r1_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g540r2_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g541_pin": {
+   "agrees": true,
+   "git_ancestor": false,
+   "kernel": "not_ancestor"
+  },
+  "g541_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g542_pin": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g542_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g543_pin": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g543_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g544_pin": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g544_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g545_pin": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  },
+  "g545_res": {
+   "agrees": true,
+   "git_ancestor": true,
+   "kernel": "ancestor"
+  }
+ },
+ "line1": "proved",
+ "line2_L_ASYM": "disproved",
+ "max_peak_rss_mib": 95,
+ "max_wall_s": 0.34,
+ "median_disproof_literal_bytes": 414,
+ "median_proof_literal_bytes": 528,
+ "mutants": {
+  "g535r1_pin_Me1a": "fail",
+  "g535r1_pin_Me1b": "fail",
+  "g535r1_pin_Me4": "fail",
+  "g535r1_res_Me1a": "fail",
+  "g535r1_res_Me1b": "fail",
+  "g535r1_res_Me4": "fail",
+  "g535r2_res_Me1a": "fail",
+  "g535r2_res_Me1b": "fail",
+  "g535r2_res_Me4": "fail",
+  "g536_res_Me1a": "fail",
+  "g536_res_Me1b": "fail",
+  "g536_res_Me4": "fail",
+  "g537_res_Me1a": "fail",
+  "g537_res_Me1b": "fail",
+  "g537_res_Me4": "fail",
+  "g538_pin_Me2": "fail",
+  "g538_pin_Me3": "fail",
+  "g538_pin_Me4": "fail",
+  "g538_res_Me1a": "fail",
+  "g538_res_Me1b": "fail",
+  "g538_res_Me4": "fail",
+  "g539_pin_Me2": "fail",
+  "g539_pin_Me3": "fail",
+  "g539_pin_Me4": "fail",
+  "g539_res_Me1a": "fail",
+  "g539_res_Me1b": "fail",
+  "g539_res_Me4": "fail",
+  "g540r1_pin_Me1a": "fail",
+  "g540r1_pin_Me1b": "fail",
+  "g540r1_pin_Me4": "fail",
+  "g540r1_res_Me1a": "fail",
+  "g540r1_res_Me1b": "fail",
+  "g540r1_res_Me4": "fail",
+  "g540r2_res_Me1a": "fail",
+  "g540r2_res_Me1b": "fail",
+  "g540r2_res_Me4": "fail",
+  "g541_pin_Me2": "fail",
+  "g541_pin_Me3": "fail",
+  "g541_pin_Me4": "fail",
+  "g541_res_Me1a": "fail",
+  "g541_res_Me1b": "fail",
+  "g541_res_Me4": "fail",
+  "g542_pin_Me1a": "fail",
+  "g542_pin_Me1b": "fail",
+  "g542_pin_Me4": "fail",
+  "g542_res_Me1a": "fail",
+  "g542_res_Me1b": "fail",
+  "g542_res_Me4": "fail",
+  "g543_pin_Me1a": "fail",
+  "g543_pin_Me1b": "fail",
+  "g543_pin_Me4": "fail",
+  "g543_res_Me1a": "fail",
+  "g543_res_Me1b": "fail",
+  "g543_res_Me4": "fail",
+  "g544_pin_Me1a": "fail",
+  "g544_pin_Me1b": "fail",
+  "g544_pin_Me4": "fail",
+  "g544_res_Me1a": "fail",
+  "g544_res_Me1b": "fail",
+  "g544_res_Me4": "fail",
+  "g545_pin_Me1a": "fail",
+  "g545_pin_Me1b": "fail",
+  "g545_pin_Me4": "fail",
+  "g545_res_Me1a": "fail",
+  "g545_res_Me1b": "fail",
+  "g545_res_Me4": "fail"
+ },
+ "opposites_all_refused": true,
+ "params_sha256": "83354174fc3c085248bd4efb0b4b240edb7f1fbb954687c5227b6f7fff3c93e7",
+ "proof_literal_bytes": [
+  519,
+  522,
+  522,
+  525,
+  525,
+  528,
+  528,
+  528,
+  528,
+  528,
+  707,
+  710,
+  710,
+  716,
+  907,
+  1089,
+  1092,
+  1104,
+  1283
+ ],
+ "ratio": 0.784,
+ "reported_P_omit": {
+  "g535r1_pin_P_omit": "check",
+  "g535r1_res_P_omit": "check",
+  "g535r2_res_P_omit": "check",
+  "g536_res_P_omit": "check",
+  "g537_res_P_omit": "check",
+  "g538_res_P_omit": "check",
+  "g539_res_P_omit": "check",
+  "g540r1_pin_P_omit": "check",
+  "g540r1_res_P_omit": "check",
+  "g540r2_res_P_omit": "check",
+  "g541_res_P_omit": "check",
+  "g542_pin_P_omit": "check",
+  "g542_res_P_omit": "check",
+  "g543_pin_P_omit": "check",
+  "g543_res_P_omit": "check",
+  "g544_pin_P_omit": "check",
+  "g544_res_P_omit": "check",
+  "g545_pin_P_omit": "check",
+  "g545_res_P_omit": "check"
+ },
+ "time_reported": {
+  "honest_disproof_wall_s": [
+   0.22,
+   0.22,
+   0.23
+  ],
+  "honest_proof_wall_s": [
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.22,
+   0.23,
+   0.23,
+   0.23,
+   0.23
+  ]
+ },
+ "void": []
+}
