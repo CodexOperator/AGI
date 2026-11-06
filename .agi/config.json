@@ -322,6 +322,7 @@
       "bend2_graph_dir": "datasets/osc-band/2026-11-05-bend2-graph",
       "bend2_ancestry_dir": "datasets/osc-band/2026-11-05-bend2-ancestry",
       "bend2_vacuity_dir": "datasets/osc-band/2026-11-05-bend2-vacuity",
+      "bend2_reach_dir": "datasets/osc-band/2026-11-06-bend2-reach",
       "osc_self_poke_toy_dir": "datasets/osc-band/2026-10-01-self-poke-toy",
       "osc_self_poke_toy_dh1_dir": "datasets/osc-band/2026-10-01-self-poke-toy-dh1",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
