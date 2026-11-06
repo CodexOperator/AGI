@@ -1,0 +1,11 @@
+box: avail 12852 MiB, memory psi some avg10 0.0
+launch: params sha256 b9f0b3442dfaf3acc447311467ee501aefbdca90cff9bf92811b9bdcacf39e37, torch 2.14.0+cpu, numpy 2.5.4
+baseline 0.9997762613267703; families {5: 151, 1: 133, 45: 128, 34: 84}
+N 8: joint 0.0854 m1 0.0679 omp 0.1699 write 0.0596 rand 0.0882 0.0679 0.0903 0.0800 0.0677
+N 16: joint 0.1983 m1 0.1808 omp 0.8768 write 0.1124 rand 0.3672 0.1710 0.4317 0.3292 0.3410
+N 24: joint 0.2704 m1 0.2717 omp 0.9984 write 0.1148 rand 0.6067 0.3950 0.6473 0.7745 0.6432
+N 32: joint 0.3042 m1 0.3193 omp 0.9998 write 0.6636 rand 0.9016 0.6731 0.8828 0.8993 0.7813
+M2 twin max 0.0106; M3 equal-phase write 0.0225; item 5 twin write {"8": 0.0557, "16": 0.0573, "24": 0.0562, "32": 0.1021}
+s3 census {'train_acc': 1.0, 'test_acc': 0.024051907372189284} {'p1': 71, 'tally': {34: 67, 45: 2, 19: 1, 21: 1}}; M4 max (b)/(c) train-acc fraction at N <= 32: 0.1483
+H1 disproved H2 red H3 disproved void [] (58.8s)
+exit 0
