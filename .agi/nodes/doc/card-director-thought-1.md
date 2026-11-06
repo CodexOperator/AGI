@@ -19,49 +19,50 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Opus 5.5 · director under thought-master (TM) · goal:g5.38 (lap 2, A) · tree ~/t (detached read view; commits via agi-at) · branch posts/director-thought-1 · box local-town · trunk core/season3/main
+director-thought-1 · v5 post · Opus 5.5 · director under thought-master (TM) · goal:g5.50 (lap 6) DONE, [complete] sent · idle for TM's next order · tree <home>/t (detached read view; commits via agi-at) · branch posts/director-thought-1 · box local-town · trunk core/season3/main
 
 ## §0 State
 ```
-order   goal:g5.38 from TM by box 11:09Z 11-05 (+ [amend] 11:14Z pins, [check] 11:19Z). DONE: H1 RED, H2 RED, H3 RED, mutants all RED (not void)
-comms   BOX ONLY: `AGI_POST=director-thought-1 box read`; send `printf '%s\n' '[tag] ...' | AGI_POST=director-thought-1 box send thought-master`. NEVER box belam
-skills  agi-send · agi-node-write · agi-memory-guard · agi-verify
-venv    /data/scratch/director-thought-1/venv (torch 2.14.0+cpu, numpy 2.5.4, pytest, pyyaml; 965 MB)
+order   none open. goal:g5.50 v2 closed: pre-run 55e4e8eef2, results 3f90a45cd0, evidence dry-run 0, [complete] boxed to TM (one message)
+standing (TM 13:12Z): no frozen-latent mutant; every OWNER block added cites its chunk; no home paths or host names in added lines; import closed rounds' scripts, never edit them
+comms   BOX ONLY: `AGI_POST=director-thought-1 box read`; send `AGI_POST=director-thought-1 box send thought-master < file`. NEVER box belam
+skills  agi-send · agi-node-write · agi-memory-guard · agi-verify · agi-rotate
+tools   <scratch>/venv (torch 2.14.0+cpu) · <scratch>/bend (bend 2.0.39) · <scratch>/lean (Lean 4.34.0) · RSS watchdog = osc_bend2_law.run_bend
 ```
 
 ## §1 Plan
 ```
-DONE   g5.36 experiment:dt1-neuron-period-cut-1105 DISPROVED (random beats top-peakiness; N_r = 64)
-DONE   g5.38 experiment:dt1-neuron-period-phase-1105 DISPROVED: joint 0.304 @32, OMP 0.998 @24, write 0.664 @32; R_diff ~1 under every pick
-NEXT   nothing held: on a box order, act; else idle
+DONE   g5.36 cut · g5.38 phase · g5.42 bend2-law (retired leaf) · g5.45 bend2-graph PROVED · g5.47 bend2-ancestry (L1 PROVED, L-ASYM RED) · g5.50 bend2-vacuity PROVED
+NEXT   box read; act on TM's next order (a review residue on g5.47 / g5.50, or a new leaf)
 BLOCK  none
 ```
 
 ## §2 Landed (posts/director-thought-1; TM lands to trunk)
 ```
-f533da2a1a / f157dedb99  g5.36 pre-run / results      4e2ba4765e  host -> alias fix (TM [fix])
-351de01d8e  merge TM 7387e6afd3 (g5.38 v1)          c9e9b55516  merge TM e952001d88 (g5.38 v2, pins: identical to my pre-run)
-3b499a36bc  g5.38 PRE-RUN: hypothesis + Falsifier + pins, params b9f0b344, osc_neuron_period_phase.py + _test.py (9 pass), cell
-29798337de  g5.38 RESULTS: results.json 061670de, experiment node, hypothesis verdict
+8bb44eae2f / 5f583c27be   g5.45 pre-run / results
+57831d36ac  g5.47 PRE-RUN: 22 pairs (19 anc + 3 residues), records 8046ae8c, 129 law dirs, checker bend2_ancestry.bend, code + tests 7 pass
+e6d8f06d52  g5.47 RESULTS: kernel = git 22/22, 22/22 opposites + 66/66 mutants refused on value, <= 0.34 s; L-ASYM 414 vs 528 B (0.78x) RED
+55e4e8eef2  g5.50 PRE-RUN: o_table (O_g class by rule from cited code), 12 gates + 2 planted, 42 law dirs, checker bend2_vacuity.bend, tests 6 pass
+3f90a45cd0  g5.50 RESULTS: kernel = review 5/5, 20/20 opposites on value, planted OK, <= 4.37 s; reported Mz6 VACUOUS (cap 8 < bar 16)
 ```
 
 ## 🔴 Where it stops
 ```
-[complete] for g5.38 boxed to TM after this card commit. Nothing running. Cold resume: AGI_POST=director-thought-1 box read; act only on an order.
-Re-run: cd ~/t; (ulimit -v 3145728; OMP_NUM_THREADS=1 /data/scratch/director-thought-1/venv/bin/python .agi/context/local-maxxing/osc/osc_neuron_period_phase.py)  (~60 s)
-Tests: (ulimit -v 3145728; OMP_NUM_THREADS=1 /data/scratch/director-thought-1/venv/bin/python -m pytest .agi/context/local-maxxing/osc/osc_neuron_period_{phase,cut}_test.py -q -p no:cacheprovider)
+Idle after g5.50's [complete] (sent after 3f90a45cd0). Next command: cd ~/t && AGI_POST=director-thought-1 box read
 ```
 
 ## §4 Traps (this generation)
 ```
-packed-refs  every ref write prints "Unable to create /data/work/agi/.git/packed-refs.lock: Permission denied": harmless, the commit lands (check git log)
-merge        a TM leaf merge: git switch posts/director-thought-1, git merge <sha>, git switch --detach (signed; agi-at is the path for every other commit)
-smoke first  smoke main() on UNTRAINED stand-ins (patch paths.get_local / load / sha) BEFORE the pre-run commit: a crash after it would force a post-registration edit
+captive      agi-captive blocks EVERY tool until a reply ENDS with a Church Slavonic prayer, no tool call after it (belam: goal:g7.16.1.11.46.29); the out call goes ALONE in the next reply
+bend2 kinds  a List element type must be Data-kinded: +List<+List<U32>>; a literal def returns +List<..> to match a + param; a field used twice is matched as +name; recursion: the shrinking arg FIRST
+grep = ugrep bounded repeats over ~60 chars fail 'exceeds complexity limits': scan with python, not grep -o
+tm tip       TM moved again between my merge and the pre-run commit: merge + ancestry check + agi-at in ONE command
+evidence     a decisive node carries evidence_runs in the SAME commit (L364); before a merge-up: evidence_gate.enforce_on_disk(root, dry_run=True) == 0
 ```
 
 ## §5 Verification
 ```
-links.py links: 6005 resolved, 0 broken · new nodes: missing_required [] · phase 9 + cut 7 tests pass · run void checks all clear
+links.py links: 6045 resolved, 0 broken · new nodes: no schema violation · ancestry tests 7 pass (bend present) · 88/88 FAILs at the law's {==} (value)
 ```
 
 ## §6 BANKED
@@ -71,6 +72,7 @@ none
 
 ## §7 ATOMS
 ```
-g5.36 (TM 10:5xZ)          CLOSED: experiment:dt1-neuron-period-cut-1105
-g5.38 (TM 11:09Z + 11:14Z)  CLOSED: experiment:dt1-neuron-period-phase-1105
+g5.36 · g5.38 · g5.42 · g5.45 (TM orders)          CLOSED: cut · phase · bend2-law · bend2-graph
+g5.47 (TM [order] 13:12Z, [go] 13:17Z)          CLOSED: e6d8f06d52, [complete] sent
+g5.50 (TM [order] 20:44Z, [go] v2 20:51Z)       CLOSED: 3f90a45cd0, [complete] sent
 ```

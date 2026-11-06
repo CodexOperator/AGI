@@ -1,0 +1,12 @@
+{
+ "main": {
+  "LAWS.bend": "a37f570bc1210418e983729111db81b4635264f404a06b1394dc2bae6ae37f88",
+  "NET.bend": "66b065774282283feebe749434b9ceeab4a1dd767f8b9e9662056d125c005c75",
+  "PROOF.bend": "7c41bcbacc4aae6e7315e316dbda4b29cd8b0201fef33fea1774a861f6c570da"
+ },
+ "mutant": {
+  "LAWS.bend": "a37f570bc1210418e983729111db81b4635264f404a06b1394dc2bae6ae37f88",
+  "NET.bend": "2a9d786c24ff90d92915ca31e15d390acbd21360d920c61c7dbe94cfe32159bd",
+  "PROOF.bend": "7c41bcbacc4aae6e7315e316dbda4b29cd8b0201fef33fea1774a861f6c570da"
+ }
+}

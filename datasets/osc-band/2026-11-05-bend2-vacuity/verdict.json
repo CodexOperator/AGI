@@ -1,0 +1,173 @@
+{
+ "check_sha256": "6f35d719c3b47e2ff8898b26e63f5d30f34875cd8b8bc981c7a9ca0e38bef04e",
+ "honest_all_check_and_verdict": true,
+ "kernel": {
+  "P_strong": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": null,
+   "sets": [
+    "P_strong_ex",
+    "P_strong_vac_opp",
+    "P_strong_wit"
+   ]
+  },
+  "P_taut": {
+   "kernel": "vacuous",
+   "python": "vacuous",
+   "review": null,
+   "sets": [
+    "P_taut_ex_opp",
+    "P_taut_vac",
+    "P_taut_wit_opp"
+   ]
+  },
+  "g539_M1": {
+   "kernel": "vacuous",
+   "python": "vacuous",
+   "review": "vacuous",
+   "sets": [
+    "g539_M1_ex_opp",
+    "g539_M1_vac",
+    "g539_M1_wit_opp"
+   ]
+  },
+  "g539_M2": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": null,
+   "sets": [
+    "g539_M2_ex",
+    "g539_M2_vac_opp",
+    "g539_M2_wit"
+   ]
+  },
+  "g541_M1C": {
+   "kernel": "vacuous",
+   "python": "vacuous",
+   "review": null,
+   "sets": [
+    "g541_M1C_ex_opp",
+    "g541_M1C_vac",
+    "g541_M1C_wit_opp"
+   ]
+  },
+  "g541_M1S": {
+   "kernel": "vacuous",
+   "python": "vacuous",
+   "review": null,
+   "sets": [
+    "g541_M1S_ex_opp",
+    "g541_M1S_vac",
+    "g541_M1S_wit_opp"
+   ]
+  },
+  "g541_M2": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": null,
+   "sets": [
+    "g541_M2_ex",
+    "g541_M2_vac_opp",
+    "g541_M2_wit"
+   ]
+  },
+  "g543_M2": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": "non_vacuous",
+   "sets": [
+    "g543_M2_ex",
+    "g543_M2_vac_opp",
+    "g543_M2_wit"
+   ]
+  },
+  "g543_Mz1": {
+   "kernel": "vacuous",
+   "python": "vacuous",
+   "review": "vacuous",
+   "sets": [
+    "g543_Mz1_ex_opp",
+    "g543_Mz1_vac",
+    "g543_Mz1_wit_opp"
+   ]
+  },
+  "g543_Mz2": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": "non_vacuous",
+   "sets": [
+    "g543_Mz2_ex",
+    "g543_Mz2_vac_opp",
+    "g543_Mz2_wit"
+   ]
+  },
+  "g543_Mz6": {
+   "kernel": "vacuous",
+   "python": "vacuous",
+   "review": null,
+   "sets": [
+    "g543_Mz6_ex_opp",
+    "g543_Mz6_vac",
+    "g543_Mz6_wit_opp"
+   ]
+  },
+  "g546_M2": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": null,
+   "sets": [
+    "g546_M2_ex",
+    "g546_M2_vac_opp",
+    "g546_M2_wit"
+   ]
+  },
+  "g546_MC": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": null,
+   "sets": [
+    "g546_MC_ex",
+    "g546_MC_vac_opp",
+    "g546_MC_wit"
+   ]
+  },
+  "g546_MK": {
+   "kernel": "non_vacuous",
+   "python": "non_vacuous",
+   "review": "non_vacuous",
+   "sets": [
+    "g546_MK_ex",
+    "g546_MK_vac_opp",
+    "g546_MK_wit"
+   ]
+  }
+ },
+ "line1": "proved",
+ "line2_counterproofs": "proved",
+ "max_peak_rss_mib": 143,
+ "max_wall_s": 2.92,
+ "opposites_all_refused": true,
+ "params_sha256": "4ec3e7b7a5517cb72b4494fb966b16e17da8e09a2397d6845a319f3f384a119a",
+ "planted": {
+  "P_strong": true,
+  "P_taut": true
+ },
+ "reported": {
+  "g539_M2": "non_vacuous",
+  "g541_M1C": "vacuous",
+  "g541_M1S": "vacuous",
+  "g541_M2": "non_vacuous",
+  "g543_Mz6": "vacuous",
+  "g546_M2": "non_vacuous",
+  "g546_MC": "non_vacuous"
+ },
+ "reviewed_agree": {
+  "g539_M1": true,
+  "g543_M2": true,
+  "g543_Mz1": true,
+  "g543_Mz2": true,
+  "g546_MK": true
+ },
+ "void": []
+}
