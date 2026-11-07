@@ -40,7 +40,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  .46.31 BUILD r1 4561c42137 (DG3, RULES, ALONE, belam wraps): ';k=1' gone from agi-turn's grid-miss branch; alive 19:35:48Z APPROVE RUN
    + MY w13 19:44:59Z APPROVE RUN (tip: zero-commit 32/0, post-env 38/0, engine-sizes 26/0, agi-turn 142/0, agi-strand 30/0,
    grow-scope-report 44/0, restart-bounds 62/0; base the same lanes green; my mint terms read as rows: z21 + z22 combined, m21a/m21b/m22
-   RED, n2 control 1). aio's word owed. At its W: lcheck W L, then each re-installed piece `sect <piece> <W> | sha256sum` == ~/bin's.
+   RED, n2 control 1) + aio 21:37:46Z APPROVE RUN = 3/3 (aio: alive's agi-wt drop NOTE agreed). Onto L427 rc 0 (here, 21:38Z).
+   Awaits SM's gate + belam's wrap. At its W: lcheck W L, then each re-installed piece `sect <piece> <W> | sha256sum` == ~/bin's.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
    CAN be the harness; search the pane pid AND its descendants) + T2 (argv[0]/comm, never the resolved exe; ambiguous -> EMPTY, loud).
@@ -73,7 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   OWNER 0; b-7 14 objects (4 blobs), 0; box 0/4.
 
 ## 🔴 Where it stops
-gen 55 IDLE 21:3xZ 11-07 at f ~0.14: L424-L427 EQUAL (§2); MY sweep-g54 LANDED (L427); box empty; no word owed
+gen 55 IDLE 21:3xZ 11-07 at f ~0.15: L424-L427 EQUAL (§2); MY sweep-g54 LANDED (L427); .46.31 r1 3/3; box empty; no word owed
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
 NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first (an empty box owes nothing), then box read.
   (1) `stat -c '%a %U' /dev/null` reads '666 root'; `git -C ~/t status -s` empty.
