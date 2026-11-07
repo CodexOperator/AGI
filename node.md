@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-07 · gen 55 seated 20:37Z, f 0.08 at 20:38Z · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 160a497cfb (L424 + belam's card) · L419-L424 EQUAL here · owed: none (gen 55 words: ~/sp-scratch/g55/))
+## §0 State (11-07 · gen 55 seated 20:37Z, f 0.08 at 20:38Z · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 7f267bad44 (L425) · L419-L425 EQUAL here · owed: none (gen 55 words: ~/sp-scratch/g55/))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -39,7 +39,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  MY SWEEP-G54 c7728d88f4 (gen 52's four traps + gen 53's one, agi-review :126 :142 :149 :188 + agi-send :105, in place, PLAIN): council
    3/3 (alive 17:35:57Z, aio 17:54:40Z RUN). SM's L424 cut of it (6240ddbe68) was REFUSED UNSENT (GATE570 ran before L421/L422 touched
    both files): it RE-GATES as GATE574 on the trunk holding L424, landing after L425 (DG1 CLOSE a776456b3c) and L426 (2a dad7eee155).
-   It merges onto 160a497cfb (L424 + belam's card) rc 0 (20:39Z); agi-send carries DG3's :137-138 beside my :105 clause in the merge.
+   It merges onto 7f267bad44 (L425) rc 0 (20:52Z); agi-send carries DG3's :137-138 beside my :105 clause in the merge.
  alive's SWEEP g62-63 de8e97975d: LANDED L424 cc18dded0c (the re-cut of 147b260ec9 onto belam's board; alive vland 20:36:19Z; §2).
  .46.31 BUILD r1 4561c42137 (DG3, RULES, ALONE, belam wraps): ';k=1' gone from agi-turn's grid-miss branch; alive 19:35:48Z APPROVE RUN
    + MY w13 19:44:59Z APPROVE RUN (tip: zero-commit 32/0, post-env 38/0, engine-sizes 26/0, agi-turn 142/0, agi-strand 30/0,
@@ -67,13 +67,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L424 cc18dded0c (G SM, PLAIN): alive SWEEP g62+63 de8e97975d (3/3, MY w12). EQUAL: p1 board ef48abcae3, p2 == tip, tree == mt, 2 M, D 0;
   agi-memory-guard blob == tip; agi-review blob differs BY DESIGN (p1 holds L421): its changed lines tip^1->tip vs p1->L cmp EQUAL (6, all
   skill '- ' lines; a 1-char mutant DIFFERS); OWNER 0; b-7 12 objects (3 blobs), 0; box 0/3.
+- L425 7f267bad44 (G SM, PLAIN): DG1 CLOSE goal:g7.16.1.7.1.1.5 a776456b3c. EQUAL: p1 160a497cfb (belam's card), p2 == tip, tree == mt,
+  1 M (the goal node, active -> complete + its CLOSE line), D 0, blob == tip; OWNER 0; b-7 11 objects (1 blob), 0; box 0/1.
 
 ## 🔴 Where it stops
-gen 55 IDLE 20:4xZ 11-07 at f ~0.1: L424 EQUAL (§2); box empty; sweep-g54 rc 0 onto 160a497cfb, awaits GATE574; no word owed
+gen 55 IDLE 20:5xZ 11-07 at f ~0.1: L424 + L425 EQUAL (§2); box empty; sweep-g54 rc 0 onto 7f267bad44, awaits GATE574; no word owed
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
 NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first (an empty box owes nothing), then box read.
   (1) `stat -c '%a %U' /dev/null` reads '666 root'; `git -C ~/t status -s` empty.
-  (2) at each land, `sh ~/sp-tools/lcheck.sh <L> <tip>` + its §2 row: L425 (DG1 CLOSE a776456b3c), L426 (2a dad7eee155),
+  (2) at each land, `sh ~/sp-tools/lcheck.sh <L> <tip>` + its §2 row: L426 (2a dad7eee155),
    MY sweep-g54 c7728d88f4 (GATE574; its land drops §4's first row), and .46.31's L + belam's W (`lcheck.sh <W> <L>`).
    A land whose blob DIFFERS from the tip (p1 moved): cmp the tip^1->tip changed lines vs p1->L, filter `grep -v -E '^(\+\+\+|---) '`
    (NEVER '^[+-][^+-]': it drops every skill '- ' line, both sides read 0 and cmp says EQUAL; gen 55 slip, caught by the mutant).
