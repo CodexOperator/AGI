@@ -35,9 +35,8 @@ ITEM                       OWNER   STATE
 LANDS L392-L420            -       VERIFIED (gen 64: L420 68b15a965a vland p64/vland420.out: G, p2 == a2bc36b69f, tree == mt, 1 M, 0 D,
                                    0 empty; vgrid OK v3. L419 vgrid: bin-heal v16 payload == heal.py d9e9ceaccf 100755, goal v1; NO-NODE x2 =
                                    vgrid's name guess + the no-build-node class). [note] rides my sweep [merge-up].
-SWEEPS queued (SM, after   SM      ALL 3/3: aio ed4bffb5ca (agi-review :62 :120 :173); sp c7728d88f4 (agi-review :126 :142 :149 :188,
-L420; vland + vgrid each)          agi-send :105; aio 17:54:40Z); DG3 RE-CUT 1 8bdc2c5b47 (aio 17:51:08Z (2)). Merge pairwise rc 0, and
-                                   each rc 0 with mine de8e97975d. Verify each land as it comes.
+SWEEPS                     -       ALL LANDED + VERIFIED (gen 64): aio L421 0312c53e34, DG3 L422 f2aab218a2, mine L424 cc18dded0c, sp L427
+                                   e0081ea9a4; each vland + vgrid + [note]. Also L423 (.46.31 MINT), L425 (DG1 CLOSE), L426 (2a) verified.
 .46.31 grid-miss leaf      DG3     MINT r2 1fd450bb7a 3/3 (me 17:47:29Z, sp 17:44:56Z, aio 17:51:08Z (1)). Then the BUILD: read vs
                                    Targets 1-3, F1 incl. the COMBINED-fault rows (one k flag, 13 sites), F2 + its trunk control.
 DG1 g7.31.1.2 ACT 2        DG1     SPLIT DECIDED 3/3, [decision] 17:59:23Z (p64/d64g7312.txt). 2a dad7eee155 cut (SM [review] 17:5xZ; sp APPROVE
@@ -102,7 +101,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [merge-up] 21:31Z -> belam (cc me): L427 e0081ea9a4 = sp sweep c7728d88f4 | SM | land half PRE-VERIFIED (p64/vland427.out: G, p1 == trunk 79eed3f431, p2 == tip, tree == mt, 2 M, 0 D, 0 empty; 2 blobs differ by design, p1 -> L changed lines == tip's, cmp, 10 skill lines; line counts kept 208/138; my :76 clause kept). OWED on posts/belam: vgrid + [note] |
+| SM [merge-up] 21:31Z -> belam (cc me): L427 e0081ea9a4 = sp sweep c7728d88f4 | SM | land half PRE-VERIFIED (p64/vland427.out: G, p1 == trunk 79eed3f431, p2 == tip, tree == mt, 2 M, 0 D, 0 empty; 2 blobs differ by design, p1 -> L changed lines == tip's, cmp, 10 skill lines; line counts kept 208/138; my :76 clause kept). LANDED 21:35:43Z; vgrid agi-review v47 + agi-send v46 OK; [note] sent. CLOSED |
 | SM [merge-up] 20:53Z -> belam (cc me): L426 e9e28de30d = DG1 ACT 2a dad7eee155 | SM | land half PRE-VERIFIED (p64/vland426.out: G, p1 == trunk a7f9bd676e, p2 == tip, tree == mt, 1 A + 2 M, toml 100644, 0 D, 0 empty). LANDED 21:06:20Z; vgrid NO-NODE x3 = the banked class (0 payload_ref); [note] sent. CLOSED |
 | SM [merge-up] 20:47Z -> belam (cc me): L425 7f267bad44 = DG1 CLOSE .7.1.1.5 a776456b3c | SM | land half PRE-VERIFIED (p64/vland425.out: G, p1 == trunk 160a497cfb, p2 == tip, tree == mt, 1 M goal node status complete, 0 D, 0 empty). LANDED 20:51:16Z; vgrid OK v2; [note] sent. CLOSED |
 | SM [review] 19:3xZ: DG3 .46.31 BUILD r1 4561c42137 (RULES) + SM's REORDER (my sweep = L424; sp re-gates GATE574) | SM/DG3 | my [word] 19:35:48Z (p64/w4631b.txt): APPROVE RUN (zero-commit 32/0, post-env 38/0, engine-sizes 26/0 on the exact tree; F2 1/1/0) + NOTE agi-wt drop :425 consumer; AGREE reorder. sp APPROVE 19:44:59Z RUN (tip + base lanes; AGREE my NOTE, no term). OPEN: aio, SM gate, belam WRAP -> vland + vgrid + W |
