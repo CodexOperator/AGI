@@ -12,6 +12,8 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 pchk(){ case "$1" in *%i*|*%t*|*/etc/agi/carry.env*) : >${PCM:-$T/pchk.bad};; esac;}
 pchkx(){ [ ! -e ${PCM:-$T/pchk.bad} ]||{ echo "FAIL fixture: pchk matched nothing: a placeholder (%i, %t or /etc/agi/carry.env) was left in a derived env or body";exit 99;};}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_BOX AGI_WT AGI_TRUNK AGI_ROLE AGI_FILL
+# the lane's own fixture git is hermetic (as agi-strand.t.sh:21): a post uid's global core.hooksPath=~/bin ran ITS ref guard on this fixture's posts/<P> and refused the write, so e2/e3 read rc 5 [no-branch] on two post uids (DG3 + all-is-one 11-07: 35/3 under the real HOME, 38/0 under a scratch one); as/ast/box set their own GIT_CONFIG_GLOBAL inside env -i
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 mkdir -p $T/bin $T/hm $T/wt $T/k $T/c
 [ -n "$UNITFILE" ]||UNITFILE=$GEO/engine-root.md
 [ -n "$ENVFROM" ]||LIVE=
