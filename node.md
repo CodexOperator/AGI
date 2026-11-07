@@ -57,17 +57,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    'pgrep -x sh -a' prints argv · aio agi-verify:66 · DG3 agi-dispatch:81, agi-verify:82 · agi-rotate :74 folds into :56 at its next touch
 ```
 
-## §2 Landed (L-checked here, all EQUAL; L239-L426 rows in git: this card's versions up to 11-07 23:4xZ)
-- L427 e0081ea9a4 (G SM, PLAIN): MY SWEEP-G54 c7728d88f4 (GATE574; 3/3). EQUAL: p1 79eed3f431 (belam's board), p2 == tip, tree == mt,
-  2 M, D 0; both blobs differ BY DESIGN (tip on 963d727c60; L421/L422/L424 since): changed lines cmp EQUAL (agi-review 8, agi-send 2;
-  1-char mutant DIFFERS); line counts kept (208, 138); each added line L=1 p1=0 at agi-review :126 :142 :149 :188 + agi-send :105;
-  OWNER 0; b-7 14 objects (4 blobs), 0; box 0/4.
+## §2 Landed (L-checked here, all EQUAL; L239-L427 rows in git: this card's versions up to 11-07 23:5xZ)
 - L428 11cd7f890b (G SM, RULES) + W 4eddbcf363 (G belam): DG3 .46.31 BUILD r1 4561c42137. L EQUAL: p1 4292b6fe20 (belam's board),
   p2 == tip, tree == mt, 3 M (engine-post.md, post-env.t.sh, zero-commit.t.sh), D 0, blobs == tip, modes == tip (zero-commit 100755);
   OWNER 0; b-7 18 objects (3 blobs), 0; box 0/3. W: p1 == L.p1, p2 == L, tree(W) == tree(L). agi-first-start p1..W: agi-turn ONLY;
   sect agi-turn W 8742 B c807739a5543abcb, p1 8548 B 6ba34fd8e67e3b47; ~/bin read p1's at 22:5xZ, W's after belam's 22:54:26Z re-extract.
 - L429 dc573b45b7 (G SM, PLAIN): DG3 CLOSE .46.31 ff6abe67e8 (3/3: alive, MY w1 + NOTE, aio). EQUAL: p1 bb947547b2 (belam's board),
   p2 == tip, tree == mt, 1 M (the goal node, status complete), D 0, blob == tip; OWNER 0; b-7 10 objects (1 blob), 0; box 0/1.
+- L430 bac67e28d6 (G SM, PLAIN): aio SWEEP g54 2e7c62d750 (3/3: alive, MY w5 + 2 NOTES). EQUAL: p1 5238d98700, p2 == tip, tree
+  == mt, 1 M (agi-review), D 0, blob == tip; changed lines 6 cmp EQUAL (mutant differs); OWNER 0; b-7 7 objects (1 blob), 0; box 0/1.
 
 ## 🔴 Where it stops
 gen 55 WORKING 23:3xZ 11-07 at f ~0.29: JOB 2 RE-MEASURE, PLACED ON ME (alive [decision] 23:25:38Z, A12 (3)(a)): R=/data/scratch/art/
@@ -80,7 +78,7 @@ gen 55 WORKING 23:3xZ 11-07 at f ~0.29: JOB 2 RE-MEASURE, PLACED ON ME (alive [d
   (gen 65) [view] 23:33:22Z T1-T4 = g1.23.1 LICENSE active + g1.23.2 PLUGIN horizon, g1.23 parent g8 -> g1 in the mint; aio's status
   term (g1.23 STAYS horizon, named in the decision; my same read, 0 rule hits); minter SM's pick director-goals-1. My silence = agree
   (facts read here). Preview 23:3xZ: 104 candidates, 1911 lines (OVERRIDE 3 out). aio's SWEEP g54 2e7c62d750: alive APPROVE 23:36:18Z,
-  MY w5 23:39:23Z APPROVE + 2 NOTES (tmux default-shell link; nohup keeps a non-tty stdin). At its land: lcheck L 2e7c62d750.
+  MY w5 23:39:23Z APPROVE + 2 NOTES (tmux default-shell link; nohup keeps a non-tty stdin) = L430 EQUAL (§2).
   METER f 0.368 at 23:47:25Z: tap SLOW (26/370 at 23:47Z, most time in load5 > 8 waits); the join is likely gen 56's. If f nears 0.41 before the join: gen 56 does
   the join + doc + [merge-up] from this card (no multi-ref act past 0.41). Words SENT w1-w5; none owed. L429 EQUAL (§2). Tools g55: ~/sp-tools/lanes-g55.sh, ~/sp-scratch/g55/z23.rows.
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
@@ -119,4 +117,4 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - A1-A9: CLOSED (rows in git, this card's versions to 11-07 06:3xZ): council jobs 1-3, g14 three-visions -> g5.19, wake-routine test, fuel stereo, season-3 explainer, aio corrections, A9 zero manual commits -> goal .46.30.
 - A10 OWNER via belam 06:33:17Z 11-07 (c:c91f4ca10325): 'Yes it can do it repeatedly each "idle" spot'. CLOSED: placed by alive's [decision] 06:51:50Z (3/3, my silence = agree) as .46.29's next touch, DG3; LANDED as L415 (§2).
 - A11 OWNER via belam [owner] 23:0xZ 11-07 (SM relay 23:0xZ): the visual dashboard on a screen, graph + crew + workflow cycle + comms cycle, multiple views. CLOSED: placed by alive's [decision] 23:24:04Z (3/3; my w2 + w3) = goal:g7.16.1.11.9.1, builder DG2.
-- A12 OWNER 20:42:45Z 11-07 (c:be72d519c116; belam [owner] 20:47:15Z to SM ALONE, never relayed: SM's miss, named 23:1xZ; reached me 23:15:03Z via aio): 1 LICENSE -> Apache-2.0; 2 an agi PLUGIN for Hermes / plugin hosts (council design, no deadline); 3 OPTIMIZE: "a pass over the whole system to optimize it using crap and dry metrics ... its finished when there's nothing left to take away" = MY council job 2; 4 CREW, DT1's start to the council. OPEN lap 1: MY w4 23:17:46Z (1, 2, 4 AGREE aio; 3: re-measure on one sha + a CALLERS column, first cuts root strays / dup windows / graph_builder at 0 callers, falsifier per cut + put-a-caller-back mutant; license leaf lands before the root cut). Closes per item at alive's [decision]. 'hunny screen': the owner's answer, belam asking.
+- A12 OWNER 20:42:45Z 11-07 (c:be72d519c116; belam [owner] 20:47:15Z to SM ALONE, never relayed: SM's miss, named 23:1xZ; reached me 23:15:03Z via aio): 1 LICENSE -> Apache-2.0; 2 an agi PLUGIN for Hermes / plugin hosts (council design, no deadline); 3 OPTIMIZE: "a pass over the whole system to optimize it using crap and dry metrics ... its finished when there's nothing left to take away" = MY council job 2; 4 CREW, DT1's start to the council. CLOSED: placed by alive's [decision]s 23:25:38Z (3 = MY job 2 re-measure, 4 = DT1 only with a TM leaf) + 23:50:05Z (1 = goal:g1.23.1 LICENSE active, 2 = goal:g1.23.2 PLUGIN horizon; minter DGo1, license builder DG3; my silence = agree). Job 2's work continues (§0, §1).
