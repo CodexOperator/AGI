@@ -96,3 +96,40 @@ def test_a_harness_without_a_resume_slot_refuses_by_name():
         assert "no resume slot" in str(exc)
     else:
         raise AssertionError("a resume on a slot-less harness built an argv")
+
+
+# ------------------------------- the row's harness on recover (goal:g7.16.1.7.1.1.5)
+def _fresh_cmd(tmp_path, monkeypatch, **cells):
+    gdir = tmp_path / "main" / ".agi"
+    gdir.mkdir(parents=True, exist_ok=True)
+    # The project declares copilot-cli, as the live config.json does, so the
+    # recover's harness passes `_validate_harness` by name.
+    (gdir / "config.json").write_text(
+        '{"harnesses": {"copilot-cli": {"adapter": "copilot_cli"}}}')
+    row = {k: v for k, v in ROW.items() if k != "harness"}
+    row.update(cells)
+    out, seen = _recover(tmp_path, monkeypatch, transcript=False, row=row)
+    assert out["respawned"], out
+    (_name, cmd), = seen
+    return cmd
+
+
+def test_a_copilot_row_recovers_on_the_copilot_template(tmp_path, monkeypatch):
+    """RED before the fix: _recover_seat passed no harness= to spawn_window,
+    so a copilot-cli seat came back as a CLAUDE argv."""
+    cmd = _fresh_cmd(tmp_path, monkeypatch, harness="copilot-cli")
+    argv = cmd.split(" -- ", 1)[1]          # after rotate.py launch-wrapper
+    assert argv.startswith("copilot --model "), argv[:120]
+    assert "--remote-control" not in argv, argv[:120]
+
+
+def test_an_absent_or_empty_harness_renders_the_claude_argv_unchanged(tmp_path, monkeypatch):
+    """The fix moves no live row: today's 45 rows are claude-code 38, absent 3,
+    '' 4 (council 19:49Z 11-06). Absent and '' render byte-identical to an
+    explicit claude-code row."""
+    explicit = _fresh_cmd(tmp_path / "a", monkeypatch, harness="claude-code")
+    absent = _fresh_cmd(tmp_path / "b", monkeypatch)
+    empty = _fresh_cmd(tmp_path / "c", monkeypatch, harness="")
+    norm = lambda c, d: c.replace(str(tmp_path / d), "<T>")   # noqa: E731
+    assert explicit.split(" -- ", 1)[1].startswith("claude --remote-control "), explicit
+    assert norm(absent, "b") == norm(explicit, "a") == norm(empty, "c")
