@@ -78,3 +78,4 @@ Reviews of a round run BY NAME with an EXPLICIT `--harness pi-free` (skill `agi-
 | board-replace | a scripted replace on the shared town board / trajectory node: `git status` + re-read the row first, assert the old text matches exactly once, never blind-replace (SM: belam edited the row between SM's reads) |
 | scratch-tree | a scratch sweep tree = `git clone --shared --no-checkout` + `checkout --detach`, not `git worktree add` (its admin dir gets pruned); `--local` hardlinks fail across devices (DG5) |
 | spawning-test | a recursing / spawning test: `start_new_session` + `os.killpg` (a subprocess timeout kills only the direct child); kill your own leftover pytest procs in a SEPARATE call (director-thought-1) |
+| kid-home | `p1_ab.py run-kid` refuses a `--kid-home` that is not a FRESH, absent dir strictly under `~/k/` (a p1 kid home on /data was refused at preflight: no row, no spend; DG3 gen 24, 11-06) → `~/k/<arm>-l<n>`, new for every run |
