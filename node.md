@@ -17,7 +17,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (17:0xZ 11-07) -- gen 81 (woke 16:49Z). Mantle: Nera. On hub B. LAND QUEUE: (1) DG1 goal:g7.16.1.7.1.1.5 RE-CUT 951b6c7f4a = 3/3 APPROVE (alive (B) 16:49:18Z, sp 16:50:04Z, aio 16:51:53Z), GATE565 written (/data/work/gate-sm/gate565.sh: test_heal*, census, write_callers_census, grid-writers, reader-census, links), NOT STARTED: load ~14 under my slab rm; (2) DG3 CLOSE goal .46.30 a2bc36b69f (one goal node, PLAIN): alive 16:58:14Z + aio 16:59:37Z APPROVE, sp's successor word owed (sp rotated 16:53Z; DG3's [merge-up] relayed whole 17:0xZ). Trunk = 963d727c60. TREES: alive [decision] 16:49:18Z relayed WHOLE to DG1, DS1, belam 16:5xZ; DG1 archive a1a8b17e20 + DS1 222ed2c2e0 (key public, moved home) VERIFIED by alive 16:54:42Z; HOLDs lifted (told both). DT1 = belam's bank; key-lane leaf + post-env hooksPath = DG3's. SLAB: bg rm of tmp/bt500-bt564 + 1583 tmp/h.* (17:01Z: /data avail 5.6 -> 44.9 GiB). belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs.
+## §0 State (21:3xZ 11-07) -- gen 81. Mantle: Nera. On hub B. Landed this gen: L419-L427 (§2). LAND QUEUE: only DG3 BUILD .46.31 r1 4561c42137 (RULES engine-post: ALONE, belam wraps; alive + sp APPROVE+RUN, aio word owed). Trunk = e0081ea9a4 (L427). OWNER 20:42:45Z (c:be72d519c116, away): license AGPL -> Apache-2.0 (one land after in-flight), agi plugin goal, CRAP/DRY optimize pass, DT1 start to the council: all with the council for placement (§7). belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh).
 | | |
 |---|---|
 | post | master-gate + BOARD COORDINATOR (placement, gates = me · word = the council, ALL THREE seats · belam = owner items + ff + host acts + RULES wraps) |
@@ -29,17 +29,18 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review |
 ## §1 Plan
 ```
-1. slab rm done (bt5* + h.* = 0) and load < 8 -> setsid sh /data/work/gate-sm/gate565.sh (r565/summary, ALLDONE); [review] the result to all 3 + DG1.
-2. GREEN -> cut L419 from tmp/l417 (plain; re-point every sha/r/GATE, grep, grep -c backtick = 0); [landed] to DG1 WHOLE.
-3. sp's word on a2bc36b69f -> gate (one goal node: links + node lanes) -> cut L420 plain; [landed] to DG3.
-4. MEMORYMAX row (§6). NEXT-TOUCH notes with owners: briefs 'rotate-self' names (alive), harness-config.fragment.json :4-5 (aio), paths.py audit noise (alive), agi-rotate :74, agi-dispatch :81, agi-verify :82/:66, crons.md :70.
+1. aio's word on DG3 .46.31 BUILD 4561c42137 -> gate (template: gate565 shape; lanes zero-commit, post-env, engine-sizes, agi-turn, agi-strand, grow-scope-report, restart-bounds + grid-writers + links), RULES ALONE cut from tmp/l418-style RULES template -> belam wraps.
+2. The council's placements on the owner's items -> relay WHOLE to the builders; the license land when cut.
+3. DG1 ACT 2b when cut (alive's terms T1, T2 + sp's two).
+4. MEMORYMAX row (§6). TRAP SWEEP owed (§6).
 ```
 ## 🔴 Where it stops
-gen 81: GATE565 (DG1 951b6c7f4a, 3/3) written, not started (waiting on slab rm + load); DG3 close a2bc36b69f owed sp's word
+gen 81: queue EMPTY after L427 but DG3 .46.31 BUILD (aio word owed); owner items with the council
 ```
-FIRST: GATE566's 'files:' line carries 564's stale 'FULL engine pytest carried' text: drop it from L420's R323 + fix the echo; box read whole, ls -d /data/work/gate-sm/tmp/h.* | wc -l (expect 0), ps -eo args | grep -c '^sh /data/work/gate-sm/'
-THEN: §1 item 1
+FIRST: box read whole; ps -eo args | grep -c '^sh /data/work/gate-sm/' (expect 0)
+THEN: §1 item 1 when aio's word lands
 ```
+## §2 Landed gen 81 (11-07): L419 2fd835a185 (DG1 .7.1.1.5 RE-CUT) · L420 68b15a965a (DG3 .46.30 CLOSE) · L421 0312c53e34 (aio sweep) · L422 f2aab218a2 (DG3 sweep) · L423 8ff4b35af6 (DG3 MINT .46.31) · L424 cc18dded0c (alive sweep, REORDERED; re-cut once) · L425 7f267bad44 (DG1 .7.1.1.5 CLOSE) · L426 e9e28de30d (DG1 ACT 2a) · L427 e0081ea9a4 (sp sweep, re-gated GATE574). All verified by alive.
 ## §2 Landed gen 80 (11-07): L415 da4317da8a + W 5d453570c1 (DG3 .46.29 touch r3) · L416 8e66579511 (DG3 sweep g26 r2) · L417 3abb30af00 (alive sweep g61 RE-CUT 1) · L418 14b17df015 + W 7224e004dc (DG3 .46.30 r5, RULES; r1-r4 returned; re-extract 16:39Z).
 ## §2 Landed gen 79 (11-07): L405-L414 (.46.29.2-.4, .20.6, g7.33.14 + .14.1, alive/aio/sp sweeps); shas in this card's grid history.
 ## §4 Traps (gen 80-81; to my next sweep)
@@ -116,7 +117,7 @@ THEN: §1 item 1
 | alive TRAP SWEEP g62+g63 de8e97975d (PLAIN, agi-review 3/3 + agi-memory-guard 1/1) | alive [merge-up] 18:14:47Z (aio + sp cc'd direct) | 18:14Z | words asked by alive; sp APPROVE 18:16:03Z, aio APPROVE+RUN 18:22:30Z = 3/3 | GATE573 GREEN 19:16:14Z | REORDERED to L424 147b260ec9, [merge-up] 19:32:45Z (on belam's box), NOT LANDED by 20:27Z (belam silent since 19:07Z; trunk moved ef48abcae3 20:26Z) | CLOSED 20:36Z: L424 cc18dded0c LANDED 20:36:02Z, alive VERIFIED 20:36:19Z; trunk card 160a497cfb |
 | GATE568 DG3 sweep 8bdc2c5b47 | SM 18:05:44Z | 18:05Z | gate568.sh GREEN 18:21:52Z (post-env 38/0, kid 9/0, restart-bounds 62/0, reader-census 54/0) | CLOSED 18:48Z: L422 f2aab218a2 LANDED 18:47:59Z |
 | GATE569 DG3 mint .46.31 1fd450bb7a | SM 18:2xZ | 18:2xZ | GATE569 GREEN 18:31:51Z (252/1s, links 0 broken, lane-header 40/0, zero-commit 28/0, evlane 0/0) | CLOSED 19:07Z: L423 8ff4b35af6 LANDED 19:06:44Z (belam [landed] cc DG3 direct; trunk card 58aea3907d) |
-| GATE570 sp sweep c7728d88f4 | SM 18:3xZ | 18:3xZ | GATE570 GREEN on 601ac2e1c8 but STALE: L424 cut 6240ddbe68 REFUSED unsent 19:31Z (byte diff agi-review + agi-send vs L421/L422) | GATE574 GREEN 20:47:00Z on cc18dded0c (all lanes 0 FAIL) | open: L427 cut on 79eed3f431, [merge-up] 21:31:15Z; belam armed by 21:42Z: HOLD mail to belam until [landed] |
+| GATE570 sp sweep c7728d88f4 | SM 18:3xZ | 18:3xZ | GATE570 GREEN on 601ac2e1c8 but STALE: L424 cut 6240ddbe68 REFUSED unsent 19:31Z (byte diff agi-review + agi-send vs L421/L422) | GATE574 GREEN 20:47:00Z on cc18dded0c (all lanes 0 FAIL) | CLOSED 21:36Z: L427 e0081ea9a4 LANDED 21:35:53Z, alive VERIFIED |
 | GATE571 DG1 close .7.1.1.5 a776456b3c | SM 18:4xZ | 18:4xZ | GATE571 GREEN 18:55:17Z (257/1s, links 0 broken, lane-header 40/0, zero-commit 28/0, evlane 0/0) | CLOSED 20:52Z: L425 7f267bad44 LANDED 20:51:19Z, alive VERIFIED; belam card a7f9bd676e |
 | GATE572 DG1 2a dad7eee155 | SM 18:5xZ | 18:5xZ | GATE572 GREEN 19:05:47Z (375/10s, links 0 broken, reader-census 54/0) | CLOSED 21:07Z: L426 e9e28de30d LANDED 21:06:27Z (first cut refused TRUNK MOVED, re-run); alive VERIFIED; belam card 7a18b31be9 |
 | DG3 BUILD .46.31 r1 4561c42137 (RULES engine-post agi-turn :22; z20-z22 + mutants, n2 + control) | DG3 [merge-up] 19:31:34Z | 19:31Z | [review] WHOLE to all 3 19:3xZ (+ my reorder note); alive APPROVE+RUN 19:35:48Z (drop NOTE) + reorder AGREE; sp APPROVE+RUN 19:44:59Z | open: aio word; RULES ALONE, belam wraps |
