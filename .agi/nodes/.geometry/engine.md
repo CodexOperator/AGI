@@ -20,7 +20,7 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
    unit ──▶ own uid · worktree ~/t of MAIN on posts/<p> · pane = fifo i + typescript o (script) · strace
    start|resume|compact ──CC hooks, or pi via cccc.ts──▶ agi-brief: walk(card+seeds+claims) + STARTUP
    prompt ──▶ agi-meter: at the line: card, .fresh, kill ──▶ Restart = a FRESH successor
-   turn end ──▶ agi-turn: one signed commit per node tree · ~/t = a read view · mail = a turn
+   turn end ──▶ agi-turn: one signed commit per node tree + every ~/t path + its grid split, a failure = a line · ~/t = a read view · mail = a turn
    stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ next brief sees it · a write of carry.env re-runs agi-project
    harness: claude --remote-control <p> (hooks native; the owner's app lists it) · pi + cccc.ts · agi-in
    tick: project(graph) == observe(body)? equal = alive · differ = start its OWN unit + a drift commit

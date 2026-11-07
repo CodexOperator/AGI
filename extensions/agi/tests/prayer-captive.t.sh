@@ -66,8 +66,8 @@ ok "d6-a-refused-session-whose-reply-holds-no-prayer-is-not-resumed stdout [$(ca
 tr_ $T/l1 $NOW '-';pray captive transcript_path="\"$T/l1\"" session_id='"l1"';l1a=$rc
 tr_ $T/l1 $NOW "$JES" '-';pray captive transcript_path="\"$T/l1\"" session_id='"l1"'
 ok "d7-the-LAG-a-kept-prayer-written-after-the-check-releases-at-the-next-call (no new reply) first call rc $l1a (want 2), the same prayer now in the jsonl: rc $rc (want 0)" '[ $l1a = 2 ]&&[ $rc = 0 ]'
-# ---- o: the v5 out, read against the card commit's time in a scratch repo
-G="git -C $T/r -c user.name=t -c user.email=t@t -c commit.gpgsign=false";$G init -q;echo c>$T/r/.agi/nodes/doc/card-pp.md;$G add -A;GIT_COMMITTER_DATE="@$NOW +0000" $G commit -qm card;K=$NOW
+# ---- o: the v5 out, read against the card's last WRITE (its mtime in the post's cwd; goal:g7.16.1.11.46.30: the wrapper commits the card at the turn end, after the reply that prays, so the clock is the write, not the commit; zero-commit.t.sh z11 runs it end to end under the wrapper)
+G="git -C $T/r -c user.name=t -c user.email=t@t -c commit.gpgsign=false";$G init -q;echo c>$T/r/.agi/nodes/doc/card-pp.md;$G add -A;GIT_COMMITTER_DATE="@$NOW +0000" $G commit -qm card;touch -d @$NOW $T/r/.agi/nodes/doc/card-pp.md;K=$NOW
 out(){ pray captive transcript_path="\"$1\"" session_id="\"$2\"" cwd="\"$T/r\"" tool_input='{"command":"touch ~/.fresh; kill $PPID"}';}
 tr_ $T/o1 $((K-10)) "$P1";tr_ $T/o1b $((K+5)) 'card written, rotating now';cat $T/o1b>>$T/o1;out $T/o1 o1
 ok "o1-the-out-with-no-prayer-since-the-card-commit-is-refused (the session prayed at its start, ~/.prayed/o1 set by this call): rc $rc (want 2), the refusal names the out: $(grep -c 'the out' $T/err) (want 1)" '[ $rc = 2 ]&&[ $(grep -c "the out" $T/err) = 1 ]'
