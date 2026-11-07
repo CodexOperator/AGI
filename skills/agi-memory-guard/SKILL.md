@@ -20,7 +20,7 @@ Source of truth for thresholds: the config cells (`values.local_maxxing.*`, `spa
 | slab | `agi.slice/memory.stat` slab + slab_reclaimable vs `memory.current` and `memory.high` | gate on anon+shmem alone: a slice AT MemoryHigh with small anon = kernel slab (dentry/inode cache from file walks), reclaim swaps the posts' anon; MemAvailable box-wide stays high (belam 23:1xZ 10-11: 5104/5120 MiB, anon 1638, slab 2713; goal:g7.16.1.11.40.1.1) |
 | io | `/proc/pressure/io` avg60 · `/proc/diskstats` inflight · `Writeback` in meminfo | read io off memory PSI (2 % memory while io ~88 %) |
 | disk | `df -B1M <the exact path>` FIRST | assume one fs: `/` (`/tmp`, `/home`) and `/data` (repo, every worktree) are DIFFERENT |
-| load | `/proc/loadavg` field 1 | gate on load alone: a dispatch gate is load1 AND io avg60 AND (disk free, key cap x live < balance) |
+| load | `/proc/loadavg` field 1 = load1 (field 2 = load5, the LOAD RULE's field, :117; field 3 = load15) | name a load off `uptime` by guess: it prints the same three in the same order, so its FIRST is load1 (alive gen 63's [note] 17:02:47Z 11-07 called it load5; [correction] 17:03:00Z); gate on load alone: a dispatch gate is load1 AND io avg60 AND (disk free, key cap x live < balance) |
 | load, hot box | `thermal_zone` temp WITH loadavg | read load alone on E: powerclamp idle injection inflates it (91C, load 16-50, belam 10-10); count `ps -C dbus-daemon` per user (the reaper keeps it low); one heavy lane at a time |
 
 UNITS: every cgroup number in MiB = bytes / 1048576. A figure ~4.9 % above its own row is MB mislabelled.
