@@ -44,7 +44,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/cli.py status <iter>` | Iteration status |
 | `bin/cli.py claim --node-id id --session s` / `reclaim` / `detect-stale` | Node locking |
 | `bin/grid.py init` | Configure the grid refspec (once per project) |
-| `bin/grid.py commit --all [--prefix P]` | Version every changed node — and its payload, read straight from the tracked source tree, if it has one |
+| `bin/grid.py commit --all [--prefix P]` | MAIN (maintainer; a post's turn end grows the grid): version every changed node — and its payload, read straight from the tracked source tree, if it has one |
 | `bin/grid.py commit <file> --session <iter> <agent>` | Snapshot a kid draft |
 | `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
@@ -123,7 +123,7 @@ invariants (`#outcome == #subgoal`, etc.) — measured, never enforced.
 
 **Branches mirror the ladder:** kid = none. Parent = `loop/<goal>@s<N>`,
 short-lived. Director = `tier<N>/<name>` for the season. Prime = master.
-`grid.py commit --all` runs only on master after a merge.
+`grid.py commit --all` runs only on master after a merge (MAIN, maintainer; a post's turn end grows the grid by `grid.py split`).
 
 **Rotation:** `rotate.py meter` prints context-usage fraction against
 `director_rotate_at` (this project: 0.47 since 2026-09-09, owner's standing rule for every role; code default 0.35). `rotate.py spawn <name>` builds a
@@ -280,7 +280,7 @@ The node writer is retired (goal:g7.16.1.11.46.23). A node is a plain file `.agi
 - **Read** by CONTENT anchor, never a file line number: `sed -n '/^## Falsifier/,/^## Out/p' .agi/nodes/goal/<id>.md`.
 - **Edit** in place with your editor: frontmatter fields, body, the `THOUGHT` / `FEELING` region (rewritten whole). Never hand-edit `id`, `mint_id`, `type` or a build node's `BUILD-CONTRACT` block. A validated frontmatter set (a verdict, `evidence_runs`): `node_writer.update_node(root, '<id>', set_fm={...})`.
 - **Check** before every commit: `python3 extensions/agi/bin/links.py schema` (required list, regexes, list fields) and `python3 extensions/agi/bin/links.py links` (broken must be 0).
-- **Commit by exact path**: a post `agi-wt pull <id>` / `agi-wt new <path>` and `agi-turn` at Stop, or `agi-at <path>`; MAIN `git commit -- <path>`. Never `git add -A`.
+- **Commit**: a post types none: `agi-wt pull <id>` / `agi-wt new <path>` or an edit in ~/t, and its turn end commits it and grows the grid (agi-turn, goal:g7.16.1.11.46.30); MAIN (maintainer) by exact path, `git commit -- <path>`, never `git add -A`.
 - **Create** a node with `node_writer.write_node(root, '<type>', '<slug>', [parents], extra_fm={...}, body=...)`: the one routine that mints a node file, gated by the type schema (the spawn gate runs BEFORE anything is written, a rejection leaves no node). A new node written by hand is judged by the same gate at commit (grow.py).
 - **Retire**, never delete: `node_writer.retire_node(root, '<id>', note='<why>')` = `status: deprecated` + the move to `deprecated/<type>/`, one act.
 - **Payloads**: the file a build node points at is edited in place; its node and the file ride the same commit, with the reason in the node's `THOUGHT`. `payload_ref` is relative to the node's `location:` -- `source_root` by default (absent means that too), plus `graph_root`, `repo_root`, or any key declared under `locations:` in the project config. An unknown name is refused rather than defaulted, because a base that silently resolves somewhere plausible writes real bytes into the wrong tree and reports success. Move a tree by editing the config, never by sweeping every node that points into it.
@@ -295,7 +295,7 @@ One iteration = one node per kid, reviewed and committed by the parent.
    Kid deltas from the normal rules: **do not commit**, and do not call `cli.py done` — write the node file, report, stop. The parent owns commits and record-keeping. When the job is a fix or update to an existing node rather than a new chain step, **edit that node's file in place** — never mint a second file for the new version (no `@v2` node, no `supersedes:` pair). The grid, not the filesystem, carries version history; it records the change at the parent's next `grid.py commit --all`.
 4. **Review — this is the gate.** For each node: parent link resolves, taxonomy valid, and **`proved`/`disproved` REQUIRE experiment evidence (`evidence_runs >= 1`)**. Demote unevidenced verdicts to `pending` or `inconclusive_lean_*`. Reject orphans.
    The evidence half is now enforced in code — `bin/evidence_gate.py`, applied by both writer paths (`bin/cli.py done` and `bin/post_wire.py`). An unevidenced `proved`/`disproved` is auto-demoted to `inconclusive_lean_*:50` and stamped `demoted_from` / `demote_reason`; the node is kept, only the overclaim is dropped. `--no-evidence-gate` bypasses it loudly and stamps `evidence_gate: bypassed` — treat any such node as unreviewed. Still yours by hand: parent-link resolution and orphan rejection.
-5. **Commit** accepted nodes in one commit: `iter-N: <kid-a summary>; <kid-b summary>`. Then `bin/grid.py commit --all`.
+5. **Commit** accepted nodes: a post's turn end does it (agi-turn: commit + grid split); MAIN (maintainer): one commit `iter-N: <kid-a summary>; <kid-b summary>`, then `bin/grid.py commit --all`.
 6. **Re-render** and report metric deltas.
 
 ### Kid end-of-job contract
@@ -474,7 +474,7 @@ is reserved in frontmatter for it.
 
 **A build node's ref holds its payload, not just its prose.** Since G6.3, `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — with the payload's **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. `payload_ref` names a path; under the one-repo move that path is simply where the file already lives in this same repo, not a staged copy of it. A payload-only edit is still a real version, because the unchanged-check compares the whole tree.
 
-The workflow this makes possible, in full:
+The workflow this makes possible, in full (MAIN, maintainer; a post types neither commit: its turn end does both, goal:g7.16.1.11.46.30):
 
 ```
 <edit the file, in place, wherever it lives in the tree>
@@ -490,11 +490,11 @@ grid.py commit --all                    # the graph records your edit as vN+1
 - `stitch.py --publish` — nothing to publish *into*; the engine tree and the source tree are the same tree.
 - `publish-engine.sh` — its four gates existed to make a cross-repo write recoverable. A commit in one repo is already recoverable with `git revert`.
 
-**`grid.py commit --all` stays — this is worth stating plainly, because "one repo" invites the wrong inference.** The grid was never the thing with the boundary problem; it is not the publish pipeline. It versions `node.md` and its payload *together* as one atomic version, which plain git does not do — git versions the whole repo per commit, the grid versions one node's history independent of whatever else that commit touched. `refs/grid/*` is unchanged, `grid.py log|diff|versions|payload` all still work, and the 5-minute cron still runs `commit --all`.
+**`grid.py commit --all` stays (MAIN, maintainer) — this is worth stating plainly, because "one repo" invites the wrong inference.** The grid was never the thing with the boundary problem; it is not the publish pipeline. It versions `node.md` and its payload *together* as one atomic version, which plain git does not do — git versions the whole repo per commit, the grid versions one node's history independent of whatever else that commit touched. `refs/grid/*` is unchanged, `grid.py log|diff|versions|payload` all still work, and the 5-minute cron still runs `commit --all`.
 
 **One real use survives beyond the grid itself:** `stitch.py --from-grid --grid-version N --out DIR` still materializes a chosen historical version of the whole tree into a fresh directory — it writes *out*, not back into this repo, which is a genuinely different operation from `--publish` and is not retired.
 
-- **After every iteration commit:** `grid.py commit --all`. Changed nodes gain a version; unchanged nodes get nothing. **Versions record change, not time.**
+- **After every iteration commit (MAIN, maintainer; a post's turn end grows the grid):** `grid.py commit --all`. Changed nodes gain a version; unchanged nodes get nothing. **Versions record change, not time.**
 - **Kid drafts:** `grid.py commit <file> --session <iter> <agent>` before review. Rejected drafts survive there; accepted content lands on the node branch at the next `commit --all`. Nothing is lost either way.
 - **Sync is automated, and cadence is graph content.** `.agi/nodes/.geometry/crons.md` declares `crons_live` plus per-job schedules; `bin/crons.py apply` reconciles the real crontab against it, and `grid_sync` (every 5 min) re-runs `apply` itself, so editing the node and committing it *is* the change. `crons_live: false` is a one-edit kill switch for every managed line at once. **Nobody syncs by hand.** A parent's only git surface is the local iteration commit; a kid's is nothing at all.
 
