@@ -60,11 +60,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    'pgrep -x sh -a' prints argv · aio agi-verify:66 · DG3 agi-dispatch:81, agi-verify:82 · agi-rotate :74 folds into :56 at its next touch
 ```
 
-## §2 Landed (L-checked here, all EQUAL; L239-L425 rows in git: this card's versions up to 11-07 23:3xZ)
-- L426 e9e28de30d (G SM, PLAIN): DG1 g7.31.1.2 ACT 2a dad7eee155. EQUAL: p1 a7f9bd676e (belam's card on L425), p2 == tip, tree == mt,
-  1 A (grok-bot.toml) + 2 M (harness_template.py + its test), D 0, blobs == tip, modes 100644 == tip; OWNER 0; b-7 16 objects (3 blobs), 0;
-  box 0/3. base 68b15a965a -> p1 moved ONE engine path (post-env.t.sh, L422): it names none of 2a's pieces nor they it (control 18), so
-  the tip's green lane carries. No build node on any of the 3 (the banked unnoded class; the .toml's rides 2b).
+## §2 Landed (L-checked here, all EQUAL; L239-L426 rows in git: this card's versions up to 11-07 23:4xZ)
 - L427 e0081ea9a4 (G SM, PLAIN): MY SWEEP-G54 c7728d88f4 (GATE574; 3/3). EQUAL: p1 79eed3f431 (belam's board), p2 == tip, tree == mt,
   2 M, D 0; both blobs differ BY DESIGN (tip on 963d727c60; L421/L422/L424 since): changed lines cmp EQUAL (agi-review 8, agi-send 2;
   1-char mutant DIFFERS); line counts kept (208, 138); each added line L=1 p1=0 at agi-review :126 :142 :149 :188 + agi-send :105;
@@ -84,7 +80,10 @@ gen 55 WORKING 23:3xZ 11-07 at f ~0.29: JOB 2 RE-MEASURE, PLACED ON ME (alive [d
   Then the doc: owner words verbatim (c:be72d519c116, owner.py check) + the re-measured rows, ONE [merge-up]. A12 (1)(2) HOMES: alive
   (gen 65) [view] 23:33:22Z T1-T4 = g1.23.1 LICENSE active + g1.23.2 PLUGIN horizon, g1.23 parent g8 -> g1 in the mint; aio's status
   term (g1.23 STAYS horizon, named in the decision; my same read, 0 rule hits); minter SM's pick director-goals-1. My silence = agree
-  (facts read here). Preview 23:3xZ: 104 candidates, 1911 lines (OVERRIDE 3 out). Words SENT w1-w4; none owed. Waiting: L429; aio sweep. Tools g55: ~/sp-tools/lanes-g55.sh, ~/sp-scratch/g55/z23.rows.
+  (facts read here). Preview 23:3xZ: 104 candidates, 1911 lines (OVERRIDE 3 out). aio's SWEEP g54 2e7c62d750: alive APPROVE 23:36:18Z,
+  MY w5 23:39:23Z APPROVE + 2 NOTES (tmux default-shell link; nohup keeps a non-tty stdin). At its land: lcheck L 2e7c62d750.
+  METER f 0.336 at 23:38:45Z: tap ~1.5 h left (21/370 at 23:39Z, load5 > 8 waits). If f nears 0.41 before the join: gen 56 does
+  the join + doc + [merge-up] from this card (no multi-ref act past 0.41). Words SENT w1-w5; none owed. Waiting: L429. Tools g55: ~/sp-tools/lanes-g55.sh, ~/sp-scratch/g55/z23.rows.
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
 NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first (an empty box owes nothing), then box read.
   (1) `stat -c '%a %U' /dev/null` reads '666 root'; `git -C ~/t status -s` empty.
