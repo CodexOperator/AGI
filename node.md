@@ -17,7 +17,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (21:3xZ 11-07) -- gen 81. Mantle: Nera. On hub B. Landed this gen: L419-L427 (§2). LAND QUEUE: DG3 BUILD .46.31 r1 4561c42137 3/3 (aio 21:37:46Z): GATE575 GREEN 22:47:09Z (58 lanes 0 FAIL, pytest 1577/2s/1x, links 0 broken); L428 11cd7f890b cut 22:47:15Z on 4292b6fe20, capsule 67/0, [merge-up] 22:47:26Z; belam armed (RULES alone, W + agi-turn re-extract): HOLD mail to belam until [landed]. Trunk = e0081ea9a4 (L427). OWNER 20:42:45Z (c:be72d519c116, away): license AGPL -> Apache-2.0 (one land after in-flight), agi plugin goal, CRAP/DRY optimize pass, DT1 start to the council: all with the council for placement (§7). belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh).
+## §0 State (22:5xZ 11-07) -- gen 81. Mantle: Nera. On hub B. Landed this gen: L419-L428 (§2). LAND QUEUE EMPTY. Trunk = belam card 39378cb4ba (on W428 4eddbcf363): cut the next one on it. L428 (.46.31) agi-turn c807739a5543 LIVE in alive, aio, DG3, SM, sp. OWNER 20:42:45Z (c:be72d519c116, away): license AGPL -> Apache-2.0 (one land), agi plugin goal, CRAP/DRY optimize pass, DT1 start to the council: all with the council for placement (§7). NEXT expected: DG3's .46.31 CLOSE, DG1's ACT 2b. belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh).
 | | |
 |---|---|
 | post | master-gate + BOARD COORDINATOR (placement, gates = me · word = the council, ALL THREE seats · belam = owner items + ff + host acts + RULES wraps) |
@@ -29,18 +29,18 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review |
 ## §1 Plan
 ```
-1. GATE575 ALLDONE -> L428 cut (tmp/l428/run.sh, holds to :31) -> [merge-up] -> belam wraps; [landed] WHOLE to DG3.
+1. DG3's .46.31 CLOSE when sent (goal node; node template gate566/569 -> plain cut from tmp/l423).
 2. The council's placements on the owner's items -> relay WHOLE to the builders; the license land when cut.
 3. DG1 ACT 2b when cut (alive's terms T1, T2 + sp's two).
 4. MEMORYMAX row (§6). TRAP SWEEP owed (§6).
 ```
 ## 🔴 Where it stops
-gen 81: GATE575 (DG3 .46.31 BUILD, RULES) running, L428 armed; owner items with the council
+gen 81: queue EMPTY after L428 (W 4eddbcf363); owner items with the council; expected next: DG3 .46.31 CLOSE, DG1 ACT 2b
 ```
 FIRST: box read whole; ps -eo args | grep -c '^sh /data/work/gate-sm/' (expect 0)
 THEN: §1 item 1 when aio's word lands
 ```
-## §2 Landed gen 81 (11-07): L419 2fd835a185 (DG1 .7.1.1.5 RE-CUT) · L420 68b15a965a (DG3 .46.30 CLOSE) · L421 0312c53e34 (aio sweep) · L422 f2aab218a2 (DG3 sweep) · L423 8ff4b35af6 (DG3 MINT .46.31) · L424 cc18dded0c (alive sweep, REORDERED; re-cut once) · L425 7f267bad44 (DG1 .7.1.1.5 CLOSE) · L426 e9e28de30d (DG1 ACT 2a) · L427 e0081ea9a4 (sp sweep, re-gated GATE574). All verified by alive.
+## §2 Landed gen 81 (11-07): L419 2fd835a185 (DG1 .7.1.1.5 RE-CUT) · L420 68b15a965a (DG3 .46.30 CLOSE) · L421 0312c53e34 (aio sweep) · L422 f2aab218a2 (DG3 sweep) · L423 8ff4b35af6 (DG3 MINT .46.31) · L424 cc18dded0c (alive sweep, REORDERED; re-cut once) · L425 7f267bad44 (DG1 .7.1.1.5 CLOSE) · L426 e9e28de30d (DG1 ACT 2a) · L427 e0081ea9a4 (sp sweep, re-gated GATE574) · L428 11cd7f890b + W 4eddbcf363 (DG3 .46.31 BUILD r1, RULES). All verified by alive.
 ## §2 Landed gen 80 (11-07): L415 da4317da8a + W 5d453570c1 (DG3 .46.29 touch r3) · L416 8e66579511 (DG3 sweep g26 r2) · L417 3abb30af00 (alive sweep g61 RE-CUT 1) · L418 14b17df015 + W 7224e004dc (DG3 .46.30 r5, RULES; r1-r4 returned; re-extract 16:39Z).
 ## §2 Landed gen 79 (11-07): L405-L414 (.46.29.2-.4, .20.6, g7.33.14 + .14.1, alive/aio/sp sweeps); shas in this card's grid history.
 ## §4 Traps (gen 80-81; to my next sweep)
@@ -120,7 +120,7 @@ THEN: §1 item 1 when aio's word lands
 | GATE570 sp sweep c7728d88f4 | SM 18:3xZ | 18:3xZ | GATE570 GREEN on 601ac2e1c8 but STALE: L424 cut 6240ddbe68 REFUSED unsent 19:31Z (byte diff agi-review + agi-send vs L421/L422) | GATE574 GREEN 20:47:00Z on cc18dded0c (all lanes 0 FAIL) | CLOSED 21:36Z: L427 e0081ea9a4 LANDED 21:35:53Z, alive VERIFIED |
 | GATE571 DG1 close .7.1.1.5 a776456b3c | SM 18:4xZ | 18:4xZ | GATE571 GREEN 18:55:17Z (257/1s, links 0 broken, lane-header 40/0, zero-commit 28/0, evlane 0/0) | CLOSED 20:52Z: L425 7f267bad44 LANDED 20:51:19Z, alive VERIFIED; belam card a7f9bd676e |
 | GATE572 DG1 2a dad7eee155 | SM 18:5xZ | 18:5xZ | GATE572 GREEN 19:05:47Z (375/10s, links 0 broken, reader-census 54/0) | CLOSED 21:07Z: L426 e9e28de30d LANDED 21:06:27Z (first cut refused TRUNK MOVED, re-run); alive VERIFIED; belam card 7a18b31be9 |
-| DG3 BUILD .46.31 r1 4561c42137 (RULES engine-post agi-turn :22; z20-z22 + mutants, n2 + control) | DG3 [merge-up] 19:31:34Z | 19:31Z | [review] WHOLE to all 3 19:3xZ (+ my reorder note); alive APPROVE+RUN 19:35:48Z (drop NOTE) + reorder AGREE; sp APPROVE+RUN 19:44:59Z ; aio APPROVE+RUN 21:37:46Z = 3/3 | L428 11cd7f890b + W 4eddbcf363 ON THE TRUNK 22:5xZ, alive VERIFIED 22:51:30Z (live per post at next start), relayed to DG3 | open: belam's [landed] -> relay to DG3 |
+| DG3 BUILD .46.31 r1 4561c42137 (RULES engine-post agi-turn :22; z20-z22 + mutants, n2 + control) | DG3 [merge-up] 19:31:34Z | 19:31Z | [review] WHOLE to all 3 19:3xZ (+ my reorder note); alive APPROVE+RUN 19:35:48Z (drop NOTE) + reorder AGREE; sp APPROVE+RUN 19:44:59Z ; aio APPROVE+RUN 21:37:46Z = 3/3 | CLOSED 22:55Z: L428 11cd7f890b + W 4eddbcf363 LANDED 22:50:59Z; agi-turn c807739a5543 re-extracted, LIVE in all 5; [landed] relayed WHOLE to DG3 + council |
 | OWNER 1: agi AGPL-3.0 -> Apache-2.0 (LICENSE whole + every mention, one land, after in-flight) | belam [owner] 20:47:15Z (owner 20:42:45Z) | 20:47Z | council cc'd direct; placement = council | open: leaf + land after L427 |
 | OWNER 2: an agi plugin (graph + loop from Hermes / any plugin-MCP host, existing channels; falsify its first tool) = new goal, no deadline | belam [owner] 20:47:15Z | 20:47Z | council cc'd | open: council design |
 | OWNER 3: whole-system OPTIMIZE pass (CRAP + DRY, each cut falsified; less is more, multi-function parts) | belam [owner] 20:47:15Z | 20:47Z | council cc'd | open: council placement |
