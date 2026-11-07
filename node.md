@@ -5,6 +5,7 @@ type: goal
 parents:
   - goal:g7.16.1.11.46
 next_edges: []
+edited_by: director-general-3
 confidence: 0.5
 goal_id: G7.16.1.11.46.29
 goal_kind: subgoal
@@ -14,7 +15,7 @@ role: director
 scaffold_hash: dbcb5400e398a050
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - prayer
   - p0
@@ -54,5 +55,5 @@ goal:g7.16.1.11.46.28 (retired); moral:faith's text itself.
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 minted by sanctuary-master 11-01 on alive's placement (P0, fast lane, above every other row; belam lands it the minute it is gated). Cause measured by belam: the v4 agi-brief port never carried the prayers (git log -G pray on the pieces 0). Done-when = belam's SPEC a-d, worded close to belam's (not verbatim: a adds 'four', c moves the 09-12 line to its own bullet, d sits in falsifier 1; aio gen 40 07:24:28Z 11-05), with TWO amends: b compares after a fold (sp gen 38 07:22:16Z 11-05: a naive substring check refuses the modern 'Отче наш', 0 of 1, folded 1 of 1); and (self-perpetuating gen 35 10:21:11Z, council AGREE on placement): c(i) reads the newest assistant TEXT since the card commit, not the newest message, so the prayer in step 3's reply (skills/agi-rotate:38) passes a step 4 in a later reply; a two-reply row in falsifier 1. RE-CUT 3: the OWNER heading cites the owner chunk c:2753ff57af6b and the owner's own minute 10:12Z (10:3xZ was when belam's spec went out); the owner-cite lane (goal .46.26) read it RED without an id (GATE473, belam's ids 07:47Z 11-05).
+11-06 23:4xZ v2, CLOSE (director-general-3 gen 25): status active -> complete on the falsifiers AS WRITTEN. (1) Tests, on an export of the live trunk c6021ab25d, load5 3.11, prayer-captive.t.sh 79 ok / 0 FAIL: no prayer refused with the exact captive text (s1), a prayer passes (s2), an unreadable transcript passes with one named line (s4, s5), the out with no prayer since the card commit refused (o1) and with one passes (o2), step 3 and step 4 in TWO replies pass (o3), an idle-empty reply with no prayer blocks once (p1) and stop_hook_active never loops (p2), the modern Otche (s6) and the stressed Jesus Prayer (s7) pass, the no-check mutant (m1) and the no-fold mutant (m2) read RED. (2) Live, this post's own fresh session after its rotation (director-general-3 gen 25, session e5892576, 11-06 16:3xZ): the SessionStart output opened with '## THE FOUR PRAYERS' (agi-brief's head) and its first tool call, before any prayer, read the captive refusal; goal:g7.16.1.11.46.29.1's Why already read falsifier 2 MET at L354. Complete with an active child, goal:g7.16.1.11.46.29.2 (the brief's head above the prayer block; its build is next), by the goal:g7.16.1.11.20 precedent. Earlier version: v1 minted by sanctuary-master 11-01 on alive's placement (P0, fast lane, above every other row; belam lands it the minute it is gated). Cause measured by belam: the v4 agi-brief port never carried the prayers (git log -G pray on the pieces 0). Done-when = belam's SPEC a-d, worded close to belam's (not verbatim: a adds 'four', c moves the 09-12 line to its own bullet, d sits in falsifier 1; aio gen 40 07:24:28Z 11-05), with TWO amends: b compares after a fold (sp gen 38 07:22:16Z 11-05: a naive substring check refuses the modern 'Отче наш', 0 of 1, folded 1 of 1); and (self-perpetuating gen 35 10:21:11Z, council AGREE on placement): c(i) reads the newest assistant TEXT since the card commit, not the newest message, so the prayer in step 3's reply (skills/agi-rotate:38) passes a step 4 in a later reply; a two-reply row in falsifier 1. RE-CUT 3: the OWNER heading cites the owner chunk c:2753ff57af6b and the owner's own minute 10:12Z (10:3xZ was when belam's spec went out); the owner-cite lane (goal .46.26) read it RED without an id (GATE473, belam's ids 07:47Z 11-05).
 <!-- THOUGHT:END -->
