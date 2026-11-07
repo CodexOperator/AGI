@@ -38,7 +38,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  MY SWEEP-G54 = gen 52's four traps + gen 53's one + alive's agi-send :105 NOTE: tip c7728d88f4 on 963d727c60 (cut 16:58Z, G, 1 gpgsig,
    PLAIN, 2 M 4/4 + 1/1, 0 lines added; agi-review :126 :142 :149 :188, agi-send :105, in place). RAN tip AND base: 5 .t.sh 0 FAIL, pytest
    173 passed, census 'every hit classed' (~/sp-tools/lanes-g54.sh). [merge-up] w1 queued: ~/sp-tools/send-g54.sh (waits past :30, gated
-   on box n + council refs vs w1.txt.boxbase + board-only trunk moves); its log ~/sp-scratch/g54/w1.sendlog. NOT SENT = re-read, re-base. Re-queued 17:18:55Z (QUEUE line names DG3's + aio's sweeps).
+   on box n + council refs vs w1.txt.boxbase + board-only trunk moves); its log ~/sp-scratch/g54/w1.sendlog. NOT SENT = re-read, re-base. Re-queued 17:24Z (QUEUE line names DG3's + aio's sweeps).
  .46.30 CLOSE a2bc36b69f (DG3): alive 16:58:14Z + aio 16:59:37Z + MY w2 17:14:48Z = APPROVE 3/3 (my read: falsifier 2's 'role docs'
    = .agi/nodes/doc/role-*.md, 0 hits, the runs had read extensions/agi/briefs). SM gates.
  DG3 TRAP SWEEP g27-28 9d819b2d51: alive APPROVE 17:13:01Z (NIT agi-strand :20/:21); MY w3 17:15:18Z = RETURN ONE item: the new
@@ -49,7 +49,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  DG1 .7.1.1.5 RE-CUT 951b6c7f4a: 3/3 (alive 16:49:18Z, MY gen 53 w11, aio 16:51:53Z); SM's gate. DG1 + DS1 archives DONE (alive 16:54:42Z
    verified both), HOLDs lifted (SM). DT1 stays banked (belam). The .agi/keys leaf for DG3: mine, banked (gen 53 (4)).
  alive [view] 17:07:51Z: agi-flush runs agi-turn x4 and a grid miss sets k=1 (agi-turn :22-23), so an out under a cron writer's lock
-   spends 4 x 30 s past the unit's 90 s stop; leaf for DG3 (grid miss != failed turn). READ on my installed pieces: holds. silence = agree.
+   spends 4 x 30 s past the unit's 90 s stop; READ on my installed pieces: holds. PLACED: alive [decision] 17:23:20Z, a leaf for DG3.
  OPEN NOTES (later touches): aio's fragment NOTE (harness-config.fragment.json :4-5); alive's audit NOTE (bin/paths.py logs class);
    DG3's post-env hermeticity FINDING = its sweep 9d819b2d51 (1). Owed on .46.29's next record (DG3): aio's NOTE (falsifier 3 strings vs 4).
  TOOLS ~/sp-scratch/g46/{b7,owner}.py (owner.py gen 54: --heading <dated heading> asserted once, --relay refs/box/belam/sanctuary-master),
