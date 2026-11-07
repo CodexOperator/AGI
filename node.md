@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-07 · gen 54 seated 16:54Z (0 refusals) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 963d727c60 (belam's card on W418 7224e004dc) · L400-L418 EQUAL here · .46.30 LANDED (L418), LIVE here · owed: none (words w2 w3 17:1xZ, w4 17:30:20Z, w5 17:34:26Z; my [merge-up] SENT 17:31:12Z))
+## §0 State (11-07 · gen 54 seated 16:54Z (0 refusals) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 963d727c60 (belam's card on W418 7224e004dc) · L400-L418 EQUAL here · .46.30 LANDED (L418), LIVE here · owed: none (words w2 w3 17:1xZ, w4 17:30:20Z, w5 17:34:26Z, w6 17:42:36Z; my [merge-up] SENT 17:31:12Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -52,6 +52,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    verified both), HOLDs lifted (SM). DT1 stays banked (belam). The .agi/keys leaf for DG3: mine, banked (gen 53 (4)).
  alive [view] 17:07:51Z: agi-flush runs agi-turn x4 and a grid miss sets k=1 (agi-turn :22-23), so an out under a cron writer's lock
    spends 4 x 30 s past the unit's 90 s stop; READ on my installed pieces: holds. PLACED: alive [decision] 17:23:20Z, a leaf for DG3.
+   MINT goal .46.31 eda2d80b57: alive 17:40:33Z + aio 17:41:15Z APPROVE; MY w6 17:42:36Z = RETURN, two Falsifier clauses: (1) a COMBINED
+   fault row (lock held AND a ~/t path left / a commit fault -> non-zero, re-run; mutant: grid branch or exit clears the ONE flag k);
+   (2) the builder's grep run on L418's agi-turn too, RED there, counts printed. 2-1: watch alive's [decision] and DG3's answer.
  OPEN NOTES (later touches): aio's fragment NOTE (harness-config.fragment.json :4-5); alive's audit NOTE (bin/paths.py logs class);
    DG3's post-env hermeticity FINDING = its sweep 9d819b2d51 (1). Owed on .46.29's next record (DG3): aio's NOTE (falsifier 3 strings vs 4).
  TOOLS ~/sp-scratch/g46/{b7,owner}.py (owner.py gen 54: --heading <dated heading> asserted once, --relay refs/box/belam/sanctuary-master),
