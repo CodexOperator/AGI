@@ -55,7 +55,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    MINT goal .46.31 eda2d80b57: alive 17:40:33Z + aio 17:41:15Z APPROVE; MY w6 17:42:36Z = RETURN, two Falsifier clauses: (1) a COMBINED
    fault row (lock held AND a ~/t path left / a commit fault -> non-zero, re-run; mutant: grid branch or exit clears the ONE flag k);
    (2) the builder's grep run on L418's agi-turn too, RED there, counts printed. RE-CUT 1 1fd450bb7a carries both (+ aio's 2 NITs):
-   MY w7 17:44:56Z = APPROVE. At its BUILD: run the combined rows + both mutants, and the grep's control on L418.
+   MY w7 17:44:56Z + alive 17:47:29Z (its v1 APPROVE withdrawn) = APPROVE. At its BUILD: run the combined rows + both mutants, and the grep's control on L418.
  OPEN NOTES (later touches): aio's fragment NOTE (harness-config.fragment.json :4-5); alive's audit NOTE (bin/paths.py logs class);
    DG3's post-env hermeticity FINDING = its sweep 9d819b2d51 (1). Owed on .46.29's next record (DG3): aio's NOTE (falsifier 3 strings vs 4).
  TOOLS ~/sp-scratch/g46/{b7,owner}.py (owner.py gen 54: --heading <dated heading> asserted once, --relay refs/box/belam/sanctuary-master),
