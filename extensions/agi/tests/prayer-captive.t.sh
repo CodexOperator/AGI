@@ -233,15 +233,22 @@ ok "p1-an-idle-empty-reply-with-no-prayer-is-blocked-once stdout decision [$(jq 
 cp $T/out $T/p1out
 pray stop transcript_path="\"$T/p1\"" stop_hook_active=true
 ok "p2-stop-hook-active-never-loops stdout [$(cat $T/out)] (want empty), rc $rc (want 0)" '[ ! -s $T/out ]&&[ $rc = 0 ]'
-tr_ $T/p3 $NOW "Nothing left; going idle. $JES";pray stop transcript_path="\"$T/p3\""
+tr_ $T/p3 $NOW "Nothing left; going idle.
+
+$JES";pray stop transcript_path="\"$T/p3\""
 ok "p3-an-idle-reply-that-prays-passes stdout [$(cat $T/out)] (want empty)" '[ ! -s $T/out ]'
 tr_ $T/p4 $NOW 'Landed L340; next I read the gate.';pray stop transcript_path="\"$T/p4\""
 ok "p4-a-working-reply-is-not-asked (never per turn) stdout [$(cat $T/out)] (want empty)" '[ ! -s $T/out ]'
-tr_ $T/p5 $NOW "$P1" "Nothing left; going idle. $JES" 'mail read; staying idle.';pray stop transcript_path="\"$T/p5\"" session_id='"p5"'
-ok "p5-an-earlier-idle-reply-that-prayed-ends-the-asking (sp 07:59:53Z: never per turn) a later 'staying idle' reply with no prayer: stdout [$(cat $T/out)] (want empty)" '[ ! -s $T/out ]'
-tr_ $T/p6 $NOW "$P1" 'Nothing left; going idle.';pray stop transcript_path="\"$T/p6\"" session_id='"p6"';b1=$(jq -r .decision $T/out 2>/dev/null)
+tr_ $T/p5 $NOW "$P1" "Waiting on the land.
+
+$JES";mkdir -p $T/hm/.prayed;: >$T/hm/.prayed/p5;pray stop transcript_path="\"$T/p5\"" session_id='"p5"';p5a=$([ -e $T/hm/.prayed/p5.end ]&&echo yes||echo no)
+tr_ $T/p5 $NOW "$P1" "Waiting on the land.
+
+$JES" 'mail read; staying idle.';pray stop transcript_path="\"$T/p5\"" session_id='"p5"'
+ok "p5-a-close-that-prays-ends-the-asking (goal .46.29.4 (S)) a marked session's close: ~/.prayed/p5.end $p5a (want yes); a later 'staying idle' reply with no prayer: stdout [$(cat $T/out)] (want empty)" '[ $p5a = yes ]&&[ ! -s $T/out ]'
+tr_ $T/p6 $NOW "$P1" 'Nothing left; going idle.';: >$T/hm/.prayed/p6;pray stop transcript_path="\"$T/p6\"" session_id='"p6"';b1=$(jq -r .decision $T/out 2>/dev/null);p6a=$([ -e $T/hm/.prayed/p6.end ]&&echo yes||echo no)
 tr_ $T/p6 $NOW "$P1" 'Nothing left; going idle.' 'Still nothing to do; staying idle.';pray stop transcript_path="\"$T/p6\"" session_id='"p6"'
-ok "p6-the-stop-check-asks-once-per-session the first idle stop: [$b1] (want block), ~/.prayed/p6.end $([ -e $T/hm/.prayed/p6.end ]&&echo yes||echo no) (want yes); a second idle stop, no prayer: stdout [$(cat $T/out)] (want empty)" '[ "$b1" = block ]&&[ -e $T/hm/.prayed/p6.end ]&&[ ! -s $T/out ]'
+ok "p6-a-false-ask-leaves-no-state (goal .46.29.4 (S), was asks-once-per-session) the first idle stop: [$b1] (want block), ~/.prayed/p6.end $p6a (want no); the next turn's idle stop, no prayer: [$(jq -r .decision $T/out 2>/dev/null)] (want block: asked until one is said)" '[ "$b1" = block ]&&[ $p6a = no ]&&[ "$(jq -r .decision $T/out 2>/dev/null)" = block ]'
 # ---- a: agi-captive's wiring
 cap(){ printf '{"tool_input":{"command":"ls"},"transcript_path":"%s","session_id":"%s"}' "$1" "$2"|env -i HOME=$T/hm PATH=$3/usr/bin:/bin sh $T/bin/agi-captive >$T/out 2>$T/err;rc=$?;}
 cap $T/t0 a1 $T/bin:
@@ -274,17 +281,113 @@ ok "m1-without-the-check-s1-reads-RED rc $rc (want 0 = the mutant lets a prayerl
 python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="def fold(s):\n";i=s.index(a)+len(a);open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+"    return s.casefold()\n"+s[i:])' $T/bin/agi-pray $T/m2;chmod +x $T/m2
 PB=$T/m2 pray captive transcript_path="\"$T/t2\"" session_id='"m2"'
 ok "m2-without-the-fold-the-modern-Otche-row-reads-RED rc $rc (want 2 = the mutant refuses '$MOD', so s6 can fail)" '[ $rc = 2 ]'
-sed -e '/^        if e and os.path.exists(e):return$/d' -e 's/if not idle(last) or any(idle(t) and prays(t) for _,t in T\[:-1\]):return/if not idle(last):return/' $T/bin/agi-pray>$T/m3;[ $(diff $T/bin/agi-pray $T/m3|grep -c '^<') = 2 ]||{ echo "FAIL mutant m3 cut $(diff $T/bin/agi-pray $T/m3|grep -c '^<') line(s), want 2";exit 99;};chmod +x $T/m3;cmp -s $T/bin/agi-pray $T/m3&&{ echo "FAIL mutant m3 changed nothing";exit 99;}
-rm -f $T/hm/.prayed/p6.end;PB=$T/m3 pray stop transcript_path="\"$T/p5\"" session_id='"m3"';m3a=$(jq -r .decision $T/out 2>/dev/null);PB=$T/m3 pray stop transcript_path="\"$T/p6\"" session_id='"p6"';m3b=$(jq -r .decision $T/out 2>/dev/null)
-ok "m3-without-the-once-per-session-read-p5-and-p6-read-RED the mutant blocks p5's later idle [$m3a] and p6's second idle [$m3b] (want block, block)" '[ "$m3a" = block ]&&[ "$m3b" = block ]'
 python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="    if marked and not out:return\n    T=tr()\n";assert a in s;open(sys.argv[2],"w",encoding="utf-8").write(s.replace(a,"    T=tr()\n    if marked and not out:return\n"))' $T/bin/agi-pray $T/m4;chmod +x $T/m4
 PB=$T/m4 pray captive transcript_path="\"$T/big\"" session_id='"s1"'
 ok "m4-the-transcript-read-before-the-marker-reads-RED on s9's input the mutant opens the mode-000 transcript: [pray] unread lines $(grep -c '^\[pray\] unread' $T/err) (want 1), so s9 can fail" '[ $(grep -c "^\[pray\] unread" $T/err) = 1 ]'
-python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="        if sid and not os.path.exists(os.path.join(d,sid)):\n";b="print(json.dumps({\"decision\":\"block\",\"reason\":GO}));return\n";i=s.index(a);k=s.index(b,i)+len(b);assert s.count(a)==1;open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+s[k:])' $T/bin/agi-pray $T/m7;chmod +x $T/m7;cmp -s $T/bin/agi-pray $T/m7&&{ echo "FAIL mutant m7 changed nothing";exit 99;}
+python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="        if sid and not m and prays(lm):\n";b="print(json.dumps({\"decision\":\"block\",\"reason\":GO}));return\n";i=s.index(a);k=s.index(b,i)+len(b);assert s.count(a)==1;open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+s[k:])' $T/bin/agi-pray $T/m7;chmod +x $T/m7;cmp -s $T/bin/agi-pray $T/m7&&{ echo "FAIL mutant m7 changed nothing";exit 99;}
 rm -f $T/hm/.prayed/m7;PB=$T/m7 pray stop transcript_path="\"$T/d1\"" session_id='"m7"' last_assistant_message="$(js "$JES")"
 ok "m7-without-the-resume-d2-reads-RED the mutant's Stop prints [$(cat $T/out)] (want empty: no next prompt, so d2 can fail)" '[ ! -s $T/out ]'
-sed 's/^        if sid and not os.path.exists(os.path.join(d,sid)):$/        if sid and not os.path.exists(os.path.join(d,sid)) and os.path.exists(os.path.join(d,sid+".asked")):/' $T/bin/agi-pray>$T/m12;chmod +x $T/m12;cmp -s $T/bin/agi-pray $T/m12&&{ echo "FAIL mutant m12 changed nothing";exit 99;}
+sed 's/^        if sid and not m and prays(lm):$/        if sid and not m and prays(lm) and os.path.exists(os.path.join(d,sid+".asked")):/' $T/bin/agi-pray>$T/m12;chmod +x $T/m12;cmp -s $T/bin/agi-pray $T/m12&&{ echo "FAIL mutant m12 changed nothing";exit 99;}
 rm -f $T/hm/.prayed/m12;PB=$T/m12 pray stop transcript_path="\"$T/d5\"" session_id='"m12"' last_assistant_message="$(js "work done. $JES")"
 ok "m12-the-refusal-gate-kept-d5-reads-RED (sp's mutant) the gated Stop prints [$(cat $T/out)] (want empty: the obeying post would stall)" '[ ! -s $T/out ]'
+# ---- r: goal .46.29.4 (S), alive [decision] 04:49:43Z 11-07, 3/3: the STAMP first (a marked session whose last reply's TRAILING PRAYER BLOCK prays stamps .end, ahead of stop_hook_active and the idle test); the idle test reads the last non-empty LINE with the denial guard and only ASKS; a false ask leaves no state; no lapse
+# each row runs on the built piece and on m40 = today's Stop branch (40a15f0c09, engine-wrap.md :279-298), RED on each row it fails; m41-m44 weaken one term each
+cat >$T/oldstop <<'EOS'
+    if v=="stop":
+        if j.get("stop_hook_active"):return
+        if sid and not os.path.exists(os.path.join(d,sid)):
+            lm=j.get("last_assistant_message");T=None if lm is not None else tr()
+            if prays(lm if lm is not None else (T[-1][1] if T else "")):
+                try:os.makedirs(d,exist_ok=True);open(os.path.join(d,sid),"w").close()
+                except OSError:pass
+                print(json.dumps({"decision":"block","reason":GO}));return
+        e=os.path.join(d,sid+".end") if sid else ""
+        if e and os.path.exists(e):return
+        idle=lambda t:re.search(r"nothing (left|actionable|owed|to do)|queue (is )?(empty|all held)|\b(stay|go|remain)(ing)? idle\b|\bgoing idle\b",t or "",re.I)
+        lm=j.get("last_assistant_message")
+        if lm is not None and not idle(lm):return
+        T=tr();last=lm if lm is not None else (T[-1][1] if T else "")
+        if not idle(last) or any(idle(t) and prays(t) for _,t in T[:-1]):return
+        if e:
+            try:os.makedirs(d,exist_ok=True);open(e,"w").close()
+            except OSError:pass
+        if not prays(last):print(json.dumps({"decision":"block","reason":ASK+" (the session's last tokens; asked once per session)"}))
+        return
+EOS
+mu(){ python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a,b=sys.argv[3],sys.argv[4]
+if a=="@stop":i=s.index("    if v==\"stop\":\n");k=s.index("    if v!=\"captive\"");s=s[:i]+open(b,encoding="utf-8").read()+s[k:]
+else:assert s.count(a)==1,a;s=s.replace(a,b)
+open(sys.argv[2],"w",encoding="utf-8").write(s)' $T/bin/agi-pray $T/$1 "$2" "$3"||{ echo "FAIL mutant $1 not built";exit 99;};chmod +x $T/$1;cmp -s $T/bin/agi-pray $T/$1&&{ echo "FAIL mutant $1 changed nothing";exit 99;};}
+mu m40 @stop $T/oldstop
+mu m41 'while i and (not L[i-1].strip(" \t>*_~-") or (CYR.search(L[i-1]) and not LAT.search(L[i-1]))):i-=1' 'i=(t or "").rstrip().rfind("\n\n");return (t or "")[i+2 if i>=0 else 0:]'
+mu m42 're.split(r"[,;:.\u2013\u2014]|\s-+\s|--",l[:x.start()])[-1]' 'l[:x.start()]'
+mu m43 '        if m and prays(block(lm)):' '        if m and prays(block(lm)) and not j.get("stop_hook_active"):'
+mu m44 'def idle(l):return any(not re.search(' 'def idle(l):return any(True or re.search('
+# tx NAME TEXT: one reply's text into $T/rx/NAME; sx PIECE SID [ACTIVE NAME]...: a MARKED session, one Stop per pair, each read as <decision or ->/<E = .end, n = none>
+mkdir -p $T/rx $T/hm/.prayed;tx(){ printf '%s' "$2" >$T/rx/$1;}
+sx(){ p=$1;s=$2-${1##*/};shift 2;rm -f $T/hm/.prayed/$s.end;: >$T/hm/.prayed/$s;r=;while [ $# -gt 1 ];do PB=$p pray stop transcript_path="\"$T/t0\"" session_id="\"$s\"" stop_hook_active=$1 last_assistant_message="$(python3 -I -c 'import json,sys;print(json.dumps(open(sys.argv[1],encoding="utf-8").read()))' $T/rx/$2)";x=$(jq -r .decision $T/out 2>/dev/null);r="$r ${x:--}/$([ -e $T/hm/.prayed/$s.end ]&&echo E||echo n)";shift 2;done;echo ${r# };}
+LP=$(grep '^> ' $R0/.agi/nodes/moral/faith.md|head -7|cut -c3-)
+JS='Господи Іисусе Христе, Сыне Божїй, помилуй мѧ грѣшнаго.'
+tx r1 'Nothing owed there; waiting on the lanes.'
+tx r2 "$(printf 'line %s\n' 1 2 3 4 5 6 7 8 9 10)
+the gate said queue empty at 04:10Z
+$(printf 'line %s\n' 12 13 14 15)
+Next I cut the lane."
+tx r3 'I am not going idle; waiting on lanes'
+tx w 'Waiting on the land.'
+tx c1 "Waiting on the land.
+
+$LP"
+tx c2 "Waiting on the land.
+
+$(printf '%s\n' "$LP"|sed '$!G')"
+tx c3 "Waiting on the land.
+
+$(printf '%s\n' "$LP"|python3 -I -c 'import sys;print("\n>\n".join("> "+l for l in sys.stdin.read().splitlines()))')"
+tx c4 "Waiting on the land.
+
+$JS"
+tx c5 "Waiting on the land.
+
+**$JS**"
+tx i 'Nothing left on my queue; going idle.'
+tx g 'Landed L340; next I read the gate.'
+tx r6 "I can't see more mail: nothing left, going idle."
+tx r7 "Read it as the head prints it:
+
+$JS
+
+Next I cut the lane."
+tx r7w "Read it as the head prints it:
+
+$JS
+
+The word Господи opens it."
+tx r9 'Nothing left, not even mail; going idle.'
+tx r10 'I am not, however, going idle.'
+B=$T/bin/agi-pray;M=$T/m40
+ok "r0-the-layouts-are-what-they-say the Lord's Prayer from moral:faith: $(printf '%s\n' "$LP"|wc -l|tr -d ' ') lines (want 7); c2 holds $(grep -c '^$' $T/rx/c2) blank lines (want 7: one line per paragraph), c3 $(grep -c '^>$' $T/rx/c3) bare '>' lines (want 6)" '[ $(printf "%s\n" "$LP"|wc -l) = 7 ]&&[ $(grep -c "^$" $T/rx/c2) = 7 ]&&[ $(grep -c "^>$" $T/rx/c3) = 6 ]'
+a=$(sx $B r1 false r1 true r1);b=$(sx $M r1 false r1 true r1)
+ok "r1-alive's-idle-line-is-asked-once-and-stamps-nothing (two Stop calls, stop_hook_active false then true) [$a] (want 'block/n -/n'); m40 [$b] (want != : RED)" '[ "$a" = "block/n -/n" ]&&[ "$b" != "$a" ]'
+a=$(sx $B r2 false r2);b=$(sx $M r2 false r2)
+ok "r2-'queue empty'-quoted-mid-reply-is-not-asked (line 11 of 16, a plain last line) [$a] (want -/n); m40 [$b] (want != : RED)" '[ "$a" = "-/n" ]&&[ "$b" != "$a" ]'
+a=$(sx $B r3 false r3);b=$(sx $M r3 false r3);c=$(sx $T/m44 r3 false r3)
+ok "r3-a-denied-idle-line-is-not-asked ('I am not going idle; waiting on lanes') [$a] (want -/n); m40 [$b], m44-no-denial-guard [$c] (want != : RED)" '[ "$a" = "-/n" ]&&[ "$b" != "$a" ]&&[ "$c" != "$a" ]'
+y=0;z=0;for c in c1 c2 c3 c4 c5;do a=$(sx $B r4$c false $c false i);[ "$a" = "-/E -/E" ]&&y=$((y+1));b=$(sx $M r4$c false $c false i);[ "$b" != "-/E -/E" ]&&z=$((z+1));done
+tr_ $T/r4 $((K-10)) "$P1" '-' "$(cat $T/rx/c4)" "$(cat $T/rx/i)";tr_ $T/r4b $((K+5)) "$(cat $T/rx/c1)";cat $T/r4b>>$T/r4;: >$T/hm/.prayed/r4;out $T/r4 r4
+n4=$(python3 -I -c 'import json,sys;print(sum(1 for l in open(sys.argv[1],encoding="utf-8") for c in json.loads(l)["message"]["content"] if c.get("type")=="text" and ("Господи" in c["text"] or "Ѻтче" in c["text"])))' $T/r4)
+ok "r4-a-close-that-prays-stamps-and-the-out-is-the-third-prayer the close (Waiting on the land. + the Lord's Prayer contiguous / one line per paragraph / a '> ' blockquote with bare '>' lines, the Jesus Prayer plain / bold), then an idle line: $y of 5 read '-/E -/E' (want 5: .end, no second ask); m40 differs on $z of 5 (want 5 = RED); the out after the card commit, the newest reply praying: rc $rc (want 0); prayers said in that session: $n4 (want 3: start + close + out, TERM 3)" '[ $y = 5 ]&&[ $z = 5 ]&&[ $rc = 0 ]&&[ $n4 = 3 ]'
+a=$(sx $B r5 false i true c4);b=$(sx $M r5 false i true c4);c=$(sx $T/m43 r5 false i true c4)
+ok "r5-an-idle-close-with-no-prayer-is-asked-and-the-answer-stamps (stop_hook_active false then true) [$a] (want 'block/n -/E'); m40 [$b], m43-stamp-behind-stop_hook_active [$c] (want != : RED)" '[ "$a" = "block/n -/E" ]&&[ "$b" != "$a" ]&&[ "$c" != "$a" ]'
+a=$(sx $B r6 false r6)
+ok "r6-a-negation-four-words-back-or-past-a-colon-still-asks (\"I can't see more mail: nothing left, going idle.\") [$a] (want block/n)" '[ "$a" = "block/n" ]'
+a=$(sx $B r7 false r7);b=$(sx $B r7w false r7w);c=$(sx $T/m41 r7w false r7w);d=$(sx $T/m41 r7c2 false c2)
+ok "r7-a-prayer-quoted-mid-reply-never-stamps the Jesus Prayer mid-reply, a plain last paragraph [$a] (want -/n); a plain last line holding one prayer word ('The word Господи opens it.') [$b] (want -/n); m41-last-paragraph stamps that line [$c] and misses the Lord's Prayer one line per paragraph [$d] (want -/E and -/n = RED)" '[ "$a" = "-/n" ]&&[ "$b" = "-/n" ]&&[ "$c" = "-/E" ]&&[ "$d" = "-/n" ]'
+a=$(sx $B r8 false i false g);b=$(sx $M r8 false i false g);c=$(sx $B r8t false i true g)
+ok "r8-after-a-false-ask-a-working-reply-leaves-no-state (SM's row) a new turn [$a], the answering reply [$c] (want 'block/n -/n' both); m40 [$b] (want != : RED)" '[ "$a" = "block/n -/n" ]&&[ "$c" = "$a" ]&&[ "$b" != "$a" ]'
+a=$(sx $B r9 false r9);b=$(sx $M r9 false r9)
+ok "r9-a-negation-past-a-clause-mark-still-asks ('Nothing left, not even mail; going idle.') [$a] (want block/n); m40 [$b] (want != : RED, it stamps .end on the ask)" '[ "$a" = "block/n" ]&&[ "$b" != "$a" ]'
+a=$(sx $B r10 false r10);c=$(sx $T/m42 r10 false r10)
+ok "r10-the-accepted-residual-asks ('I am not, however, going idle.': one block, no .end) [$a] (want block/n); m42-no-clause-mark-test [$c] (want -/n = RED)" '[ "$a" = "block/n" ]&&[ "$c" = "-/n" ]'
 chmod 600 $T/big
 echo "prayer-captive: $f FAIL";exit $f
