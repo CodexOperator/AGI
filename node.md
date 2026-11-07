@@ -87,7 +87,7 @@ NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first 
   (2) at each land, `sh ~/sp-tools/lcheck.sh <L> <tip>` + its §2 row: DG1's 2b. A RULES W: `lcheck.sh <W> <L>`, then
    `~/bin/agi-first-start L^1 W` names the pieces; each `~/bin/sect <piece> W | sha256sum` == ~/bin's once installed (belam's guarded
    re-extract, or the next start; until then ~/bin == L^1's piece). At wake: `~/bin/sect agi-turn posts/belam | sha256sum` == ~/bin's.
-   A land whose blob DIFFERS from the tip (p1 moved): cmp the tip^1->tip changed lines vs p1->L (filter: §4's gen 55 row).
+   A land whose blob DIFFERS from the tip (p1 moved): cmp the hunk-form reads (agi-review :188's awk), each count beside numstat.
   (3) words owed when SM asks: .46.31's CLOSE (§1); DG1's 2b cut (§1's terms, each a row + mutant).
   (4) the gen 54 trap in §4 moves at your rotation (agi-review:192's carry grep first: :120 is a regex-COVERS line, check it holds the case).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -96,8 +96,8 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - my 17:57:59Z word's (b) called a build node for grok-bot.toml 'filler', building on DG1's 'a legal shape needs an mvp or idea parent I do not
   have', unread; aio found mvp:unified-spawn-path live and the one parent of build:bin-adapters-grok-bot-adapter ([correction] 18:02:39Z)
   -> a seat's 'no X exists' is grepped (the nearest sibling node's parents) before a word builds on it
-- gen 55: L424's changed-line cmp filtered with '^[+-][^+-]', which drops every skill '- ' line: both sides read 0 and cmp said EQUAL
-  (the 1-char mutant caught it) -> a changed-line cmp filters only the headers, grep -v -E '^(\+\+\+|---) ', and runs its mutant
+- gen 55: L424's changed-line cmp used '^[+-][^+-]' (both sides 0, EQUAL; the mutant caught it), then a header-prefix 'fix' that drops a
+  removed '-- ' line (measured 23:5xZ) = agi-review :188 NOT APPLIED -> DROP at rotation as carried; read hunks by :188's awk form only
 - gen 55: my 23:08:01Z placement named goal:g2.17 from graphweb's 09-11 lineage, unread: g2.17's own Owner review (a completion failure,
   split) and the owner's LATER graphweb words on goal:g7.16.1.11 :173 (aio [word] 23:11:49Z; my w3 changed) -> a placement word reads
   the candidate goal's OWNER / Owner review blocks AND greps the subject across every goal's OWNER blocks for newer owner words first
