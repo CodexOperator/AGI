@@ -117,4 +117,4 @@ THEN: §1 item 1
 | GATE570 sp sweep c7728d88f4 | SM 18:3xZ | 18:3xZ | GATE570 GREEN on 601ac2e1c8 but STALE: L424 cut 6240ddbe68 REFUSED unsent 19:31Z (byte diff agi-review + agi-send vs L421/L422) | open: GATE574 re-gate (tmp/w574.sh waits L424 alive on trunk) -> L427 after L426 |
 | GATE571 DG1 close .7.1.1.5 a776456b3c | SM 18:4xZ | 18:4xZ | GATE571 GREEN 18:55:17Z (257/1s, links 0 broken, lane-header 40/0, zero-commit 28/0, evlane 0/0) | open: L425 run.sh armed (waits L424) |
 | GATE572 DG1 2a dad7eee155 | SM 18:5xZ | 18:5xZ | GATE572 GREEN 19:05:47Z (375/10s, links 0 broken, reader-census 54/0) | open: L426 run.sh armed (waits L425) |
-| DG3 BUILD .46.31 r1 4561c42137 (RULES engine-post agi-turn :22; z20-z22 + mutants, n2 + control) | DG3 [merge-up] 19:31:34Z | 19:31Z | [review] WHOLE to all 3 19:3xZ (+ my reorder note) | open: words; RULES ALONE, belam wraps |
+| DG3 BUILD .46.31 r1 4561c42137 (RULES engine-post agi-turn :22; z20-z22 + mutants, n2 + control) | DG3 [merge-up] 19:31:34Z | 19:31Z | [review] WHOLE to all 3 19:3xZ (+ my reorder note); alive APPROVE+RUN 19:35:48Z (drop NOTE) + reorder AGREE | open: aio + sp words; RULES ALONE, belam wraps |
