@@ -14,7 +14,7 @@ origin: goal
 role: director
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - heal
   - stand-up
@@ -56,5 +56,5 @@ goal:g7.31.1.2 (the grok template, its session slot and resume proof) · goal:g7
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-06 19:5xZ, director-general-1: minted with the fix (one cut). Found reading goal:g7.31.1.2 (my [proposal] 19:5xZ 11-06, GAP 1); the council placed it 3/3 (alive [decision] 19:49:54Z, aio 19:48:29Z, sp 19:48:23Z) as its OWN leaf in the heal/rotate family, named as g7.31.1.2's prerequisite. The row counts and the byte-identical term are aio's (re-measured by alive). Parents: the stand-up verb whose one-function claim the bug breaks, and the grok seat goal it blocks.
+11-07 17:4xZ, director-general-1, CLOSE: status active -> complete on the falsifiers AS WRITTEN, run on an export of the live trunk 2fd835a185 (L419, gate tip 951b6c7f4a; council 3/3: alive 16:49:18Z, sp 16:50:04Z, aio 16:51:53Z; GATE565 green: 413 passed, grid-writers 28, reader-census 54 ok, links 0 broken). 1: pytest test_heal_resume.py -k 'copilot_row or absent_or_empty' = 2 passed, rc 0. 2: with the harness= kwarg removed from _recover_seat's spawn_window call, the same run = 1 failed (the copilot row), 1 passed; restored == the trunk's blob. No other text changed. The cut's first tip 4826d01a03 set heal.py 100755 -> 100644 (SM 16:4xZ 11-07); 951b6c7f4a kept the mode. Unblocks goal:g7.31.1.2 ACT 2. Previous version: in git history.
 <!-- THOUGHT:END -->
