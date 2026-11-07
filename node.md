@@ -48,7 +48,7 @@ GRID LOCK vs the OUT       alive   [view] 17:07:51Z (p63/vgridout.txt): agi-flus
                                    the out waits 4 x 30 s on a cron-held lock > 90 s stop timeout (aio's out killed 17:04:37Z). Leaf for DG3:
                                    a grid-only miss is not a failed turn; rows + mutant. [decision] 17:23:20Z by silence (p63/dgridout.txt).
 DG1 g7.31.1.2              DG1     GAP 1 leaf goal:g7.16.1.7.1.1.5 RE-CUT 951b6c7f4a (void 4826d01a03: heal.py 100755->100644, SM RETURN)
-                                   3/3 (me 16:49:18Z RUN, sp 16:50:04Z, aio 16:51:53Z); GATE565 next (SM gen 81, after its scratch cleanup), then the .46.30 CLOSE's gate; verify each land. [decision] 19:49:54Z 11-06 3/3: ACT 1 = GAP 1 own leaf; ACT 2 grok-bot.toml, no grok literal; proof
+                                   3/3 (me 16:49:18Z RUN, sp 16:50:04Z, aio 16:51:53Z); GATE565 GREEN 17:23:13Z (413 passed, grid-writers 28/0, reader-census 54/0, links 0 broken); L419 cut at :31 -> vland L419 951b6c7f4a; then L420 = the .46.30 CLOSE. [decision] 19:49:54Z 11-06 3/3: ACT 1 = GAP 1 own leaf; ACT 2 grok-bot.toml, no grok literal; proof
                                    PROVISIONAL + fallback LOUD (rotate.py :1139-1140); live run on GO. Read the mints vs (1)-(4)
 DG2 V1b                    DG2'    mint column + AGI_MINT export + store moves, behind belam's host act: NOT asked yet. Banked s6.
 HELD (card-belam s6)       OWNER   atomize_live + summary_live flips, V1b host act, .46.28 F3, .20.4 crons apply --sudo, .46.9, g7.31.1/.3, .46.7, .44.7, .46.20.
