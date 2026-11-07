@@ -43,9 +43,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    my reads were by ~/bin/sect, they stand). CLOSE ff6abe67e8: alive APPROVE RUN 23:00:15Z, MY w1 23:06:04Z APPROVE RUN + NOTE (the
    tree clause had no row; my probe z23 = its reading, 4 waits, mutants 1 wait RED, rc 1 under both, so waits decide); DG3 23:06:43Z: no
    re-cut, the row at the next zero-commit touch (DG3's card). aio's word owed. At its land: lcheck L ff6abe67e8.
- OWNER DASHBOARD (A11, §7): MY w2 23:08:01Z = ONE leaf under goal:g2.17 on graphweb.py's export. alive [view] 23:09:03Z P1-P7 +
-   [correction] 23:09:30Z (my w2's matrix + one-sha + read-nothing folded) = SAME: goal:g2.17.1, builder DG3. My silence = agree (read
-   here: post names and every crons.md cell kind 0 flagged by both scans, control flags, so P4 holds). alive's [decision] after 23:24Z.
+ OWNER DASHBOARD (A11): alive P1-P7 (my w2's three clauses folded); HOME aio + MY w3 = goal:g7.16.1.11.9.1 (alive said g2.17.1) +
+   aio's TERM A/B; builder SM's pick 23:1xZ = DG2 (silence = agree). alive's [decision] after 23:24Z. At its mint: read the leaf's terms.
+ aio's TRAP SWEEP g54 2e7c62d750 [merge-up] 23:12:30Z: my word when SM asks. .46.31 CLOSE = L429 in SM's queue.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
    CAN be the harness; search the pane pid AND its descendants) + T2 (argv[0]/comm, never the resolved exe; ambiguous -> EMPTY, loud).
@@ -80,24 +80,29 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   sect agi-turn W 8742 B c807739a5543abcb, p1 8548 B 6ba34fd8e67e3b47; ~/bin read p1's at 22:5xZ, W's after belam's 22:54:26Z re-extract.
 
 ## 🔴 Where it stops
-gen 55 IDLE 23:1xZ 11-07 at f ~0.21: L424-L428 + W EQUAL (§2); words SENT: w1 (.46.31 CLOSE, APPROVE RUN + NOTE) and w2 (A11 placement);
-  no word owed. Waiting on: aio's word + SM's land of ff6abe67e8; alive's [decision] on A11. Tools g55: ~/sp-tools/lanes-g55.sh, z23.rows.
+gen 55 IDLE 23:1xZ 11-07 at f 0.27 (23:18:33Z): L424-L428 + W EQUAL (§2); words SENT: w1 (.46.31 CLOSE), w2 + w3 (A11 HOME -> .11.9),
+  w4 (A12, the owner's 20:42Z items); no word owed. Waiting on: L429 (ff6abe67e8, 3/3); alive's [decision]s on A11 and A12; SM's
+  [review] of aio's sweep-g54 2e7c62d750. If A12 (3)(a) is placed on me: the re-measure under agi-memory-guard, read-only. Tools g55: ~/sp-tools/lanes-g55.sh, ~/sp-scratch/g55/z23.rows.
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
 NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first (an empty box owes nothing), then box read.
   (1) `stat -c '%a %U' /dev/null` reads '666 root'; `git -C ~/t status -s` empty.
   (2) at each land, `sh ~/sp-tools/lcheck.sh <L> <tip>` + its §2 row: DG1's 2b. A RULES W: `lcheck.sh <W> <L>`, then
    `~/bin/agi-first-start L^1 W` names the pieces; each `~/bin/sect <piece> W | sha256sum` == ~/bin's once installed (belam's guarded
    re-extract, or the next start; until then ~/bin == L^1's piece). At wake: `~/bin/sect agi-turn posts/belam | sha256sum` == ~/bin's.
-   A land whose blob DIFFERS from the tip (p1 moved): cmp the tip^1->tip changed lines vs p1->L, filter `grep -v -E '^(\+\+\+|---) '`
-   (NEVER '^[+-][^+-]': it drops every skill '- ' line, both sides read 0 and cmp says EQUAL; gen 55 slip, caught by the mutant).
+   A land whose blob DIFFERS from the tip (p1 moved): cmp the tip^1->tip changed lines vs p1->L (filter: §4's gen 55 row).
   (3) words owed when SM asks: .46.31's CLOSE (§1); DG1's 2b cut (§1's terms, each a row + mutant).
   (4) the gen 54 trap in §4 moves at your rotation (agi-review:192's carry grep first: :120 is a regex-COVERS line, check it holds the case).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 54's own, moves at gen 55's rotation; gen 52's four + gen 53's one are rules since L427)
+## §4 Traps (gen 54's moves at gen 55's rotation, gen 55's at gen 56's; gen 52's four + gen 53's one are rules since L427)
 - my 17:57:59Z word's (b) called a build node for grok-bot.toml 'filler', building on DG1's 'a legal shape needs an mvp or idea parent I do not
   have', unread; aio found mvp:unified-spawn-path live and the one parent of build:bin-adapters-grok-bot-adapter ([correction] 18:02:39Z)
   -> a seat's 'no X exists' is grepped (the nearest sibling node's parents) before a word builds on it
+- gen 55: L424's changed-line cmp filtered with '^[+-][^+-]', which drops every skill '- ' line: both sides read 0 and cmp said EQUAL
+  (the 1-char mutant caught it) -> a changed-line cmp filters only the headers, grep -v -E '^(\+\+\+|---) ', and runs its mutant
+- gen 55: my 23:08:01Z placement named goal:g2.17 from graphweb's 09-11 lineage, unread: g2.17's own Owner review (a completion failure,
+  split) and the owner's LATER graphweb words on goal:g7.16.1.11 :173 (aio [word] 23:11:49Z; my w3 changed) -> a placement word reads
+  the candidate goal's OWNER / Owner review blocks AND greps the subject across every goal's OWNER blocks for newer owner words first
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
@@ -111,4 +116,5 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 ## §7 ATOMS (inbound owner/parent asks; one row per atom; closed when placed in a leaf, idea, decision or out; open > 1 lap = red)
 - A1-A9: CLOSED (rows in git, this card's versions to 11-07 06:3xZ): council jobs 1-3, g14 three-visions -> g5.19, wake-routine test, fuel stereo, season-3 explainer, aio corrections, A9 zero manual commits -> goal .46.30.
 - A10 OWNER via belam 06:33:17Z 11-07 (c:c91f4ca10325): 'Yes it can do it repeatedly each "idle" spot'. CLOSED: placed by alive's [decision] 06:51:50Z (3/3, my silence = agree) as .46.29's next touch, DG3; LANDED as L415 (§2).
-- A11 OWNER via belam [owner] 23:0xZ 11-07 (chunk not yet in the store; SM relay 23:0xZ): "Can we put the visual dashboard stuff up on hunny screen when it's ready so I can see the graph more and visualize how the crew is arranged and how they work as far as workflow cycle and comms cycle. Multiple views would likely work best." OPEN lap 1: MY w2 23:08:01Z = a leaf under goal:g2.17 on graphweb's export; alive's view 23:09Z = goal:g2.17.1, DG3 (my silence = agree); closes at alive's [decision] (after 23:24Z; leaf id to belam via SM). 'hunny screen': the owner's answer, belam asking.
+- A11 OWNER via belam [owner] 23:0xZ 11-07 (chunk not yet in the store; SM relay 23:0xZ): "Can we put the visual dashboard stuff up on hunny screen when it's ready so I can see the graph more and visualize how the crew is arranged and how they work as far as workflow cycle and comms cycle. Multiple views would likely work best." OPEN lap 1: a leaf on graphweb's ONE export; HOME split (alive g2.17.1; aio + MY w3 23:13:52Z goal:g7.16.1.11.9.1); closes at alive's [decision] (after 23:24Z; leaf id to belam via SM).
+- A12 OWNER 20:42:45Z 11-07 (c:be72d519c116; belam [owner] 20:47:15Z to SM ALONE, never relayed: SM's miss, named 23:1xZ; reached me 23:15:03Z via aio): 1 LICENSE -> Apache-2.0; 2 an agi PLUGIN for Hermes / plugin hosts (council design, no deadline); 3 OPTIMIZE: "a pass over the whole system to optimize it using crap and dry metrics ... its finished when there's nothing left to take away" = MY council job 2; 4 CREW, DT1's start to the council. OPEN lap 1: MY w4 23:17:46Z (1, 2, 4 AGREE aio; 3: re-measure on one sha + a CALLERS column, first cuts root strays / dup windows / graph_builder at 0 callers, falsifier per cut + put-a-caller-back mutant; license leaf lands before the root cut). Closes per item at alive's [decision]. 'hunny screen': the owner's answer, belam asking.
