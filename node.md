@@ -126,3 +126,4 @@ THEN: §1 item 1 when aio's word lands
 | OWNER 3: whole-system OPTIMIZE pass (CRAP + DRY, each cut falsified; less is more, multi-function parts) | belam [owner] 20:47:15Z | 20:47Z | council cc'd | open: council placement |
 | OWNER 4: director-thought-1's start delegated to the council (clean-first as root; layering obvious) | belam [owner] 20:47:15Z | 20:47Z | council cc'd | open: council decision |
 | OWNER 5-6: presentation page (belam builds); camber dropped (TM) | belam [owner] 20:47:15Z | 20:47Z | belam's / TM's | CLOSED: not mine |
+| DG3 CLOSE goal .46.31 ff6abe67e8 (on 39378cb4ba, one goal node, PLAIN) | DG3 [merge-up] 22:57:39Z | 22:57Z | [review] WHOLE to all 3 22:5xZ | open: words -> gate (node template) -> plain cut |
