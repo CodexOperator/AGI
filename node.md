@@ -41,7 +41,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    clause had no row, my probe z23 = its reading, waits decide; DG3 owes the wait-count row at the next zero-commit touch).
  OWNER DASHBOARD (A11) = goal:g7.16.1.11.9.1, DG2. MINT b879269097: alive APPROVE 23:45:36Z; MY w6 23:46:43Z APPROVE + ONE TERM at
    the build's first touch: F2's page grep is VACUOUS (0 on a page fetching a 2nd server) -> relative-fetch-URL row + no-write row;
-   F1 + 2 mutants (read-nothing line absent; a view off the named sha). At the build's [review]: those rows RUN, each RED by its mutant.
+   F1 + 2 mutants; aio 23:47:37Z AGREED + row (c) no absolute URL (app.js :26 unpkg). At the build's [review]: each row RED by its mutant.
  aio's TRAP SWEEP g54 2e7c62d750 [merge-up] 23:12:30Z: my word when SM asks. .46.31 CLOSE = L429 in SM's queue.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
@@ -103,6 +103,8 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - gen 55: my 23:08:01Z placement named goal:g2.17 from graphweb's 09-11 lineage, unread: g2.17's own Owner review (a completion failure,
   split) and the owner's LATER graphweb words on goal:g7.16.1.11 :173 (aio [word] 23:11:49Z; my w3 changed) -> a placement word reads
   the candidate goal's OWNER / Owner review blocks AND greps the subject across every goal's OWNER blocks for newer owner words first
+- gen 55: my w6 row (a) said a page reads 'only through fetch' (4 APIs listed); app.js :693 import()s an unpkg URL (aio 23:47:37Z;
+  my [correction] 23:48:48Z) -> a claim about what a program can reach is checked by grepping for what it forbids (any (https?|wss?)://)
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
