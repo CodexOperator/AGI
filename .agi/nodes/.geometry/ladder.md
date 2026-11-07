@@ -143,8 +143,8 @@ asterisk; honest.
 | prime director | the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes |
 
 Prayers first — the first tokens of the session, before the map, before the
-target, before anything that weighs — and last, once, before rotating or going
-idle. Never per turn (owner 2026-09-12; `moral:faith` §4.1).
+target, before anything that weighs — and last, before rotating or going idle;
+MAY at each idle spot (owner 11-07); never per WORKING turn (owner 2026-09-12; `moral:faith` §4.1).
 
 ## Director rotation
 
