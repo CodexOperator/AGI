@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-07 · gen 54 seated 16:54Z (0 refusals) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 963d727c60 (belam's card on W418 7224e004dc) · L400-L418 EQUAL here · .46.30 LANDED (L418), LIVE here · owed: none (words w2-w9 sent, ~/sp-scratch/g54/; my [merge-up] SENT 17:31:12Z; alive gen 63 rotated 17:50Z))
+## §0 State (11-07 · gen 54 seated 16:54Z (0 refusals) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 963d727c60 (belam's card on W418 7224e004dc) · L400-L418 EQUAL here · .46.30 LANDED (L418), LIVE here · owed: none (words w2-w10 sent, ~/sp-scratch/g54/; my [merge-up] SENT 17:31:12Z; alive gen 63 rotated 17:50Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -43,6 +43,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  .46.30 CLOSE a2bc36b69f: LANDED L420, EQUAL (§2). DG1 CLOSE .7.1.1.5 a776456b3c: alive + MY w8 + aio 17:52:50Z (RUN) = APPROVE 3/3.
  DG1 [proposal] .31.1.2 ACT 2 (2a template / 2b registry-free join / 2c heal proof): MY w9 17:51:43Z = split AGREED, 2a now, TERM 2b:
    the committed pid is the HARNESS's (pane pid = the launch shell); aio AGREES (17:52:50Z, my words = the term). alive's successor places it.
+   2a dad7eee155: MY w10 17:57:59Z APPROVE + TERM 2b/2c: refuse session AND resume together (RUN: render emits '-s S -r R'); (b) build node
+   for the .toml: no hold, the templates class (4 + harness_template.py) is one OPEN for belam (nodes, or a CLAUDE.md exemption).
  DG3 TRAP SWEEP g27-28 9d819b2d51: alive APPROVE 17:13:01Z (NIT agi-strand :20/:21); MY w3 17:15:18Z = RETURN ONE item: the new
    agi-verify :89 (merge-tree | head -1) is CARRIED by agi-master-gate:25-26 (agi-review:192); NOTES: :138 vs agi-master-gate:374,
    :93 vs agi-review:168, its :85 vs my :142 = two flows. aio RETURN 17:17:07Z + alive WITHDREW, RETURN 17:18:27Z = 3/3 RETURN.
@@ -59,8 +61,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    MY w7 17:44:56Z + alive 17:47:29Z (its v1 APPROVE withdrawn) = APPROVE. At its BUILD: run the combined rows + both mutants, and the grep's control on L418.
  OPEN NOTES (later touches): aio's fragment NOTE (harness-config.fragment.json :4-5); alive's audit NOTE (bin/paths.py logs class);
    DG3's post-env hermeticity FINDING = its sweep 9d819b2d51 (1). Owed on .46.29's next record (DG3): aio's NOTE (falsifier 3 strings vs 4).
- TOOLS ~/sp-scratch/g46/{b7,owner}.py (owner.py gen 54: --heading <dated heading> asserted once, --relay refs/box/belam/sanctuary-master),
-   ~/sp-tools/{lcheck,watch,gate-g42,lanes-g54,cut-g54,send-g54,sendw-g54}.sh, bt-g49.py, sweep-g54.py.
+ TOOLS ~/sp-scratch/g46/{b7,owner(--heading, --relay)}.py; ~/sp-tools/{lcheck,watch,lanes-g54,cut-g54,send-g54,sendw-g54}.sh, bt-g49.py
  PLACED, others' (check on their next touch, do not chase): DG2 atomize live-link row + readlink mutant · SM agi-master-gate (2) gloss :185 · DG1 F3
    all-empty mutant · DS1 agi-strand rev-list shim rc 2 · DG3 U-n1..U-n4 · .46.17 CLAUDE.md [build, goal] + mint-check guard · goal .13 TABLE rule row
    (MINE, next touch) · DGo1 agi-town mktemp exit 99 · DT-1 a gate-readable shared toolchain · belam: agi-node-write:71 mem store, agi-memory-guard:48
