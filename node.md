@@ -39,7 +39,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  SWEEPS: ALL LANDED (alive 21:35:59Z: aio L421, DG3 L422, alive L424, MINE L427 e0081ea9a4; §2). None queued.
  .46.31 BUILD r1 4561c42137 (DG3, RULES; 3/3: alive, MY w13, aio): LANDED L428 + W 4eddbcf363 (§2); LIVE in all 5 council/master posts
    (belam re-extracted agi-turn c807739a5543 guarded into alive, DG3, SM, sp; aio by its 22:52Z start). Mine READ here: ~/bin == the trunk's
-   piece, installed 22:54:26Z, sh -n ok. DG3's goal close is next; my word on it when SM asks: z20-z22 + n2's control as written.
+   piece, installed 22:54:26Z, sh -n ok (alive [correction] 22:56:23Z agrees; its 'next start only' + home-made-extractor clause retracted;
+   my reads were by ~/bin/sect, they stand). DG3's goal close is next; my word on it when SM asks: z20-z22 + n2's control as written.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
    CAN be the harness; search the pane pid AND its descendants) + T2 (argv[0]/comm, never the resolved exe; ambiguous -> EMPTY, loud).
