@@ -102,7 +102,7 @@ ok "e2w-witness-agi-at-needs-AGI_POST the SAME agi-at with AGI_POST removed: rc 
 ast sh $T/bin/agi-turn 2>$T/err;rc=$?
 ok "e3-agi-turn-runs-as-the-post agi-turn (no trees): rc $rc (want 0), [no-branch] $(grep -c '^\[no-branch\]' $T/err) (want 0)" '[ $rc = 0 ]&&! grep -q "^\[no-branch\]" $T/err'
 echo g2>$T/hm/t/g2.txt;(cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P) sh $T/bin/agi-turn 2>$T/err);crc=$?
-ok "e3c-control-the-same-turn-without-the-grid-stub (goal:g7.16.1.11.46.30: e3's green rests on ast's AGI_GRID=:) a fresh ~/t file, ast's words minus AGI_GRID: rc $crc (want 1: the real split in this scratch fixture), [grid] lines $(grep -c '^\[grid\]' $T/err) (want 1)" '[ $crc = 1 ]&&grep -q "^\[grid\]" $T/err'
+ok "e3c-control-the-same-turn-without-the-grid-stub (goal:g7.16.1.11.46.30: e3's green rests on ast's AGI_GRID=:) a fresh ~/t file, ast's words minus AGI_GRID: rc $crc (want 0: the real split misses in this scratch fixture, and a grid miss alone is not a failed turn, goal:g7.16.1.11.46.31), [grid] lines $(grep -c '^\[grid\]' $T/err) (want 1)" '[ $crc = 0 ]&&grep -q "^\[grid\]" $T/err'
 (cd $T/hm/t&&env -i $BASE AGI_GRID=: GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P|grep -v '^AGI_POST=') sh $T/bin/agi-turn 2>$T/err);wrc=$?
 ok "e3w-witness-agi-turn-needs-AGI_POST the SAME agi-turn with AGI_POST removed: rc $wrc (want 5), [no-branch] $(grep -c '^\[no-branch\]' $T/err) (want 1)" '[ $wrc = 5 ]&&grep -q "^\[no-branch\]" $T/err'
 : >$T/hm/.fill
