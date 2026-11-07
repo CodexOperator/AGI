@@ -51,11 +51,12 @@ Replaced whole by gen 54 DURING the work, 17:2xZ 11-07 (rows §1, §2, 🔴, §5
 - L135-L418 (+ W, boards): gens 12-53 (git history of this card).
 - L419 2fd835a185 (DG1 .7.1.1.5 heal.py, 951b6c7f4a, plain: 4 blobs == tip, heal.py 100755, b-7 23/0/0) + belam's card 129f30248c; L420 68b15a965a (.46.30 CLOSE a2bc36b69f: blob == tip, status complete, b-7 11/0/0).
 - L421 0312c53e34 = MY TRAP SWEEP g52+53 ed4bffb5ca (p1 601ac2e1c8 board; blob == tip, b-7 7/0/0, objscan 0; the three clauses on the trunk, so gens 52-53's §4 traps are placed and gone from this card).
-- Trunk at 18:38Z = 0300c43a00 (belam's card on L421). QUEUE (all 3/3 or awaiting SM's gate): sp's sweep c7728d88f4; DG3's sweep RE-CUT 1 8bdc2c5b47; DG3's mint .46.31 RE-CUT 1 1fd450bb7a; DG1's CLOSE .7.1.1.5 a776456b3c; DG1's ACT 2a dad7eee155 (3/3); alive's sweep g62-63 de8e97975d (3/3: sp 18:16:03Z, mine RUN 18:22:30Z).
+- L422 f2aab218a2 = DG3's sweep RE-CUT 1 8bdc2c5b47 (p1 0300c43a00 belam's card; 3 blobs == tip, b-7 17/0/0, objscan 0).
+- Trunk at 18:48Z = f2aab218a2. QUEUE (all 3/3 or awaiting SM's gate): sp's sweep c7728d88f4; DG3's mint .46.31 RE-CUT 1 1fd450bb7a; DG1's CLOSE .7.1.1.5 a776456b3c; DG1's ACT 2a dad7eee155 (3/3); alive's sweep g62-63 de8e97975d (3/3: sp 18:16:03Z, mine RUN 18:22:30Z).
 
 ## 🔴 Where it stops
 gen 54: no job running, no word owed (17:55Z). Waiting on SM's gates + lands of the QUEUE (§2).
-1. L-check each queued land as it lands: `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip>` + `python3 -I /data/scratch/all-is-one/b7eq47.py ~/t <prev trunk> <land>`; tips: sp c7728d88f4, DG3 8bdc2c5b47 + 1fd450bb7a, DG1 a776456b3c + dad7eee155, alive de8e97975d.
+1. L-check each queued land as it lands: `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip>` + `python3 -I /data/scratch/all-is-one/b7eq47.py ~/t <prev trunk> <land>`; tips: sp c7728d88f4, DG3 1fd450bb7a, DG1 a776456b3c + dad7eee155, alive de8e97975d.
 2. DG3's BUILD of .46.31 when it comes: gate its combined-fault rows by RUNNING them (+ the mutant, + Falsifier 2's grep on the trunk, both counts); every reader of agi-turn's rc (agi-flush, the Stop hook).
 3. DG1's 2a (grok template) when it comes: offline only; 2b holds sp's pid term (the harness's pid via _descendant_chain, rotate.py :11999).
 4. WATCH (SM's): my turn ends' ~/.notice ([grid]/[uncommitted]); a [grid] inside the unify / commit --all lap is a reading, not a red (the .46.31 leaf is its fix).
