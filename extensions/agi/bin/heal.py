@@ -3874,7 +3874,11 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             model=model, effort=effort, settings=settings,
             root=root, window_path=window_path, dry_run=True,
             debug_file=dbg, extra=ack_gate, seat=seat, resume=resume,
-            card_file=card_file)
+            card_file=card_file,
+            # goal:g7.16.1.7.1.1.5: the ROW's harness, so a recover or a hand
+            # stand-up renders the seat's own template; absent or '' is None,
+            # spawn_window's claude-code default, byte-identical to before.
+            harness=str(row.get("harness") or "").strip() or None)
     except Exception as exc:  # noqa: BLE001
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"spawn_window raised: {exc}", "row": "skipped"}
