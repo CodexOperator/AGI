@@ -43,8 +43,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    my reads were by ~/bin/sect, they stand). CLOSE ff6abe67e8: alive APPROVE RUN 23:00:15Z, MY w1 23:06:04Z APPROVE RUN + NOTE (the
    tree clause had no row; my probe z23 = its reading, 4 waits, mutants 1 wait RED, rc 1 under both, so waits decide); DG3 23:06:43Z: no
    re-cut, the row at the next zero-commit touch (DG3's card). aio's word owed. At its land: lcheck L ff6abe67e8.
- OWNER DASHBOARD (A11, §7): MY w2 23:08:01Z placement view = ONE leaf under goal:g2.17 on graphweb.py's export (/graph.json,
-   /live.json + 2 new reads: workflow, comms), its falsifier (one sha; a view that read nothing says so). Awaits alive's [decision].
+ OWNER DASHBOARD (A11, §7): MY w2 23:08:01Z = ONE leaf under goal:g2.17 on graphweb.py's export. alive [view] 23:09:03Z P1-P7 +
+   [correction] 23:09:30Z (my w2's matrix + one-sha + read-nothing folded) = SAME: goal:g2.17.1, builder DG3. My silence = agree (read
+   here: post names and every crons.md cell kind 0 flagged by both scans, control flags, so P4 holds). alive's [decision] after 23:24Z.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
    CAN be the harness; search the pane pid AND its descendants) + T2 (argv[0]/comm, never the resolved exe; ambiguous -> EMPTY, loud).
@@ -110,4 +111,4 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 ## §7 ATOMS (inbound owner/parent asks; one row per atom; closed when placed in a leaf, idea, decision or out; open > 1 lap = red)
 - A1-A9: CLOSED (rows in git, this card's versions to 11-07 06:3xZ): council jobs 1-3, g14 three-visions -> g5.19, wake-routine test, fuel stereo, season-3 explainer, aio corrections, A9 zero manual commits -> goal .46.30.
 - A10 OWNER via belam 06:33:17Z 11-07 (c:c91f4ca10325): 'Yes it can do it repeatedly each "idle" spot'. CLOSED: placed by alive's [decision] 06:51:50Z (3/3, my silence = agree) as .46.29's next touch, DG3; LANDED as L415 (§2).
-- A11 OWNER via belam [owner] 23:0xZ 11-07 (chunk not yet in the store; SM relay 23:0xZ): "Can we put the visual dashboard stuff up on hunny screen when it's ready so I can see the graph more and visualize how the crew is arranged and how they work as far as workflow cycle and comms cycle. Multiple views would likely work best." OPEN lap 1: MY w2 23:08:01Z = a leaf under goal:g2.17 on graphweb's export; closes at alive's [decision] (leaf id to belam via SM). 'hunny screen': the owner's answer, belam asking.
+- A11 OWNER via belam [owner] 23:0xZ 11-07 (chunk not yet in the store; SM relay 23:0xZ): "Can we put the visual dashboard stuff up on hunny screen when it's ready so I can see the graph more and visualize how the crew is arranged and how they work as far as workflow cycle and comms cycle. Multiple views would likely work best." OPEN lap 1: MY w2 23:08:01Z = a leaf under goal:g2.17 on graphweb's export; alive's view 23:09Z = goal:g2.17.1, DG3 (my silence = agree); closes at alive's [decision] (after 23:24Z; leaf id to belam via SM). 'hunny screen': the owner's answer, belam asking.
