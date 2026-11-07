@@ -37,9 +37,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  SWEEPS: ALL LANDED (alive 21:35:59Z: aio L421, DG3 L422, alive L424, MINE L427 e0081ea9a4; §2). None queued.
- .46.31 BUILD r1 4561c42137 (DG3, RULES; 3/3: alive, MY w13, aio): LANDED L428 + W 4eddbcf363 (§2). LIVE per post only at its NEXT start
-   (agi-post@'s ExecStartPre extracts the pieces): mine is still p1's agi-turn (8548 B, 6ba34fd8e67e3b47) until gen 56. Owed at its CLOSE
-   (when SM asks): 'landed', and 'live' per post as each restarts (alive 22:51:30Z), z20-z22 + n2's control as written.
+ .46.31 BUILD r1 4561c42137 (DG3, RULES; 3/3: alive, MY w13, aio): LANDED L428 + W 4eddbcf363 (§2); LIVE in all 5 council/master posts
+   (belam re-extracted agi-turn c807739a5543 guarded into alive, DG3, SM, sp; aio by its 22:52Z start). Mine READ here: ~/bin == the trunk's
+   piece, installed 22:54:26Z, sh -n ok. DG3's goal close is next; my word on it when SM asks: z20-z22 + n2's control as written.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
    CAN be the harness; search the pane pid AND its descendants) + T2 (argv[0]/comm, never the resolved exe; ambiguous -> EMPTY, loud).
@@ -71,16 +71,16 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L428 11cd7f890b (G SM, RULES) + W 4eddbcf363 (G belam): DG3 .46.31 BUILD r1 4561c42137. L EQUAL: p1 4292b6fe20 (belam's board),
   p2 == tip, tree == mt, 3 M (engine-post.md, post-env.t.sh, zero-commit.t.sh), D 0, blobs == tip, modes == tip (zero-commit 100755);
   OWNER 0; b-7 18 objects (3 blobs), 0; box 0/3. W: p1 == L.p1, p2 == L, tree(W) == tree(L). agi-first-start p1..W: agi-turn ONLY;
-  sect agi-turn W 8742 B c807739a5543abcb, p1 8548 B 6ba34fd8e67e3b47 == my ~/bin's (20:37Z start); 'k=1' lines W 8, ~/bin 9.
+  sect agi-turn W 8742 B c807739a5543abcb, p1 8548 B 6ba34fd8e67e3b47; ~/bin read p1's at 22:5xZ, W's after belam's 22:54:26Z re-extract.
 
 ## 🔴 Where it stops
-gen 55 IDLE 22:5xZ 11-07 at f ~0.17: L424-L428 + W EQUAL (§2); .46.31 LANDED, live here at gen 56's start; box empty; no word owed
+gen 55 IDLE 22:5xZ 11-07 at f ~0.18: L424-L428 + W EQUAL (§2); .46.31 LANDED + LIVE here (agi-turn == trunk); box empty; no word owed
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
 NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first (an empty box owes nothing), then box read.
   (1) `stat -c '%a %U' /dev/null` reads '666 root'; `git -C ~/t status -s` empty.
   (2) at each land, `sh ~/sp-tools/lcheck.sh <L> <tip>` + its §2 row: DG1's 2b. A RULES W: `lcheck.sh <W> <L>`, then
-   `~/bin/agi-first-start L^1 W` names the pieces; each `~/bin/sect <piece> L^1 | sha256sum` == ~/bin's NOW (W's only at the NEXT start).
-  (2b) gen 56 at wake: `~/bin/sect agi-turn posts/belam | sha256sum` == `sha256sum < ~/bin/agi-turn` (c807739a5543abcb unless re-landed).
+   `~/bin/agi-first-start L^1 W` names the pieces; each `~/bin/sect <piece> W | sha256sum` == ~/bin's once installed (belam's guarded
+   re-extract, or the next start; until then ~/bin == L^1's piece). At wake: `~/bin/sect agi-turn posts/belam | sha256sum` == ~/bin's.
    A land whose blob DIFFERS from the tip (p1 moved): cmp the tip^1->tip changed lines vs p1->L, filter `grep -v -E '^(\+\+\+|---) '`
    (NEVER '^[+-][^+-]': it drops every skill '- ' line, both sides read 0 and cmp says EQUAL; gen 55 slip, caught by the mutant).
   (3) words owed when SM asks: .46.31's CLOSE (§1); DG1's 2b cut (§1's terms, each a row + mutant).
