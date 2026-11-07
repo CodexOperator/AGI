@@ -9,7 +9,8 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 mkdir -p $T/bin $T/hm $T/r/.agi/nodes/doc
 for p in agi-pray agi-captive agi-brief;do sect $p >$T/bin/$p;[ -s $T/bin/$p ]||{ echo "FAIL extract: $p";exit 99;};chmod +x $T/bin/$p;done
 sect settings.json >$T/settings.json
-ASK="captive: say an Old Slavonic protection prayer before proceeding: as your reply's LAST text, no tool call after it (that ENDS the turn: a pause until your next prompt, not a hang); a prayer beside a call is read again at the next call"
+ASK="captive: say an Old Slavonic protection prayer before proceeding: your next reply is that prayer and nothing else: no tool call before or after it (that ENDS the turn: a pause until your next prompt, not a hang); a prayer beside a call is read again at the next call"
+SUF=' (if the rest of the start output was saved to a file, read it in the reply AFTER the prayer)'
 GO='prayed: the captive is released; continue your work'
 # a transcript: one assistant text per argument, timestamps from argument 1 (unix) upward
 tr_(){ o=$1;t0=$2;shift 2;: >$o;i=0;for x in "$@";do python3 -I -c 'import json,sys,datetime;print(json.dumps({"type":"assistant","timestamp":datetime.datetime.fromtimestamp(int(sys.argv[2]),datetime.timezone.utc).isoformat().replace("+00:00","Z"),"message":{"role":"assistant","content":[{"type":"text","text":sys.argv[1]}] if sys.argv[1]!="-" else [{"type":"tool_use","name":"Bash","input":{}}]}}))' "$x" $((t0+i)) >>$o;i=$((i+1));done;}
@@ -27,7 +28,8 @@ ok "h4-agi-brief-without-agi-pray-names-it the head line on a PATH with no agi-p
 
 # ---- s: the start check
 tr_ $T/t0 $NOW 'I will start the work now.';pray captive transcript_path="\"$T/t0\"" session_id='"s0"'
-ok "s1-no-prayer-is-refused rc $rc (want 2), stderr [$(cat $T/err)] (want the exact captive text)" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK" ]'
+ok "s1-no-prayer-is-refused rc $rc (want 2), stderr [$(cat $T/err)] (want the exact captive text, the start suffix with it)" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK$SUF" ]'
+cp $T/err $T/s1err
 tr_ $T/t1 $NOW "$P1" 'then the work';pray captive transcript_path="\"$T/t1\"" session_id='"s1"'
 ok "s2-a-prayer-passes-and-is-remembered rc $rc (want 0), ~/.prayed/s1: $([ -e $T/hm/.prayed/s1 ]&&echo yes||echo no) (want yes)" '[ $rc = 0 ]&&[ -e $T/hm/.prayed/s1 ]'
 pray captive transcript_path="\"$T/t0\"" session_id='"s1"'
@@ -50,7 +52,7 @@ ok "s10-a-subagent-call-is-never-captive (agent_id set, the transcript holds no 
 # ---- d: goal .46.29.1, the shapes a live transcript has (aio 11:03:07Z: a prayer said beside a tool_use is DROPPED; sp 11:49:51Z: or written LATE)
 js(){ python3 -I -c 'import json,sys;print(json.dumps(sys.argv[1]))' "$1";}
 tr_ $T/d1 $NOW '-';pray captive transcript_path="\"$T/d1\"" session_id='"d1"'
-ok "d1-a-prayer-said-beside-a-tool-call-and-absent-from-the-jsonl-is-refused rc $rc (want 2), stderr is the ASK: $([ "$(cat $T/err)" = "$ASK" ]&&echo yes||echo no), it names the reply-final form: $(grep -c "reply's LAST text, no tool call after it" $T/err) (want 1)" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK" ]&&grep -q "reply.s LAST text, no tool call after it" $T/err' 
+ok "d1-a-prayer-said-beside-a-tool-call-and-absent-from-the-jsonl-is-refused rc $rc (want 2), stderr is the ASK: $([ "$(cat $T/err)" = "$ASK$SUF" ]&&echo yes||echo no), it names the whole reply: $(grep -c "that prayer and nothing else: no tool call before or after it" $T/err) (want 1)" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK$SUF" ]&&grep -q "that prayer and nothing else: no tool call before or after it" $T/err' 
 pray stop transcript_path="\"$T/d1\"" session_id='"d1"' last_assistant_message="$(js "$JES")"
 ok "d2-a-reply-final-prayer-resumes-the-post (the Stop hook's OUTPUT is the next prompt, no outside input) decision [$(jq -r .decision $T/out 2>/dev/null)] (want block), reason [$(jq -r .reason $T/out 2>/dev/null)] (want '$GO'), ~/.prayed/d1 $([ -e $T/hm/.prayed/d1 ]&&echo yes||echo no) (want yes)" '[ "$(jq -r .decision $T/out 2>/dev/null)" = block ]&&[ "$(jq -r .reason $T/out 2>/dev/null)" = "$GO" ]&&[ -e $T/hm/.prayed/d1 ]' 
 pray captive transcript_path="\"$T/d1\"" session_id='"d1"'
@@ -69,6 +71,7 @@ G="git -C $T/r -c user.name=t -c user.email=t@t -c commit.gpgsign=false";$G init
 out(){ pray captive transcript_path="\"$1\"" session_id="\"$2\"" cwd="\"$T/r\"" tool_input='{"command":"touch ~/.fresh; kill $PPID"}';}
 tr_ $T/o1 $((K-10)) "$P1";tr_ $T/o1b $((K+5)) 'card written, rotating now';cat $T/o1b>>$T/o1;out $T/o1 o1
 ok "o1-the-out-with-no-prayer-since-the-card-commit-is-refused (the session prayed at its start, ~/.prayed/o1 set by this call): rc $rc (want 2), the refusal names the out: $(grep -c 'the out' $T/err) (want 1)" '[ $rc = 2 ]&&[ $(grep -c "the out" $T/err) = 1 ]'
+cp $T/err $T/o1err
 tr_ $T/o2 $((K+5)) "$JES";out $T/o2 o2
 ok "o2-the-out-with-a-prayer-since-the-card-commit-passes rc $rc (want 0)" '[ $rc = 0 ]'
 tr_ $T/o3 $((K+5)) "rotating: $JES" '-';out $T/o3 o3
@@ -185,10 +188,10 @@ ok "c27-the-ppid-name-test-can-fail SM's two 20:4xZ stops + agi-memory-guard's s
 FR=$T/fr;mkdir -p $FR/.agi/nodes/moral $FR/.agi/nodes/doc;cp $R0/.agi/nodes/moral/faith.md $FR/.agi/nodes/moral/
 printf '# card\n\n## \360\237\224\264 Where it stops\nGen 9: the fixture stops here; next: read the gate.\n' >$FR/.agi/nodes/doc/card-pp.md
 hd(){ env -i HOME=$T/hm PATH=$T/bin:/usr/bin:/bin AGI_POST=$2 ${PB:-$T/bin/agi-pray} head $FR >$1 2>/dev/null;}
-chk(){ python3 -I -c 'import sys
-t=open(sys.argv[1],encoding="utf-8").read();c=t[:2000];c=c[:c.rfind("\n")+1];L=c.split("\n")
+chk(){ python3 -I -c 'import re,sys
+t=open(sys.argv[1],encoding="utf-8").read();P75="/f/"+"x"*61+"/card-pp.md";t=re.sub(r"(?m)^card: .*$",lambda m:"card: "+P75,t,count=1);c=t[:2000];c=c[:c.rfind("\n")+1];L=c.split("\n")
 def ix(f):return next((i for i,l in enumerate(L) if f(l)),-1)
-a=ix(lambda l:l.startswith("pray first:") and "LAST text, no tool call after it" in l);p=ix(lambda l:l.startswith("card: ") and l.endswith("/card-pp.md"));s=ix(lambda l:l.startswith("stops: "));j=ix(lambda l:"Господи Іисусе Христе" in l and l.rstrip().endswith("грѣшнаго."))
+a=ix(lambda l:l.startswith("your FIRST reply is ONE prayer below and nothing else: no tool call before or after it"));p=ix(lambda l:l=="card: "+P75 and len(P75)==75);s=ix(lambda l:l.startswith("stops: "));j=ix(lambda l:"Господи Іисусе Христе" in l and l.rstrip().endswith("грѣшнаго."))
 print("ok" if -1<a<p<s<j else "no a=%d p=%d s=%d j=%d"%(a,p,s,j))' "$1";}
 mu m32 'WIDTH=120' 'WIDTH=100000';mu m33 'as your reply'"'"'s LAST text, no tool call after it: in your first reply, and again before' 'the first tokens of your first reply, and again as the last before';mu m34 '"## YOUR FIRST REPLY\n"+FIRST+"\n"+card(r)+"\n\n## THE FOUR' '"## THE FOUR'
 hd $T/h5 pp;h5=$(chk $T/h5);PB=$T/m34 hd $T/h5m pp;m34=$(chk $T/h5m)
@@ -196,7 +199,7 @@ ok "h5-the-preview-holds-the-head-then-a-whole-prayer (the ask in the reply-fina
 python3 -I -c 'import sys;open(sys.argv[1],"w",encoding="utf-8").write("# card\n\n## \U0001F534 Where it stops\n"+"x"*778+"\n")' $FR/.agi/nodes/doc/card-pp.md
 hd $T/h6 pp;h6=$(chk $T/h6);h6w=$(grep '^stops: ' $T/h6|python3 -I -c 'import sys;print(len(sys.stdin.read().rstrip("\n")))');PB=$T/m32 hd $T/h6m pp;m32=$(chk $T/h6m)
 ok "h6-a-padded-778-char-where-it-stops-is-cut-to-its-width [$h6] (want ok), the stops line $h6w chars (want <= 160: 'stops: ' + 120 + the named cut); m32-no-width-cap [$m32] (want no = RED)" '[ "$h6" = ok ]&&[ $h6w -le 160 ]&&grep -q "\[cut at 120 of 778 chars\]" $T/h6&&[ "$m32" != ok ]'
-hd $T/h7 nobody;h7a=$(grep -c '^pray first: ' $T/h7);h7u=$(grep -c '^card unread: ' $T/h7);h7c=$(grep -c '^card: ' $T/h7)
+hd $T/h7 nobody;h7a=$(grep -c '^your FIRST reply is ONE prayer below' $T/h7);h7u=$(grep -c '^card unread: ' $T/h7);h7c=$(grep -c '^card: ' $T/h7)
 ok "h7-no-card-prints-the-ask-and-one-card-unread-line ask $h7a, 'card unread' $h7u, 'card:' $h7c (want 1, 1, 0)" '[ $h7a = 1 ]&&[ $h7u = 1 ]&&[ $h7c = 0 ]'
 h8=$(grep -c 'first tokens of your first reply' $T/h5);h8r=$(grep -c "as your reply's LAST text, no tool call after it: in your first reply" $T/h5);PB=$T/m33 hd $T/h8m pp;m33=$(grep -c 'first tokens of your first reply' $T/h8m)
 ok "h8-agi-pray-head-says-the-reply-final-form 'first tokens of your first reply' $h8 (want 0), the reply-final closing line $h8r (want 1); m33-the-old-wording $m33 (want 1 = RED)" '[ $h8 = 0 ]&&[ $h8r = 1 ]&&[ $m33 = 1 ]'
@@ -227,6 +230,7 @@ ok "o4-an-unread-card-commit-passes-with-one-line rc $rc (want 0), [pray] lines 
 # ---- p: the Stop (idle) check
 tr_ $T/p1 $NOW "$P1" 'Nothing left on my queue; going idle.';pray stop transcript_path="\"$T/p1\""
 ok "p1-an-idle-empty-reply-with-no-prayer-is-blocked-once stdout decision [$(jq -r .decision $T/out 2>/dev/null)] (want block), the reason holds the captive text: $(grep -cF "$ASK" $T/out) (want 1)" '[ "$(jq -r .decision $T/out 2>/dev/null)" = block ]&&grep -qF "$ASK" $T/out'
+cp $T/out $T/p1out
 pray stop transcript_path="\"$T/p1\"" stop_hook_active=true
 ok "p2-stop-hook-active-never-loops stdout [$(cat $T/out)] (want empty), rc $rc (want 0)" '[ ! -s $T/out ]&&[ $rc = 0 ]'
 tr_ $T/p3 $NOW "Nothing left; going idle. $JES";pray stop transcript_path="\"$T/p3\""
@@ -241,7 +245,7 @@ ok "p6-the-stop-check-asks-once-per-session the first idle stop: [$b1] (want blo
 # ---- a: agi-captive's wiring
 cap(){ printf '{"tool_input":{"command":"ls"},"transcript_path":"%s","session_id":"%s"}' "$1" "$2"|env -i HOME=$T/hm PATH=$3/usr/bin:/bin sh $T/bin/agi-captive >$T/out 2>$T/err;rc=$?;}
 cap $T/t0 a1 $T/bin:
-ok "a1-agi-captive-refuses-through-agi-pray no prayer, no fill window: rc $rc (want 2), stderr [$(cat $T/err)]" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK" ]'
+ok "a1-agi-captive-refuses-through-agi-pray no prayer, no fill window: rc $rc (want 2), stderr [$(cat $T/err)]" '[ $rc = 2 ]&&[ "$(cat $T/err)" = "$ASK$SUF" ]'
 cap $T/t1 a2 $T/bin:
 ok "a2-agi-captive-passes-after-a-prayer rc $rc (want 0), stderr bytes $(wc -c<$T/err|tr -d ' ') (want 0)" '[ $rc = 0 ]&&[ ! -s $T/err ]'
 mkdir -p $T/nopray;cp $T/bin/agi-captive $T/nopray/;cap $T/t0 a3 ""
@@ -249,8 +253,22 @@ ok "a3-agi-pray-absent-passes-with-one-line (never a lock) rc $rc (want 0), [pra
 printf '#!/bin/sh\ncat >/dev/null;exit 1\n'>$T/crash;chmod +x $T/crash;mkdir -p $T/cb;cp $T/crash $T/cb/agi-pray;cap $T/t0 a4 $T/cb:
 ok "a4-a-crashing-agi-pray-is-not-a-lock (rc 1 is not a refusal) rc $rc (want 0)" '[ $rc = 0 ]'
 ok "a5-settings-wires-the-stop-check Stop hooks [$(jq -r '[.hooks.Stop[].hooks[].command]|join(",")' $T/settings.json)] holds agi-pray stop" 'jq -e "[.hooks.Stop[].hooks[].command]|index(\"agi-pray stop\")" $T/settings.json>/dev/null'
+# h13 + m39 (goal .46.29.3 F2, alive [decision] 04:13:28Z 11-07): FIRST names the whole FIRST reply and the saved file; ASK (all three uses) names the whole reply, keeps the owner's opening, no FIRST, no saved file; the saved-file clause rides ONLY the start captive's print (s1), never the Stop (p1) or the out (o1); m39 = today's (L400) FIRST and ASK lines
+WA='your FIRST reply is ONE prayer below and nothing else: no tool call before or after it';WB='if the rest of this output was saved to a file, read it in your NEXT reply';WK='your next reply is that prayer and nothing else: no tool call before or after it'
+fa(){ python3 -I -c 'import re,sys
+s=open(sys.argv[1],encoding="utf-8").read();g=lambda k:(re.search(r"(?m)^"+k+r"=\"(.*)\"$",s) or [None,""])[1];F=g("FIRST");A=g("ASK")
+L=[l for l in s.split("\n") if re.search(r"\bASK\b",l) and "print(" in l];st=[l for l in L if "file=sys.stderr);sys.exit(2)" in l and "the out" not in l]
+ok=sys.argv[2] in F and sys.argv[3] in F and sys.argv[4] in A and "FIRST" not in A and "saved to a file" not in A and A.startswith("captive: say an Old Slavonic protection prayer before proceeding: ") and len(L)==3 and len(st)==1 and "saved to a file" in st[0] and all("saved to a file" not in l for l in L if l not in st)
+print("ok" if ok else "no F=%d A=%d L=%d st=%d"%(len(F),len(A),len(L),len(st)))' "$1" "$WA" "$WB" "$WK";}
+h13=$(fa $T/bin/agi-pray);h13s=$(grep -cF "$SUF" $T/s1err);h13o=$(grep -c 'saved to a file' $T/o1err);h13p=$(grep -c 'saved to a file' $T/p1out)
+python3 -I -c 'import re,sys;s=open(sys.argv[1],encoding="utf-8").read()
+F="pray first: one Church Slavonic prayer below, as your reply'"'"'s LAST text, no tool call after it (that ENDS the turn); then read your card"
+A="captive: say an Old Slavonic protection prayer before proceeding: as your reply'"'"'s LAST text, no tool call after it (that ENDS the turn: a pause until your next prompt, not a hang); a prayer beside a call is read again at the next call"
+s,n=re.subn(r"(?m)^FIRST=\".*\"$",lambda m:"FIRST=\""+F+"\"",s);s,k=re.subn(r"(?m)^ASK=\".*\"$",lambda m:"ASK=\""+A+"\"",s);assert n==1 and k==1
+open(sys.argv[2],"w",encoding="utf-8").write(s)' $T/bin/agi-pray $T/m39;chmod +x $T/m39;m39=$(fa $T/m39);PB=$T/m39 hd $T/h13m pp;m39h=$(chk $T/h13m)
+ok "h13-first-and-ask-name-the-whole-reply-and-the-saved-file-only-at-the-start strings [$h13] (want ok), the start captive's suffix in s1 $h13s (want 1), in the out o1 $h13o and the Stop p1 $h13p (want 0, 0); m39-today's-FIRST-and-ASK [$m39] (want no = RED), its head in the preview [$m39h] (want no = RED)" '[ "$h13" = ok ]&&[ $h13s = 1 ]&&[ $h13o = 0 ]&&[ $h13p = 0 ]&&[ "$m39" != ok ]&&[ "$m39h" != ok ]'
 # ---- m: mutants of the REAL piece, each must read RED on its row
-sed 's/print(ASK,file=sys.stderr);sys.exit(2)/pass/' $T/bin/agi-pray>$T/m1;chmod +x $T/m1;cmp -s $T/bin/agi-pray $T/m1&&{ echo "FAIL mutant m1 changed nothing";exit 99;}
+sed 's/print(ASK+" (if the rest of the start output[^)]*)",file=sys.stderr);sys.exit(2)/pass/' $T/bin/agi-pray>$T/m1;chmod +x $T/m1;cmp -s $T/bin/agi-pray $T/m1&&{ echo "FAIL mutant m1 changed nothing";exit 99;}
 PB=$T/m1 pray captive transcript_path="\"$T/t0\"" session_id='"m1"'
 ok "m1-without-the-check-s1-reads-RED rc $rc (want 0 = the mutant lets a prayerless session through, so s1 can fail)" '[ $rc = 0 ]'
 python3 -I -c 'import sys;s=open(sys.argv[1],encoding="utf-8").read();a="def fold(s):\n";i=s.index(a)+len(a);open(sys.argv[2],"w",encoding="utf-8").write(s[:i]+"    return s.casefold()\n"+s[i:])' $T/bin/agi-pray $T/m2;chmod +x $T/m2
