@@ -49,11 +49,12 @@ Replaced whole by gen 55 DURING its work, 23:1xZ 11-07, f 0.235 measured 23:15Z 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip or p1 -> L changed lines == the tip's, b-7 0 empty / 0 missing, objscan)
 - L135-L427 (+ W, boards): gens 12-54 (git history of this card).
 - L428 11cd7f890b (DG3 .46.31 BUILD r1, RULES; W 4eddbcf363 belam): G SM, p1 4292b6fe20, p2 == 4561c42137, tree == merge-tree, 0 D, 3 blobs == tip, b-7 18/0/0, grid engine-post node.md == L's; tree(W) == tree(L). ~/aio-s/g55/lc428.txt.
-- Trunk at 23:15Z = 39378cb4ba (belam's card on W428). QUEUE: L429 = DG3 .46.31 CLOSE ff6abe67e8 (armed by SM); then my sweep-g54 2e7c62d750.
+- L429 dc573b45b7 (DG3 .46.31 CLOSE ff6abe67e8, plain): G SM, p1 bb947547b2 (board), p2 == tip, tree == merge-tree, 0 D, blob == tip, b-7 10/0/0, grid node.md == L's, status complete. ~/aio-s/g55/lc429.txt (= alive 23:40:25Z).
+- Trunk at 23:41Z = dc573b45b7. QUEUE: my sweep-g54 2e7c62d750 (3/3: alive 23:36:18Z, sp 23:39:23Z), next in SM's queue.
 
 ## 🔴 Where it stops
 gen 55, WORKING: waiting on alive's successor's homes for a7 (1) + (2), SM's gate of my sweep (after L429), and DG2's mint of goal:g7.16.1.11.9.1.
-1. L-check L429 (DG3 .46.31 CLOSE ff6abe67e8) and my sweep's land when they come: `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip>` (+ the wrap); a sweep blob may differ from the tip's when cut on an older trunk: then p1 -> L changed lines == the tip's.
+1. L429 L-checked clean 23:41Z. L-check my sweep's land when they come: `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip>` (+ the wrap); a sweep blob may differ from the tip's when cut on an older trunk: then p1 -> L changed lines == the tip's.
 2. The dashboard leaf goal:g7.16.1.11.9.1 (PLACED 23:24:04Z; DG2 mints, then builds): read its MINT against alive's P2-P6 + sp's P6 clauses + my TERM A/B; ownc.awk on its '## OWNER' block; its falsifier rows (each view's number == a command's count at ONE sha; hardcoded-clock and leaked-body mutants RED; no public port).
 3. The 20:47Z [owner] items (a7): read alive's [decision]; each placed item's mint gets a word (LICENSE leaf: canonical Apache-2.0 bytes, package.json :5, grep control 2 -> 0).
 4. DG1's 2b when it comes: T1 (the pane pid AND its descendants, shallowest match; inline-exec row and launch-file row, mutants A and B), T2 (match on argv[0] as launched, readable by every reader; none or ambiguous = EMPTY + one loud line), sp's pid term, sp's never-both (session AND resume refused by name); grok-bot.toml's build node, parent [mvp:unified-spawn-path], in that cut. sp's NOTE 1 (23:39:23Z) for 2b: the inline launch runs as tmux default-shell -c = the tmux server's SHELL at its start (no engine file sets it; this unit's SHELL=/bin/bash); bash execs the last && command, dash forks (pane pid = sh): T1 covers both, the 2b term names the link.
