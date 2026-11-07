@@ -50,7 +50,7 @@ RENDER_VOCABULARY = (
     "prompt", "model", "effort", "settings", "extra_args", "name",
     "debug_file", "provider", "thinking", "model_args", "output_format",
     "verbose", "budget", "prompt_file", "repo_root", "mcp", "tools",
-    "allowed", "disallowed", "closing", "resume",
+    "allowed", "disallowed", "closing", "resume", "session",
 )
 
 #: Where a seat's model/effort/settings come from. Closed vocabulary: a
@@ -256,7 +256,7 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
            shape=None, model_args=None, output_format=None, verbose=None,
            budget=None, prompt_file=None, repo_root=None, mcp=None,
            tools=None, allowed=None, disallowed=None, closing=None,
-           resume=None) -> list[str]:
+           resume=None, session=None) -> list[str]:
     """The argv for `harness_id`, from its template alone.
 
     `shape` selects an optional `[shapes.<name>]` argv instead of the
@@ -279,7 +279,7 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
               "verbose": verbose, "budget": budget,
               "prompt_file": prompt_file, "repo_root": repo_root, "mcp": mcp,
               "tools": tools, "allowed": allowed, "disallowed": disallowed,
-              "closing": closing, "resume": resume}
+              "closing": closing, "resume": resume, "session": session}
     assert set(values) == set(RENDER_VOCABULARY), (
         "render() values drifted from RENDER_VOCABULARY: "
         f"{sorted(set(values) ^ set(RENDER_VOCABULARY))}")

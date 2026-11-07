@@ -634,3 +634,48 @@ def test_unknown_spread_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
     with pytest.raises(harness_template.HarnessTemplateError) as exc:
         harness_template.load("bad")
     assert "unknown spread 'extra'" in str(exc.value)
+
+
+# ------------------- the grok-bot SEAT template (goal:g7.31.1.2 ACT 2a)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_grok_bot_adapter import (  # noqa: E402 -- the ONE measured-help reader
+    MEASURED_DOC, _declared_flags, _measured_help, _project_root)
+
+GROK_UUID = "0f0f0f0f-1111-2222-3333-444444444444"
+
+
+def _grok(**kw):
+    return harness_template.render("grok-bot", bin_path="/x/grok-bot",
+                                   model="grok-4", prompt="CARD", **kw)
+
+
+def test_grok_seat_first_spawn_names_a_new_session():
+    """A first spawn passes `session`: `-s <UUID>`, the prompt POSITIONAL
+    (the interactive seat), and no `-r`."""
+    assert _grok(session=GROK_UUID) == [
+        "/x/grok-bot", "--model", "grok-4", "-s", GROK_UUID, "CARD"]
+
+
+def test_grok_seat_restart_resumes_the_same_session():
+    assert _grok(resume=GROK_UUID) == [
+        "/x/grok-bot", "--model", "grok-4", "-r", GROK_UUID, "CARD"]
+
+
+def test_grok_seat_flags_are_declared_by_the_measured_help():
+    """Every flag either render emits is one the recorded `grok-bot --help`
+    declares (read from the GRAPH doc), and neither carries `--single`/`-p`:
+    the one-turn headless mode is dispatch's, not a seat's."""
+    flags = _declared_flags(_measured_help(_project_root() / MEASURED_DOC))
+    for argv in (_grok(session=GROK_UUID), _grok(resume=GROK_UUID)):
+        used = {a for a in argv[1:] if a.startswith("-")}
+        assert used and used <= flags, (used, sorted(flags))
+        assert not used & {"--single", "-p"}, argv
+
+
+def test_only_the_grok_template_declares_a_session_slot():
+    """`session` is the slot a spawn mints a UUID for (ACT 2b); the three
+    registry-backed or session-less templates do not declare it."""
+    assert harness_template.has_slot("grok-bot", "session")
+    for hid in ("claude-code", "copilot-cli", "pi"):
+        assert not harness_template.has_slot(hid, "session"), hid
+    assert harness_template.role_source("grok-bot") == "row"
