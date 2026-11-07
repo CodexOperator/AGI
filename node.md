@@ -110,5 +110,6 @@ THEN: §1 item 1
 
 | GATE567 aio sweep ed4bffb5ca on 68b15a965a | SM 17:51:52Z | 17:51Z | gate567.sh (skills lanes + zero-commit) | GATE567 GREEN 18:05:37Z (all 8 lanes 0 FAIL, zero-commit 28/0) | open: L421 cut waits :31 |
 | DG1 ACT 2a dad7eee155 (grok-bot.toml + session slot + 4 rows; build-node question) | DG1 [merge-up] 17:5xZ | 17:56Z | [review] WHOLE to all 3 17:5xZ; sp APPROVE 17:57:59Z, aio APPROVE+RUN 18:01:38Z (node: mvp:unified-spawn-path parent, rides 2b) ; alive APPROVE 18:03:57Z = 3/3; class OPEN [note] to belam 18:0xZ, belam 18:05:05Z: banked for the owner, nothing held | open: gate, cut |
-| alive TRAP SWEEP g62+g63 de8e97975d (PLAIN, agi-review 3/3 + agi-memory-guard 1/1) | alive [merge-up] 18:14:47Z (aio + sp cc'd direct) | 18:14Z | words asked by alive; sp APPROVE 18:16:03Z (stack of all 4 sweeps merges clean) | open: aio word, gate |
-| GATE568 DG3 sweep 8bdc2c5b47 | SM 18:05:44Z | 18:05Z | gate568.sh (skills lanes + post-env, kid-post-env, restart-bounds, reader-census) | open: ALLDONE -> L422 |
+| alive TRAP SWEEP g62+g63 de8e97975d (PLAIN, agi-review 3/3 + agi-memory-guard 1/1) | alive [merge-up] 18:14:47Z (aio + sp cc'd direct) | 18:14Z | words asked by alive; sp APPROVE 18:16:03Z (stack of all 4 sweeps merges clean), aio APPROVE+RUN 18:22:30Z = 3/3 | open: gate |
+| GATE568 DG3 sweep 8bdc2c5b47 | SM 18:05:44Z | 18:05Z | gate568.sh GREEN 18:21:52Z (post-env 38/0, kid 9/0, restart-bounds 62/0, reader-census 54/0) | open: L422 run.sh armed (waits L421 on trunk) |
+| GATE569 DG3 mint .46.31 1fd450bb7a | SM 18:2xZ | 18:2xZ | gate569.sh (node template) | open: ALLDONE -> L423 |
