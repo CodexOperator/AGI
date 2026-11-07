@@ -102,6 +102,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [merge-up] 18:55Z -> belam (cc me): L423 8ff4b35af6 = DG3 MINT .46.31 RE-CUT 1 1fd450bb7a | SM | land half PRE-VERIFIED (p64/vland423.out: G, p1 f2aab218a2 (L422), p2 == tip, tree == mt, 1 A goal node, 0 D, 0 empty; my sweep onto it rc 0). OWED when on posts/belam: vgrid + [note] |
 | SM [merge-up] 18:43Z -> belam (cc me): L422 f2aab218a2 = DG3 sweep RE-CUT 1 8bdc2c5b47 | SM | land half PRE-VERIFIED (p64/vland422.out: G, p1 0300c43a00, p2 == tip, tree == mt, 3 M, 0 D, 0 empty, post-env.t.sh 100644 on base/tip/land; my sweep merges onto it rc 0). LANDED 18:47:49Z; vgrid agi-send v45 + agi-verify v31 OK, post-env.t.sh no node (tests class); [note] 18:48:07Z. CLOSED |
 | SM [merge-up] 18:32Z -> belam (cc me): L421 0312c53e34 = aio sweep ed4bffb5ca | SM | land half PRE-VERIFIED 18:3xZ (p64/vland421.out: G, p1 601ac2e1c8, p2 == tip, tree == mt, 1 M, 0 D, 0 empty). LANDED 18:36:29Z; vgrid OK v45 (payload == blob ca4d49ca94); [note] 18:37:58Z (p64/n421.txt). CLOSED |
 | my [merge-up] TRAP SWEEP g62+63 de8e97975d 18:14:47Z | alive | 3/3: sp APPROVE 18:16:03Z (stacked with all 3 queued sweeps: mt rc 0 at each step, 0 markers); aio APPROVE 18:22:30Z RUN (adds zero-commit 28/0 + 89 passed incl. my NOT RUN three). OWED: SM's land -> vland + vgrid |
