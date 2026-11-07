@@ -10,7 +10,7 @@ export HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 mkdir -p $T/hm $T/bin $T/shim $T/run $T/k $T/gs $T/ss $T/nogit
 ssh-keygen -q -t ed25519 -N '' -f $T/k/alive -C alive >/dev/null||{ echo "FAIL fixture: ssh-keygen";exit 99;}
 echo "alive@agi namespaces=\"git\" $(cut -d' ' -f1,2 $T/k/alive.pub)" >$T/allowed
-for n in agi-turn agi-at agi-notice agi-sync grow.py agi-pray agi-captive;do sect $n >$T/bin/$n;[ -s $T/bin/$n ]||{ echo "FAIL extract: $n";exit 99;};chmod +x $T/bin/$n;done
+for n in agi-turn agi-at agi-notice agi-sync grow.py agi-pray agi-captive agi-flush;do sect $n >$T/bin/$n;[ -s $T/bin/$n ]||{ echo "FAIL extract: $n";exit 99;};chmod +x $T/bin/$n;done
 # the git shim: logs every update-ref of posts/alive ($T/ur.log, the commit attempts), a racer that moves the tip first ($T/race), a failing checkout ($T/faildetach)
 cat >$T/shim/git<<XX
 #!/bin/sh
@@ -147,6 +147,30 @@ mk;echo "edit z19" >>$T/hm/t/$NA;: >$T/warnrp;run agi-turn >/dev/null 2>$T/e19;r
 mut gw;python3 -I -c 'import sys;p=sys.argv[1];s=open(p).read();o=";exit 1;};g=$h";assert s.count(o)==1;open(p,"w").write(s.replace(o,";exit 1;}"))' $T/m-gw/agi-turn
 mk;echo "edit z19" >>$T/hm/t/$NA;: >$T/warnrp;BIN=$T/m-gw run agi-turn >/dev/null 2>&1;m19=$(nl_ '^\[grid\]');rm -f $T/warnrp
 ok "z19-a-guard-warning-is-never-the-split-base rc $r19 (want 0), [grid] lines $g19 (want 0), the grid grew: $v19 (want yes), the guard's g = the sha line only in all three pieces: $(grep -c ';g=$h' $T/bin/agi-turn)/$(sect agi-at|grep -c ';g=$h')/$(sect agi-flush|grep -c ';g=$h') (want 1/1/1); m19 g keeps the warning: [grid] $m19 (want 1: RED)" '[ $r19 = 0 ]&&[ "$g19" = 0 ]&&[ $v19 = yes ]&&[ "$(grep -c ";g=\$h" $T/bin/agi-turn)" = 1 ]&&[ "$(sect agi-at|grep -c ";g=\$h")" = 1 ]&&[ "$(sect agi-flush|grep -c ";g=\$h")" = 1 ]&&[ "$m19" = 1 ]'
+# ---- goal:g7.16.1.11.46.31: a grid-lock miss is not a failed turn. The lock is held by a stand-in writer: AGI_GRID = $T/glk, which logs each call ($T/gl.log = the lock waits), waits W s and fails as the real split does on a held lock; agi-flush (the out's ExecStopPost) runs on it
+W=3;printf '#!/bin/sh\necho x>>%s/gl.log;sleep %s;echo "grid: split could not acquire the grid lock (held by a stand-in writer) within %ss";exit 1\n' $T $W $W >$T/glk;chmod +x $T/glk
+gw(){ [ -f $T/gl.log ]&&wc -l <$T/gl.log|tr -d ' '||echo 0;}
+fl(){ rm -f $T/gl.log;s0=$(date +%s%N);AGI_GRID_X=$T/glk run agi-flush >/dev/null 2>$T/ef;fr=$?;ms=$((($(date +%s%N)-s0)/1000000));}
+nz(){ printf -- '---\nid: doc:n%s\nmint_id: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee%s\ntype: doc\nparents:\n  - doc:a\n---\nnew\n' $1 $2 >$T/hm/t/.agi/nodes/doc/n$1.md;}
+# z20 the grid miss ALONE: agi-flush finishes inside ONE wait (one call, under 2 x W), ONE [grid] line, ~/.grid-base kept; z20b the next agi-turn with the lock free grows it and drops the base; m20 today's k=1 in the grid branch = 4 waits (RED)
+mk;echo "edit z20" >>$T/hm/t/$NA;echo "edit z20" >>$T/hm/t/README.md;fl;r20=$fr;RCS="$RCS $r20";w20=$(gw);t20=$ms;g20=$(nl_ '^\[grid\] alive: ');k20=$([ -s $T/hm/.grid-base ]&&echo yes||echo no);l20=$($G -C $T/g show posts/alive:README.md|grep -c 'edit z20')
+run agi-turn >/dev/null 2>$T/e20b;r20b=$?;RCS="$RCS $r20b";gv=$($G -C $T/g rev-parse -q --verify refs/grid/node/$MA 2>/dev/null);v20=$($G -C $T/g cat-file -p "$gv:node.md" 2>/dev/null|grep -c 'edit z20');b20=$([ -e $T/hm/.grid-base ]&&echo yes||echo no)
+mut gk;python3 -I -c 'import sys;p=sys.argv[1];s=open(p).read();o="not grown: $(echo \"$o\"|tail -2|tr '"'"'\\n'"'"' '"'"' '"'"'|cut -c1-240)\";};";assert s.count(o)==1;open(p,"w").write(s.replace(o,o[:-2]+"k=1;};"))' $T/m-gk/agi-turn
+mk;echo "edit m20" >>$T/hm/t/$NA;BIN=$T/m-gk fl;m20=$(gw);mr20=$fr
+ok "z20-a-grid-miss-alone-is-not-a-failed-turn agi-flush with the lock held: rc $r20 (want 0), lock waits $w20 (want 1), ${t20} ms (want < $((2*W*1000))), [grid] lines $g20 (want 1), ~/.grid-base kept: $k20 (want yes), the edit landed: $l20 (want 1); z20b the next agi-turn, lock free: rc $r20b (want 0), doc:a's grid version holds the edit: $v20 (want 1), the base left: $b20 (want no); m20 today's k=1 in the grid branch (sed hit: $(grep -c 'not grown: .*";k=1;};' $T/m-gk/agi-turn)): lock waits $m20, rc $mr20 (want 4 and != 0: RED)" '[ $r20 = 0 ]&&[ "$w20" = 1 ]&&[ $t20 -lt $((2*W*1000)) ]&&[ "$g20" = 1 ]&&[ $k20 = yes ]&&[ "$l20" = 1 ]&&[ $r20b = 0 ]&&[ "$v20" = 1 ]&&[ $b20 = no ]&&[ "$(grep -c "not grown: .*\";k=1;};" $T/m-gk/agi-turn)" = 1 ]&&[ "$m20" = 4 ]&&[ $mr20 != 0 ]'
+# z21 COMBINED, the lock held AND a ~/t path left (a NEW node grow.py refuses, z15's, beside a README edit that lands and moves the tip): non-zero, agi-flush re-runs the turn (4 waits); mutants: the grid branch clears k (m21a), the exit zeroes k on a grid miss (m21b): rc 0 after one wait (RED)
+mk;nz 21 1;echo "edit z21" >>$T/hm/t/README.md;fl;r21=$fr;RCS="$RCS $r21";w21=$(gw);n21=$(nl_ '^\[uncommitted\] .agi/nodes/doc/n21.md: ');g21=$(nl_ '^\[grid\] alive: ')
+mut gz;python3 -I -c 'import sys;p=sys.argv[1];s=open(p).read();o="not grown: $(echo \"$o\"|tail -2|tr '"'"'\\n'"'"' '"'"' '"'"'|cut -c1-240)\";};";assert s.count(o)==1;open(p,"w").write(s.replace(o,o[:-2]+"k=0;};"))' $T/m-gz/agi-turn
+mut gx;python3 -I -c 'import sys;p=sys.argv[1];s=open(p).read().rstrip("\n");assert s.endswith("exit $k");open(p,"w").write(s[:-7]+"[ -s ~/.grid-base ]&&k=0;exit $k\n")' $T/m-gx/agi-turn
+mk;nz 21 1;echo "edit m21a" >>$T/hm/t/README.md;BIN=$T/m-gz fl;ma21=$fr;wa21=$(gw)
+mk;nz 21 1;echo "edit m21b" >>$T/hm/t/README.md;BIN=$T/m-gx fl;mb21=$fr;wb21=$(gw)
+ok "z21-the-lock-held-and-a-path-left-still-re-runs agi-flush: rc $r21 (want != 0, != 2), lock waits $w21 (want 4: every re-run), [uncommitted] n21 $n21 (want 1), [grid] $g21 (want 1); m21a the grid branch clears k: rc $ma21, waits $wa21 (want 0 and 1: RED); m21b the exit zeroes k on a grid miss: rc $mb21, waits $wb21 (want 0 and 1: RED)" '[ $r21 != 0 ]&&[ $r21 != 2 ]&&[ "$w21" = 4 ]&&[ "$n21" = 1 ]&&[ "$g21" = 1 ]&&[ $ma21 = 0 ]&&[ "$wa21" = 1 ]&&[ $mb21 = 0 ]&&[ "$wb21" = 1 ]'
+# z22 COMBINED, the lock held AND a commit fault (z6's racer: a CAS miss on both attempts, the racer moving the tip): non-zero, re-run, each turn still 2 attempts; m22 the exit zeroes k: rc 0 (RED)
+mk;echo "edit z22" >>$T/hm/t/README.md;: >$T/race;fl;r22=$fr;RCS="$RCS $r22";w22=$(gw);a22=$(att);n22=$(nl_ '^\[uncommitted\] README.md: .*\[raced\]');rm -f $T/race
+mk;echo "edit m22" >>$T/hm/t/README.md;: >$T/race;BIN=$T/m-gx fl;m22=$fr;rm -f $T/race
+ok "z22-the-lock-held-and-a-commit-fault-still-re-runs agi-flush: rc $r22 (want != 0, != 2), lock waits $w22 (want 4), commit attempts $a22 (want 8: 2 per turn x 4), [uncommitted] README.md [raced] $n22 (want 1); m22 the exit zeroes k: rc $m22 (want 0: RED)" '[ $r22 != 0 ]&&[ $r22 != 2 ]&&[ "$w22" = 4 ]&&[ "$a22" = 8 ]&&[ "$n22" = 1 ]&&[ $m22 = 0 ]'
+# n2 falsifier 2: the grid-miss branch sets no failure: lines of agi-turn carrying both 'not grown' and 'k=1'; control (the same grep on L418's line, today's k=1, written back as m-gk): 1 (RED)
+ok "n2-the-grid-miss-branch-sets-no-failure agi-turn lines with 'not grown' and 'k=1': $(grep 'not grown' $T/bin/agi-turn|grep -c 'k=1') (want 0); control, L418's line (m-gk): $(grep 'not grown' $T/m-gk/agi-turn|grep -c 'k=1') (want 1: RED)" '[ "$(grep "not grown" $T/bin/agi-turn|grep -c "k=1")" = 0 ]&&[ "$(grep "not grown" $T/m-gk/agi-turn|grep -c "k=1")" = 1 ]'
 # ---- z10 the wrapper's rc is never 2 (every agi-turn rc above)
 n2=0;for r in $RCS;do [ $r = 2 ]&&n2=$((n2+1));done
 ok "z10-the-wrapper-never-exits-2 rcs [$RCS] (want no 2), 2s: $n2" '[ $n2 = 0 ]&&[ -n "$RCS" ]'
