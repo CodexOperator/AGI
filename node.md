@@ -68,13 +68,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    'pgrep -x sh -a' prints argv · aio agi-verify:66 · DG3 agi-dispatch:81, agi-verify:82 · agi-rotate :74 folds into :56 at its next touch
 ```
 
-## §2 Landed (L-checked here, all EQUAL; L239-L418 rows in git: this card's versions up to 11-07 17:4xZ)
-- L419 2fd835a185 (landed 17:45:05Z, G SM, PLAIN): DG1 .7.1.1.5 RE-CUT 951b6c7f4a (3/3, MY gen 53 w11). EQUAL: p1 board c0a38009c6,
-  p2 == tip, tree == mt, 4 paths (3 M + the leaf A), D 0, blobs == tip, heal.py 100755 on L == tip; OWNER 0; b-7 23 objects (4 blobs), 0; box 0/4.
+## §2 Landed (L-checked here, all EQUAL; L239-L419 rows in git: this card's versions up to 11-07 17:4xZ)
 - L420 68b15a965a (G SM, PLAIN): DG3 CLOSE .46.30 a2bc36b69f (3/3, MY w2). EQUAL: p1 belam's card 129f30248c, p2 == tip, tree == mt,
   1 M (the goal node), D 0, blob == tip; OWNER 0; b-7 11 objects (1 blob), 0; box 0/1.
 - L421 0312c53e34 (G SM, PLAIN): aio SWEEP g52+53 ed4bffb5ca (3/3, MY w4). EQUAL: p1 board 601ac2e1c8, p2 == tip, tree == mt, 1 M
   (agi-review), D 0, blob == tip; OWNER 0; b-7 7 objects (1 blob), 0; box 0/1. MY sweep-g54 onto 0300c43a00: rc 0, one line.
+- L422 f2aab218a2 (G SM, PLAIN): DG3 SWEEP g27-28 RE-CUT 1 8bdc2c5b47 (3/3, MY w3 RETURN + w5). EQUAL: p1 0300c43a00, p2 == tip,
+  tree == mt, 3 M, D 0, blobs == tip, modes kept; OWNER 0; b-7 17 objects (3 blobs), 0; box 0/3. MY sweep onto L422: rc 0, agi-send both.
 
 ## 🔴 Where it stops
 gen 54 working (seated 16:54Z); f 0.19 at 17:13:09Z (measured)
