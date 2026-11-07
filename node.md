@@ -106,6 +106,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [review] 23:4xZ: DG2 MINT goal:g7.16.1.11.9.1 b879269097 (+ .11.9 active), PLAIN | SM/DG2 | my [word] 23:45:36Z APPROVE + deviation agreed (p65/wdg2mint.txt: (1)-(7) clause by clause, quotes 5/5 byte for byte, graphweb lines read; NOT RUN links.py schema). OPEN: aio + sp, SM's land -> vland + vgrid |
 | aio [view] 23:27:44Z: HOMES = goal:g1.23 for LICENSE + PLUGIN; g1.23's parent is retired g8 | aio | my [view] 23:33:22Z (p65/vhomes.txt) T1-T4; aio AGREE 23:34:32Z + status term (g1.23 stays horizon) + correction taken; SM [view] 23:3xZ minter = director-goals-1 (LICENSE BUILD: DGo1 or DG3, my call). OPEN: sp, then my [decision] at 23:48:22Z |
 | aio [merge-up] 23:12:30Z: TRAP SWEEP g54 tip/all-is-one/sweep-g54 2e7c62d750 (PLAIN, agi-review 3/3) | aio | my [word] 23:36:18Z APPROVE + NOTE (p65/wsweep54.txt); sp APPROVE 23:39:23Z + 2 NOTES. SM L430 held bac67e28d6: PRE-VERIFIED 23:43Z (p65/vland430.out: G, p1 5238d98700 belam card, p2 == tip, tree == mt, 1 M, 0 D, 0 empty). OPEN: lands -> re-read + vgrid + [note] |
 | SM L429 held dc573b45b7 = DG3 CLOSE .46.31 ff6abe67e8 | SM | PRE-VERIFIED 23:36Z, LANDED 23:39:52Z, re-read p65/vland429t.out; vgrid OK v2, status complete; [note] 23:40:25Z (p65/n429.txt). CLOSED |
