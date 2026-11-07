@@ -75,7 +75,7 @@ Standing, owner 2026-09-09: trim + diagram-max, for every role, all the time; ow
 **Scope creep is the failure mode, not idleness** — never invent goals to fill a budget.
 
 ## Editing the engine — one commit
-Edit the file in place · run its tests · `git commit` · `python3 extensions/agi/bin/grid.py commit --all`.
+Edit the file in place · run its tests · commit: a post types none (its turn end commits ~/t and grows the grid, agi-turn, goal:g7.16.1.11.46.30; the trunk post, belam, commits its card alone, no split); an engine change rides a lane tip to its master's gate, the lane's `git commit` the only one typed; MAIN (maintainer): `git commit` · `python3 extensions/agi/bin/grid.py commit --all`.
 A new file is written directly under `extensions/`, `skills/` or `src/`; `node_writer.write_node` gives it a node (skill `agi-node-write` §3)
 with a legal parent set: [mvp] · [build, goal] · [goal, mvp] · [goal, idea] (checked at mint; a goal alone is refused). Never `level3.py`
 for this until goal:g1.43.1 lands: both its modes mint illegal parent shapes today (council, alive 10-10). **Never `grid.py checkout`** — it silently reverted another
@@ -102,7 +102,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
   outlives its file; readers that glob a type dir read the retired sibling too, live-first. Watch
   `active_node_count` / `deprecated_node_count`; their sum never drops.
 - **Two identifiers**: the **mint id** never changes (grid refs, provenance); the **address** is derived and may (G2.5).
-- **A version is a grid commit**, never a second node file: edit in place, then `grid.py commit --all` (G6.3).
+- **A version is a grid commit**, never a second node file: edit in place; a post's turn end grows the grid (agi-turn's `grid.py split`, goal:g7.16.1.11.46.30); MAIN (maintainer): `grid.py commit --all` (G6.3).
 - **`THOUGHT` block** (G2.11): body is state, thought is delta — why THIS version differs; rewritten whole; absent =
   empty, never fabricated. The one authored region in a build node; its `BUILD-CONTRACT` is regenerated — never hand-edit.
 - **Build nodes have two legal origins** (`goal:s29`): `[mvp]` for a new file, `[build, goal]` for a new version (also
@@ -117,7 +117,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 | `python3 -m pytest extensions/agi/tests/ -q` | the engine's own suite |
 | `python3 extensions/agi/bin/commands.py run verify` | the one verification pass (skill `agi-verify`) |
 | `python3 extensions/agi/bin/viewport.py --verify` | goal:g2.19 — one render, two readers |
-| `python3 extensions/agi/bin/grid.py commit --all` | version every changed node and its payload |
+| `python3 extensions/agi/bin/grid.py commit --all` | MAIN (maintainer) only: version every changed node and its payload (a post never runs it: its turn end grows the grid) |
 | `python3 extensions/agi/bin/links.py links` | every link resolves; broken must be 0 |
 | `python3 extensions/agi/bin/links.py schema` | goal:g7.33.10.1 — nodes violating their type's required list (dry) |
 | `python3 extensions/agi/bin/spawn_budget.py status` | goal:g4.8 — live agents vs the tree-wide bound |

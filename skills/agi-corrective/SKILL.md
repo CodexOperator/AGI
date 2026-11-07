@@ -83,7 +83,7 @@ sed -n '/^## /p' .agi/nodes/hypothesis/<id>.md       # the section headings: fin
 # then rewrite the THOUGHT block: `corrective DH.<N>: <mur key> <labels>: <residues in one line>`
 python3 extensions/agi/bin/links.py schema; python3 extensions/agi/bin/links.py links     # both clean before the commit
 # order: node section FIRST, read it back (sed -n '/^## CORRECTIVE DH.<N>/,/^## /p'), THEN dispatch -- a failed edit does not stop a chained dispatch
-git commit -- <exact node path>      # a real commit before dispatch (grid history); a post: agi-at <path>
+git commit -- <exact node path>      # MAIN (maintainer): a real commit before dispatch (grid history); a post types none: its turn end commits it
 ```
 Section shape, every line explicit:
 ```

@@ -68,7 +68,8 @@ mk(){ PN=${1:-alive};rm -rf $T/g $T/hm/t;$G init -q -b trunk $T/g;g="$G -C $T/g"
   - {"name": "nocells", "engine": {"v": 4}}
 XX
  $g add -A;$g commit -qm trunk;$g branch posts/$PN trunk;$g worktree add -q --detach $T/hm/t posts/$PN;}
-run(){ (cd $T/hm/t&&env -i PATH=${BINP:-$T/bin}:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null AGI_POST=$PN RUNTIME_DIRECTORY=$T/run AGI_WT=$T/wt AGI_WT_HOLD=101 "$@");}
+# goal:g7.16.1.11.46.30: the turn end grows the grid through AGI_GRID (default the real grid.py split); this runner stubs it with `:` (zero-commit.t.sh runs the real split)
+run(){ (cd $T/hm/t&&env -i AGI_GRID=: PATH=${BINP:-$T/bin}:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null AGI_POST=$PN RUNTIME_DIRECTORY=$T/run AGI_WT=$T/wt AGI_WT_HOLD=101 "$@");}
 put(){ mkdir -p "$(dirname "$T/hm/t/$1")";cat >"$T/hm/t/$1";}
 tip(){ $G -C $T/g rev-parse posts/$PN;}
 msg(){ $G -C $T/g log -1 --format=%B posts/$PN;}

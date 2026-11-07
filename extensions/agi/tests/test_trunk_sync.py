@@ -324,7 +324,7 @@ MUTANTS = {
     # today's merge-when-behind: a behind posts/P gets a "P: merge <trunk>" commit (tree == the trunk's), never its own
     "merges-when-behind": lambda: mut("agi-sync", 'git merge-base --is-ancestor $b $T&&{ git update-ref $b $T $t||agi-notice add "[trunk-merge-failed] $P: cannot move posts/$P";rm -f ~/.trunk-boxed;exit 0;}\n', ""),
     # the cadence: agi-turn no longer calls agi-sync
-    "turn-does-not-sync": lambda: mut("agi-turn", "unset GIT_INDEX_FILE;agi-sync;", "unset GIT_INDEX_FILE;"),
+    "turn-does-not-sync": lambda: mut("agi-turn", "agi-sync||{ N \"[sync] $P: agi-sync rc $?\";k=1;};", ""),  # goal:g7.16.1.11.46.30: the call now counts its rc
 }
 
 

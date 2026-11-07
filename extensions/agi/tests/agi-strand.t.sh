@@ -11,9 +11,9 @@
 #   s3 posts/<post> moved on elsewhere (a diverged tip): still refused, still not folded, the racer's tip is untouched
 #   s4 the same commit reachable from ANOTHER ref (trunk ahead of the post): not a strand, rc 0, HEAD moves to the tip   s5 a clean ~/t: rc 0, no line   s6 an ATTACHED ~/t: ignored
 # The other direction (a line the POST sees, not only the Stop hook's stderr):
-#   o1 an uncommitted edit in ~/t -> [out-of-tree] on stderr AND in ~/.notice       n1 agi-meter prints each notice line ONCE (4 retries = 1 line) and clears the file; a second prompt prints nothing
+#   o1 an edit in ~/t the turn end cannot commit (this fixture cannot sign) -> [uncommitted] <path> on stderr AND in ~/.notice (goal:g7.16.1.11.46.30; was [out-of-tree])       n1 agi-meter prints each notice line ONCE (4 retries = 1 line) and clears the file; a second prompt prints nothing
 #   n2 agi-brief calls the printer first   n3 CLAIM then print: a line appended WHILE the print runs lands in a fresh ~/.notice (kept for the next prompt); only the claimed lines are removed
-#   b1 BOUNDED: 4 flushes of one strand + 2 turns of a growing out-of-tree = ONE line each (one line per label+sha)   b2 a DIFFERENT sha is a new line, the same sha is not   c1 a claim left by a crashed printer (~/.notice.PID) is printed with the next one
+#   b1 BOUNDED: 4 flushes of one strand + 2 turns of a growing set of uncommitted paths = ONE line per key (label + its subject, the path, + sha)   b2 a DIFFERENT sha is a new line, the same sha is not   c1 a claim left by a crashed printer (~/.notice.PID) is printed with the next one
 #   h1 core.hooksPath=~/bin makes EVERY piece name a git-hook candidate: no `### name` in engine*.md is a git hook name (githooks(5)) except pre-commit (Door 1) and reference-transaction (goal:g7.16.1.11.38.1, the ref guard)
 #   r1 the notice survives the ROTATION path: the REAL unit ExecStartPre line (engine-root) runs against the scratch HOME, then the successor's first SessionStart (agi-brief) prints it on STDOUT first
 # MUTANTS (PIECES=<engine*.md with the piece edited, each OLD text asserted count == 1): m1 both call sites `if agi-turn strand` -> `if :` (guard dropped: s1 s2 s3 RED) · m2 the `>>~/.notice` writes cut (stderr only: s1 o1 n1 RED) · m3 the pre-commit piece renamed away (d1 RED) · m4 the strand count against posts/<post> ONLY (s4 RED: a post sitting on the trunk would be refused every turn) · m5 the printer to stderr only (n1 n3 r1 RED: the model never reads it) · m6 print-then-truncate, no claim (n3 RED: the late append is lost) · m7 `add` without the key test (b1 b2 RED) · m8 a piece named post-checkout (h1 RED: git would run it after every checkout)
@@ -24,7 +24,7 @@ ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 sect(){ if [ -n "$PIECES" ];then cat "$PIECES";else cat $R0/.agi/nodes/.geometry/engine*.md;fi|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"; }
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE AGI_POST AGI_WT RUNTIME_DIRECTORY AGI_TRUNK
 mkdir -p $T/hm $T/bin $T/run $T/wt
-for n in agi-turn agi-flush agi-meter agi-brief agi-notice agi-sync pre-commit;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
+for n in agi-turn agi-flush agi-meter agi-brief agi-notice agi-sync pre-commit agi-at grow.py;do sect $n >$T/bin/$n;if [ -s $T/bin/$n ];then chmod +x $T/bin/$n;else rm -f $T/bin/$n;fi;done
 printf '#!/bin/sh\ncat >/dev/null\n'>$T/bin/agi-mem;chmod +x $T/bin/agi-mem   # a tap that runs and prints nothing: the meter's once-and-clears lines are asserted WITH a tap present (without one it names `[mem] tap not run (rc 127)`)
 ok x0-pieces-extracted '[ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]&&[ -x $T/bin/agi-meter ]&&[ -s $T/bin/agi-brief ]&&[ -x $T/bin/agi-notice ]&&[ -x $T/bin/pre-commit ]'
 [ -x $T/bin/agi-turn ]&&[ -x $T/bin/agi-flush ]||{ echo "FAIL extract: agi-turn / agi-flush";exit 99;}
@@ -84,10 +84,11 @@ mk;gc --no-verify --allow-empty -m stranded;(cd $V&&env -i PATH=$T/gs:$T/bm:/usr
 ok "u-MUTANT-the-trunk-check-prints-a-blank-count-strand-RED rc $r: $(grep -m1 strand $T/e1|cut -c1-90)" "grep -q 'carries  commit(s)' $T/e1&&! grep -q 'strand unread' $T/e1"
 # ---- the other direction
 mk;echo draft >$V/note.txt;run agi-turn >$T/o1 2>$T/e1;r=$?
-ok o1-an-unversioned-edit-reaches-stderr-and-the-notice "grep -q '^\[out-of-tree\] ~/t has 1 unversioned' $T/e1&&grep -q '^\[out-of-tree\] ~/t has 1 unversioned' $H/.notice"
+# goal:g7.16.1.11.46.30: the turn end now COMMITS a ~/t edit (agi-at, signed); this fixture has no signing key, so the commit fails and the edit is ONE [uncommitted] line per path (it was [out-of-tree])
+ok o1-an-uncommitted-edit-reaches-stderr-and-the-notice "grep -q '^\[uncommitted\] note.txt: kept on disk: \[commit\]' $T/e1&&grep -q '^\[uncommitted\] note.txt: kept on disk: \[commit\]' $H/.notice&&! grep -q out-of-tree $T/e1"
 mk;gc --no-verify --allow-empty -m stranded;h=$(head1);run agi-flush >/dev/null 2>&1;echo draft >$V/note.txt;run agi-turn >/dev/null 2>&1
 echo '{}' >$T/pj;run sh -c "agi-meter <$T/pj" >$T/m1 2>/dev/null;run sh -c "agi-meter <$T/pj" >$T/m2 2>/dev/null
-ok n1-agi-meter-prints-each-line-once-and-clears "[ \$(grep -c '^\[strand-refused\]' $T/m1) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $T/m1) = 1 ]&&[ ! -e $H/.notice ]&&[ ! -s $T/m2 ]"
+ok n1-agi-meter-prints-each-line-once-and-clears "[ \$(grep -c '^\[strand-refused\]' $T/m1) = 1 ]&&[ \$(grep -c '^\[uncommitted\] note.txt: kept on disk: HEAD is stranded' $T/m1) = 1 ]&&[ ! -e $H/.notice ]&&[ ! -s $T/m2 ]"
 rm -f $T/bin/agi-mem;run sh -c "agi-meter <$T/pj" >$T/m3 2>/dev/null
 ok n1b-a-tap-that-cannot-run-is-named-not-silent "[ \"\$(grep -c '^\[mem\] tap not run (rc 127)' $T/m3)\" = 1 ]"
 # goal:g7.16.1.11.46.29: the prayer head is agi-brief's FIRST block (the owner 11-01), goal:g7.16.1.11.46.29.2's HEAD (## YOUR FIRST REPLY) above its prayers; the notice comes right after it, before anything else
@@ -116,7 +117,7 @@ hk=;for n in $(cat $T/pnames);do case "$HOOKS" in *" $n "*)case $n in pre-commit
 ok h1-no-piece-is-named-like-a-git-hook-but-pre-commit-and-reference-transaction "[ -s $T/pnames ]&&[ -z '$hk' ]&&grep -qx pre-commit $T/pnames"
 # b1 / b2 / c1: bounded, keyed, crash-safe
 mk;gc --no-verify --allow-empty -m stranded;run agi-flush >/dev/null 2>&1;run agi-flush >/dev/null 2>&1;run agi-turn >/dev/null 2>&1;echo one >$V/n1.txt;run agi-turn >/dev/null 2>&1;echo two >$V/n2.txt;run agi-turn >/dev/null 2>&1
-ok b1-a-stuck-condition-is-one-line-per-key "[ \$(grep -c '^\[strand-refused\]' $H/.notice) = 1 ]&&[ \$(grep -c '^\[out-of-tree\]' $H/.notice) = 1 ]"
+ok b1-a-stuck-condition-is-one-line-per-key "[ \$(grep -c '^\[strand-refused\]' $H/.notice) = 1 ]&&[ \$(grep -c '^\[uncommitted\] n1.txt:' $H/.notice) = 1 ]&&[ \$(grep -c '^\[uncommitted\] n2.txt:' $H/.notice) = 1 ]"
 mk;run agi-notice add '[strand-refused] alive: HEAD aaaaaaa carries 1 commit(s)';run agi-notice add '[strand-refused] alive: HEAD aaaaaaa carries 1 commit(s)';run agi-notice add '[strand-refused] alive: HEAD bbbbbbb carries 2 commit(s)'
 ok b2-a-new-sha-is-a-new-line-the-same-sha-is-not "[ \$(wc -l <$H/.notice) = 2 ]"
 mk;printf '[stale] left by a crashed printer\n' >$H/.notice.4242;run agi-notice add '[out-of-tree] ~/t has 1 unversioned change(s)';run agi-notice >$T/c1 2>/dev/null

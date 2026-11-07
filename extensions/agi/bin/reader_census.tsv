@@ -50,6 +50,7 @@ hit	extensions/agi/tests/agi-seal.t.sh	fixture	*	a scratch repo's own ref (the f
 hit	extensions/agi/tests/agi-strand.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/agi-town.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/agi-turn.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
+hit	extensions/agi/tests/zero-commit.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/capsule.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/f1-nspawn.t.sh	alias	TB=core/season3/main	a LIVE read: the blast leg runs box town up on MAIN with AGI_TRUNK = the alias core/season3/main
 hit	extensions/agi/tests/f1-nspawn.t.sh	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)

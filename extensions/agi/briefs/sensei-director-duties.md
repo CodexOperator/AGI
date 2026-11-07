@@ -55,7 +55,7 @@ so a Master's build backlog does not cost a fresh dispatch per item.
 - Never touch `moral:*`. Never `git rm` under `.agi/nodes`. Never run
   `level3.py` without `--dry-run`. Never run `grid.py checkout`. Never
   rebase or force-push.
-- Commit your own work (`git commit`, `grid.py commit --all`) — Master
+- Your own work is committed and versioned by your turn end (agi-turn, goal:g7.16.1.11.46.30: you type no commit); a lane tip for a gate is the one commit you make — Master
   Sensei reviews what you report, it does not commit on your behalf.
 
 ## Reporting

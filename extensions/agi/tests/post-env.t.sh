@@ -20,6 +20,8 @@ mkdir -p $T/bin $T/hm $T/wt $T/k $T/c
 unit(){ if [ "$UNITFILE" = "$GEO/engine-root.md" ];then sect 'agi-post@.service';else cat $UNITFILE;fi;}
 unit>$T/unit;[ -s $T/unit ]||{ echo "FAIL extract: the unit piece is empty";exit 99;}
 for n in box agi-at agi-turn agi-captive;do sect $n>$T/bin/$n;[ -s $T/bin/$n ]||{ echo "FAIL extract: $n";exit 99;};chmod +x $T/bin/$n;done
+# goal:g7.16.1.11.46.30: agi-turn now counts agi-sync's rc ([sync]) and grows the grid through AGI_GRID: an agi-sync that merges nothing (this lane reads the post env, not the trunk merge; agi-turn.t.sh and test_trunk_sync run the real one) and AGI_GRID=: in ast() (every agi-turn this lane runs through it) and in e3w's run; e3c is the control: the same turn with no AGI_GRID reads the real split, RED
+printf '#!/bin/sh\nexit 0\n' >$T/bin/agi-sync;chmod +x $T/bin/agi-sync
 printf '#!/bin/sh\nexit 0\n'>$T/bin/grow.py;chmod +x $T/bin/grow.py
 printf '#!/bin/sh\nexit 0\n'>$T/bin/agi-fill;chmod +x $T/bin/agi-fill   # g7.16.1.11.20.3: with NO agi-fill on PATH the captive gate RELEASES the window; e4 tests the gate that bites, so agi-fill is present
 HERE=encryption-town;PIN=c70e3ef31338fff0f375b9bebae6091b12337b7b;[ -n "$CARRY" ]||{ printf 'AGI_BOX=%s\nAGI_HUB=\nAGI_REPO=/data/work/agi\nAGI_TRUNK=%s\nGIT_CONFIG_VALUE_0=/data/work/agi\n' $HERE $PIN>$T/carry.env;CARRY=$T/carry.env;}
@@ -57,7 +59,7 @@ BASE="HOME=$T/hm PATH=$T/bin:/usr/bin:/bin:/usr/local/bin GIT_TEST_ASSUME_DIFFER
 $G init -q -b posts/$P $T/hm/t;(cd $T/hm/t&&echo base>base&&$G add -A&&$G -c user.name=t -c user.email=t@t commit -q -m base)
 # run as the post: env -i + the post env + AGI_TRUNK/GIT config of the fixture; "$@" = [env words] cmd...; $T/bin is the piece dir
 as(){ (cd $T/r&&env -i $BASE $(penv $P) AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/alive "$@");}   # the fixture words LAST: a running post carries its own AGI_TRUNK (its branch name), which the scratch repo does not have
-ast(){ (cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P) "$@");}   # from ~/t, the pieces' cwd
+ast(){ (cd $T/hm/t&&env -i $BASE AGI_GRID=: GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P) "$@");}   # from ~/t, the pieces' cwd
 # ---- l1 (LIVE only)
 if [ -n "$LIVE" ];then pe=$(penv)
  ok "l1-the-running-posts-env $ENVFROM holds AGI_POST=$P, a non-empty AGI_BOX [$(echo "$pe"|sed -n 's/^AGI_BOX=//p')]" '[ -n "$P" ]&&echo "$pe"|grep -q "^AGI_BOX=.\+"'
@@ -97,7 +99,9 @@ echo g>$T/hm/t/g.txt;(cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive $(pe
 ok "e2w-witness-agi-at-needs-AGI_POST the SAME agi-at with AGI_POST removed: rc $wrc (want 5), [no-branch] $(grep -c '^\[no-branch\]' $T/err) (want 1): so e2 can fail" '[ $wrc = 5 ]&&grep -q "^\[no-branch\]" $T/err'
 ast sh $T/bin/agi-turn 2>$T/err;rc=$?
 ok "e3-agi-turn-runs-as-the-post agi-turn (no trees): rc $rc (want 0), [no-branch] $(grep -c '^\[no-branch\]' $T/err) (want 0)" '[ $rc = 0 ]&&! grep -q "^\[no-branch\]" $T/err'
-(cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P|grep -v '^AGI_POST=') sh $T/bin/agi-turn 2>$T/err);wrc=$?
+echo g2>$T/hm/t/g2.txt;(cd $T/hm/t&&env -i $BASE GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P) sh $T/bin/agi-turn 2>$T/err);crc=$?
+ok "e3c-control-the-same-turn-without-the-grid-stub (goal:g7.16.1.11.46.30: e3's green rests on ast's AGI_GRID=:) a fresh ~/t file, ast's words minus AGI_GRID: rc $crc (want 1: the real split in this scratch fixture), [grid] lines $(grep -c '^\[grid\]' $T/err) (want 1)" '[ $crc = 1 ]&&grep -q "^\[grid\]" $T/err'
+(cd $T/hm/t&&env -i $BASE AGI_GRID=: GIT_CONFIG_GLOBAL=$T/c/alive AGI_WT=$T/wt $(penv $P|grep -v '^AGI_POST=') sh $T/bin/agi-turn 2>$T/err);wrc=$?
 ok "e3w-witness-agi-turn-needs-AGI_POST the SAME agi-turn with AGI_POST removed: rc $wrc (want 5), [no-branch] $(grep -c '^\[no-branch\]' $T/err) (want 1)" '[ $wrc = 5 ]&&grep -q "^\[no-branch\]" $T/err'
 : >$T/hm/.fill
 cap(){ printf '{"tool_input":{"command":"%s"}}' "$1"|env -i $BASE HOME=$T/hm $(penv $P) sh $T/bin/agi-captive 2>/dev/null;}

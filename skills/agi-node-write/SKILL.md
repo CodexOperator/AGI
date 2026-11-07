@@ -19,7 +19,7 @@ git grep -lE '^id: <id>$' -- .agi/nodes                        # type dir unknow
 ```
 - Read by CONTENT anchor. A line number drifts, and a range counted from the body start is not a file line (a node's frontmatter can be 140 lines).
 - A path with brackets (`.agi/context/schemas/[config].md`): `git cat-file blob REV:path`, never `git show REV:path` (rc 0 and EMPTY when the file is absent).
-- EDIT with plain Write/Edit. A post: `agi-wt pull <id>` (or `agi-wt new <path>`), edit in the RAM tree, `agi-turn` versions it at Stop (~/t is a read view); a path in ~/t: `agi-at <path>`. MAIN: edit, then `git commit -- <path>` (by exact path, never `git add -A`).
+- EDIT with plain Write/Edit. A post: `agi-wt pull <id>` (or `agi-wt new <path>`), edit in the RAM tree, `agi-turn` versions it at Stop (~/t is a read view); a path in ~/t: edit it, the turn end commits it (agi-turn, goal:g7.16.1.11.46.30: you type no commit). MAIN (maintainer): edit, then `git commit -- <path>` (by exact path, never `git add -A`).
 - BEFORE every commit of a node edit: `python3 extensions/agi/bin/links.py schema` (the type's required list, regexes, list fields) and `python3 extensions/agi/bin/links.py links` (every link resolves; broken must be 0).
 - A frontmatter field whose value the engine validates (a verdict, `evidence_runs`): `node_writer.update_node(root, '<id>', set_fm={...})` is the validated one-liner; a body line or a note: a plain edit.
 - A text value that parses as YAML null or a bool (`none`, `null`, `true`) is stored as that type: quote it.
@@ -30,7 +30,7 @@ git grep -lE '^id: <id>$' -- .agi/nodes                        # type dir unknow
 .agi/nodes/deprecated/<type>/<slug>.md   retired (moved, never deleted)
 .agi/nodes/.geometry/<name>.md           config:<name>  → sed -n '/^## <heading>/,/^## /p' .agi/nodes/.geometry/<name>.md   (never ls/find)
 ```
-A NEW node: write the file with the frontmatter the type schema requires; the spawn gate (grow.py, run by `agi-at` / `agi-turn` for a new `.agi/nodes` file) judges its parent set against the schema, and the schema, not a flag, decides how many parents are legal.
+A NEW node: write the file with the frontmatter the type schema requires; the spawn gate (grow.py, run by the turn-end commit for a new `.agi/nodes` file) judges its parent set against the schema, and the schema, not a flag, decides how many parents are legal.
 `config:*` nodes carry `written_by` (owner / prime_director only): a director's edit of one is refused at review -> hand the exact text to your master, never force it (DG4).
 
 ## 3 · Build nodes — two legal origins (goal:s29, schema [build].md `parent_shapes`, an OR across shapes)
@@ -64,8 +64,8 @@ A node whose body QUOTES a column-0 THOUGHT pair (plain or fenced): the engine r
 
 ## Traps moved from cards (owner 10-10: one sweep, then a rule)
 - a node body written through an UNQUOTED heredoc lost every $ figure ("$15" -> "5", goal:g5.4.2) -> every node body via `<<'EOF'`, values patched in after (belam gen II)
-- the agi-at reset leaves a STALE `town:local-maxxing` metrics line in ~/t -> `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md`, never commit it (belam gen II)
-- `agi-at` run with NO path (to read its usage) committed ALL of ~/t, stale, onto posts/belam (a2afb06f76, 15:04Z 10-26, belam trap 141, gen VIII; caught before any push or cut, CAS-rewound) -> never run an agi-* tool bare to learn it: read its line-2 comment (`sed -n 2p ~/bin/<tool>`)
+- the turn-end reset leaves a STALE `town:local-maxxing` metrics line in ~/t -> `git restore --source=HEAD --staged --worktree -- .agi/nodes/town/local-maxxing.md` before the turn ends (a post's turn end commits every changed ~/t path; the trunk post's commits its card alone and names the rest in a [trunk-post] line; its first detach puts ~/t on the tip first) (belam gen II)
+- an agi-* tool run with NO path to read its usage acted (the commit verb committed ALL of ~/t, stale, onto posts/belam (a2afb06f76, 15:04Z 10-26, belam trap 141, gen VIII; caught before any push or cut, CAS-rewound) -> never run an agi-* tool bare to learn it: read its line-2 comment (`sed -n 2p ~/bin/<tool>`)
 - a mint join over node frontmatter must strip quotes (one live node's mint_id is quoted; census strips them) -> else a live node reads as never-landed (self-perpetuating gen 18 sent a wrong '10-08 newest tip', corrected 05:21:35Z 10-28)
 - a temp GIT_INDEX_FILE EXPORTED in a shell leaks into a later `git -C <other repo> ls-files -s`: it read the WRONG index and two files lost their mode (DG1, caught and rebuilt) -> set it per command (`GIT_INDEX_FILE=<f> git ...`), never export
 - a new OWNER heading in a node without its c:<12 hex> at mint read red on the owner-cite lane (belam gen XII, GATE473) -> look the id up in refs/heads/mem before committing
