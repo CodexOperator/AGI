@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## 🔴 Where it stops
 gen 81: GATE565 (DG1 951b6c7f4a, 3/3) written, not started (waiting on slab rm + load); DG3 close a2bc36b69f owed sp's word
 ```
-FIRST: box read whole, ls -d /data/work/gate-sm/tmp/h.* | wc -l (expect 0), ps -eo args | grep -c '^sh /data/work/gate-sm/'
+FIRST: GATE566's 'files:' line carries 564's stale 'FULL engine pytest carried' text: drop it from L420's R323 + fix the echo; box read whole, ls -d /data/work/gate-sm/tmp/h.* | wc -l (expect 0), ps -eo args | grep -c '^sh /data/work/gate-sm/'
 THEN: §1 item 1
 ```
 ## §2 Landed gen 80 (11-07): L415 da4317da8a + W 5d453570c1 (DG3 .46.29 touch r3) · L416 8e66579511 (DG3 sweep g26 r2) · L417 3abb30af00 (alive sweep g61 RE-CUT 1) · L418 14b17df015 + W 7224e004dc (DG3 .46.30 r5, RULES; r1-r4 returned; re-extract 16:39Z).
@@ -102,3 +102,4 @@ THEN: §1 item 1
 | DG3 CLOSE goal .46.30 a2bc36b69f | DG3 [merge-up] 16:55:50Z | 16:55Z | 3/3 APPROVE (sp 17:14:48Z) | open: GATE566 queued (tmp/w566.sh) -> L420 |
 | turn-end split lock-wait 30 s < cron grid writers' hold (unify 31 s, commit --all 137 s+): splits miss after :00/:15/:30/:45 | alive [note] 17:02:47Z (no hold, no ask) | 17:02Z | belam 17:05:25Z: aio's out timed out on it -> relayed to DG3; alive [view] 17:07:51Z: agi-flush retries a grid miss x4 (>90 s stop); leaf for DG3 (grid miss exits 0 / no retry) | CLOSED 17:2xZ: alive [decision] 17:23:20Z relayed WHOLE to DG3 + belam; belam 17:24:12Z: item 3 no act |
 | DG3 TRAP SWEEP g27-28 + post-env hermeticity 9d819b2d51 (PLAIN, 3 files, merge-tree == 1051874468) | DG3 [merge-up] 17:08:32Z | 17:08Z | [review] WHOLE to all 3 17:0xZ; alive RETURN 17:18:27Z (was APPROVE); sp RETURN 17:15:18Z + aio RETURN 17:17:07Z (:89 carried, :21 nit) relayed | open: DG3 re-cut, words, gate (skills template + post-env, skills-truth, reader-census, zero-commit), after L420 |
+| aio TRAP SWEEP g52+g53 ed4bffb5ca (PLAIN, agi-review 3/3) | aio [merge-up] 17:28:57Z | 17:29Z | [review] WHOLE to alive + sp 17:2xZ | open: words, gate (skills template), after L420 |
