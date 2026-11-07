@@ -5,53 +5,56 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-5
+edited_by: director-general-3
 scaffold_hash: e13627c192e516b7
 season: 2
 tags:
   - card
   - director
-  - director-general-5
-thought_session: director-general-5
+  - director-general-3
+thought_session: director-general-3
 title: Card director general 3
 town: core
 ---
-# DG5 card (10-21 23:40Z) -- G7 STEP 0: the card whole, the resume path of the moved identity
+# DG3 card (11-07 17:0xZ, gen 29) -- L418 landed (.46.30 r5); CLOSE a2bc36b69f (2/3, sp's successor owed) and TRAP SWEEP + post-env 9d819b2d51 in SM's queue after DG1's GATE565
 
 ## §0 State
-Post director-general-5 (DG5), Sonnet 5.5, under sanctuary-master (SM). Season 3, trunk core/season3/main. At G7 (the LAST move) this post is renamed director-general-3 (design B: same uid, a fresh key under the new name, a NEW Claude session: THIS CARD is the resume path). Mail: box ONLY SM, never belam (owner order). `AGI_POST=<my current name> box read` ONCE, whole, through `fold -s -w 200` (it consumes it). Keepalive prompt -> exactly `ok`. First command of a new generation: read THIS card, then `box read`.
-Owner GO 10-21 goal:g7.16.1.11.45 THE POST SHUFFLE. DONE and LIVE: director-review; G3 DG1->director-goals-1; G4 DG2->director-science-1; G5 DG3->director-general-1; G6 DG4->director-general-2 (23:33Z, probe passed, L58 61e90435d0). G7 = ME: DG5 -> director-general-3, the third reused name, LAST. Procedure: skill agi-post section 8; rows: guard/post-move-checks.sh; belam owns the sitting (sitting v6 a23e40e614747a92, move.sh 842bac7cf231842a).
-Mail names: goals post director-goals-1, science post director-science-1, director-general-1 and -2 are the ex-DG3 and ex-DG4. director-general-3 is off-matrix until G7 lands.
+Post director-general-3 (DG3) under sanctuary-master (SM, gen 80). Trunk = refs/heads/posts/belam (6b5987ceb4 = L416 8e66579511 + belam's board, 10:0xZ). Mail: `cd ~/t && AGI_POST=director-general-3 box read 2>&1 | fold -s -w 200`, ONCE, whole; box sends go to SM only, cc the three seats (alive, all-is-one, self-perpetuating); SM relays to belam. Keepalive prompt -> exactly `ok`.
+Lane = ~/laneAA (one branch per tip, cut on the landed trunk). Card commit: NONE by hand since L418 (agi-turn 6ba34fd8e67e installed 16:39Z; first live turn-end commit 13cecdfe84, G, no notice): edit the card in ~/t and the turn end commits it; an [uncommitted] / [grid] line in the next prompt = read it, never type agi-at. Scratch: /data/work/gate-director-general-3/tmp (this build's scripts + outputs: tmp/g4630). LOAD: /proc/loadavg field 2 in its OWN statement before each lane (< 8). Meter (no hook): newest usage in this session's jsonl, (input + cache_read + cache_creation) / 1e6.
+PRAYER (owner P0, L415): the first reply is ONE prayer alone (no tool call before or after it), then read the saved start output and this card; the last text before the out. MAY at each idle spot (owner 11-07); never per working turn.
+Skills for my flows: agi-send, agi-goal, agi-node-write, agi-rotate, agi-memory-guard, agi-master-gate, agi-verify.
 
-## §1 Plan (council G7 PREP GO 23:34:45Z, relayed by SM 23:36:15Z)
-(3) STEP 0 = this card, WHOLE, 2 '---', no home literal; committed, [land] to SM with the sha; belam lands the CARD BLOB only.
-(1) WORKTREES: DONE 23:3xZ as myself. 28 under my home -> 24 REMOVED by `git worktree remove` WITHOUT --force (all clean, HEAD on a ref, never a prune): laneA C D E F G H I J K L M N O P Q R S T U V W X Z. Now 4 LOCKED under my home (~/t, ~/laneAA, ~/laneB, ~/laneY) + 2 under the gate dir (locked); porcelain 0 unlocked. All 60 dg5-* branch refs intact.
-(2) SCRATCH: DONE. No tmp*/pytest-of-* under my home (the `.agi/tmp*` files are TRACKED repo content). My pytest scratch is in /tmp/pytest-of-<user> (outside the home); TMPDIR unset: never set one under the home. Sweep read 23:2xZ: 47 files name my home, 0 in */hooks/* or bin/ (EXECUTED empty).
-(4) THE G7 4a (mine, ONE G commit, cut on the LIVE trunk AFTER step 0 lands, [merge-up] SM, SM gates it): rows director-general-3 (was director-general-5, since DATE, session_name "", session_id "", pubkey "", key_history [], seeds with the card renamed) + director-general-5-retired (became director-general-3, off-matrix, KEEPS session_name agi-c8, the only holder); the ex-DG3's director-general-3-retired intact; 0 duplicate non-empty session_names; card-director-general-5 -> card-director-general-3 (mint 2ba5a1adbdcb4ea2aa3aa6d92d309253 kept, id/title/heading; THOUGHT by sha: 'address doc:card-director-general-3 reused at G7: before the G5 4a land 69e36d2286 (10-21) it named card mint 960e181d30 (now director-general-1)'); quorum symlink director-general-3.md (DG5's is a symlink already: check); council-loop line; round1 RENAMED += card-director-general-5; off-matrix test OLD_NAMES += director-general-5 (with -4 both free for good), a G7 named test (shape: the G6 test). Cut with `git branch <new> origin/core/season3/main && git checkout <new>` in ~/laneAA (never `checkout -b/-B <new> origin/..`, see §4); sign with -S, no GIT_CONFIG_GLOBAL=/dev/null.
-Then the council's MOVE GO: 1a belam stops my units -> SM cuts the L -> belam lands -> move.sh + sitting v6 at a PIN printing ancestry 2ebb270242, bc0bbc6d0d, 69e36d2286, 61e90435d0 + the G7 4a's land, each rc 0 -> run 1 exact 18 (move.sh's own predicate) -> move -> run 2 20 incl. stays-up + name-dirs -> SM's probe (fresh key in NO closed director-general-3 ring line) -> the new holder unlocks ~/t ~/laneAA ~/laneB ~/laneY AS ITSELF and reports the porcelain to SM. Nothing lands inside the move. gate-director-general-5 -> gate-director-general-3 is belam's (step 3).
-THE NEW HOLDER'S FIRST ACTS (as director-general-3): unlock the 4 worktrees, report; fix MY known_marketplaces.json as myself (root never edits it); then the leaves below.
+## §1 Plan
+1. goal:g7.16.1.11.46.30 CLOSE: ~/laneAA dg3-g46-30-close a2bc36b69f on the trunk 963d727c60, G, PLAIN, sent 16:55:50Z (ref 5ffdd9c3fb). zero-commit 28/0 on the landed trunk. COUNCIL 3/3 (alive 16:58:14Z, aio 16:59:37Z, sp 17:14:48Z: falsifier 2 also holds over .agi/nodes/doc/role-*.md). SM gates it after DG1's GATE565, then cuts L420. On a RETURN: re-cut from the trunk tip.
+1b. DONE: TRAP SWEEP r2b = L422 (f2aab218a2).
+1c. goal:g7.16.1.11.46.31: MINT = L423 (8ff4b35af6). BUILD r1 re-cut ~/laneAA dg3-g46-31-build-r1b 813b3ba8ad on 58aea3907d (diff+apply of 6886bc693b; engine-post + zero-commit blobs == r1's; post-env re-run 0 FAIL scratch + real HOME, skills-truth + engine-sizes 0 FAIL). Send text ready: /data/work/gate-director-general-3/tmp/g4631/build.send (TIMEZ placeholder), HELD for :1x-:2x; a waiter reports at :31. If the trunk moved (the :28 board): re-cut by diff+apply onto the tip, swap the sha/trunk/tree in the text, send. r1 lanes (6886bc693b) 17:57-18:08Z: zero-commit 32/0 (z20-z22 + mutants RED, n2 0 vs 1), post-env 38/0, engine-sizes 26/0, agi-turn 142/0, 8 more 0 FAIL; agi-out-states rc 99 = §6's trunk finding. After the land: CLOSE .46.31 (status complete, THOUGHT maps rows).
+2. P1 goal:g7.16.1.11.46.9: deepseek arm 2 kids recorded ($0.054 of $10). NEXT, one key each on my explicit ask to belam (via SM): g7.32.3, then g4.21, then g7.32.1; then glm's 5. Each: reset /data/work/gate-director-general-3/p1wt to 77ac751723 clean, a FRESH ~/k/<arm>-l<n>, `p1_ab.py run-kid ARM LEAF --key-file <belam p1keys/F> --worktree p1wt --kid-home ~/k/<fresh> --ledger <belam p1keys/ledger.json> --runs ~/p1-runs/runs.json`; tell belam kid-done; SM's scratch-land review; `record ...`; the results row as its own plain merge-up.
+3. Held (alive 19:09:52Z 10-31): g7.31.1 F2 (paid live seat), g7.31.3; write the held line in both nodes at their next touch.
+4. LATER TOUCHES (no land of their own; ride the next land of their file):
+   - agi-verify :66: the Bash grep function also passes --exclude-dir=.git (.bzr .hg .jj .sl .svn) (aio NOTE 17:17:07Z).
+   - goal .46.30 THOUGHT: 'SM's placement ask 16:4xZ' is since placed (alive [decision] 16:49:18Z 3/3; DG1 + DS1 done, alive [note] 16:54:42Z): say so at its next touch (alive NOTE, aio AGREE, no hold).
+   - agi-pray / goal .46.29.4 THOUGHT or rows: sp's NOTE (a close whose prayer is FOLLOWED by a Latin line, 'Amen.', leaves block() empty: no stamp, no ask, the next idle stop asks once more); alive's NOTE + row (a reply right after GO that prays again stamps .end at the START).
+   - goal .46.29 THOUGHT v3's falsifier sentence names 3 strings; the agreed run carries 4 (+ 'nowhere else until') (aio 09:04:15Z).
+   - the 4 role briefs' 'before rotate returns' and sensei-director's 'rotate-self' are stale names for the out (alive + sp NOTE 08:55Z).
+   - g7.33.14 (CLOSED) named, not built: extensions/agi/briefs/harness-config.fragment.json :4-5 old-home pi_home/claude_home (set them to '~'); bin/paths.py audit lists per-uid '~/logs' lines (skip a '~'-led cell in its classifier).
+   - goal .20.6 F2 (a) gains the decision's two checkout clauses (alive 03:58:39Z, aio); crons.md:70 why_box 'same cadence' -> 'same 30 min period, 15 min off its minutes' (sp); .46.29.1 THOUGHT 'rides there too' -> 'rides here'; agi-dispatch:81 'absent' -> 'absent or empty'; agi-rotate fold :74 into :56. If L400 is ever VOIDed, the dropped cap trap comes back here.
 
-## §2 In-flight stacks (K2: every dg5-* tip named; re-commit as director-general-3, or land first)
-- dg5-s42-whois-leaf (~/laneAA, LOCKED) f53f1ec34d: cf5476738f = goal:g7.16.1.11.45.2 (send.py whois refuses an ambiguous token naming both rows + a posts.md unique-session_name test; first-hit sites send.py :3700 :5102 :5120 :5140) and f53f1ec34d = goal:g7.16.1.11.45.3 (sweep EXECUTED = what git runs + known_marketplaces.json rewrite/count). Both leaves are AFTER G7, status horizon; they ride a LATER [merge-up], never the 4a.
-- goal:g7.16.1.11.45.1 (SM's leaf, mine, not started): heal.py bare `git worktree prune` at :1869 + :2051 (council 21:53:31Z; sp's falsifier + mutant on the leaf). AFTER G7.
-- dg5-g43 8addd43cc2 (~/laneY, LOCKED), UNLANDED, 5 commits 10-11 (goal:g7.16.1.11.43 a..e, (e) WIP UNVERIFIED handed to DG3): git cherry '+' x5. Stale unless .43 reopens: the new holder asks SM, then re-cut on the trunk or drop.
-- dg5-s41-g6-4a 7b165eb51e: LANDED as L58 (merge-tree). dg5-g41d (~/laneB, LOCKED): LANDED. dg5-l3 and dg5-s17: git cherry '-' = on the trunk under other shas. The other dg5-* branches: landed or superseded, ignore.
+## §2 Landed this generation (gen 29)
+L418 14b17df015 = .46.30 BUILD r5 f65999f951 (council 3/3, GATE564 ALLDONE 16:05:03Z), wrap 7224e004dc 16:36:14Z; the six pieces installed into five posts 16:39Z.
 
 ## 🔴 Where it stops
-Step 0 done once this card is committed: next command `AGI_POST=director-general-5 box send sanctuary-master < <file>` = [land] with the card commit sha (pasted from git output in the SAME command), then `box read` ONCE. Then wait for belam to land the card blob; then cut the G7 4a (§1 (4)) and [merge-up] SM; hold it unchanged at SM's gate.
+Gen 29: L422 (sweep) + L423 (.46.31 mint) landed. BUILD .46.31 r1b 813b3ba8ad HELD past :30 (§1 1c). Next: at :31, re-cut if the trunk moved, send; then `cd ~/t && AGI_POST=director-general-3 box read 2>&1 | fold -s -w 200` once per nudge; on its [landed]: CLOSE .46.31.
 
-## §4 Traps (this generation)
-- `git checkout -b/-B <new> origin/<trunk>` fails to write upstream config (Permission denied on the shared .git/config): the ref and index move, HEAD stays. `git branch <new> origin/<trunk> && git checkout <new>`; read `git status --short` first.
-- ~/t is a read view: edit a card via `agi-wt pull doc:card-director-general-5` (it lands under /run/<user>/wt/<mint>/), then agi-flush. A whole-card replace can drop the closing '---': grep -c '^---$' = 2 first.
-- a heredoc inside a heredoc ends at the inner EOF: write helper scripts with the Write tool. A script's new test must build its scratch repo once per tmp_path.
-- NEVER `git worktree prune` on MAIN; lock long-lived worktrees; a mail body goes in a FILE, `box send P < file`, then `git log -1 --format=%B refs/box/<me>/P` non-empty.
+## §4 Traps (gen 29)
+(none yet: gens 27-28 moved to agi-verify / agi-send in 9d819b2d51)
 
 ## §5 Verification
-G6 4a evidence: -k set 395/0, aa3-lanes 17/0, land-bounds 2/0, SM gate142 2506/0; G6 run 1 18 (sweep red = DG4 pytest scratch, fixed by moving it), run 2 20/20. Counts for every sent item are in its box message.
+a1e9d4a930 (.46.30 r1): zero-commit 21/0 (new, mutants RED); agi-turn, agi-strand, prayer-captive, engine-sizes, skills-truth (0/8 SKIP), captive-release, agi-hook, mem-tap, agi-atom(-move), agi-atomize, atom-edge, agi-outline, agi-seal, agi-refguard, box-move-refs, mem-horizon, reader-census 0 FAIL; test_trunk_sync + test_grid_writers 42 passed; links 6068/0. Same on the base: post-env e2/e3, agi-out-stale, agi-out-states.
+c44553b12a (= L416): skills-truth 0 FAIL; GATE557 pytest 196 passed, lanes 0 FAIL.
 
 ## §6 BANKED
-(none for the owner). For SM: the §4 traps go to agi-post / agi-master-gate at the move (the card-trap rule).
+refs/heads/dg5-g43 deletion (owner's). refs/grid/local-maxxing removal (owner act). FINDINGS (no goal): F-a git diff rc in _check_unrelated; F-c the 40-hex _tree_sha on a sha256 repo; agi-out-stale + agi-out-states 'no piece/unit at ROOT' on the clean trunk (11-07).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-address doc:card-director-general-3 reused at G7: before the G5 4a land 69e36d2286 (10-21) it named card mint 960e181d30 (now director-general-1); from G7 it is this card, mint 2ba5a1adbdcb4ea2aa3aa6d92d309253, the card of the post that was director-general-5 (goal:g7.16.1.11.45).
+Gen 29 woke on r5's council 3/3; L418 landed 16:36:14Z. The successor's job per gen 28 was to CLOSE .46.30, not build: closed on the falsifiers as written (zero-commit 28/0 on the landed trunk). The trap sweep owed at this rotation is done as one plain merge-up, with the post-env hermeticity finding (SM placed it here) riding it, so §4 is empty and §6 FINDINGS loses that row.
 <!-- THOUGHT:END -->
