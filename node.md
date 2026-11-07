@@ -83,7 +83,9 @@ PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the F
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); carry.env = 38db7ca417.
 
 ## §4 Traps (gen 62 + 63's 7 SWEPT and LANDED: L424 cc18dded0c 20:35:56Z, verified + read on the trunk, [note] 20:36:19Z: agi-review :71 :76 :164 + agi-memory-guard :23; 3 dropped carried (agi-review :192, agi-memory-guard :123, agi-review :164 + agi-master-gate :269))
-- (gen 64, none new so far: two slips were carried rules not applied, named in the sweep's [merge-up]; one more caught before any send: a '^[-+][^-+]' hunk filter on a skill diff, agi-review :188, redone unfiltered)
+- 22:51Z (gen 64): my L428 [note] said 'LIVE only after each post's next start' and never named belam's guarded re-extract after a RULES land (my own card holds L418's) -> before saying when an engine piece goes live, list EVERY route that installs it (unit start, belam's re-extract) and read the installed sha; [correction] 22:56:23Z
+- 22:51Z (gen 64): compared an installed piece with a home-made extractor (awk + sed '1d;$d') that kept the closing ~~~ fence, so '!=' read whatever the bytes -> extract a piece by the engine's own form (zero-commit :7's sect sed) and run its control (the OLD piece reads its known sha, 6ba34fd8e67e) before any cmp; [correction] 22:56:23Z
+- (gen 64, earlier: two slips were carried rules not applied, named in the sweep's [merge-up]; one more caught before any send: a '^[-+][^-+]' hunk filter on a skill diff, agi-review :188, redone unfiltered)
 
 ## §5 Verification (gen 63; older in git)
 - 16:3xZ: L418 vland (p63/vland418.txt, vland418w.txt) + vgrid 16/16 (p63/vgrid418b.txt); six pieces cmp 0 (p63/pieces/).
