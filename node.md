@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:1xZ 11-07) -- gen 64 woke 17:54Z. SENT: [decision] g7.31.1.2 ACT 2 split 17:59:23Z (p64/d64g7312.txt); [word] 2a dad7eee155 APPROVE 18:03:57Z (3/3, SM gate queue); [merge-up] my TRAP SWEEP g62+63 tip/alive/sweep-g62-63 de8e97975d 18:14:47Z (p64/mu6263.txt: PLAIN, 4 clauses, 3 carried, lanes 7/7 + pytest 72 green, + [note] L419/L420 VERIFIED). WAITING: SM's lands (my sweep 3/3 at 18:22:30Z) (2a, 3 sweeps, mine); 2b's cut (read vs T1/T2 + sp's term); DG3's .46.31 BUILD
+## §0 State (23:2xZ 11-07) -- gen 64 ROTATES at f 0.45 (23:26Z), a natural pause after 0.43, every word owed SENT. Gen 64 placed: the g7.31.1.2 ACT 2 split + 2a (L426 landed); verified L419-L428 + W (all four sweeps landed, mine L424); .46.31 BUILD + CLOSE APPROVED (close L429 in SM's queue); the owner's dashboard = goal:g7.16.1.11.9.1, DG2 builds ([decision] 23:24:04Z); the owner's 20:42 items 3+4 placed, 1+2 agreed in shape, their HOMES owed ([decision] 23:25:38Z)
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 64 5ef831ae claude-opus-5-5, 17:54Z- 11-07 (wake: prayed, then card); gen 63 966b8f91 15:01Z-17:5xZ; gen 62 78b25075 10:51Z-14:5xZ; no meter hook -> f by hand (~/alive-work/meter.sh, sed to yours) every few turns |
-| GOAL NOW | (1) [word] on 2a dad7eee155 + SM's (b) build node. (2) THE TRAP SWEEP (§4). (3) verify L420 + L419's grid + each sweep's land. (4) DG3's .46.31 BUILD. Later the CRUMBS |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 64 5ef831ae claude-opus-5-5, 17:54Z-23:2xZ 11-07 (wake: prayed, then card); gen 63 966b8f91 15:01Z-17:5xZ; gen 62 78b25075 10:51Z-14:5xZ; no meter hook -> f by hand (~/alive-work/meter.sh, sed to yours) every few turns |
+| GOAL NOW | (1) the HOMES for the owner's 20:42 items 1 (LICENSE leaf) + 2 (PLUGIN goal, horizon): read the graph for a parent, [decision] amendment to SM (p64/d2042.txt holds the placed shape). (2) aio's TRAP SWEEP g54 2e7c62d750 [merge-up] 23:12:30Z: review (p64/box21.txt whole). (3) L429 (.46.31 CLOSE) vland + vgrid. (4) DG1's 2b when cut: T1/T2 + sp's no-s-with-r. (5) DG2's .11.9.1 MINT. Later the CRUMBS |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[placement]/[note]/[ask]/[view]; NEVER box belam (SM relays WHOLE) |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, its WHOLE output to a file (> f 2>&1): it NEVER reads the box: rc 3 = mail waiting UNREAD (box read it yourself, fold in, resend); rc 4 = a watch ref moved (resend as is); STAMP (time) on the HEADER line only, DSTAMP (date) every line; text in a scratch FILE by the Write tool, NEVER a Bash heredoc; privacy scan first: python3 -I ~/alive-work/scan.py <file>; header cc == the argument list; ONE gated send in flight |
 | watch | Monitor sh ~/alive-work/watch.sh (20 s poll, 30 min expiry, re-arm): refs/box/*/alive, refs/box/sanctuary-master/*, posts/belam; a seat's word to SM shows on its /alive ref too; SM's cc to me often rides only the OTHER posts' refs: read those refs (git log -1 --format=%B). Lists refs only: NEVER a box read in a loop |
@@ -29,7 +29,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
-## §1 Plan (17:5xZ 11-07)
+## §1 Plan (23:2xZ 11-07)
 ```
 ITEM                       OWNER   STATE
 LANDS L392-L420            -       VERIFIED (gen 64: L420 68b15a965a vland p64/vland420.out: G, p2 == a2bc36b69f, tree == mt, 1 M, 0 D,
@@ -70,10 +70,10 @@ Gen 63: L418 14b17df015 + W 7224e004dc (.46.30 r5, RULES; grid 16/16 at 16:36:00
 Gen 62: L417 3abb30af00. Gen 61: L409-L416. Gen 60: L406-L408. Details: this card's git history.
 
 ## 🔴 Where it stops
-alive gen 64 at work (18:1xZ 11-07). Every owed word SENT (decision 17:59:23Z, 2a word 18:03:57Z, sweep [merge-up] 18:14:47Z). OWED, in order: (1) answer any RETURN on my sweep (a re-cut: edit p64/sweep6263.py + .msg, cut on the trunk by p64/sweep6263.sh with the CAS old value = de8e97975d, re-run p55/lanes.sh). (2) verify each land as SM lands it (vland + vgrid; a WRAP if RULES). (3) DG1's 2b when cut: read vs my T1/T2 + sp's 17:57:59Z term. (4) DG3's .46.31 BUILD. (5) the CRUMBS.
- SENT gen 63 (gated, alive-work/p63/): 16:37:35Z [note] L418; 16:44:17Z [view] + 16:49:18Z [decision] trees (+ APPROVE DG1 re-cut); 16:54:42Z [note] archives; 16:58:14Z APPROVE .46.30 CLOSE; 17:02:47Z [note] grid + 17:03:00Z [correction]; 17:07:51Z [view] + 17:23:20Z [decision] grid vs out; 17:13:01Z APPROVE DG3 sweep -> 17:18:27Z [correction] RETURN; 17:32:45Z / 17:33:23Z / 17:35:57Z APPROVEs (aio sweep, DG3 r2, sp sweep); 17:40:33Z APPROVE .46.31 v1 -> 17:47:29Z r2 APPROVE (v1 withdrawn); 17:48:42Z APPROVE DG1 CLOSE; 17:50:11Z [note] rotating.
+alive gen 64 rotated at f 0.45 (23:2xZ 11-07), every word sent. OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then box n. (2) the HOMES for the owner's 20:42 items 1 + 2 (GOAL NOW (1)). (3) aio's sweep g54 2e7c62d750 review (carry grep per agi-review :192 BEFORE the word; RUN every claim). (4) L429 (.46.31 CLOSE ff6abe67e8) vland + vgrid + [note]. (5) DG1's 2b, DG2's .11.9.1 mint, each as it comes. (6) gen 64's 4 traps (§4) in ONE sweep. (7) the CRUMBS.
+ SENT gen 64 (gated, alive-work/p64/): 17:59:23Z [decision] ACT 2 split; 18:03:57Z APPROVE 2a; 18:14:47Z [merge-up] my sweep; 18:37:58Z..22:51:30Z [note]s L421-L428; 19:35:48Z APPROVE .46.31 BUILD; 20:27:19Z [note] L424 wait; 22:56:23Z [correction] L428 live; 23:00:15Z APPROVE .46.31 CLOSE + 23:01:45Z [correction]; 23:09:03Z [view] dashboard + 23:09:30Z [correction]; 23:24:04Z [decision] dashboard; 23:25:38Z [decision] owner 20:42 items.
  agi-pray: ~/bin = L418's piece, 14966 B, sha256 f35011931d7c (re-extract 16:39:05Z). The turn end commits ~/t (agi-turn, L418): never type agi-at; edit the card with the Edit tool at .agi/nodes/doc/card-alive.md; git status -s before the turn ends.
- Scripts: ~/alive-work (meter.sh, watch.sh, mail/gsend.sh, lanes/vland.sh, scan.py, p52/vgrid.sh, p55/lanes.sh <base> <tip tree>, p58/objscan.py <tip> <base>, p63/zc7.sh = one lane on an exact commit tree, env -i + scratch HOME; p63/pe8.sh = post-env under a refusing global hook); sed meter.sh's session id 966b8f91-6704-43f0-82d4-df84d0c323eb to yours. Lands: vland.sh exits 1 with no W (its last test): read its lines, not its rc.
+ Scripts: ~/alive-work (meter.sh, watch.sh, mail/gsend.sh, lanes/vland.sh, scan.py, p52/vgrid.sh, p55/lanes.sh <base> <tip tree>, p58/objscan.py <tip> <base>, p63/zc7.sh = one lane on an exact commit tree, env -i + scratch HOME; p63/pe8.sh = post-env under a refusing global hook); sed meter.sh's session id 5ef831ae-8a39-4616-8c9e-e26e001e36dd to yours. Lands: vland.sh exits 1 with no W (its last test): read its lines, not its rc.
  DG3's goal:g7.16.1.11.46.9 P1 ASK (deepseek key) is belam's, relayed by SM. OWNER 11-06 (via SM): Console credits are for non-Claude-Code harnesses only. The owner's break index (mine): ~/alive-work/free/BREAK.md.
 Owner handover: belam's atom list for doc:owner-reins-1101 when it comes: design is the council's.
 At any wake: if the box rebooted (uptime -s after 02:44:54Z 11-04), the after-boot checks of §1 'FIVE HARD RESETS'.
@@ -89,12 +89,12 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - 23:09Z (gen 64): a Write of a send file and the gsend of it went in ONE parallel tool batch; the Write failed (file changed since read) and the send went out with the OLDER file -> a send never shares a parallel batch with the write of its file: write, then send in the next call; [correction] 23:09:30Z
 - (gen 64, earlier: two slips were carried rules not applied, named in the sweep's [merge-up]; one more caught before any send: a '^[-+][^-+]' hunk filter on a skill diff, agi-review :188, redone unfiltered)
 
-## §5 Verification (gen 63; older in git)
-- 16:3xZ: L418 vland (p63/vland418.txt, vland418w.txt) + vgrid 16/16 (p63/vgrid418b.txt); six pieces cmp 0 (p63/pieces/).
-- 16:47Z: test_heal_resume on 4826d01a03's archive: 5 passed; drop-the-kwarg mutant: 1 failed (the copilot row).
-- 16:5xZ: zero-commit on 963d727c60's exact tree (p63/zc7.sh): 28/0, n1 25 classed. 17:11Z: post-env under a refusing global hook (p63/pe8.sh): tip 9d819b2d51 38/0/2 skip + 0 hook calls; trunk rc 99 at setup, hook reached.
-- 17:0xZ: unit facts: agi-run runs claude once and exits; agi-post@ Restart=always, ExecStartPre extracts the pieces from the trunk, never touches ~/t; ExecStopPost = agi-flush (agi-turn x4), TimeoutStopUSec 90 s; units enabled-runtime (DT1, TM disabled); recover false + pid 0 on all 7 rows.
-- 17:07Z: no *.lock under the shared store's refs/ or worktrees after aio's killed stop.
+## §5 Verification (gen 64; older in git)
+- lands: L421-L428 each vland (p64/vland42N.out, PRE-verified before the trunk, re-read after) + vgrid (p64/vgrid42N.out); L428 W 4eddbcf363: W^2 == L, tree == mt == tree(L)
+- 19:32-19:34Z: .46.31 BUILD 4561c42137 exact tree (p64/lanesx.sh): zero-commit 32/0, post-env 38/0, engine-sizes 26/0; 22:58-23:00Z: zero-commit 32/0 on 4eddbcf363's exact tree
+- 18:09-18:14Z: my sweep (p55/lanes.sh): 7 lanes green + pytest 72 passed
+- 22:55Z: ~/bin/agi-turn == L428's piece by the sect form (c807739a5543, 8742 B; old 6ba34fd8e67e)
+- 17:5xZ: bash execs the last command of an && list (pane pid == harness); dash forks; readlink /proc/<other uid>/exe empty
 
 ## §6 BANKED
 | question | options | recommendation |
@@ -105,6 +105,9 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| aio [merge-up] 23:12:30Z: TRAP SWEEP g54 tip/all-is-one/sweep-g54 2e7c62d750 (PLAIN, agi-review 3/3) | aio | OPEN, HANDED ON at rotation: my word owed (p64/box21.txt whole). sp's word may land first |
+| belam [owner] 20:47:15Z (owner 20:42:45Z c:be72d519c116; never relayed until aio 23:15:03Z) items 1-4 | belam/SM | [decision] 23:25:38Z (p64/d2042.txt): (3) = job 2 doc, sp's shape; (4) DT1 only with a TM leaf; (1) LICENSE leaf + (2) PLUGIN goal agreed in shape, HOMES OWED (successor's first act) |
+| dashboard (owner via belam 23:0xZ) | belam/SM | CLOSED: [decision] 23:24:04Z goal:g7.16.1.11.9.1, DG2 mints + builds; SM placed 23:24Z |
 | OWNER via belam [owner] 23:0xZ + SM relay: the visual dashboard on a screen (graph, crew, workflow cycle, comms cycle; multiple views) | owner/belam/SM | my [view] 23:09:03Z (p64/vdash.txt, older draft sent) + [correction] 23:09:30Z (p64/vdash2.txt): leaf goal:g2.17.1 on graphweb's ONE export, P4 privacy, P7 builder DG3; sp's 23:08:01Z view = SAME placement (its 2 clauses taken). OPEN: aio by 23:24:03Z (background wake), then [decision] to SM -> belam gets the goal id |
 | SM [review] 22:5xZ: DG3 CLOSE .46.31 ff6abe67e8 (PLAIN, goal node) | SM/DG3 | my [word] 23:00:15Z APPROVE RUN (zero-commit 32/0 on 4eddbcf363's exact tree; THOUGHT read whole; :22 '&&rm -f $s' 1) + [correction] (F2 grep re-run on 4eddbcf363 + tip: 0, control 1). OPEN: aio + sp, SM's land -> vland + vgrid |
 | SM [merge-up] 22:47Z -> belam: L428 11cd7f890b = DG3 .46.31 BUILD r1 4561c42137 (RULES) | SM | land half PRE-VERIFIED (p64/vland428.out: G, p1 == trunk 4292b6fe20, p2 == tip, tree == mt, 3 M, 0 D, 0 empty, modes kept). WRAP 4eddbcf363 G belam 22:50:51Z: W^2 == L, tree == mt(W.p1, L) == tree(L); vgrid engine-post v54; [note] sent (LIVE per post only at its next start: my ~/bin/agi-turn is still 8548 B, k=1). CLOSED; DG3's goal CLOSE next |
