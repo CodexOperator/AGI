@@ -27,7 +27,7 @@ never started at f ≥ 0.41 nor while a rotation is pending — it becomes the s
    §4 traps: only THIS generation's; an older trap moves to its skill / role doc first (owner 10-10: one sweep, then a rule)
    never leave the slot EMPTY or AMBIGUOUS (nothing refuses it in the v5 out: it is the author's duty); a STALE one is still written + stamped BEFORE any window ask or dispatch
 2. commit the card by exact path
-   then `git status --porcelain <card>` must be empty: the privacy guard can refuse a card commit silently; write 'home-path' in prose, never a literal home path (SM)
+   then `git status --porcelain <card>` must be empty: the privacy guard can refuse a card commit silently; write 'home-path' in prose, never a literal home path (SM); and every path the card names is ls'd in the same command that commits it (aio gen 50, 00:25Z 11-07: the where-it-stops slot named a script in the home that sat in the scratch dir)
 3. touch ~/.fresh                                         # agi-run's .fresh branch starts the successor and sends the alert
 4. kill $PPID                                             # the claude pid; the unit restarts it fresh
 ```
