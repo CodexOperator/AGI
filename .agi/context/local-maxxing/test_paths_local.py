@@ -15,13 +15,13 @@ import unittest
 import paths
 
 
-def _fixture(root, box_root, table=None, extra_box=None):
+def _fixture(root, box_root, table=None, extra_box=None, locations=None):
     os.makedirs(os.path.join(root, ".agi"), exist_ok=True)
     box = {"root": box_root}
     box.update(extra_box or {})
     table = table or {"k": "datasets/x", "abs": box_root}
     with open(os.path.join(root, ".agi", "config.json"), "w", encoding="utf-8") as fh:
-        json.dump({"box": box, "paths": {"local_maxxing": table}}, fh)
+        json.dump({"box": box, "locations": locations or {}, "paths": {"local_maxxing": table}}, fh)
 
 
 class TestProposedRoots(unittest.TestCase):
@@ -110,6 +110,16 @@ class TestGetLocal(unittest.TestCase):
         for resolve in (paths.get, paths.get_local):
             with self.assertRaisesRegex(KeyError, "no_such_root"):
                 resolve("bad")
+
+    def test_tilde_cell_resolves_to_this_uids_home(self):
+        # goal:g7.33.14: locations.pi_home = '~/.pi/agent' must name the reader's own home,
+        # never box.root/~/.pi/agent (a path that exists nowhere)
+        _fixture(self.checkout, self.other, {"traj": "{pi_home}/sessions"},
+                 locations={"pi_home": "~/.pi/agent"})
+        paths._CACHE.clear()
+        want = os.path.join(os.path.expanduser("~"), ".pi", "agent", "sessions")
+        for resolve in (paths.get, paths.get_local):
+            self.assertEqual(resolve("traj"), want)
 
 
 if __name__ == "__main__":

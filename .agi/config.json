@@ -185,8 +185,8 @@
   "locations": {
     "stream": {"stub": "{home}/work/streamer-stub", "bin": "{home}/bin", "xvfb": "{home}/xvfb/root/usr/bin/Xvfb", "kiosk_profile": "{home}/snap/firefox/common/stream-profile", "feed": "{home}/classfeed/feed.py"},
     "comms_root": "comms/season-2",
-    "pi_home": "/home/ubuntu/.pi/agent",
-    "claude_home": "/home/ubuntu/.claude"
+    "pi_home": "~/.pi/agent",
+    "claude_home": "~/.claude"
   },
   "mint": {
     "storage_categories": {
@@ -202,7 +202,7 @@
     "alias": "local-town", "hub": "",
     "repo": "/data/work/agi",
     "root": "/data/work/agi",
-    "logs_dir": "/home/ubuntu/logs",
+    "logs_dir": "~/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",
     "allow": [],

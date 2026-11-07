@@ -81,7 +81,9 @@ def _substitute(doc, value):
     unresolved = re.search(r"\{([^}]+)\}", value)
     if unresolved:
         raise KeyError("unresolved path placeholder: %s" % unresolved.group(1))
-    return value
+    # goal:g7.33.14: a cell may name a per-uid home as '~/...' (locations.py expands it the same way);
+    # expand before get()'s isabs test, or '~/x' joins onto box.root and names nothing.
+    return os.path.expanduser(value)
 
 
 def get(key):
