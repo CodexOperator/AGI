@@ -19,21 +19,21 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-brief         2289 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
-agi-meter         2765 B  past rotate_pct: out-line; tap chat; read: atomize
-agi-at            1129 B  signed CAS commit of ~/t paths to posts/<P>
+agi-meter         2945 B  past rotate_pct: out-line; tap chat; read: atomize
+agi-at            2133 B  the wrapper verb: signed CAS commit of ~/t paths
 agi-atomize       10309 B  box mail -> verbatim card atoms (wake path, model)
 agi-mem           23615 B  chat tap -> own 0700 store; tap, at, view, compact
 agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
-agi-turn           4838 B  a signed commit per changed node tree
+agi-turn           8548 B  turn end: node trees, ~/t paths, grid; fails loud
 agi-wt            2172 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track          236 B  strace sink: each path once
-agi-flush           942 B  drop trees, turn (its agi-sync merges)
+agi-flush           1238 B  drop trees, turn (its agi-sync merges)
 agi-sync           2579 B  merge the trunk each turn; a conflict said by name
 agi-out           3285 B  the out-line: next keys, ring commit, re-wrap, swap
 gitconfig          196 B  signed commits against root's allowed_signers
 pre-commit          639 B  refuses a plain commit on a detached ~/t
-agi-notice          1169 B  engine->post notices: add / claim + print
+agi-notice          1329 B  engine->post notices: add (KEY: label+subject)/print
 reference-transaction 4394 B  peer-ref mistake guard + R-land (mode cell)
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          242 B  a post starts only its OWN unit
@@ -76,22 +76,23 @@ for _ in range(30):
 for i in sorted([i for i in x if i in P],key=lambda i:-abs(x[i]))[:int(k)]:print('%.3f %+.1f'%(abs(x[i]),cmath.phase(x[i])/.5),i,P[i])
 ~~~
 
-### agi-meter (2765 B)
+### agi-meter (2945 B)
 ~~~sh
 #!/bin/sh
 # FIRST the rotation line (Claude Code kills a UserPromptSubmit hook at 30 s, and the line is the only thing that rotates a post: belam 14:2xZ 10-26); then the notice and the tap (bounded: `timeout -k 2 15`, so the hook's total wall time is bounded by construction, and a killed tap prints ONE `[mem] tap unread` line, never a silent drop); `agi-atomize wake` (26 s, stdout NEVER used) runs in the BACKGROUND under a flock held by the child, its output and failure line in ~/.atomize.log, so the hook returns in seconds (the last wake's ~/.atomize.status is printed + removed inside W, under the lock, so a wake still running cannot write between the cat and the rm: alive 16:31:36Z 10-31)
 j=$(cat);t=$(echo "$j"|jq '.tokens//empty');[ "$t" ]||t=$(echo "$j"|jq -r .transcript_path|xargs tac 2>/dev/null|jq -nR 'first(inputs|fromjson?|select((.message.usage.input_tokens)?|type=="number")|.message.usage|.input_tokens+((.cache_read_input_tokens|numbers)//0)+((.cache_creation_input_tokens|numbers)//0))');w=$(echo "$j"|jq ".context_window//${AGI_WINDOW:-1000000}")
-[ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card in its node tree (agi-wt pull), run agi-flush, then: touch ~/.fresh;kill \$PPID"
+[ "${t:-0}" -gt $((w*${AGI_ROTATE_PCT:-47}/100)) ] 2>/dev/null&&echo "At the line ($t/$w): write your card WHOLE in ~/t (never its node tree: the turn end checks a tree card out over ~/t, after your prayer, and the out is refused once), end that reply on a prayer (its turn end commits the card), then, the next prompt, the out call alone: touch ~/.fresh;kill \$PPID"
 ls ~/.notice* >/dev/null 2>&1&&agi-notice;printf %s "$j"|timeout -k 2 15 agi-mem tap 2>/dev/null;r=$?;case $r in 124|137)echo "[mem] tap unread (killed at 15 s)";;125|126|127)echo "[mem] tap not run (rc $r)";;esac;case $(echo "$j"|jq -r '.prompt//empty') in "mail: box read"*)al=$(git -C "$(readlink -f "${AGI_T:-$HOME/t}")" show ${AGI_TRUNK:-trunk}:.agi/nodes/.geometry/secrets.md 2>/dev/null|sed -n 's/^atomize_live: *//p'|head -1);if [ "$al" != true ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: atomize_live is ${al:-unreadable}, no request">>~/.atomize.log;[ "$al" ]||agi-notice add "[atomize] atomize_live unreadable on ${AGI_TRUNK:-trunk}: the wake stays off $(date +%Y%m%d)" 2>/dev/null;else o=;(exec 9>>~/.atomize.lock) 2>/dev/null&&exec 9>>~/.atomize.lock&&o=1;W(){ [ -s ~/.atomize.status ]&&{ echo "[atomize] last wake: $(cat ~/.atomize.status)";rm -f ~/.atomize.status;};(agi-atomize wake||echo "$(date -u +%FT%TZ) [atomize] wake rc=$?: no atoms this read; the next read retries")>>~/.atomize.log 2>&1 </dev/null &};if [ -z "$o" ];then echo "$(date -u +%FT%TZ) [atomize] wake not run: ~/.atomize.lock unopenable">>~/.atomize.log;agi-notice add "[atomize] wake not run: ~/.atomize.lock unopenable $(date +%Y%m%d)" 2>/dev/null;elif ! command -v flock >/dev/null;then echo "$(date -u +%FT%TZ) [atomize] wake unguarded: no flock">>~/.atomize.log;W;elif flock -n 9;then W;else echo "$(date -u +%FT%TZ) [atomize] wake skipped: the previous wake still runs">>~/.atomize.log;fi;fi;;esac;:
 ~~~
 
-### agi-at (1129 B)
+### agi-at (2133 B)
 ~~~sh
 #!/bin/sh
-# agi-at PATH...: ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; a miss = [raced], exit 4, the edit stays; a kid, no AGI_POST or no posts/P = rc 5 before any write; a NEW .agi/nodes node must pass grow.py first, else rc 6 (the edit stays); grow.py's report-mode `Scope:` lines ride the commit message as trailers; once the CAS landed the final reset is best-effort (a failed one = [reset], rc 0); ~/t = a detached view of the tip
-cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};x=$(mktemp -u);trap 'rm -f $x $x.s' 0;export GIT_INDEX_FILE=$x;t=$(git rev-parse $b)&&git read-tree $t&&git add -A -- "$@"&&n=$(git write-tree)||exit 1
+# agi-at PATH...: the WRAPPER's verb (goal:g7.16.1.11.46.30: agi-turn calls it at every turn end with each changed ~/t path; agi-out and agi-atom call it too; a post never types it): ONE signed commit of ~/t's paths onto posts/P by CAS on the tip read; each failure says its own label with git's own stderr: [stage] (read/add/write-tree), [commit] (signing or the commit itself), [raced] (the CAS missed: the tip moved, exit 4), [ref] (the tip did NOT move: the ref write itself failed, e.g. an unwritable reflog), all rc 1 but [raced]; the edit stays on disk; a kid, no AGI_POST or no posts/P = rc 5 before any write, a git that cannot start = [git] (the shared guard); a NEW .agi/nodes node must pass grow.py first, else rc 6 (the edit stays); grow.py's report-mode `Scope:` lines ride the commit message as trailers; once the CAS landed the final reset is best-effort (a failed one = [reset], rc 0); ~/t = a detached view of the tip
+cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ];}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};g=$(git rev-parse -q --verify $b 2>&1);r=$?;[ $r = 1 ]&&[ -z "$g" ]&&{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};h=$(echo "$g"|grep -xE '[0-9a-f]{40}([0-9a-f]{24})?')&&[ $r = 0 ]||{ m="[git] $P: git cannot read posts/$P (rc $r): $(echo "$g"|tr '\n' ' ')";echo "$m">&2;agi-notice add "$m";exit 1;};g=$h;x=$(mktemp -u);trap 'rm -f $x $x.s $x.e' 0;export GIT_INDEX_FILE=$x;{ t=$(git rev-parse $b)&&git read-tree $t&&git add -A -- "$@"&&n=$(git write-tree);} 2>$x.e||{ echo "[stage] $*: $(tr '\n' ' '<$x.e)">&2;exit 1;}
 GROW_TRAILERS=$x.s grow.py $t>&2||exit 6
-[ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$({ echo "$P: $*";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree -S -p $t $n)&&git update-ref $b $c $t||{ echo "[raced] $*">&2;exit 4;}
+[ $n = $(git rev-parse $t^{tree}) ]&&exit;c=$({ echo "$P: $*";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree -S -p $t $n 2>$x.e)||{ echo "[commit] $*: $(tr '\n' ' '<$x.e)">&2;exit 1;}
+git update-ref $b $c $t 2>$x.e||{ [ "$(git rev-parse -q --verify $b)" = $t ]||{ echo "[raced] $*">&2;exit 4;};echo "[ref] $*: $(tr '\n' ' '<$x.e)">&2;exit 1;}
 unset GIT_INDEX_FILE;git reset -q $b||echo "[reset] $b: the commit landed, HEAD not moved">&2
 ~~~
 
@@ -331,26 +332,31 @@ except BaseException as e:print("[spawn-gate-broken] spawn_gate.py: "+repr(e)[:1
 sys.exit(b)
 ~~~
 
-### agi-turn (4838 B)
+### agi-turn (8548 B)
 ~~~sh
 #!/bin/sh
-# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; a kid (AGI_ROLE=kid, which agi-in sets), no AGI_POST or no posts/P = rc 5, nothing committed (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it); agi-sync runs at the end of EVERY turn, before the detach: the trunk is merged each turn or its conflict said by name; a Stop hook must never exit 2); the staged tree goes through grow.py (its report-mode `Scope:` lines become trailers of the commit; a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = ONE bracketed line, rc 1, nothing committed, the tree kept); BEFORE the detach, `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is; it never folds: agi-at is the one write path); [strand-refused] and [out-of-tree] go to stderr AND, through `agi-notice add` (one line per distinct notice), to ~/.notice, which agi-notice (agi-brief calls it first; agi-meter right after the rotation line) claims and prints once on stdout into the post's context; any failure keeps the tree (rc != 0, a [label]); ~/t = a detached read view
-cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l $x.s' 0;export GIT_INDEX_FILE=$x;k=0
+# agi-turn (the Stop hook: goal:g7.16.1.11.46.30, zero manual commits): each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; a tree is purged ONLY once its commit is proven AND the whole tree is clean against it (agi-turn chk DIR COMMIT: a file outside .p keeps it, [dirty]; a git failure keeps it too); agi-turn purge DIR = that check then rm, else EVERY file of the tree goes to refs/archive/P/<dir> (signed, CAS), [kept] names it, rc 1; THEN `agi-turn strand` (agi-flush calls it too, ONE guard): a detached HEAD that carries commits on no ref is REFUSED by name ([strand-refused], rc 1, HEAD left where it is, never folded): nothing from ~/t is committed and each changed path is an [uncommitted] line (agi-at's reset would move HEAD off the strand); else ~/t is FIRST brought onto the tip (the detach: the tree loop's commits reach ~/t's files, so agi-at stages onto the tip ~/t stands on and never reverts a tree edit; a ~/t edit to a path the tree loop changed refuses that checkout: [detach], nothing from ~/t committed, each path a line), then every path changed in ~/t (against HEAD with --no-renames, so a git mv lists both sides, plus untracked, ignored ones never) goes through agi-at, the wrapper's own verb (a post never types it): attempt 1 = one agi-at over all the paths, attempt 2 = one agi-at PER PATH (a refused sibling never blocks the rest, the card included), and a path still uncommitted after its 2nd attempt = ONE `[uncommitted] <path>: <agi-at's own line>` per path, the path left on disk, the next turn end retries; the listing's stderr never becomes a path; the trunk post (its branch refs/heads/posts/belam IS the trunk, as the ref guard names it) commits from ~/t its OWN card alone (.agi/nodes/doc/card-P.md: zero manual commits holds for the Prime too) and never splits: ONE [trunk-post] notice names every other path left (its lands are the gate's); THEN the grid grows: `grid.py split --base B --gated posts/P --write` (goal .46.18's per-node form) over B = the tip this turn started on, or ~/.grid-base, the base of a growth that failed (kept until one passes); a kid (AGI_ROLE=kid, which agi-in sets), no AGI_POST or no posts/P = rc 5, nothing committed, and a git that cannot start or read the tip = `[git]` with git's own stderr, rc 1, never [no-branch] (the SAME guard line before any WRITE in agi-at, agi-turn and agi-flush (chk and c() only read, so they run before it)); agi-sync runs at the end of EVERY turn, before the detach (the trunk merged each turn or its conflict said by name): its rc and the detach's count ([sync], [detach]); the staged tree goes through grow.py (its report-mode `Scope:` lines become trailers of the commit; a NEW .agi/nodes node must pass spawn_gate; an edit never does; a refusal or a broken checker = grow.py's own line(s) on stderr and ONE [growth] notice carrying them, rc 1, nothing committed, the tree kept); the final detach runs only when the strand check AND the first detach passed (a failed one is not retried in the same turn); EVERY failure label goes to stderr AND, through N = `agi-notice add` (one line per distinct KEY), to ~/.notice, which agi-notice (agi-brief calls it first; agi-meter right after the rotation line) prints once on stdout into the post's context, since a Stop hook's stderr reaches the post only as an attachment; the wrapper never exits 2; any failure keeps the tree and the path (rc != 0, a [label]); ~/t = a detached read view
+cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x $x.l $x.s $x.e $x.f' 0;export GIT_INDEX_FILE=$x;k=0;N(){ echo "$1">&2;agi-notice add "$1";}
 c(){ [ "$2" ]&&git read-tree $2&&git --work-tree=$1 diff --name-only --diff-filter=MT>$x.l&&git --work-tree=$1 ls-files -o>>$x.l||return 2;l=$(grep -vxF -e .p -e .b $x.l|tr '\n' ' ');[ -z "$l" ];}
-[ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&echo "[dirty] $(basename $2): kept, not in the commit: $l">&2||echo "[dirty] $(basename $2): kept, cannot read it against '$3'">&2;exit 1;}
-{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;}
-[ "$1" = strand ]&&{ git symbolic-ref -q HEAD>/dev/null&&exit;h=$(git rev-parse -q --verify HEAD)||exit 0;u(){ m="[strand] $P: strand unread: $(echo "$1"|head -1)";echo "$m">&2;agi-notice add "$m";exit 2;}
+[ "$1" = chk ]&&{ c $2 $3;r=$?;[ $r = 0 ]&&exit;[ $r = 1 ]&&N "[dirty] $(basename $2): kept, not in the commit: $l"||N "[dirty] $(basename $2): kept, cannot read it against '$3'";exit 1;}
+{ [ "$P" ]&&[ "$AGI_ROLE" != kid ];}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};g=$(git rev-parse -q --verify $b 2>&1);r=$?;[ $r = 1 ]&&[ -z "$g" ]&&{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};h=$(echo "$g"|grep -xE '[0-9a-f]{40}([0-9a-f]{24})?')&&[ $r = 0 ]||{ m="[git] $P: git cannot read posts/$P (rc $r): $(echo "$g"|tr '\n' ' ')";echo "$m">&2;agi-notice add "$m";exit 1;};g=$h
+[ "$1" = strand ]&&{ git symbolic-ref -q HEAD>/dev/null&&exit;h=$(git rev-parse -q --verify HEAD)||exit 0;u(){ N "[strand] $P: strand unread: $(echo "$1"|head -1)";exit 2;}
  r=$(git for-each-ref --format='^%(objectname)' refs/heads refs/remotes refs/archive refs/tags 2>&1)||u "$r";n=$(printf '%s\n%s\n' $h "$r"|git rev-list --count --stdin 2>&1)||u "$n";case $n in ''|*[!0-9]*)u "rev-list said '$n'";;esac;[ $n = 0 ]&&exit
- m="[strand-refused] $P: HEAD $(git rev-parse --short $h) carries $n commit(s) on no ref: HEAD left where it is, nothing moved; put them on posts/$P through agi-at";echo "$m">&2;agi-notice add "$m";exit 1;}
+ N "[strand-refused] $P: HEAD $(git rev-parse --short $h) carries $n commit(s) on no ref: HEAD left where it is, nothing moved; put them on posts/$P through agi-at";exit 1;}
 [ "$1" = purge ]&&{ d=${2%/};m=${d##*/};c $d $(cat $d/.b 2>/dev/null||git rev-parse $b);[ $? = 0 ]&&{ rm -rf $d;exit;};a=refs/archive/$P/$m;o=$(git rev-parse -q --verify $a||:)
- t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-removal -f -- . ':!.p' ':!.b'&&n=$(git write-tree)&&e=$(echo "$P: kept $m"|git commit-tree -S -p $t ${o:+-p $o} $n)&&git update-ref $a $e "$o"&&s="whole tree committed to $a"||s="NOT SAVED: the ref write failed";echo "[kept] $m: ${l:-unreadable}: $s">&2;exit 1;}
-for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ echo "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')">&2;k=1;continue;}
- [ $n = $(git rev-parse $t^{tree}) ]&&continue;: >$x.s;GROW_TRAILERS=$x.s grow.py $t>&2||{ k=1;continue;};r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
+ t=$(git rev-parse $b)&&git read-tree $t&&git --work-tree=$d add --ignore-removal -f -- . ':!.p' ':!.b'&&n=$(git write-tree)&&e=$(echo "$P: kept $m"|git commit-tree -S -p $t ${o:+-p $o} $n)&&git update-ref $a $e "$o"&&s="whole tree committed to $a"||s="NOT SAVED: the ref write failed";N "[kept] $m: ${l:-unreadable}: $s";exit 1;}
+for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;m=$(basename $d);t=$(git rev-parse $b)&&git read-tree $t&&a=$(git --work-tree=$d add -A --pathspec-from-file=$d.p 2>&1)&&n=$(git write-tree)||{ N "[stage] $m: $(echo "${a:-git failed}"|tr '\n' ' ')";k=1;continue;}
+ [ $n = $(git rev-parse $t^{tree}) ]&&continue;: >$x.s;o=$(GROW_TRAILERS=$x.s grow.py $t 2>&1)||{ r=$?;echo "$o">&2;agi-notice add "[growth] $m: grow.py rc $r: $(echo "$o"|grep -v '^\[scope'|tr '\n' ' '|cut -c1-240)";k=1;continue;};[ -z "$o" ]||echo "$o">&2;r=$b;o=$t;q=;[ ! -f $d.b ]||(IFS='
 ';set -f;git diff --quiet $(cat $d.b) $t -- $(cat $d.p))||{ r=refs/archive/$P/$m;o=$(git rev-parse -q --verify $r||:);q=${o:+-p $o};}
- c=$({ echo "$P: $(sed q $d.p)";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree -S -p $t $q $n 2>&1)||{ echo "[commit] $m: cannot sign or commit: $c">&2;k=1;continue;}
- git update-ref $r $c "$o"||{ echo "[raced] $m">&2;k=4;continue;}
- [ $r = $b ]&&{ echo $c>$d.b;continue;};agi-turn chk $d $c&&{ echo "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped">&2;rm -rf $d;continue;};echo "[moved] $m: your version is $r, the tree is KEPT">&2;k=1;done
-unset GIT_INDEX_FILE;agi-sync;if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;git status -s|grep -q .&&{ m="[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)";echo "$m">&2;agi-notice add "$m";};exit $k
+ c=$({ echo "$P: $(sed q $d.p)";[ -s $x.s ]&&{ echo;cat $x.s;};}|git commit-tree -S -p $t $q $n 2>&1)||{ N "[commit] $m: cannot sign or commit: $(echo "$c"|tr '\n' ' ')";k=1;continue;}
+ git update-ref $r $c "$o"||{ N "[raced] $m";k=4;continue;}
+ [ $r = $b ]&&{ echo $c>$d.b;continue;};agi-turn chk $d $c&&{ N "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped";rm -rf $d;continue;};N "[moved] $m: your version is $r, the tree is KEPT";k=1;done
+unset GIT_INDEX_FILE;tp=;[ $b != refs/heads/posts/belam ]||tp=1;if agi-turn strand;then j=0;e=$(git checkout -q --detach $b 2>&1)||{ N "[detach] $P: ~/t not brought onto the tip, nothing from ~/t committed: $(echo "$e"|tr '\n' ' ')";k=1;j=2;};else j=1;k=1;fi
+l=$({ git -c core.quotepath=off diff --no-renames --name-only HEAD&&git -c core.quotepath=off ls-files -o --exclude-standard;} 2>$x.e)||{ N "[uncommitted] ~/t: its changes cannot be listed: $(tr '\n' ' '<$x.e)";k=1;l=;};[ -z "$tp" ]||{ c=.agi/nodes/doc/card-$P.md;o=$(echo "$l"|grep -vxF "$c");[ -z "$o" ]||N "[trunk-post] $P: posts/$P is the trunk: only its card is committed here, $(echo "$o"|wc -l) other path(s) left: $(echo "$o"|tr '\n' ' '|cut -c1-200)";l=$(echo "$l"|grep -xF "$c");}
+A(){ (IFS='
+';set -f;agi-at $l) 2>$x.e;};U(){ echo "$l"|while IFS= read -r p;do N "[uncommitted] $p: kept on disk: $1";done;k=1;};[ -z "$l" ]||case $j in 0)A||{ echo "$l"|while IFS= read -r p;do agi-at "$p" 2>$x.e||{ : >$x.f;N "[uncommitted] $p: kept on disk: $(tr '\n' ' '<$x.e|cut -c1-240)";};done;[ ! -e $x.f ]||k=1;};;1)U "HEAD is stranded ([strand-refused]): nothing from ~/t is committed while it is";;*)U "~/t is not on the tip ([detach]): nothing from ~/t is committed";;esac
+[ -n "$tp" ]||{ s=~/.grid-base;[ -s $s ]&&g=$(cat $s);t=$(git rev-parse $b)&&[ "$t" != "$g" ]&&{ o=$(${AGI_GRID:-python3 extensions/agi/bin/grid.py} split --base $g --gated $t --write --lock-wait 30 2>&1)&&rm -f $s||{ echo $g>$s;N "[grid] $P: $g..$t not grown: $(echo "$o"|tail -2|tr '\n' ' '|cut -c1-240)";k=1;};};}
+agi-sync||{ N "[sync] $P: agi-sync rc $?";k=1;};[ $j != 0 ]||{ e=$(git checkout -q --detach $b 2>&1)||{ N "[detach] $P: $(echo "$e"|tr '\n' ' ')";k=1;};};exit $k
 ~~~
 
 ### pre-commit (639 B)
@@ -361,11 +367,11 @@ unset GIT_INDEX_FILE;agi-sync;if agi-turn strand;then git checkout -q --detach $
 [ -x ~/hooks/pre-commit ]&&exec ~/hooks/pre-commit "$@";:
 ~~~
 
-### agi-notice (1169 B)
+### agi-notice (1329 B)
 ~~~sh
 #!/bin/sh
-# agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (the [label] plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart calls it first; agi-meter's prompt hook right after the rotation line), THEN remove the claims printed
-case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,r){n=split(x,a," ");for(i=1;i<=n;i++)if(a[i]~/^\[/||(length(a[i])>6&&a[i]~/^[0-9a-f]+$/))r=r a[i];return r}K($0)==K(l){f=1}END{exit f}' ~/.notice&&echo "$2">>~/.notice;exit 0;;esac
+# agi-notice [add LINE]: the ONE engine->post channel, ~/.notice (a file in the post's home: it survives a rotation, the .fresh restart and agi-out, which touch .ssh, bin, .gitconfig, .claude, never this file). `add LINE` appends it unless a line with the same KEY is already there (each [label] WITH the word after it, its subject: a path, a post, a tree (goal:g7.16.1.11.46.30: two paths under one label are two lines), plus any 7+ hex word, e.g. the sha), so a stuck condition is ONE line, not one per turn. No args = print: CLAIM the file atomically first (mv to ~/.notice.PID; an append during the print lands in a fresh ~/.notice and prints next turn, and a claim left by a crashed printer is printed too), print each distinct line once on STDOUT (the hook channel the model reads: agi-brief's SessionStart calls it first; agi-meter's prompt hook right after the rotation line), THEN remove the claims printed
+case $1 in add)[ -e ~/.notice ]||: >~/.notice;awk -v l="$2" 'function K(x,n,a,i,r){n=split(x,a," ");for(i=1;i<=n;i++)if(a[i]~/^\[/)r=r a[i] " " a[i+1] " ";else if(length(a[i])>6&&a[i]~/^[0-9a-f]+$/)r=r a[i] " ";return r}K($0)==K(l){f=1}END{exit f}' ~/.notice&&echo "$2">>~/.notice;exit 0;;esac
 mv ~/.notice ~/.notice.$$ 2>/dev/null;f=$(ls ~/.notice.* 2>/dev/null)||exit 0;cat $f|awk '!s[$0]++';rm -f $f
 ~~~
 
@@ -425,11 +431,11 @@ drop)[ -d $d ]||{ echo "agi-wt: no tree $d for $2 (a 'new' tree is dropped by ag
 grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'|while IFS= read -r l;do [ "$k" ]&&continue;e=$({ printf '%s\n' "$l">>$HOME/track;} 2>&1)||{ k=1;echo "agi-track: append failed (${e##*: }), draining">&2;};done
 ~~~
 
-### agi-flush (942 B)
+### agi-flush (1238 B)
 ~~~sh
 #!/bin/sh
 # agi-flush: the writer guard before any write (a kid, no AGI_POST or no posts/P = rc 5, nothing written), then land every tree (4 turns), then agi-turn purge each dir left under $AGI_WT, found by DIR (pulled or new): clean = removed, anything else = kept whole on refs/archive/P/<dir> and [kept]: rc 0 iff no tree remains; then the trunk merge is agi-turn's (agi-sync, run at the end of every agi-turn, its conflict said by name); the final detach runs only if `agi-turn strand` passes (else rc 1, HEAD left)
-cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ]&&git rev-parse -q --verify $b>/dev/null;}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};agi-turn||agi-turn||agi-turn||agi-turn;k=$?;for d in $w/*/;do [ -d $d ]&&{ agi-turn purge $d||[ $k != 0 ]||k=1;};done
+cd ~/t;P=$AGI_POST;b=refs/heads/posts/$P;{ [ "$P" ]&&[ "$AGI_ROLE" != kid ];}||{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};g=$(git rev-parse -q --verify $b 2>&1);r=$?;[ $r = 1 ]&&[ -z "$g" ]&&{ echo "[no-branch] $P: a kid, or no posts/$P: nothing committed">&2;exit 5;};h=$(echo "$g"|grep -xE '[0-9a-f]{40}([0-9a-f]{24})?')&&[ $r = 0 ]||{ m="[git] $P: git cannot read posts/$P (rc $r): $(echo "$g"|tr '\n' ' ')";echo "$m">&2;agi-notice add "$m";exit 1;};g=$h;w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};agi-turn||agi-turn||agi-turn||agi-turn;k=$?;for d in $w/*/;do [ -d $d ]&&{ agi-turn purge $d||[ $k != 0 ]||k=1;};done
 if agi-turn strand;then git checkout -q --detach $b;else k=1;fi;exit $k
 ~~~
 

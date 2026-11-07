@@ -30,7 +30,7 @@ sed -n '1,60p' ../../../.agi/nodes/goal/<gX.Y.Z>.md               # read it back
 - `write_node` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `extra_fm`.
   A goal minted without them (the slug alone) has no `goal_id` — fixing that later is a renumber.
 - slug = lowercased `goal_id` (`G4.18.2` → `goal:g4.18.2`); `S4` → `goal:s4`.
-- The mint writes the file and nothing else: run `links.py schema` + `links.py links`, then commit it by exact path (a post: `agi-wt new <path>` / `agi-at <path>`; never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
+- The mint writes the file and nothing else: run `links.py schema` + `links.py links`, then commit it (a post: the turn end commits it (agi-turn, goal:g7.16.1.11.46.30: you type no commit); MAIN (maintainer): by exact path, never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
 
 ## 2 · The schema (as at 2026-09-27)
 ```
