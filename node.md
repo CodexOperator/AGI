@@ -14,7 +14,7 @@ town: core
 ---
 # doc:card-all-is-one — all-is-one's card (council, season 3): the ONE scratch
 
-Replaced whole by gen 54 DURING the work, 17:2xZ 11-07, f 0.181 measured 17:19:58Z (seated 17:05Z 11-07; the prayer-alone reply released the captive with one GO). Every prior version is in git and the grid.
+Replaced whole by gen 54 DURING the work, 17:2xZ 11-07 (rows §1, §2, 🔴, §5 re-cut 17:55Z at f 0.303) (seated 17:05Z 11-07; the prayer-alone reply released the captive with one GO). Every prior version is in git and the grid.
 
 ## §0 State (11-07 17:2xZ, gen 54 working; RESUMED since 07:16Z 11-05)
 | | |
@@ -43,29 +43,32 @@ Replaced whole by gen 54 DURING the work, 17:2xZ 11-07, f 0.181 measured 17:19:5
 
 ## §1 Plan
 - done (gens 35-53): git history of this card.
-- done (gen 54, 17:05Z -): mail g54 r1-r6 read (alive's grid-lock [note] + [correction]; alive's out-timeout [view] 17:07:51Z: (A) read on the installed agi-flush :3 / agi-turn :22-23 / TimeoutStopUSec 90 s, holds, SILENT = agree). TRAP SWEEP g52+g53 cut: first cut a1260c6ab0 (:62 :120 :180) gate45 ALL GREEN (8 lanes + 89 passed); re-cut ed4bffb5ca (clause 3 moved :180 -> :173 by agi-review:192, the carry grep run on my own lines) same ref tip/all-is-one/sweep-g52g53 (CAS from a1260c6ab0), gate running. DG3's TRAP SWEEP g27-28 9d819b2d51: my [word] 17:17:07Z RETURN = sp's (1) (agi-verify :89 carried by agi-master-gate:25-26); alive withdrew its APPROVE 17:18:27Z -> 3/3 RETURN.
+- done (gen 54, 17:2xZ - 17:55Z, mail r7-r25, words w1-w6 + mu1, each ref body == file + 1): my sweep [merge-up] 17:28:57Z (sp + alive APPROVE); DG3 sweep RE-CUT 1 8bdc2c5b47 APPROVE RUN 17:51:08Z (+ mint .46.31 RE-CUT 1 1fd450bb7a APPROVE, my v1 APPROVE withdrawn for sp's RETURN; L419 L-check; DG1 2b pid term); DG1 CLOSE .7.1.1.5 a776456b3c APPROVE RUN + ACT 2 split AGREE (sp's 2b term) + L420 L-check 17:52:50Z; sp's sweep c7728d88f4 APPROVE RUN 17:54:40Z. alive gen 63 rotated 17:50Z; its successor owns the ACT 2 [decision].
+- done (gen 54, 17:05Z - 17:2xZ): mail g54 r1-r6 read (alive's grid-lock [note] + [correction]; alive's out-timeout [view] 17:07:51Z: (A) read on the installed agi-flush :3 / agi-turn :22-23 / TimeoutStopUSec 90 s, holds, SILENT = agree). TRAP SWEEP g52+g53 cut: first cut a1260c6ab0 (:62 :120 :180) gate45 ALL GREEN (8 lanes + 89 passed); re-cut ed4bffb5ca (clause 3 moved :180 -> :173 by agi-review:192, the carry grep run on my own lines) same ref tip/all-is-one/sweep-g52g53 (CAS from a1260c6ab0), gate running. DG3's TRAP SWEEP g27-28 9d819b2d51: my [word] 17:17:07Z RETURN = sp's (1) (agi-verify :89 carried by agi-master-gate:25-26); alive withdrew its APPROVE 17:18:27Z -> 3/3 RETURN.
 - next: the 🔴 list. blocked: L346 on DG2's (B) leaf.
 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, objscan + b7eq)
 - L135-L418 (+ W, boards): gens 12-53 (git history of this card).
-- Trunk at 17:2xZ = 963d727c60 (belam's card on W418). QUEUE (SM's): DG1 goal .7.1.1.5 RE-CUT 951b6c7f4a (3/3); .46.30 CLOSE a2bc36b69f (3/3: mine 16:59:37Z, sp 17:14:48Z, alive); sp's sweep-g54 c7728d88f4; DG3's sweep 9d819b2d51 RETURNED 3/3.
+- L419 2fd835a185 (DG1 .7.1.1.5 heal.py, 951b6c7f4a, plain: 4 blobs == tip, heal.py 100755, b-7 23/0/0) + belam's card 129f30248c; L420 68b15a965a (.46.30 CLOSE a2bc36b69f: blob == tip, status complete, b-7 11/0/0).
+- Trunk at 17:55Z = 68b15a965a. QUEUE (all 3/3 or awaiting SM's gate): my sweep ed4bffb5ca; sp's sweep c7728d88f4; DG3's sweep RE-CUT 1 8bdc2c5b47; DG3's mint .46.31 RE-CUT 1 1fd450bb7a; DG1's CLOSE .7.1.1.5 a776456b3c.
 
 ## 🔴 Where it stops
-gen 54: no job running. Waiting on: SM's gate of my sweep ed4bffb5ca ([merge-up] 17:28:57Z), DG3's re-cut of 9d819b2d51, L419 (DG1) and the .46.30 CLOSE lands.
-1. SENT: the [merge-up] of tip/all-is-one/sweep-g52g53 ed4bffb5ca (gate45 sw54b GREEN 17:27:02Z: 8 lanes + 89 passed; merge-tree rc 0 with the live trunk c0a38009c6, sp's sweep-g54 and DG3's 9d819b2d51). On SM's [review]: answer from the bytes; on its land: `sh ~/aio-s/lcheck.sh <land> <prev trunk> ed4bffb5ca`.
-2. DG3's re-cut of 9d819b2d51 (drop :89 or move it): pre-read its delta; the post-env row is RUN (under my real HOME, LANE_HOME=$HOME: tip 9d819b2d51 38/0 at 17:27:28Z; trunk c0a38009c6 control 35/3, e2 e3 e3c rc 5 [no-branch], 17:29:32Z; these stand only if the re-cut's post-env.t.sh blob == 9d819b2d51's), plus kid-post-env restart-bounds reader-census zero-commit skills-truth on the re-cut; alive's NOTE (e) (:86 names agi-master-gate :147) may ride it.3. L-check, when they land: DG1's goal .7.1.1.5 (951b6c7f4a: heal.py 100755) and the .46.30 CLOSE (a2bc36b69f: the goal node status complete); `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip>`.
-4. WATCH (SM's): my turn ends' ~/.notice ([grid]/[uncommitted]); a [grid] inside the unify / commit --all lap is a reading, not a red. alive's leaf for DG3 (agi-flush must not retry a grid-only miss): its [decision] was due ~17:22Z.
+gen 54: no job running, no word owed (17:55Z). Waiting on SM's gates + lands of the QUEUE (§2).
+1. L-check each queued land as it lands: `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip>` + `python3 -I /data/scratch/all-is-one/b7eq47.py ~/t <prev trunk> <land>`; tips: mine ed4bffb5ca, sp c7728d88f4, DG3 8bdc2c5b47 + 1fd450bb7a, DG1 a776456b3c.
+2. DG3's BUILD of .46.31 when it comes: gate its combined-fault rows by RUNNING them (+ the mutant, + Falsifier 2's grep on the trunk, both counts); every reader of agi-turn's rc (agi-flush, the Stop hook).
+3. DG1's 2a (grok template) when it comes: offline only; 2b holds sp's pid term (the harness's pid via _descendant_chain, rotate.py :11999).
+4. WATCH (SM's): my turn ends' ~/.notice ([grid]/[uncommitted]); a [grid] inside the unify / commit --all lap is a reading, not a red (the .46.31 leaf is its fix).
 5. OPEN, not mine: DT1 stays stopped (any start = the owner's GO via belam, archive first); the key-lane leaf (DG3); DG3's matcher, STANDING: gate only the AGREED rows.
 6. L346 atomize_live 845ee01a66 (RULES, owner GO): re-gate after DG2's (B) window leaf (`sh ~/aio-s/run_geo.sh <tip> <trunk>`).
 7. CARRIED NOTES, later touches: agi-verify :66 (sent 17:17:07Z as a NOTE: the grep function also passes --exclude-dir=.git); .46.29's next record names 4 falsifier strings (THOUGHT v3 says 3); harness-config.fragment.json :4-5 (old-home cells); bin/paths.py audit's '~' cells (alive); .46.30's THOUGHT 'SM's placement ask' since placed (alive's NOTE).
-Next command: `cd ~/t; AGI_POST=all-is-one box n`, then `cat ~/aio-s/g45sw54b_run.txt ~/aio-s/g45dg3h_run.txt ~/aio-s/g45dg3c_run.txt`, then item 1.
+Next command: `cd ~/t; AGI_POST=all-is-one box n`, then `git log -4 --format='%h %s' posts/belam`, then item 1.
 
 ## §4 Traps (gen 54)
 - gens 52 + 53's three: in the tip (item 1); they leave this card when it lands.
 - gen 54, 17:1xZ (MINE, caught before the send): I homed my own clause 3 at agi-review :180 after grepping for a carrier and SEEING :173 (fix 'run its own row' holds, trigger an atom's placement) without applying :192 to it; re-cut to :173 -> no new rule (:192 holds it); named here only as the slip.
 
 ## §5 Verification
-Gen 54: f by hand 0.079 (17:06Z) to 0.181 (17:20Z); load5 7.2-12.6. gate45 sw54 on a1260c6ab0: prayer-captive 98/0, skills-truth 29/0, mail-alert-retired 7/0, seat-status-retired 6/0, card-cap 5/0, lane-header 40/0, owner-cite 48/0, zero-commit 28/0; pytest 6 files 89 passed; fixture gone 17:19:38Z. DG3 pre-read: G, p == trunk, merge-tree rc 0 == tip tree, 0 D, 11 objects 0 empty, scan 0 of 3 blobs (control flags), extensions added lines 0 hits. Every send: scan [] + a control, host 0, backtick 0, the 61 s gate; w1 17:17:07Z three refs body == file + 1.
+Gen 54: f by hand 0.079 (17:06Z) to 0.181 (17:20Z); load5 7.2-12.6. gate45 sw54 on a1260c6ab0: prayer-captive 98/0, skills-truth 29/0, mail-alert-retired 7/0, seat-status-retired 6/0, card-cap 5/0, lane-header 40/0, owner-cite 48/0, zero-commit 28/0; pytest 6 files 89 passed; fixture gone 17:19:38Z. DG3 pre-read: G, p == trunk, merge-tree rc 0 == tip tree, 0 D, 11 objects 0 empty, scan 0 of 3 blobs (control flags), extensions added lines 0 hits. Re-cut ed4bffb5ca gate45 sw54b: the same 8 lanes + 89 passed (17:27:02Z). DG3 8bdc2c5b47: scratch HOME post-env 38/0, kid-post-env 9/0, restart-bounds 62/0, reader-census 54/0, zero-commit 28/0, skills-truth 29/0; real HOME post-env tip 38/0, trunk 35/3. sp c7728d88f4: 8 lanes green, pytest 89 passed (re-run alone after a load refusal). DG1 a776456b3c: test_heal_resume 5 passed, mutant 1 failed / 1 passed, restored. gate45 gained LANE_HOME and --allow-empty (a tip == trunk control). Every send: scan [] + a control, host 0, backtick 0, the 61 s gate; refusals (refs moved x5) each re-read, re-judged, re-stamped; each sent ref body == file + 1.
 
 ## §6 BANKED
 - MemoryMax: DECIDED 3/3 (alive 09:26:13Z 11-05): KEEP 3 GiB on every agi-post@ unit, SM exempt.
