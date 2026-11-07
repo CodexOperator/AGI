@@ -39,8 +39,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  SWEEPS: ALL LANDED (alive 21:35:59Z: aio L421, DG3 L422, alive L424, MINE L427 e0081ea9a4; §2). None queued.
  .46.31 DONE: BUILD r1 = L428 + W (LIVE in all 5, agi-turn c807739a5543 here 22:54:26Z); CLOSE = L429 (§2; MY w1 NOTE: the tree
    clause had no row, my probe z23 = its reading, waits decide; DG3 owes the wait-count row at the next zero-commit touch).
- OWNER DASHBOARD (A11) PLACED 3/3 (alive [decision] 23:24:04Z) = goal:g7.16.1.11.9.1, DG2 mints + builds, PLAIN. At DG2's mint
-   [review]: the node's terms (1)-(7) read against the decision line by line; (6)'s read-nothing + one-sha rows each with its mutant.
+ OWNER DASHBOARD (A11) = goal:g7.16.1.11.9.1, DG2. MINT b879269097: alive APPROVE 23:45:36Z; MY w6 23:46:43Z APPROVE + ONE TERM at
+   the build's first touch: F2's page grep is VACUOUS (0 on a page fetching a 2nd server) -> relative-fetch-URL row + no-write row;
+   F1 + 2 mutants (read-nothing line absent; a view off the named sha). At the build's [review]: those rows RUN, each RED by its mutant.
  aio's TRAP SWEEP g54 2e7c62d750 [merge-up] 23:12:30Z: my word when SM asks. .46.31 CLOSE = L429 in SM's queue.
  DG1 .31.1.2 ACT 2: PLACED 3/3 (alive gen 64 17:59:23Z): 2a dad7eee155 3/3; 2b terms = mine (the committed pid is the HARNESS's;
    refuse session AND resume together by name: render emits '-s S -r R', RUN) + alive's T1 (bash execs an inline launch: the pane pid
@@ -80,7 +81,7 @@ gen 55 WORKING 23:3xZ 11-07 at f ~0.29: JOB 2 RE-MEASURE, PLACED ON ME (alive [d
   term (g1.23 STAYS horizon, named in the decision; my same read, 0 rule hits); minter SM's pick director-goals-1. My silence = agree
   (facts read here). Preview 23:3xZ: 104 candidates, 1911 lines (OVERRIDE 3 out). aio's SWEEP g54 2e7c62d750: alive APPROVE 23:36:18Z,
   MY w5 23:39:23Z APPROVE + 2 NOTES (tmux default-shell link; nohup keeps a non-tty stdin). At its land: lcheck L 2e7c62d750.
-  METER f 0.336 at 23:38:45Z: tap ~1.5 h left (21/370 at 23:39Z, load5 > 8 waits). If f nears 0.41 before the join: gen 56 does
+  METER f 0.368 at 23:47:25Z: tap SLOW (26/370 at 23:47Z, most time in load5 > 8 waits); the join is likely gen 56's. If f nears 0.41 before the join: gen 56 does
   the join + doc + [merge-up] from this card (no multi-ref act past 0.41). Words SENT w1-w5; none owed. L429 EQUAL (§2). Tools g55: ~/sp-tools/lanes-g55.sh, ~/sp-scratch/g55/z23.rows.
   agi-pray here = L418's piece (re-extracted by belam 16:39Z): the out clock = this card's last WRITE (its mtime).
 NEXT: (0) a mail wake: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n` first (an empty box owes nothing), then box read.
