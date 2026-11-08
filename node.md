@@ -51,7 +51,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    alive's MODEL-side fact for the close: send-keys -l with no '--', a '-t%1' text sends nothing, rc 0). Rule: a
    record waits 3/3 and a RELEASED line; a cause label is never named on a subset A. KID 4 g4.21 CONTAMINATED (built on deepseek's held
    191e7e6d4c, 429/465 lines): MY w10 23:36:25Z (a) VOID + isolated re-run (belam's clone + systemd-run InaccessiblePaths; my row: git remote -v
-   empty); key 5 g7.32.1 HELD until the isolation exists. Kid 3 measured independent (0/86). LIVE trunk = the SHARED refs/heads/posts/belam.
+   empty); key 5 g7.32.1 HELD until the isolation exists. Kid 3 measured independent (0/86).
+   DG3 [host-act] 23:4xZ (box ref fd624b279c): half (i) BUILT, 7 FULL shas rc 1 in both clones (engine = shallow fetch), remote empty;
+   (ii) belam's launch; read here, silence = agree (p1-runs holds runs.json + lock only) LIVE trunk = the SHARED refs/heads/posts/belam.
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
    rotate.py's one-string launch as default-shell -c = the server's SHELL (bash execs the last && command, dash forks; measured).
