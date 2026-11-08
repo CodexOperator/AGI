@@ -1877,6 +1877,38 @@ def test_record_reads_the_newest_mint_and_run_and_a_void_newest_records_nothing(
     led.write_text(json.dumps([{**old, "void": {"decision": "council (a)"}}, new]))
     with pytest.raises(p1_ab.P1Refused, match="no run row"):            # the new key has not run yet
         p1_ab.record_from_ledgers(tmp_path / "res.json", **kw)
-    runs.write_text(json.dumps([run1, {**run1, "secs": 99.0, "brief_sha256": "b" * 64}]))
+    runs.write_text(json.dumps([run1, {**run1, "secs": 99.0, "brief_sha256": "b" * 64, "hash": "h2"}]))
     k = p1_ab.record_from_ledgers(tmp_path / "res.json", **kw)["arms"][0]["kids"][0]
     assert (k["usd"], k["secs"], k["brief_sha256"]) == (0.07, 99.0, "b" * 64)
+
+
+def test_case_b_a_void_key_that_never_ran_lets_the_next_key_run_once_and_record_never_twice(tmp_path):
+    """self-perpetuating's RETURN 23:51:51Z 11-08: pairing runs to mints by COUNT let one key run twice when the void
+    key had no run row. By hash: the new key runs once, records, and a second run of it is refused."""
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="glm", leaf=LEAF, cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    void = {"arm": "glm", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.0, "done": True, "void": {"decision": "d"}}
+    led = _ledger_with(tmp_path, [void, {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5}])
+    row = p1_ab.run_logged(ledger=led, **kw)                            # h1 never ran: h2 runs
+    assert row["hash"] == "h2"
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):       # h2 never runs twice
+        p1_ab.run_logged(ledger=led, **kw)
+    assert [r["hash"] for r in json.loads(runs.read_text())] == ["h2"]
+    led.write_text(json.dumps([void, {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5, "usd": 0.05, "done": True}]))
+    k = p1_ab.record_from_ledgers(tmp_path / "res.json", CFG, arm="glm", leaf=LEAF, ledger=led, runs=runs,
+                                  landed=False, red=True)["arms"][0]["kids"][0]
+    assert (k["usd"], k["secs"]) == (0.05, row["secs"])
+
+
+def test_a_run_row_names_its_key_and_a_legacy_row_belongs_to_the_pairs_first_key(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    runs.write_text(json.dumps([{"arm": "glm", "leaf": LEAF, "rc": 0, "secs": 1.0, "timed_out": False, "sweep": [],
+                                 "brief_sha256": "a" * 64}]))         # a row from before hashes: h1's
+    kw = dict(arm="glm", leaf=LEAF, cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    h1 = {"arm": "glm", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):       # h1 already ran (the legacy row)
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, [h1]), **kw)
+    led = _ledger_with(tmp_path, [{**h1, "void": {"decision": "d"}}, {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5}])
+    assert p1_ab.run_logged(ledger=led, **kw)["hash"] == "h2"            # case A, the g4.21 shape

@@ -883,34 +883,44 @@ def live_kids(rows: list[dict], arm: str, leaf: str) -> int:
     return sum(1 for r in rows if not r.get("done") and (r["arm"], r["leaf"]) != (arm, leaf))
 
 
+def _runs_of(rows: list[dict], arm: str, leaf: str, key_hash: str | None, first_hash: str | None) -> list[dict]:
+    """The run rows of ONE key: a run row names its key's hash; a row from before hashes were written (none named)
+    is the pair's FIRST key's. Pairing by hash, never by counts: a void key that never ran must not let the next
+    key run twice."""
+    return [r for r in rows if r["arm"] == arm and r["leaf"] == leaf
+            and (r.get("hash") == key_hash or (r.get("hash") is None and key_hash == first_hash))]
+
+
 def run_logged(*, arm: str, leaf: str, cfg: dict, ledger: str | Path, runs: str | Path, repo: str | Path,
                plan: dict, gb: float | None) -> dict:
-    """R1/R2: count live kids from the ledger (no default), refuse a second run of the pair, run, and write the run
-    row {arm, leaf, rc, secs, timed_out, sweep, brief_sha256}. The row is what `record` later reads."""
+    """R1/R2: count live kids from the ledger (no default), refuse a second run of the key, run, and write the run
+    row {arm, leaf, hash, rc, secs, timed_out, sweep, brief_sha256}. The row is what `record` later reads; `hash`
+    is the key it ran under (the pair's newest non-void mint)."""
     rows = _ledger(Path(ledger))
-    if not any(r["arm"] == arm and r["leaf"] == leaf and not r.get("void") for r in rows):
+    pair = [r for r in rows if r["arm"] == arm and r["leaf"] == leaf]
+    live = [r for r in pair if not r.get("void")]
+    if not live:
         raise P1Refused(f"({arm}, {leaf}) has no mint row in the ledger: belam's kid-key comes first")
-    voided = sum(1 for r in rows if r["arm"] == arm and r["leaf"] == leaf and r.get("void"))
-    runs_rows = _runs(runs)
-    if sum(1 for r in runs_rows if r["arm"] == arm and r["leaf"] == leaf) > voided:
+    key_hash, first_hash = live[-1].get("hash"), pair[0].get("hash")
+    if _runs_of(_runs(runs), arm, leaf, key_hash, first_hash):
         raise P1Refused(f"({arm}, {leaf}) already has a run row: a kid runs once, never again")
     res = run_kid(plan, cfg, live=live_kids(rows, arm, leaf), gb=gb)
     row = {"arm": arm, "leaf": leaf, "rc": res["rc"], "secs": res["secs"], "timed_out": res["timed_out"],
            "sweep": res["sweep"], "older": res["older"], "peak_rss_kb": res["peak_rss_kb"],
            "rss_floor_kb": res["rss_floor_kb"],
-           "brief_sha256": brief_digest(plan["prompt"])}
-    _append_run(runs, row, voided=voided)
+           "brief_sha256": brief_digest(plan["prompt"]), "hash": key_hash}
+    _append_run(runs, row, first_hash=first_hash)
     return row
 
 
-def _append_run(runs: str | Path, row: dict, *, voided: int = 0) -> None:
+def _append_run(runs: str | Path, row: dict, *, first_hash: str | None = None) -> None:
     """R1b: re-read the run ledger AT WRITE TIME and append, under an exclusive flock on a sibling lock file, so two
     kids that overlap under max_live never erase each other's row (a read at start + a write at the end did)."""
     runs = Path(runs)
     with open(str(runs) + ".lock", "a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         current = _runs(runs)
-        if sum(1 for r in current if r["arm"] == row["arm"] and r["leaf"] == row["leaf"]) > voided:
+        if _runs_of(current, row["arm"], row["leaf"], row.get("hash"), first_hash):
             raise P1Refused(f"({row['arm']}, {row['leaf']}) got a run row while it ran: a kid runs once")
         fd, tmp = tempfile.mkstemp(dir=str(runs.parent), prefix=runs.name + ".")
         with os.fdopen(fd, "w") as fh:
@@ -922,8 +932,8 @@ def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, 
                         runs: str | Path, landed: bool, red: bool, reviewed: str | None = None) -> dict:
     """R1: RECORD READS, NEVER TYPED. usd comes from the (arm, leaf) kid-done row of belam's ledger, secs and the brief
     sha from my run row; either absent = refused. A timed-out, non-zero or swept run is red and cannot be landed:
-    a record that says otherwise is refused. After a void, the pair's NEWEST mint and NEWEST run are the ones read;
-    a newest mint that is void records nothing."""
+    a record that says otherwise is refused. After a void, the pair's NEWEST mint and the run row of THAT key (by
+    hash) are the ones read; a newest mint that is void records nothing."""
     mints = [r for r in _ledger(Path(ledger)) if r["arm"] == arm and r["leaf"] == leaf]
     mint = mints[-1] if mints else None
     if mint is not None and mint.get("void"):
@@ -931,10 +941,10 @@ def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, 
                         f"a void run records nothing")
     if mint is None or not mint.get("done") or mint.get("usd") is None:
         raise P1Refused(f"({arm}, {leaf}) has no kid-done row (usd) in the ledger: belam's kid-done comes first")
-    pair_runs = [r for r in _runs(runs) if r["arm"] == arm and r["leaf"] == leaf]
-    if len(pair_runs) < len(mints):
+    key_runs = _runs_of(_runs(runs), arm, leaf, mint.get("hash"), mints[0].get("hash"))
+    if not key_runs:
         raise P1Refused(f"({arm}, {leaf}) has no run row: run-kid comes first")
-    run = pair_runs[-1]
+    run = key_runs[-1]
     forced = bool(run["timed_out"]) or run["rc"] != 0 or bool(run["sweep"]) or bool(run.get("older"))
     if forced and (landed or not red):
         raise P1Refused(f"({arm}, {leaf}) ran red (timed_out={run['timed_out']} rc={run['rc']} sweep={run['sweep']} older={run.get('older')}): "
