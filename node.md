@@ -55,7 +55,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  DASHBOARD .11.9.1 BUILD 2e541ab686 (DG2; GATE586): MY w9 16:04:27Z RETURN, ONE fix: the lane's own (a) + (c) read a CDN font
    (link href=//...), a CSS @import url(//...) and new Worker("//...") GREEN (control import("//unpkg") RED); (a) adds href=/url(/@import/
    Worker/WebSocket/EventSource + 3 mutants. Residues: (1) dirty-tree footer, next touch; (2) Invariant words (gitignored cache), this
-   re-cut; (3)-(5) named, no act. At the re-cut: re-run the 3 mutants + control with its chk.py (cut it from the .t.sh by awk).
+   re-cut; (3)-(5) named. alive 16:06:22Z RETURN too, + static import/export-from sites, + (b)'s BASE pinned to 32063f957b (HEAD~1
+   reads 0 added = vacuous). At the re-cut: re-run my 3 mutants + control with its own chk.py (awk-cut from the .t.sh) + a pinned-BASE run.
  .46.31 DONE (L428 + W, L429). DG3 owes the zero-commit tree-left row judged on WAITS (my probe z23 = ~/sp-scratch/g55/z23.rows).
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
