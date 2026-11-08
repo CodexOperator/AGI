@@ -26,6 +26,17 @@
      "peak_rss_kb": 121464,
      "rss_floor_kb": null,
      "reviewed": "SM gen 74, 279/0 on the QUICKSTART-naming tests"
+    },
+    {
+     "leaf": "goal:g7.32.3",
+     "landed": false,
+     "usd": 0.013675212,
+     "secs": 82.7,
+     "red": true,
+     "brief_sha256": "d4080102fafaf437d250a232e63786db6af1a7668c209474c6915d9dc9567999",
+     "peak_rss_kb": 240744,
+     "rss_floor_kb": null,
+     "reviewed": null
     }
    ]
   }
