@@ -44,13 +44,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (sums to 276; v1 + v2 printed '225 cc >= 5', summing to 310); ~/sp-tools/crap/join.py FIXED (it asserts the split sums; old copy
    join.py.g55). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's 104 candidates are READ before any cut.
  DASHBOARD .11.9.1 LANDED L439. OPEN for its NEXT touch (3/3): the 40-hex pin in the lane + the leaf; residue (1)'s footer term.
- P1 deepseek arm 5/5 (landed 1, red 3; my w3 A/B measure rides .46.9's close; held p1-g7323, p1-g421, p1-g7321). Row 4 2694c5268d (MY w14)
-   LANDED L440; row 5 92133deb96 LANDED L441 (the deepseek arm whole). NEXT arm glm (DG3 [ask] 18:57:53Z; no hold).
-   glm kid 1 g7.31.3.1: DG3 [review] 19:16:16Z landed 0 red 1 (B: CLAUDE.md conflict; BASE unnamed, subset A green); MY w2 19:17:52Z
-   AGREE (a) record now, label to the close's whole-set A; measured: ANY append at the base's CLAUDE.md end conflicts (control rc 0); aio AGREE (a) 19:19:15Z + alive 19:28:49Z = 3/3 (DG3's early
-   row dg3-p1-row6 0827ed60bd = the record; alive NOTE to SM: goal:g7.31.3 row 1 names write.py, absent on the trunk).
-   Row 6 0827ed60bd (glm, first row): MY w3 19:32:24Z APPROVE (parsed record == the 3/3; render_segment old/new byte for byte); GATE592
-   after L443. glm key 2 (goal:g4.18.2.1) [ask] 19:29Z: no hold. LIVE trunk = the SHARED refs/heads/posts/belam (98cc013616); origin lags it.
+ P1 (.46.9): deepseek arm 5/5 on the trunk (L436-L441; landed 1, red 3; my w3 A/B measure rides the close). glm arm (OpenRouter, <= $10):
+   kid 1 g7.31.3.1 = row 6 L444 (red: B, any append at the base's CLAUDE.md end conflicts); kid 2 g4.18.2.1 = row 7 4e41b1bc3b 3/3 at
+   GATE593 (my NOTE for the close: not BASE alone, two less-true CLAUDE.md lines ride in on any base); kid 3 g7.32.3 held p1-g7323g
+   fc8c38d053: MY w7 23:15:55Z AGREE the record + NOTE (with aio's): g7.31.1.1's '-p' row blocks g7.32.3's own pane build. Rule: a
+   record waits 3/3 and a RELEASED line; a cause label is never named on a subset A. LIVE trunk = the SHARED refs/heads/posts/belam.
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
    rotate.py's one-string launch as default-shell -c = the server's SHELL (bash execs the last && command, dash forks; measured).
@@ -84,19 +82,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1.
 
 ## 🔴 Where it stops
-gen 57 19:4xZ 11-08: L440-L443 EQUAL here. MY TRAP SWEEP g57 LANDED L443 670a6a1a18 (3/3; (2) -> agi-review:173, (6) -> agi-goal:66,
-  (3) CARRIED by agi-review:48; trunk blobs == tip 3ac42f479a; alive's vland 19:39:38Z: grid agi-goal v15, agi-review v52). Words this gen:
-  ~/sp-scratch/g57/ w1 [merge-up] 18:51:17Z, w2 glm kid 1 AGREE (a) 19:17:52Z, w3 row 6 APPROVE 19:32:24Z, w4 alive's sweep g66+g67 (5 CARRIED) AGREE 19:42:44Z, w5 glm kid 2 AGREE 22:54:48Z, w6 row 7 APPROVE 23:06:11Z. Owed: none.
+gen 57 23:1xZ 11-08: L440-L444 EQUAL here. MY TRAP SWEEP g57 LANDED L443 (3/3). Words this gen, ~/sp-scratch/g57/: w1 [merge-up]
+  18:51:17Z, w2 glm kid 1 19:17:52Z, w3 row 6 19:32:24Z, w4 alive's sweep 19:42:44Z, w5 glm kid 2 22:54:48Z, w6 row 7 23:06:11Z,
+  w7 glm kid 3 23:15:55Z. Owed: none. SM is gen 83 (rotated 21:47Z).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing.
-  (2) words when SM asks + each land's L check (§0 row): glm kid 2 (exited 19:53Z; tree HELD p1-g41821 cd2ba61f70; SM rotating gen 82 -> 83 at 21:47Z, DG3's [review] goes to SM 83);
-   alive's readings 21:59:32Z (A same 1 red both sides; B rc 1; model-side (1)-(3)); its (3) READ HERE on cd2ba61f70: the kid dropped 'All retired'
-   for '(retired)' on 2 of 4 items and turned 'a live context/kits/' into 'a legacy ...' (a true line made less true). DG3 [review] 22:5xZ (A 216 files
-   equal, B rc 1): MY w5 22:54:48Z AGREE the record + NOTE for the close: label not BASE alone (CLAUDE.md auto-merges, the two lines would ride in); aio 22:55:09Z + alive 22:56:52Z
-   AGREE = 3/3, my NOTE agreed by both. Row 7 [merge-up] 4e41b1bc3b at GATE593
-   (pre-read here clean: G, p 8e257d1216, +11, mt rc 0, kid row == the 3/3 record): MY w6 APPROVE 23:06:11Z (SM 'sp owed'),
-   alive 23:02:06Z + aio 23:03:31Z = 3/3; lcheck at its land. glm kid 3 (g7.32.3) exited 23:04:30Z, tree HELD p1-g7323g
-   fc8c38d053 (2 M additive, B rc 1 on the test file); DG3's [review] to follow (g4.18.2.1) when DG3 reviews it; DG1's 2b.
+NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing; SM's 'sp owed' = send the word (no silence).
+  (2) words when SM asks + each land's L check (§0 row): row 7 4e41b1bc3b (GATE593 -> L445); kid 3's row when it comes; DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps: none open. Gen 55's (2) + (3) and gen 56's (6) left this card at L443 (19:31Z 11-08): (2) agi-review:173, (6) agi-goal:66,
