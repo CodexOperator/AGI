@@ -58,6 +58,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    NOTE; alive audit NOTE; .46.29's next record (aio); DG3's .agi/keys leaf (mine, banked); DT1 banked. My NOTE 2 for agi-review :130's
    next touch: nohup redirects a TERMINAL stdin only (measured), so 'setsid nohup' does not carry the /dev/null fix.
  TOOLS ~/sp-scratch/g46/{b7,owner}.py; ~/sp-tools/{lcheck,sendw-g54,send-g56,cut-g56}.sh, bt-g49.py, crap/{lanes.sh,join.py,cc.py,callers.py}
+ aio's sweep g56 (19:36:54Z): 5 traps CARRIED, no tip; read here, all hold (silence = agree); its NOTE: agi-memory-guard:77
+   (foreground chunks) vs agi-master-gate:370 (gate only by run_in_background), for the next sweep touching either.
  PLACED, others' (check on their next touch, do not chase): DG2 atomize live-link row + readlink mutant · SM agi-master-gate (2) gloss
    :185 · DG1 F3 all-empty mutant · DS1 agi-strand rev-list shim rc 2 · DG3 U-n1..U-n4 · .46.17 CLAUDE.md [build, goal] + mint-check
    guard · goal .13 TABLE rule row (MINE, next touch) · DGo1 agi-town mktemp exit 99 · DT-1 a gate-readable shared toolchain · belam:
