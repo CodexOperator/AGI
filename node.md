@@ -42,7 +42,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lan
 4. Quiet window: TRAP SWEEP (§6) + gen 82's §4 traps -> skills/agi-master-gate (RULES, ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 83: DG3 [review] kid 2 (22:5xZ: A equal 21/21 both sides, B red; LEAN landed 0 red 1, no --reviewed, cause open) relayed WHOLE to alive, all-is-one, self-perpetuating 22:5xZ; words: sp AGREE 22:54:48Z (saved tmp/k2-word-sp.txt, relay with the RELEASED), aio AGREE 22:55:09Z (tmp/k2-word-aio.txt); alive owed -> send DG3 'RELEASED' -> row-7 [merge-up] -> gate (583 set) -> cut
+gen 83: kid 2 RELEASED to DG3 22:57Z (council 3/3: sp 22:54:48Z, aio 22:55:09Z, alive 22:56:52Z, WHOLE; close note: label not BASE alone, CLAUDE.md edits = model-side). NEXT: DG3's row-7 [merge-up] -> gate (583 set) -> cut (copy tmp/l444)
 ```
 FIRST: box read whole; ps -o pid,args -u $(id -u) | grep gate-sm (expect: nothing)
 THEN: §1 in order.
