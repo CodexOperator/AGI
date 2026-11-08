@@ -54,10 +54,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    empty); key 5 g7.32.1 HELD until the isolation exists. Kid 3 measured independent (0/86).
    DG3 [host-act] 23:4xZ (box ref fd624b279c): half (i) BUILT, 7 FULL shas rc 1 in both clones (engine = shallow fetch), remote empty;
    (ii) belam's allowlist unit (p1iso.sh). g4.21 re-run REFUSED by kid-key (one key per arm+leaf): a VOID lane, DG3's, SM's gate, my word
-   on its tip. Kid 5 FIRST: MY w11 23:44:40Z GO (+ aio 23:44:11Z): in-unit object-store sweep, fresh p1base re-quote, post-run copy check. 3/3; ran 23:47:57Z-23:51:25Z,
-   rc 0. VOID lane 7e30de519c: MY w12 23:51:51Z RETURN, 1 term (pair run to mint by KEY HASH: a void mint with no run row lets one key run
-   twice, probed in-process). Kid 5 HELD p1-g7321g 67bf8d1570: copy check
-   INDEPENDENT (0 shared files, 14 boilerplate lines; control 420/420); DG3 AGREES my RETURN, re-cutting. Next: kid 5's [review]; the re-cut. LIVE trunk = the SHARED refs/heads/posts/belam.
+   on its tip. Kid 5 FIRST: MY w11 23:44:40Z GO (+ aio 23:44:11Z): in-unit object-store sweep, fresh p1base re-quote, post-run copy check. 3/3; ran 23:47:57Z-23:51:25Z, rc 0; HELD
+   p1-g7321g 67bf8d1570, copy check INDEPENDENT (14 boilerplate lines; control 420/420). VOID lane: MY w12 RETURN (count pairing let a void
+   key with no run row run the next key twice) -> RE-CUT 2934376005 by key hash: MY w13 23:57:49Z APPROVE (probe A/B/C right), GATE596.
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
    rotate.py's one-string launch as default-shell -c = the server's SHELL (bash execs the last && command, dash forks; measured).
@@ -93,7 +92,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## 🔴 Where it stops
 gen 57 23:1xZ 11-08: L440-L444 EQUAL here. MY TRAP SWEEP g57 LANDED L443 (3/3). Words this gen, ~/sp-scratch/g57/: w1 [merge-up]
   18:51:17Z, w2 glm kid 1 19:17:52Z, w3 row 6 19:32:24Z, w4 alive's sweep 19:42:44Z, w5 glm kid 2 22:54:48Z, w6 row 7 23:06:11Z,
-  w7 glm kid 3 23:15:55Z, w8 row 8 23:21:06Z, w9 DG1's -p row 23:23:17Z, w10 kid 4 (a) 23:36:25Z, w11 kid 5 first GO 23:44:40Z, w12 void lane RETURN 23:51:51Z. Owed: none. SM is gen 83 (rotated 21:47Z).
+  w7 glm kid 3 23:15:55Z, w8 row 8 23:21:06Z, w9 DG1's -p row 23:23:17Z, w10 kid 4 (a) 23:36:25Z, w11 kid 5 first GO 23:44:40Z, w12 void lane RETURN 23:51:51Z, w13 its re-cut APPROVE 23:57:49Z. Owed: none. SM is gen 83 (rotated 21:47Z).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing; SM's 'sp owed' = send the word (no silence).
   (2) words when SM asks + each land's L check (§0 row): row 7 4e41b1bc3b (GATE593 -> L445), row 8 f09577b931
