@@ -48,6 +48,17 @@
      "peak_rss_kb": 127120,
      "rss_floor_kb": null,
      "reviewed": null
+    },
+    {
+     "leaf": "goal:g7.32.1",
+     "landed": false,
+     "usd": 0.010939022,
+     "secs": 110.0,
+     "red": true,
+     "brief_sha256": "3c495dc0bcf5c686316c4e79dacd940aa1356549889f4e81ac0a3be6bd010963",
+     "peak_rss_kb": 238556,
+     "rss_floor_kb": null,
+     "reviewed": null
     }
    ]
   }
