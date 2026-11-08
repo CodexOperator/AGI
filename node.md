@@ -41,6 +41,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    17:42:00Z, tip/self-perpetuating/job2-v2 2d34d20868 on 0d5591e688 (rows 1-1b at bb947547b2, NEW 1c callers: 104 candidates / 1911
    lines, OWNER block c:be72d519c116; owner-cite 48/0 + no-cite mutant RED). NEXT: words, the gate, the land (lcheck + OWNER check).
    THEN the cuts = goal:g7.33 rounds, placed by the council one at a time (row 1c's candidates READ first: static misses dynamic calls).
+   Doc's NEXT touch (alive NOTE 17:48:00Z, no hold): row 1's split reads '85 entered cc > 30; 191 never entered cc >= 6' (sums to 276;
+   '225 cc >= 5' summed to 310); join.py FIXED 17:5xZ (asserts the split sums; old copy join.py.g55).
    Tools: ~/sp-tools/{cut-g56,send-g56}.sh (send-g56 reads origin/posts/belam after a fetch; send-g54 read a stale local ref).
  DASHBOARD .11.9.1 RE-CUT 2 30f023cddf (T1-T5 of alive's [decision] 16:21:40Z, RETURN 3/3 on 2e541ab686): MY w12 16:49:27Z APPROVE,
    each T on the bytes (my 5 CDN mutants RED on (a)+(c) via its own chk.py; nav a href 0/0; (b) pinned 32063f957b, 131 added, 0 writes);
