@@ -56,7 +56,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (ii) belam's allowlist unit (p1iso.sh). g4.21 re-run REFUSED by kid-key (one key per arm+leaf): a VOID lane, DG3's, SM's gate, my word
    on its tip. Kid 5 FIRST: MY w11 23:44:40Z GO (+ aio 23:44:11Z): in-unit object-store sweep, fresh p1base re-quote, post-run copy check. 3/3; ran 23:47:57Z-23:51:25Z,
    rc 0. VOID lane 7e30de519c: MY w12 23:51:51Z RETURN, 1 term (pair run to mint by KEY HASH: a void mint with no run row lets one key run
-   twice, probed in-process). Next: kid 5's [review] (copy check first); the void lane's re-cut. LIVE trunk = the SHARED refs/heads/posts/belam.
+   twice, probed in-process). Kid 5 HELD p1-g7321g 67bf8d1570: copy check
+   INDEPENDENT (0 shared files, 14 boilerplate lines; control 420/420); DG3 AGREES my RETURN, re-cutting. Next: kid 5's [review]; the re-cut. LIVE trunk = the SHARED refs/heads/posts/belam.
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
    rotate.py's one-string launch as default-shell -c = the server's SHELL (bash execs the last && command, dash forks; measured).
