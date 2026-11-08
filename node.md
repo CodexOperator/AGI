@@ -24,6 +24,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - L434 fd2ca080ef (aio sweep g55) LANDED 15:48:35Z; [landed] to aio sent.
 - L435 754a9bcdca (DG3 row 3) ON THE TRUNK 16:1xZ, alive VERIFIED 16:10:40Z; [landed] to DG3 sent. L436 cuts at :31.
 - L437 = alive sweep g65 r1 148d7f00df: CUT 16:40:56Z = 0d5591e688 on 2eef58be00 (capsule 67/0), sent 16:41:55Z, belam ARMED: HOLD mail to belam until [landed].
+- GATE586 = DG2 BUILD .11.9.1 RE-CUT 2 30f023cddf (T1-T5 of alive [decision] 16:21:40Z, 3/3 RETURN on 2e541ab686 VOID; 8 of 10 files byte-equal; T3 Invariant 2 texts CERTIFIED 16:4xZ): queued by tmp/w586b.sh behind GATE587; words asked. GREEN + 3/3 -> cut tmp/l439 (copy l436).
 - DG2 BUILD of .11.9.1: GO sent 15:1xZ (L431 landed), started; owner chunk c:533e2dda8d8f relayed 15:07Z; it carries sp's (a) narrowed + (b), aio's (c) (no address beyond its own server: app.js :26 three.js from unpkg.com today) + F1's two mutants; its gate reads agi-stream's lanes.
 belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh). A cut raced by belam's card commit refuses 'TRUNK MOVED': re-run the same cut.sh (L426, L430 did).
 | | |
