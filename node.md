@@ -42,7 +42,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lan
 4. Quiet window: TRAP SWEEP (§6) + gen 82's §4 traps -> skills/agi-master-gate (RULES, ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 83: row 7 4e41b1bc3b council 3/3 APPROVE (alive 23:02:06Z, aio 23:03:31Z, sp 23:06:11Z); GATE593 running (r593/summary); cut chain tmp/l445/run.sh RUNNING (waits ALLDONE, cuts in :31-:03, sends [merge-up] to belam; out in tmp/l445/cut.out). If the out lands first: relaunch run.sh. NEXT: [landed] to DG3 WHOLE; DG3's kid-3 [review] (held p1-g7323g)
+gen 83: row 7 4e41b1bc3b council 3/3 APPROVE (alive 23:02:06Z, aio 23:03:31Z, sp 23:06:11Z); GATE593 running (r593/summary); cut chain tmp/l445/run.sh RUNNING (waits ALLDONE, cuts in :31-:03, sends [merge-up] to belam; out in tmp/l445/cut.out). If the out lands first: relaunch run.sh. NEXT: [landed] to DG3 WHOLE. Kid 3 (p1-g7323g): DG3 [review] 23:1xZ (LEAN landed 0 red 1; A 28 files equal; B red: append conflict + trunk no--p grep) relayed WHOLE to council 23:14Z; words owed -> RELEASED to DG3
 ```
 FIRST: box read whole; ps -o pid,args -u $(id -u) | grep gate-sm (expect: nothing)
 THEN: §1 in order.
