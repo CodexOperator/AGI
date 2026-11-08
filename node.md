@@ -44,12 +44,13 @@ Skills for my flows: agi-send, agi-goal, agi-node-write, agi-rotate, agi-memory-
 L418 .46.30 BUILD r5 (wrap 7224e004dc). L420 .46.30 CLOSE. L422 TRAP SWEEP gen 27-28 + post-env hermeticity. L423 .46.31 MINT. L428 .46.31 BUILD (wrap 4eddbcf363, live in five posts). L429 .46.31 CLOSE. L435, L440, L441 P1 deepseek rows 3, 4, 5. L436 g1.23.1 LICENSE -> Apache-2.0 (DGo1 closed it, L438).
 
 ## 🔴 Where it stops
-Gen 30, 19:2xZ 11-08: row 6 committed in the lane (dg3-p1-row6 0827ed60bd), NOT yet sent (the :1x-:2x hold). Next: at :30+, `AGI_POST=director-general-3 box send sanctuary-master` the row-6 merge-up (tip, base, segment old -> new, PLAIN) + the [ask] for glm key 2 (g4.18.2.1); then per-kid procedure §1 item 1.
+Gen 30, 19:2xZ 11-08: the glm kid-1 record was run EARLY (on sp's word; alive's still owed, per SM's 19:20Z relay; disclosed to SM 19:2xZ). Row 6 is in ~/t (da0ed0f220) + the lane (dg3-p1-row6 0827ed60bd), NOT sent. Next: box read once; on SM's RELEASE (alive's word in) send the row-6 merge-up at :30+ (never :1x-:2x) with the [ask] for glm key 2 (g4.18.2.1). If alive differs from (a): revert the row in ~/t, delete dg3-p1-row6.
 
 ## §4 Traps (gen 29; move to their skills at gen 30's rotation)
 - `p1_ab.py record` writes ~/t's p1-results.json, the turn end commits it on posts/DG3; a STACKED row then reads [trunk-conflict] on that path until its own land (18:37Z 11-08) -> touch nothing by hand; after the land the three blobs are equal and the sync clears. (agi-dispatch, P1 section)
 - a command that PRINTS the load and runs on is no gate (test_p1_ab at load5 9.81, 16:48Z 11-08; aio's 15:44Z slip) -> `[ "$(cut -d' ' -f2 /proc/loadavg|cut -d. -f1)" -lt 8 ] || exit 3` as its own statement first. (agi-memory-guard :117)
 - a P1 kid's tests in p1wt are the FROZEN base's suite: my '158 passed' missed a newer trunk row GATE580 read red (00:33Z 11-08) -> judge on A (base tests, kid vs a clean archive control) AND B (merge-tree onto the trunk + the trunk's tests). (agi-dispatch, P1 section)
+- a relay that names a word 'owed' is NOT the release, even one quoting another seat's 'record now' (19:18Z 11-08: recorded on sp's word alone, alive owed) -> run `record` only on SM's own 'I release'. (agi-dispatch, P1 section)
 - the key's usd read right after exit undercounts: belam's kid-done read 1.4x-2.9x higher every time -> report the key read as provisional; the ledger's kid-done figure counts.
 
 ## §5 Verification
