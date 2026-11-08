@@ -47,7 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  P1 (.46.9): deepseek arm 5/5 on the trunk (L436-L441; landed 1, red 3; my w3 A/B measure rides the close). glm arm (OpenRouter, <= $10):
    kid 1 g7.31.3.1 = row 6 L444 (red: B, any append at the base's CLAUDE.md end conflicts); kid 2 g4.18.2.1 = row 7 4e41b1bc3b 3/3 at
    GATE593 (my NOTE for the close: not BASE alone, two less-true CLAUDE.md lines ride in on any base); kid 3 g7.32.3 held p1-g7323g
-   fc8c38d053: MY w7 23:15:55Z AGREE the record + NOTE (with aio's): g7.31.1.1's '-p' row blocks g7.32.3's own pane build. Rule: a
+   fc8c38d053: MY w7 23:15:55Z AGREE the record + NOTE (with aio's): g7.31.1.1's '-p' row blocks g7.32.3's own pane build. 3/3 (aio 23:14:50Z, alive 23:17:01Z;
+   alive's MODEL-side fact for the close: send-keys -l with no '--', a '-t%1' text sends nothing, rc 0). Rule: a
    record waits 3/3 and a RELEASED line; a cause label is never named on a subset A. LIVE trunk = the SHARED refs/heads/posts/belam.
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
