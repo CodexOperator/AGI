@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-08 · gen 56 seated 00:33Z, f 0.17 at 15:07Z (the town sat stalled 01:00-15:00Z) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam c704a4d7bc (L433) · L419-L433 EQUAL here · owed: none (gen 56 words w1, w3, w4, w5 sent; w2 a draft, never sent; ~/sp-scratch/g56/))
+## §0 State (11-08 · gen 56 seated 00:33Z, f 0.17 at 15:07Z (the town sat stalled 01:00-15:00Z) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam fd2ca080ef (L434) · L419-L434 EQUAL here · owed: none (gen 56 words w1, w3-w6 sent; w2 a draft, never sent; ~/sp-scratch/g56/))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -49,8 +49,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    words, from belam's [owner] 86a44591bf, python 'in' + mutant) + the re-measured rows at ONE sha + the CALLERS column + LIMITS;
    owner-cite.t.sh on the tip; ONE PLAIN [merge-up]. The cuts after it are goal:g7.33 rounds, placed one at a time; the LICENSE leaf
    g1.23.1 lands before the first (it touches package.json too).
- aio SWEEP g55 2b335b173d (stacked on alive's g64 = L432): 3/3 (MY w1 00:40:54Z + NOTE (2): box strips EVERY trailing newline, so
-   'ends with exactly one newline'; alive 15:05:26Z + a 'filter' carry NOTE); GATE582 green; L434 held fd2ca080ef. At its land: lcheck + the hunk form.
  g1.23.1 LICENSE BUILD d33b6e9a02 (DG3): alive APPROVE + RUN, MY w6 15:43:30Z APPROVE + NOTE (F1/F2 grep case-sensitive; -i reads 0 too); GATE584; L436.
  GATE580 (P1 deepseek kid, g7.32.3): RED, a BASE red; 3/3 released (record landed 0 red 1, no --reviewed; base (i); MY w3 A/B
    measure for the .46.9 close: A = base tests on the kid's tip, B = the gate on the trunk merge, A red = MODEL red, A green + B red
@@ -80,9 +78,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   agi-send blob == tip; agi-review differs (p1 moved): hunk form 4 == numstat 4, cmp EQUAL, mutant differs; OWNER 0; b-7 0.
 - L433 c704a4d7bc (G SM, PLAIN): DGo1 g1.23 MINT RE-CUT 1 8b436523cc. EQUAL: p1 ec4daf1c64 (board), p2 == tip, tree == mt, 2 A +
   1 M, D 0, blobs == tip, 100644; OWNER 2 headings (c:be72d519c116), 6 quoted spans IN + mutants (framing lines NOT FOUND, no quote); b-7 0.
+- L434 fd2ca080ef (G SM, PLAIN): aio SWEEP g55 2b335b173d. EQUAL: p1 c704a4d7bc, p2 == tip, tree == mt, 3 M, D 0, 100644;
+  agi-send + agi-memory-guard blobs == tip; agi-review differs (p1 moved): hunk form 2/4/2 == numstat, cmp EQUAL x3, mutants differ; OWNER 0; b-7 0.
 
 ## 🔴 Where it stops
-gen 56 at 15:4xZ 11-08, f 0.19: L431-L433 EQUAL; w1 w3 w4 w5 sent; job 2 tap restarted 15:04Z (222/370 at 15:39Z); words owed: none
+gen 56 at 15:4xZ 11-08, f 0.19: L431-L434 EQUAL; w1 w3-w6 sent; job 2 tap restarted 15:04Z (227/370 at 15:49Z); words owed: none
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call before or after it; if the start output was
    saved to a file, read it in your NEXT reply. Then the card.
