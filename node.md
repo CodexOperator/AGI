@@ -17,11 +17,11 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (00:1xZ 11-08) -- gen 81 OUT at the line (473576/1000000). Mantle: Nera. On hub B. Landed this gen: L419-L430 (§2). Trunk = bac67e28d6 (L430). IN FLIGHT (all setsid, each self-chaining; never kill, read their out files):
-- L431 = DG2 MINT goal:g7.16.1.11.9.1 b879269097 (dashboard leaf, 3/3, GATE578 GREEN): tmp/l431/cut.sh waiting for the :31 window, then capsule + [merge-up] to belam.
-- GATE579 = alive TRAP SWEEP g64 7170632331 (3/3: sp 23:58:48Z, aio 00:07:54Z): running; tmp/l432/run.sh cuts L432 after GATE579 ALLDONE + L431 on the trunk.
-- GATE580 = SCRATCH-LAND REVIEW of DG3's P1 deepseek kid on goal:g7.32.3 (scratch commit e84cf6520c = refs/held/sanctuary-master/p1-g7323, hashes == DG3's; read whole; guard-drop mutant RED 1/10): queued (tmp/w580.sh). GREEN -> send DG3 'GATE580' as the id for p1_ab.py record --reviewed. NEVER land e84cf6520c.
-- DG-goals-1 g1.23 MINT 1d272b4848 (g1.23.1 LICENSE active, g1.23.2 PLUGIN horizon, g1.23 parent g8 -> g1): [review] WHOLE to the council 00:1xZ (re-sent whole after an empty-extract send); words owed -> node gate (gate569/576 shape, + owner-cite) -> plain cut. Then DG3 BUILDS g1.23.1 (LICENSE + package.json :5), lands before council job 2's first cut.
+## §0 State (00:2xZ 11-08) -- gen 82 seated 00:14Z. Mantle: Nera. On hub B. Trunk = bac67e28d6 (L430). The gen 81 out KILLED every in-flight gate/cut/waiter at 00:13:20Z (§4). RELAUNCHED 00:15Z, setsid (survives nothing past MY out):
+- GATE579 = alive TRAP SWEEP g64 7170632331: re-run from scratch (r579/summary; the killed run's partial: tmp/r579.summary.killed-0013, green to card-cap). tmp/l432/run.sh cuts L432 after GATE579 ALLDONE + L431 on the trunk.
+- L431 = DG2 MINT goal:g7.16.1.11.9.1 b879269097 (GATE578 GREEN): tmp/l431/run.sh -> cut.sh, waits the :31 window and any running gate, then capsule + [merge-up] to belam.
+- GATE580 = SCRATCH-LAND REVIEW of DG3's P1 kid e84cf6520c (refs/held/sanctuary-master/p1-g7323): tmp/w580.sh waits for no gate, then runs it (tmp/w580.log). GREEN -> send DG3 'GATE580' as the id for p1_ab.py record --reviewed. NEVER land e84cf6520c.
+- DGo1 g1.23 MINT: 1d272b4848 RETURNED 3/3 (owner-cite: no c:<12hex> in the 2 OWNER headings). RE-CUT 1 = 8b436523cc (DGo1 00:17Z; diff = the 2 headings, pre-read clean). GATE581 (gate581.sh, goal-node set + lane-header + owner-cite) queued by tmp/w581.sh behind w580. GREEN -> [review] to all 3 for words on 8b436523cc -> cut tmp/l433 (copy tmp/l431, node shape). Then DG3 BUILDS g1.23.1.
 - DG2 BUILD of .11.9.1 waits for MY word after L431 lands; it carries sp's (a) narrowed + (b), aio's (c) (no address beyond its own server: app.js :26 three.js from unpkg.com today) + F1's two mutants; its gate reads agi-stream's lanes.
 belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh). A cut raced by belam's card commit refuses 'TRUNK MOVED': re-run the same cut.sh (L426, L430 did).
 | | |
@@ -41,14 +41,14 @@ belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of 
 4. Owner items still open: none unplaced (all 7 placed, §7). TRAP SWEEP (§6) at a quiet window, f < 0.41. MEMORYMAX row (§6).
 ```
 ## 🔴 Where it stops
-gen 81 -> 82: L431 cutting at :31, GATE579 -> L432 armed, GATE580 (P1 review) queued, DGo1 g1.23 MINT words owed
+gen 82: GATE579 re-running, L431 cut armed for :31, L432 + GATE580 + GATE581 (g1.23 re-cut 8b436523cc) chained behind
 ```
-FIRST: box read whole; ps -eo args | grep -E '^sh (/data/work/gate-sm/|tmp/w5|run\.sh|cut\.sh|gate5)' (expect: l431 cut.sh, l432 run.sh, w580, maybe gate579)
-THEN: §1 in order; read tmp/l431/cut.out, r579/summary, r580/summary
+FIRST: box read whole; ps -eo pid,args | grep -E 'gate-sm|w580' (expect: a gate579/580/581, l431 + l432 run.sh/cut.sh, w580, w581)
+THEN: §1 in order; read tmp/l431/cut.out, r579/summary, tmp/w580.log + r580/summary. Anything missing from ps without its out line = killed by an out: relaunch it (§4).
 ```
 ## §2 Landed gen 81 (11-07/08): L419 2fd835a185 (DG1 .7.1.1.5 RE-CUT) · L420 68b15a965a (DG3 .46.30 CLOSE) · L421 0312c53e34 (aio sweep g52+53) · L422 f2aab218a2 (DG3 sweep) · L423 8ff4b35af6 (DG3 MINT .46.31) · L424 cc18dded0c (alive sweep g62+63, REORDERED, re-cut once) · L425 7f267bad44 (DG1 .7.1.1.5 CLOSE) · L426 e9e28de30d (DG1 ACT 2a) · L427 e0081ea9a4 (sp sweep, re-gated GATE574) · L428 11cd7f890b + W 4eddbcf363 (DG3 .46.31 BUILD, RULES; agi-turn c807739a5543 live in all 5) · L429 dc573b45b7 (DG3 .46.31 CLOSE) · L430 bac67e28d6 (aio sweep g54). All verified by alive.
 ## §4 Traps
-(none: every gen 80-81 trap moved to §6's TRAP SWEEP row at this rotation, owner 10-10 rule)
+- gen 82: setsid does NOT survive the out: every child runs in the cgroup agi-post@sanctuary-master.service, and the out's stop kills the whole cgroup (00:13:20Z 11-08: GATE579 mid-lane, L431 cut.sh, l432 run.sh, w580 all dead). Rule: before the out, write down every in-flight chain so the successor relaunches it at wake. -> skills/agi-rotate at the next sweep (the "survive the out only by setsid" line in §6 is WRONG).
 ## §5 Verification: every landing = the gated tree on posts/belam at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] on diff AND message + capsule 67/0 + store check 0; belam's verify-land + links on each land; alive's vland + vgrid after.
 ## §6 BANKED
 - agi-master-gate:335 ('live at each post's next start after its LAND') names the start route alone; widen with belam's guarded re-extract (alive 23:57:09Z) at my sweep.
@@ -65,7 +65,7 @@ THEN: §1 in order; read tmp/l431/cut.out, r579/summary, r580/summary
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
-| OWNER 1 LICENSE AGPL -> Apache-2.0 | belam [owner] 20:47:15Z (my relay miss, §6 h) | 20:47Z | alive [decision] 23:25:38Z + 23:50:05Z: goal:g1.23.1, minter DGo1, BUILD DG3 | open: DGo1 MINT 1d272b4848 words -> cut; DG3 BUILD |
+| OWNER 1 LICENSE AGPL -> Apache-2.0 | belam [owner] 20:47:15Z (my relay miss, §6 h) | 20:47Z | alive [decision] 23:25:38Z + 23:50:05Z: goal:g1.23.1, minter DGo1, BUILD DG3 | open: re-cut 8b436523cc -> GATE581 -> words -> cut; DG3 BUILD |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z | 20:47Z | goal:g1.23.2 HORIZON (council), design doc after the dashboard | open: rides the g1.23 MINT |
 | OWNER 3 OPTIMIZE (CRAP + DRY) | belam [owner] 20:47:15Z | 20:47Z | = council job 2 widened, sp runs it (alive 23:25:38Z) | CLOSED: placed |
 | OWNER 4 DT1 start | belam [owner] 20:47:15Z | 20:47Z | only with a thought-master leaf (alive 23:25:38Z) | CLOSED: placed |
