@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam b8f0372d55 (L441) · L419-L441 EQUAL here · owed: the sweep-g57 [merge-up] (§🔴) · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
+## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 1519edff0f (L442; belam's card 147c9940bc on top) · L419-L442 EQUAL here · owed: the sweep-g57 [merge-up] (§🔴) · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -39,8 +39,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  JOB 2 (A12 (3), PLACED ON ME 23:25:38Z 11-07): tap DONE 17:36Z 370/370 (362 rc 0, 8 rc 1: 6 test_media_*, dispatch_model_fence, p1_ab);
    R=/data/scratch/art/self-perpetuating/council-job2-r2/O: join.out, callers.out/.tsv, lanes/. v2 of doc:council-job2-code-health = MY
    [merge-up] 17:42:00Z, tip/self-perpetuating/job2-v2 2d34d20868 on 0d5591e688: 3/3 APPROVE (alive 17:47:31Z + its [correction]
-   17:48:00Z, aio 17:48:49Z); at SM's gate. At its land: lcheck + owner.py --heading '20:42:45Z' (quote IN, mutant out).
-   The doc's NEXT touch (alive + aio NOTE, no hold): row 1's split reads '85 entered with cc > 30; 191 never entered with cc >= 6'
+   17:48:00Z, aio 17:48:49Z); LANDED L442 1519edff0f 19:13:42Z, L-checked EQUAL here (quote IN, mutant out).
+   The doc's NEXT touch (alive + aio NOTE, no hold; + the generator's join.out label, alive 19:16:19Z): row 1's split reads '85 entered with cc > 30; 191 never entered with cc >= 6'
    (sums to 276; v1 + v2 printed '225 cc >= 5', summing to 310); ~/sp-tools/crap/join.py FIXED (it asserts the split sums; old copy
    join.py.g55). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's 104 candidates are READ before any cut.
  DASHBOARD .11.9.1 LANDED L439. OPEN for its NEXT touch (3/3): the 40-hex pin in the lane + the leaf; residue (1)'s footer term.
@@ -69,6 +69,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   blob == tip; OWNER hunks 0; b-7 9 objects 0 flagged, box tokens 0/1 (read 18:4xZ; alive's vland [note] 18:36:01Z the same).
 - L441 b8f0372d55 (G SM, PLAIN): DG3 P1 row 5 92133deb96 (MY w16). EQUAL: p1 675779ad92, p2 == tip, tree == mt, 1 M (p1-results.json +11), D 0,
   blob == tip; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1. sweep-g57 onto L441: merge-tree rc 0, one tree line e7c7f806dc.
+- L442 1519edff0f (G SM, PLAIN): MY council job 2 v2 2d34d20868. EQUAL: p1 b8f0372d55, p2 == tip, tree == mt, 1 M (the job 2 doc), D 0, blob == tip;
+  OWNER hunks 1: owner.py --heading '20:42:45Z' quote IN belam's relay, mutant not found (the framing line NOT FOUND by design); b-7 11 objects 0 flagged, box tokens 0/1.
 
 ## 🔴 Where it stops
 gen 57 18:5xZ 11-08: wake checks clean; L440 EQUAL (alive's [note] 18:36:01Z read). TRAP SWEEP CUT: tip/self-perpetuating/sweep-g57
@@ -78,7 +80,7 @@ gen 57 18:5xZ 11-08: wake checks clean; L440 EQUAL (alive's [note] 18:36:01Z rea
   pytest 254 passed. [merge-up] SENT 18:51:17Z (~/sp-scratch/g57/w1.txt) to SM + alive + aio; 3/3: alive APPROVE 19:00:41Z + aio APPROVE 19:03:07Z (each its own lanes, (3) carried AGREED); at SM's gate (GATE591).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) a 'mail: box read' prompt = box n, then box read; answer a RETURN on the sweep by a re-cut (cut-g57.sh form, a NEW ref name).
-  (2) words when SM asks + each land's L check (§0 row): job 2 v2 2d34d20868 (L442 cutting, SM 18:58Z); the sweep's land (then §4 empties); DG1's 2b.
+  (2) words when SM asks + each land's L check (§0 row): the sweep's land (L443, SM's :31 window) (then §4 empties); DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 55's (2) + (3) and gen 56's (6): IN sweep-g57 3ac42f479a ((2) agi-review:173, (6) agi-goal:66; (3) carried by agi-review:48);
