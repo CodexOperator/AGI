@@ -12,7 +12,7 @@ bytes with a DOM stub:
 Nothing here touches a browser, a live pane, or the real .agi.
 
 Mechanics (same shape as test_graphweb_page_r160.py):
-  * fetch THREE_URL once into a cache dir (SKIP-not-fail when unreachable);
+  * read the VENDORED three r160 (web/vendor/three, PIN.txt; no network);
   * load app.js, swap ONLY the THREE_URL constant for the local file URL;
   * run `node` on pan_pick_harness.mjs, which imports the same pinned three,
     records the renderer domElement listeners, dispatches a right-drag pan and
@@ -29,7 +29,6 @@ import json
 import shutil
 import subprocess
 import sys
-import urllib.request
 from pathlib import Path
 
 import pytest
@@ -41,22 +40,15 @@ GRAPH_WEB = TESTS.parent / "web" / "graph"
 APP_JS = GRAPH_WEB / "app.js"
 HARNESS = TESTS / "pan_pick_harness.mjs"
 
-THREE_URL = "https://unpkg.com/three@0.160.0/build/three.module.js"
-THREE_CACHE = Path.home() / ".cache" / "agi-graphweb"
-THREE_PINNED = THREE_CACHE / "three-0.160.0.module.js"
+# The pinned three r160 the page loads: the vendored, unmodified file graphweb
+# serves at /vendor/three.module.min.js (PIN.txt beside it). No network.
+THREE_PINNED = TESTS.parent / "web" / "vendor" / "three" / "three.module.min.js"
+APP_THREE_LINE = 'const THREE_URL = "/vendor/three.module.min.js";'
 
 
 def _pinned_three_bytes() -> bytes | None:
-    if THREE_PINNED.is_file():
-        return THREE_PINNED.read_bytes()
-    try:
-        with urllib.request.urlopen(THREE_URL, timeout=45) as r:  # noqa: S310
-            body = r.read()
-    except Exception:  # noqa: BLE001  no network -> skip, not fail
-        return None
-    THREE_CACHE.mkdir(parents=True, exist_ok=True)
-    THREE_PINNED.write_bytes(body)
-    return body
+    """The vendored three r160 bytes; None when the file is absent (SKIP)."""
+    return THREE_PINNED.read_bytes() if THREE_PINNED.is_file() else None
 
 
 def _rewritten_app(tmp_path: Path, kind: str) -> Path:
@@ -65,12 +57,13 @@ def _rewritten_app(tmp_path: Path, kind: str) -> Path:
     src = APP_JS.read_text(encoding="utf-8")
     pinned = _pinned_three_bytes()
     if not pinned:
-        pytest.skip("three r160 CDN bytes unreachable; cannot build falsifier")
+        pytest.skip("vendored three r160 absent; cannot build falsifier")
     three = tmp_path / "three.module.js"
     three.write_bytes(pinned)
 
+    assert src.count(APP_THREE_LINE) == 1, "app.js THREE_URL line moved"
     swapped = src.replace(
-        'const THREE_URL = "https://unpkg.com/three@0.160.0/build/three.module.js";',
+        APP_THREE_LINE,
         f'const THREE_URL = {three.as_uri()!r};')
 
     if kind == "prefix":
@@ -122,7 +115,7 @@ def _run_harness(app_file: Path, three_file: Path) -> dict:
 def three_bytes(tmp_path):
     pinned = _pinned_three_bytes()
     if not pinned:
-        pytest.skip("three r160 CDN bytes unreachable")
+        pytest.skip("vendored three r160 absent")
     three = tmp_path / "three.module.js"
     three.write_bytes(pinned)
     return three

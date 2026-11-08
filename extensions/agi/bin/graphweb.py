@@ -62,6 +62,7 @@ import struct
 import subprocess
 import sys
 import zlib
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -1323,6 +1324,111 @@ def _incremental_layout(surviving: dict, ids: set, edges: list,
 
 
 # --------------------------------------------------------------------------- #
+# Views 2-4: crew / workflow / comms (goal:g7.16.1.11.9.1)                     #
+# --------------------------------------------------------------------------- #
+#: The workflow cycle's stages, in order (the leaf's Target, view 3).
+WORKFLOW_STAGES = ["turn end", "lane tip", "gate", "[merge-up]", "land",
+                   "wrap", "re-extract"]
+
+#: The ONLY keys a crew row carries: never uid, home, host, key, persona or session.
+CREW_KEYS = ("name", "parent", "role", "tier", "boot")
+
+#: Every byte served under /vendor/: one pinned, unmodified file (PIN.txt).
+VENDOR = {"three.module.min.js": Path(__file__).resolve().parent.parent
+          / "web" / "vendor" / "three" / "three.module.min.js"}
+
+
+def _git(src: Path, *args) -> str | None:
+    """stdout of one READ-ONLY git call in `src`, or None on any failure."""
+    try:
+        r = subprocess.run(["git", "-C", str(src), *args],
+                           capture_output=True, text=True, timeout=30)
+    except Exception:                                             # noqa: BLE001
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+def head_sha(graph_root: Path, rev: str | None = None) -> str | None:
+    """40-hex sha of `rev` (else env GRAPHWEB_REV, else HEAD), or None."""
+    rev = rev or os.environ.get("GRAPHWEB_REV") or "HEAD"
+    out = _git(source_root(graph_root), "rev-parse", "--verify", "-q",
+               rev + "^{commit}")
+    return out.strip() if out else None
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _frontmatter_at(graph_root: Path, sha: str | None, name: str):
+    """Frontmatter of nodes/.geometry/<name> as committed at `sha` (git show),
+    or None when unreadable. Never the working tree."""
+    if not sha:
+        return None
+    rel = f"./{Path(graph_root).name}/nodes/.geometry/{name}"
+    raw = _git(source_root(graph_root), "show", f"{sha}:{rel}")
+    if raw is None:
+        return None
+    fm = parse_frontmatter(raw)
+    return fm or None
+
+
+def _clock(job) -> str | None:
+    """A crons.md job's schedule cell as written: `schedule`, else every_mins."""
+    if not isinstance(job, dict):
+        return None
+    if job.get("schedule"):
+        return str(job["schedule"])
+    if job.get("every_mins") is not None:
+        return f"every {job['every_mins']} min"
+    return None
+
+
+def build_views(graph_root: Path, rev: str | None = None,
+                window_s: int = 86400) -> dict:
+    """The ONE export for views 2-4 (crew, workflow, comms). Every file read is
+    `git show <sha>:<path>` at ONE sha; box counts are `git rev-list --count`
+    over the window. Post names and counts only; a view that read nothing says
+    so in `read_nothing` and carries an empty list."""
+    sha = head_sha(graph_root, rev)
+    at = sha[:12] if sha else "an unresolvable rev"
+    built_at = _utc_now()
+
+    posts = _frontmatter_at(graph_root, sha, "posts.md")
+    rows = [r for r in (posts or {}).get("posts") or [] if isinstance(r, dict)]
+    crew = [{k: r.get(k) for k in CREW_KEYS} for r in rows]
+    crew_rn = None if crew else f"crew: read nothing (posts.md unreadable or empty at {at})"
+
+    crons = _frontmatter_at(graph_root, sha, "crons.md")
+    jobs = (crons or {}).get("cadences") or {}
+    clocks = ([{"job": str(n), "schedule": _clock(j)} for n, j in jobs.items()]
+              if isinstance(jobs, dict) else [])
+    wf_rn = None if clocks else f"workflow: read nothing (crons.md cadences unreadable or empty at {at})"
+
+    names = {r["name"] for r in crew if isinstance(r.get("name"), str)}
+    edges = []
+    since = "--since=@%d" % (int(datetime.now(timezone.utc).timestamp()) - int(window_s))
+    refs = _git(source_root(graph_root), "for-each-ref",
+                "--format=%(refname)", "refs/box/") or ""
+    for ref in sorted(refs.split()):
+        parts = ref.split("/")
+        if len(parts) != 4 or parts[2] not in names or parts[3] not in names:
+            continue
+        n = _git(source_root(graph_root), "rev-list", "--count", since, ref)
+        if n is None:
+            continue
+        edges.append({"from": parts[2], "to": parts[3], "count": int(n.strip())})
+    comms_rn = None if edges else (
+        f"comms: read nothing (no refs/box/<from>/<to> between two posts.md names; posts read at {at})")
+
+    return {"sha": sha, "built_at": built_at, "window_s": int(window_s),
+            "crew": {"rows": crew, "read_nothing": crew_rn},
+            "workflow": {"stages": list(WORKFLOW_STAGES), "clocks": clocks,
+                         "read_nothing": wf_rn},
+            "comms": {"edges": edges, "read_nothing": comms_rn}}
+
+
+# --------------------------------------------------------------------------- #
 # HTTP server                                                                  #
 # --------------------------------------------------------------------------- #
 def _json(handler: BaseHTTPRequestHandler, payload: dict | list,
@@ -1364,7 +1470,31 @@ class GraphHandler(BaseHTTPRequestHandler):
     def do_GET(self):                                                   # noqa: N802
         path = self.path.split("?")[0]
         if path in ("/graph.json", "/graph.json/"):
-            _json(self, cached_build_graph(self.graph_root))
+            g = dict(cached_build_graph(self.graph_root))
+            g["sha"] = head_sha(self.graph_root, "HEAD")
+            g["built_at"] = _utc_now()
+            _json(self, g)
+        elif path in ("/views.json", "/views.json/"):
+            import anonymize  # noqa: PLC0415  (same bin dir; the privacy gate)
+            views = build_views(self.graph_root)
+            hits = anonymize.scan(json.dumps(views), [])
+            if hits:
+                _json(self, {"error": "anonymize", "kinds": hits}, 500)
+            else:
+                _json(self, views)
+        elif path.startswith("/vendor/"):
+            f = VENDOR.get(path[len("/vendor/"):])
+            if f is not None and f.is_file():
+                body = f.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/javascript; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
         elif path in ("/live.json", "/live.json/"):
             _json(self, live_view(self.graph_root))
         elif path in ("/commands.json", "/commands.json/"):

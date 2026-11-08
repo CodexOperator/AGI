@@ -23,7 +23,9 @@
 //     stands at its layout position.
 "use strict";
 
-const THREE_URL = "https://unpkg.com/three@0.160.0/build/three.module.js";
+// The pinned, vendored three r160 (extensions/agi/web/vendor/three/PIN.txt),
+// served by graphweb itself: the page reads nothing off this box.
+const THREE_URL = "/vendor/three.module.min.js";
 
 const state = {
   data: null, live: null,
@@ -68,6 +70,7 @@ function applyGraph(data) {
   const p = data.palette || {};
   state.palette = { ground: p.ground || "#0f1216", gold: p.gold || "#a48c5a" };
   document.body.style.background = state.palette.ground;
+  if (currentView === "graph") setFoot(data);
 }
 
 async function loadData() {
@@ -691,7 +694,7 @@ async function boot() {
   try { await loadData(); }
   catch (e) { log("could not load /graph.json — " + e.message); return; }
   try { THREE = await import(THREE_URL); }
-  catch (e) { THREE = null; log("three.js CDN unreachable"); }
+  catch (e) { THREE = null; log("three.js unavailable (/vendor)"); }
   if (THREE != null) {
     try { render3D(); }
     catch (e) { log("3D failed (" + e.message + ") — degraded 2D"); draw2D(); }
@@ -699,6 +702,148 @@ async function boot() {
     draw2D();
   }
   startPoll();
+}
+
+// ------------------------------------------------------------- views 2-4
+// goal:g7.16.1.11.9.1: Graph | Crew | Workflow | Comms. Graph is the 3D view
+// above, unchanged. The other three fetch ONLY /views.json (one export, one
+// trunk sha) and draw with plain DOM/SVG; crew also marks a post live from
+// the /live.json the 5 s poll already holds (a dot, never a number). A view
+// whose source read nothing shows its read_nothing words, never an empty
+// picture. The footer names the shown export's sha (12) + built_at.
+let currentView = "graph";
+
+function setFoot(d) {
+  const el = document.getElementById("foot");
+  if (!el || !d) return;
+  el.textContent = "sha " + (d.sha ? String(d.sha).slice(0, 12) : "unknown") +
+    " · built " + (d.built_at || "unknown");
+}
+
+const esc = (v) => String(v == null ? "" : v).replace(/[&<>"]/g,
+  (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+function nothing(words) {
+  return words ? '<p class="nothing">' + esc(words) + "</p>" : "";
+}
+
+function crewHTML(v) {
+  const c = v.crew || {};
+  const rows = c.rows || [];
+  const live = new Set(((state.live && state.live.seats) || [])
+    .filter((s) => s.active).map((s) => s.seat));
+  const names = new Set(rows.map((r) => r.name));
+  const kids = {};
+  for (const r of rows) {
+    const p = names.has(r.parent) ? r.parent : "";
+    (kids[p] = kids[p] || []).push(r);
+  }
+  const seen = new Set();
+  const tree = (p) => {
+    const list = (kids[p] || []).filter((r) => !seen.has(r.name));
+    if (!list.length) return "";
+    return "<ul>" + list.map((r) => {
+      seen.add(r.name);
+      const tags = [r.role, r.tier != null ? "tier " + r.tier : "",
+                    r.boot ? "boot" : ""].filter(Boolean).join(" · ");
+      return '<li><span class="' + (live.has(r.name) ? "on" : "off") +
+        '">●</span> <b>' + esc(r.name) + "</b> <i>" + esc(tags) + "</i>" +
+        tree(r.name) + "</li>";
+    }).join("") + "</ul>";
+  };
+  return "<h2>crew — the post tree by parent</h2>" + nothing(c.read_nothing) +
+    tree("");
+}
+
+function workflowHTML(v) {
+  const w = v.workflow || {};
+  const st = w.stages || [];
+  const R = 150, C = 210, n = Math.max(1, st.length);
+  const pt = (i) => [C + R * Math.sin(2 * Math.PI * i / n),
+                     C - R * Math.cos(2 * Math.PI * i / n)];
+  let svg = '<svg width="420" height="420" viewBox="0 0 420 420">';
+  st.forEach((name, i) => {
+    const [x1, y1] = pt(i), [x2, y2] = pt((i + 1) % n);
+    svg += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+      '" stroke="#5a4c30" stroke-width="2"/>';
+  });
+  st.forEach((name, i) => {
+    const [x, y] = pt(i);
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#a48c5a"/>' +
+      '<text x="' + x + '" y="' + (y - 12) + '" fill="#ffd27a" ' +
+      'text-anchor="middle" font-size="13">' + (i + 1) + ". " + esc(name) +
+      "</text>";
+  });
+  svg += "</svg>";
+  const clocks = (w.clocks || []).map((c) => "<li><b>" + esc(c.job) +
+    "</b>: " + esc(c.schedule == null ? "no schedule cell" : c.schedule) +
+    "</li>").join("");
+  return "<h2>workflow cycle</h2>" + svg + "<h3>clocks (crons.md)</h3>" +
+    nothing(w.read_nothing) + (clocks ? "<ul>" + clocks + "</ul>" : "");
+}
+
+function commsHTML(v) {
+  const c = v.comms || {};
+  const ed = c.edges || [];
+  const who = [...new Set(ed.flatMap((e) => [e.from, e.to]))].sort();
+  const cnt = {};
+  for (const e of ed) cnt[e.from + "\u0000" + e.to] = e.count;
+  let t = "";
+  if (who.length) {
+    t = "<table><tr><th>from \\ to</th>" +
+      who.map((n) => "<th>" + esc(n) + "</th>").join("") + "</tr>";
+    for (const f of who) {
+      t += "<tr><th>" + esc(f) + "</th>" + who.map((to) => {
+        const k = f + "\u0000" + to;
+        return "<td>" + (k in cnt ? esc(cnt[k]) : "") + "</td>";
+      }).join("") + "</tr>";
+    }
+    t += "</table>";
+  }
+  const hours = Math.round((Number(v.window_s) || 0) / 360) / 10;
+  return "<h2>comms cycle — box messages per edge, last " + esc(hours) +
+    " h</h2>" + nothing(c.read_nothing) + t;
+}
+
+async function setView(name) {
+  currentView = name;
+  const panel = document.getElementById("panel");
+  const tip = document.getElementById("tip");
+  for (const b of document.querySelectorAll("#views button")) {
+    b.className = b.dataset.view === name ? "sel" : "";
+  }
+  if (name === "graph") {
+    panel.style.display = "none";
+    stage.style.display = "";
+    if (tip) tip.style.display = "";
+    setFoot(state.data);
+    return;
+  }
+  stage.style.display = "none";
+  if (tip) tip.style.display = "none";
+  panel.style.display = "block";
+  panel.innerHTML = "<p>loading /views.json…</p>";
+  let v;
+  try { v = await getJSON("/views.json"); }
+  catch (e) {
+    if (currentView === name) {
+      panel.innerHTML = nothing(name + ": read nothing (/views.json: " +
+                                e.message + ")");
+    }
+    return;
+  }
+  if (currentView !== name) return;
+  const draw = { crew: crewHTML, workflow: workflowHTML, comms: commsHTML }[name];
+  panel.innerHTML = draw(v);
+  setFoot(v);
+}
+
+const viewsNav = document.getElementById("views");
+if (viewsNav) {
+  viewsNav.addEventListener("click", (ev) => {
+    const b = ev.target && ev.target.closest && ev.target.closest("button");
+    if (b && b.dataset && b.dataset.view) setView(b.dataset.view);
+  });
 }
 
 // Page-falsifier seam: expose the boot lifecycle for the node harness that
