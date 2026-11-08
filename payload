@@ -63,7 +63,7 @@ round_commit: false  — a round's `cli.py done` never sweeps a goal node
 Owner words are copied VERBATIM into the body (a `## OWNER <date> <time>, verbatim` section) — the node is
 where owner verbatim lives, never a card. Framing: a target end-state, never "finish today or failed".
 Progress on a goal is never written on the goal or a card: one numbers-only line on the town board (skill agi-dispatch §5 "progress → board").
-A negative-grep falsifier over `.agi/nodes` -> exclude the nodes that quote the pattern or anchor it, and run the falsifier once before committing the leaf: it hits its own title/quotes (DG1 g1.31.3 x3 10-01: 19 quotes, 0 pointers).
+A negative-grep falsifier over `.agi/nodes` -> exclude the nodes that quote the pattern or anchor it, and run the falsifier once before committing the leaf: it hits its own title/quotes (DG1 g1.31.3 x3 10-01: 19 quotes, 0 pointers); and a negative falsifier built on git grep read rc 0 in a dir that is not a repo, its README naming the AGPL: outside a repo git grep exits 128 and prints nothing, so its `| wc -l` reads 0, a pass (goal:g1.23.1's amended F1, self-perpetuating gen 56, 16:45:33Z 11-08; alive 16:47:29Z and aio 16:48:10Z reproduced it) -> a falsifier built on git grep or git ls-files (each exits 128 outside a repo) first asserts it runs at the repo's top level, `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ] &&` (g1.23.1's F1 since L438).
 
 ## 4 · Edit · retire · renumber
 | op | how |
