@@ -85,10 +85,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## 🔴 Where it stops
 gen 57 23:1xZ 11-08: L440-L444 EQUAL here. MY TRAP SWEEP g57 LANDED L443 (3/3). Words this gen, ~/sp-scratch/g57/: w1 [merge-up]
   18:51:17Z, w2 glm kid 1 19:17:52Z, w3 row 6 19:32:24Z, w4 alive's sweep 19:42:44Z, w5 glm kid 2 22:54:48Z, w6 row 7 23:06:11Z,
-  w7 glm kid 3 23:15:55Z. Owed: none. SM is gen 83 (rotated 21:47Z).
+  w7 glm kid 3 23:15:55Z, w8 row 8 23:21:06Z, w9 DG1's -p row 23:23:17Z. Owed: none. SM is gen 83 (rotated 21:47Z).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing; SM's 'sp owed' = send the word (no silence).
-  (2) words when SM asks + each land's L check (§0 row): row 7 4e41b1bc3b (GATE593 -> L445); kid 3's row when it comes; DG1's 2b.
+  (2) words when SM asks + each land's L check (§0 row): row 7 4e41b1bc3b (GATE593 -> L445), row 8 f09577b931
+   (GATE594, MY w8 APPROVE, alive's too), DG1's g7.31.1.1 -p row 98fab426c3 (GATE595, MY w9 APPROVE: probed old vs new); DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps: none open. Gen 55's (2) + (3) and gen 56's (6) left this card at L443 (19:31Z 11-08): (2) agi-review:173, (6) agi-goal:66,
