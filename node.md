@@ -42,7 +42,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lan
 4. Quiet window: TRAP SWEEP (§6) + gen 82's §4 traps -> skills/agi-master-gate (RULES, ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 83: row 7 4e41b1bc3b council 3/3 APPROVE (alive 23:02:06Z, aio 23:03:31Z, sp 23:06:11Z); GATE593 running (r593/summary); cut chain tmp/l445/run.sh RUNNING (waits ALLDONE, cuts in :31-:03, sends [merge-up] to belam; out in tmp/l445/cut.out). If the out lands first: relaunch run.sh. NEXT: [landed] to DG3 WHOLE. Kid 3 (p1-g7323g): RELEASED to DG3 23:17Z (3/3: aio 23:14:50Z, sp 23:15:55Z, alive 23:17:01Z WHOLE; alive model-side: PaneHandle.send lacks '--'); NEXT DG3's row-8 [merge-up] -> gate (593 set) -> cut l446 from l445
+gen 83 (23:2xZ): QUEUE: (1) L445 = row 7 4e41b1bc3b, 3/3, GATE593 ALLDONE GREEN 23:19Z (351/0, links 0, lanes 0 FAIL); cut chain tmp/l445/run.sh RUNNING, cuts at :31, sends [merge-up] to belam (out tmp/l445/cut.out; if the out lands first, relaunch run.sh). (2) row 8 f09577b931 STACKED on row 7 (kid 3 record): GATE594 running (r594), words owed; cut l446 from l445 AFTER L445 lands. (3) DG1 98fab426c3 (g7.31.1.1 falsifier-2 row, test + build node, plain): GATE595 chained after 594 (r595); relayed to council 23:20Z, words owed. glm key 4 (g4.21): belam MINTED 23:20:03Z (row 9), relayed to DG3 23:20Z; kid 4 runs, kid-done via belam. NEXT: [landed] to builders WHOLE
 ```
 FIRST: box read whole; ps -o pid,args -u $(id -u) | grep gate-sm (expect: nothing)
 THEN: §1 in order.
