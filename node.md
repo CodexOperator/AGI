@@ -13,7 +13,7 @@ origin: owner
 scaffold_hash: b7a4a7eea5a89a7b
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - council-loop
   - redesign
@@ -38,3 +38,7 @@ the sibling leaves goal:g7.16.1.11.1 through goal:g7.16.1.11.10, each its own en
 "let's make the spider visualization work first. Worry about that sanctuary viz later. And do all other parts first before doing viz stuff." (owner 06:5xZ; verbatim on goal:g7.16.1.11)
 ## Agent Notes
 Assigned to **sanctuary-master**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-2 11-07 (alive [decision] 23:24:04Z 3/3, SM [placement] 23:2xZ): horizon -> active with its first leaf, goal:g7.16.1.11.9.1 (the dashboard: one graphweb export, four views), minted in the same commit; the owner's 23:0xZ ask names that deliverable 'when it's ready'. Nothing else in this node changes; its other parts stay horizon work under it.
+<!-- THOUGHT:END -->
