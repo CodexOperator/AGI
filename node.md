@@ -3,9 +3,9 @@ id: goal:g1.23
 mint_id: 06a693d0580646d0924eaf956b8c12e8
 type: goal
 parents:
-  - goal:g8
+  - goal:g1
 confidence: 1.0
-edited_by: season.py
+edited_by: director-goals-1
 goal_id: G1.23
 goal_kind: subgoal
 heading_level: 3
@@ -57,3 +57,7 @@ the three shapes.
 question — a directory of scripts named `bin/` is exactly what a package
 layout would have to rename anyway, and it is currently costing GitNexus
 coverage of all fifteen entry points.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 11-07 (parent re-point, v2; council T2, alive [decision] 23:50:05Z 11-07): parent goal:g8 -> goal:g1, finishing the renumber da2edb3f9e (09-20 13:09Z). goal:g8 is retired (superseded 09-19 by the g20-g26 glom); that renumber moved g8's two seeds and gave only g1.24 the parent goal:g1, so this node was the one live goal still parented on goal:g8. id goal:g1.23, goal_id G1.23 and mint_id 06a693d0580646d0924eaf956b8c12e8 kept. Status stays horizon (aio's term): its two new children, g1.23.1 (license, active) and g1.23.2 (plugin, horizon), do not choose its shape. Body unchanged.
+<!-- THOUGHT:END -->
