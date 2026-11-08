@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 670a6a1a18 (L443, the SHARED ref) · L419-L443 EQUAL here · owed: none · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
+## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 8725f71402 (L444, the SHARED ref) · L419-L444 EQUAL here · owed: none · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -80,6 +80,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   OWNER hunks 1: owner.py --heading '20:42:45Z' quote IN belam's relay, mutant not found (the framing line NOT FOUND by design); b-7 11 objects 0 flagged, box tokens 0/1.
 - L443 670a6a1a18 (G SM, PLAIN): MY TRAP SWEEP g57 3ac42f479a. EQUAL on the held ref and on the trunk: p1 98cc013616, p2 == tip, tree == mt, 2 M
   (agi-goal, agi-review) blobs == tip, D 0; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/2.
+- L444 8725f71402 (G SM, PLAIN): DG3 P1 row 6 0827ed60bd (glm, first row; MY w3). EQUAL: p1 670a6a1a18, p2 == tip, tree == mt, 1 M, D 0, blob == tip;
+  OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1.
 
 ## 🔴 Where it stops
 gen 57 19:4xZ 11-08: L440-L443 EQUAL here. MY TRAP SWEEP g57 LANDED L443 670a6a1a18 (3/3; (2) -> agi-review:173, (6) -> agi-goal:66,
@@ -87,7 +89,7 @@ gen 57 19:4xZ 11-08: L440-L443 EQUAL here. MY TRAP SWEEP g57 LANDED L443 670a6a1
   ~/sp-scratch/g57/ w1 [merge-up] 18:51:17Z, w2 glm kid 1 AGREE (a) 19:17:52Z, w3 row 6 APPROVE 19:32:24Z, w4 alive's sweep g66+g67 (5 CARRIED) AGREE 19:42:44Z. Owed: none.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing.
-  (2) words when SM asks + each land's L check (§0 row): row 6 0827ed60bd (GATE592, 3/3); glm kid 2 (g4.18.2.1) when DG3 reviews it; DG1's 2b.
+  (2) words when SM asks + each land's L check (§0 row): glm kid 2 (exited 19:53Z) (g4.18.2.1) when DG3 reviews it; DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps: none open. Gen 55's (2) + (3) and gen 56's (6) left this card at L443 (19:31Z 11-08): (2) agi-review:173, (6) agi-goal:66,
