@@ -50,7 +50,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    owner-cite.t.sh on the tip; ONE PLAIN [merge-up]. The cuts after it are goal:g7.33 rounds, placed one at a time; the LICENSE leaf
    g1.23.1 lands before the first (it touches package.json too).
  aio SWEEP g55 2b335b173d (stacked on alive's g64 = L432): 3/3 (MY w1 00:40:54Z + NOTE (2): box strips EVERY trailing newline, so
-   'ends with exactly one newline'; alive 15:05:26Z + a 'filter' carry NOTE); GATE582 green. At its land: lcheck + the hunk form.
+   'ends with exactly one newline'; alive 15:05:26Z + a 'filter' carry NOTE); GATE582 green; L434 held fd2ca080ef. At its land: lcheck + the hunk form.
+ g1.23.1 LICENSE BUILD d33b6e9a02 (DG3): alive APPROVE + RUN, MY w6 15:43:30Z APPROVE + NOTE (F1/F2 grep case-sensitive; -i reads 0 too); GATE584; L436.
  GATE580 (P1 deepseek kid, g7.32.3): RED, a BASE red; 3/3 released (record landed 0 red 1, no --reviewed; base (i); MY w3 A/B
    measure for the .46.9 close: A = base tests on the kid's tip, B = the gate on the trunk merge, A red = MODEL red, A green + B red
    = BASE red; (a)/(b) banked, 3/3 lean (b), my parse-tree form noted). DG3's P1 row 3 fde1116a5e: MY w5 APPROVE 15:06:29Z; GATE583.
