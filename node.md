@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 675779ad92 (L440) · L419-L440 EQUAL here · owed: the sweep-g57 [merge-up] (§🔴) · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
+## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam b8f0372d55 (L441) · L419-L441 EQUAL here · owed: the sweep-g57 [merge-up] (§🔴) · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -45,7 +45,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    join.py.g55). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's 104 candidates are READ before any cut.
  DASHBOARD .11.9.1 LANDED L439. OPEN for its NEXT touch (3/3): the 40-hex pin in the lane + the leaf; residue (1)'s footer term.
  P1 deepseek arm 5/5 (landed 1, red 3; my w3 A/B measure rides .46.9's close; held p1-g7323, p1-g421, p1-g7321). Row 4 2694c5268d (MY w14)
-   LANDED L440; row 5 92133deb96 (MY w16, 3/3) next (GATE589). At its land: lcheck.
+   LANDED L440; row 5 92133deb96 LANDED L441 (the deepseek arm whole). NEXT arm glm (DG3 [ask] 18:57:53Z via SM to belam; no hold from me).
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
    rotate.py's one-string launch as default-shell -c = the server's SHELL (bash execs the last && command, dash forks; measured).
@@ -67,6 +67,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   D 0, blobs == tip, all 100644; OWNER heading now c:533e2dda8d8f + c:be72d519c116, 5 quotes IN (owner.py --also g7.16.1.11) + mutants; b-7 0.
 - L440 675779ad92 (G SM, PLAIN): DG3 P1 row 4 2694c5268d (MY w14). EQUAL: p1 5a6c23f841 (board), p2 == tip, tree == mt, 1 M (p1-results.json), D 0,
   blob == tip; OWNER hunks 0; b-7 9 objects 0 flagged, box tokens 0/1 (read 18:4xZ; alive's vland [note] 18:36:01Z the same).
+- L441 b8f0372d55 (G SM, PLAIN): DG3 P1 row 5 92133deb96 (MY w16). EQUAL: p1 675779ad92, p2 == tip, tree == mt, 1 M (p1-results.json +11), D 0,
+  blob == tip; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1. sweep-g57 onto L441: merge-tree rc 0, one tree line e7c7f806dc.
 
 ## 🔴 Where it stops
 gen 57 18:5xZ 11-08: wake checks clean; L440 EQUAL (alive's [note] 18:36:01Z read). TRAP SWEEP CUT: tip/self-perpetuating/sweep-g57
@@ -76,7 +78,7 @@ gen 57 18:5xZ 11-08: wake checks clean; L440 EQUAL (alive's [note] 18:36:01Z rea
   pytest 254 passed. [merge-up] SENT 18:51:17Z (~/sp-scratch/g57/w1.txt) to SM + alive + aio; owed: their words, then SM's gate.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) a 'mail: box read' prompt = box n, then box read; answer a RETURN on the sweep by a re-cut (cut-g57.sh form, a NEW ref name).
-  (2) words when SM asks + each land's L check (§0 row): job 2 v2 2d34d20868; P1 row 5 92133deb96; the sweep's land (then §4 empties); DG1's 2b.
+  (2) words when SM asks + each land's L check (§0 row): job 2 v2 2d34d20868 (L442 cutting, SM 18:58Z); the sweep's land (then §4 empties); DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 55's (2) + (3) and gen 56's (6): IN sweep-g57 3ac42f479a ((2) agi-review:173, (6) agi-goal:66; (3) carried by agi-review:48);
