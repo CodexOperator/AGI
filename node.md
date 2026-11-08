@@ -21,8 +21,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - GATE580 (DG3 P1 kid e84cf6520c): RED, one row (stub -p grep; a BASE red), ALLDONE 00:43:30Z, final sent 15:0xZ. Record RELEASED 3/3, run by DG3 00:4xZ; its file rides GATE583. NEVER land e84cf6520c.
 - L433 = DGo1 g1.23 RE-CUT 1 8b436523cc: GATE581 GREEN, 3/3 (aio 00:38:25Z, sp 15:03:06Z, alive 15:05:26Z). ARMED 15:05Z: tmp/l433/cut.sh holds to :31, then capsule + [merge-up] to belam. After [landed]: tell DGo1 + DG3 (DG3 BUILDS g1.23.1).
 - L434 = aio TRAP SWEEP g55 2b335b173d: GATE582 GREEN, 3/3 (sp 00:40:54Z, alive 15:05:26Z, aio author). tmp/l434/run.sh waits L433 on the trunk, then cuts.
-- GATE583 (DG3 P1 results row 3 fde1116a5e, 1 M p1-results.json +11, pre-read clean): RUNNING 15:04Z (gate583.sh, tmp/w583.log). Relayed WHOLE to council for words. GREEN + words -> cut tmp/l435 (copy l433, ctx shape).
-- DG2 BUILD of .11.9.1: GO sent 15:1xZ (L431 landed); it carries sp's (a) narrowed + (b), aio's (c) (no address beyond its own server: app.js :26 three.js from unpkg.com today) + F1's two mutants; its gate reads agi-stream's lanes.
+- L435 = DG3 P1 results row 3 fde1116a5e: 3/3 (sp 15:06:29Z, aio 15:07:40Z, alive 15:09:39Z); GATE583 running. tmp/l435/run.sh waits GATE583 ALLDONE + L434 on the trunk, then cuts (GATE583 not green = not cut).
+- DG2 BUILD of .11.9.1: GO sent 15:1xZ (L431 landed), started; owner chunk c:533e2dda8d8f relayed 15:07Z; it carries sp's (a) narrowed + (b), aio's (c) (no address beyond its own server: app.js :26 three.js from unpkg.com today) + F1's two mutants; its gate reads agi-stream's lanes.
 belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh). A cut raced by belam's card commit refuses 'TRUNK MOVED': re-run the same cut.sh (L426, L430 did).
 | | |
 |---|---|
@@ -41,10 +41,10 @@ belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of 
 4. Owner items still open: none unplaced (all 7 placed, §7). TRAP SWEEP (§6) at a quiet window, f < 0.41. MEMORYMAX row (§6).
 ```
 ## 🔴 Where it stops
-gen 82: L433 (8b436523cc) + L434 (2b335b173d) gated GREEN, cut scripts ready, L433 ARMED for :31 (3/3), L434 chained behind it; GATE583 (DG3 row 3) running, words wanted
+gen 82: L433 (8b436523cc) + L434 (2b335b173d) gated GREEN, cut scripts ready, L433 ARMED for :31 (3/3), L434 then L435 (DG3 row 3, 3/3, GATE583 running) chained behind it
 ```
-FIRST: box read whole; ps -eo pid,args | grep -E 'gate-sm' (expect: l433 cut.sh, l434 run.sh/cut.sh, maybe gate583)
-THEN: read tmp/l433/cut.out, tmp/l434/cut.out, r583/summary; a chain missing from ps without its final line was killed by an out: relaunch it.
+FIRST: box read whole; ps -eo pid,args | grep -E 'gate-sm' (expect: l433 cut.sh, l434 + l435 run.sh/cut.sh, maybe gate583)
+THEN: read tmp/l433/cut.out, tmp/l434/cut.out, tmp/l435/cut.out, r583/summary; a chain missing from ps without its final line was killed by an out: relaunch it.
 ```
 ## §2 Landed gen 82: L431 661dbf1a2c (DG2 MINT .11.9.1) · L432 1aa3d5c408 (alive sweep g64). gen 81 (11-07/08): L419 2fd835a185 (DG1 .7.1.1.5 RE-CUT) · L420 68b15a965a (DG3 .46.30 CLOSE) · L421 0312c53e34 (aio sweep g52+53) · L422 f2aab218a2 (DG3 sweep) · L423 8ff4b35af6 (DG3 MINT .46.31) · L424 cc18dded0c (alive sweep g62+63, REORDERED, re-cut once) · L425 7f267bad44 (DG1 .7.1.1.5 CLOSE) · L426 e9e28de30d (DG1 ACT 2a) · L427 e0081ea9a4 (sp sweep, re-gated GATE574) · L428 11cd7f890b + W 4eddbcf363 (DG3 .46.31 BUILD, RULES; agi-turn c807739a5543 live in all 5) · L429 dc573b45b7 (DG3 .46.31 CLOSE) · L430 bac67e28d6 (aio sweep g54). All verified by alive.
 ## §4 Traps
