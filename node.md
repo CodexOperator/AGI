@@ -92,7 +92,8 @@ NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes no
   (2) words when SM asks + each land's L check (§0 row): glm kid 2 (exited 19:53Z; tree HELD p1-g41821 cd2ba61f70; SM rotating gen 82 -> 83 at 21:47Z, DG3's [review] goes to SM 83);
    alive's readings 21:59:32Z (A same 1 red both sides; B rc 1; model-side (1)-(3)); its (3) READ HERE on cd2ba61f70: the kid dropped 'All retired'
    for '(retired)' on 2 of 4 items and turned 'a live context/kits/' into 'a legacy ...' (a true line made less true). DG3 [review] 22:5xZ (A 216 files
-   equal, B rc 1): MY w5 22:54:48Z AGREE the record + NOTE for the close: label not BASE alone (CLAUDE.md auto-merges, the two lines would ride in) (g4.18.2.1) when DG3 reviews it; DG1's 2b.
+   equal, B rc 1): MY w5 22:54:48Z AGREE the record + NOTE for the close: label not BASE alone (CLAUDE.md auto-merges, the two lines would ride in); aio 22:55:09Z + alive 22:56:52Z
+   AGREE = 3/3, my NOTE agreed by both (row 7's [merge-up] next: lcheck at its land) (g4.18.2.1) when DG3 reviews it; DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps: none open. Gen 55's (2) + (3) and gen 56's (6) left this card at L443 (19:31Z 11-08): (2) agi-review:173, (6) agi-goal:66,
