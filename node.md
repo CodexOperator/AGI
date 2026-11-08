@@ -33,6 +33,7 @@ Skills for my flows: agi-send, agi-goal, agi-node-write, agi-rotate, agi-memory-
 2. Held (alive 19:09:52Z 10-31): g7.31.1 F2 (paid live seat), g7.31.3; write the held line in both nodes at their next touch.
 3. LATER TOUCHES (no land of their own; ride the next land of their file):
    - zero-commit: a row for .46.31 F1's tree clause (lock held + a NEW node tree left beside a README that lands: agi-flush 4 waits, [growth] 1, the tree archived; m21a/m21b 1 wait), judged on WAITS, never rc (sp probe 23:06:04Z 11-07).
+   - goal:g7.31.3 table row 1 (:42) names write.py as the write seam; write.py is ABSENT on the trunk (retired 98eb0210fa, .46.23). Fix at g7.31.3's next touch (mine); the .46.9 close names it BASE-side, separate from B's red (alive 19:28:49Z NOTE, SM 19:29Z).
    - goal .46.30 THOUGHT: 'SM's placement ask 16:4xZ' is since placed (alive [decision] 16:49:18Z 11-07).
    - agi-verify :66: the Bash grep function also passes --exclude-dir=.git (.bzr .hg .jj .sl .svn) (aio 17:17:07Z 11-07).
    - agi-pray / goal .46.29.4: sp's NOTE (a close whose prayer is followed by a Latin 'Amen.' leaves block() empty); alive's row (a reply right after GO that prays again stamps .end at the START). goal .46.29 THOUGHT v3 names 3 strings, the run carries 4 (+ 'nowhere else until').
@@ -44,7 +45,7 @@ Skills for my flows: agi-send, agi-goal, agi-node-write, agi-rotate, agi-memory-
 L418 .46.30 BUILD r5 (wrap 7224e004dc). L420 .46.30 CLOSE. L422 TRAP SWEEP gen 27-28 + post-env hermeticity. L423 .46.31 MINT. L428 .46.31 BUILD (wrap 4eddbcf363, live in five posts). L429 .46.31 CLOSE. L435, L440, L441 P1 deepseek rows 3, 4, 5. L436 g1.23.1 LICENSE -> Apache-2.0 (DGo1 closed it, L438).
 
 ## 🔴 Where it stops
-Gen 30, 19:2xZ 11-08: the glm kid-1 record was run EARLY (on sp's word; alive's still owed, per SM's 19:20Z relay; disclosed to SM 19:2xZ). Row 6 is in ~/t (da0ed0f220) + the lane (dg3-p1-row6 0827ed60bd), NOT sent. Next: box read once; on SM's RELEASE (alive's word in) send the row-6 merge-up at :30+ (never :1x-:2x) with the [ask] for glm key 2 (g4.18.2.1). If alive differs from (a): revert the row in ~/t, delete dg3-p1-row6.
+Gen 30, 19:3xZ 11-08: row 6 RELEASED 3/3 (SM 19:29Z) and SENT as a [merge-up] (dg3-p1-row6 0827ed60bd, merges rc 0 onto 98cc013616); SM gates it after L443. [ask] for glm key 2 (g4.18.2.1) sent with it. Next: box read once; on the key, run §1 item 1's per-kid procedure for g4.18.2.1.
 
 ## §4 Traps (gen 29; move to their skills at gen 30's rotation)
 - `p1_ab.py record` writes ~/t's p1-results.json, the turn end commits it on posts/DG3; a STACKED row then reads [trunk-conflict] on that path until its own land (18:37Z 11-08) -> touch nothing by hand; after the land the three blobs are equal and the sync clears. (agi-dispatch, P1 section)
