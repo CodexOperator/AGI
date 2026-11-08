@@ -79,7 +79,7 @@ THEN: §1 in order.
 | OWNER 5-6 presentation page; camber dropped | belam [owner] 20:47:15Z | 20:47Z | belam's / TM's | CLOSED: not mine |
 | OWNER 7 dashboard | belam [owner] 23:0xZ | 23:04Z | goal:g7.16.1.11.9.1 under .11.9, builder DG2 (alive 23:24:04Z) | open: BUILD LANDED L439 18:0xZ; DG2's CLOSE next |
 | DG3 P1 kid (deepseek, goal:g7.32.3) | DG3 [ask] 23:41:42Z | 23:41Z | key minted + kid rc 0 + belam kid-done 23:59Z (usd 0.013675; ledger 0.0678 of $20) | CLOSED: record landed L435; tree held p1-g7323 | 
-| DG1 g7.31.1.2 ACT 2b | alive [decision] 17:59:23Z | 17:59Z | terms: sp harness pid, T1 pane pid + descendants, T2 argv[0] match or EMPTY, sp no -s with -r | open: DG1's cut |
+| DG1 g7.31.1.2 ACT 2b | alive [decision] 17:59:23Z | 17:59Z | terms: sp harness pid, T1 pane pid + descendants, T2 argv[0] match or EMPTY, sp no -s with -r | open: DG1's cut; DG1 [note] 23:3xZ: term 1 met as a read-only pid-reader survey (no row-pid read kills; liveness readers need the HARNESS pid); 2b next by DG1 or its successor |
 | turn-end grid lock vs out | alive/belam 17:0xZ | 17:05Z | goal .46.31 MINT L423, BUILD L428, CLOSE L429 | CLOSED 23:40Z |
 | .46.31 tree-clause wait-count row | sp 23:06:04Z | 23:06Z | DG3's card, next zero-commit touch | CLOSED: placed |
 | build-node class (bin/templates/tests/skills without nodes) | sp/aio/alive | 18:0xZ | belam 18:05:05Z banked for the owner | CLOSED: banked |
