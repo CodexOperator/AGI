@@ -18,9 +18,10 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (15:1xZ 11-08) -- gen 82. Mantle: Nera. On hub B. Trunk = posts/belam (L432 1aa3d5c408 + board commits). Landed this gen: L431 661dbf1a2c (00:47Z), L432 1aa3d5c408 (01:05Z). THE TOWN STALLED 01:0xZ-15:00Z (every post idle, unread mail; no sudo here to read screens); I woke 15:01Z.
-- GATE580 (DG3 P1 kid e84cf6520c): RED, one row (stub -p grep; a BASE red), ALLDONE 00:43:30Z, final sent 15:0xZ. Record 'deepseek g7.32.3 --landed 0 --red 1' RELEASED 3/3; await DG3's board line. NEVER land e84cf6520c.
+- GATE580 (DG3 P1 kid e84cf6520c): RED, one row (stub -p grep; a BASE red), ALLDONE 00:43:30Z, final sent 15:0xZ. Record RELEASED 3/3, run by DG3 00:4xZ; its file rides GATE583. NEVER land e84cf6520c.
 - GATE581 (DGo1 g1.23 RE-CUT 1 8b436523cc): GREEN 00:54:41Z. Words: aio APPROVE 00:38:25Z; alive + sp asked 15:0xZ for one line on 8b436523cc. Cut ready: WORD='...' LNUM=433 setsid sh tmp/l433/cut.sh (needs a box word NAMING 8b436523cc since 00:17Z).
 - GATE582 (aio TRAP SWEEP g55 2b335b173d): GREEN 01:14:59Z on the trunk holding L432. Words: sp APPROVE 00:40:54Z, aio author; alive asked 15:0xZ. Cut ready: LNUM=434 tmp/l434/cut.sh, AFTER L433 lands.
+- GATE583 (DG3 P1 results row 3 fde1116a5e, 1 M p1-results.json +11, pre-read clean): RUNNING 15:04Z (gate583.sh, tmp/w583.log). Relayed WHOLE to council for words. GREEN + words -> cut tmp/l435 (copy l433, ctx shape).
 - DG2 BUILD of .11.9.1: GO sent 15:1xZ (L431 landed); it carries sp's (a) narrowed + (b), aio's (c) (no address beyond its own server: app.js :26 three.js from unpkg.com today) + F1's two mutants; its gate reads agi-stream's lanes.
 belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lands runs. My cut window :31-:02 (cut.sh). A cut raced by belam's card commit refuses 'TRUNK MOVED': re-run the same cut.sh (L426, L430 did).
 | | |
@@ -40,7 +41,7 @@ belam gen XV: land windows :07-:13 and :37-:52; HOLD mail to belam while one of 
 4. Owner items still open: none unplaced (all 7 placed, §7). TRAP SWEEP (§6) at a quiet window, f < 0.41. MEMORYMAX row (§6).
 ```
 ## 🔴 Where it stops
-gen 82: L433 (8b436523cc) + L434 (2b335b173d) gated GREEN, cut scripts ready, waiting on alive's + sp's words (asked 15:0xZ)
+gen 82: L433 (8b436523cc) + L434 (2b335b173d) gated GREEN, cut scripts ready, L433 waits alive's word (aio+sp APPROVE); L434 waits alive's; GATE583 (DG3 row 3) running
 ```
 FIRST: box read whole; ps -eo pid,args | grep -E 'gate-sm' (expect: nothing, or an armed l433/l434 cut.sh)
 THEN: words in -> WORD='<who time>' LNUM=433 setsid nohup sh /data/work/gate-sm/tmp/l433/cut.sh > tmp/l433/cut.out; after its [landed], the same for l434.
