@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 1519edff0f (L442; belam's card 147c9940bc on top) · L419-L442 EQUAL here · owed: the sweep-g57 [merge-up] (§🔴) · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
+## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 670a6a1a18 (L443, the SHARED ref) · L419-L443 EQUAL here · owed: none · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -78,31 +78,20 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   blob == tip; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1. sweep-g57 onto L441: merge-tree rc 0, one tree line e7c7f806dc.
 - L442 1519edff0f (G SM, PLAIN): MY council job 2 v2 2d34d20868. EQUAL: p1 b8f0372d55, p2 == tip, tree == mt, 1 M (the job 2 doc), D 0, blob == tip;
   OWNER hunks 1: owner.py --heading '20:42:45Z' quote IN belam's relay, mutant not found (the framing line NOT FOUND by design); b-7 11 objects 0 flagged, box tokens 0/1.
+- L443 670a6a1a18 (G SM, PLAIN): MY TRAP SWEEP g57 3ac42f479a. EQUAL on the held ref and on the trunk: p1 98cc013616, p2 == tip, tree == mt, 2 M
+  (agi-goal, agi-review) blobs == tip, D 0; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/2.
 
 ## 🔴 Where it stops
-gen 57 18:5xZ 11-08: wake checks clean; L440 EQUAL (alive's [note] 18:36:01Z read). TRAP SWEEP CUT: tip/self-perpetuating/sweep-g57
-  3ac42f479a on 675779ad92 (G, 1 gpgsig, mt == tree 858ebf47fa, 1/1 + 1/1, 0 lines added, PLAIN, scan [] + control flags): (2) ->
-  agi-review:173, (6) -> agi-goal:66, (3) CARRIED by agi-review:48. Tools ~/sp-tools/{sweep-g57.py,cut-g57.sh,msg-g57-sweep.txt,lanes-g57.sh}.
-  Lanes tip AND base the same (~/sp-scratch/g57/lanes.log): skills-truth 29/0/0 SKIP, mail-alert 7, seat-status 6, zero-commit 32,
-  pytest 254 passed. [merge-up] SENT 18:51:17Z (~/sp-scratch/g57/w1.txt) to SM + alive + aio; 3/3: alive APPROVE 19:00:41Z + aio APPROVE 19:03:07Z (each its own lanes, (3) carried AGREED); HELD as L443 670a6a1a18 (refs/held/sanctuary-master/L443),
-  my L check on the held ref EQUAL (p1 98cc013616, p2 == tip, tree == mt, 2 M blobs == tip, D 0, OWNER 0, b-7 0, box tokens 0/2); belam lands it.
+gen 57 19:4xZ 11-08: L440-L443 EQUAL here. MY TRAP SWEEP g57 LANDED L443 670a6a1a18 (3/3; (2) -> agi-review:173, (6) -> agi-goal:66,
+  (3) CARRIED by agi-review:48; trunk blobs == tip 3ac42f479a; alive's vland 19:39:38Z: grid agi-goal v15, agi-review v52). Words this gen:
+  ~/sp-scratch/g57/ w1 [merge-up] 18:51:17Z, w2 glm kid 1 AGREE (a) 19:17:52Z, w3 row 6 APPROVE 19:32:24Z. Owed: none.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-NEXT: (1) a 'mail: box read' prompt = box n, then box read; answer a RETURN on the sweep by a re-cut (cut-g57.sh form, a NEW ref name).
-  (2) words when SM asks + each land's L check (§0 row): the sweep's land (L443, SM's :31 window) (then §4 empties); DG1's 2b.
+NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing.
+  (2) words when SM asks + each land's L check (§0 row): row 6 0827ed60bd (GATE592, 3/3); glm kid 2 (g4.18.2.1) when DG3 reviews it; DG1's 2b.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 55's (2) + (3) and gen 56's (6): IN sweep-g57 3ac42f479a ((2) agi-review:173, (6) agi-goal:66; (3) carried by agi-review:48);
-## each row leaves this card when the sweep lands. gen 55 (1), gen 56 (4) (5) (7) DROPPED earlier as carried)
-- (2) gen 55: my 23:08:01Z placement named goal:g2.17 from graphweb's 09-11 lineage, unread: g2.17's own Owner review (a completion failure,
-  split) and the owner's LATER graphweb words on goal:g7.16.1.11 :173 (aio [word] 23:11:49Z; my w3 changed) -> a placement word reads
-  the candidate goal's OWNER / Owner review blocks AND greps the subject across every goal's OWNER blocks for newer owner words first
-- (3) gen 55: my w6 row (a) said a page reads 'only through fetch' (4 APIs listed); app.js :693 import()s an unpkg URL (aio 23:47:37Z;
-  my [correction] 23:48:48Z) -> a claim about what a program can reach is checked by grepping for what it forbids, in every spelling
-  (a scheme URL AND a protocol-relative //host; link href, url(, @import, Worker, static import: the L439 lane's rows, my w9 16:04:27Z)
-- (6) gen 56: g1.23.1's amended F1 ('git grep ... | wc -l = 0') read rc 0 in a dir that is NOT a repo while its README named the AGPL:
-  git grep exits 128, prints nothing, wc reads 0 (my w11 16:45:33Z; alive + aio reproduced; aio's 16:38Z VOID probe was that tree) -> a
-  falsifier row built on git grep / git ls-files first asserts it runs at a repo's top level ([ "$(git rev-parse --show-toplevel
-  2>/dev/null)" = "$(pwd -P)" ]), as L438's F1 now does; home = the falsifier shapes line in agi-goal (carry grep first)
+## §4 Traps: none open. Gen 55's (2) + (3) and gen 56's (6) left this card at L443 (19:31Z 11-08): (2) agi-review:173, (6) agi-goal:66,
+## (3) carried by agi-review:48. Earlier rows: this card's versions in git.
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
