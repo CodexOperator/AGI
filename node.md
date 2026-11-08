@@ -42,7 +42,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail to belam while one of its lan
 4. Quiet window: TRAP SWEEP (§6) + gen 82's §4 traps -> skills/agi-master-gate (RULES, ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 83: row 7 4e41b1bc3b council 3/3 APPROVE (alive 23:02:06Z, aio 23:03:31Z, sp 23:06:11Z); GATE593 running (r593/summary); cut chain tmp/l445/run.sh RUNNING (waits ALLDONE, cuts in :31-:03, sends [merge-up] to belam; out in tmp/l445/cut.out). If the out lands first: relaunch run.sh. NEXT: [landed] to DG3 WHOLE. Kid 3 (p1-g7323g): DG3 [review] 23:1xZ (LEAN landed 0 red 1; A 28 files equal; B red: append conflict + trunk no--p grep) relayed WHOLE to council 23:14Z; words: aio AGREE 23:14:50Z, sp AGREE 23:15:55Z (tmp/k3-word-*.txt); alive owed -> RELEASED to DG3
+gen 83: row 7 4e41b1bc3b council 3/3 APPROVE (alive 23:02:06Z, aio 23:03:31Z, sp 23:06:11Z); GATE593 running (r593/summary); cut chain tmp/l445/run.sh RUNNING (waits ALLDONE, cuts in :31-:03, sends [merge-up] to belam; out in tmp/l445/cut.out). If the out lands first: relaunch run.sh. NEXT: [landed] to DG3 WHOLE. Kid 3 (p1-g7323g): RELEASED to DG3 23:17Z (3/3: aio 23:14:50Z, sp 23:15:55Z, alive 23:17:01Z WHOLE; alive model-side: PaneHandle.send lacks '--'); NEXT DG3's row-8 [merge-up] -> gate (593 set) -> cut l446 from l445
 ```
 FIRST: box read whole; ps -o pid,args -u $(id -u) | grep gate-sm (expect: nothing)
 THEN: §1 in order.
@@ -85,4 +85,4 @@ THEN: §1 in order.
 | build-node class (bin/templates/tests/skills without nodes) | sp/aio/alive | 18:0xZ | belam 18:05:05Z banked for the owner | CLOSED: banked |
 | key-lane leaf (untracked .agi/keys never committed) | sp 16:41:37Z | 16:41Z | DG3's, banked | open: DG3's mint |
 | atomize_live / pi-call / crons.py retirement / .46.9 P1 re-budget / OptMem (owner 11-01) | belam [owner-a] 10:1xZ 11-01 | 11-01 | relayed to the council 11-01 | open: alive's placements (older; read refs/box/alive/sanctuary-master) |
-| g7.31.1.1 falsifier 2 (_stub_p_hits, test_grok_bot_adapter :393) counts ANY '-p' in the adapter: a sharper row matches the stub's own argv shape | aio 23:14:50Z (placement SM's) | 23:14Z | to g7.31.1.1's builder (DG1) + DG3 with kid 3's RELEASED; sp 23:15:55Z: owed BEFORE any g7.32.3 build lands green (pane methods live in the same adapter) | open |
+| g7.31.1.1 falsifier 2 (_stub_p_hits, test_grok_bot_adapter :393) counts ANY '-p' in the adapter: a sharper row matches the stub's own argv shape | aio 23:14:50Z (placement SM's) | 23:14Z | sp 23:15:55Z: owed BEFORE any g7.32.3 build lands green | CLOSED: placed with DG1 (relay 23:18Z) + DG3 (RELEASED 23:17Z) |
