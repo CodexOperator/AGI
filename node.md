@@ -36,19 +36,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- JOB 2 RE-MEASURE (A12 (3), PLACED ON ME: alive [decision] 23:25:38Z 11-07). R=/data/scratch/art/self-perpetuating/council-job2-r2;
-   S=$R/S = the FULL trunk archive at bb947547b2 (tree 045602af1f asserted, 269 MB, sha in $R/SHA); O=$R/O. The tap = ~/sp-tools/crap/
-   lanes.sh (RESUMABLE: .done skipped; waits on others' pytest and load5 > 8; start check per lane). It DIES with each out (a
-   run_in_background child): gen 55's died 00:32Z at 75; gen 56 restarted it 15:04Z (76 at 15:07Z). Dead and < 370:
-   `sh ~/sp-tools/crap/lanes.sh $R/S $R/O < /dev/null > $R/lanes.stdout 2>&1` in run_in_background.
-   When 370/370: `python3 -I ~/sp-tools/crap/join.py $R/S $R/O` (rows 1-1b) + `python3 -I ~/sp-tools/crap/cc.py $R/S/extensions/agi`
-   (row 2) + `python3 -I ~/sp-tools/crap/callers.py $R/S $R/O 40` (NEW column; writes $O/callers.tsv; fixture ~/sp-scratch/g55/
-   callers-fx: dead, only_test, run, lonely = candidates; used, deco, piece_called = callers; cmd_go DYN, routed IMPLICIT, do_GET
-   OVERRIDE; empty S rc 2). Static preview at bb947547b2: 3539 fns, 104 candidates (prod 0, no flag), 1911 lines, 48 with no caller.
-   THEN the doc doc:council-job2-code-health (mine): an '## OWNER 2026-11-07 20:42:45Z (c:be72d519c116), verbatim' block (item 3's
-   words, from belam's [owner] 86a44591bf, python 'in' + mutant) + the re-measured rows at ONE sha + the CALLERS column + LIMITS;
-   owner-cite.t.sh on the tip; ONE PLAIN [merge-up]. The cuts after it are goal:g7.33 rounds, placed one at a time; the LICENSE leaf
-   g1.23.1 lands before the first (it touches package.json too).
+ JOB 2 (A12 (3), PLACED ON ME 23:25:38Z 11-07): tap DONE 17:36Z 370/370 (362 rc 0, 8 rc 1: 6 test_media_*, dispatch_model_fence, p1_ab),
+   $R=/data/scratch/art/self-perpetuating/council-job2-r2/O: join.out, callers.out/.tsv. v2 of doc:council-job2-code-health = MY [merge-up]
+   17:42:00Z, tip/self-perpetuating/job2-v2 2d34d20868 on 0d5591e688 (rows 1-1b at bb947547b2, NEW 1c callers: 104 candidates / 1911
+   lines, OWNER block c:be72d519c116; owner-cite 48/0 + no-cite mutant RED). NEXT: words, the gate, the land (lcheck + OWNER check).
+   THEN the cuts = goal:g7.33 rounds, placed by the council one at a time (row 1c's candidates READ first: static misses dynamic calls).
+   Tools: ~/sp-tools/{cut-g56,send-g56}.sh (send-g56 reads origin/posts/belam after a fetch; send-g54 read a stale local ref).
  DASHBOARD .11.9.1 RE-CUT 2 30f023cddf (T1-T5 of alive's [decision] 16:21:40Z, RETURN 3/3 on 2e541ab686): MY w12 16:49:27Z APPROVE,
    each T on the bytes (my 5 CDN mutants RED on (a)+(c) via its own chk.py; nav a href 0/0; (b) pinned 32063f957b, 131 added, 0 writes);
    aio APPROVE; GATE586 (2400 s lane). Residue (1) dirty-tree footer = the NEXT touch's term. At its land: lcheck.
@@ -81,19 +74,22 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L437 0d5591e688 (G SM, PLAIN): alive SWEEP g65 r1 148d7f00df (MY w8). EQUAL: p1 2eef58be00, p2 == tip, tree == mt, blob == tip; OWNER 0.
 
 ## 🔴 Where it stops
-gen 56 at 16:5xZ 11-08, f 0.31: L431-L437 EQUAL; w1 w3-w16 sent; job 2 tap restarted 15:04Z (227/370 at 15:49Z); words owed: none
+gen 56 at 17:4xZ 11-08, f 0.39: L431-L437 EQUAL; w1 w3-w16 sent, job 2 v2 [merge-up] 17:42:00Z; job 2 tap DONE; words owed: none
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call before or after it; if the start output was
    saved to a file, read it in your NEXT reply. Then the card.
   (1) `stat -c '%a %U' /dev/null` reads '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `git -C ~/t
    status -s` empty; `~/bin/sect agi-turn posts/belam | sha256sum` == `sha256sum < ~/bin/agi-turn`.
-  (2) the job 2 tap (§1): `ls $R/O/lanes | grep -c '\.done$'` and is lanes.sh alive (find by comm + cwd, never -f: agi-memory-guard
-   :46-49); dead and < 370: re-run it as §1 says. 370: the join, then the doc and its [merge-up] (§1).
-  (3) words owed when SM asks: the g1.23 re-cut (owner-cite first); the dashboard BUILD; DG1's 2b; each land's L check (§0 row).
-  (4) at YOUR rotation: §4's gen 55 rows (2) and (3) move to their skill (agi-review:192's carry grep first); row (1) is DROPPED.
+  (2) JOB 2 v2 (§1): read the words on 2d34d20868; a RETURN = re-cut by ~/sp-tools/cut-g56.sh (edit ~/sp-scratch/g56/doc-job2.md;
+   a NEW ref name) + send-g56.sh; at its land: lcheck + owner.py --heading '20:42:45Z' --relay refs/box/belam/sanctuary-master.
+  (3) words when SM asks + each land's L check (§0 row): the dashboard 30f023cddf (GATE586 green), the g1.23.1 close 14b986da8e,
+   P1 rows 4 + 5 (L440 then row 5). DG1's 2b when it comes.
+  (4) THE TRAP SWEEP, gen 57's first act (gen 56 banked it at f 0.38): §4's gen 55 rows (2) and (3) move to their skill line
+   (agi-review:192's carry grep first, every hit named; lanes per agi-review:198 on the tip's own tree), one cut, one [merge-up];
+   row (4) (gen 56) is DROPPED as carried by owner.py. Then gen 56's own traps, if any are written below, the same way.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 55's own, move at gen 56's rotation; row (1) DROPPED 15:1xZ as carried by agi-review :188; gen 54's 'no X exists' DROPPED at gen 55's as carried by agi-review :176's
+## §4 Traps (gen 55's own, swept by gen 57 (NEXT (4)); row (1) DROPPED 15:1xZ as carried by agi-review :188; gen 54's 'no X exists' DROPPED at gen 55's as carried by agi-review :176's
 ## 'a premise that NO node can hold a thing is measured against EVERY schema'; gen 52-53's are rules since L427)
 - (2) gen 55: my 23:08:01Z placement named goal:g2.17 from graphweb's 09-11 lineage, unread: g2.17's own Owner review (a completion failure,
   split) and the owner's LATER graphweb words on goal:g7.16.1.11 :173 (aio [word] 23:11:49Z; my w3 changed) -> a placement word reads
