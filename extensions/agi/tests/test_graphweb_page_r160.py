@@ -1,11 +1,11 @@
 """FALSIFIER for the PRIME merge-up 38: the golden 3D branch must ACTUALLY
-render. A node test that executes app.js against the PINNED three r160 CDN
+render. A node test that executes app.js against the PINNED (vendored) three r160
 bytes with a DOM stub and asserts the 3D branch COMPLETES and the 5 s poll
 FIRES. Nothing here touches a browser, a live pane, or the real .agi.
 
 Mechanics (measured on node v22.22.2 — node cannot import() https: URLs, so
 we rewrite):
-  * fetch THREE_URL once into a cache dir (SKIP-not-fail when unreachable),
+  * read the VENDORED three r160 (web/vendor/three, PIN.txt; no network),
     write the pinned bytes to <tmp>/three.module.js;
   * load app.js text, swap ONLY the THREE_URL constant for the file URL (and
     leave the rest byte-identical);
@@ -27,7 +27,6 @@ import json
 import shutil
 import subprocess
 import sys
-import urllib.request
 from pathlib import Path
 
 import pytest
@@ -39,26 +38,15 @@ GRAPH_WEB = TESTS.parent / "web" / "graph"
 APP_JS = GRAPH_WEB / "app.js"
 HARNESS = TESTS / "r160_page_harness.mjs"
 
-# The pinned three r160 ES-module bytes the page claims to use.
-THREE_URL = "https://unpkg.com/three@0.160.0/build/three.module.js"
-THREE_CACHE = Path.home() / ".cache" / "agi-graphweb"
-THREE_PINNED = THREE_CACHE / "three-0.160.0.module.js"
+# The pinned three r160 the page loads: the vendored, unmodified file graphweb
+# serves at /vendor/three.module.min.js (PIN.txt beside it). No network.
+THREE_PINNED = TESTS.parent / "web" / "vendor" / "three" / "three.module.min.js"
+APP_THREE_LINE = 'const THREE_URL = "/vendor/three.module.min.js";'
 
 
 def _pinned_three_bytes() -> bytes | None:
-    """The pinned three r160 bytes, from a cache dir; None when unreachable
-    (the test SKIPs rather than fails — a real page is not a test dep)."""
-    if THREE_PINNED.is_file():
-        return THREE_PINNED.read_bytes()
-    try:
-        with urllib.request.urlopen(  # noqa: S310  pinned-unpkg, fetch-once
-                THREE_URL, timeout=45) as r:
-            body = r.read()
-    except Exception:  # noqa: BLE001  no network in CI -> skip, not fail
-        return None
-    THREE_CACHE.mkdir(parents=True, exist_ok=True)
-    THREE_PINNED.write_bytes(body)
-    return body
+    """The vendored three r160 bytes; None when the file is absent (SKIP)."""
+    return THREE_PINNED.read_bytes() if THREE_PINNED.is_file() else None
 
 
 FIX_TOKEN = "__THREE_URL_FILE__"
@@ -72,13 +60,14 @@ def _rewritten_app(tmp_path: Path, kind: str) -> Path:
     src = APP_JS.read_text(encoding="utf-8")
     pinned = _pinned_three_bytes()
     if not pinned:
-        pytest.skip("three r160 CDN bytes unreachable; cannot build falsifier")
+        pytest.skip("vendored three r160 absent; cannot build falsifier")
     three = tmp_path / "three.module.js"
     three.write_bytes(pinned)
 
     three_url = three.as_uri()
+    assert src.count(APP_THREE_LINE) == 1, "app.js THREE_URL line moved"
     swapped = src.replace(
-        'const THREE_URL = "https://unpkg.com/three@0.160.0/build/three.module.js";',
+        APP_THREE_LINE,
         f'const THREE_URL = {three_url!r};')
 
     if kind == "prefix":
@@ -164,4 +153,5 @@ def test_pinned_bytes_are_r160_and_use_real_materials() -> None:
     assert "Float32ColorMaterial" not in text
     for cls in ("MeshBasicMaterial", "PointsMaterial",
                 "LineBasicMaterial", "WebGLRenderer", "Color"):
-        assert f"class {cls}" in text
+        # the minified build exports each class under its public name
+        assert f"as {cls}," in text or f"as {cls}}}" in text

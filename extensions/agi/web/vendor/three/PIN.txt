@@ -1,0 +1,8 @@
+package: three
+version: 0.160.0
+file: build/three.module.min.js (from the npm tarball, served by graphweb at /vendor/three.module.min.js)
+tarball: https://registry.npmjs.org/three/-/three-0.160.0.tgz
+integrity: sha512-DLU8lc0zNIPkM7rH5/e1Ks1Z8tWCGRq6g8mPowdDJpw1CFBJMU7UoJjC6PefXW7z//SSl0b2+GCw14LB+uDhng==
+sha256: 3e690ac7d180b0aadf0891bea39eec643e29e2d3e75c99b18689518665f69ba6
+license: MIT (LICENSE beside this file)
+unmodified

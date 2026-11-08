@@ -23,6 +23,31 @@
     padding: 4px 8px; font: 12px ui-monospace, monospace; pointer-events: none;
     box-shadow: 0 2px 8px rgba(0,0,0,0.6); max-width: 420px;
   }
+  #views {
+    position: absolute; right: 12px; top: 12px; z-index: 10;
+    font: 13px ui-monospace, monospace;
+  }
+  #views button {
+    background: #0f1216; color: #a48c5a; border: 1px solid #5a4c30;
+    font: inherit; padding: 3px 10px; cursor: pointer;
+  }
+  #views button.sel { color: #ffd27a; border-color: #a48c5a; }
+  #panel {
+    position: absolute; inset: 0; display: none; overflow: auto;
+    background: #0f1216; color: #a48c5a; padding: 48px 24px 40px;
+    font: 13px ui-monospace, monospace; box-sizing: border-box;
+  }
+  #panel h2 { color: #ffd27a; font-size: 15px; }
+  #panel ul { list-style: none; padding-left: 18px; }
+  #panel .on { color: #f5d962; } #panel .off { color: #3a3226; }
+  #panel i { color: #7a6a48; font-style: normal; }
+  #panel .nothing { color: #d07a5a; }
+  #panel table { border-collapse: collapse; }
+  #panel th, #panel td { border: 1px solid #3a3226; padding: 2px 8px; text-align: right; }
+  #foot {
+    position: absolute; right: 12px; bottom: 12px; z-index: 10;
+    font: 12px ui-monospace, monospace; color: #7a6a48; pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -34,6 +59,9 @@ R          reset view
 hover      label</div>
   <div id="status">loading…</div>
   <div id="tooltip"></div>
+  <div id="panel"></div>
+  <div id="views"><button data-view="graph" class="sel">Graph</button><button data-view="crew">Crew</button><button data-view="workflow">Workflow</button><button data-view="comms">Comms</button></div>
+  <div id="foot"></div>
   <noscript>
     <p style="color:#a48c5a;font:15px monospace;padding:20px">
     This page needs JavaScript to render the golden web.
