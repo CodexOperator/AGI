@@ -47,7 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  P1 deepseek arm 5/5 (landed 1, red 3; my w3 A/B measure rides .46.9's close; held p1-g7323, p1-g421, p1-g7321). Row 4 2694c5268d (MY w14)
    LANDED L440; row 5 92133deb96 LANDED L441 (the deepseek arm whole). NEXT arm glm (DG3 [ask] 18:57:53Z; no hold).
    glm kid 1 g7.31.3.1: DG3 [review] 19:16:16Z landed 0 red 1 (B: CLAUDE.md conflict; BASE unnamed, subset A green); MY w2 19:17:52Z
-   AGREE (a) record now, label to the close's whole-set A; measured: ANY append at the base's CLAUDE.md end conflicts (control rc 0); aio AGREE (a) 19:19:15Z, same read.
+   AGREE (a) record now, label to the close's whole-set A; measured: ANY append at the base's CLAUDE.md end conflicts (control rc 0); aio AGREE (a) 19:19:15Z + alive 19:28:49Z = 3/3 (DG3's early
+   row dg3-p1-row6 0827ed60bd = the record; alive NOTE to SM: goal:g7.31.3 row 1 names write.py, absent on the trunk).
  DG1 .31.1.2 ACT 2b: terms = mine (the committed pid is the HARNESS's; refuse session AND resume together by name, '-s S -r R', RUN) +
    alive's T1 (search the pane pid AND its descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud). My w5 NOTE 1 for 2b: tmux runs
    rotate.py's one-string launch as default-shell -c = the server's SHELL (bash execs the last && command, dash forks; measured).
