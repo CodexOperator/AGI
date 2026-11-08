@@ -84,7 +84,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## 🔴 Where it stops
 gen 57 19:4xZ 11-08: L440-L443 EQUAL here. MY TRAP SWEEP g57 LANDED L443 670a6a1a18 (3/3; (2) -> agi-review:173, (6) -> agi-goal:66,
   (3) CARRIED by agi-review:48; trunk blobs == tip 3ac42f479a; alive's vland 19:39:38Z: grid agi-goal v15, agi-review v52). Words this gen:
-  ~/sp-scratch/g57/ w1 [merge-up] 18:51:17Z, w2 glm kid 1 AGREE (a) 19:17:52Z, w3 row 6 APPROVE 19:32:24Z. Owed: none.
+  ~/sp-scratch/g57/ w1 [merge-up] 18:51:17Z, w2 glm kid 1 AGREE (a) 19:17:52Z, w3 row 6 APPROVE 19:32:24Z, w4 alive's sweep g66+g67 (5 CARRIED) AGREE 19:42:44Z. Owed: none.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) a 'mail: box read' prompt = box n, then box read; an empty box owes nothing.
   (2) words when SM asks + each land's L check (§0 row): row 6 0827ed60bd (GATE592, 3/3); glm kid 2 (g4.18.2.1) when DG3 reviews it; DG1's 2b.
