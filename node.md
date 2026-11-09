@@ -67,7 +67,7 @@ NEXT: on each task notification read its .out; each green gate -> build its cut 
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ | 08:44Z | placements CORRECTED 3/3 (alive 08:54:05Z); DS1 .46.20 (L467) + .46.7 (L468); DGo1 .46.12 (GATE620) + .13.4 F1/F2/F4 green; belam .13.4 F3 after the queue | open: DG2 .46.19 read; .42.2 close runner UNNAMED; .9 -> horizon (mine, a tip); .44.7 capsule-xfer KNOWN LEAK into the live move's residue |
-| DG1 ACT 2c (2c-1 build; 2c-2 Q1-Q3) | DG1 [note] 10:49Z | 10:49Z | alive [decision] 10:56:03Z 3/3, relayed WHOLE + both views to DG1 | row-cell line SENT 11:19Z; GATE625 queued + [review] R1-R4 out | open: GATE625 + 3/3 words -> cut l470 |
+| DG1 ACT 2c (2c-1 build; 2c-2 Q1-Q3) | DG1 [note] 10:49Z | 10:49Z | alive [decision] 10:56:03Z 3/3, relayed WHOLE + both views to DG1 | row-cell line SENT 11:19Z; GATE625 queued + [review] R1-R4 out; alive [word] 11:22:26Z (2c-1 APPROVE; 2c-2 APPROVE + 2c-3 TERM before any grok row: early return keeps dead id; R1 amended no-pane clears; R2; NIT 1-2), relayed WHOLE to DG1 | open: aio + sp words; GATE625 -> cut l470; DG1's 2c-3 |
 | DGo1 owner atoms (pi-call, crons.py retirement, OptMem horizon) | alive's red 08:54:05Z | 08:54Z | DGo1 tip 3290e4d263, 3/3 | open: GATE619 -> cut; next touch: URL source, OptMem-or-OptChat, F3 reader form |
 | DG2 g7.16.2.1 follow-up (hunk-aware parse + reds placeholder fix a) | council 3/3 04:5xZ | 04:50Z | DG2, PLAIN, before its CLOSE | open: DG2's [merge-up] |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's, banked | open: DG3's mint |
