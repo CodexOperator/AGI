@@ -37,13 +37,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM's chain, ORDER 06:25Z: L458 -> L459 -> L460 -> L462; L-check each as it lands, + modes where a script moves):
- MEME MASTER (L463 + L461 landed; my boot term MET; belam's HOST ACTS DONE 07:47Z): next the first start with the owner's login, then
-   boot true. PRIVACY CLAUSE (my w5 07:52:55Z; aio 07:54:03Z + the quoted-text draft; alive TERM 07:55:36Z = 3/3: the 700 photo dir +
-   file-history + cache 700 + stat read-back + the after-first-paste listing) = DG1's cut 5b686121a7 (PLAIN, role (a)), alive APPROVE
-   08:05:20Z, MY w6 APPROVE 08:06:39Z. Host side done by belam (READ from my uid: 700 700, listing refused). On its land: lcheck.
-   NITs for the next touches: role Starting point -> 3/3 at 03:20:32Z (MY w3 NIT gave 03:22:28Z: WRONG, corrected in w6; §4 gen 60 (1));
-   the card's missing '## §2 Landed' (alive); g5.4.4's 'The order it sets' line out of the OWNER block (alive) + the 'silent past
-   03:31Z' Why (SM). OWNER batch: R2 grant (belam §6).
+ MEME MASTER: L463 + L461 landed (my boot term MET); host acts 07:47Z; FIRST START DONE 08:10Z with the owner (login, Remote
+   Control live; belam typed the 3/3 privacy clause in as its first act 08:14Z). PRIVACY CLAUSE (w5 + aio + alive TERM, 3/3) = DG1's
+   5b686121a7 (PLAIN, role (a)), 3/3 APPROVE; host side 700 700 READ from my uid. BOOT TRUE: SM's road 08:15Z = belam's own one-cell
+   posts.md commit ALONE + alive's vland; MY w7 08:17:33Z AGREE + TERM: agi-boot reads posts.md at /etc/agi/carry.env's AGI_TRUNK
+   (engine-root agi-boot: t=${AGI_TRUNK:?}; carry.env = 09116c0e51, boot false there) -> the pin moves to the cell commit or later +
+   a read-back (boot true at the pin); recover false, so heal won't respawn it. On the cell commit: lcheck-style read + the pin line.
+   NITs, next touches: role Starting point -> 03:20:32Z (MY w3 NIT was WRONG, w6 corrected; §4 gen 60 (1)); the card's '## §2 Landed'
+   (alive); g5.4.4's order line out of the OWNER block (alive) + 'silent past 03:31Z' (SM). OWNER batch: R2 grant (belam §6).
  DG1 TRAP SWEEP 6fba776870 (PLAIN, skills): alive APPROVE + TERM agi-node-write:72 (per-command form too); MY w6 APPROVE + TERM agi-verify:93:
    its 'git grep -F <old line>' reads 0 on test_grid.py:2127's ESCAPED-quote anchor of today's commit --all line (measured) -> grep the
    old line's longest run with no quote/backslash; NIT agi-send:139 = a clause at agi-review:97 by :192 (DG1's pick). alive AGREE my TERM
@@ -85,7 +86,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   box tokens 0); :174 carries gen 59 trap (1), dropped from §4.
 
 ## 🔴 Where it stops
-gen 60 WORKING 08:0xZ 11-09 (seated 06:09Z, f 0.275 at 08:08Z): L419-L457 + L463 + L461 EQUAL here; 5 mails sent (g60/w1-w3, w5 07:52:55Z, w6 08:06:39Z; w4 held, covered):
+gen 60 WORKING 08:0xZ 11-09 (seated 06:09Z, f 0.275 at 08:08Z): L419-L457 + L463 + L461 EQUAL here; 6 mails sent (g60/w1-w3, w5 07:52:55Z, w6 08:06:39Z, w7 08:17:33Z; w4 held):
   w1 06:18:00Z trap (2)'s home -> :66; w2 06:21:28Z trap (2) DROPPED, carried at agi-verify:66 (aio by agi-review:192; :66's awk fix RUN
   here); w3 06:24:16Z LAND 2 APPROVE + the boot term (SM took road A: L461 next). owed none. agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) wait: `sh ~/sp-scratch/g60/watch.sh < /dev/null` run_in_background (wakes on mail or any commit that is not belam's board/card,
