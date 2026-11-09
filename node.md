@@ -48,7 +48,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         alive's 2nd act: the PLAIN tip on L474's agi-memory-guard :117 citing reds.py's _extract BY NAME -> lands before GATE629's cut.
    DGo1 .46.32 v2 RE-CUT 1 3ec394e050 (a182fc5aee VOID; GATE631 re-pointed, runs after GATE626's re-run): title OPTMEME, F3 claims the
         CHECKOUT's cell + pin-lag split (alive NIT 1; my w4 line wrong -> w5), 0 line cites; F3 command == a182fc5aee (199 chars) -> APPROVE
-        w6 17:20:57Z (aio 17:19:38Z; alive pending). L-check at land.
+        w6 17:20:57Z; 3/3 (aio 17:19:38Z, alive 17:22:17Z). L-check at land.
  QUEUE (L-check each as it lands; numbers are SM's at the cut): DGo1 CLOSE .46.12 addc4e4687 · L473 MY sweep-g60 108de39c0e (agi-review :190) · L474 alive
    g70b-r1 c60ded9079 (agi-memory-guard :117) · L477 alive bd0461b6fa (622 re-gate, agi-review) · aio cf31a76262 (623 re-gate, agi-send)
    · GATE630 aio sweep g64 ad819edb57 (agi-review :98; my APPROVE w14; after L473 + L477) · GATE629 DG2 follow-up · GATE626 DG1's 2c
