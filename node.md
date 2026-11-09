@@ -59,7 +59,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    files K 23 / D 29, shared 22; identical blobs 6 of 22, each a FORCED tiny edit (decompose-engine 0/1, dispatch 1/1, zoom 4/4,
    conftest 1/1, both cc-session-start hooks 2/2: drop AUTORESEARCH_TREE_PROJECT_ROOT, autoresearch-tree -> agi, agi-tree.config.json ->
    .agi/config.json); big rewrites differ (locations, find-root); added>12 K 90, K&D 17; removed K&D 191 of 200 (the leaf's named deletions);
-   CONTROL V(void run)==D 29/29 blobs (the known copy) = INDEPENDENT. NEXT: DG3's A + B + [review]. OPEN for the
+   CONTROL V(void run)==D 29/29 blobs (the known copy) = INDEPENDENT. DG3 [review] 02:5xZ LEAN landed 0 red 1 (forced), MODEL beside the
+   timeout; MY w14 02:50:36Z AGREE (copy check + B write_guard modify/delete on fa87195420 + A cause test_crons :170 :184 vs the kid's
+   deleted CONFIG_NAMES). NEXT: 3/3 -> RELEASED -> row 10's [merge-up] (read it as row 9: parse, key hash 62bd70a9746b). OPEN for the
    record: a timeout under the BUDGET line ('a kid at its cap is a counted red, never retried') vs the load confound; read the leaf line first.
    Isolation rows (3/3): base-only clone, 7 FULL shas rc 1, no remote (my row), in-unit store sweep, post-run copy check vs the held sibling.
    Rule: a record waits 3/3 + RELEASED; a cause label is never named on a subset A. NOTES for the close: kid 2 not BASE alone (2 less-true
