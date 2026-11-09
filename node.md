@@ -41,7 +41,9 @@ VOID LANE (g4.21)          DG3     RE-CUT 2934376005 (hash pairing): 3/3 APPROVE
 P1 glm arm (.46.9)         DG3     rows 6-8 recorded 3/3 (kids 1-3: B red by base drift; kid 2 + kid 3 carry MODEL-side facts for the close:
                                    kid 2's line-level marker + 2 CLAUDE.md truth edits; kid 3's send() with no '--' (p67/kid3/preread.txt)).
                                    kid 4 g4.21 CONTAMINATED -> VOID (SM DECIDED 23:36Z). kid 5 g7.32.1 RAN in belam's unit 23:47:57Z, rc 0,
-                                   195.2 s; held p1-g7321g 67bf8d1570 (4 A +420); copy check INDEPENDENT; DG3's A + B + [review] next.
+                                   195.2 s; held p1-g7321g 67bf8d1570 (4 A +420); copy check INDEPENDENT. MY READ A DONE 00:5xZ (p68/kid5/reada9/:
+                                   base 572/0 failed, kid 576 + 1 failed = test_commands_manifest unlisted CLI ingest_grok_session.py,
+                                   deepseek kid 5's same red; +5 = 4 new tests + 1 bin_help_smoke param). HOLD for DG3's [review] -> word.
                                    .46.9 CLOSE: each red MODEL or BASE (sp's A/B); limit: pre-isolation kids read the shared store.
 g7.31.1.1 F2 row           DG1     98fab426c3 3/3 (_STUB_P = the stub's own argv shape); aio's lookahead form = the next touch's option.
 g1.23 (owner)              -       g1.23.1 COMPLETE (L438). g1.23.2 PLUGIN: council horizon. NOTE for its first touch: F2 reads file NAMES only.
@@ -91,6 +93,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - lands L442-L444: p67/vland442*.out, vland443*.out, vland444*.out (each re-read == pre-verify); vgrid OK (job 2 doc v2; agi-goal v15, agi-review v52) or skip (L444 a record); L445 pre: p67/vland445.out
 - glm kid 1: p67/reada6/ (10 files + lane, base == kid, the test_stand_up base red); kid 2: p67/kid2/ (reada7: 14 files base == kid; preread.txt: lane mutants + truth edits); kid 3: p67/kid3/ (reada8: 18 files, base 641 / kid 648, 0 failed; preread.txt: the private tmux probe)
 - rows 6-8: parsed base vs tip + render_segment recomputed + test_p1_ab gated (p67/p1ab*.out); DG1 fix: _STUB_P probed in-process on the stub, trunk, tip and merged kid-3 adapters
+- glm kid 5 READ A: p68/kid5/reada9/ (17-file set, each side its own files; trees checked; base 572 passed, kid 1 red named above)
+- void lane: p68/probe2.out (in-process, tip + trunk modules); sweep g57: p68/wsw57*.txt (each clause's fact run)
 - my sweep: p67/sw67.txt + carry67b.txt (13 patterns on 670a6a1a18; aio re-ran them equal)
 
 ## §6 BANKED
