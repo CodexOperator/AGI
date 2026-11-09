@@ -44,7 +44,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (sums to 276; v1 + v2 printed '225 cc >= 5', summing to 310); ~/sp-tools/crap/join.py FIXED (it asserts the split sums; old copy
    join.py.g55). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's 104 candidates are READ before any cut.
  DASHBOARD .11.9.1 LANDED L439. NEXT TOUCH b1b43aab9d (DG2, GATE601): (i) pin reads right; (ii) MY residue (1) footer: RETURN by alive
-   01:39:58Z (unreadable status reads CLEAN, vs Invariant 3 :38) + MY w12 01:41:16Z AGREE + row: no nodes dir (pathspec matches nothing,
+   01:39:58Z (unreadable status reads CLEAN, vs Invariant 3 :38) + MY w12 01:41:16Z AGREE + row (alive AGREED 01:42:52Z): no nodes dir (pathspec matches nothing,
    rc 0) reads unread too; JS dirtyWords maps null to '' (needs the fix). READ THE RE-CUT against both, on its own module (probe file:
    ~/sp-scratch/g58/tools/probe_unc.py <scratch> with the tip's extensions/agi/bin archived under <scratch>/src).
  P1 (.46.9): deepseek 5/5 on the trunk (L436-L441). glm: kid 1 = row 6 L444; kid 2 = row 7 L445; kid 3 = row 8 f09577b931 (3/3, GATE594);
@@ -115,7 +115,8 @@ NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 
    D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/2; on land: rev-parse posts/belam == 16a9c59ba1; THEN belam's card scrub commit), the sweep re-cut's land (GATE597), the VOID lane (GATE596), kid 5's [review] (copy check first), the g4.21 re-run (ORDER TERM).
   (4) MY SWEEP at the out: gen 57's (1) + gen 58's (4) (carry grep each trigger first); gen 58's (2) = CARRIED by aio's sweep-g58 e7980fe279's
    agi-review:193 clause (my w11 01:35:01Z APPROVE named it; confirm it LANDED, L452), (3) = :181 not applied. Both: no byte.
-  QUEUED lands (each L-checked on arrival): VOID lane 2934376005 (GATE596), aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
+  QUEUED lands (each L-checked on arrival): VOID lane 2934376005 = L448 f31dae51fa (PRE-READ HERE 01:4xZ: lcheck EQUAL p1 464270396c,
+   p2 == tip, tree == mt, 2 M p1_ab.py + test, D 0, blobs == tip, OWNER 0, b-7 21/0, box tokens 0/4; alive's ORDER TERM binds the g4.21 re-run from it), aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
    pre-read here), mint g7.16.2.1 74a9bf9b16 (GATE599, read here), aio sweep-g58 e7980fe279 (GATE600, read here; L452).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
