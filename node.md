@@ -39,7 +39,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  P1 (.46.9): deepseek 5/5 (L436-L441); glm 5/5 red (L444-L446, L450, row 10 g4.21 re-run TIMED OUT, cause MODEL beside it: L454, EQUAL).
    RESULT paragraph 7bd9aa3b02: MY w7 05:12:02Z APPROVE (every figure recomputed EQUAL from p1-results.json at L454, g59/fig.py) + alive
    05:11:01Z; GATE608, L459. The leaf stays ACTIVE until the credits arm (org link, card-belam §6); the merge pick after all arms.
- g7.16.2.1 BUILD b3a5107120 (RULES, belam wraps, GATE607, L458): MY w5 04:51:44Z APPROVE + AGREE aio's TERM (PLAIN follow-up before the
+ g7.16.2.1 BUILD b3a5107120 (RULES, belam wraps + re-installs verify-land, GATE607 GREEN 05:40Z, L458): MY w5 04:51:44Z APPROVE + AGREE aio's TERM (PLAIN follow-up before the
    CLOSE: mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'); RUN probe-mask.py (g59): case B ('++ b/<allowlisted>' then an
    address, in notes.md) GREEN in both readers, fix D RED; F (a '++' line) never scanned by reds. alive APPROVE 04:55:10Z + my rows = 3/3. CHECK follow-up + CLOSE: rows B, F; F1.
    + board-line fix (a) on the same follow-up (SM 04:56Z): MY w6 04:59:02Z TERM: a counted 8+ digit value under a TOKEN name reads RED too
