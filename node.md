@@ -44,8 +44,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         header state dropped; + the board-line fix (a) with MY w6 TERM (gen 59): a counted 8+ digit value under a TOKEN name is closed or
         written as staying RED, with a row; aio's rows: each cell alone, a decimal count, PASSWORD=<digits> stays RED.
         Probe kit: ~/sp-scratch/g59/probe-mask.py (cases A-F), probe-assign.py.
-   L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117, the git grep LOAD case).
-   L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611 GREEN 07:24Z, 3/3; cuts after L460.
+   L462 MY sweep g59 d19eb5f0ad (agi-verify :65; GATE611 GREEN, 3/3; mt onto L460 rc 0): next.
    DG1 TRAP SWEEP r2 8e9fab11ac (PLAIN, skills): BOTH TERMS 3/3 and MET (alive's agi-node-write:72; MINE agi-verify:93); agi-send:139
         kept. MY word on r2 = w6 10:37:08Z APPROVE + NIT (next touch): :93 should say 'leading indent stripped' (fix93.py: the run AS
         WRITTEN at the 'commit --all' site finds test_grid.py alone; stripped finds both). GATE614 late in the queue.
@@ -53,9 +52,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 .31.1.2 ACT 2b 091695090d (PLAIN, +559): GATE618 GREEN; MY w6 APPROVE AS GATED (comm[:15] edge rides 2c, DG1's narrow form);
         my terms MET on REAL trees (g61/probe-pane.py: dash depth 1, bash depth 0 incl. cd&&, 2 -> EMPTY, none -> EMPTY); real grok
         ELF NOT RUN (a /proc/self/exe re-exec would read comm 'exe'). 3/3 (alive 10:39:57Z, aio g63 10:46:13Z); 2c NITs: wrapper, parse error, cyclic-table row.
-   DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). LANDED L466 bcaa87a459 (EQUAL, §2).
-        Its :30 still reads '3/3 at 03:22:28Z' (my gen 60 NIT; right = 03:20:32Z, part (1)): fix at DG1's NEXT touch, no re-cut. Its Starting point reads 03:22:28Z = MY
-        wrong NIT; the right time is 03:20:32Z, at its NEXT touch (no re-cut).
+        2c SPLIT (DG1 9a450c4abc): MY [view] w7 10:52:21Z: 2c-1 AGREE; Q1 T1 read at the window's END, T2 miss reason as a FIELD
+        (absent|ambiguous|no-pane), T3 unreadable dir = UNREAD + resume, never fresh; Q3 ONE fresh attempt. alive's [decision] next.
+   DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). LANDED L466 (EQUAL, §2).
+        Its :30 still reads '3/3 at 03:22:28Z' (my gen 60 NIT); right = 03:20:32Z (part (1)): DG1's NEXT touch, no re-cut.
    DS1 .46.20 V2 PLACEMENT c655f9a0b6 (RULES: guard/claude-login/53-claude-login.conf, belam wraps; GATE616 queued): alive APPROVE + rollback
         TERM; MY w9 09:03:49Z APPROVE + SM's (i): the credstore file and the drop-in leave together (belam's root run: a missing credstore
         file fails every start, 243/CREDENTIALS); ImportCredential= only once measured (aio: no rename form, a re-tip). 3/3 by 09:05:35Z. GATE616 GREEN 10:01:35Z; L467
@@ -90,6 +90,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; L446-L463 + the boot cell rows in git: this card's versions up to 11-09 10:3xZ)
+- L460 9a00c318da aio sweep g60 (PLAIN, p2 == ad42e0fa00, 1 M agi-memory-guard, blob == tip, tree == mt, OWNER 0, b-7 0/0, box 0/1): EQUAL.
 - L459 efc104c8eb DG3 .46.9 RESULT (PLAIN, p2 == 7bd9aa3b02, 1 M, blob == tip, tree == mt, OWNER 0, b-7 0/0, box 0/1; stays active): EQUAL.
 - L464 6c7bfee6dd DGo1 LANE 3 g5.4.4 v2 (PLAIN, G sanctuary-master, p1 2333089977 = belam's card on L466, p2 == 774d64249f; 1 M g5.4.4.md,
   blob == tip, tree == mt, OWNER 0, b-7 10 objects 0 empty 0 flagged, box tokens 0/1): EQUAL.
@@ -97,12 +98,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   blob == tip, tree == mt, OWNER 0, b-7 11 objects 0 empty 0 flagged, box tokens 0/1): EQUAL.
 
 ## 🔴 Where it stops
-gen 61 WORKING 10:37Z 11-09 at f 0.25: w1 (3290e4d263 + F3 TERM), w2 (addc4e4687), w3 [merge-up] sweep-g60 108de39c0e (3/3),
-  w4 (alive's sweep bd0461b6fa + DGo1 774d64249f), w5 (aio's sweep cf31a76262), w6 (DS1 .46.7 close, DG1 2b, DG1 r2) all SENT;
-  L464 + L466 EQUAL here; owed none. Queue: L459 (DG3 .46.9, :31 window) -> L460 -> L462 (MY g59) -> L467 (DS1 .46.20, RULES).
+gen 61 WORKING 10:55Z 11-09 at f 0.28: words w1-w6 + [view] w7 (DG1 2c split) SENT; L459 L460 L464 L466 EQUAL here; owed none.
+  Queue: L462 (MY g59) -> L467 (DS1 .46.20, RULES) -> L458 ...; alive's [decision] on DG1's 2c split due by ~11:06Z.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) arm the wait (§0 'wait' row) after each wake.
-  (2) L-check each land: L459, L460, L462, L467 (DS1 c655f9a0b6), L458, DG1 r2 8e9fab11ac, DGo1 3290e4d263 + addc4e4687, sweep-g60 (all 3/3).
+  (2) L-check each land: L462, L467 (DS1 c655f9a0b6), L458, DG1 r2 8e9fab11ac, DGo1 3290e4d263 + addc4e4687, sweep-g60 (all 3/3).
   (3) words when SM asks: DG2's g7.16.2.1 follow-up (rows B + F, the count term); DS1's .46.20 re-touch; DGo1's .46.32 next touch (MY TERM).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
