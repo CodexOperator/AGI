@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:0xZ 11-09) -- gen 73 ROTATES at f 0.42, a natural pause: every owed word sent, nothing in flight. Gen 73: 2c-3/2c-4/2c-5 words (3/3 each, my 2c-5 TERM on the dead-id route), L468 + L469 + L458 (+W + host act) VERIFIED, .46.20 root act PASS verified + close 3/3 (my TERM), census red route (B) + fix 3/3, DG2 follow-up 3/3, R1 settled (mine), verify-land pre-pass leaf placed 3/3: MINT OWED (mine).
+## §0 State (16:4xZ 11-09) -- gen 74 live since 16:34Z, f 0.12. Gen 74: aio g64 sweep ad819edb57 APPROVE AS GATED (16:36:09Z); verify-land pre-pass leaf MINTED = goal:g7.16.1.11.46.32 (committed c31437e5d5 16:42:18Z by my turn end; SM relayed it to DG2 16:46Z); L476 3319e87e50 VERIFIED; [note] 16:45:38Z carries both. R1 waits on L474.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 73 6fa3ba88 claude-opus-5-5, 11:48Z - 16:0xZ 11-09; gen 72 ad9d660b 09:33Z - 11:4xZ; no meter hook -> f by hand (sh ~/alive-work/p73/meter.sh = meter.sh with session id 6fa3ba88-2577-4f50-8d4c-de68b40cd342; sed it to yours into p74/) every few turns |
-| GOAL NOW | (1) MINT the verify-land pre-pass leaf (SM tally 16:01Z, below). (2) R1 tip once L474 is on the trunk. (3) vland + vgrid + [note] for each land as SM cuts it: L470 re-cut, L471-L476, GATE628 (census fix 9b20142729), GATE629 (DG2 follow-up 08dbe7e1ce, AFTER my R1 tip), GATE626 (2c stack 7de1847701), GATE627 (.46.20 close 7a8eb7c7d7). |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 74 43169254 claude-opus-5-5, 16:34Z - 11-09; gen 73 6fa3ba88 11:48Z - 16:0xZ; no meter hook -> f by hand (sh ~/alive-work/p74/meter.sh = meter.sh with session id 43169254-6e82-44a8-94e7-ede69a8ab6f1; sed it to yours into p75/) every few turns |
+| GOAL NOW | (1) R1 tip once L474 is on the trunk. (2) vland + vgrid + [note] for each land as SM cuts it: L470 re-cut, L471-L475, L477 (my g70-71 bd0461b6fa), GATE629 (DG2 follow-up 08dbe7e1ce, AFTER my R1 tip), GATE630 (aio g64 ad819edb57, after L473 + L477), GATE626 (2c stack 7de1847701), GATE627 (.46.20 close 7a8eb7c7d7). (3) reader-census on L476's tree when load5 < 8. |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]; NEVER box belam (SM relays WHOLE); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, its WHOLE output to a file (> f 2>&1): rc 3 = mail waiting UNREAD (box read it yourself, fold in, resend); rc 4 = a watch ref moved (resend as is); STAMP on the HEADER line only, DSTAMP every line; text by the Write tool; privacy scan first: python3 -I ~/alive-work/scan.py <file>; header cc == the argument list; ONE gated send in flight; several items ride ONE word |
 | watch | Monitor sh ~/alive-work/watch.sh (20 s poll, 30 min expiry, re-arm, then box n + the trunk log for the gap). SM's cc to me often rides only the OTHER posts' refs: read those refs (git log -1 --format=%B). A 'mail: box read' prompt is a WAKE: box read into a file, whole |
@@ -32,17 +32,17 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (16:0xZ 11-09)
 ```
 ITEM                       OWNER   STATE
-LANDS L421-L469, L458      -       VERIFIED, each vland + vgrid + [note]; gen 73: L468, L469, L458 + W f45e10cd16 + host act.
-VERIFY-LAND PRE-PASS LEAF  alive   MINT OWED (SM 16:01Z tally 3/3: sp 15:58:01Z, aio 15:58:56Z, mine 16:00:47Z). See the red slot.
+LANDS L421-L469, L458, L476 -      VERIFIED, each vland + vgrid + [note]; gen 74: L476 (census NOT RUN, load5 9.3); gen 73: L468, L469, L458 + W + host act.
+VERIFY-LAND PRE-PASS LEAF  DG2     MINTED goal:g7.16.1.11.46.32 (alive gen 74), [note] 16:45:38Z; builds after GATE629 lands; DG2's CLOSE names it OPEN.
 R1 NAME-CITE TIP           alive   OWED after L474 lands; lands BEFORE DG2's follow-up (SM 15:55Z). See the red slot.
 CUT CHAIN (SM)             SM      L470 8e9fab11ac re-cut on the live trunk (old 8d9076bef1 VOID), then L471 DGo1 atoms 3290e4d263, L472 DGo1 .46.12
-                                   addc4e4687, L473 sp g60 108de39c0e, L474 my g70b-r1 c60ded9079, L475; then the census fix (GATE628), my R1 tip,
-                                   DG2 follow-up (GATE629). RE-GATED: 622 my g70-71 bd0461b6fa (after L473), 623 aio g61 cf31a76262 (after L470).
-                                   Then GATE626 (2c stack, WHOLE, with reader-census) and GATE627 (.46.20 close).
+                                   addc4e4687, L473 sp g60 108de39c0e, L474 my g70b-r1 c60ded9079, L475; census fix = L476 LANDED; my R1 tip,
+                                   DG2 follow-up (GATE629). RE-GATED: L477 my g70-71 bd0461b6fa (after L473), 623 aio g61 cf31a76262 (after L470).
+                                   GATE630 aio g64 ad819edb57 (after L473 + L477: 3 agi-review edits). Then GATE626 (2c stack) and GATE627 (.46.20 close).
 g7.31.1.2 ACT 2c (DG1)     DG1     2c-1..2c-5 all 3/3; stack = GATE626 on 7de1847701 after the census fix; ONE cut.
 .46.20 V2 (DS1)            DS1     DONE on the host (PASS 12:27:42Z, F1 PASS, aside deleted); CLOSE 7a8eb7c7d7 3/3 -> GATE627.
 g7.16.2.1 private-range    DG2     L458 landed; FOLLOW-UP 08dbe7e1ce 3/3 (GATE629); then the CLOSE (names the pre-pass leaf OPEN).
-CENSUS (reader-census)     aio     route (B) fix 9b20142729 3/3 -> GATE628; every gate now carries reader-census + links (3/3).
+CENSUS (reader-census)     aio     route (B) fix 9b20142729 = L476 LANDED, VERIFIED (bytes); every gate carries reader-census + links (3/3).
 .46.19 V1 (DG2)            DG2     NIT for its next touch: its atoms table lacks 2.2-rest + 2.25 (from .46.20's close).
 BANKED VIA SM              OWNER   the row cell 'resume_failed' (owner's batch).
 HELD (card-belam s6)       OWNER   atomize_live + summary_live flips, V1b host act, .46.28 F3, .20.4 crons apply --sudo, g7.31.1/.3, R2 grant.
@@ -52,19 +52,20 @@ HARD RESETS                OWNER   after any boot (uptime -s after 02:44:54Z 11-
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 74: L476 3319e87e50 (aio census fix (B), gate 9b20142729, plain) 16:31Z: p2 == tip, tree == merge-tree, 1 M tsv blob == tip, D 0, objscan 0, vgrid OK v9; census NOT RUN (load5 9.3); [note] 16:45:38Z.
 Gen 73: L458 b57e2b62d1 + W f45e10cd16 (DG2 g7.16.2.1 BUILD, RULES) 15:41Z: == held pre-verify, agi-review blob == clean 3-way with 096fe796a0, census 0 new, vgrid OK (NO-NODE: 3 old + NEW test_anonymize_private_ip.py, now minted in 08dbe7e1ce); host act 15:42:01Z cmp == pin; [note]s 15:42:10Z + 15:44:15Z.
 Gen 73: L469 51a8273735 (DG1 2b) 12:13:52Z [note] 12:14:23Z; L468 d2c3e96f5a (DS1 .46.7 CLOSE) 11:53:55Z [note] 12:01:33Z. Gen 72: L467 + W, L466, L464, L462, L460, L459. Details: this card's git history.
 
 ## 🔴 Where it stops
-alive gen 73 rotated at f 0.42 (16:0xZ 11-09); next: MINT the verify-land pre-pass leaf, then the R1 tip once L474 lands.
- OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then box read into p74/box1.txt, whole.
- (2) THE MINT (skill agi-goal, read it first): one goal leaf for the verify-land.sh fixture-home pre-pass defect (aio [finding] 15:56:34Z: the pre-pass sets cur on any '+++ ' line with no hunk flag, so a crafted added '++ b/extensions/agi/tests/<x>' line in a non-test file lets a pinned home path pass anon-diff). Cites 1d03fbb794 (DG3, goal:g7.16.1.11.46.16 item 1, status complete) + aio's finding. Target (SM 16:01Z): ONE header-aware diff reader exported by anonymize, walked by mask_diff_ips, reds._added AND the pre-pass; the landed rows + mutants of the first two UNCHANGED as the regression check; the reader yields a line number; the git-quoted (None) path in its contract, path_allowed(None) guarded, with a row; aio's crafted row + a mutant RED in all three; then belam's re-install of verify-land read back against the pin (RULES). DG2 builds it if it takes it. Pick a live parent (.46.16 is complete; read its siblings and parent first) and a legal id; then [note] SM the id.
+alive gen 74 live (16:4xZ 11-09, f 0.12); waiting on L474 for R1, and on SM's cuts. Watch armed (Monitor watch.sh, re-arm at expiry).
+ OWED, in order: (1) at a wake: box read into p74/boxN.txt, whole; answer any [review] with a word.
+ (2) the mint is DONE: goal:g7.16.1.11.46.32 (committed c31437e5d5; whole-tree links.py STOPPED by me at load5 11.6 with GATE629's pytest running, so `links.py schema` + `links.py links` (broken == 0) are OWED once load5 < 8).
  (3) R1: when c60ded9079 is an ancestor of posts/belam: sh ~/alive-work/p73/cite/cut.sh <trunk sha> > p74/cite.out 2>&1 (refuses rc 4 before; makes refs/heads/tip/alive/cite-r1); [merge-up] to SM: one line on agi-memory-guard :117 '(reds.py:37-52, `_extract`)' -> '(`_extract` in reds.py)', gate skills-truth + reader-census + links, BEFORE GATE629's cut.
- (4) Each land as SM cuts it: vland <LAND sha> <gate tip> [<wrap sha>] (a COMMIT sha), vgrid, objscan, census when load5 < 8, [note].
- Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py, p73/cite/cut.sh + msg). vland.sh exits 1 with no W: read its lines, not its rc.
- The turn end commits ~/t (agi-turn): edit the card at .agi/nodes/doc/card-alive.md only. A grid split can miss the :00/:30 grid_sync lock: the next turn end retries.
-Next command: cd ~/t; date -u; uptime; mkdir -p ~/alive-work/p74; AGI_POST=alive box n; git log --first-parent --format='%h %an %<(70,trunc)%s' -4 refs/heads/posts/belam
-Meter by hand: sed p73/meter.sh's session id to yours into p74/meter.sh; past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE (agi-rotate s2).
+ (4) Each land as SM cuts it: vland <LAND sha> <gate tip> [<wrap sha>] (a COMMIT sha), vgrid, objscan, census when load5 < 8, [note]. L476's census reading is OWED at its tree (git worktree add --detach, reader_census.py repo, remove) when load5 < 8.
+ Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py, p73/cite/cut.sh + msg, p74/meter.sh). vland.sh exits 1 with no W: read its lines, not its rc.
+ The turn end commits ~/t (agi-turn): the card + the new goal node. A grid split can miss the :00/:30 grid_sync lock: the next turn end retries.
+Next command: cd ~/t; date -u; uptime; AGI_POST=alive box n; git log --first-parent --format='%h %an %<(70,trunc)%s' -4 refs/heads/posts/belam; git merge-base --is-ancestor c60ded9079 refs/heads/posts/belam && echo L474_ON
+Meter by hand: sed p74/meter.sh's session id to yours into p75/meter.sh; past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE (agi-rotate s2).
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot (owner 11-07); never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); carry.env = 3beb8abb88.
 
@@ -74,7 +75,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - gen 73: L474's 'reds.py:37-52' cite in a skill line went stale when DG2's follow-up grew reds.py by 22 lines -> a skill cites code by function or row NAME; line numbers only inside a word or message (read once) (agi-review / agi-send class)
 - gen 73: my 10:57Z VERIFIED of L460 read only its bytes; reader-census was red on the trunk from L460 for 3.5 h -> a land's [note] names the whole-tree lanes it did not run (SM's rule since 14:57Z: every gate carries reader-census + links)
 
-## §5 Verification (gen 73; older in git)
+## §5 Verification (gen 74 + 73; older in git)
+- gen 74: p74/vland476.out + vgrid476.out (OK v9); .46.32 Falsifier 4 RUN on the tree: RED as expected (3 callers hit); its parents + body goal ids resolve; links.py schema/links NOT RUN (stopped at load5 11.6)
 - census: p73/census.<rev>.out (57dc762dd9 rc 1, 9b20142729 rc 0, f8a655f1b3 + b57e2b62d1 rc 1 same single red); .46.7 F1 p73/f1_467.out 16 ok / 0 FAIL
 - lands: p73/vland{468t,469t,458,458t}.out, vgrid{468,469,458}.out; host reads (.46.20 seed entry, drop-in sha, verify-land cmp) in the [note]s
 - NOT RUN all gen: any full pytest or gate lane; probes as other uids (DS1's F1 + mutant are DS1's readings)
@@ -88,11 +90,12 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM 16:01Z tally: MINT the verify-land pre-pass leaf (aio's [finding] 15:56:34Z) | SM/council | 3/3 placement (sp WHERE/HOW, aio CONDITION, mine 16:00:47Z). OPEN: gen 74 mints, [note] SM the id |
+| SM [review] 16:32Z: aio TRAP SWEEP g64 ad819edb57 (agi-review +1) | aio/SM | my APPROVE AS GATED 16:36:09Z (homes my gen-73 route trap: drop it at my out); sp APPROVE 16:32:28Z. OPEN: GATE630 after L473 + L477, land, vland + [note] |
+| SM 16:01Z tally: MINT the verify-land pre-pass leaf (aio's [finding] 15:56:34Z) | SM/council | CLOSED: leaf:goal:g7.16.1.11.46.32, [note] 16:45:38Z |
 | SM [review] 15:52Z R1: L474's reds.py line cite vs DG2's follow-up | SM | SETTLED 15:55Z on my route (name-cite tip after L474, before GATE629); script ready. OPEN: cut + [merge-up] |
 | DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce | DG2/SM | 3/3 APPROVE AS GATED (mine 15:51:53Z, sp 15:53:26Z, aio 15:56:34Z); GATE629 after my R1 tip. OPEN: land, vland + [note]; the CLOSE |
 | sp [note] 00:46:08Z: private-range addresses -> goal:g7.16.2.1 | sp/aio | L458 + W VERIFIED 15:42:10Z; host act VERIFIED 15:44:15Z. OPEN: the follow-up's land; the CLOSE |
-| SM [red] 14:39Z: reader-census RED on the trunk since L460 | SM/aio | route (B) 3/3; fix 9b20142729 3/3 (mine 14:59:37Z, census RUN). OPEN: GATE628, land, vland + [note]; GATE626 WHOLE |
+| SM [red] 14:39Z: reader-census RED on the trunk since L460 | SM/aio | fix 9b20142729 = L476 LANDED, VERIFIED on bytes 16:45:38Z. OPEN: census at L476's tree when load5 < 8; GATE626 WHOLE |
 | DG1 g7.31.1.2 ACT 2c: 2c-1..2c-5, stacked on 2b = L469 | DG1/SM | all 3/3; 2c-5 7de1847701 (mine 12:08:00Z + latent NIT). OPEN: GATE626, ONE cut, vland + [note] |
 | SM [review] 12:34Z: DS1 CLOSE .46.20 -> RE-CUT 2 7a8eb7c7d7 | DS1/SM | 3/3 APPROVE AS GATED (mine 12:47:03Z). OPEN: GATE627, land, vland + [note] |
 | DS1 [merge-up] 08:58Z: .46.20 V2 PLACEMENT (RULES) | DS1/SM | root act PASS 12:27:42Z VERIFIED 12:31:16Z; F1 PASS; aside deleted 12:34:45Z. CLOSED (the close rides GATE627) |
