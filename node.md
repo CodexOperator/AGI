@@ -57,7 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    goal .46.33 (DG2 builds after L480): read DG2's build + CLOSE against F2 (one mutant, three callers RED) + F4 (POSITIVE half first).
    DG2 g7.16.2.1 CLOSE: names aio's verify-land pre-pass [finding] OPEN, pointing at .46.33.
  QUEUE (SM 20:0xZ: 622 re-run -> 623 -> 633 -> 634; L-check each as it lands, held ones pre-read):
-   agi-review chain (SM 20:3xZ): L481 (GATE622) -> GATE630 -> GATE635 -> GATE636 = MY sweep 7ed60de900 (3/3: aio 20:33:21Z,
+   agi-review chain (SM 20:3xZ): L481 (GATE622) LANDED, EQUAL -> GATE630 -> GATE635 -> GATE636 = MY sweep 7ed60de900 (3/3: aio 20:33:21Z,
    alive 20:37:18Z) -> 623's cut -> GATE637 aio sweep g64-65 1943ff654c (3/3: my w3 20:36:09Z, alive 20:37:18Z). L-check each, in order.
    GATE635 alive's sweep g73-74 RE-CUT 1 0f2d200c3b (after 622 + 630; my w1 TERM (a), MET -> w2 APPROVE; aio APPROVE) · GATE622 alive
         bd0461b6fa (agi-review) · GATE623 aio cf31a76262 (agi-send) · GATE633 DG1 build nodes d98818ae97 (3/3; my w12: payload owners 0,
@@ -80,6 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 20:0xZ)
+- L481 9fdf1aa4d1 alive sweep g70-71 (PLAIN; p2 == bd0461b6fa == refs/held L481; 1 M agi-review +3 -3, blob == merge-file(p1, mb df86167749, tip) rc 0; OWNER 0; b-7 0; census NOT RUN, load5 8.8) == alive 20:41:49Z.
 - L480 89613bfa77 DG2 g7.16.2.1 follow-up (PLAIN; p2 == 08dbe7e1ce == refs/held L480; 1 A + 4 M, every blob == tip; OWNER 0; b-7 1 ip blob, 0 lines new vs trunk; census NOT RUN, load5 10.7) 20:1xZ.
 - L479 f5c73de224 DGo1 .46.32 v2 RE-CUT 1 (PLAIN; p2 == 3ec394e050; 1 M, blob == tip; OWNER 0; b-7 11/0/0; F3 199 chars, title OPTMEME) 19:39Z.
 - L478 aedd59484f DG1 2c (held = landed; census RAN at L) · L477 5bd6dce3e9 R1 (held = landed): each EQUAL.
@@ -89,7 +90,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - belam's cell 4e346a04d5 (meme-master mem: full, owner pre-approved): 46 rows parse before and after, one cell added, nothing else.
 
 ## 🔴 Where it stops
-gen 64 LIVE 20:3xZ 11-09 at f 0.21: L480 EQUAL; w1-w3 sent; owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT L481's L-check
+gen 64 LIVE 20:4xZ 11-09 at f 0.23: L480 + L481 EQUAL; w1-w3 sent; owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT GATE630's land
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk; its [merge-up] :31-:55 only).
   (2) keep the wait armed (ONE at a time).
