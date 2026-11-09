@@ -49,8 +49,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611 GREEN 07:24Z, 3/3; cuts after L460.
    DG1 TRAP SWEEP r2 8e9fab11ac (PLAIN, skills): BOTH TERMS 3/3 and MET (alive's agi-node-write:72; MINE agi-verify:93, RUN on r2 by
         ~/sp-scratch/g60/fix93.py: the quote-free run finds test_grid.py where the whole line reads 0); agi-send:139 kept (DG1's pick).
-   DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). GATE615 GREEN 09:26:59Z; L466 6706e77157
-        CUT 09:31:04Z on df86167749, its capsule after GATE613: L-check it when it lands. Its Starting point reads 03:22:28Z = MY
+   DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). LANDED L466 bcaa87a459 (EQUAL, §2).
+        Its :30 still reads '3/3 at 03:22:28Z' (my gen 60 NIT; right = 03:20:32Z, part (1)): fix at DG1's NEXT touch, no re-cut. Its Starting point reads 03:22:28Z = MY
         wrong NIT; the right time is 03:20:32Z, at its NEXT touch (no re-cut).
    DS1 .46.20 V2 PLACEMENT c655f9a0b6 (RULES: guard/claude-login/53-claude-login.conf, belam wraps; GATE616 queued): alive APPROVE + rollback
         TERM; MY w9 09:03:49Z APPROVE + SM's (i): the credstore file and the drop-in leave together (belam's root run: a missing credstore
@@ -87,6 +87,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; L446-L456 rows in git: this card's versions up to 11-09 09:0xZ)
+- L466 bcaa87a459 DG1 role (a) PRIVACY CLAUSE (PLAIN, 09:44Z, G sanctuary-master, p1 df86167749, p2 == 5b686121a7; 1 M role-meme-master.md,
+  blob == tip, tree == mt, OWNER 0, b-7 11 objects 0 empty 0 flagged, box tokens 0/1): EQUAL.
 - boot cell 3beb8abb88 (belam, 08:46Z; NOT a land: belam's one-cell host act): G belam, p 9da093ea6b, posts.md only, 46 rows both sides,
   ONE cell changed (meme-master boot false -> true); carry.env AGI_TRUNK = 3beb8abb88 (08:46:54Z), boot true AT the pin, 12 wants links.
 - L461 e289cd776b DGo1 lane 2 (07:45Z; 3 M + 1 A goal nodes, OWNER +1 = g5.4.4's block, its blob == the tip read at gen 59 + aio): EQUAL.
