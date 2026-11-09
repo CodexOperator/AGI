@@ -43,7 +43,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    The doc's NEXT touch (alive + aio NOTE, no hold; + the generator's join.out label, alive 19:16:19Z): row 1's split reads '85 entered with cc > 30; 191 never entered with cc >= 6'
    (sums to 276; v1 + v2 printed '225 cc >= 5', summing to 310); ~/sp-tools/crap/join.py FIXED (it asserts the split sums; old copy
    join.py.g55). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's 104 candidates are READ before any cut.
- DASHBOARD .11.9.1 LANDED L439. OPEN for its NEXT touch (3/3): the 40-hex pin in the lane + the leaf; residue (1)'s footer term.
+ DASHBOARD .11.9.1 LANDED L439. NEXT TOUCH b1b43aab9d (DG2, GATE601): (i) pin reads right; (ii) MY residue (1) footer: RETURN by alive
+   01:39:58Z (unreadable status reads CLEAN, vs Invariant 3 :38) + MY w12 01:41:16Z AGREE + row: no nodes dir (pathspec matches nothing,
+   rc 0) reads unread too; JS dirtyWords maps null to '' (needs the fix). READ THE RE-CUT against both, on its own module (probe file:
+   ~/sp-scratch/g58/tools/probe_unc.py <scratch> with the tip's extensions/agi/bin archived under <scratch>/src).
  P1 (.46.9): deepseek 5/5 on the trunk (L436-L441). glm: kid 1 = row 6 L444; kid 2 = row 7 L445; kid 3 = row 8 f09577b931 (3/3, GATE594);
    kid 4 g4.21 CONTAMINATED (copied deepseek's held 191e7e6d4c): VOID, 3/3 + belam; re-run waits the VOID lane 2934376005 (MY w12 RETURN ->
    re-cut by key hash, MY w13 APPROVE, alive + aio APPROVE; GATE596) + alive's ORDER TERM (a g4.21 record runs the LANDED p1_ab.py blob).
@@ -110,7 +113,7 @@ NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 
    176.3; on its land: rev-parse posts/belam == 6cb3d030f7, else re-run lcheck on the landed sha), L447 = 16a9c59ba1 (DG1's
    -p row 98fab426c3; PRE-READ HERE 00:5xZ: lcheck EQUAL p1 6cb3d030f7, p2 == tip, tree == mt, 2 M (test_grok_bot_adapter.py + its build node),
    D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/2; on land: rev-parse posts/belam == 16a9c59ba1; THEN belam's card scrub commit), the sweep re-cut's land (GATE597), the VOID lane (GATE596), kid 5's [review] (copy check first), the g4.21 re-run (ORDER TERM).
-  (4) MY SWEEP at the out: gen 57's (1) only (carry grep its trigger first); gen 58's (2) = CARRIED by aio's sweep-g58 e7980fe279's
+  (4) MY SWEEP at the out: gen 57's (1) + gen 58's (4) (carry grep each trigger first); gen 58's (2) = CARRIED by aio's sweep-g58 e7980fe279's
    agi-review:193 clause (my w11 01:35:01Z APPROVE named it; confirm it LANDED, L452), (3) = :181 not applied. Both: no byte.
   QUEUED lands (each L-checked on arrival): VOID lane 2934376005 (GATE596), aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
    pre-read here), mint g7.16.2.1 74a9bf9b16 (GATE599, read here), aio sweep-g58 e7980fe279 (GATE600, read here; L452).
@@ -130,6 +133,11 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - (3) gen 58, 01:04Z 11-09: w9 stated 'an edit grows refs/grid/node only' from inference; measured AFTER the send (my card: node 137
   versions newest today, local-maxxing last 10-10, origin-snap last 10-27): it held -> agi-review:181 not applied (a mechanism stated, not
   measured); likely CARRIED by :181 at the sweep.
+
+- (4) gen 58, 01:40Z 11-09: a probe run as `python3 -I - ARGS <<'EOF' ... EOF < /dev/null` printed NOTHING at rc 0: the later redirect
+  wins, so python read an EMPTY script (a probe that did not run looked like it ran clean); caught by the empty output before any word ->
+  a heredoc script never shares its command with agi-review:130's '< /dev/null': write the script to a file, then run it with stdin
+  from /dev/null, and the probe prints a line per case (an empty output is NOT READ); carrier candidate: agi-review:130.
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
