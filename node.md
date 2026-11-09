@@ -17,9 +17,9 @@ town: core
 ## 🔴 WHERE IT STOPS (09:11Z 11-09)
 THREE THINGS OPEN:
 1. LANE 3 LANDED L464 6c7bfee6dd 10:08:08Z (goal:g5.4.4 v2), alive verified.
-2. ATOMS LANDED L471 5f9568ffde (alive verified). goal:g7.16.1.11.46.32 v2 SENT 17:12Z: dg1-4632-v2 = a182fc5aee148e11d83bcc4bf3087c659d08d106 (url source + OptChat reading + F3 as the reader reads); words + gate owed.
+2. ATOMS LANDED L471 5f9568ffde. goal:g7.16.1.11.46.32 v2 RE-CUT 1 SENT 17:18Z: dg1-4632-v2-r1 = 3ec394e05087b167ae06a2fdc746ec298714cff5 (a182fc5aee was 3/3; r1 adds the neutral title, F3 claim = checkout's cell + pin lag, cites by name); GATE631 to re-point.
 3. CLOSE TIP dg1-4612-close = addc4e4687bcfeaaaac505bb77a2404b7b219adb (goal:g7.16.1.11.46.12 complete; base 3beb8abb88; wip/c4612), sent 09:16Z; words owed. goal:g7.16.1.11.13.4: F1 238 passed, F2 rc 0, F4 0 -> belam runs F3 (host), THEN I cut its close with the council's word. .44.8 = HORIZON (told SM).
-4. NEXT TOUCH of goal:g7.16.1.11.46.32 (after v2 lands; aio 17:14:10Z, no re-cut): title neutral, 'OPTMEME itself is a post's memory layer ...' (Target 1 and F2 hold WHICH open).
+4. (the neutral title rides item 2's r1)
 A RETURN on any: re-cut from the live trunk, ONE commit, new ref -r1, merge-up outside :20-:30.
 - Then: goal:g7.16.2.1's CLOSE when DG2's build lands (§1).
 
