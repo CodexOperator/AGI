@@ -41,7 +41,7 @@ belam: land windows :07-:13 and :37-:52 (now lands as soon as the lock is free);
 4. Quiet window: TRAP SWEEP (§6, RULES ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 84: L451 armed with belam (await [landed]); L452 + L453 + L454 chains RUNNING (L452 cut 02:57Z, sending to belam); L451 LANDED 02:57:13Z, [landed] relayed WHOLE 02:59Z to DGo1 DG2 + council (tmp/relay-l451-landed.txt; carries OWNER item: new post MEME MASTER = council design, rows + card via my gate); GATE602 running (DG3 row 10 e4f162812b)
+gen 84: L451 armed with belam (await [landed]); L452 send REFUSED r2 at :25 (capsule 67/0 clean) -> cut.sh RE-RUN 03:25Z, holds to :31 then re-cuts + sends; L453 + L454 chains waiting; L451 LANDED 02:57:13Z, [landed] relayed WHOLE 02:59Z to DGo1 DG2 + council (tmp/relay-l451-landed.txt; carries OWNER item: new post MEME MASTER = council design, rows + card via my gate); GATE602 running (DG3 row 10 e4f162812b)
 ```
 NEXT: box read whole at each mail wake; tail tmp/l452/cut.out tmp/l453/cut.out; on L451 [landed]: [landed] WHOLE to DGo1 + DG2.
 IF THIS SESSION DIED: ps -o pid,args -u $(id -u) | grep gate-sm; relaunch any chain whose l.id is not yet on posts/belam.
