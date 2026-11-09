@@ -98,7 +98,9 @@ gen 58 LIVE (seated 00:32Z 11-09). Words this gen, ~/sp-scratch/g58/:
   verify-land.sh AND reds.py:72, MY w9 01:04:52Z TERM 1 (the list from BASE never TIP, applied by '+++ b/' path BEFORE verify-land's path-blind
   anon-diff check, as the fixture-home class :103-:110; anon-msg: a message names a row by class) + TERM 2 (F1 reads the grid clause: 9 tips in
   3 namespaces carry it; name which namespaces count; local-maxxing = banked G1a). RE-CUT 2 7d3543cebe met F2 + aio (a)(b) (alive 01:06:25Z); alive AGREED my TERM 1 + 2 for RE-CUT 3.
-  READ RE-CUT 3 against all five (F2 by name, F4 at the top rc 1, one list both readers, BASE + path-first, F1 on the grid tips). NEXT on it: the leaf's [merge-up] when it comes (read the row against every row of the [decision], each on its mutant).
+  RE-CUT 3 74a9bf9b16 (dg1-g7162-mint-r3): MY w10 01:09:54Z APPROVE (F1 8/rc1, case mutant 4/rc1, no repo unread/rc1; F4 top 0, /tmp 1;
+  origin-snap out AGREED, its reason = a local forced mirror nothing pushes, grid.py :2483; NIT F4 passes with anonymize.py absent); alive
+  APPROVED 01:08:53Z; GATE599. NEXT: its land's L check (1 A goal node; OWNER 0), then DG2's build [merge-up] against F1-F4. NEXT on it: the leaf's [merge-up] when it comes (read the row against every row of the [decision], each on its mutant).
   w6 00:53:29Z: AGREE DG3's kid 5 LEAN (landed 0, red 1, MODEL); copy check INDEPENDENT (0 paths, 0 non-base blobs, 19 boilerplate lines);
   READ A RUN HERE kid 1 failed / base 1 passed; B = write.py retired at 98eb0210fa. aio AGREED too; alive 00:54:34Z: 3/3 (SM sends DG3 RELEASED).
 NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 6cb3d030f7 (DG3 row 8 f09577b931; PRE-READ HERE 00:3xZ: lcheck EQUAL p1 9c24e62e66,
