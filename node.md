@@ -17,6 +17,7 @@ meme-master · engine v4 post · claude-opus-5-5 medium · director under keep, 
 Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi-send, agi-node-write, agi-rotate, agi-memory-guard, agi-goal.
 
 ## §0 State
+- Mem store up 19:51Z 11-09 (belam 4e346a04d5, "mem": "full"); agi-mem cite: my nodes clean; 43 RED are other posts' cites absent from MY store (reported to SM).
 - Gen 1 up 11-09 08:1xZ. Read goal:g5.4.3, doc:role-meme-master, and the 11-07 starting page (the owner's "agi Atlas" artifact, address in the goal's OWNER block): 8 plates — hero stats, node chain, crew tree, how a change lands, memory, recursion, values, one day.
 - 5 board photos received 11-09; check (4) PASSED: uploads dir 700, each image 600; the only non-600 new file (sessions/*.json 644) sits under 700 sessions/.
 - PRIVACY CLAUSE (council 3/3: self-perpetuating 07:52:55Z, all-is-one 07:54:03Z, alive 07:55:36Z 11-09; belam's relay at first start; role (a) pending director-general-1's place): (1) photos + every pre-scan derived file (drafts quoting them too) live ONLY in `~/meme-photos` (mkdir -m 700), never home top, never a repo tree; (2) ~/.claude/file-history and ~/.claude/cache mode 700; (3) modes read back by stat before the first write; (4) after the first pasted image, list files newer than mark `~/.claude-mark-photo0` under ~/.claude, names + modes only: each 600 or under a 700 dir, else STOP and say so.
@@ -35,7 +36,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 Owner back tomorrow. First: `AGI_POST=meme-master box read` (TM's numbers), then hand the owner chunk 1 from doc:draft-presentation-outline §Shepherd chunks.
 
 ## §4 Traps (this generation's)
-- An OWNER heading needs a c:<12 hex> chunk id; this uid has no mem store -> quote the owner under a plain heading until the store exists.
+- An OWNER heading needs a c:<12 hex> chunk id from ~/.mem/meme-master.git: `git -C ~/.mem/meme-master.git grep -l -F '<phrase>' refs/heads/mem -- mem`, then check speaker: owner.
 - Slide-7 fact: "104k lines of engine Python" on the Atlas overstates what is live; see the fuel node.
 
 ## §5 Verification
@@ -47,13 +48,14 @@ Nothing banked.
 ## §7 ATOMS (inbound owner/parent asks; one row per atom; open > one lap = red)
 | atom | from | state |
 |---|---|---|
-| start from the 11-07 class presentation | owner 03:13:59Z 11-09 | read 11-09; outline is chunk 1's input |
-| board photos -> plan for the presentation | owner 02:54:27Z 11-09 | placed: doc:draft-presentation-outline v1 |
-| own memory store (owner: "ask belam to set it up ill confirm") | owner 11-09 | asked SM for belam (box 11-09); owner confirms to belam |
-| python reach trace -> own fuel node, per schema | owner 11-09 | placed: idea:fuel-s4-retire-the-python-engine |
-| whole engine in shell, lean on the math -> fuel node | owner 11-09 | placed: fuel node v2 musing section |
-| tell TM: live-run data, ask core for AB tests, own eval pipelines, goal hill-climbs | owner 11-09 | placed: boxed TM verbatim 11-09 |
-| outline -> flesh out to completion; benchmarks via TM; subagents as needed | owner 11-09 (this session) | open: chunk 1 next; TM asked |
+| start from the 11-07 class presentation | owner 03:13:59Z 11-09 (goal:g5.4.3 OWNER) | closed: read; outline built on it |
+| photos -> outline -> flesh out; benchmarks via TM; subagents as needed | owner c:787879d6bc35 | outline placed (doc:draft-presentation-outline); OPEN: chunks 1-9 |
+| python reach trace -> season-4 fuel | owner c:12ed484271c7 | closed: idea:fuel-s4-retire-the-python-engine |
+| own fuel node, per schema | owner c:7d8196eccf23, c:6f3adc806769 | closed: [idea] followed; [fuel] schema asked of SM 11-09 (OPEN there) |
+| whole engine in shell, lean on the math | owner c:710151823175 | closed: fuel node musing section |
+| tell TM: live-run data, ask core for AB tests, own eval pipelines, hill-climbs | owner c:710151823175 | closed: boxed TM 11-09 |
+| own memory store | owner c:24cdc33b5c54 | closed: belam 4e346a04d5; ~/.mem/meme-master.git 700, tapped |
+| tell TM of the fuel schema, or request it | owner 11-09 ~19:5xZ (this turn; chunk pending tap) | closed: SM asked, TM told |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 11-09, meme-master gen 1: first start, then photos -> outline v1. Replaced director-general-1's pre-start card: state now the read of the goal, role and the Atlas page, and chunk 0 (owner answers + photos) as the one open ask.
