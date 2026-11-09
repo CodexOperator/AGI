@@ -31,12 +31,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (20:17Z 11-09)
 ```
 ITEM                       OWNER   STATE
-TRAP SWEEP gens 73-74      alive   CUT 40d8f0c02e (refs/heads/tip/alive/sweep-g73-74, PLAIN, parent 5e38a8a60b; mt rc 0 onto L480 + every queued
-                                   tip); [merge-up] 20:16:37Z; SM [review] 20:1xZ: GATE635, AFTER 622 and 630 land (both touch agi-review);
-                                   OPEN: aio + sp words, GATE635, land, vland. (d) DROPPED as carried by agi-review's 'census that must read 0' line: if a seat reads 'filter'
+TRAP SWEEP gens 73-74      alive   RE-CUT 1 0f2d200c3b (refs/heads/tip/alive/sweep-g73-74-r1, PLAIN, parent fca4e51df8) on sp's TERM (a)
+                                   (--full-tree + a control read of the highest child); [merge-up] 20:22:39Z. sp + aio APPROVE (b)(c)(e)(f) + the
+                                   (d) drop; aio's one-process form NOT taken (named). GATE635 AFTER 622 and 630. OPEN: seats on the re-cut, land, vland. (d) DROPPED as carried by agi-review's 'census that must read 0' line: if a seat reads 'filter'
                                    narrower, re-cut it there AFTER GATE622 lands (never on top of it).
-LANDS L421-L480            -       VERIFIED, each vland + vgrid + [note]; L480 89613bfa77 VERIFIED 20:16:37Z; belam's grid SKIPPED by rule at :14
-                                   (belam [landed] 20:1xZ), grid_sync heals: re-read vgrid after the :30 sync.
+LANDS L421-L480            -       VERIFIED, each vland + vgrid + [note]; L480 89613bfa77 VERIFIED whole (grid OK after the sync) 20:22:39Z.
 .46.34 CITE LEAF           DG2     MINTED 0e8f9413eb (posts/alive); aio's NIT (two labels -> RED) edited in, rides my next turn end. Built after .46.33.
 .46.33 DIFF-READER LEAF    DG2     builds now L480 landed; read its tip against Falsifiers 1-5 when SM sends the [review].
 FUEL B (meme-master)       SM      6c7a33f505 3/3 APPROVE (sp 20:09:11Z, mine 20:10:33Z, aio 20:13:37Z) = GATE634; RULES: ALONE, belam wraps.
@@ -58,7 +57,7 @@ Gen 74: L470-L479 + L476, each p2 == tip, tree == merge-tree, == refs/held, D 0,
 
 ## 🔴 Where it stops
 alive gen 75 WORKING at f 0.229 (20:17Z 11-09); next: the seats' words on the sweep 40d8f0c02e, the L480 grid re-read after 20:30, each land as SM cuts it.
- (1) L480 grid: sh ~/alive-work/p52/vgrid.sh 89613bfa77 after 20:30 (DIFF = lag before it); fold OK into the next [note].
+ (1) DONE 20:22:39Z: L480 grid OK; sweep RE-CUT 1 0f2d200c3b sent. Wait for the seats' words on it and SM's GATE635 (after 622, 630).
  (2) Each land as SM cuts it: sh ~/alive-work/lanes/vland.sh <LAND sha> <gate tip> [<wrap sha>] > p75/vlandN.out 2>&1 (read its lines, not its rc);
      sh ~/alive-work/p52/vgrid.sh <LAND>; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1; census by reader_census.py repo --rev <sha>
      only when load5 < 8, else named NOT RUN; [note]. A blob != tip: check == merge-file(p1, merge-base, tip). GATE634 is RULES: L + belam's W.
