@@ -710,14 +710,26 @@ async function boot() {
 // trunk sha) and draw with plain DOM/SVG; crew also marks a post live from
 // the /live.json the 5 s poll already holds (a dot, never a number). A view
 // whose source read nothing shows its read_nothing words, never an empty
-// picture. The footer names the shown export's sha (12) + built_at.
+// picture. The footer names the shown export's sha (12) + built_at, and in
+// words the node files that differ from that commit (uncommitted_nodes).
 let currentView = "graph";
 
 function setFoot(d) {
   const el = document.getElementById("foot");
   if (!el || !d) return;
   el.textContent = "sha " + (d.sha ? String(d.sha).slice(0, 12) : "unknown") +
-    " · built " + (d.built_at || "unknown");
+    " · built " + (d.built_at || "unknown") + dirtyWords(d.uncommitted_nodes);
+}
+
+// " · N uncommitted node file(s): a, b, c (+K more)", "" when none, and
+// " · uncommitted node files: unread" when the export could not read them
+// (null or absent): an unread status never looks like a clean tree.
+function dirtyWords(list) {
+  if (!Array.isArray(list)) return " · uncommitted node files: unread";
+  const n = list.length;
+  if (!n) return "";
+  return " · " + n + " uncommitted node file" + (n === 1 ? "" : "s") + ": " +
+    list.slice(0, 3).join(", ") + (n > 3 ? " (+" + (n - 3) + " more)" : "");
 }
 
 const esc = (v) => String(v == null ? "" : v).replace(/[&<>"]/g,
