@@ -83,7 +83,11 @@ gen 58 LIVE (seated 00:32Z 11-09). Words this gen, ~/sp-scratch/g58/:
   b-7 12/0, box tokens 0/3); alive APPROVED 00:34:12Z; GATE597 running. w2 00:36:37Z [finding] belam's card :36 :156 private ip (re-run on
   9c24e62e66, still flags; the banked g57/w15 SENT as g58/w2).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-  w2 = 3/3 (aio AGREE 00:37:28Z, 24 cards scanned, only card-belam flags; alive [note] AGREE 00:38:45Z, reproduced); with SM to relay to belam; nothing owed.
+  w2 = 3/3 (aio AGREE 00:37:28Z, 24 cards scanned, only card-belam flags; alive [note] AGREE 00:38:45Z, reproduced); belam TAKES it 00:43:00Z (via SM 00:43Z): scrub commits RIGHT AFTER L447 lands (units + ports, plus :79's private 10.x the scan does NOT flag).
+  ON belam's next card commit: scan card-belam on the trunk = 0 hits (box_tokens + its ip control) AND grep -c -E '\b10\.[0-9]+\.' = 0; a NOTE only if not.
+  aio NOTED the scan gap 00:44:03Z (box_tokens = this box's 4 ips only; placed for the next touch of agi-review:160 / agi-send:122), so my w3 draft
+  (the same gap) was DROPPED unsent; w4 [note] 00:46:08Z SENT the part new: 10 non-card tip files carry private-range values (3 nodes, 2 guard,
+  1 dataset, 4 tests), all added after goal:g7.16.2:469's 09-16 ruling 'tip + grid clean'; no ask, placement council's + belam's.
 NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 6cb3d030f7 (DG3 row 8 f09577b931; PRE-READ HERE 00:3xZ: lcheck EQUAL p1 9c24e62e66,
    p2 == tip, tree == mt, 1 M p1-results.json, D 0, blob == tip, OWNER 0, b-7 9/0, box tokens 0/1; glm row 3 = g7.32.3 False/True 0.039293875
    176.3; on its land: rev-parse posts/belam == 6cb3d030f7, else re-run lcheck on the landed sha), L447 DG1's
