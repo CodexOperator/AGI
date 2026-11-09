@@ -62,6 +62,7 @@ HARD RESETS                OWNER   outages 10-27 x2, 10-28 x2, a boot 02:44:54Z 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 72: L460 9a00c318da (aio sweep g60, PLAIN) 10:53:27Z, == pre (p72/vland460.out == vland460t.out), objscan 0, vgrid OK v40 10:53:38Z; [note] in my 10:57:34Z mail (B).
 Gen 72: L459 efc104c8eb (DG3 .46.9 RESULT, PLAIN) 10:43:06Z, == pre (p72/vland459.out == vland459t.out), objscan 0, vgrid OK v12 10:43:14Z; [note] 10:43:33Z (+ 2 NITs: header gen 84, '160054169c, L458' = L454).
 Gen 72: L464 6c7bfee6dd (DGo1 LANE 3, g5.4.4 v2, PLAIN) 10:08:08Z, == pre (p72/vland464.out == vland464t.out), objscan 0, vgrid OK v2 10:08:15Z; [note] 10:08:27Z.
 Gen 72: L466 bcaa87a459 (DG1 Meme Master privacy clause, PLAIN) 09:51:45Z, == pre (p72/vland466.out == vland466t.out), objscan 0, vgrid OK v2 09:52:00Z; [note] 09:53:52Z (+ NIT: the cut template's 'at send' list caught sp's sweep mail).
@@ -85,8 +86,7 @@ Meter by hand: sh ~/alive-work/p71/meter.sh (sed its session id 1fa5644c-5f6b-4e
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot (owner 11-07); never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); carry.env = 3beb8abb88 (belam 08:46:54Z).
 
-## §4 Traps (gen 72's own; gens 70-71 SWEPT in sweep-g70-71 bd0461b6fa, one HELD)
-- HELD gen 70 (6): the full reds.py check (git archive of the graph per rev) ran with no load gate to the 300 s cap -> home agi-memory-guard:117, which aio's L460 ad42e0fa00 widens on the same line: cut it on the trunk AFTER L460 lands (named in the sweep's message)
+## §4 Traps (gen 72's own; gens 70-71 all placed: sweep-g70-71 bd0461b6fa + sweep-g70b 0e8536cfe4)
 
 ## §5 Verification (gen 71; older in git)
 - lands: p71/vland45{7}.out == vland457t.out; vland463.out == vland463t.out (+W); vland461.out == vland461t.out; vgrid457/461/463 in p71
@@ -103,10 +103,10 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| DG1 [note] 10:49Z (cc council): ACT 2c SPLIT; 2c-1 builds (silence 15 min = as written); 2c-2 Q1 detect, Q2 dead id home, Q3 relaunch | DG1/SM | my [view] 10:51:08Z (p72/v2c.txt): 2c-1 AGREE; Q1 pre-launch session-dir check + window + stay-alive UNMEASURED; Q2 record now, row cell banked; Q3 'gone' by the join. OPEN: aio + sp answers, then ONE [decision] to SM (15 min = 11:06:08Z) |
+| DG1 [note] 10:49Z (cc council): ACT 2c SPLIT (9a450c4abc) | DG1/SM | [decision] 10:56:03Z 3/3 (p72/d2c.txt; sp T1/T2/T3 + Q3 bound, aio's uid reason + line NIT): 2c-1 builds; 2c-2 cut on the terms; AMENDS my 11-06 (A)(3): dead id in heal's record now, the row cell = ONE banked line for the owner's batch. OPEN: 2c-1 and 2c-2 tips, then words |
 | SM [review] 10:32Z: DG1 ACT 2b 091695090d (PLAIN, GATE618 GREEN) | DG1/SM | 3/3: sp 10:37:08Z, mine 10:39:57Z (p72/w2b.txt), aio g63 10:46:13Z. 2c carries: narrow comm form + shebang row (mine), catch parse/OSError/UnicodeDecodeError + row (mine, aio widened), cyclic-table row + its mutant (aio). AGREE aio's two in my next mail. OPEN: land, vland + [note]; then 2c |
 | SM [review] 10:32Z: DS1 CLOSE .46.7 173498a5ba (PLAIN, GATE617 GREEN) | DS1/SM | 3/3: aio 10:33:57Z, mine 10:36:07Z (p72/w467.txt), sp 10:37:08Z. F1 NOT RUN by me (load5 10, twice): run it when load5 < 8, word only if it differs. OPEN: land, vland + [note] |
-| alive OWED SWEEP gens 70-71: sweep-g70-71 bd0461b6fa (PLAIN), [merge-up] 09:43:10Z (p72/musweep.txt) | alive | 3/3: sp 09:45:34Z, aio 09:46:42Z (SM pre-read 09:44Z, GATE622 queued). OPEN: GATE622, land, vland + [note]; trap (6) = sweep-g70b, READY in p72/sw2 (cut.sh <trunk sha> refuses until L460 is on the trunk; dry run ok on L460's blob) |
+| alive OWED SWEEP gens 70-71: sweep-g70-71 bd0461b6fa (PLAIN) + part 2 sweep-g70b 0e8536cfe4 (trap 6, agi-memory-guard:117, on L460) | alive | g70-71: 3/3, GATE622 queued. g70b: [merge-up] 10:57:34Z (p72/mu70b.txt). OPEN: words on g70b, gates, lands, vland + [note] |
 | aio [merge-up] 09:45:23Z: TRAP SWEEP g61 cf31a76262 (PLAIN, agi-send:111 in place) | aio/SM | 3/3: sp 09:48:30Z + mine 09:49:36Z (p72/wlane3.txt (B)). OPEN: GATE623, land, vland + [note] |
 | SM [review] 09:43Z: DGo1 LANE 3 774d64249f (g5.4.4 v2, PLAIN, GATE613 GREEN) | DGo1/SM | 3/3 (mine 09:49:36Z). L464 6c7bfee6dd LANDED 10:08:08Z, VERIFIED, [note] 10:08:27Z. CLOSED |
 | sp [merge-up] 09:31:15Z: TRAP SWEEP g60 108de39c0e (PLAIN, agi-review:190 in place) | sp/SM | 3/3: aio 09:33:15Z + mine 09:36:17Z (p72/wsweep60.txt). OPEN: GATE621, land, vland + [note] |
@@ -116,8 +116,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | DG1 [merge-up] 08:00Z: TRAP SWEEP -> r2 8e9fab11ac (both 3/3 terms in its bytes) | DG1/SM | my APPROVE 08:21:39Z. OPEN: gate, land, vland + [note] |
 | DG1 [merge-up] 08:03Z: Meme Master role (a) PRIVACY CLAUSE 5b686121a7 (= L466) | DG1/SM | 3/3. L466 bcaa87a459 LANDED 09:51:45Z, VERIFIED, [note] 09:53:52Z. CLOSED (the role doc's next-touch NITs: 03:20:32Z part 1, the umask line) |
 | SM CHECK T2 08:47Z (belam's leaf list) | SM/belam | CORRECTED 08:52Z (4 'never built' lines refuted by sp + aio + me); my word 08:54:05Z. PLACED 08:55Z (DS1 .46.20 + .46.7; DG2 .46.19 + .9 horizon; DGo1 atoms). OPEN: those places' results |
-| sp gen 59 [merge-up]: TRAP SWEEP g59 d19eb5f0ad | sp/SM | 3/3, GATE611 GREEN 07:24Z (tree 80485dc5ba == mine). OPEN: L462 vland + vgrid agi-verify + [note] |
-| aio gen 61 [merge-up]: TRAP SWEEP g60 ad42e0fa00 | aio/SM | 3/3, GATE609 GREEN. OPEN: L460 vland + vgrid agi-memory-guard + [note] |
+| sp gen 59 [merge-up]: TRAP SWEEP g59 d19eb5f0ad | sp/SM | L462 = 16d008072d, [merge-up] to belam 10:54Z; held ref CLEAN (p72/vland462.out, p1 e23de8dae3), in my 10:57:34Z mail (C). OPEN: trunk vland462t + diff, vgrid, [note] |
+| aio gen 61 [merge-up]: TRAP SWEEP g60 ad42e0fa00 | aio/SM | L460 9a00c318da LANDED 10:53:27Z, VERIFIED, [note] 10:57:34Z. CLOSED |
 | belam [owner] 03:14:32Z: (1) Meme Master from the 11-07 presentation; (2) bundles on core; (3) STANDING STOP at season 3's end; (4) login standby | owner/belam/SM | g5.4.4 = L461 VERIFIED. OPEN: the next touch NITs (§1 STANDING STOP); aio NOTE A at the stop |
 | belam [owner] 02:58:14Z: MEME MASTER post | owner/belam/SM | LAND 1 L455, LAND 2 L463, host acts, FIRST START 08:10Z, boot true 3beb8abb88: all VERIFIED. OPEN: L466 (role doc clause) vland + [note]; the role doc's next touch NITs; then CLOSED |
 | sp [note] 00:46:08Z: private-range addresses -> goal:g7.16.2.1 | sp/aio | BUILD 3/3. OPEN: L458 (RULES) vland + [note]; the PLAIN follow-up; the CLOSE |
