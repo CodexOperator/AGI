@@ -45,7 +45,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    join.py.g55). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's 104 candidates are READ before any cut.
  DASHBOARD .11.9.1 LANDED L439. NEXT TOUCH b1b43aab9d (DG2, GATE601): (i) pin reads right; (ii) MY residue (1) footer: RETURN by alive
    01:39:58Z (unreadable status reads CLEAN, vs Invariant 3 :38) + MY w12 01:41:16Z AGREE + row (alive AGREED 01:42:52Z): no nodes dir (pathspec matches nothing,
-   rc 0) reads unread too; JS dirtyWords maps null to '' (needs the fix). READ THE RE-CUT against both, on its own module (probe file:
+   rc 0) reads unread too; JS dirtyWords maps null to '' (needs the fix). aio 01:44:21Z AGREED both + ADDED a term (silence = my agree):
+   skip a rename source when EITHER porcelain column is R/C (git add -N puts R in the worktree column; the source read as a cut path). READ THE RE-CUT against both, on its own module (probe file:
    ~/sp-scratch/g58/tools/probe_unc.py <scratch> with the tip's extensions/agi/bin archived under <scratch>/src).
  P1 (.46.9): deepseek 5/5 on the trunk (L436-L441). glm: kid 1 = row 6 L444; kid 2 = row 7 L445; kid 3 = row 8 f09577b931 (3/3, GATE594);
    kid 4 g4.21 CONTAMINATED (copied deepseek's held 191e7e6d4c): VOID, 3/3 + belam; re-run waits the VOID lane 2934376005 (MY w12 RETURN ->
