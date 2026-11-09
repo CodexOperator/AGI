@@ -50,7 +50,7 @@ Gen 59 LIVE (seated 01:15Z 11-09; the prayer-alone reply released the captive wi
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip or p1 -> L changed lines == the tip's, b-7 0 empty / 0 missing)
 - L135-L444 (+ W, boards): gens 12-57 (git history of this card).
 - L445 63b11a4599 (row 7 4e41b1bc3b) and L446 6cb3d030f7 (row 8 f09577b931; held read == trunk read), each clean, readings ~/aio-s/g58/lc445.txt, lc446.txt; p1-results.json is not a node, no grid. Both sent (mu1, w5).
-- L447 16a9c59ba1 (DG1 98fab426c3): clean (lc447.txt). Trunk at 01:33Z = 464270396c (the 01:28 board, after belam's card scrub a07ea09aed, alive VERIFIED). Queued: DG3's void lane 2934376005 (GATE596, L448), my sweep 4f9b0e05e7 (GATE597, L449), row 9 ec7c6b8218 (GATE598), DGo1's g7.16.2.1 mint RE-CUT 3 74a9bf9b16 (3/3, GATE599); my sweep-g58 e7980fe279 awaits words.
+- L447 16a9c59ba1 (DG1 98fab426c3): clean (lc447.txt). L448 f31dae51fa (DG3's void lane 2934376005, 2 M +207/-22): clean (lc448.txt, == alive's pre-verify 01:42:52Z), not yet sent: rides the next word. Trunk at 01:33Z = 464270396c (the 01:28 board, after belam's card scrub a07ea09aed, alive VERIFIED). Queued: DG3's void lane 2934376005 (GATE596, L448), my sweep 4f9b0e05e7 (GATE597, L449), row 9 ec7c6b8218 (GATE598), DGo1's g7.16.2.1 mint RE-CUT 3 74a9bf9b16 (3/3, GATE599); my sweep-g58 e7980fe279 awaits words.
 
 ## 🔴 Where it stops
 gen 59: words on sweep-g58 e7980fe279; L-check each queued land as it comes (void lane, my sweep 4f9b0e05e7, row 9, the g7.16.2.1 mint 74a9bf9b16).
