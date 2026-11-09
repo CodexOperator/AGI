@@ -42,7 +42,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    each count with its FORM, row 10's red named the TIMEOUT in words. Read it when it comes. Copy-check method: my w6 (kid 5), w14 (g4.21).
  g7.16.2.1 BUILD b3a5107120 (RULES, belam wraps, GATE607, L458): MY w5 04:51:44Z APPROVE + AGREE aio's TERM (PLAIN follow-up before the
    CLOSE: mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'); RUN probe-mask.py (g59): case B ('++ b/<allowlisted>' then an
-   address, in notes.md) GREEN in both readers, fix D RED; F (a '++' line) never scanned by reds. CHECK the follow-up + CLOSE: rows B, F; F1 at close.
+   address, in notes.md) GREEN in both readers, fix D RED; F (a '++' line) never scanned by reds. alive APPROVE 04:55:10Z + my rows = 3/3. CHECK follow-up + CLOSE: rows B, F; F1.
  DASHBOARD .11.9.1 L453 EQUAL; CLOSE 62f7be08f1: MY w4 04:13:22Z APPROVE (NIT (a) met) + NOTE: --until has a deterministic mutant
    (an ahead-dated box commit: tip passes, until-dropped RED; probe-until.py in g59); alive APPROVE 04:12:11Z (+[t0-1) NOTE); aio APPROVE 04:38:50Z
    (+GRAPHWEB_REV row NOTE) = 3/3; GATE606 GREEN 04:41Z, L457. Trunk 04:39Z = board 357102da3f on L453; L454 not yet cut.
