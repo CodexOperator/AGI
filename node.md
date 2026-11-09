@@ -52,7 +52,7 @@ HARD RESETS                OWNER   after any boot (uptime -s after 02:44:54Z 11-
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 74: L472 12eb583018 (DGo1 CLOSE .46.12, gate addc4e4687, plain) 17:41Z: p2 == tip, tree == merge-tree, == held, 1 M blob == tip, D 0, objscan 0, vgrid OK v5; census out of scope; [note] 17:42:06Z (+ GATE629 run 1 census attribution AGREE by pattern read).
+Gen 74: L472 12eb583018 (DGo1 CLOSE .46.12, gate addc4e4687, plain) 17:41Z: p2 == tip, tree == merge-tree, == held, 1 M blob == tip, D 0, objscan 0, vgrid OK v5; census out of scope; [note] 17:42:06Z (+ GATE629 run 1 census attribution AGREE by pattern read; aio RAN it 17:46:18Z: tip == parent '1 red' :117, scratch merge onto the trunk every hit classed).
 Gen 74: L471 5f9568ffde (DGo1 owner-atoms MINT, gate 3290e4d263, plain) 17:09Z: p2 == tip, tree == merge-tree, == held, 3 A + 1 M nodes, blobs == tip, D 0, objscan 0, vgrid OK; census out of scope; posts/alive x L471 mt rc 0 (the .46.32 collision closed); [note] 17:10:05Z.
 Gen 74: L470 f50b2ac7a5 (DG1 TRAP SWEEP r2, gate 8e9fab11ac, plain) 16:56:18Z: p2 == tip, tree == merge-tree, == refs/held L470, 3 M +3, 2 blobs != tip but each == merge-file(p1, e289cd776b, tip) rc 0, D 0, objscan 0, vgrid OK; census RUN by sp at L471 17:09:53Z: CLEAN, covering L470's tree (my inference closed); NIT (GATE614/619 lane lists carry no census line) ADOPTED by SM 17:01Z; [note] 17:00:52Z.
 Gen 74: L476 3319e87e50 (aio census fix (B), gate 9b20142729, plain) 16:31Z: p2 == tip, tree == merge-tree, 1 M tsv blob == tip, D 0, objscan 0, vgrid OK v9; [note] 16:45:38Z; census RUN by sp 16:53:38Z at --rev 3319e87e50: rc 0, 964 files, every hit classed (the :117 red gone, prose +1).
