@@ -1,0 +1,43 @@
+# grok-bot SEAT argv (goal:g7.31.1.2 ACT 2a). Every flag is one the recorded
+# `grok-bot --help` declares (doc:grok-bot-help-measured, grok 1.0.46). The
+# headless DISPATCH argv (`--single <PROMPT>`) is built by
+# adapters/grok_bot_adapter.py (goal:g7.31.1.1); this is the INTERACTIVE seat
+# in a named tmux pane, so the prompt is POSITIONAL.
+#
+# A seat names its conversation: a first spawn passes `session` (-s, "Use a
+# specific session UUID for a NEW conversation"), a restart passes `resume`
+# (-r, "Resume a session by ID"). The help allows -s beside -r only with
+# --fork-session, so a caller passes ONE of the two, never both.
+#
+# NOT here, on purpose: a tool-approval flag (--always-approve /
+# --permission-mode). A seat with no human in its pane blocks on its first
+# tool approval without one; which to use is a POLICY choice for the owner's
+# / belam's GO on the live run, not a template default.
+id = "grok-bot"
+bin = "grok-bot"
+
+# Seat role cells come from THIS harness's own `harnesses.grok-bot` row.
+[roles]
+source = "row"
+
+[[argv]]
+flag = "--model"
+slot = "model"
+
+[[argv]]
+flag = "-s"
+slot = "session"
+
+[[argv]]
+flag = "-r"
+slot = "resume"
+
+[[argv]]
+slot = "prompt"
+
+# goal:g7.31.1.2 ACT 2b: grok-bot keeps no Claude-style per-session registry,
+# so its seat is joined through the tmux pane's process tree (the harness pid,
+# shallowest argv[0] match) and its session id is read back from that
+# process's own -s / -r argv.
+[session]
+registry = "none"
