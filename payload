@@ -12651,11 +12651,36 @@ def _seat_harness(root: Path | None, seat: str) -> str | None:
 
 def _harness_session_registry(hid: str) -> str:
     """The template's `[session] registry`; `claude` when the template does
-    not load (an unknown harness keeps today's registry join)."""
+    not load (an unknown harness, a TOML parse error, an unreadable or
+    non-UTF-8 file: a join must not die on a template read) -- today's
+    registry join."""
     try:
         return harness_template.session_registry(hid)
-    except harness_template.HarnessTemplateError:
+    except (harness_template.HarnessTemplateError, ValueError, OSError):
         return "claude"
+
+
+def _harness_session_store(hid: str | None) -> str:
+    """The template's `[session] store`; '' (UNREAD) for no harness, an
+    undeclared store, or a template that does not load."""
+    if not hid:
+        return ""
+    try:
+        return harness_template.session_store(hid)
+    except (harness_template.HarnessTemplateError, ValueError, OSError):
+        return ""
+
+
+def _harness_resume_proof(hid: str | None) -> str:
+    """The template's `[session] resume_proof` (goal:g7.31.1.2 ACT 2c);
+    `transcript`, Claude's proof, for no harness or any template that does
+    not load."""
+    if not hid:
+        return "transcript"
+    try:
+        return harness_template.resume_proof(hid)
+    except (harness_template.HarnessTemplateError, ValueError, OSError):
+        return "transcript"
 
 
 def _seat_session_registry(root: Path | None, seat: str | None) -> str:
@@ -12685,17 +12710,28 @@ def _proc_argv(pid: int) -> tuple[list[str], str]:
 
 
 def _argv0_is(pid: int, want: str) -> bool:
-    """True when `pid` was launched as `want`: its argv[0] basename equals it,
-    or its comm does (comm is cut at 15 bytes by the kernel)."""
+    """True when `pid` was launched as `want`: its argv[0] basename equals it.
+    comm (cut at 15 bytes by the kernel) is read ONLY when the argv is
+    unreadable: otherwise a long bin name would match another process's
+    15-byte comm prefix, and a shebang wrapper named `want` (argv[0]
+    '/bin/sh', comm `want`) would be committed as the harness (council, 2b
+    words 10:37Z-10:46Z 11-09)."""
     argv, comm = _proc_argv(pid)
-    if argv and Path(argv[0]).name == want:
-        return True
+    if argv:
+        return Path(argv[0]).name == want
     return bool(comm) and comm == want[:15]
 
 
 def _pane_harness_pid(pane_pid: int, want: str,
                       parent_of: dict[int, int] | None = None
                       ) -> tuple[int | None, str]:
+    """(pid, why) of `_pane_harness_scan`, the miss kind dropped."""
+    return _pane_harness_scan(pane_pid, want, parent_of)[:2]
+
+
+def _pane_harness_scan(pane_pid: int, want: str,
+                       parent_of: dict[int, int] | None = None
+                       ) -> tuple[int | None, str, str]:
     """The ONE process launched as `want` at the SHALLOWEST depth under (and
     including) `pane_pid` -> (pid, why).
 
@@ -12706,7 +12742,8 @@ def _pane_harness_pid(pane_pid: int, want: str,
     decides. Exactly one match there -> its pid (the HARNESS pid, never the
     pane shell's, so a harness that exits under a lingering shell reads
     dead). None, or more than one at that level -> (None, why): never a
-    guess."""
+    guess. The third value is the miss KIND (goal:g7.31.1.2 ACT 2c-2, sp T2):
+    '' on a hit, 'ambiguous' for more than one, 'absent' for none."""
     if parent_of is None:
         parent_of = _read_ps_parent_table()
     children: dict[int, list[int]] = {}
@@ -12716,11 +12753,11 @@ def _pane_harness_pid(pane_pid: int, want: str,
     while level:
         hits = [p for p in level if _argv0_is(p, want)]
         if len(hits) == 1:
-            return hits[0], f"depth {depth}"
+            return hits[0], f"depth {depth}", ""
         if len(hits) > 1:
             return None, (f"{len(hits)} processes launched as {want!r} at "
                           f"depth {depth} under pane pid {pane_pid} "
-                          f"({', '.join(str(h) for h in hits)})")
+                          f"({', '.join(str(h) for h in hits)})"), "ambiguous"
         nxt = []
         for p in level:
             for c in children.get(p, []):
@@ -12728,7 +12765,8 @@ def _pane_harness_pid(pane_pid: int, want: str,
                     seen.add(c)
                     nxt.append(c)
         level, depth = nxt, depth + 1
-    return None, f"no process launched as {want!r} under pane pid {pane_pid}"
+    return (None, f"no process launched as {want!r} under pane pid {pane_pid}",
+            "absent")
 
 
 def _session_from_argv(argv: list[str], hid: str) -> str:
@@ -12752,15 +12790,20 @@ def _join_by_pane(*, seat: str, window_id: str, harness: str,
     basename), then the session id from that SAME process's argv -- one
     lookup gives both cells. Bounded like the registry join; always reads at
     least once. Same dict shape as `_join_successor`. A miss prints ONE loud
-    stderr line naming why, and returns found False (pid stays EMPTY)."""
+    stderr line naming why, and returns found False (pid stays EMPTY) with
+    the miss KIND as a field, `miss`: absent | ambiguous | no-pane
+    (goal:g7.31.1.2 ACT 2c-2, sp T2): a caller branches on the field, never on
+    the note's text."""
     want = harness_template.bin_name(harness)
     deadline = time.time() + (poll_secs if poll_secs is not None
                               else REGISTRY_JOIN_TIMEOUT_S)
-    why = f"no pane pid for window {window_id}"
+    why, kind = f"no pane pid for window {window_id}", "no-pane"
     while True:
         pane = _pane_pid(window_id)
-        if pane:
-            pid, why = _pane_harness_pid(pane, want)
+        if not pane:
+            why, kind = f"no pane pid for window {window_id}", "no-pane"
+        else:
+            pid, why, kind = _pane_harness_scan(pane, want)
             if pid is not None:
                 argv, _comm = _proc_argv(pid)
                 return {"found": True, "window_id": window_id, "pid": pid,
@@ -12773,7 +12816,7 @@ def _join_by_pane(*, seat: str, window_id: str, harness: str,
         time.sleep(REGISTRY_JOIN_POLL_S)
     print(f"join: miss (seat {seat!r}, harness {harness!r}: {why}); the pid "
           f"stays EMPTY", file=sys.stderr)
-    return {"found": False, "window_id": window_id,
+    return {"found": False, "window_id": window_id, "miss": kind,
             "note": f"pane join for @{window_id.lstrip('@')} missed: {why}"}
 
 
