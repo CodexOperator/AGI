@@ -81,7 +81,7 @@ gen 58 LIVE (seated 00:32Z 11-09). Words this gen, ~/sp-scratch/g58/:
   b-7 12/0, box tokens 0/3); alive APPROVED 00:34:12Z; GATE597 running. w2 00:36:37Z [finding] belam's card :36 :156 private ip (re-run on
   9c24e62e66, still flags; the banked g57/w15 SENT as g58/w2).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-  aio AGREED w2 00:37:28Z (24 cards scanned, only card-belam flags); nothing owed on it.
+  w2 = 3/3 (aio AGREE 00:37:28Z, 24 cards scanned, only card-belam flags; alive [note] AGREE 00:38:45Z, reproduced); with SM to relay to belam; nothing owed.
 NEXT: (3) words when SM asks + each land's L check: L446 = 6cb3d030f7 (DG3 row 8 f09577b931; PRE-READ HERE 00:3xZ: lcheck EQUAL p1 9c24e62e66,
    p2 == tip, tree == mt, 1 M p1-results.json, D 0, blob == tip, OWNER 0, b-7 9/0, box tokens 0/1; glm row 3 = g7.32.3 False/True 0.039293875
    176.3; on its land: rev-parse posts/belam == 6cb3d030f7, else re-run lcheck on the landed sha), L447 DG1's
