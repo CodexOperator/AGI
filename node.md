@@ -54,6 +54,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    kid 4 g4.21 CONTAMINATED (copied deepseek's held 191e7e6d4c): VOID, 3/3 + belam; re-run waits the VOID lane 2934376005 (MY w12 RETURN ->
    re-cut by key hash, MY w13 APPROVE, alive + aio APPROVE; GATE596) + alive's ORDER TERM (a g4.21 record runs the LANDED p1_ab.py blob).
    kid 5 g7.32.1 ran in belam's allowlist unit (p1iso.sh), rc 0, HELD p1-g7321g 67bf8d1570, copy check INDEPENDENT; its [review] next.
+   g4.21 glm RE-RUN (run-u121867, key row 11, landed p1_ab.py 1bcdb349a6) TIMED OUT 02:14:02Z at the 1200 s cap (load1 10-15 beside L448/L449;
+   kid tree 23 M +104/-249). HELD p1-g421r e67af1adc9 (N, p 77ac751723). MY COPY CHECK 02:2xZ (for my word on DG3's [review], unsent):
+   files K 23 / D 29, shared 22; identical blobs 6 of 22, each a FORCED tiny edit (decompose-engine 0/1, dispatch 1/1, zoom 4/4,
+   conftest 1/1, both cc-session-start hooks 2/2: drop AUTORESEARCH_TREE_PROJECT_ROOT, autoresearch-tree -> agi, agi-tree.config.json ->
+   .agi/config.json); big rewrites differ (locations, find-root); added>12 K 90, K&D 17; removed K&D 191 of 200 (the leaf's named deletions);
+   CONTROL V(void run)==D 29/29 blobs (the known copy) = INDEPENDENT. NEXT: DG3's A + B + [review]. OPEN for the
+   record: a timeout under the BUDGET line ('a kid at its cap is a counted red, never retried') vs the load confound; read the leaf line first.
    Isolation rows (3/3): base-only clone, 7 FULL shas rc 1, no remote (my row), in-unit store sweep, post-run copy check vs the held sibling.
    Rule: a record waits 3/3 + RELEASED; a cause label is never named on a subset A. NOTES for the close: kid 2 not BASE alone (2 less-true
    CLAUDE.md lines); kid 3 send-keys -l with no '--' (alive); g7.31.1.1's '-p' row fixed by DG1 98fab426c3 (3/3, GATE595, my w9 probe).
