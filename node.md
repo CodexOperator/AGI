@@ -15,10 +15,10 @@ tags:
 title: "FUEL for season 4 (owner 11-09): finish the move off Python. Measured: the live engine is ~1.2k lines of shell held in graph nodes, yet 16 live Python entry points still reach 84.5k of the 121k non-test Python lines by import"
 ---
 
-## OWNER 2026-11-09 19:38:57Z (c:12ed484271c7), verbatim (in meme-master's own session)
+## The owner's words 2026-11-09 19:38:57Z (c:12ed484271c7), verbatim (in meme-master's own session) [meme-master store; not an OWNER heading under the interim rule, sp 19:55:55Z 11-09: OWNER blocks cite belam's store only, until the cite leaf under .46 lands]
 > "Yes let's do that it will be useful for season 4 anyway so we can add it into the 'fuel' node if you know where to find it so it can be included as a season 4 thingy. Like to finalize moving away from python code entirely and make it redundant by making the overall turn-based commit system even more robust and elegant."
 
-## OWNER 2026-11-09 19:39:39Z (c:7d8196eccf23) and 19:39:53Z (c:6f3adc806769), verbatim
+## The owner's words 2026-11-09 19:39:39Z (c:7d8196eccf23) and 19:39:53Z (c:6f3adc806769), verbatim [meme-master store; not an OWNER heading under the interim rule, sp 19:55:55Z 11-09: OWNER blocks cite belam's store only, until the cite leaf under .46 lands]
 > "you can make your own fuel node"
 > "follow the schema or add one if there isn't one in .geometry"
 
@@ -53,7 +53,7 @@ TESTS               ~194k Python lines (+ 96 shell lanes, ~18.5k) exercise all o
 - Elegance check, the owner's rule: every part should do several jobs. Then the turn-end commit should check the node as well as save it, and the cron that heals the graph should also be the cron that alarms, not two Python programs.
 - For the presentation (doc:draft-presentation-outline, slide 7): the true line is "~1.2k lines of shell, stored in the graph, run the town; ~100k lines of older Python are being retired".
 
-## OWNER 2026-11-09 19:48:22Z (c:710151823175), verbatim
+## The owner's words 2026-11-09 19:48:22Z (c:710151823175), verbatim [meme-master store; not an OWNER heading under the interim rule, sp 19:55:55Z 11-09: OWNER blocks cite belam's store only, until the cite leaf under .46 lands]
 > "cool yeah that's still not terrible but we could do the whole engine in shell only I imagine and make it more robust that way by leaning on the math more instead. Maybe add that to the fuel node as well for now."
 
 ## Musing: the whole engine in shell, robust by leaning on the math (fuel, not a plan)
@@ -66,4 +66,5 @@ TESTS               ~194k Python lines (+ 96 shell lanes, ~18.5k) exercise all o
 11-09, meme-master gen 1: v1. The owner asked for the trace and a fuel entry for season 4, then said to mint this post's own fuel node following the schema. No [fuel] type exists in .agi/context/schemas or .geometry, and the existing fuel node (idea:fuel-dead-simple-patterns-in-plain-sight) is an idea, so this follows [idea].md (min 1 parent, goal/vision; grow cell [idea, doc, task] allows it). Minting a new [fuel] type would be an engine/RULES change for the council, not a post's mint. Parent goal:g5.4 (season review and rollover = where season 4 is bundled), not this post's leaf g5.4.3 (the presentation), because the finding outlives the talk. Near miss corrected in-session: my first answer to the owner said "about 13 of 97 files" are live, counting only direct calls. The import trace shows the two services pull 84.5k lines; the owner was told.
 v2, same day: the owner's second ask added, the whole engine in shell, robust through the math. Placed as its own musing section, kept apart from the measured part, because it is a direction, not a finding.
 v3, same day: the store came up (belam 4e346a04d5, "mem": "full"), so both owner quotes became OWNER headings citing their chunk ids (c:12ed484271c7, c:7d8196eccf23, c:6f3adc806769, c:710151823175), each verified speaker: owner in ~/.mem/meme-master.git. No other text changed.
+Then, same day: OWNER headings turned back into plain headings (words and chunk ids kept) on the council's interim rule (self-perpetuating 19:55:55Z 11-09, via SM): verify-land runs agi-mem cite as belam, so an OWNER block citing a chunk in this post's store would HOLD every later OWNER-file land town-wide. They return to OWNER once the cite leaf under .46 lands.
 <!-- THOUGHT:END -->
