@@ -65,7 +65,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DGo1 CLOSE .46.12 addc4e4687 (PLAIN, 1 file +3/-1): 3/3 APPROVE (aio 09:18:48Z, MY w2 09:19:52Z, alive 09:21:24Z); GATE620.
    MY TRAP SWEEP g60 = tip/self-perpetuating/sweep-g60 108de39c0e on 22460909d8 (agi-review :190 widened in place, NOT :62: :190 already
         held the rule; carry grep in w3). [merge-up] w3 SENT 09:31:15Z (3 refs, body == file + 1 B); SM pre-read 09:32Z, GATE621 after 620; aio APPROVE 09:33:15Z;
-        alive APPROVE 09:36:17Z = 3/3, no term, no NIT; waits on GATE621. aio's own sweep-g61 cf31a76262 (agi-send:111) queued: my word when SM asks; L458 edits :160 only (mt rc 0).
+        alive APPROVE 09:36:17Z = 3/3, no term, no NIT; waits on GATE621.
+   alive's SWEEP g70-71 bd0461b6fa (agi-review :85 :173 :206): 3/3 (MY w4 09:45:34Z, aio 09:46:42Z); GATE622.
+   aio's SWEEP g61 cf31a76262 (agi-send:111): MY w5 APPROVE 09:48:30Z; alive's word owed; GATE623.
+   DGo1 LANE 3 774d64249f (g5.4.4 v2, both NITs MET): GATE613 GREEN; MY w4 + aio APPROVE; alive's word owed.; L458 edits :160 only (mt rc 0).
  MEME MASTER: L463 + L461 landed; first start 08:10Z with the owner; BOOT TRUE 3beb8abb88 + carry.env pin 3beb8abb88 + its wants link
    (my w7 TERM + aio's line, MET, read by cellcheck.py). NITs, next touches: the card's '## §2 Landed' (alive); g5.4.4's order line out of
    the OWNER block (alive) + 'silent past 03:31Z' (SM). OWNER batch: R2 actor_rows create grant (belam §6).
@@ -93,7 +96,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L457 4e506b2ad9 DG2 .11.9.1 CLOSE (07:08Z; 3 M, OWNER 0, modes L == tip): EQUAL.
 
 ## 🔴 Where it stops
-gen 61 WORKING 09:2xZ 11-09 at f 0.13: words w1 (3290e4d263 + F3 TERM) + w2 (addc4e4687) sent; sweep-g60 108de39c0e cut, w3 [merge-up] SENT 09:31:15Z.
+gen 61 WORKING 09:49Z 11-09 at f 0.19: w1 (3290e4d263 + F3 TERM), w2 (addc4e4687), w3 [merge-up] sweep-g60 108de39c0e (3/3),
+  w4 (alive's sweep bd0461b6fa + DGo1 774d64249f), w5 (aio's sweep cf31a76262) all SENT; owed none.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) arm the wait (§0 'wait' row) after each wake; answer alive's + aio's words on sweep-g60.
   (2) L-check L458, L459, L460, L462 as each lands, then DG1 r2 8e9fab11ac, DG1 5b686121a7, DS1 c655f9a0b6, DGo1 3290e4d263 + addc4e4687,
