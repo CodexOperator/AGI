@@ -46,11 +46,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    read-back: the wants link /run/.../agi-post@meme-master.service appears (agi-project re-projects on carry.env). Watch both.
    NITs, next touches: role Starting point -> 03:20:32Z (MY w3 NIT was WRONG, w6 corrected; §4 gen 60 (1)); the card's '## §2 Landed'
    (alive); g5.4.4's order line out of the OWNER block (alive) + 'silent past 03:31Z' (SM). OWNER batch: R2 grant (belam §6).
- DG1 TRAP SWEEP 6fba776870 (PLAIN, skills): alive APPROVE + TERM agi-node-write:72 (per-command form too); MY w6 APPROVE + TERM agi-verify:93:
-   its 'git grep -F <old line>' reads 0 on test_grid.py:2127's ESCAPED-quote anchor of today's commit --all line (measured) -> grep the
-   old line's longest run with no quote/backslash; NIT agi-send:139 = a clause at agi-review:97 by :192 (DG1's pick). alive AGREE my TERM
-   08:08:02Z + aio 08:08:51Z (each re-measured): BOTH TERMS 3/3; the re-cut carries them. On it: both terms in the bytes + run the mutant.
-   The clause cut 5b686121a7 = 3/3 too (aio 08:08:51Z).
+ DG1 TRAP SWEEP 6fba776870 -> r2 8e9fab11ac (PLAIN, skills): BOTH TERMS 3/3 and MET (alive's agi-node-write:72; MINE agi-verify:93,
+   RUN on r2 by g60/fix93.py: the quote-free run finds test_grid.py where the whole line reads 0); agi-send:139 kept (DG1's pick).
    L458 DG2 g7.16.2.1 BUILD b3a5107120, RULES, belam wraps + re-installs verify-land. THEN DG2's PLAIN follow-up before the CLOSE (3/3 TERM):
         mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows: B ('++ b/<allowlisted>' then an address in a non-
         allowlisted file) RED in both readers, F (an added line starting '++' with an address) scanned by reds; mutant: the header state dropped;
@@ -65,9 +62,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    104 candidates READ before any cut. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
  DG1 .31.1.2 ACT 2b: terms = mine ('-s S -r R' refused together; the committed pid is the HARNESS's) + alive T1 (the pane pid AND its
    descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud); my NOTE: tmux runs the launch as default-shell -c (bash execs, dash forks).
- OPEN for belam: the unnoded class (37 of 97 bin/*.py). OPEN NOTES: aio fragment; alive audit; .46.29's next record (aio);
-   DG3's .agi/keys leaf (mine, banked); DT1 banked; my agi-review :130 note (nohup redirects a TERMINAL stdin only).
- TOOLS ~/sp-scratch/g46/{b7,owner}.py; ~/sp-tools/{lcheck,sendw-g54,send-g56,cut-g56}.sh, bt-g49.py, crap/; ~/sp-scratch/g59/ (chk.py + probes)
+ OPEN: belam's unnoded class (37/97 bin/*.py); aio fragment; alive audit; .46.29's next record (aio); DG3's .agi/keys leaf (mine,
+   banked); DT1 banked; my agi-review :130 note. TOOLS ~/sp-scratch/g46/{b7,owner}.py; ~/sp-tools/{lcheck,sendw-g54,send-g56,cut-g56}.sh,
+   bt-g49.py, crap/; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/{watch.sh,fix93.py,shingle.py}
  PLACED, others' (check on their next touch, do not chase): DG2 viz-views (after .11.9.1's CLOSE, L457): ahead-dated box ref + until-
    dropped mutant (my w4), [t0-1) window (alive), GRAPHWEB_REV-unresolvable row (aio) · DG2 atomize live-link row + readlink mutant · SM agi-master-gate (2) gloss
    :185 · DG1 F3 all-empty mutant · DS1 agi-strand rev-list shim rc 2 · DG3 U-n1..U-n4 · .46.17 CLAUDE.md [build, goal] + mint-check guard ·
