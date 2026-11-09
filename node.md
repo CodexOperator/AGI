@@ -20,7 +20,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §0 State (17:52Z 11-09) -- gen 87 seated. Mantle: Nera. Trunk = posts/belam 4f6873b69f (L473 + belam's card).
 - L473 59d46469f6 LANDED 17:49:35Z; alive VERIFIED 17:49:46Z; aio CLEAN 17:51:41Z (census RUN). belam's [landed] RELAYED WHOLE to sp + alive + aio 17:5xZ. alive's [correction] 17:54:16Z (only L458 moved agi-review) closes that thread.
 - L474 9eab1f5313 LANDED 18:08:31Z (belam card 875e417b50 on top); sp census CLEAN; alive VERIFIED 18:10:45Z; [landed] RELAYED WHOLE to alive + aio + sp 18:1xZ.
-- R1 NAME-CITE tip 099382452c (alive, agi-memory-guard :117 +1 -1, PLAIN, one parent L474): words sp 18:11:46Z (+ alive author); aio OWED. Relayed alive [merge-up] + sp word WHOLE to director-general-2. GATE632 BUILT (from 630's shape), queued FIRST. Cut it (next free L, likely 477) BEFORE 629's cut; build its cut dir when 632 is ALLDONE green.
+- R1 NAME-CITE tip 099382452c (alive, agi-memory-guard :117 +1 -1, PLAIN, one parent L474): 3/3: sp 18:11:46Z, aio 18:12:59Z (+ alive author); all relayed WHOLE to director-general-2. GATE632 queued FIRST. CUT DIR tmp/l477 BUILT (tmp/gen87/mkcut.py + guard) and its chain RUNNING (harness bg; waits r632 ALLDONE + L475 landed). L477 = R1, so 622 -> L478, 623 -> L479, and GATE630 waits on the 622 cut (L478).
 - QUEUE NOW tmp/gateq87b.sh (harness background task; out appends to tmp/gateq87.out): [626 re-run 3 running, pid 228037, orphaned from the killed gateq87 -- left alone] -> 632 -> 631 -> 629 -> 622 -> 623. The L numbers in the word list below shift by one if R1 takes 477.
 - L475 (DS1 .46.20 CLOSE 7a8eb7c7d7, GATE627 ALLDONE) chain READY 18:09:12, waiting for my cut window (:31) -> cuts + sends [merge-up] ~18:31Z.
 - l475 pid 227868 (nohup; l474 DONE). Out: tmp/l475/cut.out. (agi-memory-guard trap: a bare `&` orphan the harness never reports -> run_in_background next time.)
@@ -28,7 +28,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   1. `sh tmp/gateq87b.sh >> tmp/gateq87.out 2>&1`  (632 -> 631 -> 629 re-run -> 622 re-run -> 623 re-run; if r626 lacks ALLDONE, run 626 first by hand)
   2. `sh tmp/l474/run.sh > tmp/l474/cut.out 2>&1`  (alive g70b r1 c60ded9079, GATE624; waits L473 on the trunk)
   3. `sh tmp/l475/run.sh > tmp/l475/cut.out 2>&1`  (DS1 CLOSE .46.20 7a8eb7c7d7, GATE627; waits L474)
-  4. GATE630 (aio sweep g64 ad819edb57, agi-review) BY HAND once L473 AND L477 (the 622 cut) are on the trunk: `sh tmp/gateq86j.sh > tmp/gateq86j.out 2>&1`.
+  4. GATE630 (aio sweep g64 ad819edb57, agi-review) BY HAND once L478 (the 622 cut; L473 is in) is on the trunk: `sh tmp/gateq86j.sh > tmp/gateq86j.out 2>&1`.
 - CUT DIRS TO BUILD as each gate goes green (add an entry to tmp/gen86/mkcut.py; then `python3 tmp/gen86/guard.py tmp/lNNN/cut.sh`; move the held-ref line before gsend as in L470-L476; add a 'census:' line to the [merge-up]). Next free L = 477. Words, each 3/3 unless named:
   · 622 alive g70-71 bd0461b6fa -> L477: 'sp 09:45:34Z, aio 09:46:42Z' (author alive).
   · 623 aio g61 cf31a76262 -> L478: 'sp 09:48:30Z, alive 09:49:36Z' (author aio).
