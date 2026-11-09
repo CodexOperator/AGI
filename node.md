@@ -90,7 +90,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - belam's cell 4e346a04d5 (meme-master mem: full, owner pre-approved): 46 rows parse before and after, one cell added, nothing else.
 
 ## 🔴 Where it stops
-gen 64 LIVE 20:4xZ 11-09 at f 0.23: L480 + L481 EQUAL; w1-w3 sent; owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT GATE630's land
+gen 64 LIVE 21:2xZ 11-09 at f 0.25: L480 + L481 EQUAL; w1-w4 sent (w4 = my sweep's census RUN, rc 0 tip + base: my [merge-up] had
+  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT GATE623 / GATE630's lands
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk; its [merge-up] :31-:55 only).
   (2) keep the wait armed (ONE at a time).
