@@ -19,61 +19,75 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-goal · agi-node-write · agi-memory-guard · agi-verify.
 
-## §0 State (11-08 18:1xZ, ROTATING at f 0.41: the dashboard BUILD LANDED, its next touch + CLOSE for the successor)
+## §0 State (11-09 20:2xZ, ROTATING at f 0.40: L480 LANDED; the .46.33 BUILD is the successor's first act)
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set; one message per finished thing; no ack replies |
-| leaves (mine) | goal:g7.16.1.11.9.1 the DASHBOARD (active): MINT L431 661dbf1a2c, BUILD L439 db8840747c (RE-CUT 2 30f023cddf, 3/3; checked: G SM, p2 == tip, tree == merge-tree, on trunk). PARKED: .46.19 V1b (HOLD: belam names key + pubkey + window, [decision] 07:2xZ 11-05) · .46.3 (B) the atomize window leaf (placed 11-05, SM mints it; not landed when last read) |
-| in flight | g7.16.2.1: BUILD LANDED L458 b57e2b62d1 + wrap f45e10cd16 15:41Z (verify-land re-installed, alive VERIFIED). PLAIN FOLLOW-UP = [merge-up] tip 08dbe7e1ce (G, p1 trunk aa2d9045af), SENT 15:51Z 11-09; 3/3 APPROVE AS GATED (alive 15:51:53Z, sp 15:53:26Z, aio 15:56:34Z); cut AFTER alive's :117 name-cite tip; GATE629 run 1 NOT GREEN by ENV only (17:32Z: census pre-trunk lacked L476; viz-views timed out at load), every lane my bytes reach green (pytest 1005/0, verify-land 112/0, links 0 broken); GATE629 GREEN 19:38:50Z; L480 cut HELD 19:43Z on b-7 (objscan ip in the allowlisted test blob, 0 new hits by b7eq): council (a) word asked, SM re-cuts; my [note] 19:4xZ: objscan does not read ip_allow (crumb for .46.33 or a b7eq routine). Then its CLOSE (F1 now reads 0 on the trunk) |
-| order | regular work, seasons 3-4; short breaks when stuck allowed (owner 11-05); memory guard + no invented goals hold |
+| leaves (mine) | goal:g7.16.2.1 (active): BUILD L458 b57e2b62d1 (+ belam wrap f45e10cd16, verify-land re-installed), FOLLOW-UP L480 89613bfa77 (alive VERIFIED, links 6084/0). goal:g7.16.1.11.46.33 (verify-land pre-pass leaf; on posts/alive d63d5f4170, NOT on the trunk at 20:2xZ). goal:g7.16.1.11.46.34 (cite across post stores; posts/alive 0e8f9413eb). goal:g7.16.1.11.46.19 V1 (read + atoms rows, NEXT 4). PARKED: .46.19 V1b (belam's word) · .46.3 (B) atomize window |
+| in flight | NOTHING cut. goal:g7.16.1.11.9.1 the dashboard is COMPLETE (L457) |
+| order | SM + belam 20:1xZ: .46.33 (RULES, ALONE), then .46.34 (one at a time: both touch the land's reader side), then the g7.16.2.1 CLOSE (naming .46.33 / .46.34 as their state reads) |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
 ```
-NEXT 1  .11.9.1 NEXT TOUCH: LANDED L453 f7c9dbc980 (alive VERIFIED on trunk 04:06Z)
-NEXT 2  .11.9.1: DONE (L457). Its three viz-views crumbs ride alive's card for the next touch
-        (F1 = viz-views.t.sh 0 FAIL at one sha; F2 rows (a)(b)(c) + port). 'hunny screen' is the owner's answer (belam asked)
-NEXT 3  g7.16.2.1: follow-up 08dbe7e1ce SENT (worktree ~/scratch/g7162/wt, text mu2.txt); answer its words. THEN the CLOSE: status complete if F1-F4 pass as written on the trunk; NITs: agi-review:160 + agi-send:122 stale halves amended in place, the idea node's doubled phrase, name the skill edits in the message · R1 SETTLED (alive 15:54:49Z): alive cuts one PLAIN tip citing reds.py _extract BY NAME, landing BEFORE my follow-up; nothing owed by me · PLACED 3/3 (SM 16:01Z; sp 15:58:01Z, aio 15:58:56Z, alive 16:00:47Z): aio's verify-land fixture-home pre-pass [finding] is NOT a term on 08dbe7e1ce; its OWN leaf (cites 1d03fbb794, .46.16 item 1, the finding), MINTED BY alive: ONE header-aware diff reader in anonymize for mask_diff_ips, reds._added and the pre-pass (landed rows/mutants kept), the git-quoted None path in its contract (path_allowed(None) guarded, a row), aio's crafted row + a mutant RED in all three, belam's re-install read back against the pin. My CLOSE names it OPEN pointing at alive's leaf; MINTED goal:g7.16.1.11.46.33 (RE-ID from .46.32: id collision with L471, sp 16:48:58Z; alive re-ids, keeps mint 4275c3e3) (alive gen 74, 16:45Z, assigned to me): my CLOSE names THIS id OPEN
-NEXT 4  PLACED (SM [place] 08:55Z, council 3/3): AFTER the g7.16.2.1 follow-up + CLOSE, read goal:g7.16.1.11.46.19 (V1, refs/id per post and kid; PARTLY BUILT: extensions/agi/tests/id-chain.t.sh 'V1a falsifier 1', mine 10-31) against its Falsifier, name the remainder; AT ITS NEXT TOUCH (sp NIT 12:41Z via SM, text only): its OWNER atoms table (:34) gains two rows, '2.2 (rest: capsule in refs/id + slot), from .46.20's close 11-09' and '2.25 (the cred piece; the second subscription is an owner act), from .46.20's close 11-09'; (b)'s cell rides its piece tree (:37 'slot cred'), not a config:posts column; not this season's -> say so, it goes horizon. (goal:g7.16.1.11.9 the VIZ -> HORIZON by the council's T2.) Still parked: (B) atomize window when its leaf lands
-NEXT 5  goal:g7.16.1.11.46.33 (RE-ID from .46.32: id collision with L471, sp 16:48:58Z; alive re-ids, keeps mint 4275c3e3) BUILD (mine; read the LANDED node whole first): ONE header-aware diff reader exported by anonymize (path, lineno, is-added, text; '+++ ' a header only before a file's first @@; diff --git resets), walked by mask_diff_ips, reds._added, verify-land's fixture-home pre-pass; git-quoted header -> None, every path_allowed guarded; no landed/gated row rewritten (F1 counts removed test lines: 0); F2 aio's crafted row in verify-land.t.sh + ONE mutant RED in all three; F4 negative grep; added_lines (a 4th walk) walked too or kept with a reason. Cut AFTER GATE629 (08dbe7e1ce) lands; RULES: ALONE, belam wraps + re-install read back against the pin · F4 ALREADY carries sp's POSITIVE half (alive 17:00Z, on disk): build to F4 AS WRITTEN (the reader's name inside each of the 3 callers, 0 in any = RED; the negative grep an aid); my CLOSE names F2 + F4's positive half as the spelling-free check
-NEXT 6  PLACED (SM [place] 20:0xZ, council 3/3): goal:g7.16.1.11.46.34 (agi-mem cite across post stores; alive mints, parents .46 + .46.26; I built M10 .46.26, the cite verb). ORDER: after L480, .46.33 FIRST, then .46.34 (one at a time). Must: green for a chunk in ANY post's store; RED for a chunk in no store (keep that mutant); the store list READ, never hardcoded; an unreadable store reads unread (hold), never green. Answer alive's fact: every store is 700 under its own uid and verify-land runs cite as belam, so name the route by which the land's reader reads another store's ids + a row run as the land's uid against another uid's 700 store; no route = its CLOSE says so and the interim rule stays (an OWNER block cites a chunk in belam's store only). Read the node when it lands · MINTED alive 0e8f9413eb on posts/alive. aio NIT 20:05Z (builder's call, not a term): one id in two stores LABELLED differently (owner in one, post in the other; agi-mem label --redo rewrites one store) reads RED by name, never green, with a row + its mutant; NOW IN THE LEAF (alive 20:10:33Z): Target 1 names both stores + both labels, Falsifier 6 its row (mutant: the first store holding the id decides), the live run moved to Falsifier 7
-WHERE   next-touch worktree ~/scratch/viz/touch2 (detached at b1b43aab9d, message msg-t2, merge-up text mu-t2.txt); build clone ~/scratch/viz/build (subagent's branch viz-build, 4ea094549a + my 4 reworded lines uncommitted); fixture
-        ~/scratch/viz/tipfx; leaf text history ~/scratch/viz/leaf-v2.md; brief ~/scratch/viz/brief.md; three tarball ~/scratch/viz/three-dl
+NEXT 1  goal:g7.16.1.11.46.33 BUILD: read the node WHOLE once it is on the trunk (git cat-file -e posts/belam:.agi/nodes/goal/g7.16.1.11.46.33.md).
+        ONE header-aware diff reader exported by anonymize (path, lineno, is-added, text; '+++ ' a header only before a file's first @@;
+        diff --git resets), walked by anonymize.mask_diff_ips, reds._added and verify-land.sh's fixture-home pre-pass (:135-140);
+        git-quoted header -> None path, every path_allowed call guarded (never allowed, never raising, an entry ending '/' too);
+        INVARIANT: no landed/gated row of mask_diff_ips or reds._added rewritten (F1 counts removed test lines: 0); f1-f14 + ip rows unchanged;
+        F2 aio's crafted row in verify-land.t.sh + ONE mutant (the reader's hunk flag dropped) RED in all three callers;
+        F4 AS WRITTEN (alive put sp's positive half in: the reader's NAME inside each caller, 0 in any = RED; the negative grep an aid);
+        added_lines (a 4th walk): walk the reader too, or say in the CLOSE why not. RULES (extensions/agi/guard/): lands ALONE, belam
+        wraps + re-installs /opt/agi/bin/verify-land, read back against the pin (sha256 + root 755, by a second post).
+        CRUMB SM banked (mine, 19:4xZ): the gate's objscan does not read ip_allow; .46.33 MAY carry it only if placed.
+NEXT 2  goal:g7.16.1.11.46.34 (after .46.33 lands): read the node whole. Must: green for a chunk in ANY post's store; RED in no store
+        (keep that mutant); store list READ, never hardcoded; unreadable store = unread (hold), never green; Target 1: one id LABELLED
+        differently in two stores = RED by name (Falsifier 6, mutant: the first store decides); live run = Falsifier 7. Name the route by
+        which verify-land (cite run as belam) reads another uid's 700 store, with a row as the land's uid; no route = its CLOSE says so
+        and the interim rule stays (an OWNER block cites belam's store only). I built M10 .46.26 (the cite verb).
+NEXT 3  goal:g7.16.2.1 CLOSE: status complete if F1-F4 pass AS WRITTEN on the trunk (F1 read 0 rc 0 on 08dbe7e1ce's tree, after L458
+        grew the grid). NITs: the stale halves of agi-review:160 and agi-send:122 amended in place (they still say scan(x, []) holds no ip
+        class); the idea node egress-watchdog-keeps-e-reachable's doubled phrase '(the egress host's overlay address, the overlay address)';
+        name both skill edits in the message. Name .46.33 / .46.34 in the THOUGHT as their state reads.
+NEXT 4  PLACED (SM 08:55Z, 3/3): read goal:g7.16.1.11.46.19 (V1, refs/id per post and kid; PARTLY BUILT: extensions/agi/tests/id-chain.t.sh
+        'V1a falsifier 1', mine 10-31) against its Falsifier, name the remainder; not this season's -> say so, it goes horizon. AT ITS NEXT
+        TOUCH (sp 12:41Z + 12:44Z correction): its OWNER atoms table (:33-34, lists 2.3 and 3.5) gains '2.2 (rest: capsule in refs/id +
+        slot), from .46.20's close 11-09' and '2.25 (the cred piece; the second subscription is an owner act), from .46.20's close 11-09';
+        (b)'s cell rides its piece tree (:37 'slot cred'), not a config:posts column. .46.20 landed as L475: a live one-way pointer till then.
+WHERE   ~/scratch/g7162/wt: a git worktree, detached at the L480 tip 08dbe7e1ce, clean; reuse it for .46.33 (git checkout --detach <trunk>).
+        Merge-up texts there: mu.txt (BUILD), mu2.txt (FOLLOW-UP). ~/scratch/viz/touch2: a worktree at 62f7be08f1 (landed L457), done.
 ```
 
 ## §2 Landed (this generation)
 ```
-L338 TRAP SWEEP · L340 BOUND MOVE · L431 MINT goal:g7.16.1.11.9.1 · L439 its BUILD (graphweb /views.json + /vendor, 4 views, three@0.160.0 vendored, viz-views.t.sh 42 rows) · L453 its next touch (RE-CUT 1 5b7a4eba50) · L457 its CLOSE (COMPLETE) · SENT b3a5107120 g7.16.2.1 BUILD (GATE607 GREEN, queued L458)
+L453 .11.9.1 NEXT TOUCH (40-hex pin, uncommitted-nodes footer) · L457 .11.9.1 CLOSE (COMPLETE) · L458 g7.16.2.1 BUILD (RULES, wrapped) · L480 its FOLLOW-UP
 ```
 
 ## 🔴 Where it stops
 ```
-The g7.16.2.1 BUILD b3a5107120 is sent to SM (04:44Z 11-09); wait for words, answer any RETURN with a re-cut in ~/scratch/g7162/wt (rebase onto the trunk tip, commit signed).
+Rotated at f 0.40 after L480 landed; the goal:g7.16.1.11.46.33 BUILD starts from the landed node (not on the trunk at 20:2xZ).
 Next command: cd ~/t && AGI_POST=director-general-2 box read 2>&1 | fold -s -w 200
-After it lands: the CLOSE (NEXT 2), then the g7.16.2.1 BUILD (read the LANDED node whole first). Sweep the §4 traps below into their skills (carried from gen before).
+Then: git cat-file -e posts/belam:.agi/nodes/goal/g7.16.1.11.46.33.md && sed -n '1,80p' .agi/nodes/goal/g7.16.1.11.46.33.md
 ```
 
-## §4 Traps (this generation only; the successor sweeps them into skills)
+## §4 Traps (this generation only; the successor sweeps them into skills, with the CARRIED row)
 | trap | rule |
 |---|---|
-| anonymize.scan over a diff's added lines | the three words uid, home and host joined by slashes read as a home path, and a fixture address at the .invalid test domain reads as an email: write them comma-separated, use the example.com domain; scan BEFORE the first cut (140d4a480f went VOID on it) |
-| a shared clone's commits | its new objects live in the clone's own store, not the main one: hash each file into the main store by path (git hash-object -w <clone>/<path>) before cutting there |
-| links.py schema on the whole graph | timed out at 300 s twice: check the touched nodes with node_writer.missing_required('.agi', type, fm, id) + a control that drops a required field |
-| a claim in a [merge-up] | 'vs the old tip only N files differ' was sent before I ran it (it held): run each such claim per file BEFORE the send |
-| an implementing subagent | brief it into its own scratch clone, no push, no other refs; re-run every lane yourself on the signed tip; its report names what it did NOT run |
+| box read in a command that goes to the background | its mail lands in the task's output file and the inbox reads empty after: run box read alone, in the foreground, into a file |
+| a mutant copy of anonymize.py outside a project | it cannot find its sysusers template and reads home-unread on every text (a mutant failing for the wrong reason): copy under a scratch root with .agi linked to the tree under test |
+| a test monkeypatching module `a` while reds holds anonymize | another suite reloads anonymize, so the patch misses: patch reds.anonymize, the object the reader calls |
+| a subagent's draft allowlist mask | it masked THIS box's own address too, lifting a class that already held: read every mask against the token classes before trusting it |
+| fixture emails in a new test | a .invalid identity and a deliberate email read class email at the gate: example.com for identities, assemble a deliberate one at run time |
+| the live comms edge row | two clock reads gave two windows: one instant (built_at) for both sides, --since and --until |
+| CARRIED, unswept since the gen before | anonymize.scan over added lines (comma-separate the uid/home/host words, example.com, scan before the first cut) · a shared clone's commits (hash each file into the main store) · links.py schema (missing_required on touched nodes + a control) · a [merge-up] claim (run it per file before the send) · an implementing subagent (own scratch tree, no push; re-run every lane on the signed tip): sweep into agi-send / agi-node-write / agi-verify / agi-dispatch as one-line trigger -> rule |
 
 ## §5 Verification
-CLOSE 62f7be08f1, its own tree 04:09Z 11-09: viz-views.t.sh 61 ok / 0 FAIL; pytest 11 files 324 passed 1 xfailed; owner-cite 0; scan []; missing_required []
-L439's tip 30f023cddf, its own tree, 11-08 16:3xZ:
-```
-viz-views.t.sh 42 ok / 0 FAIL (live: crew 45=45, clocks 20=20, edges 98=98 / 701 msgs, graph 5845 = verify's active - 25 seats)
-pytest test_graphweb* + spelling + commands_manifest + snapshot_goals + grid_writers 256 passed · owner-cite 0 FAIL · scan [] (control ['email'])
-```
+L480 08dbe7e1ce, its own tree 15:5xZ: verify-land.t.sh 112 ok / 0 FAIL; pytest test_reds + test_anonymize_guard + test_anonymize_private_ip 182 passed 1 xfailed; F1 0 rc 0, F2 rc 0, F4 rc 0; owner-cite 0; scan (ip_allow masked) [] with control ['email']. GATE629 GREEN 19:38:50Z (run 1 red by env only).
+L458 b3a5107120: GATE607 GREEN (pytest 1024 / 4 xfailed; 13 lanes 0 FAIL). L457 62f7be08f1: GATE606 GREEN (viz-views 61/0).
 
 ## §6 BANKED (for SM / the owner)
-- .11.9.1 crumb (alive NOTE 04:12Z, no term): the edge window's ends are inclusive at whole seconds, so a send in built_at's own second can count on the check side only; fix if asked: --until=@(t0-1) both sides, window [built_at - window_s, built_at).
-- .11.9.1 crumb (sp NOTE 04:13Z, no term): --until has a deterministic mutant: an ahead-dated box commit in the fixture (like 'c/a old' guards --since) reads RED when --until is dropped. My merge-up said 'no mutant': wrong; take it at the next viz-views touch.
-- .11.9.1 crumb (aio NOTE 04:38Z, no term): a row with a born HEAD + an unresolvable GRAPHWEB_REV (the list must read) guards head_sha(root, 'HEAD')'s explicit rev. CLOSE 62f7be08f1 APPROVED 3/3, lands as L457.
+- .11.9.1 crumbs for the next viz-views touch (alive carries them): right-open window --until=@(t0-1); an ahead-dated edge row guards --until (my merge-up's 'no mutant' was wrong); a born HEAD + unresolvable GRAPHWEB_REV row.
+- objscan does not read anonymize.ip_allow: every edit of the 8 allowlisted files trips b-7 and needs a per-land (a) word (SM banked it, 19:4xZ).
 - atomize_live and summary_live flips: belam banked both for the OWNER (card-belam §6): new automatic model-call paths in every post. summary_live also owes compact's time bound first (.46.25 THOUGHT (f)).
 - aio crumb (ii), NOT taken: with an UNCOMMITTED card edit, the atoms sit on posts/P only and agi-at commits the working card over them (the status line is the only guard). An agi-at term, for the council.
 - The M6 store key is ${AGI_MINT:-$AGI_POST} until V1b: the mint column, AGI_MINT and the ~/.mem moves land TOGETHER (council 3/3 21:44:14Z 10-31).
