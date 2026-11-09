@@ -133,3 +133,67 @@ def test_an_absent_or_empty_harness_renders_the_claude_argv_unchanged(tmp_path, 
     norm = lambda c, d: c.replace(str(tmp_path / d), "<T>")   # noqa: E731
     assert explicit.split(" -- ", 1)[1].startswith("claude --remote-control "), explicit
     assert norm(absent, "b") == norm(explicit, "a") == norm(empty, "c")
+
+
+# ------------------------------- the resume proof is template-declared (goal:g7.31.1.2 ACT 2c)
+def _grok_recover(tmp_path, monkeypatch, heal_mod=heal):
+    gdir = tmp_path / "main" / ".agi"
+    gdir.mkdir(parents=True, exist_ok=True)
+    (gdir / "config.json").write_text(
+        '{"harnesses": {"grok-bot": {"adapter": "grok_bot", "model": "grok-4"}}}')
+    lines: list = []
+    monkeypatch.setattr(heal_mod, "_watch_log", lambda m: lines.append(m))
+    rotate = _load("rotate")
+    _seed_recovery_ack(gdir)
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "projects")   # no transcript anywhere
+    seen: list = []
+
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
+        seen.append((name, shell_cmd))
+        return None, "@9"
+
+    wf = tmp_path / "w.txt"
+    wf.write_text("\n")
+    row = dict(ROW, harness="grok-bot", model="grok-4")
+    out = heal_mod._recover_seat(gdir, row, "pid gone", rotate, windows=[],
+                                 window_path=str(wf), launcher=launch, now=0.0)
+    return out, seen, lines
+
+
+def test_a_grok_row_resumes_on_its_session_id_and_names_the_proof_PROVISIONAL(tmp_path, monkeypatch):
+    """grok-bot.toml declares resume_proof = "session_id": the row's sid is
+    resumed with NO transcript, and heal's log names the proof PROVISIONAL +
+    UNMEASURED every time (council 11-06 19:49:54Z (A)(3)); never a pass."""
+    out, seen, lines = _grok_recover(tmp_path, monkeypatch)
+    assert out["respawned"] and out["resumed"] is True, out
+    (_name, cmd), = seen
+    argv = cmd.split(" -- ", 1)[1]
+    assert f" -r {SID}" in argv and " -s " not in argv, argv[:200]
+    prov = [m for m in lines if "resume proof PROVISIONAL" in m]
+    assert prov == [f"watch: seat mainseat resume proof PROVISIONAL "
+                    f"(session_id present; UNMEASURED): resuming {SID}"], lines
+
+
+def test_the_claude_transcript_proof_is_unchanged_for_a_claude_row(tmp_path, monkeypatch):
+    """The same row on claude-code with no transcript stays a FRESH spawn and
+    logs no PROVISIONAL line: the default proof did not move."""
+    lines: list = []
+    monkeypatch.setattr(heal, "_watch_log", lambda m: lines.append(m))
+    out, seen = _recover(tmp_path, monkeypatch, transcript=False,
+                         row=dict(ROW, harness="claude-code"))
+    assert out["resumed"] is False and "--resume" not in seen[0][1], out
+    assert not any("PROVISIONAL" in m for m in lines), lines
+
+
+def test_mutant_heal_reads_only_the_transcript_proof_RED_on_the_grok_row(tmp_path, monkeypatch):
+    src = (BIN / "heal.py").read_text()
+    old = '        if _proof == "session_id":\n'
+    assert src.count(old) == 1
+    d = tmp_path / "mut"
+    d.mkdir()
+    (d / "heal_mut.py").write_text(src.replace(old, '        if False:\n'))
+    spec = importlib.util.spec_from_file_location("heal_mut", d / "heal_mut.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    out, seen, _lines = _grok_recover(tmp_path, monkeypatch, heal_mod=m)
+    assert out["resumed"] is False and " -r " not in seen[0][1]     # a fresh spawn: RED

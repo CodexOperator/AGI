@@ -12651,11 +12651,25 @@ def _seat_harness(root: Path | None, seat: str) -> str | None:
 
 def _harness_session_registry(hid: str) -> str:
     """The template's `[session] registry`; `claude` when the template does
-    not load (an unknown harness keeps today's registry join)."""
+    not load (an unknown harness, a TOML parse error, an unreadable or
+    non-UTF-8 file: a join must not die on a template read) -- today's
+    registry join."""
     try:
         return harness_template.session_registry(hid)
-    except harness_template.HarnessTemplateError:
+    except (harness_template.HarnessTemplateError, ValueError, OSError):
         return "claude"
+
+
+def _harness_resume_proof(hid: str | None) -> str:
+    """The template's `[session] resume_proof` (goal:g7.31.1.2 ACT 2c);
+    `transcript`, Claude's proof, for no harness or any template that does
+    not load."""
+    if not hid:
+        return "transcript"
+    try:
+        return harness_template.resume_proof(hid)
+    except (harness_template.HarnessTemplateError, ValueError, OSError):
+        return "transcript"
 
 
 def _seat_session_registry(root: Path | None, seat: str | None) -> str:
@@ -12685,11 +12699,15 @@ def _proc_argv(pid: int) -> tuple[list[str], str]:
 
 
 def _argv0_is(pid: int, want: str) -> bool:
-    """True when `pid` was launched as `want`: its argv[0] basename equals it,
-    or its comm does (comm is cut at 15 bytes by the kernel)."""
+    """True when `pid` was launched as `want`: its argv[0] basename equals it.
+    comm (cut at 15 bytes by the kernel) is read ONLY when the argv is
+    unreadable: otherwise a long bin name would match another process's
+    15-byte comm prefix, and a shebang wrapper named `want` (argv[0]
+    '/bin/sh', comm `want`) would be committed as the harness (council, 2b
+    words 10:37Z-10:46Z 11-09)."""
     argv, comm = _proc_argv(pid)
-    if argv and Path(argv[0]).name == want:
-        return True
+    if argv:
+        return Path(argv[0]).name == want
     return bool(comm) and comm == want[:15]
 
 

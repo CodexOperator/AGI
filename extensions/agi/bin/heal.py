@@ -3803,10 +3803,24 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     resume = None
     sid = str(row.get("session_id") or "").strip()
     if sid:
-        tp = _rotate.transcript_from_registry_dict(
-            {"cwd": str(_seat_tree_dir(root, row)), "session_id": sid})
-        # goal:g7.16.1.11.45.6: resume only a transcript PROVEN there; an unread one is a fresh spawn
-        if tp and _proven_file(Path(tp), seat, "transcript", "fresh spawn, no resume"):
+        # goal:g7.31.1.2 ACT 2c: WHAT proves the session is the row harness
+        # template's `[session] resume_proof`; `transcript` (the default,
+        # Claude's) is the branch below, unchanged.
+        _proof = _rotate._harness_resume_proof(
+            str(row.get("harness") or "").strip() or None)
+        if _proof == "session_id":
+            # PROVISIONAL + UNMEASURED (council 11-06 19:49:54Z (A)(3)):
+            # named in the log on every use, never read as a pass.
+            _watch_log(f"watch: seat {seat} resume proof PROVISIONAL "
+                       f"(session_id present; UNMEASURED): resuming {sid}")
+            _proven = True
+        else:
+            tp = _rotate.transcript_from_registry_dict(
+                {"cwd": str(_seat_tree_dir(root, row)), "session_id": sid})
+            # goal:g7.16.1.11.45.6: resume only a transcript PROVEN there; an unread one is a fresh spawn
+            _proven = bool(tp and _proven_file(Path(tp), seat, "transcript",
+                                               "fresh spawn, no resume"))
+        if _proven:
             resume = sid
             gen = int(row.get("generation", 0) or 0) or gen
             _nm = str(row.get("session_name") or "").strip()
