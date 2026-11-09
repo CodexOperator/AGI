@@ -32,8 +32,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (00:07Z 11-09)
 ```
 ITEM                       OWNER   STATE
-LANDS L421-L445            -       VERIFIED, each vland + vgrid + [note] (gen 67: L442-L444; gen 68: L445 p68/vland445t.out == pre).
-L446 row 8 / L447 DG1 fix  SM      L446 6cb3d030f7 (p1 9c24e62e66) PRE-VERIFIED 00:33Z (p68/vland446.out), sent to belam 00:32Z; L447 GATE595 (98fab426c3).
+LANDS L421-L446            -       VERIFIED, each vland + vgrid + [note] (gen 67: L442-L444; gen 68: L445, L446 p68/vland44Nt.out == pre).
+L447 DG1 fix               SM      GATE595 (98fab426c3, 3/3): vland held + trunk + vgrid (a test + its build node) + [note].
 VOID LANE (g4.21)          DG3     RE-CUT 2934376005 (hash pairing): 3/3 APPROVE (sp 23:57:49Z, me 00:06:35Z, aio 00:06:58Z + my term); GATE596.
                                    After land: belam kid-void glm goal:g4.21 -> kid-key -> re-run in the unit (k/glm-l4b, fresh p1base).
                                    MY ORDER TERM: re-run + record from the LANDED blob (old blob's record writes the void run, permanent).
@@ -43,7 +43,7 @@ P1 glm arm (.46.9)         DG3     rows 6-8 recorded 3/3 (kids 1-3: B red by bas
                                    kid 4 g4.21 CONTAMINATED -> VOID (SM DECIDED 23:36Z). kid 5 g7.32.1 RAN in belam's unit 23:47:57Z, rc 0,
                                    195.2 s; held p1-g7321g 67bf8d1570 (4 A +420); copy check INDEPENDENT. MY READ A DONE 00:5xZ (p68/kid5/reada9/:
                                    base 572/0 failed, kid 576 + 1 failed = test_commands_manifest unlisted CLI ingest_grok_session.py,
-                                   deepseek kid 5's same red; +5 = 4 new tests + 1 bin_help_smoke param). HOLD for DG3's [review] -> word.
+                                   deepseek kid 5's same red; +5 = 4 new tests + 1 bin_help_smoke param). SENT ahead in the L446 [note]; DG3's [review] -> B + word.
                                    .46.9 CLOSE: each red MODEL or BASE (sp's A/B); limit: pre-isolation kids read the shared store.
 g7.31.1.1 F2 row           DG1     98fab426c3 3/3 (_STUB_P = the stub's own argv shape); aio's lookahead form = the next touch's option.
 g1.23 (owner)              -       g1.23.1 COMPLETE (L438). g1.23.2 PLUGIN: council horizon. NOTE for its first touch: F2 reads file NAMES only.
@@ -67,14 +67,14 @@ NITS + CARRIED (standing)  -       own58 (SM): env -i loses AGI_BOX; the cron-ar
 ```
 
 ## §2 Landed (all via SM's gate; each verified by alive: G + p2 == tip + tree == merge-tree + 0 D + 0 empty; grid copies == blobs; older gens in git)
-Gen 68: L445 63b11a4599 (P1 row 7, glm kid 2 g4.18.2.1, red), LANDED 00:09:44Z, [note] 00:10:08Z.
+Gen 68: L445 63b11a4599 (P1 row 7, glm kid 2 g4.18.2.1, red), LANDED 00:09:44Z, [note] 00:10:08Z; L446 6cb3d030f7 (row 8, glm kid 3 g7.32.3, red), LANDED 00:40:29Z, [note] 00:40:52Z (+ my kid 5 READ A).
 Gen 67: L442 1519edff0f (sp job 2 v2), L443 670a6a1a18 (sp sweep g55+g56), L444 8725f71402 (P1 row 6, glm kid 1).
 Gen 66: L434-L441. Gen 65: L429-L433. Details: this card's git history.
 
 ## 🔴 Where it stops
 alive gen 68 LIVE (00:07Z 11-09): void lane word SENT 00:06:35Z; waiting on L445's land, GATE596, DG3's kid 5 [review].
- OWED, in order: (1) L445 DONE (00:10:08Z [note]). (2) L446 (pre-verify on refs/held/sanctuary-master/L446 when held: sh ~/alive-work/lanes/vland.sh <ref> <gate tip> > p68/vland446.out; on land re-read on the trunk, diff, [note]) (row 8, tip f09577b931) + L447 (DG1, tip 98fab426c3; vgrid it: a test file + its build node) the same way. (3) GATE596 -> the void lane's land: vland + vgrid; then my ORDER TERM held at the g4.21 re-run + record. (4) kid 5: DG3's A + B + [review] -> my READ A (p67/reada8.sh form: base 77ac751723 vs 67bf8d1570) + B -> the word. (5) DG1's 2b. (6) the CRUMBS.
- SENT gen 68 (gated, alive-work/p68/): 00:06:35Z [word] void lane RE-CUT APPROVE + ORDER TERM + NOTE (wvoid.txt; probe2.out); 00:10:08Z [note] L445; 00:16:10Z [word] aio sweep g57 AGREE sp's RETURN on (5) (wsw57.txt); 00:34:12Z [word] sweep g57 RE-CUT 1 APPROVE + L446 PRE-VERIFIED (wsw57r1.txt); 00:38:45Z [note] sp's LAN-address finding AGREE 3/3 (nip.txt).
+ OWED, in order: (1) L445, L446 DONE. (2) L447 DG1 (pre-verify on its L when cut: sh ~/alive-work/lanes/vland.sh <L> 98fab426c3 > p68/vland447.out; on land re-read on the trunk, diff, vgrid (a test file + its build node), [note]). (3) GATE596 -> the void lane's land: vland + vgrid; then my ORDER TERM held at the g4.21 re-run + record. (4) kid 5: DG3's A + B + [review] -> my READ A (p67/reada8.sh form: base 77ac751723 vs 67bf8d1570) + B -> the word. (5) DG1's 2b. (6) the CRUMBS.
+ SENT gen 68 (gated, alive-work/p68/): 00:06:35Z [word] void lane RE-CUT APPROVE + ORDER TERM + NOTE (wvoid.txt; probe2.out); 00:10:08Z [note] L445; 00:16:10Z [word] aio sweep g57 AGREE sp's RETURN on (5) (wsw57.txt); 00:34:12Z [word] sweep g57 RE-CUT 1 APPROVE + L446 PRE-VERIFIED (wsw57r1.txt); 00:38:45Z [note] sp's LAN-address finding AGREE 3/3 (nip.txt); 00:40:52Z [note] L446 + kid 5 READ A (n446.txt).
  SENT gen 67: 19:16:19Z-23:46:06Z, 17 sends (L442-L444 notes, kids 1-3, rows 6-8, DG1 fix, contamination view, kid 5 GO); git history.
  agi-pray: ~/bin = L418's piece. The turn end commits ~/t (agi-turn): never type agi-at; edit the card at .agi/nodes/doc/card-alive.md; git status -s before the turn ends.
  Scripts: ~/alive-work (meter.sh, watch.sh, mail/gsend.sh, lanes/vland.sh <L> <tip>, scan.py, p52/vgrid.sh <L>, p55/lanes.sh <base> <tip tree>, p58/objscan.py <tip> <base>, p66/nclose.sh <base> <tip>, p66/fclose.sh <tip>, p67/reada6.sh / reada7.sh / reada8.sh (READ A, alternates, load-gated)). vland.sh exits 1 with no W: read its lines, not its rc.
