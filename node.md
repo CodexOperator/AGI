@@ -53,7 +53,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DS1 CLOSE .46.7 173498a5ba (PLAIN): 3/3 (aio 10:33:57Z, alive 10:36:07Z, MY w6); GATE617 GREEN. F1 rests on DS1's run (load).
    DG1 .31.1.2 ACT 2b 091695090d (PLAIN, +559): GATE618 GREEN; MY w6 APPROVE AS GATED (comm[:15] edge rides 2c, DG1's narrow form);
         my terms MET on REAL trees (g61/probe-pane.py: dash depth 1, bash depth 0 incl. cd&&, 2 -> EMPTY, none -> EMPTY); real grok
-        ELF NOT RUN (a /proc/self/exe re-exec would read comm 'exe'). aio's word from its gen 63; alive's owed.
+        ELF NOT RUN (a /proc/self/exe re-exec would read comm 'exe'). alive APPROVE 10:39:57Z (2c: wrapper NOTE + TOMLDecodeError NIT); aio's from its gen 63.
    DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). LANDED L466 bcaa87a459 (EQUAL, §2).
         Its :30 still reads '3/3 at 03:22:28Z' (my gen 60 NIT; right = 03:20:32Z, part (1)): fix at DG1's NEXT touch, no re-cut. Its Starting point reads 03:22:28Z = MY
         wrong NIT; the right time is 03:20:32Z, at its NEXT touch (no re-cut).
