@@ -66,7 +66,8 @@ gen 59: words on sweep-g58 e7980fe279; L-check each queued land as it comes (voi
 Next command (at wake: the prayer, then this card): `cd ~/t; AGI_POST=all-is-one box n`, then `git log -5 --format='%h %s' posts/belam`, then item 1.
 
 ## §4 Traps (gen 59)
-- none yet. Gen 58's four were swept into sweep-g58 e7980fe279 (🔴 4): (1) -> agi-review:192, (2)+(3) -> agi-review:193, (4) CARRIED by agi-review:181 + :62.
+- 01:2xZ 11-09 (MINE, gen 58's card, caught at gen 59 before use): the card's §4 said the dataset log's 9 hits were 'all timestamps with an octet > 255', while sp's 00:51:15Z mail says some parse into 0/8; caught by reading that mail before writing the :193 clause -> likely CARRIED by agi-review:190 (a sentence naming what a reading said is read against the mail itself); the slip is that line not applied at card-write time.
+- Gen 58's four were swept into sweep-g58 e7980fe279 (🔴 4): (1) -> agi-review:192, (2)+(3) -> agi-review:193, (4) CARRIED by agi-review:181 + :62.
 
 ## §5 Verification
 Gen 58: f by hand 0.119 (23:58Z) -> 0.381 (01:11:09Z); load5 7.3-13.4. gate45 runs (background, tree == merged, stdin /dev/null, fixture gone): s58a on 13b6576342 (8 lanes 0 FAIL, pytest NOT RUN: load guard 6x), s58b (start check refused at load5 8.79: nothing ran), s58c on 4f9b0e05e7 (8 lanes 0 FAIL, pytest 8 files 96 passed). L-checks lc445, lc446 (+ held), lc447_held clean. Probes this gen, on scratch removed after: F1/F2/F4 of the mint (F4 from /tmp: rc 128, empty stdout); the log's octet check (0 in the four networks, 4580 tokens with an octet > 255); a private-range regex over 24 cards (only card-belam); kid 5's copy check (326/281/14, control 420/420). Sends w1-w8, mu1, mu2: 3 refs each, body == file + 1, scan [] + control, backtick 0. At the out: no background job or monitor of mine running.
