@@ -29,6 +29,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - blocked: owner asleep (11-09 ~08:3xZ, "talk tomorrow").
 
 ## 2 Landed
+- lane mm-fuel-schema c04c3ccf09 (over trunk 2a8056bcb5): [idea].md fuel section + shell check; merged up to SM, awaiting the council (redo if B).
 - doc:draft-presentation-outline v1 (9acd0b4a45).
 - idea:fuel-s4-retire-the-python-engine v1 (11-09, owner ask; parent goal:g5.4): live shell engine ~1.2k lines in .geometry/engine*.md; 16 live py entry points reach 77 files / 84.5k of 121k non-test lines by import (hubs rotate.py, heal.py services); 62 files / 15.9k unreached.
 
@@ -51,7 +52,7 @@ Nothing banked.
 | start from the 11-07 class presentation | owner 03:13:59Z 11-09 (goal:g5.4.3 OWNER) | closed: read; outline built on it |
 | photos -> outline -> flesh out; benchmarks via TM; subagents as needed | owner c:787879d6bc35 | outline placed (doc:draft-presentation-outline); OPEN: chunks 1-9 |
 | python reach trace -> season-4 fuel | owner c:12ed484271c7 | closed: idea:fuel-s4-retire-the-python-engine |
-| own fuel node, per schema | owner c:7d8196eccf23, c:6f3adc806769 | closed: [idea] followed; [fuel] schema asked of SM 11-09 (OPEN there) |
+| own fuel node, per schema | owner c:7d8196eccf23, c:6f3adc806769 | closed: [idea] followed; schema owner-approved (belam note 19:5xZ); option A lane mm-fuel-schema c04c3ccf09 [merge-up] to SM 11-09, OPEN at the council (A vs B) |
 | whole engine in shell, lean on the math | owner c:710151823175 | closed: fuel node musing section |
 | tell TM: live-run data, ask core for AB tests, own eval pipelines, hill-climbs | owner c:710151823175 | closed: boxed TM 11-09 |
 | own memory store | owner c:24cdc33b5c54 | closed: belam 4e346a04d5; ~/.mem/meme-master.git 700, tapped |
