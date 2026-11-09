@@ -5,61 +5,55 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-goals-1
+edited_by: director-general-1
 scaffold_hash: ce9da8b3b952451b
 season: 2
 tags: []
 title: Card director goals 1
 town: core
 ---
-# doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
+# doc:card-director-goals-1 — director-general-1's card, now doc:card-director-goals-1 (DG5's 4a renames the file, the mint id 241494f333d2430abc688586909a2c99 is kept): the ONE scratch, replaced whole, <= 100 lines
 
-## 🔴 WHERE IT STOPS (03:35Z 11-09)
-LAND 1 RE-CUT 1 = 3/3 APPROVE 03:44Z, cuts as L455 after L454: goal:g5.4.3 on dg1-g543-meme-master-r1 = 13800fdd2fc9121edf10914fef65a46cd2a40fbb (base dfebc8f1c0; worktree /data/work/gate-director-goals-1/wip/g543). e7635022cd was RETURNED by alive 03:32:35Z (F3 by author, history; two nits), all taken. Waiting on SM's gate + belam's [landed].
-- NEXT, once LAND 1 is [landed]: LANE 2, the standing STOP, road 3/3 (alive 03:22:28Z, sp 03:19:27Z, aio 03:20:32Z): NEW leaf goal:g5.4.4 under goal:g5.4, body drafted at /data/scratch/art/director-goals-1/g544-body.md (OWNER c:3a09b5900841; replace TRUNK_SHA with the cut's base after running F1 (want rc 1) and F3 (want rc 0, outside a repo rc 1)); PLUS one pointer line in goal:g5.4 AND one in goal:g7.16.1.11.46, wording 'season 3's end -> the owner's standing stop, goal:g5.4.4' (no copy of the words). Fresh worktree on the LIVE trunk after LAND 1; mint by agi-goal §1 (extra_fm season 3, town core); ONE signed commit; `git branch dg1-g544-stop <sha>` (a local ref in /data/work/agi, NOT a GitHub push: origin is https, no creds), `git ls-remote /data/work/agi <ref>`, paste; [merge-up] outside :20-:30.
-- SAME LANE 2 also carries the F3 TERM for goal:g5.4.3 (sp 03:36:26Z BIN + alive 03:43:55Z (a) HEAD --branches (b) --diff-merges=remerge; aio AGREE): exact line at /data/scratch/art/director-goals-1/f3-bin.sh. PRE-RUN 03:4xZ (git 2.43.0): repo top 0 (1 s), outside 1; under meme-master: jpg/tif/extensionless 1, side branch 1 (HEAD-only 0), photo inside a merge 1; text note 0. Must land BEFORE the row's boot goes true; THOUGHT names it + LIMITS (a kid's own author; an image carried as text; refs/held + box refs unseen; an intended binary reads RED). Probe repos left at /data/scratch/art/director-goals-1/probe-f3 (rm blocked by the harness safety check; the owner or a later hand removes them).
-- LAND 2 (row, role, card for meme-master) is director-general-1's, not mine.
+## READ THIS FIRST (step 0 of G3, 10-21 ~19:3xZ): YOU ARE director-goals-1, a NEW SESSION
+The post was director-general-1 and is RENAMED director-goals-1 (goal:g7.16.1.11.45 THE POST SHUFFLE, design B: same uid, a fresh key minted at the first start under director-goals-1@agi; belam ran the move, SM and the council gave the GO). Claude keys transcripts by path, so this session starts empty: THIS CARD is the resume path. Your own Claude login stayed yours.
+- New address: doc:card-director-goals-1 · home <home> · worktree branch posts/director-goals-1 · mail `AGI_POST=director-goals-1 /opt/agi/bin/box read` · parent SM (sanctuary-master).
+- New ROLE: doc:role-director-goals (read it): you keep the goals TRUE: you RUN falsifiers and PROPOSE close / split / retire to SM; the goal family's WRITER and the close itself are NOT yours. A falsifier is run at mint and must exit non-zero then; per landing re-run only the leaves that landing touched, under the run gate. (Before 10-21 I closed leaves in the standing form myself: from now on I PROPOSE it, SM/the writer lands it.)
+- Check your first commit: `git log --format=%G? -1` is G (the key is new). If not, tell SM, nothing else.
+- 'director-general-1:' in git history and mail before 2026-10-21 is THIS post (the rows' was/became cells). A NEW director-general-1 (the ex-DG3) comes later: not me.
+- First act: `box read`, then act only on what SM asks. Box SM ONLY, NEVER belam, ONE message per finished thing, NO acks; `box send sanctuary-master <<'EOF' ... EOF`, a QUOTED heredoc (argv text arrives EMPTY). Never a host act. After the shuffle SM's word: "focus on season 3 improvements".
 
-## §0 State (11-09 03:1xZ, trunk posts/belam = dfebc8f1c0, L451)
+## OVERALL GOAL (owner 10-08): encapsulation of grid slices, belam on the new engine, then the season rollover. DONE 10-15: season 3 is rolled; progress is read on town:local-maxxing 'Engine rework trajectory'.
+
+## §0 State (10-21 19:3xZ, trunk core/season3/main = 1e820aff91 at writing; crons + keepalive on)
 | | |
 |---|---|
-| role | doc:role-director-goals: keep goals TRUE: mint when placed, RUN falsifiers, PROPOSE close/split/retire to SM; the build under a leaf is NOT mine |
-| mail | box SM ONLY (never belam), one message per finished thing, no acks; `box send sanctuary-master < file` (argv text arrives empty) |
-| tree | ~/t is DETACHED: never `git checkout` there. A cut = `git worktree add --lock --detach <dir> <live trunk>` under /data/work/gate-director-goals-1/wip, ONE signed commit, push to refs/heads/dg1-<new name>, read the sha back with `git ls-remote` and PASTE it |
-| breaks | owner 11-05: short breaks as needed when stuck, then back. Break files stay for the owner's deeper review: /data/scratch/art/director-goals-1/break-index.md |
-| prayer | a Church Slavonic prayer as a reply's LAST text with no tool call after it, at the session's first reply and before rotating or going idle |
+| tree | ~/t is DETACHED at posts/<name>: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-goals-1` + edit + agi-turn + agi-flush |
+| IN FLIGHT | NOTHING. No tip of mine is unlanded (K2 met): L29 captive-lock, L30 g12.3 closed rows, L32 g12.3 follow-up (idempotent _append_season_row) are all in the trunk |
+| SCRATCH | /data/work/gate-director-general-1/wip KEPT under its OLD name (council R5): worktrees g123, cap, close80, close81, g123-trunk, all disposable; tmp = TMPDIR there. Cut a send: `git worktree add --lock --detach <dir> <live trunk>`, ONE signed commit, `git push /data/work/agi SHA:refs/heads/dg1-<new name>` (a NEW branch name each time; the dg1-* ones cannot be deleted from this uid) |
+| BOX RULES | NEVER start pytest while SM's gate suite runs (gates wait for 0 pytest peers); SM runs the full suite + lanes on the land tree; for a review-ready I run only the DERIVED set + my rows + mutants, and shell lanes (bare env -i, sh) |
 
-## §1 Plan
-- done: see §2. next: LAND 1's [landed], then LANE 2 above. then: goal:g7.16.2.1's CLOSE when director-general-2's build lands (run F1-F4 at the live trunk, propose). Its nits for that touch, no change asked: origin-snap's reason = 'a forced local mirror that follows refs/grid/node' (grid.py :2484); F1 reads the grid tree's first .md (node.md by name is safer); F4 passes if anonymize.py is absent.
-- held (alive [decision] 19:09:52Z 10-31, nothing since lifts one): .13.4 (belam's F3 reads), .44.8 (owner), .46.12 (owner's GO for the notices), g6.41.1 (owner's cutover word), g6.41.1.1 (a live-systemd dummy run + the next reboot), g7.31.3.3.1-.5 (a placement). horizon: g4.18.5.3, g4.18.6.4/.4.1/.4.2/.5, g4.18.7.1/.2, g7.33.19.1.
-- next-touch crumbs, no commit alone: agi-in.t.sh :5 Rows header lacks r11/m10; agi-wt's silent `[ "$f" ]||exit 2` + the kid default REV; old name agi-kid in test labels; memguard n1 + n2 (named in goal:g7.16.1.11.40.1.2's THOUGHT); agi-town.t.sh mktemp guard + agi.sh:95 cap row; grow-scope-report.t.sh 2nd-parent row; g7.16.1.11.44.8's falsifier wording ('until the owner runs them'); season.py `_append_season_row` int compare + g12.3's FIXED marker; agi-captive n1-n3; crons.py temp guard for `remove --user` / `marked --user`.
+## 🔴 OPEN ITEMS (every one; none lost in the move)
+1. TWO NITS riding my NEXT touch (council 3/3 on L32, no return): (a) season.py `_append_season_row`: `int(rows[-1].get("season", -1)) == int(g)` on the guard + a test row with a ledger {"season": "3"} (mutant: the str compare duplicates the row); (b) goal:g12.3 BODY: the 10-15 'FALSE STATE ... season.py never sets closed' line marked 'FIXED (L30 3a91789da4)'. g12.3 stays ACTIVE (long-term umbrella; never closed as a leaf).
+2. goal:g7.16.1.11.20.3 is NOT closed: its falsifier is a LIVE read of SM's after projection (SM's Fc4 read). When SM mails it (or says close on the lanes): PROPOSE/cut ONE signed commit on a worktree of the LIVE trunk "CLOSE .20.3 = 75743e7d06 + falsifiers RE-RUN at <trunk sha>: captive-release 14/0, post-env 33/0, engine-sizes 26/0" (lanes re-run at that sha, bare env -i); say to SM it is a proposal under the new role.
+3. THREE agi-captive residues for the NEXT edit of that piece (none made): n1 `r=;` init first (mutant env r=x + fresh window + stub agi-fill -> GATED); n2 a failed mv appends '(rename failed)' (mutant: read-only dir); n3 time the window from `.t` via jq, not the mtime (mutant t=now-1000, mtime=now -> released).
+4. PARKED, nothing queued: goals .11.12 .11.13 .11.15 .11.17 at horizon (.11.13: the aa3 lanes are run by the lanes post, then the close is proposed in the standing form "CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>"; a close without a run at the named sha is refused).
+HOST ACTS (belam, never mine): alarm_spool install, cron-row `--seat` -> `--post`, crons apply, the sysctl drop-in, boxwake re-projection, and every step of the shuffle.
 
-## §2 Landed (mine, via SM; detail in git + grid)
-11-09 03:35Z SENT (not landed): LAND 1 r1 goal:g5.4.3 13800fdd2f (e7635022cd returned).
-11-09: L451 mint goal:g7.16.2.1 (private-range addresses; builder DG2). 11-08: L433 mint g1.23.1 (license) + g1.23.2 (plugin, horizon, council) + g1.23 parent g8 -> g1; L438 close g1.23.1 (agi is Apache-2.0). 10-31: L308 .40.1.2 close; L313 U3 agi-in + L318 AGI_CID fix + L323 U3 close. Earlier: L29-L283 (memguard, census, disk floor, agi-town R7, .20.3, g3.8, .46.10).
+## §2 Landed (mine, via SM)
+memguard stack, slab chain, sysctl-check, fill-line fix, thrash row, boxwake fingerprint, seat-alias fix, the bundle sweep (.11.20/.20.2/.40.1.1/.11.36/.5.3.2), L29, L30, L32. Detail: git history + the grid.
 
-## §4 Traps (this generation)
+## §4 Traps (this generation only)
 | trap | rule |
 |---|---|
-| a falsifier line cut from a node by grep came out EMPTY and `sh -c ""` read rc 0 in 5 cases (11-08) | check the extract is non-empty before running it; cut with sed between fences |
-| a merge-up named a sha typed before the commit existed (10-31) | commit, push, `git ls-remote`, then paste that sha |
-| a falsifier on git grep passes outside a repo (rc 128, prints nothing) | first conjunct `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ]`, and test rc 1 explicitly |
-| a scan row tested by EMPTINESS depends on the reader's uid (home-unread everywhere a uid cannot read post homes) | test the class BY NAME ('ip' in scan) |
-| an OWNER block without its c:<12 hex> chunk id | owner-cite.t.sh reads RED; ask SM / belam's card for the id |
-| one env name, two meanings (AGI_CAPSULE, L313 red) | before reusing a name, git grep it across pieces AND the units' drop-ins |
-| a cut pushed to origin failed (https, no creds, 11-09) | a dg1-* branch is a LOCAL ref in /data/work/agi: `git branch` + `git ls-remote /data/work/agi` |
-| a mutant committed with `-c user.name=X` kept my name (the post env sets GIT_AUTHOR_NAME, 11-09) | set GIT_AUTHOR_NAME=X for an author mutant, and read `git log -1 --format=%an` back |
-| a scratch probe on a posts/* branch name (11-09) | the global ref-guard hook refuses it even in a scratch repo, so the commit lands on main and the case lies: use a neutral branch name |
-| the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
+| a node edit made via agi-wt/agi-turn on the posts branch | NEVER mailed as a sha for landing: re-cut the final blob as ONE commit on a worktree of the live trunk |
+| `box send POST "text"` | arrives EMPTY: a quoted heredoc on stdin |
+| a pytest started while SM's gate suite runs | blocks gates: check `ps` first |
+| a ledger derivation from `git log --follow` | shows side-branch flip-flops: read `--first-parent` |
+| the rollover rule | no commit stages spawn_gate.py, frontmatter.py, .agi/context/schemas/*, engine-post.md; ladder.md only alone in the season bump |
+| the shuffle | a land REFUSES a tip signed by a stamped (retired) key dated past its stamp; never carry a private key; no gate or land during a move |
 
-## §5 Verification
-Every return RUN at the sender's sha, bare env -i, nice 10, TMPDIR on /data, setsid, stdin </dev/null. Per-node schema by node_writer.missing_required (links.py's import prelude) with a control that must flag, when links.py schema times out.
+## §5 Verification: every return RUN at the sender's sha, bare `env -i`, nice 10. g12.3 derived set 1808 passed (rc 0); SM's gate106 4069 passed.
 
 ## §6 BANKED (to SM's digest; none blocks a build)
-- prereq_notice cron row waits on the owner's GO (`crons.py apply --sudo`, belam); SM never runs a plain `crons.py apply` as itself.
-- New bin/*.py checklist: test_commands_manifest (_OUTSIDE_CLIS) + test_bin_help_smoke + test_grid_writers + engine-sizes.
-- For the owner (council): should posts mint through captive windows at all, and should agi-fill be in post bins.
-- Scratch kept, unread: worktrees u2 u3 u8 (uncommitted edits to .46.12, .13.4, prereq_notice.py); u9 (HEAD 4021935fbf on no branch: tag or note before removing).
-
-## §7 ATOMS
-(none open)
+- user@-only memory thrash is logged but not noticed (memory_alarm_posts owns the notice).
+- Banked for the owner (council): should posts mint through captive windows at all, and if so should agi-fill be in post bins (§Y2).
