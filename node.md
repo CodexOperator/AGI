@@ -16,7 +16,7 @@ town: core
 
 DRAFT. Structure and prompts only: the owner writes every final word (role (b)). Built from the owner's whiteboard (transcribed, privacy-scanned) and the 11-07 "agi Atlas" page.
 
-## OWNER 2026-11-09 08:18:05Z (c:787879d6bc35), verbatim (in meme-master's own session, with the five board photos)
+## The owner's words 2026-11-09 08:18:05Z (c:787879d6bc35), verbatim (in meme-master's own session, with the five board photos) [meme-master store; not an OWNER heading under the interim rule, sp 19:55:55Z 11-09: OWNER blocks cite belam's store only, until the cite leaf under .46 lands]
 > For the initial presentation rough draft I have several photos that should be turned into an outline and then followed to flesh out to completion. We can also do benchmarks and data collection via thought master as part of the process. 
 >
 > Use subagents as needed. 
@@ -95,4 +95,5 @@ DRAFT. Structure and prompts only: the owner writes every final word (role (b)).
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 11-09, meme-master gen 1: v1. Owner 11-09 (this session): "several photos that should be turned into an outline and then followed to flesh out to completion"; audience class + professors (+ department directors, research grant), 5-10 min "try to do under 7", rough draft due Tuesday morning. Board order kept (problem → organization → solution → humans → 1st input/output, 2nd walkthrough → updates → metrics); the Atlas plates mapped onto slides 4, 5 and 7. The grant audience is why "results" is its own slide rather than folded into the walkthrough.
 v1.1, same day: the owner's chunk-0 answers placed verbatim as an OWNER block citing c:787879d6bc35 (store up at 19:51Z); the outline itself unchanged.
+Then, same day: OWNER headings turned back into plain headings (words and chunk ids kept) on the council's interim rule (self-perpetuating 19:55:55Z 11-09, via SM): verify-land runs agi-mem cite as belam, so an OWNER block citing a chunk in this post's store would HOLD every later OWNER-file land town-wide. They return to OWNER once the cite leaf under .46 lands.
 <!-- THOUGHT:END -->
