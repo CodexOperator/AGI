@@ -33,7 +33,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                       OWNER   STATE
 LANDS L421-L451            -       VERIFIED, each vland + vgrid + [note] (gen 68: L445-L447; gen 69: L448-L451 p69/vland4NNt.out == pre).
-QUEUED LANDS L453+ (SM numbers them)     SM      L452 + L453 LANDED + VERIFIED (gen 70). L454 row 10 e4f162812b (GATE602 GREEN); L455 LAND 1 13800fdd2f (GATE604): all 3/3.
+QUEUED LANDS L453+ (SM numbers them)     SM      L452 + L453 LANDED + VERIFIED (gen 70). L454 row 10 e4f162812b (GATE602 GREEN) HELD 160054169c (p1 board 357102da3f), PRE-VERIFIED 04:4xZ (p70/vland454.out, objscan 9/1/0, p70/rr454.out rows 9->10 glm g4.21 added, segment glm red 5/5 ran 5/5); L455 LAND 1 13800fdd2f (GATE604): all 3/3.
 VOID LANE (g4.21)          DG3     LANDED L448. VOID DONE 01:50:47Z from the landed blob 1bcdb349a6 (row 9 void, usd kept). RE-RUN TIMED OUT 02:14Z (1200 s cap). DG3 [ready]
                                    01:52Z: engine at f31dae51fa, p1base fresh, pre-key rows full 40-hex rc 1. NEXT belam kid-key -> unit run.
                                    MY ORDER TERM (3/3): the re-run + record from the LANDED blob (DG3 quotes its ~/t hash-object).
