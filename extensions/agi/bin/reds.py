@@ -16,6 +16,28 @@ import anonymize, links, locations  # noqa: E402
 CLASSES = ("secrets", "node_deletion", "broken_link")
 _ASSIGN = re.compile(r"""(?:^|[\s"'`])([A-Za-z_]\w*)\s*[:=]\s*["']?([\w./+:-]{8,})""")
 #: a BARE key-shaped value: `sk-` after any non-alnum (`h/` `a.` `_` `--`), never mid-word (`task-`); a path named sk-* over-refuses.
+#: a metric whose NAME carries TOKEN (tokens_per_<unit>, the board's cells): a COUNT is not a secret
+_METRIC = re.compile(r"tokens_per_", re.I)
+
+
+def _assign_secret(line):
+    """An `name = value` on `line` that reads as a secret, by dispatch's rule, minus two
+    false-RED shapes (goal:g7.16.2.1, the council's board-line fix 3/3 05:02Z 11-09):
+    (a) a PLACEHOLDER, an all-caps word followed by '(' (`UNMEASURED(no source yet)`);
+    (b) a COUNT under a metric name (tokens_per_*): digits, or digits and one decimal.
+    Scoped: a number under KEY / SECRET / PASSWORD, or any other TOKEN name, stays RED."""
+    import dispatch  # late, as _secrets: keeps a pre-model gate cheap
+    for m in _ASSIGN.finditer(line):
+        nm, v = m.groups()
+        if re.fullmatch(r"[A-Z]+", v) and line[m.end():m.end() + 1] == "(":
+            continue
+        if _METRIC.search(nm) and re.fullmatch(r"\d+(?:\.\d+)?", v):
+            continue
+        if dispatch._looks_like_secret(nm, v):
+            return True
+    return False
+
+
 _BARE = re.compile(r"""(?<![A-Za-z0-9])sk-[\w./+:-]{5,}""")
 
 
@@ -53,13 +75,16 @@ def _extract(repo, rev, dest, payloads=True):
 
 def _added(repo, old, new):
     """[(path, line, text)] — one entry per ADDED line, never joined (row 36)."""
-    out, path, lineno = [], None, 0
+    out, path, lineno, hunk = [], None, 0, False
     for l in _git(repo, "diff", "--unified=0", "--no-color", old, new).splitlines():
-        if l.startswith("+++ b/"):
-            path = l[6:]
+        if l.startswith("diff --git "):
+            path, hunk = None, False
         elif l.startswith("@@"):
+            hunk = True
             m = re.search(r"\+(\d+)", l); lineno = int(m.group(1)) - 1 if m else 0
-        elif l.startswith("+") and not l.startswith("+++"):
+        elif not hunk and l.startswith("+++ "):   # a path only in a file's HEADER: an added
+            path = l[6:] if l.startswith("+++ b/") else None   # line reading '++ b/<path>' is content, scanned
+        elif hunk and l.startswith("+"):
             lineno += 1; out.append((path, lineno, l[1:]))
     return out
 
@@ -75,7 +100,7 @@ def _secrets(repo, old, new, root):
     return [f"{p}:{n}" for p, n, line in _added(repo, old, new)
             if anonymize.scan(anonymize.mask_private_ips(line, anonymize.own_ips(toks)) if anonymize.path_allowed(p, ipa) else line,
                               toks, allow, root=root)   # root: without it the `user` class (anonymize.user_roots) never fires
-            or any(dispatch._looks_like_secret(nm, v) for nm, v in _ASSIGN.findall(line))
+            or _assign_secret(line)
             or any(dispatch._looks_like_secret("", v) for v in _BARE.findall(line))]
 
 
