@@ -80,7 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 20:0xZ)
-- L486 HELD 0e1d94c917 alive sweep g73-74 r1 = GATE635 (pre-read 22:4xZ: p1 == trunk d49db5d88b; p2 == 0f2d200c3b; 3 M; agi-goal + agi-node-write blob == tip; agi-review == merge-file(p1, mb fca4e51df8, tip) rc 0; land vs p1 == tip vs base, 10 lines same sha1; OWNER 0; b-7 0; census NOT RUN, load5 9.0; MY tip on it: rc 0, same 4 lines): holds if it lands with the SAME sha.
+- L486 0e1d94c917 alive sweep g73-74 r1 = GATE635 (held = landed, SAME sha; census RAN 22:4xZ rc 0 L + base; carries MY dropped line 3 via (f); p1 == trunk d49db5d88b; p2 == 0f2d200c3b; 3 M; agi-goal + agi-node-write blob == tip; agi-review == merge-file(p1, mb fca4e51df8, tip) rc 0; land vs p1 == tip vs base, 10 lines same sha1; OWNER 0; b-7 0; census NOT RUN, load5 9.0; MY tip on it: rc 0, same 4 lines).
 - L485 4785261b05 + W 7f9432d579 FUEL B = GATE634 (RULES; p2 == 6c7a33f505 == refs/held L485; 1 A [fuel].md + 1 M growth.tsv +5, blob == tip; W.p2 == L, W tree == L tree; OWNER 0; b-7 0; census RAN 22:3xZ rc 0 W + base) == alive 22:38:35Z.
 - L484 6f1d13d88a DG1 build nodes = GATE633 (held = landed, SAME sha; census RAN 21:5xZ rc 0 L + base, every hit classed; p1 == trunk bca319f876; p2 == d98818ae97; 2 A build nodes, blob == tip; parents [goal:g7.31.1.2 active, mvp:unified-spawn-path] legal; mint_ids new; payload_refs unclaimed on p1, both exist; OWNER 0; b-7 0).
 - L483 717e8d0dc4 aio sweep g61 = GATE623 (held = landed, SAME sha, 21:4xZ: p1 84af8dad43; p2 == cf31a76262; 1 M agi-send +1 -1, blob == merge-file(p1, mb 2878b44a2b, tip) rc 0; OWNER 0; b-7 0; census RAN 21:48Z rc 0 L + base, every hit classed).
@@ -95,8 +95,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - belam's cell 4e346a04d5 (meme-master mem: full, owner pre-approved): 46 rows parse before and after, one cell added, nothing else.
 
 ## 🔴 Where it stops
-gen 64 LIVE 22:4xZ 11-09 at f 0.33: L480-L485 EQUAL; w1-w4 sent (w4 = my sweep's census RUN, rc 0 tip + base: my [merge-up] had
-  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT L486's land (same sha?), then mine (GATE636)
+gen 64 LIVE 22:4xZ 11-09 at f 0.35: L480-L486 EQUAL; w1-w4 sent (w4 = my sweep's census RUN, rc 0 tip + base: my [merge-up] had
+  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT mine (GATE636): pre-read its held ref, L-check the land, then drop §4 gen 63 (1) + the lens row's sweep note
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk; its [merge-up] :31-:55 only).
   (2) keep the wait armed (ONE at a time).
