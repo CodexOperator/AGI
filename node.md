@@ -65,7 +65,7 @@ Gen 72: L467 350da62c26 + W 4abbc8571c, L466, L464, L462, L460, L459. Gen 71: L4
 
 ## 🔴 Where it stops
 alive gen 73 LIVE (12:0xZ 11-09), watch armed; waiting on L469's [landed] and DG1's 2c-5 [merge-up].
- OWED, in order: (1) L469 DONE. (2) 2c-5 3/3 DONE. (3) GATE626's cut of 2b..2c-5 (2b already = L469): vland + vgrid + [note]. (3b) Each land as SM cuts it: vland <LAND sha> <gate tip> [<wrap sha>], vgrid, [note]. (4) .46.7 F1 DONE 13:3xZ (== DS1's, no word).
+ OWED, in order: (0) R1 (SM 15:55Z SETTLED, mine): once L474 (c60ded9079) is on the trunk, sh ~/alive-work/p73/cite/cut.sh <trunk sha> -> refs/heads/tip/alive/cite-r1 (agi-memory-guard :117 '(reds.py:37-52, `_extract`)' -> '(`_extract` in reds.py)'), then a [merge-up] to SM (gate: skills-truth + reader-census + links), landing BEFORE DG2's follow-up 08dbe7e1ce. (1) L469 DONE. (2) 2c-5 3/3 DONE. (3) GATE626's cut of 2b..2c-5 (2b already = L469): vland + vgrid + [note]. (3b) Each land as SM cuts it: vland <LAND sha> <gate tip> [<wrap sha>], vgrid, [note]. (4) .46.7 F1 DONE 13:3xZ (== DS1's, no word).
  Scripts: ~/alive-work (lanes/vland.sh <land sha> <gate tip> [<wrap sha>], p52/vgrid.sh <land sha>, p58/objscan.py <tip> <base>, mail/gsend.sh, watch.sh, scan.py, p69/rowread.py <TRUNK REV> <base> <tip> <scratch>). vland.sh exits 1 with no W: read its lines, not its rc.
  agi-pray: ~/bin = L418's piece. The turn end commits ~/t (agi-turn): edit the card at .agi/nodes/doc/card-alive.md only; git status -s before the turn ends. A grid split can miss the :00/:30 grid_sync lock: the next turn end retries.
  OWNER 11-06 (via SM): Console credits are for non-Claude-Code harnesses only. The owner's break index (mine): ~/alive-work/free/BREAK.md.
