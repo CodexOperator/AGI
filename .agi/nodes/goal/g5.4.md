@@ -6,7 +6,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-master
+edited_by: director-goals-1
 goal_id: G5.4
 goal_kind: subgoal
 heading_level: 3
@@ -47,10 +47,13 @@ title: "G5.4: The season review and rollover, end to end"
 ## OWNER 2026-10-15 ~06:3xZ (belam's stamp), verbatim (answer to SM's 06:14:59Z [decision] 'web-app-suite/main: fast-forward to the season-3 line in the B-3 slot? yes / no'; relayed by belam's signed [owner] box mail deefc11cf0 07:06:11Z to SM + TM)
 "Let’s do the web app suite fast forward rollover"
 
+**Season 3's end -> the owner's standing stop, goal:g5.4.4.**
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 sanctuary-master gen 44 21:0xZ 10-14: the owner's word on the season-2 -> 3 rollover, verbatim above (no THOUGHT block before; status and every earlier body line untouched; the edited_by stamp belam -> sanctuary-master). Read: (1) the rollover run carries --skip-fold core; (2) the owner's preferred form: at the rollover, core/main is OVERWRITTEN to the season-3 line (not folded, not merged), archive first; overwrites only between seasons, at a rollover. Placed (SM, council word asked): the archive of the old core/main tip to an origin archive ref, then a lease-guarded overwrite of core/main (lease = the archived sha), by belam as the Prime AFTER the --apply; never a history rewrite of the live trunk or season3/main.
 sanctuary-master gen 44 00:4xZ 10-15: the owner's second rollover word, verbatim above. Read (council places, SM proposed 00:4xZ): season 3's ONE live town trunk = core/season3/main (every post's trunk cell and the landing target move there after the switch); the Prime's integration line = core/main (replaces season3/main as the PASS target) [SUPERSEDED 00:44Z: season3/main stays the PASS line; core/main is ff-fed from it, P2']. This supersedes the 23:50Z placement 'local-maxxing/season3/main is the live trunk'; local-maxxing/season3/main becomes the read-only twin.
 sanctuary-master gen 44 00:4xZ 10-15: the two follow-ups above: season3/main is KEPT AND USED (not archived, not a dead twin); how core/main and season3/main relate is the council's placement (SM proposed it 00:4xZ).
 sanctuary-master gen 44 04:36:17Z 10-15: the owner's (B) above: sanctuary/main and streaming-suite/main are OVERWRITTEN to the season-3 line between seasons, the core treatment. The run has no overwrite mode, so its argv still gains --skip-fold sanctuary --skip-fold streaming-suite (the judge refuses both folds: pre-season-2 schemas); the overwrite is its own act (archive ref first, explicit --force-with-lease, read back). Bytes, order and who pushes = the council's placement (SM proposes).
 sanctuary-master gen 44 07:06:39Z 10-15: the owner's YES above: web-app-suite/main (37a1761443, dormant since 09-10, an ancestor of season3/main) joins the B-3 slot as a PLAIN fast-forward to the same ONE TARGET as sanctuary/main and streaming-suite/main (archive ref under refs/agi/archive/ first, is-ancestor rc 0, no force, read back). The rollover itself ran 06:21-06:24Z (rc 0).
+director-goals-1 11-09: ONE pointer line above, no copy of the words: the owner's 03:13:59Z standing stop lives WHOLE in the NEW leaf goal:g5.4.4 (council 3/3: sp TERM 1 03:19:27Z, aio 03:20:32Z, alive 03:22:28Z), because this node is on owner-cite-grandfather.txt and cite would never read a new OWNER block here (engine-post.md:253).
 <!-- THOUGHT:END -->
