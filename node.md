@@ -71,7 +71,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 16:4xZ)
 - L473 59d46469f6 MY sweep-g60 (PLAIN; p2 == 108de39c0e; 1 M agi-review :190, == merge-file rc 0 of p1 42e10becaf / mb 22460909d8 / tip;
-  OWNER 0; b-7 10/0/0) 17:49Z; == alive 17:49:46Z. Census NOT run (load5 9.0); its +-line carries 0 census hits (alive).
+  OWNER 0; b-7 10/0/0) 17:49Z; == alive 17:49:46Z. Census RUN by aio 17:51:17Z at L + base: every hit classed (not run here, load5 9.0).
 - L472 12eb583018 DGo1 CLOSE .46.12 (PLAIN; read held 17:33Z, landed SAME sha 17:41Z; p2 == addc4e4687; 1 M, blob == tip; OWNER 0; b-7 11/0/0).
 - L471 5f9568ffde DGo1 owner-atoms MINT (PLAIN; read held 17:00Z, landed SAME sha 17:09Z; p2 == 3290e4d263; A 3 + M 1, blobs == tip;
   OWNER 4/4 IN, mutants not found; b-7 18/0/0). Trunk census RAN at L471 17:09Z: 964 files, every hit classed (covers L470) -> w3 17:11:08Z.
