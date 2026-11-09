@@ -236,6 +236,10 @@ def _c2(tmp_path, monkeypatch, *, joins=None, store=None, windows="\n",
     monkeypatch.setattr(rotate, "_join_by_pane", lambda **kw: q.pop(0))
     if store is not None:
         monkeypatch.setattr(rotate, "_harness_session_store", lambda hid: store)
+    rows: list = []
+    monkeypatch.setattr(rotate, "_successor_row_write",
+                        lambda root, **kw: rows.append(kw) or "row ok")
+    rotate._rows = rows                                                   # the row write, read back below
     pids = list(launches or [None, None])
     seen: list = []
 
@@ -288,63 +292,88 @@ def test_b1_grok_bot_declares_no_store_today_so_every_read_is_UNREAD(tmp_path, m
         for m in lines), lines
 
 
-# (B)(2) after the launch: read at the END of the window; only `absent` is a failed resume
+# (B)(2) + 2c-3 (council 3/3 11:22Z-11:25Z; DG1's pick (b): no in-pass fresh launch)
+GONE = [{"found": True, "pid": 77}, {"found": False, "miss": "no-pane", "why": "no pane pid for window @9"}]
+OPEN = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
+
+
 def test_b2_a_harness_that_exits_inside_the_window_reads_FAILED_and_its_mutant(tmp_path, monkeypatch):
-    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
-    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=list(seq))
-    assert len(seen) == 2 and f" -r {SID}" in seen[0], seen              # the -r, then ONE fresh launch
-    assert " -r " not in seen[1] and " -s " in seen[1] and SID not in seen[1], seen[1]
+    """The common exit: the launch-file bash ends with the harness, the
+    window closes -> no-pane at the END of the window = a FAILED resume. ONE
+    launch only (no in-pass fresh launch), the id leaves the row, the row
+    keeps its dead pid (heal scans only pid > 0), respawned False."""
+    out, seen, lines, rot = _c2(tmp_path, monkeypatch, joins=list(GONE))
+    assert len(seen) == 1 and f" -r {SID}" in seen[0], seen
+    assert out["respawned"] is False and out["resumed"] is False, out
+    assert rot._rows[-1]["session_id"] == "" and rot._rows[-1]["pid"] is None, rot._rows
     rf = out["resume_failed"]
-    assert rf["session_id"] == SID and rf["fresh"] and rf["fresh"] != SID, rf
-    assert rf["read"] == "the pane join read absent at the end of the 30 s window after the -r launch"
-    assert out["resumed"] is False and out["respawned"], out
-    both = [m for m in lines if "FAILED" in m]
-    assert len(both) == 1 and SID in both[0] and rf["fresh"] in both[0], lines
+    assert rf == {"session_id": SID, "read": "the pane join read no-pane at the end of the 30 s "
+                  "window after the -r launch (no pane pid for window @9)"}, rf
+    assert sum("FAILED" in m and SID in m for m in lines) == 1, lines
     m = _mut_heal(tmp_path, "                                poll_secs=0)\n    if end.get",
                   "                                poll_secs=0)\n    end = first\n    if end.get")
-    out2, seen2, _l, _r = _c2(tmp_path / "m", monkeypatch, joins=list(seq), heal_mod=m)
-    assert out2.get("resumed") and len(seen2) == 1                        # the first hit read as resumed: RED
+    out2, _s, _l, rot2 = _c2(tmp_path / "m", monkeypatch, joins=list(GONE), heal_mod=m)
+    assert out2["resumed"] and rot2._rows[-1]["session_id"] == SID          # the first hit read as resumed: RED
 
 
-def test_b2_two_harnesses_after_a_resume_launch_nothing_and_its_mutant(tmp_path, monkeypatch):
+def test_r1_no_pane_clears_the_id_like_absent_and_its_mutant(tmp_path, monkeypatch):
+    for seq, win in ((GONE, "\n"), (OPEN, "@9 mainseat\n")):
+        out, seen, _l, rot = _c2(tmp_path / str(len(win)), monkeypatch, joins=list(seq), windows=win)
+        assert len(seen) == 1 and rot._rows[-1]["session_id"] == "", (seq, rot._rows)
+    m = _mut_heal(tmp_path, '            if kind == "ambiguous":\n',
+                  '            if kind in ("ambiguous", "no-pane"):\n')
+    _o, _s, _l, rot2 = _c2(tmp_path / "m", monkeypatch, joins=list(GONE), heal_mod=m)
+    assert rot2._rows[-1]["session_id"] == SID                             # the dead id kept on no-pane: RED
+
+
+def test_r1_ambiguous_keeps_the_id_pid_EMPTY_nothing_launched_and_its_mutant(tmp_path, monkeypatch):
     seq = [{"found": True, "pid": 77}, {"found": False, "miss": "ambiguous"}]
-    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=list(seq))
-    assert len(seen) == 1 and out["resume_failed"]["fresh"] is None, (seen, out)
-    assert any("read ambiguous at the end" in m and "no fresh launch" in m for m in lines), lines
-    m = _mut_heal(tmp_path, '            if kind != "absent":\n', '            if False:\n')
-    _o, seen2, _l, _r = _c2(tmp_path / "m", monkeypatch, joins=list(seq), heal_mod=m)
-    assert len(seen2) == 2                                                # a second harness launched: RED
+    out, seen, lines, rot = _c2(tmp_path, monkeypatch, joins=list(seq))
+    assert len(seen) == 1 and rot._rows[-1]["session_id"] == SID and rot._rows[-1]["pid"] == 0, rot._rows
+    assert "resume_failed" not in out and any("nothing launched" in m for m in lines), (out, lines)
+    m = _mut_heal(tmp_path, '            if kind == "ambiguous":\n', '            if False:\n')
+    _o, _s, _l, rot2 = _c2(tmp_path / "m", monkeypatch, joins=list(seq), heal_mod=m)
+    assert rot2._rows[-1]["session_id"] == ""                              # the id dropped: RED
 
 
-def test_b2_no_pane_is_its_own_line_and_no_launch(tmp_path, monkeypatch):
-    seq = [{"found": False, "miss": "no-pane"}, {"found": False, "miss": "no-pane"}]
-    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=seq)
-    assert len(seen) == 1 and any("read no-pane at the end" in m for m in lines), lines
+def test_nit2_a_pid_change_between_the_joins_reads_AMBIGUOUS_and_its_mutant(tmp_path, monkeypatch):
+    seq = [{"found": True, "pid": 77}, {"found": True, "pid": 88}]
+    out, seen, lines, rot = _c2(tmp_path, monkeypatch, joins=list(seq))
+    assert len(seen) == 1 and rot._rows[-1]["session_id"] == SID and rot._rows[-1]["pid"] == 0, rot._rows
+    assert any("read ambiguous" in m and "pid 77 at the launch, 88 at the end" in m for m in lines), lines
+    m = _mut_heal(tmp_path, '            first.get("pid") != end.get("pid"):\n',
+                  '            False:\n')
+    _o, _s, _l, rot2 = _c2(tmp_path / "m", monkeypatch, joins=list(seq), heal_mod=m)
+    assert rot2._rows[-1]["pid"] == 88                                     # the end join decides: RED
 
 
-# (D) ONE fresh attempt; (C) the dead id in the RECORD, the row's session_id the fresh one's
-def test_d_the_fresh_launch_failing_too_is_one_launch_then_the_crash_path(tmp_path, monkeypatch):
-    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
-    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=seq, launches=[None, 0])
-    assert len(seen) == 2 and out["respawned"] is False, (seen, out)
-    assert out["resume_failed"]["session_id"] == SID
-    assert "fresh launch did not land" in out["reason"], out
-
-
-def test_d_the_failed_window_still_open_refuses_the_fresh_launch(tmp_path, monkeypatch):
-    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
-    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=seq, windows="@9 mainseat\n")
-    assert len(seen) == 1 and out["respawned"] is False, (seen, out)
-    assert "the failed window @9 is still open" in out["reason"], out
+def test_term_a_failed_id_is_never_resumed_again_and_its_mutant(tmp_path, monkeypatch):
+    """alive's TERM: once a -r reads no harness at the window's end, the next
+    _recover_seat must not launch -r <that id>: the cleared row spawns fresh."""
+    def twice(tp, mod):
+        out, seen, _l, rot = _c2(tp, monkeypatch, joins=list(GONE), heal_mod=mod)
+        nxt = dict(ROW, harness="grok-bot", model="grok-4",
+                   session_id=rot._rows[-1]["session_id"])
+        monkeypatch.setattr(rot, "_join_by_pane", lambda **kw: {"found": True, "pid": 99})
+        seen2: list = []
+        wf = tp / "w2.txt"
+        wf.write_text("\n")
+        mod._recover_seat(tp / "main" / ".agi", nxt, "pid gone", rot, windows=[],
+                          window_path=str(wf), now=0.0,
+                          launcher=lambda r, n, c, w=None, cwd=None: seen2.append(c) or (None, "@11"))
+        return seen2[0].split(" -- ", 1)[1]
+    second = twice(tmp_path, heal)
+    assert " -r " not in second and SID not in second and " -s " in second, second
+    m = _mut_heal(tmp_path, "                resume = None\n                failed = True\n",
+                  "                failed = True\n")
+    assert f" -r {SID}" in twice(tmp_path / "m", m)                        # -r <dead id> again: RED
 
 
 def test_c_the_dead_id_is_in_the_crash_recovery_record(tmp_path, monkeypatch):
-    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
-    out, _seen, _lines, rot = _c2(tmp_path, monkeypatch, joins=seq)
+    out, _seen, _lines, rot = _c2(tmp_path, monkeypatch, joins=list(GONE))
     gdir = tmp_path / "main" / ".agi"
     path = heal._write_crash_recovery(gdir, "mainseat", "pid gone",
                                       dict(ROW, harness="grok-bot"), rot, 0.0, out)
     import json
     rec = json.loads(Path(path).read_text())
-    assert rec["resume_failed"]["session_id"] == SID, rec
-    assert rec["resume_failed"]["fresh"] == out["resume_failed"]["fresh"]
+    assert rec["result"] == "detected" and rec["resume_failed"]["session_id"] == SID, rec

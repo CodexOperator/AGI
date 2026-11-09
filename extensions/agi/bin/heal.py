@@ -3960,59 +3960,38 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             print(f"watch: {reason}", file=sys.stderr)
             _watch_log(f"watch: {reason}")
     resume_failed = None
+    failed = False
     _hid = str(row.get("harness") or "").strip() or None
     if resume and window_id and _rotate._harness_resume_proof(_hid) == "session_id":
-        # (B)(2)-(D) (alive [decision] 10:56:03Z 11-09): read the resume at
-        # the END of a bounded window; only `absent` is a failed resume.
+        # (B)(2) (alive [decision] 10:56:03Z 11-09) read at the END of a
+        # bounded window; 2c-3 (council 3/3 11:22Z-11:25Z, DG1's pick (b)):
+        # NO in-pass fresh launch. absent | no-pane = a FAILED resume: the id
+        # leaves the row (kept in the crash-recovery record), the row keeps
+        # its dead pid so the next cycle recovers it, and that cycle's
+        # ordinary spawn IS the fresh launch (2b's new uuid, read back by the
+        # after-join pass). ambiguous = the id kept, pid EMPTY, nothing
+        # launched. Each line names what the join READ, never a cause.
         _chk = _resume_check(_rotate, seat, _hid, window_id)
-        if _chk.get("found"):
+        kind = "" if _chk.get("found") else (_chk.get("miss") or "absent")
+        if not kind:
             row_pid = _chk.get("pid") or row_pid
         else:
-            kind = _chk.get("miss") or "absent"
             read = (f"the pane join read {kind} at the end of the "
-                    f"{RESUME_WINDOW_S} s window after the -r launch")
-            if kind != "absent":
-                # ambiguous / no-pane: one loud line, NOTHING launched
+                    f"{RESUME_WINDOW_S} s window after the -r launch"
+                    + (f" ({_chk['why']})" if _chk.get("why") else ""))
+            if kind == "ambiguous":
                 _watch_log(f"watch: seat {seat} resume of {resume}: {read}; "
-                           f"no fresh launch")
-                resume_failed = {"session_id": resume, "read": read,
-                                 "fresh": None}
+                           f"the id kept, pid EMPTY, nothing launched")
+                row_pid = 0
             else:
-                resume_failed = {"session_id": resume, "read": read,
-                                 "fresh": None}
-                fresh = _fresh_after_failed_resume(
-                    root, row, seat, spawn_name, tier, model, effort,
-                    settings, dbg, ack_gate, card_file, launcher,
-                    window_id, window_path, _rotate)
-                resume_failed["fresh"] = fresh.get("session_id") or None
+                resume_failed = {"session_id": resume, "read": read}
                 _watch_log(f"watch: seat {seat} resume of {resume} FAILED: "
-                           f"{read}; "
-                           + (f"fresh launch with session "
-                              f"{fresh.get('session_id') or '<none>'}"
-                              if fresh.get("launched") else
-                              f"fresh launch refused ({fresh.get('reason')}); "
-                              f"the crash path takes it"))
-                if fresh.get("launched"):
-                    pid, window_id = fresh.get("pid"), fresh.get("window_id")
-                    row_pid = pid or None
-                    if row_pid is None and window_id:   # as the first launch above
-                        try:
-                            row_pid = _pane_pid_of(window_id, window_path) or None
-                        except Exception:  # noqa: BLE001
-                            row_pid = None
-                else:
-                    _dm_crash_recovery(root, row, old_pid, cause, spawn_name,
-                                       window_id, gen)
-                    return {"respawned": False, "name": spawn_name,
-                            "generation": gen, "row": "skipped",
-                            "reason": f"resume of {resume} failed and the "
-                                      f"fresh launch did not land: "
-                                      f"{fresh.get('reason')}",
-                            "resume_failed": resume_failed}
-            # (C): the dead id lives in the crash-recovery RECORD and the
-            # heal log; the row's session_id goes EMPTY, the normal join
-            # writes the fresh launch's own id.
-            resume = None
+                           f"{read}; the id leaves the row (kept in the "
+                           f"crash-recovery record); the next cycle spawns "
+                           f"fresh")
+                resume = None
+                failed = True
+                row_pid = None    # the row keeps its (dead) pid: heal scans only pid > 0
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
@@ -4021,8 +4000,10 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     except Exception as exc:  # noqa: BLE001
         row_text = f"row write FAILED: {exc}"
     _dm_crash_recovery(root, row, old_pid, cause, spawn_name, window_id, gen)
-    out = {"respawned": True, "name": spawn_name, "generation": gen,
-           "pid": pid, "window": window_id, "reason": "", "row": row_text,
+    out = {"respawned": not failed, "name": spawn_name, "generation": gen,
+           "pid": pid, "window": window_id, "row": row_text,
+           "reason": (f"resume of {resume_failed['session_id']} failed: "
+                      f"{resume_failed['read']}" if failed else ""),
            "resumed": bool(resume)}
     if resume_failed is not None:
         out["resume_failed"] = resume_failed
@@ -4042,9 +4023,11 @@ def _resume_sleep(secs: float) -> None:
 
 def _resume_check(_rotate, seat: str, hid: str, window_id: str) -> dict:
     """(B)(2): join once at the launch, wait the bounded window, join again
-    and read THAT. Found at the end = resumed; a miss carries its `miss`
-    field (absent | ambiguous | no-pane). The pid seen at the start must be
-    the one still alive at the end, else the end join decides."""
+    and read THAT. Found at the end, by the SAME pid the launch join saw (or
+    the launch join saw none), = resumed. A different pid at the end reads
+    AMBIGUOUS (sp's call, 11:23:42Z 11-09: nothing should start a second
+    harness in a pane holding one launch line). A miss carries its `miss`
+    field (absent | ambiguous | no-pane) and `why`."""
     first = _rotate._join_by_pane(seat=seat, window_id=window_id,
                                   harness=hid, poll_secs=RESUME_FIRST_JOIN_S)
     _resume_sleep(RESUME_WINDOW_S)
@@ -4052,8 +4035,9 @@ def _resume_check(_rotate, seat: str, hid: str, window_id: str) -> dict:
                                 poll_secs=0)
     if end.get("found") and first.get("found") and \
             first.get("pid") != end.get("pid"):
-        _watch_log(f"watch: seat {seat} resume: pid {first.get('pid')} at "
-                   f"the launch, {end.get('pid')} at the end of the window")
+        return {"found": False, "window_id": window_id, "miss": "ambiguous",
+                "why": f"pid {first.get('pid')} at the launch, "
+                       f"{end.get('pid')} at the end"}
     return end
 
 
@@ -4081,44 +4065,6 @@ def _session_store_read(store: str, sid: str) -> tuple[str, str]:
                           f"{errno.errorcode.get(exc.errno or 0, 'OSError')}")
     hit = any(n == sid or n.startswith(sid + ".") for n in names)
     return ("present" if hit else "absent"), str(p)
-
-
-def _fresh_after_failed_resume(root, row, seat, spawn_name, tier, model,
-                               effort, settings, dbg, ack_gate, card_file,
-                               launcher, failed_window, window_path,
-                               _rotate) -> dict:
-    """(D): ONE fresh launch after a failed resume, carrying 2b's new uuid
-    (never the dead id). Refused while the failed window is still open (no
-    second window under the seat's name; DG1's call, named in the
-    [merge-up]); a fresh launch that does not land is NOT retried here: the
-    seat falls to heal's crash path and its bound."""
-    if any(w == failed_window for w, _n in _all_windows(window_path)):
-        return {"launched": False,
-                "reason": f"the failed window {failed_window} is still open"}
-    try:
-        rc, shell_cmd = _rotate.spawn_window(
-            name=spawn_name, tier=tier, prompt_file=None, model=model,
-            effort=effort, settings=settings, root=root,
-            window_path=window_path, dry_run=True, debug_file=dbg,
-            extra=ack_gate, seat=seat, resume=None, card_file=card_file,
-            harness=str(row.get("harness") or "").strip() or None)
-    except Exception as exc:  # noqa: BLE001
-        return {"launched": False, "reason": f"spawn_window raised: {exc}"}
-    if rc != 0 or not shell_cmd:
-        return {"launched": False, "reason": f"spawn_window refused (rc={rc})"}
-    hid = str(row.get("harness") or "").strip()
-    sess = _rotate._session_from_argv(["-"] + shlex.split(shell_cmd), hid)
-    try:
-        pid, window_id = launcher(root, spawn_name, shell_cmd, window_path,
-                                  cwd=_seat_tree_dir(root, row))
-    except Exception as exc:  # noqa: BLE001
-        return {"launched": False, "reason": f"launcher raised: {exc}",
-                "session_id": sess}
-    if pid == 0:
-        return {"launched": False, "session_id": sess,
-                "reason": "launcher reported no successor process"}
-    return {"launched": True, "pid": pid, "window_id": window_id,
-            "session_id": sess}
 
 
 def _latest_detected_path(root: Path, seat: str, _rotate, now: float) \
