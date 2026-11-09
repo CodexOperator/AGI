@@ -59,12 +59,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117, the git grep LOAD case; gen 59 trap (2) is NOT placed here: dropped, carried :66).
    L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611 GREEN 07:24Z (re-run on cc1031b92b, 0 SKIP); alive 06:02:03Z + aio 06:02:37Z APPROVE; cuts after L460.
  SM CHECK T2 (08:47Z placements): MY w8 08:50:33Z: .44.7 / .42.2 / .46.20 / .46.19 'never built' is WRONG (box-move.sh f2cbc3abd9;
-   board_job.py bacd73db77; credpiece.py 292fe310e2; id-chain.t.sh 79a94615fd); .46.22 holds; (a) + close candidates NOT READ.
- JOB 2 (A12 (3)): v2 LANDED L442. Its NEXT touch: row 1's split '85 entered with cc > 30; 191 never entered with cc >= 6' (sums 276);
-   ~/sp-tools/crap/join.py FIXED (asserts the split sums). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's
-   104 candidates READ before any cut. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
- DG1 .31.1.2 ACT 2b: terms = mine ('-s S -r R' refused together; the committed pid is the HARNESS's) + alive T1 (the pane pid AND its
-   descendants) + T2 (argv[0]/comm; ambiguous -> EMPTY, loud); my NOTE: tmux runs the launch as default-shell -c (bash execs, dash forks).
+   board_job.py bacd73db77; credpiece.py 292fe310e2; id-chain.t.sh 79a94615fd); .46.22 holds; (a) + close candidates NOT READ. SM
+   [correction] 08:52Z: ALL FOUR corrected (+ aio: MY .46.20 line WRONG, owner GO GIVEN 11-01; SM places DS1's drop-in tip).
+ JOB 2 (A12 (3)): v2 LANDED L442; NEXT touch: row 1's split '85 entered cc > 30; 191 never entered cc >= 6' (sums 276; crap/join.py
+   asserts it); then the cuts = goal:g7.33 rounds, one at a time; row 1c's 104 candidates READ first. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
+ DG1 .31.1.2 ACT 2b terms: mine ('-s S -r R' refused together; the committed pid is the HARNESS's) + alive T1 (pane pid AND descendants)
+   + T2 (argv[0]/comm; ambiguous -> EMPTY, loud); my NOTE: tmux launches via default-shell -c (bash execs, dash forks).
  OPEN: belam's unnoded class (37/97 bin/*.py); aio fragment; alive audit; .46.29's next record (aio); DG3's .agi/keys leaf (mine,
    banked); DT1 banked; my agi-review :130 note. TOOLS ~/sp-scratch/g46/{b7,owner}.py; ~/sp-tools/{lcheck,sendw-g54,send-g56,cut-g56}.sh,
    bt-g49.py, crap/; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/{watch.sh,fix93.py,shingle.py}
@@ -101,11 +101,12 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   into the node (5b686121a7), alive caught it 08:05:20Z, my w6 corrected it -> a time cited in a word is read off the message ref in
   the same call (git log --format=%s on the box ref), per PART when a decision has parts. HOME at my out: agi-review:62 (its fix,
   'cite the one a command PRINTED', holds; its trigger names a line number or a count, not a time): one clause in place, by :192.
+  AGAIN 08:50Z: w8 said .46.20's F1 'banked on the owner's GO', reading my own §6 row ('owner GO' = GIVEN, card-belam:118,
+  11-01); aio corrected 08:52:06Z -> the clause names a card's own summary row as the case too: read the source it cites.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
 - CARDS DO NOT REACH THE TRUNK: MAIN's doc:card-<post> is whatever last landed; quorum/ on MAIN reads stale cards. Should the board / merge-pass carry live cards, by which path? Decided nothing (SM 14:49Z 11-06).
-- V2 root LoadCredential placement + Falsifier 1 (.46.20): owner GO; dead-credential re-seed step named in the leaf
 - C2 one shared Console workspace across 3 lanes: 'passed with ONE shared workspace' until the owner says it is the intent (11-06: Console credits are for non-CC harnesses only, owner via belam)
 - .44.8: no agi.sh start until the owner rules R2 + R3 · G1a removal of the old refs/grid/local-maxxing namespace: owner act
 - atoms c1 (rules into the matrix math, W4 §12) and c2 (crons.py retire: reader census first)
