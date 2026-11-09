@@ -63,7 +63,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    sudo -n true gates; alive VERIFIED the act 12:31:16Z). F1 PASS (DS1, env -u the 3 ANTHROPIC_* vars); aside DELETED 12:34:45Z.
    My [correction] w6 12:36:35Z (TERM 1's reason: 'differs' != 'refreshed'). DS1's CLOSE .46.20: abfb93cda2 -> 28875c28aa -> RE-CUT 2
    7a8eb7c7d7 (alive's TERM: :38's clauses named; my NIT folded); my word w8 12:41:35Z APPROVE AS GATED + [correction] w9 12:44:41Z
-   (.46.19's table lists 2.3 + 3.5); aio's TERM = F1's RED mutant, DS1 READ it RED 12:4xZ ('Not logged in'); GATE627 on it -> L-check.
+   (.46.19's table lists 2.3 + 3.5); aio's TERM = F1's RED mutant, DS1 READ it RED 12:4xZ ('Not logged in'). TALLY 3/3 AS GATED
+   12:47Z (SM); GATE627 on 7a8eb7c7d7 after GATE626 -> L-check the cut.
    Check the drop-in's next touch for alive's (5) (the '[cred]' echo is a crumb to /dev/null) + its missing build node.
  JOB 2 (A12 (3)): v2 LANDED L442; NEXT: row 1's split '85 entered cc > 30; 191 never entered cc >= 6' (sums 276; crap/join.py asserts
    it); then the cuts = goal:g7.33 rounds, one at a time. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
