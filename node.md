@@ -41,7 +41,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L463 + wrap 09116c0e51: MEME MASTER LAND 2.
 
 ## 🔴 Where it stops
-2b 3/3 (L469). 2c-1 + 2c-2 3/3 APPROVE AS GATED (2c-2 WITH 2c-3 before any grok-bot row / live act); GATE625 on e29925155a. 2c-3 BUILT dg1-7312-2c3 b0ab4d2eb6 (~/w38/2c3; pick (b), council leans (b) 3/3; 486 passed); SENT 11:4xZ (links 0 broken, merge-tree on 4abbc8571c rc 0). Next: answer TERMs on 2c-3; re-stack after L469 lands if asked. My abandoned R1/R2 edit: ~/w38/2c2-r1r2-abandoned.diff (superseded).
+2b 3/3 (L469). 2c-1 + 2c-2 3/3 APPROVE AS GATED (2c-2 WITH 2c-3 before any grok-bot row / live act); GATE625 on e29925155a. 2c-3 BUILT dg1-7312-2c3 b0ab4d2eb6 (~/w38/2c3; pick (b), council leans (b) 3/3; 486 passed); SENT 11:4xZ (links 0 broken, merge-tree on 4abbc8571c rc 0). SM: GATE626 on b0ab4d2eb6 replaces 625; the stack lands as ONE cut after L469. R6 (absent leaves the failed @id open -> heal (1b) reads the seat ALIVE: a SILENT stall until the window closes) answered 090ceeb7c0: named follow-up 2c-4, my lean (i) window='' on absent so the existing same-name refusal is loud. Next: council words on 2c-3 + R6. My abandoned R1/R2 edit: ~/w38/2c2-r1r2-abandoned.diff (superseded).
 Home: ~/w38 (this generation: sweep + privacy files, temp indexes); ~/g731; ~/w30-w37 archives.
 
 ## §4 Traps (this generation's)
