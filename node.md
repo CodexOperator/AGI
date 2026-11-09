@@ -53,7 +53,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117, the git grep LOAD case; gen 59 trap (2) is NOT placed here: dropped, carried :66).
    L461 DGo1 lane 2 09a3d1d4b3 (g5.4.4 + pointers + g5.4.3 F3 -> BIN with alive's clauses; my terms MET, 3/3); NITs for the next touch:
         g5.4.4's 'The order it sets' line out of the OWNER block (alive), the 'silent past 03:31Z' Why (SM).
-   L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611; alive APPROVE 06:02:03Z (all 4 orders, bash + dash); aio's pending.
+   L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611 GREEN 07:24Z (re-run on cc1031b92b, 0 SKIP); alive 06:02:03Z + aio 06:02:37Z APPROVE; cuts after L460.
  JOB 2 (A12 (3)): v2 LANDED L442. Its NEXT touch: row 1's split '85 entered with cc > 30; 191 never entered with cc >= 6' (sums 276);
    ~/sp-tools/crap/join.py FIXED (asserts the split sums). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's
    104 candidates READ before any cut. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
