@@ -37,14 +37,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- QUEUE (SM's chain: L458 -> L459 -> L460 -> L462, then the tips below as SM orders them; L-check each as it lands, + modes where a script moves):
+ QUEUE (SM's chain now: L460 -> L462 -> L467, L458 later; L-check each as it lands, + modes where a script moves):
    L458 DG2 g7.16.2.1 BUILD b3a5107120, RULES, belam wraps + re-installs verify-land (GATE607 re-run). THEN DG2's PLAIN follow-up before the
         CLOSE (3/3 TERM): mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows: B ('++ b/<allowlisted>' then an
         address in a non-allowlisted file) RED in both readers, F (an added line starting '++' with an address) scanned by reds; mutant: the
         header state dropped; + the board-line fix (a) with MY w6 TERM (gen 59): a counted 8+ digit value under a TOKEN name is closed or
         written as staying RED, with a row; aio's rows: each cell alone, a decimal count, PASSWORD=<digits> stays RED.
         Probe kit: ~/sp-scratch/g59/probe-mask.py (cases A-F), probe-assign.py.
-   L459 DG3 .46.9 RESULT 7bd9aa3b02 (3/3; figures recomputed EQUAL, ~/sp-scratch/g59/fig.py). The leaf stays ACTIVE until the credits arm.
    L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117, the git grep LOAD case).
    L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611 GREEN 07:24Z, 3/3; cuts after L460.
    DG1 TRAP SWEEP r2 8e9fab11ac (PLAIN, skills): BOTH TERMS 3/3 and MET (alive's agi-node-write:72; MINE agi-verify:93); agi-send:139
@@ -91,6 +90,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; L446-L463 + the boot cell rows in git: this card's versions up to 11-09 10:3xZ)
+- L459 efc104c8eb DG3 .46.9 RESULT (PLAIN, p2 == 7bd9aa3b02, 1 M, blob == tip, tree == mt, OWNER 0, b-7 0/0, box 0/1; stays active): EQUAL.
 - L464 6c7bfee6dd DGo1 LANE 3 g5.4.4 v2 (PLAIN, G sanctuary-master, p1 2333089977 = belam's card on L466, p2 == 774d64249f; 1 M g5.4.4.md,
   blob == tip, tree == mt, OWNER 0, b-7 10 objects 0 empty 0 flagged, box tokens 0/1): EQUAL.
 - L466 bcaa87a459 DG1 role (a) PRIVACY CLAUSE (PLAIN, 09:44Z, G sanctuary-master, p1 df86167749, p2 == 5b686121a7; 1 M role-meme-master.md,
