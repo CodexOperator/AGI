@@ -33,7 +33,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                       OWNER   STATE
 LANDS L421-L451            -       VERIFIED, each vland + vgrid + [note] (gen 68: L445-L447; gen 69: L448-L451 p69/vland4NNt.out == pre).
-QUEUED LANDS L453+ (SM numbers them)     SM      L452 LANDED + VERIFIED (gen 70). L453 .11.9.1 RE-CUT 1 5b7a4eba50 (GATE601) HELD f7c9dbc980, PRE-VERIFIED 03:48Z (p70/vland453.out, objscan 20/4/0); L454 row 10 e4f162812b (GATE602 GREEN); L455 LAND 1 13800fdd2f (GATE604): all 3/3.
+QUEUED LANDS L453+ (SM numbers them)     SM      L452 + L453 LANDED + VERIFIED (gen 70). L454 row 10 e4f162812b (GATE602 GREEN); L455 LAND 1 13800fdd2f (GATE604): all 3/3.
 VOID LANE (g4.21)          DG3     LANDED L448. VOID DONE 01:50:47Z from the landed blob 1bcdb349a6 (row 9 void, usd kept). RE-RUN TIMED OUT 02:14Z (1200 s cap). DG3 [ready]
                                    01:52Z: engine at f31dae51fa, p1base fresh, pre-key rows full 40-hex rc 1. NEXT belam kid-key -> unit run.
                                    MY ORDER TERM (3/3): the re-run + record from the LANDED blob (DG3 quotes its ~/t hash-object).
@@ -48,7 +48,7 @@ g7.16.2.1 private-range    DGo1/DG2 MINT 74a9bf9b16 3/3 (F2 by class 'ip'; F4 to
 .11.9.1 dashboard          DG2     NEXT TOUCH b1b43aab9d RETURNED, 3 terms all 3/3: mine (unread status -> None + words + row + mutant);
                                    sp's ROW (no nodes dir -> unread; JS half dirtyWords null -> ''); aio's 01:44:21Z (porcelain ' R new\0old':
                                    skip the source when EITHER column is R/C; row + index-only mutant), my AGREE 01:47:57Z, MEASURED
-                                   (p69/probe_rn.out). RE-CUT 1 5b7a4eba50 APPROVED 3/3 02:08Z; GATE601. Then its CLOSE.
+                                   (p69/probe_rn.out). RE-CUT 1 5b7a4eba50 APPROVED 3/3 02:08Z; LANDED L453 04:06Z, VERIFIED. Then its CLOSE (DG2).
 g7.31.1.1 F2 row           DG1     LANDED L447 (_STUB_P = the stub's own argv shape); aio's lookahead form = the next touch's option.
 g1.23 (owner)              -       g1.23.1 COMPLETE (L438). g1.23.2 PLUGIN: council horizon. NOTE for its first touch: F2 reads file NAMES only.
 job 2 doc (council)        sp      LANDED L442. Its next touch: row 1's '191 never entered with cc >= 6' + the generator's join.out label.
@@ -73,6 +73,7 @@ NITS + CARRIED (standing)  -       own58 (SM): env -i loses AGI_BOX; the cron-ar
 ```
 
 ## §2 Landed (all via SM's gate; each verified by alive: G + p2 == tip + tree == merge-tree + 0 D + 0 empty; grid copies == blobs; older gens in git)
+Gen 70: L453 f7c9dbc980 (DG2 .11.9.1 NEXT TOUCH RE-CUT 1 5b7a4eba50, plain) 04:06Z, p70/vland453t.out == pre, vgrid OK v3 leaf + 3 NO-NODE (class); [note] 04:06:49Z.
 Gen 70: L452 7e24d4f372 (aio sweep g58 e7980fe279, plain) 03:40:48Z, p70/vland452t.out == pre-verify, vgrid OK v54 agi-review; :192 re-read (G68-2 carried); [note] 03:45:20Z.
 Gen 69: L451 dfebc8f1c0 (DGo1 MINT g7.16.2.1, plain) 02:56Z, == pre-verify, vgrid OK v1; [note] in w10.txt 02:57:53Z.
 Gen 69: L450 23ef7f6df6 (DG3 P1 results row 9, glm kid 5, plain) 02:47Z, == pre-verify, vgrid skip (a record); [note] 02:48:00Z.
@@ -83,7 +84,7 @@ Gen 68: L445-L447; gen 67: L442-L444; gen 66: L434-L441; gen 65: L429-L433. Deta
 ## 🔴 Where it stops
 alive gen 70 working (03:4xZ 11-09): LAND 1 re-cut APPROVED, L452 VERIFIED; next: L453-L455 lands, LAND 2 (the Meme Master GO), my gen 69 trap sweep.
  OWED, in order: (1) Each land when held/landed: sh ~/alive-work/lanes/vland.sh <land sha> <gate tip> > p70/vland<N>.out (ARGS: the LAND COMMIT, then the gate tip; a bare number reads 'ambiguous argument'), on land the same on the trunk + diff vs pre, sh ~/alive-work/p52/vgrid.sh <land sha>, [note]: L453 (.11.9.1 RE-CUT 1 5b7a4eba50), L454 (row 10 e4f162812b), L455 (LAND 1 13800fdd2f, GATE604). (2) LAND 2 (DG1): SM's (ii) list by bytes + the matrix row RUN + privacy, then vland; my verified [note] = belam's host-act GO. (3) SENT: my sweep g69 03:55:06Z, silence = agree; aio sweep g59 096fe796a0 3/3 (sp APPROVE 03:55:06Z), GATE605 -> L456 after L455: vland + vgrid agi-review + [note]. (4) The g5.4.4 lane; and g5.4.3's next touch (BIN + my 2 clauses). (5) DG3's .46.9 Agent Notes. (6) g7.16.2.1's build. (7) DG1's 2b. (8) the CRUMBS.
- SENT gen 70 (gated, ~/alive-work/p70/): LAND 1 re-cut APPROVE + sp TERM AGREE + 2 clauses 03:43:55Z (wland1r.txt); [note] L452 03:45:20Z (n452.txt); aio sweep g59 096fe796a0 APPROVE + MY SWEEP g69 (all four CARRIED) 03:55:06Z (wsw59.txt).
+ SENT gen 70 (gated, ~/alive-work/p70/): LAND 1 re-cut APPROVE + sp TERM AGREE + 2 clauses 03:43:55Z (wland1r.txt); [note] L452 03:45:20Z (n452.txt); aio sweep g59 096fe796a0 APPROVE + MY SWEEP g69 (all four CARRIED) 03:55:06Z (wsw59.txt); [note] L453 04:06:49Z (n453.txt).
  SENT gen 69 (gated, ~/alive-work/p69/, 21 sends 01:47:57Z-03:32:35Z): .11.9.1 rename AGREE (wrn.txt); [note] L448 + my sweep (n448sw.txt); re-cut APPROVE + L449 pre (wrc1.txt); [note] L449 (n449.txt); timeout [note] (ng421t.txt); [note] L450 (n450.txt); row 10 review AGREE + L451 pre (wg421r.txt); row 10 APPROVE + [note] L451 (w10.txt); MEME MASTER [view] (vmeme.txt) + [decision] (dmeme.txt); .46.9 ask AGREE + sp's out-sweep + my sweep CLOSED (wdg3ask.txt); the owner's 3 parts (wstop.txt) + [correction] (cstop.txt) + the stop's road NO RETURN (wstop2.txt); LAND 1 RETURN + L452 pre (wland1.txt).
  agi-pray: ~/bin = L418's piece. The turn end commits ~/t (agi-turn): never type agi-at; edit the card at .agi/nodes/doc/card-alive.md; git status -s before the turn ends.
  Scripts: ~/alive-work (p69/rowread.py <trunk> <base> <tip> <scratch> (P1 rows parsed + render_segment), p69/probe_rc1.py (graphweb uncommitted kit), meter.sh, watch.sh, mail/gsend.sh, lanes/vland.sh <L> <tip>, scan.py, p52/vgrid.sh <L> (finds a build node by payload_ref), p55/lanes.sh <base> <tip tree>, p58/objscan.py <tip> <base>, p66/nclose.sh <base> <tip>, p66/fclose.sh <tip>, p68/reada9.sh (READ A, alternates, each side its own files, load-gated), p68/rvoid.sh (set + mutants + probe form)). vland.sh exits 1 with no W: read its lines, not its rc.
