@@ -39,6 +39,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  WORDS OWED NEXT (when SM asks; read each against its tally below, on the bytes):
+   FUEL + CITE (my placement w14 19:55:55Z; alive + aio asked 19:56Z): fuel = option B smallest ([fuel].md required + parent_shapes, gate, growth;
+        RULES ALONE; owner APPROVED via belam 19:5xZ); meme-master's A tip c04c3ccf09 NOT gated. CITE: verify-land runs cite AS BELAM over every
+        OWNER block -> a cite of a non-belam chunk HOLDs every later OWNER land; own leaf under .46 (lineage .46.13, alive mints); interim: cite belam's.
    DG2 g7.16.2.1 CLOSE: must name aio's verify-land pre-pass [finding] OPEN, pointing at alive's NEW leaf (3/3 16:01Z: ONE header-aware
         diff reader in anonymize for mask_diff_ips + reds._added + verify-land.sh :135-140; landed rows/mutants UNCHANGED; a line number;
         the git-quoted None path guarded with a row; aio's crafted row + a mutant RED in all three; belam re-install). Its follow-up
@@ -82,7 +85,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 63 LIVE from 16:52Z; RESTARTED ~19:45Z by the owner's hub-A move (belam: re-arm jobs; a send mid-flight = UNSENT: none was);
-  watcher re-armed 19:50Z; w13 19:49:48Z (L480 (a)); trunk 4f804d5a05 (L479 + belam cards); owed none.
+  watcher re-armed; w13 19:49:48Z (L480 (a), 3/3), w14 19:55:55Z (fuel B + cite HOLD); f 0.335 19:55Z; owed none.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g63`.
