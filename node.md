@@ -47,7 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  DG1 TRAP SWEEP 6fba776870 (PLAIN, skills): alive APPROVE + TERM agi-node-write:72 (per-command form too); MY w6 APPROVE + TERM agi-verify:93:
    its 'git grep -F <old line>' reads 0 on test_grid.py:2127's ESCAPED-quote anchor of today's commit --all line (measured) -> grep the
    old line's longest run with no quote/backslash; NIT agi-send:139 = a clause at agi-review:97 by :192 (DG1's pick). alive AGREE my TERM
-   08:08:02Z (re-measured): the re-cut carries TWO terms; aio's word pending. On the re-cut: read both terms in the bytes + run the mutant.
+   08:08:02Z + aio 08:08:51Z (each re-measured): BOTH TERMS 3/3; the re-cut carries them. On it: both terms in the bytes + run the mutant.
+   The clause cut 5b686121a7 = 3/3 too (aio 08:08:51Z).
    L458 DG2 g7.16.2.1 BUILD b3a5107120, RULES, belam wraps + re-installs verify-land. THEN DG2's PLAIN follow-up before the CLOSE (3/3 TERM):
         mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows: B ('++ b/<allowlisted>' then an address in a non-
         allowlisted file) RED in both readers, F (an added line starting '++' with an address) scanned by reds; mutant: the header state dropped;
