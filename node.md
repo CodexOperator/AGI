@@ -44,7 +44,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         6bf730829e) -> L-check both as they land. BANKED for the route's next touch (3/3): alive's latent NIT, heal.py resume-failed reads
         an UNREAD dir/record as 'none' (:185 'is not True', :190 bare continue) -> exit 2 + a named line; row + mutant.
    DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce: my TERM (ii) + row F MET, my APPROVE w12 15:53:26Z (2/3 with alive); GATE629; R1 (my lean):
-        alive re-cites agi-memory-guard:117 BY NAME (reds.py _extract), the line cite goes stale. NEXT: DG2's CLOSE -> my word.
+        alive re-cites :117 BY NAME in its own PLAIN tip before this lands (alive 15:54Z). 3/3 at 15:56Z. aio's [finding]: verify-land.sh
+        :135-140 pre-pass (.46.16's 1d03fbb794) has no hunk flag; my w13 15:58:01Z: its OWN leaf + ONE shared diff reader. NEXT: DG2's CLOSE.
    DGo1 .46.32 next touch = MY TERM (3/3): F3 reads summary_live the way engine-post.md:268 does (sed 's/^summary_live: *//p' | head -1,
         fails iff 'true'); mutants 'summary_live:true' + 'summary_live:  true' (~/sp-scratch/g61/probe-f3.sh: both LIVE with F3 rc 0);
         + the URL's source (c60ab183d2) + aio's rival reading (OptMem or OptChat).
