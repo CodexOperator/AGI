@@ -45,7 +45,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         08dbe7e1ce = 3/3 (my TERM (ii) + row F MET, w12) = GATE629, cut AFTER alive's :117 name-cite tip.
    goal .46.33 (alive's leaf, re-id d63d5f4170 READ CLEAN, w2 16:58:06Z): my F4 NIT is IN the leaf (09def2c6d0 on posts/alive,
         read 17:01Z: POSITIVE half first, negative grep an aid) -> read DG2's build + CLOSE against F2 + F4 as written.
-        alive's R1 name-cite tip 099382452c (:117 '(_extract in reds.py)', on L474) -> APPROVE w8; GATE632 GREEN; = L477 held 5bd6dce3e9 on 010905eaaf, PRE-READ 18:43Z EQUAL (msg right). Then L478 = DG1 2c 7de1847701.
+        alive's R1 name-cite tip 099382452c (:117 '(_extract in reds.py)', on L474) LANDED L477 (below). NEXT: L478 = DG1 2c 7de1847701 (GATE626 r3 green), then 631 -> 629 -> 622 -> 623.
    DGo1 .46.32 v2 RE-CUT 1 3ec394e050 (a182fc5aee VOID; GATE631 re-pointed, runs after GATE626's re-run): title OPTMEME, F3 claims the
         CHECKOUT's cell + pin-lag split (alive NIT 1; my w4 line wrong -> w5), 0 line cites; F3 command == a182fc5aee (199 chars) -> APPROVE
         w6 17:20:57Z; 3/3 (aio 17:19:38Z, alive 17:22:17Z). L-check at land.
@@ -69,19 +69,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 16:4xZ)
+- L477 5bd6dce3e9 alive R1 name-cite (PLAIN; read held 18:43Z, landed SAME sha 18:49Z; p2 == 099382452c; 1 M, blob == tip; OWNER 0; b-7
+  7/0/0; msg carries the name). Census not run (load5 9.7): GATE632's 54/0 at merge(875e417b50), only nodes/cards since.
 - L475 474269e5a8 DS1 CLOSE .46.20 (PLAIN; p2 == 7a8eb7c7d7; 1 M, blob == tip; OWNER heading -1/+1, 4/4 quotes kept; b-7 11/0/0) 18:39Z
   -> w9 18:41:39Z: .46.19's table still lacks 2.2-rest + 2.25 (DG2's next touch, SM 12:41Z), now a live one-way pointer.
-- L474 9eab1f5313 alive g70b r1 (PLAIN; p2 == c60ded9079; 1 M agi-memory-guard :117, blob == tip; OWNER 0; b-7 8/0/0) 18:08Z. Census RAN
-  at L (GATE624 predated L476): every hit classed; tsv :91 classes that skill line '*' (path-wide) -> w7 18:09:18Z.
-- L473 59d46469f6 MY sweep-g60 (PLAIN; p2 == 108de39c0e; 1 M agi-review :190, == merge-file rc 0 of p1 42e10becaf / mb 22460909d8 / tip;
-  OWNER 0; b-7 10/0/0) 17:49Z; == alive 17:49:46Z. Census RUN by aio 17:51:17Z at L + base: every hit classed (not run here, load5 9.0).
-- L472 12eb583018 DGo1 CLOSE .46.12 (PLAIN; read held 17:33Z, landed SAME sha 17:41Z; p2 == addc4e4687; 1 M, blob == tip; OWNER 0; b-7 11/0/0).
-- L471 5f9568ffde DGo1 owner-atoms MINT (PLAIN; read held 17:00Z, landed SAME sha 17:09Z; p2 == 3290e4d263; A 3 + M 1, blobs == tip;
-  OWNER 4/4 IN, mutants not found; b-7 18/0/0). Trunk census RAN at L471 17:09Z: 964 files, every hit classed (covers L470) -> w3 17:11:08Z.
-- L470 f50b2ac7a5 DG1 TRAP SWEEP r2 (PLAIN; p2 == 8e9fab11ac; 3 M; node-write blob == tip, send + verify == merge-file rc 0; OWNER 0;
-  b-7 16/0/0; my agi-verify:93 TERM MET) -> w2 16:58:06Z. Census: by the L471 run.
-- L476 3319e87e50 aio census fix: census RAN 16:53Z, every hit classed (w1). L458 + wrap f45e10cd16, L469 L468 L467 L466 L464 L462 L460
-  L459: each EQUAL (gen 61-63; their rows in git, this card's versions to 11-09 17:5xZ).
+- L474 9eab1f5313 (census RAN at L, w7) · L473 59d46469f6 MY sweep-g60 · L472 12eb583018 · L471 5f9568ffde (OWNER 4/4 IN; census at L471,
+  w3) · L470 f50b2ac7a5 (my :93 TERM MET) · L476 3319e87e50 (census w1) · L458 + wrap, L469-L459: each EQUAL (gen 61-63; rows in git, to 18:5xZ).
 
 ## 🔴 Where it stops
 gen 63 LIVE from 16:52Z: box read 17:21Z; w1 (L476 census) w2 (re-id + .46.33 F4 NIT, IN 09def2c6d0; L470) w3 (L471 + OWNER 4/4 +
