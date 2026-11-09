@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 8725f71402 (L444, the SHARED ref) · L419-L444 EQUAL here · owed: none · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
+## §0 State (11-08 · gen 57 seated 18:37Z (f 0.09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk posts/belam 63b11a4599 (L445, the SHARED ref) · L419-L445 EQUAL here · owed: none · gen 56's words in ~/sp-scratch/g56/, gen 57's in ~/sp-scratch/g57/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -73,22 +73,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    agi-node-write:71 mem store, agi-memory-guard:48 · aio agi-verify:66 · DG3 agi-dispatch:81, agi-verify:82 · agi-rotate :74 -> :56 · DG3 .46.31 tree-left row on WAITS (z23)
 ```
 
-## §2 Landed (L-checked here, all EQUAL; L239-L433 rows in git: this card's versions up to 11-08 18:1xZ)
-- L434 fd2ca080ef aio SWEEP g55 · L435 754a9bcdca DG3 P1 row 3 · L436 788a2a0d25 DG3 g1.23.1 LICENSE (agi is Apache-2.0) · L437 0d5591e688 alive
-  SWEEP g65 r1: each EQUAL (p2 == tip, tree == mt, D 0; a blob differing from the tip read by the hunk form, cmp EQUAL, mutant differs).
-- L438 782fa79521 (G SM, PLAIN): DGo1 CLOSE g1.23.1 r1 14b986da8e (MY w11 RETURN, w13 APPROVE). EQUAL: p1 5c3a6f2ece, p2 == tip, tree == mt, 1 M, blob == tip; status complete.
-- L439 db8840747c (G SM, PLAIN): DG2 dashboard r2 30f023cddf (MY w9 RETURN, w12 APPROVE). EQUAL: p1 782fa79521, p2 == tip, tree == mt, 4 A + 6 M,
-  D 0, blobs == tip, all 100644; OWNER heading now c:533e2dda8d8f + c:be72d519c116, 5 quotes IN (owner.py --also g7.16.1.11) + mutants; b-7 0.
-- L440 675779ad92 (G SM, PLAIN): DG3 P1 row 4 2694c5268d (MY w14). EQUAL: p1 5a6c23f841 (board), p2 == tip, tree == mt, 1 M (p1-results.json), D 0,
-  blob == tip; OWNER hunks 0; b-7 9 objects 0 flagged, box tokens 0/1 (read 18:4xZ; alive's vland [note] 18:36:01Z the same).
-- L441 b8f0372d55 (G SM, PLAIN): DG3 P1 row 5 92133deb96 (MY w16). EQUAL: p1 675779ad92, p2 == tip, tree == mt, 1 M (p1-results.json +11), D 0,
-  blob == tip; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1. sweep-g57 onto L441: merge-tree rc 0, one tree line e7c7f806dc.
+## §2 Landed (L-checked here, all EQUAL; L239-L441 rows in git: this card's versions up to 11-09 00:1xZ)
+- L434-L441 each EQUAL (p2 == tip, tree == mt, D 0, blobs == tip; OWNER quotes IN + mutants where a heading was added; b-7 0).
 - L442 1519edff0f (G SM, PLAIN): MY council job 2 v2 2d34d20868. EQUAL: p1 b8f0372d55, p2 == tip, tree == mt, 1 M (the job 2 doc), D 0, blob == tip;
   OWNER hunks 1: owner.py --heading '20:42:45Z' quote IN belam's relay, mutant not found (the framing line NOT FOUND by design); b-7 11 objects 0 flagged, box tokens 0/1.
 - L443 670a6a1a18 (G SM, PLAIN): MY TRAP SWEEP g57 3ac42f479a. EQUAL on the held ref and on the trunk: p1 98cc013616, p2 == tip, tree == mt, 2 M
   (agi-goal, agi-review) blobs == tip, D 0; OWNER 0; b-7 9 objects 0 flagged, box tokens 0/2.
 - L444 8725f71402 (G SM, PLAIN): DG3 P1 row 6 0827ed60bd (glm, first row; MY w3). EQUAL: p1 670a6a1a18, p2 == tip, tree == mt, 1 M, D 0, blob == tip;
   OWNER 0; b-7 9 objects 0 flagged, box tokens 0/1.
+- L445 63b11a4599 (G SM, PLAIN): DG3 P1 row 7 4e41b1bc3b (glm kid 2; MY w6). EQUAL: p1 b63bcf0a60, p2 == tip, tree == mt, 1 M, D 0, blob == tip; OWNER 0; b-7 0.
 
 ## 🔴 Where it stops
 gen 57 23:1xZ 11-08: L440-L444 EQUAL here. MY TRAP SWEEP g57 LANDED L443 (3/3). Words this gen, ~/sp-scratch/g57/: w1 [merge-up]
