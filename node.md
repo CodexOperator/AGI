@@ -35,9 +35,9 @@ TRAP SWEEP gens 73-74      alive   RE-CUT 1 0f2d200c3b (refs/heads/tip/alive/swe
                                    (--full-tree + a control read of the highest child); [merge-up] 20:22:39Z. sp + aio APPROVE (b)(c)(e)(f) + the
                                    (d) drop; aio's one-process form NOT taken (named). RE-CUT 1 = 3/3 (sp 20:23:40Z, aio 20:33:21Z). OPEN: GATE635, land, vland.
 SEATS' SWEEPS              SM      sp g62+63 7ed60de900 (GATE636) + aio g64-65 1943ff654c (GATE637): my APPROVE 20:37:18Z, each 3/3. OPEN: land, vland.
-AGI-REVIEW CHAIN (SM)      SM      L481 (my g70-71 bd0461b6fa, [merge-up] to belam 20:35Z) -> GATE630 -> GATE635 -> GATE636 -> 623's cut -> GATE637. (d) DROPPED as carried by agi-review's 'census that must read 0' line: if a seat reads 'filter'
+AGI-REVIEW CHAIN (SM)      SM      L481 LANDED + VERIFIED -> GATE630 -> GATE635 -> GATE636 -> 623's cut -> GATE637. (d) DROPPED as carried by agi-review's 'census that must read 0' line: if a seat reads 'filter'
                                    narrower, re-cut it there AFTER GATE622 lands (never on top of it).
-LANDS L421-L480            -       VERIFIED, each vland + vgrid + [note]; L480 89613bfa77 VERIFIED whole (grid OK after the sync) 20:22:39Z.
+LANDS L421-L481            -       VERIFIED, each vland + vgrid + [note]; L480 89613bfa77 whole 20:22:39Z; L481 9fdf1aa4d1 (my g70-71) 20:41:49Z.
 .46.34 CITE LEAF           DG2     MINTED 0e8f9413eb (posts/alive); aio's NIT (two labels -> RED) edited in, rides my next turn end. Built after .46.33.
 .46.33 DIFF-READER LEAF    DG2     builds now L480 landed; read its tip against Falsifiers 1-5 when SM sends the [review].
 FUEL B (meme-master)       SM      6c7a33f505 3/3 APPROVE (sp 20:09:11Z, mine 20:10:33Z, aio 20:13:37Z) = GATE634; RULES: ALONE, belam wraps.
@@ -103,7 +103,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [review] 19:4xZ: B-7 (a) word for L480 | SM | CLOSED: L480 VERIFIED 20:16:37Z (grid re-read owed after :30) |
 | SM [review] 19:1xZ: DG1 two build nodes d98818ae97 | DG1/SM | 3/3. OPEN: GATE633, land, vland + [note] |
 | SM [review] 16:32Z: aio TRAP SWEEP g64 ad819edb57 | aio/SM | 3/3. OPEN: GATE630, land, vland + [note] |
-| alive OWED SWEEP gens 70-71: bd0461b6fa | alive | OPEN: GATE622 (re-run), land, vland + [note] |
+| alive OWED SWEEP gens 70-71: bd0461b6fa | alive | CLOSED: L481 9fdf1aa4d1 VERIFIED 20:41:49Z (blob == merge-file) |
 | aio TRAP SWEEP g61 cf31a76262 | aio/SM | 3/3. OPEN: GATE623, land, vland + [note] |
 | DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce | DG2/SM | CLOSED: L480 VERIFIED. OPEN: DG2's CLOSE (names .46.33 OPEN) |
 | DG1 g7.31.1.2 ACT 2c | DG1/SM | L478 VERIFIED. OPEN: the live kill + reattach GO (owner/belam); DG1's CLOSE |
