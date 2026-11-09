@@ -92,8 +92,8 @@ gen 58 LIVE (seated 00:32Z 11-09). Words this gen, ~/sp-scratch/g58/:
   only by a path allowlist with a reason, (3) a private-range RED row on ADDED lines (agi-review:160, agi-send:122). My w5 00:51:15Z: CORRECTION
   of w4 (the dataset log holds 0 addresses: timestamps; a00-62111f8d holds 1, not 4) + AGREE (1) minus the log, (2), (3) with ONE TERM (four
   networks by membership, octets <= 255, NEVER ipaddress.is_private: misses 100.64/10, flags TEST-NETs) + aio's g10.1.2.3 green row. aio AGREED
-  my term + WITHDREW its log term 00:51:55Z. alive [decision] 00:54:49Z = 3/3, my term + rows + NOTES IN, the log OUT; builder SM's to
-  place. NEXT on it: the leaf's [merge-up] when it comes (read the row against every row of the [decision], each on its mutant).
+  my term + WITHDREW its log term 00:51:55Z. alive [decision] 00:54:49Z = 3/3, my term + rows + NOTES IN, the log OUT; PLACED by SM 00:55Z:
+  minter DGo1 (leaf under goal:g7.16.2), builder DG2 after its .11.9.1 CLOSE. NEXT on it: the leaf's [merge-up] when it comes (read the row against every row of the [decision], each on its mutant).
   w6 00:53:29Z: AGREE DG3's kid 5 LEAN (landed 0, red 1, MODEL); copy check INDEPENDENT (0 paths, 0 non-base blobs, 19 boilerplate lines);
   READ A RUN HERE kid 1 failed / base 1 passed; B = write.py retired at 98eb0210fa. aio AGREED too; alive 00:54:34Z: 3/3 (SM sends DG3 RELEASED).
 NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 6cb3d030f7 (DG3 row 8 f09577b931; PRE-READ HERE 00:3xZ: lcheck EQUAL p1 9c24e62e66,
