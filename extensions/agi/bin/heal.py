@@ -144,7 +144,55 @@ def main() -> int:
         return _main_pin_reap()
     if len(sys.argv) > 1 and sys.argv[1] == "session-reap":
         return _main_session_reap()
+    if len(sys.argv) > 1 and sys.argv[1] == "resume-failed":
+        return _main_resume_failed()
     return _main_heal()
+
+
+def _main_resume_failed() -> int:
+    """goal:g7.31.1.2 ACT 2c-5 (alive's TERM (b), 11:55:49Z 11-09):
+    `heal.py resume-failed --seat S [--root R]` -- the route from a SEAT NAME
+    to the dead session id of its newest failed resume. `rotate.py status
+    --record latest` skips crash-recovery records by design, so it never
+    shows one. Prints `<record> <recorded_at> session_id=<id> read=<what the
+    join read>`; exit 0 when found, 1 when no crash-recovery record of the
+    seat carries one. Read-only."""
+    ap = argparse.ArgumentParser(prog="heal.py resume-failed")
+    ap.add_argument("--seat", required=True, help="the seat (post) name")
+    ap.add_argument("--root", type=str, default=".",
+                    help="the main checkout / graph root")
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    import rotate as _rotate  # noqa: PLC0415 -- same bin dir
+    hit = _last_resume_failed(root, args.seat, _rotate)
+    if hit is None:
+        print(f"resume-failed: no crash-recovery record of {args.seat} "
+              f"carries resume_failed")
+        return 1
+    path, rec = hit
+    rf = rec.get("resume_failed") or {}
+    print(f"{Path(path).name} {rec.get('recorded_at', '')} "
+          f"session_id={rf.get('session_id', '')} read={rf.get('read', '')}")
+    return 0
+
+
+def _last_resume_failed(root: Path, seat: str, _rotate):
+    """(path, record) of the newest `rotation: crash-recovery` record of
+    `seat` that carries `resume_failed`, or None. Newest by file name (the
+    writer's UTC stamp), the same order `_latest_detected_path` reads."""
+    rot = _rotate._rotations_dir(root)
+    if _sweep_is_dir(rot) is not True:
+        return None
+    for path in sorted(rot.glob(f"{seat}.*.json"), reverse=True):
+        try:
+            rec = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if (isinstance(rec, dict) and rec.get("rotation") == "crash-recovery"
+                and rec.get("seat") == seat and rec.get("resume_failed")):
+            return path, rec
+    return None
 
 
 def _main_pin_reap() -> int:
@@ -3843,6 +3891,10 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             elif not is_chain:
                 spawn_name = seat
     if spawn_name in existing:
+        # goal:g7.31.1.2 ACT 2c-5 (alive's NIT 1): the refusal logs its own
+        # line, so 'loud each pass' is true in the heal log.
+        _watch_log(f"watch: seat {seat} recovery refused: successor window "
+                   f"{spawn_name!r} already exists")
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"successor window {spawn_name!r} already exists",
                 "row": "skipped"}
@@ -3986,22 +4038,29 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 row_pid = 0
             else:
                 resume_failed = {"session_id": resume, "read": read}
+                # alive's addition (12:01:33Z): a CHAIN seat keeps its open
+                # @id (sp's guard below), so the line names the stall once.
+                _stall = ("; a chain seat keeps the open window "
+                          f"{window_id} on its row, so heal reads it ALIVE "
+                          "until that window closes"
+                          if kind == "absent" and is_chain else "")
                 _watch_log(f"watch: seat {seat} resume of {resume} FAILED: "
                            f"{read}; the id leaves the row (kept in the "
                            f"crash-recovery record); the next cycle spawns "
-                           f"fresh")
+                           f"fresh{_stall}")
                 resume = None
                 failed = True
                 row_pid = None    # the row keeps its (dead) pid: heal scans only pid > 0
-                if kind == "absent":
+                if kind == "absent" and not is_chain:
                     # 2c-4 (R6, SM placement 11:44Z 11-09): an absent read
                     # leaves the failed window OPEN; its @id on the row would
                     # make _watch_one_seat's (1b) read the seat ALIVE, a
                     # silent stall. EMPTY window -> the next pass reaches
                     # _recover_seat and its loud same-name refusal instead.
-                    # NON-chain seats only (aio 11:46:05Z): a chain seat respawns
-                    # under a NEW name and would pass that refusal; named in the
-                    # leaf, latent while no chain seat is on a session_id harness.
+                    # NON-chain seats only (aio 11:46:05Z; 2c-5, sp's NIT 11:57:29Z):
+                    # a chain seat respawns under a NEW name and would pass that
+                    # refusal, so it keeps its @id: fail-closed (a silent stall),
+                    # never fail-open (a second window).
                     row_window = ""
     try:
         row_text = _rotate._successor_row_write(
@@ -4160,13 +4219,23 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
         }
         if outcome.get("resume_failed"):
             # goal:g7.31.1.2 ACT 2c-2 (C): the dead id + what the join read;
-            # read it back by the seat name: `rotate.py status --seat
-            # <seat> --record latest`.
+            # read it back by the seat name: `heal.py resume-failed --seat
+            # <seat>` (rotate.py status --record skips crash-recovery records).
             rec["resume_failed"] = outcome["resume_failed"]
     if res == "detected":
         # one record per death: update the existing detected record in place.
         existing = _latest_detected_path(root, seat, _rotate, now)
         if existing is not None:
+            # goal:g7.31.1.2 ACT 2c-5 (alive's TERM (a)): a refusal pass after
+            # a failed resume rewrites THIS file from a fresh dict; carry the
+            # failed resume's dead id over when this outcome has none.
+            if "resume_failed" not in rec:
+                try:
+                    _prior = json.loads(Path(existing).read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    _prior = {}
+                if isinstance(_prior, dict) and _prior.get("resume_failed"):
+                    rec["resume_failed"] = _prior["resume_failed"]
             path = _rotate._write_rotation_record(root, rec, path=existing)
             _watch_log(f"watch: updated crash-recovery record for {seat}: "
                        f"{Path(path).name} (probable_cause={cause} "
