@@ -32,6 +32,15 @@ Shapes: an optional `[shapes.<name>]` table holds its own `argv`, selected by
 `render(..., shape="<name>")`; the top-level `argv` stays the default. This is
 how ONE binary's rotate SEAT shape and headless DISPATCH shape live in one
 file (hypothesis:harness-arg-builders-are-templates-only).
+
+Session join (goal:g7.31.1.2 ACT 2b): an optional `[session] registry = "..."`
+says how a seated process is JOINED to its row. `claude` (the default, and
+every template that omits the table) is Claude Code's per-session registry
+(`~/.claude/sessions/<pid>.json`); `none` means the harness keeps no such
+registry, so the join reads the process tree under the seat's tmux pane
+instead and takes the session id from the seated process's own argv (the
+uuid `session` carried at launch, or `resume` on a restart). Closed
+vocabulary, same discipline as `[roles] source`.
 """
 from __future__ import annotations
 
@@ -56,6 +65,10 @@ RENDER_VOCABULARY = (
 #: Where a seat's model/effort/settings come from. Closed vocabulary: a
 #: template that omits `[roles] source` is `ladder` (claude-code's behaviour).
 ROLE_SOURCES = ("ladder", "row")
+
+#: How a seated process is joined to its row (goal:g7.31.1.2 ACT 2b). Closed
+#: vocabulary: a template that omits `[session] registry` is `claude`.
+SESSION_REGISTRIES = ("claude", "none")
 
 #: The encodings `_emit` knows: `json` json-dumps the slot value, `str` (the
 #: default) is plain `str()`. Closed vocabulary -- before this a typo'd
@@ -129,6 +142,16 @@ def load(harness_id: str) -> dict:
                 f"{path}: shapes.{name}.argv is not a list (got "
                 f"{type(shape_argv).__name__}: {shape_argv!r})")
         _check_parts(path, shape_argv, label=f"shapes.{name}")
+    session = data.get("session")
+    if session is not None and not isinstance(session, dict):
+        raise HarnessTemplateError(
+            f"{path}: session is not a table (got {type(session).__name__}: "
+            f"{session!r}); write [session] registry = ...")
+    reg = (session or {}).get("registry", "claude")
+    if reg not in SESSION_REGISTRIES:
+        raise HarnessTemplateError(
+            f"{path}: unknown session.registry {reg!r}; "
+            f"known: {list(SESSION_REGISTRIES)}")
     return data
 
 
@@ -194,6 +217,27 @@ def role_source(harness_id: str) -> str:
             f"{harness_id}: unknown roles.source {source!r}; "
             f"known: {list(ROLE_SOURCES)}")
     return source
+
+
+def session_registry(harness_id: str) -> str:
+    """The declared `[session] registry` (goal:g7.31.1.2 ACT 2b): `claude`
+    (default) or `none`. load() already refused any other value by name."""
+    return (load(harness_id).get("session") or {}).get("registry", "claude")
+
+
+def slot_flags(harness_id: str, slot: str) -> list[str]:
+    """Every `flag` the top-level argv pairs with `slot` (e.g. `-s` for
+    `session`). The pane join reads a seated process's session id back from
+    its own argv by these flags, so no flag spelling lives in rotate.py."""
+    return [str(p["flag"]) for p in load(harness_id).get("argv", [])
+            if isinstance(p, dict) and p.get("slot") == slot and "flag" in p]
+
+
+def bin_name(harness_id: str) -> str:
+    """The basename of the template's `bin` cell (or its id): the argv[0]
+    the pane join matches AS LAUNCHED (never /proc/<pid>/exe)."""
+    tmpl = load(harness_id)
+    return Path(str(tmpl.get("bin") or harness_id)).name
 
 
 def _emit(part, values: dict) -> list[str]:
@@ -263,6 +307,13 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
     top-level one; an unknown shape is a named error, never a silent fall
     back to the default argv.
     """
+    if session and resume:
+        # goal:g7.31.1.2 ACT 2b (sp 17:57:59Z 11-07): a NEW conversation
+        # (session) and a resumed one (resume) are two different launches;
+        # the grok-bot help allows -s beside -r only with --fork-session.
+        raise HarnessTemplateError(
+            f"{harness_id}: refusing to render session {session} AND "
+            f"resume {resume} together; a launch passes one of the two")
     tmpl = load(harness_id)
     parts = tmpl.get("argv", [])
     if shape is not None:

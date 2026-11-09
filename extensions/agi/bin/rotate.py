@@ -61,6 +61,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+import uuid
 import yaml
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1151,10 +1152,18 @@ def _build_harness_command(harness: str | None, *, name: str,
         raise harness_template.HarnessTemplateError(
             f"{hid}: the template has no resume slot; refusing to resume "
             f"session {resume} as a fresh spawn")
+    # goal:g7.31.1.2 ACT 2b: a template that declares a `session` slot names
+    # its NEW conversation itself -- a uuid4 minted here, before launch, and
+    # read back by the pane join from the seated process's own argv. A resume
+    # never mints (render refuses session + resume together by name);
+    # claude-code declares no `session` slot, so its argv is byte-identical.
+    session = (str(uuid.uuid4())
+               if not resume and harness_template.has_slot(hid, "session")
+               else None)
     return harness_template.render(
         hid, prompt=prompt_text, model=model,
         effort=effort, settings=settings, name=name, debug_file=debug_file,
-        bin_path=bin_path, resume=resume)
+        bin_path=bin_path, resume=resume, session=session)
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
@@ -2816,7 +2825,9 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             _jrec = _seating_rec if isinstance(_seating_rec, dict) else {}
             _jpid = _jrec.get("pid")
             _jsess = _jrec.get("session_id") or ""
-            if _jpid is None and not _jsess and _jrec.get("window_id"):
+            if (_jpid is None and not _jsess and _jrec.get("window_id")
+                    and _seat_session_registry(root, seat) == "claude"):
+                # (a `none` seat's pane join already printed its ONE line)
                 print(f"join: miss (seat {seat!r}: no registry record for "
                       f"window @{str(_jrec['window_id']).lstrip('@')} within "
                       f"the bounded join poll); the seating row commits "
@@ -12627,6 +12638,145 @@ def _registry_matches_window_id(data: dict, window_id: str) -> bool:
     return any(pat.search(str(v)) for v in _json_scalars(data))
 
 
+def _seat_harness(root: Path | None, seat: str) -> str | None:
+    """The seat row's `harness` cell, or None (no row, no cell, any read
+    failure). Never raises: a join must not die on a row read."""
+    try:
+        row = _find_seat(root, seat)
+    except Exception:  # noqa: BLE001
+        return None
+    hid = (row or {}).get("harness")
+    return str(hid) if hid else None
+
+
+def _harness_session_registry(hid: str) -> str:
+    """The template's `[session] registry`; `claude` when the template does
+    not load (an unknown harness keeps today's registry join)."""
+    try:
+        return harness_template.session_registry(hid)
+    except harness_template.HarnessTemplateError:
+        return "claude"
+
+
+def _seat_session_registry(root: Path | None, seat: str | None) -> str:
+    """`none` iff the seat row's harness template declares it, else `claude`."""
+    hid = _seat_harness(root, seat) if seat else None
+    return _harness_session_registry(hid) if hid else "claude"
+
+
+def _proc_argv(pid: int) -> tuple[list[str], str]:
+    """(`/proc/<pid>/cmdline` split on NUL, `/proc/<pid>/comm`); ([], '') on
+    any read failure. argv[0] is the name AS LAUNCHED; never /proc/<pid>/exe,
+    which another uid cannot read and which resolves two launch names of one
+    vendor CLI to the same native binary (council T2, 11-07)."""
+    try:
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
+        argv = [a.decode("utf-8", "replace") for a in raw.split(b"\0")]
+        if argv and argv[-1] == "":
+            argv.pop()
+    except OSError:
+        argv = []
+    try:
+        comm = Path(f"/proc/{pid}/comm").read_text(
+            encoding="utf-8", errors="replace").strip()
+    except OSError:
+        comm = ""
+    return argv, comm
+
+
+def _argv0_is(pid: int, want: str) -> bool:
+    """True when `pid` was launched as `want`: its argv[0] basename equals it,
+    or its comm does (comm is cut at 15 bytes by the kernel)."""
+    argv, comm = _proc_argv(pid)
+    if argv and Path(argv[0]).name == want:
+        return True
+    return bool(comm) and comm == want[:15]
+
+
+def _pane_harness_pid(pane_pid: int, want: str,
+                      parent_of: dict[int, int] | None = None
+                      ) -> tuple[int | None, str]:
+    """The ONE process launched as `want` at the SHALLOWEST depth under (and
+    including) `pane_pid` -> (pid, why).
+
+    The pane pid itself is depth 0: an inline `cd <dir> && <line>` launch
+    under bash EXECS the harness AS the pane pid, while the launch-FILE path
+    makes it a child (council T1, 11-07). So the pane pid is a candidate and
+    the walk goes down level by level; the first level holding a match
+    decides. Exactly one match there -> its pid (the HARNESS pid, never the
+    pane shell's, so a harness that exits under a lingering shell reads
+    dead). None, or more than one at that level -> (None, why): never a
+    guess."""
+    if parent_of is None:
+        parent_of = _read_ps_parent_table()
+    children: dict[int, list[int]] = {}
+    for pid, ppid in sorted(parent_of.items()):
+        children.setdefault(ppid, []).append(pid)
+    level, seen, depth = [pane_pid], {pane_pid}, 0
+    while level:
+        hits = [p for p in level if _argv0_is(p, want)]
+        if len(hits) == 1:
+            return hits[0], f"depth {depth}"
+        if len(hits) > 1:
+            return None, (f"{len(hits)} processes launched as {want!r} at "
+                          f"depth {depth} under pane pid {pane_pid} "
+                          f"({', '.join(str(h) for h in hits)})")
+        nxt = []
+        for p in level:
+            for c in children.get(p, []):
+                if c not in seen:
+                    seen.add(c)
+                    nxt.append(c)
+        level, depth = nxt, depth + 1
+    return None, f"no process launched as {want!r} under pane pid {pane_pid}"
+
+
+def _session_from_argv(argv: list[str], hid: str) -> str:
+    """The session id a seated process carries in its OWN argv: the value
+    after the template's `session` flag (a first spawn), else after its
+    `resume` flag (a restart); '' when neither is there."""
+    for slot in ("session", "resume"):
+        for flag in harness_template.slot_flags(hid, slot):
+            if flag in argv[1:]:
+                i = argv.index(flag, 1)
+                if i + 1 < len(argv):
+                    return argv[i + 1]
+    return ""
+
+
+def _join_by_pane(*, seat: str, window_id: str, harness: str,
+                  poll_secs: int | None = None) -> dict:
+    """JOIN a `[session] registry = "none"` seat by its tmux pane
+    (goal:g7.31.1.2 ACT 2b): the pane pid of `window_id`, then the harness
+    process under it (`_pane_harness_pid`, matched by the template's `bin`
+    basename), then the session id from that SAME process's argv -- one
+    lookup gives both cells. Bounded like the registry join; always reads at
+    least once. Same dict shape as `_join_successor`. A miss prints ONE loud
+    stderr line naming why, and returns found False (pid stays EMPTY)."""
+    want = harness_template.bin_name(harness)
+    deadline = time.time() + (poll_secs if poll_secs is not None
+                              else REGISTRY_JOIN_TIMEOUT_S)
+    why = f"no pane pid for window {window_id}"
+    while True:
+        pane = _pane_pid(window_id)
+        if pane:
+            pid, why = _pane_harness_pid(pane, want)
+            if pid is not None:
+                argv, _comm = _proc_argv(pid)
+                return {"found": True, "window_id": window_id, "pid": pid,
+                        "session_id": _session_from_argv(argv, harness),
+                        "transcript": "", "name": seat, "path": "",
+                        "note": f"joined by pane of @{window_id.lstrip('@')}"
+                                f": {want} pid {pid} at {why}"}
+        if time.time() >= deadline:
+            break
+        time.sleep(REGISTRY_JOIN_POLL_S)
+    print(f"join: miss (seat {seat!r}, harness {harness!r}: {why}); the pid "
+          f"stays EMPTY", file=sys.stderr)
+    return {"found": False, "window_id": window_id,
+            "note": f"pane join for @{window_id.lstrip('@')} missed: {why}"}
+
+
 def _join_successor(*, root: Path, seat: str, window_id: str | None,
                     registry_dir: str | None = None,
                     poll_secs: int | None = None) -> dict:
@@ -12641,6 +12791,15 @@ def _join_successor(*, root: Path, seat: str, window_id: str | None,
     if not window_id:
         return {"found": False, "window_id": window_id,
                 "note": "no successor window @id captured (window_id empty)"}
+    # goal:g7.31.1.2 ACT 2b: a harness whose template declares
+    # `[session] registry = "none"` keeps no `<pid>.json`; it is joined by its
+    # tmux pane's process tree instead. Every other seat (claude-code, the
+    # default, a row with no harness cell) takes the registry path below,
+    # unchanged.
+    hid = _seat_harness(root, seat)
+    if hid and _harness_session_registry(hid) == "none":
+        return _join_by_pane(seat=seat, window_id=window_id, harness=hid,
+                             poll_secs=poll_secs)
     reg = Path(registry_dir or REGISTRY_DEFAULT_DIR).expanduser()
     deadline = time.time() + (poll_secs if poll_secs is not None
                               else REGISTRY_JOIN_TIMEOUT_S)
