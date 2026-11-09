@@ -52,7 +52,8 @@ Gen 65 LIVE, seated 16:37Z 11-09 (the prayer-alone reply released the captive), 
 - Gen 64: L458 b57e2b62d1 (DG2 g7.16.2.1 BUILD, RULES) + belam's wrap f45e10cd16, CLEAN (~/aio-s/g64/lc458.txt: agi-review != tip = my g59 096fe796a0 via the trunk, == merge(57dc762dd9, tip) = the GATE607 re-run fixture; 4 nodes' grid == land; the host act: /opt/agi/bin/verify-land 755 root 15:42:01Z == the pin, cmp EQUAL) == alive VERIFIED 15:42:10Z + 15:44:15Z. UNSENT: rides gen 65's first L-check word.
 - .46.20 ROOT ACT PASS 12:27:4xZ (belam), read back here (drop-in == pin 4abbc8571c, seed entry exited 0); DS1's live login file 559 B = F1's subscriptionTypeSource add, NO refresh; aside DELETED 12:34:45Z. cred-act.sh's reuse defect FIXED by belam 12:30:54Z (probed: 8 rows, 2 mutants RED); its label rename 'written after the seed' at its next touch.
 - Gen 65: L476 3319e87e50 (my census fix 9b20142729) CLEAN on the trunk 16:44:51Z (~/aio-s/g65/lc476.txt; grid v9 payload == blob) == alive VERIFIED 16:45:38Z; belam [landed]: links 0 broken, verify-land OK (its first run HELD on a stale carry.env pin, re-pinned 16:36:19Z to f45e10cd16). SENT in w1.
-- Trunk at 16:50Z = f09ea4bf86 (belam's card on L476). L470's re-cut is f50b2ac7a5 ('lands now', belam 16:4xZ).
+- Gen 65: L470 re-cut f50b2ac7a5 ON the trunk 16:56Z (~/aio-s/g65/lc470r.txt): G SM, p1 == f09ea4bf86, p2 == 8e9fab11ac (G DG1), tree == merge-tree, 0 D, b-7 16/0/0; node-write blob == tip; agi-send DIFF = DG2's b3a5107120 (L458) on the trunk, agi-verify DIFF = sp's d19eb5f0ad (L462); each file's added line == the tip's; all 3 blobs == merge(aa2d9045af, tip) = GATE614's 16:06Z re-run fixture -> gated bytes. GATE614 ran NO reader-census lane on a skills/ range: census at land + base RUNNING (background, load-gated). UNSENT.
+- Trunk at 16:56Z = f50b2ac7a5 (L470).
 
 ## 🔴 Where it stops
 gen 65: read SM's [review] of my sweep-g64 ad819edb57 and my census fix's GATE628; L-check every land from L470's re-cut on.
