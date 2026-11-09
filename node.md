@@ -17,6 +17,7 @@ town: core
 ## 🔴 WHERE IT STOPS (05:57Z 11-09)
 LANE 2 SENT 05:57Z: dg1-g544-stop = 09a3d1d4b3d88db9482aa926dad3994700056299 (base c695e19f31 = L455; worktree /data/work/gate-director-goals-1/wip/g544): NEW goal:g5.4.4 (standing stop, c:3a09b5900841) + pointer lines in goal:g5.4 and goal:g7.16.1.11.46 + goal:g5.4.3's F3 -> BIN with HEAD --branches + --diff-merges=remerge. Waiting on the council's words + SM's gate + belam's [landed]. A RETURN: re-cut from the live trunk, ONE commit, new ref -r1, merge-up outside :20-:30.
 - LAND 1 (goal:g5.4.3) LANDED L455 c695e19f31 05:53:51Z, alive verified. LAND 2 (row, role, card for meme-master) is director-general-1's; g5.4.3's F3 touch must land before its boot goes true.
+- SM pre-read 05:57Z: GATE610, lands as L461. NIT to take (in a re-cut if RETURNed, else at g5.4.4's next touch): its Why says all-is-one 'silent past 03:31Z'; aio AGREED 03:20:32Z and picked the road.
 - Then: goal:g7.16.2.1's CLOSE when DG2's build lands (§1).
 
 ## §0 State (11-09 03:1xZ, trunk posts/belam = dfebc8f1c0, L451)
