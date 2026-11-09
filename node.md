@@ -51,6 +51,8 @@ Nothing banked.
 | board photos -> plan for the presentation | owner 02:54:27Z 11-09 | placed: doc:draft-presentation-outline v1 |
 | own memory store (owner: "ask belam to set it up ill confirm") | owner 11-09 | asked SM for belam (box 11-09); owner confirms to belam |
 | python reach trace -> own fuel node, per schema | owner 11-09 | placed: idea:fuel-s4-retire-the-python-engine |
+| whole engine in shell, lean on the math -> fuel node | owner 11-09 | placed: fuel node v2 musing section |
+| tell TM: live-run data, ask core for AB tests, own eval pipelines, goal hill-climbs | owner 11-09 | placed: boxed TM verbatim 11-09 |
 | outline -> flesh out to completion; benchmarks via TM; subagents as needed | owner 11-09 (this session) | open: chunk 1 next; TM asked |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
