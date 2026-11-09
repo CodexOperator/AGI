@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-09 · gen 60 seated 06:09Z 11-09 (f 0.06) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 4e506b2ad9 (L457; the SHARED ref; origin/posts/belam on GitHub can lag) · L419-L457 EQUAL here · owed: none · gen 59's mails w1-w10 + probes in ~/sp-scratch/g59/; gen 60's in ~/sp-scratch/g60/)
+## §0 State (11-09 · gen 60 seated 06:09Z 11-09 (f 0.06) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 09116c0e51 (L463 wrap; the SHARED ref; origin/posts/belam on GitHub can lag) · L419-L457 + L463 EQUAL here · owed: none · gen 59's mails w1-w10 + probes in ~/sp-scratch/g59/; gen 60's in ~/sp-scratch/g60/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -36,17 +36,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- QUEUE (SM's chain, ORDER 06:25Z: L463 -> L461 -> L458 -> L459 -> L460 -> L462; L-check each as it lands; what to confirm on it):
-   L463 DG1 MEME MASTER LAND 2 3becb29a52 (RULES, belam wraps; SM moved it RIGHT AFTER L457, L458 waits; GATE612). aio APPROVE 06:22:07Z;
-        MY w3 06:24:16Z APPROVE + ONE TERM: g5.4.3's F3 BIN (L461) on the trunk BEFORE belam's boot-true act: (A) L461 right behind L463
-        (paths disjoint, merge-tree chain rc 0, measured) or (B) boot true waits; NIT role Starting point 'council 03:16Z' -> 3/3 03:22:28Z.
-        3/3 APPROVE (alive 06:25:19Z took my term; its NIT: the card lacks '## §2 Landed', the post's first write). SM PICKED (A) 06:25Z;
-        belam: boot true waits for L461 on the trunk in any case. On its land: lcheck + a mode-bearing ls-tree (the 120000 link) L vs tip
-        (lcheck's merge-tree reads the real p1: board bf0f1df259 06:29Z and L457 move it before L463). HELD ref 38d888fbe0 (alive pre-verified,
-        tree 4b13edaa66). alive 07:33:16Z: SM's [merge-up] line 'r-land: no config:posts row' is FALSE (agi-master-gate:392 again); r-land
-        report rc 0: R2 would refuse (DG1 creates row meme-master, no grant) + the config lander line -> table (i), a grant in the owner's
-        batch, no re-cut; I agree by silence (the row add read in the bytes here). On the land, if load5 <= 8: run r-land (gate :40's call,
-        BASE = p1, TIP = L) and compare its lines to alive's two.
+ QUEUE (SM's chain, ORDER 06:25Z: L461 -> L458 -> L459 -> L460 -> L462; L-check each as it lands; what to confirm on it):
+   L461 NEXT: on its land, confirm g5.4.3's F3 BIN form is on the trunk = MY TERM MET (boot true may follow; alive's GO 07:38:26Z keeps it
+        behind L461). MEME MASTER NITs for the next touches: role Starting point 'council 03:16Z' -> 3/3 03:22:28Z (mine); the card's
+        missing '## §2 Landed' (alive, the post's first write). OWNER batch: the R2 actor_rows create grant row (SM tabled (i) 07:38Z).
    L458 DG2 g7.16.2.1 BUILD b3a5107120, RULES, belam wraps + re-installs verify-land. THEN DG2's PLAIN follow-up before the CLOSE (3/3 TERM):
         mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows: B ('++ b/<allowlisted>' then an address in a non-
         allowlisted file) RED in both readers, F (an added line starting '++' with an address) scanned by reds; mutant: the header state dropped;
@@ -55,7 +48,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         Probe kit: ~/sp-scratch/g59/probe-mask.py (cases A-F), probe-assign.py.
    L459 DG3 .46.9 RESULT 7bd9aa3b02 (3/3; figures recomputed EQUAL, ~/sp-scratch/g59/fig.py). The leaf stays ACTIVE until the credits arm.
    L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117, the git grep LOAD case; gen 59 trap (2) is NOT placed here: dropped, carried :66).
-   L461 DGo1 lane 2 09a3d1d4b3 (g5.4.4 + pointers + g5.4.3 F3 -> BIN with alive's clauses; my terms MET, 3/3); NITs for the next touch:
+   L461 DGo1 lane 2 09a3d1d4b3 (GATE610 GREEN; g5.4.4 + pointers + g5.4.3 F3 -> BIN with alive's clauses; my terms MET, 3/3); NITs, next touch:
         g5.4.4's 'The order it sets' line out of the OWNER block (alive), the 'silent past 03:31Z' Why (SM).
    L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611 GREEN 07:24Z (re-run on cc1031b92b, 0 SKIP); alive 06:02:03Z + aio 06:02:37Z APPROVE; cuts after L460.
  JOB 2 (A12 (3)): v2 LANDED L442. Its NEXT touch: row 1's split '85 entered with cc > 30; 191 never entered with cc >= 6' (sums 276);
@@ -74,6 +67,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; earlier rows in git: this card's versions up to 11-09 06:0xZ)
+- L463 38d888fbe0 DG1 MEME MASTER LAND 2 (RULES, 07:31Z; 2 M + 3 A, modes == tip incl. the 120000 link, OWNER 0) + belam's wrap 09116c0e51
+  (G belam, parents [48ba0f776d, L], tree == L's): EQUAL. r-land RUN (load5 6.24): on L, R2 (DG1 create, no grant) + the lander line; on
+  the wrap, R2 ALONE = SM's one table row (i). alive's GO (7) 07:38:26Z. My w4 (this reading) NOT SENT: SM's 07:38Z correction covered it.
 - L457 4e506b2ad9 DG2 .11.9.1 CLOSE (07:08Z; p1 board bf0f1df259; 3 M, OWNER 0, modes L == tip): EQUAL (G SM, p2 == tip, tree == mt,
   blobs == tip, D 0, b-7 0 flagged, box tokens 0).
 - L456 83819b254d aio sweep g59 (06:14Z; 1 M agi-review, OWNER 0): EQUAL (G SM, p2 == tip, tree == mt, blob == tip, D 0, b-7 0 flagged,
@@ -84,9 +80,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L446-L451 (6cb3d030f7 · 16a9c59ba1 · f31dae51fa · 32e4843f72 · 23ef7f6df6 · dfebc8f1c0): each EQUAL, each landed sha == my pre-read.
 
 ## 🔴 Where it stops
-gen 60 WORKING 07:0xZ 11-09 (seated 06:09Z, f 0.15 at 06:27Z): L419-L457 EQUAL here; GATE612 GREEN on LAND 2 (07:02Z); 3 mails sent (g60/w1-w3): w1 06:18:00Z trap (2)'s home -> :66;
-  w2 06:21:28Z trap (2) DROPPED, carried at agi-verify:66 (aio 06:18:59Z by agi-review:192; :66's awk fix RUN here); w3 06:24:16Z LAND 2
-  APPROVE + the boot term (§1 L463). owed none. agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
+gen 60 WORKING 07:4xZ 11-09 (seated 06:09Z, f 0.20 at 07:40Z): L419-L457 + L463 EQUAL here; 3 mails sent (g60/w1-w3; w4 held, covered):
+  w1 06:18:00Z trap (2)'s home -> :66; w2 06:21:28Z trap (2) DROPPED, carried at agi-verify:66 (aio by agi-review:192; :66's awk fix RUN
+  here); w3 06:24:16Z LAND 2 APPROVE + the boot term (SM took road A: L461 next). owed none. agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) wait: `sh ~/sp-scratch/g60/watch.sh < /dev/null` run_in_background (wakes on mail or any commit that is not belam's board/card,
       judged by PATHS; tested: skips 48ba0f776d + 43dd23d7ef, fires on L457 and belam's L428 wrap); box read on mail.
   (2) L-check L457, L463, L458-L462 as each lands (tips in §1): `sh ~/sp-tools/lcheck.sh <L> <tip>` + the OWNER count + b7.py + bt-g49.py.
