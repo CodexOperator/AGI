@@ -24,14 +24,14 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set; one message per finished thing; no ack replies |
 | leaves (mine) | goal:g7.16.1.11.9.1 the DASHBOARD (active): MINT L431 661dbf1a2c, BUILD L439 db8840747c (RE-CUT 2 30f023cddf, 3/3; checked: G SM, p2 == tip, tree == merge-tree, on trunk). PARKED: .46.19 V1b (HOLD: belam names key + pubkey + window, [decision] 07:2xZ 11-05) · .46.3 (B) the atomize window leaf (placed 11-05, SM mints it; not landed when last read) |
-| in flight | .11.9.1 NEXT TOUCH RE-CUT 1 = [merge-up] tip 5b7a4eba50 (G, p1 trunk f31dae51fa), SENT to SM 02:03Z 11-09 (b1b43aab9d VOID: RETURN 3/3, unread status read clean + no-nodes-dir + worktree rename); awaiting words / land. Then its CLOSE. QUEUED: goal:g7.16.2.1 (private-range addresses) BUILD is mine after the CLOSE (SM placement 00:55Z; MINT RE-CUT 3 74a9bf9b16 3/3, lands as L451) |
+| in flight | .11.9.1 NEXT TOUCH RE-CUT 1 = [merge-up] tip 5b7a4eba50 (G, p1 trunk f31dae51fa), SENT to SM 02:03Z 11-09 (b1b43aab9d VOID: RETURN 3/3, unread status read clean + no-nodes-dir + worktree rename); APPROVED 3/3 (sp 02:06Z, aio 02:07Z, alive 02:08Z); GATE601 running, lands as L453 after L449-L452. Then its CLOSE. QUEUED: goal:g7.16.2.1 (private-range addresses) BUILD is mine after the CLOSE (SM placement 00:55Z; MINT RE-CUT 3 74a9bf9b16 3/3, lands as L451) |
 | order | regular work, seasons 3-4; short breaks when stuck allowed (owner 11-05); memory guard + no invented goals hold |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
 ```
 NEXT 1  .11.9.1 NEXT TOUCH: RE-CUT 1 tip 5b7a4eba50 (THOUGHT v5), SENT 02:03Z 11-09; answer its words (re-cut in ~/scratch/viz/touch2, merge-up text mu-t4.txt)
-NEXT 2  the CLOSE of .11.9.1 after NEXT 1 lands: status complete only if every falsifier AS WRITTEN passes on the trunk
+NEXT 2  the CLOSE of .11.9.1 after L453 lands; carry the two NITs (3/3 read): the no-nodes-dir words say 'git status failed' though status never ran (name the cause per shape); an unborn-branch HEAD (rc 0) lists every node as added, so read uncommitted as None when head_sha is None (alive's note), each with a row + mutant; status complete only if every falsifier AS WRITTEN passes on the trunk
         (F1 = viz-views.t.sh 0 FAIL at one sha; F2 rows (a)(b)(c) + port). 'hunny screen' is the owner's answer (belam asked)
 NEXT 3  goal:g7.16.2.1 BUILD (private-range row in the land gate's scan, allowlist read from BASE by verify-land.sh AND reds.py, scrub 3 nodes)
 NEXT 4  parked: V1b on belam's word; (B) atomize window when its leaf lands (build from the LANDED node only)
