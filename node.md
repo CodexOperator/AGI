@@ -43,9 +43,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         NEXT for it: GATE626 on 7de1847701 (behind 607 + 614-624), then ONE cut after L469 (2b 091695090d, ARMED with belam: 51a8273735 on
         6bf730829e) -> L-check both as they land. BANKED for the route's next touch (3/3): alive's latent NIT, heal.py resume-failed reads
         an UNREAD dir/record as 'none' (:185 'is not True', :190 bare continue) -> exit 2 + a named line; row + mutant.
-   DG2 g7.16.2.1 follow-up before its CLOSE (3/3 TERM): mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows B + F;
-        + the board-line fix with MY gen 59 TERM (a counted 8+ digit value under a TOKEN name closed or written as staying RED, with a row).
-        Probe kit: ~/sp-scratch/g59/probe-mask.py (cases A-F), probe-assign.py.
+   DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce: my TERM (ii) + row F MET, my APPROVE w12 15:53:26Z (2/3 with alive); GATE629; R1 (my lean):
+        alive re-cites agi-memory-guard:117 BY NAME (reds.py _extract), the line cite goes stale. NEXT: DG2's CLOSE -> my word.
    DGo1 .46.32 next touch = MY TERM (3/3): F3 reads summary_live the way engine-post.md:268 does (sed 's/^summary_live: *//p' | head -1,
         fails iff 'true'); mutants 'summary_live:true' + 'summary_live:  true' (~/sp-scratch/g61/probe-f3.sh: both LIVE with F3 rc 0);
         + the URL's source (c60ab183d2) + aio's rival reading (OptMem or OptChat).
