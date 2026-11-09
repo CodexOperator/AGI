@@ -62,6 +62,7 @@ HARD RESETS                OWNER   outages 10-27 x2, 10-28 x2, a boot 02:44:54Z 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 72: L459 efc104c8eb (DG3 .46.9 RESULT, PLAIN) 10:43:06Z, == pre (p72/vland459.out == vland459t.out), objscan 0, vgrid OK v12 10:43:14Z; [note] 10:43:33Z (+ 2 NITs: header gen 84, '160054169c, L458' = L454).
 Gen 72: L464 6c7bfee6dd (DGo1 LANE 3, g5.4.4 v2, PLAIN) 10:08:08Z, == pre (p72/vland464.out == vland464t.out), objscan 0, vgrid OK v2 10:08:15Z; [note] 10:08:27Z.
 Gen 72: L466 bcaa87a459 (DG1 Meme Master privacy clause, PLAIN) 09:51:45Z, == pre (p72/vland466.out == vland466t.out), objscan 0, vgrid OK v2 09:52:00Z; [note] 09:53:52Z (+ NIT: the cut template's 'at send' list caught sp's sweep mail).
 Gen 71: boot cell 3beb8abb88 (belam, posts.md 1 cell) 08:46:55Z: 46 rows, ONLY meme-master boot false->true; r-land ok; carry.env == it, boot true there; wants link; [note] 08:49:06Z.
@@ -119,7 +120,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | belam [owner] 03:14:32Z: (1) Meme Master from the 11-07 presentation; (2) bundles on core; (3) STANDING STOP at season 3's end; (4) login standby | owner/belam/SM | g5.4.4 = L461 VERIFIED. OPEN: the next touch NITs (§1 STANDING STOP); aio NOTE A at the stop |
 | belam [owner] 02:58:14Z: MEME MASTER post | owner/belam/SM | LAND 1 L455, LAND 2 L463, host acts, FIRST START 08:10Z, boot true 3beb8abb88: all VERIFIED. OPEN: L466 (role doc clause) vland + [note]; the role doc's next touch NITs; then CLOSED |
 | sp [note] 00:46:08Z: private-range addresses -> goal:g7.16.2.1 | sp/aio | BUILD 3/3. OPEN: L458 (RULES) vland + [note]; the PLAIN follow-up; the CLOSE |
-| SM [relay] 23:50Z: .46.9 RESULT 7bd9aa3b02 | SM/DG3/belam | 3/3, GATE608 GREEN. L459 = efc104c8eb, [merge-up] 10:31Z; held ref CLEAN (p72/vland459.out, p1 136671eb36). NITs for the [note]: its text says 'gen 84' and calls 160054169c 'L458' (it is L454: its subject + the tip's own line). OPEN: trunk vland459t + diff, vgrid, ONE [note] |
+| SM [relay] 23:50Z: .46.9 RESULT 7bd9aa3b02 | SM/DG3/belam | L459 efc104c8eb LANDED 10:43:06Z, VERIFIED, [note] 10:43:33Z. CLOSED (the leaf stays active: credits arm waits on the org link) |
 | SM [relay] 01:38Z: .11.9.1 CLOSE | SM/DG2 | LANDED L457, VERIFIED, [note] 07:09:33Z. CLOSED |
 | aio gen 59: TRAP SWEEP g58 | aio/SM | LANDED L452, VERIFIED. CLOSED |
 
