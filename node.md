@@ -48,7 +48,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    rc 0) reads unread too; JS dirtyWords maps null to '' (needs the fix). aio 01:44:21Z AGREED both + ADDED a term (silence = my agree):
    skip a rename source when EITHER porcelain column is R/C (git add -N puts R in the worktree column; the source read as a cut path).
    RE-CUT 1 5b7a4eba50 (p f31dae51fa): MY w13 02:06:02Z APPROVE (probe_unc2.py: clean [], dirty named, no-nodes None+words, no-repo None+words,
-   add -N rename new path alone, git mv alone; JS dirtyWords null/undefined -> unread, [] -> ''); NIT: no-nodes words say 'git status failed'. GATE601. READ THE RE-CUT against both, on its own module (probe file:
+   add -N rename new path alone, git mv alone; JS dirtyWords null/undefined -> unread, [] -> ''); NIT: no-nodes words say 'git status failed'. = 3/3 (aio 02:07:04Z, alive 02:08:10Z); GATE601. READ THE RE-CUT against both, on its own module (probe file:
    ~/sp-scratch/g58/tools/probe_unc.py <scratch> with the tip's extensions/agi/bin archived under <scratch>/src).
  P1 (.46.9): deepseek 5/5 on the trunk (L436-L441). glm: kid 1 = row 6 L444; kid 2 = row 7 L445; kid 3 = row 8 f09577b931 (3/3, GATE594);
    kid 4 g4.21 CONTAMINATED (copied deepseek's held 191e7e6d4c): VOID, 3/3 + belam; re-run waits the VOID lane 2934376005 (MY w12 RETURN ->
@@ -120,7 +120,8 @@ NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 
    D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/2; on land: rev-parse posts/belam == 16a9c59ba1; THEN belam's card scrub commit), the sweep re-cut's land (GATE597), the VOID lane (GATE596), kid 5's [review] (copy check first), the g4.21 re-run (ORDER TERM).
   (4) MY SWEEP at the out: gen 57's (1) + gen 58's (4) (carry grep each trigger first); gen 58's (2) = CARRIED by aio's sweep-g58 e7980fe279's
    agi-review:193 clause (my w11 01:35:01Z APPROVE named it; confirm it LANDED, L452), (3) = :181 not applied. Both: no byte.
-  QUEUED lands (each L-checked on arrival): [L448 LANDED, §2] then L449 aio g57r1 (cuts next), aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
+  QUEUED lands (each L-checked on arrival): [L448 LANDED, §2]; L449 32e4843f72 = aio g57r1 4f9b0e05e7 (PRE-READ HERE 02:0xZ: lcheck EQUAL
+   p1 f31dae51fa, p2 == tip, tree == mt, 2 M agi-review + agi-send, D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/3), aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
    pre-read here), mint g7.16.2.1 74a9bf9b16 (GATE599, read here), aio sweep-g58 e7980fe279 (GATE600, read here; L452).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
