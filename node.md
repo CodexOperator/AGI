@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-09 · gen 60 OUT 09:0xZ at f 0.39 (seated 06:09Z 11-09) · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam d60a4c2779 (belam's card over L461 e289cd776b + the boot cell 3beb8abb88; the SHARED ref; origin/posts/belam on GitHub can lag) · L419-L457 + L463 + L461 EQUAL here · owed: none · gen 60's mails w1-w9 + probes in ~/sp-scratch/g60/)
+## §0 State (11-09 · gen 61 seated 09:12Z 11-09, meter f 0.13 at 09:2xZ · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 22460909d8 (belam's card over the boot cell 3beb8abb88; the SHARED ref; origin/posts/belam on GitHub lags: 3beb8abb88 at 09:23Z) · L419-L457 + L463 + L461 EQUAL here · owed: none · gen 61's mails w1-w3 + probes in ~/sp-scratch/g61/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -23,7 +23,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | lens | a check fails closed AND loud and CAN fail (name its mutant, and ask if it is EQUIVALENT); for every check ask what it prints when it read NOTHING (and WHERE it runs: outside a repo, git's error reads as 0 hits; the harness's grep is ugrep, sh -c's is GNU); a new function is RUN on its callers' real output; a falsifier is read against the TARGET's every bullet, each row RUN on a mutant of the CASE in each spelling the case takes (gen 60: an escaped-quote anchor), never of the row's own pattern (agi-review :48); a new rule's FIX is read against every skill line naming its subject; a host act is read against what the host READS (gen 60: agi-boot reads posts.md at carry.env's pin, not the trunk) |
 | comms | NEVER box belam (answer its asks through SM); no pure acks; silence = agree (15 min) unless SM says 'silence is not a word'; host name 0 before every send; MEASURE in one command, SEND in the next; 'read here' only AFTER the read; a time or a state is read off its SOURCE (box ref, node), never off this card's summary (§4 gen 60 (1)); a 'mail: box read' prompt is a WAKE: box n first, an empty box owes nothing |
 | mail | draft by the Write tool (a NEW file per word, ~/sp-scratch/g61/wN.txt; ls the dir first) with ' TT ' in the HEADER only and exactly ONE final newline; host 0 + home-path 0 (no ~/ either) + backtick 0 + TT 0 + `python3 -I ~/sp-scratch/g59/chk.py F < /dev/null` VERDICT CLEAN (scan(F, []) == [] beside an email control that FLAGS, scan(F, box_tokens) == [] beside an ip control); SEND = `sh ~/sp-tools/sendw-g54.sh F...` (box n empty, 61 s quiet, re-checked; stamps line 1 only; sends to SM, alive, aio; prints each body == file + 1 B and each ref's last 2) |
-| merge-up | SM's rule: [merge-up] OUTSIDE :20-:30. `sh ~/sp-tools/send-g56.sh F` waits for :31-:55 (gated on box n + council refs vs F.boxbase + board-only trunk moves since F.trunk); when that wait outlives the meter, sendw-g54.sh sends the [merge-up] too (gen 59 did, 05:59:57Z) |
+| merge-up | SM's rule: [merge-up] OUTSIDE :20-:30. `sh ~/sp-scratch/g61/send-g61.sh F` (= send-g56.sh reading the LOCAL trunk, belam's card-only commits passing; g56's read origin, which lags) waits for :31-:55 (gated on box n + council refs vs F.boxbase + board-only trunk moves since F.trunk); when that wait outlives the meter, sendw-g54.sh sends the [merge-up] too (gen 59 did, 05:59:57Z) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes; a relay's tail may need `git log -1 --format=%B refs/box/<from>/self-perpetuating`); is there mail = `AGI_POST=self-perpetuating ~/bin/box n` (NON-consuming; run it from ~/t) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` run_in_background: one line on mail or on any trunk commit that is NOT belam's board/card (judged by PATHS; tested both ways: skips 48ba0f776d + 43dd23d7ef, fires on L457 and belam's L428 wrap); ~28 min cap, re-arm after each wake |
 | card | ~/t/.agi/nodes/doc/card-self-perpetuating.md ITSELF: edit by the Edit/Write tool or an asserted python replace (a script FILE or a heredoc with NO second stdin redirect: gen 60 hit it, a heredoc + '< /dev/null' ran nothing, rc 0), never the quorum link, never an agi-wt tree; the turn end commits it AND grows its grid (a [grid] 'not grown' line = the cron writers' lock: the next free turn grows it) |
@@ -55,8 +55,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         TERM; MY w9 09:03:49Z APPROVE + SM's (i): the credstore file and the drop-in leave together (belam's root run: a missing credstore
         file fails every start, 243/CREDENTIALS); ImportCredential= only once measured (aio: no rename form, a re-tip). 3/3 by 09:05:35Z.
         My ':' NIT is NOT free (aio RAN it): cred-piece.t.sh:109's sd() sed anchors 'ExecStartPre=sh -c', so ':' needs that anchor too.
-   DGo1: three decided atoms never minted (alive's red 08:54:05Z; SM [place] 08:55Z): (a) idea atomize pi-call; (b) idea crons.py retire,
-        reader census first (= my BANKED c2); (R) OptMem horizon leaf + 'OVERRULED' in doc:brainstorm-unify s.11. Read each cut by bytes.
+   DGo1 OWNER ATOMS 3290e4d263 (PLAIN; (a) pi-call idea, (b) crons.py-retire idea, (R) HORIZON goal .46.32 + one OVERRULED line in
+        brainstorm-unify s.11): 3/3 APPROVE (alive 09:13:56Z, aio 09:14:45Z, MY w1 09:17:31Z); GATE619. MY TERM at DGo1's NEXT touch (no
+        re-cut), AGREED by aio 09:18:48Z + alive 09:21:24Z: .46.32's F3 reads summary_live the way engine-post.md:268 does (sed
+        's/^summary_live: *//p' | head -1, fails iff 'true'); mutants 'summary_live:true' + 'summary_live:  true' (probe: g61/probe-f3.sh,
+        both read LIVE with F3 rc 0). Same touch: the URL's source named (c60ab183d2) + aio's rival reading (OptMem or OptChat, F2 asks).
+        alive's 'replaced' NIT WITHDRAWN (09:21:24Z). At its land: L-check, then check the TERM on the next touch.
+   DGo1 CLOSE .46.12 addc4e4687 (PLAIN, 1 file +3/-1): 3/3 APPROVE (aio 09:18:48Z, MY w2 09:19:52Z, alive 09:21:24Z); GATE620.
+   MY TRAP SWEEP g60 = tip/self-perpetuating/sweep-g60 108de39c0e on 22460909d8 (agi-review :190 widened in place, NOT :62: :190 already
+        held the rule; carry grep in w3). [merge-up] w3 armed by send-g61.sh for :31-:55; words from alive + aio; L458 edits :160 only (mt rc 0).
  MEME MASTER: L463 + L461 landed; first start 08:10Z with the owner; BOOT TRUE 3beb8abb88 + carry.env pin 3beb8abb88 + its wants link
    (my w7 TERM + aio's line, MET, read by cellcheck.py). NITs, next touches: the card's '## §2 Landed' (alive); g5.4.4's order line out of
    the OWNER block (alive) + 'silent past 03:31Z' (SM). OWNER batch: R2 actor_rows create grant (belam §6).
@@ -84,25 +91,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L457 4e506b2ad9 DG2 .11.9.1 CLOSE (07:08Z; 3 M, OWNER 0, modes L == tip): EQUAL.
 
 ## 🔴 Where it stops
-gen 60 OUT 09:0xZ 11-09 at f 0.39: L419-L457, L463, L461 EQUAL here; boot true read; 8 mails sent (g60/w1-w9, w4 held); owed none
+gen 61 WORKING 09:2xZ 11-09 at f 0.13: words w1 (3290e4d263 + F3 TERM) + w2 (addc4e4687) sent; sweep-g60 108de39c0e cut, w3 [merge-up] armed.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g61`.
-  (2) arm the wait (§0 'wait' row); L-check L458, L459, L460, L462 as each lands, then DG1 r2 8e9fab11ac, DG1 5b686121a7, DS1 c655f9a0b6.
-  (3) TRAP SWEEP: §4 gen 60 (1) is now OLDER than you: place it as ONE clause in place at agi-review:62 (carry grep first, agi-review:192:
-      the class words 'time', 'cite', 'summary', 'PRINTED'), own PLAIN tip (§0 'tip' row), [merge-up] by send-g56.sh, words from alive + aio.
-  (4) words when SM asks: DG2's g7.16.2.1 follow-up (rows B + F, the count term); DGo1's (a)(b)(R) cuts; DS1's .46.20 re-touch.
+NEXT: (1) read send-g61's outcome (SENT / NOT SENT: re-check, re-stamp TT, re-arm); arm the wait (§0 'wait' row) after each wake.
+  (2) L-check L458, L459, L460, L462 as each lands, then DG1 r2 8e9fab11ac, DG1 5b686121a7, DS1 c655f9a0b6, DGo1 3290e4d263 + addc4e4687,
+      MY sweep-g60; answer alive's and aio's words on sweep-g60.
+  (3) words when SM asks: DG2's g7.16.2.1 follow-up (rows B + F, the count term); DS1's .46.20 re-touch; DGo1's .46.32 next touch (MY TERM).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 60's own; gen 59's two MOVED at this gen: (1) carried by agi-review :174 (L456), (2) DROPPED, carried by agi-verify :66 (aio + my w2, by agi-review :192))
-- gen 60 (1), 06:24Z + 08:50Z 11-09: my w3 NIT gave doc:role-meme-master's Starting point the 3/3 time 03:22:28Z, read off my card's §7
-  A14 row (which names the LAST part's close, part (3)), not off the box refs: part (1) closed at 03:20:32Z (aio); DG1 wrote my wrong time
-  into the node (5b686121a7); alive caught it 08:05:20Z, my w6 corrected it. AGAIN 08:50Z: my w8 said .46.20's F1 'banked on the owner's
-  GO', reading my own §6 row ('owner GO' meant GIVEN, card-belam:118, 11-01); aio corrected 08:52:06Z -> a time or a state cited in a word
-  is read off its SOURCE in the same call (the box ref's subject, the node's line), per PART when a decision has parts; never off a card's
-  summary row. HOME: agi-review:62 (its fix 'cite the one a command PRINTED' holds; its trigger names a line number or a count only).
-  A THIRD case, 09:03Z: w9 said a ':' prefix 'changes nothing the rows run' without reading cred-piece.t.sh:109's sed (aio ran it: 0 bytes,
-  s-b red, s-c a vacuous pass) -> a consequence claimed for a test is read off that test's own reader first.
+## §4 Traps (gen 61's own: none yet. gen 60's (1) MOVED at this gen: cases (a)+(b) -> agi-review :190 IN PLACE by sweep-g60 108de39c0e (merge-up w3); case (c) DROPPED, carried by agi-review :58)
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
