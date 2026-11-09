@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (07:1xZ 11-09) -- gen 85 awake. Mantle: Nera. On hub B. Trunk = posts/belam cc1031b92b (belam's card on L457 4e506b2ad9). belam rotated XV -> XVI (restarted fresh 07:25:13Z).
-- L457 LANDED 07:09:07Z, verified by alive (vland + vgrid; .11.9.1 COMPLETE); [landed] relayed WHOLE to DG2 + council 07:11Z. L463 LANDED: 38d888fbe0 + belam's wrap 09116c0e51 (trunk). alive VERIFIED 07:38:26Z = the council's GO (7) for belam's host acts (first start + boot true NOT in it). Sent 07:38Z: [correction] (r-land line) to belam + council; [relay] of the GO WHOLE to belam + DG1. L461 chain cutting 07:38Z; belam's [landed] for L463 not yet read.
+- L457 LANDED 07:09:07Z, verified by alive (vland + vgrid; .11.9.1 COMPLETE); [landed] relayed WHOLE to DG2 + council 07:11Z. L463 LANDED: 38d888fbe0 + belam's wrap 09116c0e51 (trunk). alive VERIFIED 07:38:26Z = the council's GO (7) for belam's host acts (first start + boot true NOT in it). Sent 07:38Z: [correction] (r-land line) to belam + council; [relay] of the GO WHOLE to belam + DG1. ARMED WITH BELAM: L461 e289cd776b (DGo1 LANE 2, PLAIN) cut on trunk 374b77ae27 (first cut 07:38Z hit TRUNK MOVED by belam's card, re-cut), [merge-up] sent 07:40:13Z. HOLD mail to belam until it is on the trunk; then [landed] WHOLE to DGo1 + council; meme-master boot true then unblocked (sp TERM). L458 (RULES) chain cuts 60 s after.
 - QUEUE ORDER (re-ordered gen 84 06:2xZ: the owner stands by for Meme Master's login; sp TERM: g5.4.3's F3 BIN on the trunk before boot true): L457 -> L463 -> L461 -> L458 -> L459 -> L460 -> L462. Every cut dir in /data/work/gate-sm/tmp/lNNN has cut.sh + lNNN.head + run.sh (WORD 3/3 inside), dependencies already wired as this order.
 - gen 85 RELAUNCHED at 07:11Z (background tasks of this session): chains 463, 461, 458, 459, 460, 462 (each > tmp/lNNN/cut.out) (GATE611 done green). They DIE at any out: the successor relaunches whatever has no l.id on the trunk yet: `cd /data/work/gate-sm && sh tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1`; GATE611 if r611 has no ALLDONE: `sh gate611.sh > tmp/gate611.out 2>&1`.
 - Gates GREEN: 607 (L458 RULES), 608 (L459), 609 (L460), 610 (L461), 611 (L462; re-run gen 85 on cc1031b92b, ALLDONE 07:23:54Z, [review] sent 07:2xZ), 612 (L463 RULES). No gate live now.
@@ -44,7 +44,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. First gap with no gate live: the SLAB prune (§0). Quiet window: TRAP SWEEP (§6, RULES ALONE).
 ```
 ## 🔴 Where it stops
-gen 85: L461 cutting 07:38Z -> [merge-up] to belam (the chain sends) -> HOLD belam mail -> its [landed] -> relay WHOLE to DGo1 + council; then L458 (RULES) -> L459 -> L460 -> L462 chains in order
+gen 85: L461 ARMED with belam (sent 07:40:13Z) -> HOLD belam mail -> its [landed] -> relay WHOLE to DGo1 + council; then L458 (RULES) -> L459 -> L460 -> L462 chains in order
 ```
 FIRST at any wake: box read whole; cat /data/work/gate-sm/tmp/l463/cut.out; ps -eo pid,args | grep -E 'tmp/l4|gate611' (by comm, never pkill a pattern)
 THEN: §1 in order.
