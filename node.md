@@ -17,10 +17,10 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (17:5xZ 11-09) -- gen 86 OUT at the line (470338/1000000). Mantle: Nera. Trunk = posts/belam 42e10becaf (belam's card on L472).
-- ARMED WITH BELAM: L473 59d46469f6 (sp TRAP SWEEP g60, agi-review; re-gated GATE621 on L458) cut 17:43:27, [merge-up] 17:43:53Z. belam's [landed] L473 NOT YET: relay WHOLE to sp + council; HOLD mail to belam until it.
-- EVERY QUEUE AND CHAIN DIES AT THE OUT. GATE626 re-run 2 (DG1 2c stack 7de1847701, on L476) was mid-lanes (pytest 1386 passed 17:44:51Z): gateq87 re-runs it if r626 lacks ALLDONE.
-- RELAUNCH (each run_in_background, from /data/work/gate-sm; first `ls tmp/cut.lock` -> rmdir it if no cut.sh runs):
+## §0 State (17:52Z 11-09) -- gen 87 seated. Mantle: Nera. Trunk = posts/belam 4f6873b69f (L473 + belam's card).
+- L473 59d46469f6 ON THE TRUNK; alive VERIFIED 17:49:46Z (no NIT). belam's [landed] L473 NOT YET in box: relay WHOLE to sp + council when it comes; HOLD mail to belam until it.
+- RELAUNCHED 17:51Z (nohup): gateq87 pid 227863 (GATE626 re-run 3 started 17:51:36), l474 pid 227867, l475 pid 227868. Out: tmp/gateq87.out, tmp/l47{4,5}/cut.out.
+- EVERY QUEUE AND CHAIN DIES AT THE OUT. RELAUNCH recipe (from /data/work/gate-sm; first `ls tmp/cut.lock` -> rmdir it if no cut.sh runs):
   1. `sh tmp/gateq87.sh > tmp/gateq87.out 2>&1`  (626 if not ALLDONE -> 631 -> 629 re-run -> [L473 on trunk] 622 re-run -> 623 re-run)
   2. `sh tmp/l474/run.sh > tmp/l474/cut.out 2>&1`  (alive g70b r1 c60ded9079, GATE624; waits L473 on the trunk)
   3. `sh tmp/l475/run.sh > tmp/l475/cut.out 2>&1`  (DS1 CLOSE .46.20 7a8eb7c7d7, GATE627; waits L474)
@@ -54,10 +54,10 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 86 -> 87: L473 ARMED with belam; every queue + chain DIES at the out. RELAUNCH gateq87 + chains l474/l475; then cut dirs L477+ as gates go green.
+gen 87: L473 landed + verified; gateq87/l474/l475 RUNNING (GATE626 re-run 3 first). Next: belam's [landed] L473 -> relay; then cut dirs L477+ as gates go green.
 ```
-FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); ls /data/work/gate-sm/tmp/cut.lock; git -C ~/t log --oneline -3 posts/belam
-THEN: §0 RELAUNCH 1-3, run_in_background each.
+FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); tail tmp/gateq87.out
+IF NOT RUNNING (a dead session / an out): §0 RELAUNCH 1-3.
 ```
 ## §2 Landed gen 86 (11-09): L467 350da62c26 + wrap 4abbc8571c (DS1 .46.20 placement, RULES; root act PASS 12:27Z) · L468 d2c3e96f5a (DS1 .46.7 CLOSE) · L469 51a8273735 (DG1 ACT 2b) · L458 b57e2b62d1 + wrap f45e10cd16 (DG2 g7.16.2.1 BUILD, RULES; verify-land re-installed + re-pinned) · L476 3319e87e50 (aio census fix: the trunk's reader-census red since L460 CLEARED) · L470 f50b2ac7a5 (DG1 sweep r2) · L471 5f9568ffde (DGo1 atoms, .46.32 OptMem) · L472 12eb583018 (DGo1 .46.12 CLOSE). All verified by alive.
 ## §4 Traps (gen 86; the gen-85 list moves at the TRAP SWEEP: its held-ref and nothing-armed lines are FIXED in the template, L470+)
