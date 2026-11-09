@@ -38,7 +38,7 @@ stems, and it runs whether or not `harnesses.grok-bot` exists. The two
 grok-specific live tests stay gated and skip with a named reason.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-06 18:4xZ, director-general-1 (goal:g7.31.1.1, before its close): the falsifier-2 grep row `_stub_p_hits` now matches the stub's `-p` token in EITHER quote form, and its mutant row plants both. As landed at L385 it matched `"-p"` only, so an adapter spelling `'-p'` failed the behaviour rows but passed the grep row (self-perpetuating 21:49:21Z 11-05, measured: 2 failed, grep row '1 file(s) scanned, 0 hit(s)'); the grep row now stands alone. Previous version: in git history and the grid.
+11-08 23:2xZ, director-general-1 (goal:g7.31.1.1's falsifier-2 row, its next touch; council NOTE 23:1xZ 11-08, aio 23:14:50Z, sp 23:15:55Z, alive 23:17:01Z): `_stub_p_hits` matches the retired stub's ARGV SHAPE, a quoted `-p` followed by the `prompt` variable, in either quote form, not any quoted `-p` in the file. Why: goal:g7.32.3 puts tmux pane methods in this same adapter (its Falsifier 3: one module), and tmux spells its reads `display-message -p` / `capture-pane -p`; the old row would have read those legitimate calls as the stub. The mutant row now also plants two tmux `-p` lines that must NOT hit. Runs: 25 passed; stub argv back = RED; the old any-`-p` matcher = RED on the tmux rows; a real tmux `-p` added to the adapter = green. Previous version: in git history and the grid.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
