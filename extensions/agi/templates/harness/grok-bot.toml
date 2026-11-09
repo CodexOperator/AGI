@@ -34,3 +34,10 @@ slot = "resume"
 
 [[argv]]
 slot = "prompt"
+
+# goal:g7.31.1.2 ACT 2b: grok-bot keeps no Claude-style per-session registry,
+# so its seat is joined through the tmux pane's process tree (the harness pid,
+# shallowest argv[0] match) and its session id is read back from that
+# process's own -s / -r argv.
+[session]
+registry = "none"
