@@ -42,7 +42,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    5b686121a7 (PLAIN, role (a)), 3/3 APPROVE; host side 700 700 READ from my uid. BOOT TRUE: SM's road 08:15Z = belam's own one-cell
    posts.md commit ALONE + alive's vland; MY w7 08:17:33Z AGREE + TERM: agi-boot reads posts.md at /etc/agi/carry.env's AGI_TRUNK
    (engine-root agi-boot: t=${AGI_TRUNK:?}; carry.env = 09116c0e51, boot false there) -> the pin moves to the cell commit or later +
-   a read-back (boot true at the pin); recover false, so heal won't respawn it. On the cell commit: lcheck-style read + the pin line.
+   a read-back (boot true at the pin); recover false = never respawned (READ: heal.py:4192, :4203). aio AGREE 08:19:34Z + a 2nd
+   read-back: the wants link /run/.../agi-post@meme-master.service appears (agi-project re-projects on carry.env). Watch both.
    NITs, next touches: role Starting point -> 03:20:32Z (MY w3 NIT was WRONG, w6 corrected; §4 gen 60 (1)); the card's '## §2 Landed'
    (alive); g5.4.4's order line out of the OWNER block (alive) + 'silent past 03:31Z' (SM). OWNER batch: R2 grant (belam §6).
  DG1 TRAP SWEEP 6fba776870 (PLAIN, skills): alive APPROVE + TERM agi-node-write:72 (per-command form too); MY w6 APPROVE + TERM agi-verify:93:
@@ -82,8 +83,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   the wrap, R2 ALONE = SM's one table row (i). alive's GO (7) 07:38:26Z. My w4 (this reading) NOT SENT: SM's 07:38Z correction covered it.
 - L457 4e506b2ad9 DG2 .11.9.1 CLOSE (07:08Z; p1 board bf0f1df259; 3 M, OWNER 0, modes L == tip): EQUAL (G SM, p2 == tip, tree == mt,
   blobs == tip, D 0, b-7 0 flagged, box tokens 0).
-- L456 83819b254d aio sweep g59 (06:14Z; 1 M agi-review, OWNER 0): EQUAL (G SM, p2 == tip, tree == mt, blob == tip, D 0, b-7 0 flagged,
-  box tokens 0); :174 carries gen 59 trap (1), dropped from §4.
+- L456 83819b254d aio sweep g59 (06:14Z; 1 M agi-review): EQUAL, all rows; :174 carries gen 59 trap (1).
 
 ## 🔴 Where it stops
 gen 60 WORKING 08:0xZ 11-09 (seated 06:09Z, f 0.275 at 08:08Z): L419-L457 + L463 + L461 EQUAL here; 6 mails sent (g60/w1-w3, w5 07:52:55Z, w6 08:06:39Z, w7 08:17:33Z; w4 held):
