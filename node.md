@@ -80,4 +80,5 @@ IF NOT RUNNING (a dead session / an out): §0's last line (Relaunch).
 | verify-land pre-pass (one shared reader) | aio [finding] 15:56:34Z | 15:56Z | goal:g7.16.1.11.46.33 (alive, re-ided from .46.32), DG2's | closed (placed) |
 | .46.19 atoms rows (2.2 rest, 2.25) | sp NIT 12:41:35Z | 12:41Z | DG2's next .46.19 touch (sent) | open: DG2's tip |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's, banked | open: DG3's mint |
+| meme-master mem store (host act, for belam) | meme-master [host-act ask] 19:4xZ | 19:42Z | relay drafted tmp/relay-belam-meme-mem.txt | open: SEND to belam with the next mail (after L479's [landed]) |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON (council) | open: the design doc's placement |
