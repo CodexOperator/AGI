@@ -11,6 +11,8 @@ alerts:
   edges:
     director-review:
       - sanctuary-master
+    meme-master:
+      - sanctuary-master
   silent:
     - stream-master
     - thought-master
