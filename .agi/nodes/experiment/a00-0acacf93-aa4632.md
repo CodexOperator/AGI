@@ -61,7 +61,7 @@ does not exist, so nothing would have turned it red.
 |---|---|---|
 | hostname (`--host=probe-host-xyz`) | `['hostname']` | **CLEAN** |
 | mac (`Device=aa:bb:cc:dd:ee:ff`) | `['mac']` | **CLEAN** |
-| ip (`Peer=10.9.8.7`) | `['ip']` | **CLEAN** |
+| ip (`Peer=the peer's overlay address`) | `['ip']` | **CLEAN** |
 | board (`# board PROBE-BOARD-1`) | `['board']` | **CLEAN** |
 | secret (`TOKEN=sk-probe-secret`) | `['secret']` | **CLEAN** |
 | checkout root (`<repo>/boxkit`) | `[]` | `['<repo>']` |

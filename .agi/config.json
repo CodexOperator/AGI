@@ -228,6 +228,16 @@
   "anonymize": {
     "home_roots": ["/data/home-"],
     "fixture_homes": ["ubuntu", "fxuser", "zzuser"],
+    "ip_allow": [
+      {"path": "extensions/agi/guard/agi-lt-carry", "why": "root script: the LAN peer's address is its ssh target, needed to run"},
+      {"path": "extensions/agi/guard/egress/belam-egress-watchdog", "why": "root script: pings the overlay gateway by address, needed to run"},
+      {"path": "extensions/agi/tests/agi-town.t.sh", "why": "fixture: synthetic addresses the town test feeds its readers"},
+      {"path": "extensions/agi/tests/test_anonymize_guard.py", "why": "fixture: private-range literals are the guard's own test input"},
+      {"path": "extensions/agi/tests/test_commands_manifest.py", "why": "fixture: synthetic addresses in a manifest test"},
+      {"path": "extensions/agi/tests/test_session_capture.py", "why": "fixture: synthetic addresses in a capture test"},
+      {"path": "extensions/agi/tests/test_anonymize_private_ip.py", "why": "fixture: the private-range row's own RED test rows"},
+      {"path": ".agi/nodes/goal/g7.16.2.1.md", "why": "the leaf quotes its RED test rows on purpose"}
+    ],
     "hardware": {
       "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
                   ["lscpu"],

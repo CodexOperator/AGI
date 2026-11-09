@@ -286,6 +286,16 @@ fx ft 'echo "see $FH/zzuser/a" >$R/extensions/agi/tests/x.t.sh;printf %s "{\"ano
 ok "f11-the-allowlist-is-read-from-BASE-never-TIP (a land adding its own name) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o'
 fx fg 'echo "~/x expanduser $FH/fxuser/a" >$R/extensions/agi/tests/x.t.sh';run fg $LD $BASE $GT
 ok "f13-the-WARN-counts-SUBSTITUTIONS-never-tokens (3 paths.HOME_RE tokens, 1 pinned) rc $rc, $(grep '^anon-diff WARN' $T/o|cut -c1-120)" 'grep -q "^anon-diff WARN (fixture class): pinned /home/<fxuser> x1 in extensions/agi/tests/x.t.sh$" $T/o'
+# --- (d) the PRIVATE-RANGE row (goal:g7.16.2.1): an added private-range IPv4 token HOLDs (class ip) unless its '+++ b/' path is in BASE's anonymize.ip_allow
+# (never TIP's). The token is assembled at run time: these committed bytes carry no dotted literal.
+IPX=$(printf '%s.%s.%s.%s' 10 1 2 3);IPC="{$RP, \"anonymize\": {\"fixture_homes\": [\"fxuser\"], \"ip_allow\": [{\"path\": \"extensions/agi/tests/ipfx.py\", \"why\": \"fixture\"}]}}"
+cfgbase ipok "$IPC"
+sw $BASE_ipok fx ia "echo 'v = $IPX' >\$R/extensions/agi/tests/ipfx.py";run ia $LD $BASE_ipok $GT;cp $T/o $T/ia.o;rcia=$rc;LD_ia=$LD;GT_ia=$GT
+ok "i1-an-ip-in-an-allowlisted-path-reads-anon-diff-0 (BASE's ip_allow names extensions/agi/tests/ipfx.py) rc $rcia, $(grep -E '^anon-diff=' $T/ia.o), $(tail -1 $T/ia.o)" '[ $rcia = 0 ]&&grep -qx "anon-diff=0" $T/ia.o&&tail -1 $T/ia.o|grep -q "verify-land: OK"'
+sw $BASE_ipok fx ib "echo 'v = $IPX' >\$R/extensions/agi/tests/other.py";run ib $LD $BASE_ipok $GT
+ok "i2-the-same-ip-OUTSIDE-the-allowlist-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
+fx ic "echo 'v = $IPX' >\$R/extensions/agi/tests/ipfx.py;printf %s '$IPC' >\$R/.agi/config.json";run ic $LD $BASE $GT;LD_ic=$LD;GT_ic=$GT
+ok "i3-the-ip-allowlist-is-read-from-BASE-never-TIP (the land adds its own path on TIP only) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
 # mutants: the mutated copy runs as SELF; each row is green when the mutant misbehaves (the real row above would then be RED)
 mutate(){ python3 -c '
 import sys
@@ -293,6 +303,10 @@ s=open(sys.argv[1]).read();a,b=sys.argv[2],sys.argv[3]
 assert s.count(a)==1,("mutant anchor",a)
 open(sys.argv[1],"w").write(s.replace(a,b))' "$@";}
 vmut(){ cp "$VL" $T/vm.sh;mutate $T/vm.sh "$1" "$2";SELF=$T/vm.sh;}
+vmut "res=anonymize.mask_diff_ips(" "res=res or anonymize.mask_diff_ips(";run ia $LD_ia $BASE_ipok $GT_ia;SELF=
+ok "m-ip-allowlist-dropped-reads-RED the allowlisted ip HOLDs (rc $rc, $(v))" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
+vmut 'git show "$B:.agi/config.json" > "$S/$N.cfg"' 'git show "$L:.agi/config.json" > "$S/$N.cfg"';run ic $LD_ic $BASE $GT_ic;SELF=
+ok "m-ip-allowlist-read-from-TIP-reads-RED the TIP-only entry now passes (rc $rc, $(grep -E '^anon-diff=' $T/o))" 'grep -qx "anon-diff=0" $T/o'
 vmut "l=paths.HOME_RE.sub(fixture,l)" "l=l";run fa $LD_fa $BASE $GT_fa;SELF=
 ok "m-substitution-dropped-reads-RED the fixture line HOLDs (rc $rc): f1's WARN is gone" '[ $rc = 1 ]&&tail -1 $T/o|grep -q "HOLD (.*anon-diff"'
 vmut "cur and cur.startswith('extensions/agi/tests/') and l.startswith('+')" "cur and l.startswith('+')";run fb $LD_fb $BASE $GT_fb;SELF=

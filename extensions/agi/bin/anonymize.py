@@ -184,6 +184,56 @@ def has_email(text, allow=None):
     allow = _email_allow() if allow is None else allow
     return any(not any(a.fullmatch(m.group(0)) for a in allow)
                for m in EMAIL_RE.finditer(text))
+#: PRIVATE-RANGE IPv4 (goal:g7.16.2.1): class `ip`, judged by PATTERN like `email`
+#: (box_tokens only knows THIS box's own values). A dotted token, word-bounded
+#: (so `goal:g10.1.2.3` / `v10.1.2.3` are ids, not addresses), every octet <= 255,
+#: that is a MEMBER of 10/8, 172.16/12, 192.168/16 or 100.64/10 (the shared-address
+#: block that the stdlib's own private-address test reads False). IPv4 ONLY:
+#: IPv6 ULA (fc00::/7) is out of scope.
+IP_NETS = tuple(ipaddress.IPv4Network((bytes(b), n)) for b, n in      # built from octets: no dotted literal in this file
+                (((10, 0, 0, 0), 8), ((172, 16, 0, 0), 12), ((192, 168, 0, 0), 16), ((100, 64, 0, 0), 10)))
+IP_RE = re.compile(r"(?<![\w.])(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?![\w.]*\d)")
+def _private_ip(m):
+    o = [int(x) for x in m.groups()]   # by value: 3.12's parser raises on a leading zero ("00"), a timestamp shape
+    return all(x <= 255 for x in o) and any(ipaddress.IPv4Address(bytes(o)) in n for n in IP_NETS)
+def has_private_ip(text):
+    return any(_private_ip(m) for m in IP_RE.finditer(text))
+def own_ips(tokens):
+    """This box's own `ip` token values (box_tokens): never masked by the allowlist."""
+    return {v for c, v in tokens if c == "ip"}
+def mask_private_ips(text, keep=()):
+    """`text` with every private-range token written `<ip-allowed>`: what an
+    ALLOWLISTED path's added line is judged as (other classes still fire). A
+    token in `keep` (this box's OWN address, own_ips) stays: the allowlist
+    lifts the pattern row only, never the box-token class it already HOLDs on."""
+    return IP_RE.sub(lambda m: "<ip-allowed>" if _private_ip(m) and m.group(0) not in keep
+                     else m.group(0), text)
+#: THE ONE allowlist both readers of scan() on added lines use (verify-land.sh's
+#: anon-diff step and reds.py _secrets): the cell `anonymize.ip_allow`, a list of
+#: {"path": exact file, or a directory prefix ending in "/", "why": one line}.
+#: Callers pass the cell of the BASE commit's config, never the new tip's.
+def ip_allow(cfg):
+    """The allowed path strings of a parsed config dict; malformed = nothing (fail closed)."""
+    try:
+        rows = (cfg.get("anonymize") or {}).get("ip_allow") or []
+        return [r["path"] for r in rows if isinstance(r, dict) and isinstance(r.get("path"), str) and r["path"]]
+    except (AttributeError, TypeError):
+        return []
+def path_allowed(path, allow):
+    return any(path == a or (a.endswith("/") and path.startswith(a)) for a in allow)
+def mask_diff_ips(diff, allow, keep=()):
+    """A unified diff with private-range tokens masked on the ADDED lines of every
+    allowlisted '+++ b/' path (anon-diff's added_lines keeps text, not path)."""
+    cur, out = None, []
+    for l in diff.split("\n"):
+        if l.startswith("diff --git "):
+            cur = None
+        elif l.startswith("+++ "):
+            cur = l[6:] if l.startswith("+++ b/") else None
+        elif cur and l.startswith("+") and path_allowed(cur, allow):
+            l = "+" + mask_private_ips(l[1:], keep)
+        out.append(l)
+    return "\n".join(out)
 def home_relative(text, home=None, root=None):
     """`text` with this box's HOME written `~` and any other box's home
     directory written `<home>/`: no home path survives, any box. Given a
@@ -341,6 +391,8 @@ def scan(text, tokens, email_allow=None, root=None):
         hits.add("home-unread")   # the post-home class unread: every text HOLDs
     if has_email(text, email_allow):
         hits.add("email")
+    if has_private_ip(text):
+        hits.add("ip")   # pattern-only, like email (SCAN_ONLY_CLASSES is for classes box_tokens can NEVER carry; ip also has token values)
     # user_roots is kept OUT of HOME_PATH_RE: the committed-bytes home test
     # keeps its scope
     user = _user_path_re(root)
