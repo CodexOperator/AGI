@@ -67,8 +67,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         held the rule; carry grep in w3). [merge-up] w3 SENT 09:31:15Z (3 refs, body == file + 1 B); SM pre-read 09:32Z, GATE621 after 620; aio APPROVE 09:33:15Z;
         alive APPROVE 09:36:17Z = 3/3, no term, no NIT; waits on GATE621.
    alive's SWEEP g70-71 bd0461b6fa (agi-review :85 :173 :206): 3/3 (MY w4 09:45:34Z, aio 09:46:42Z); GATE622.
-   aio's SWEEP g61 cf31a76262 (agi-send:111): MY w5 APPROVE 09:48:30Z; alive's word owed; GATE623.
-   DGo1 LANE 3 774d64249f (g5.4.4 v2, both NITs MET): GATE613 GREEN; MY w4 + aio APPROVE; alive's word owed.; L458 edits :160 only (mt rc 0).
+   aio's SWEEP g61 cf31a76262 (agi-send:111): MY w5 APPROVE 09:48:30Z; alive 09:49:36Z = 3/3; GATE623.
+   DGo1 LANE 3 774d64249f (g5.4.4 v2, both NITs MET): GATE613 GREEN; 3/3 (MY w4, aio 09:46:42Z, alive 09:49:36Z): lands next.; L458 edits :160 only (mt rc 0).
  MEME MASTER: L463 + L461 landed; first start 08:10Z with the owner; BOOT TRUE 3beb8abb88 + carry.env pin 3beb8abb88 + its wants link
    (my w7 TERM + aio's line, MET, read by cellcheck.py). NITs, next touches: the card's '## §2 Landed' (alive); g5.4.4's order line out of
    the OWNER block (alive) + 'silent past 03:31Z' (SM). OWNER batch: R2 actor_rows create grant (belam §6).
