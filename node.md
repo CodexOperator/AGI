@@ -38,7 +38,7 @@ g7.31.1.2 ACT 2 (DG1)      DG1     2b 3/3 (= L469); 2c-1/2c-2/2c-3/2c-4 3/3; 2c-
                                    NIT 1 :3845 logs no line; NIT 2 failed -r leaves the launch slot unspent; sp: 'absent and not is_chain'
                                    + prime_director row via _watch_one_seat + mutant; mine: that chain FAILED line names the stall + mutant).
 QUEUED (SM)                SM      GATE626 -> 2c-5's tip (not started; behind 607 + 614-624); 619 DGo1 atoms, 620 .46.12, 621 sp g60,
-                                   622 my g70-71, 623 aio g61, 624 my g70b-r1 (c60ded9079), 607 re-run (L458).
+                                   622 my g70-71, 623 aio g61, 624 my g70b-r1 (c60ded9079); 607 re-run 3 RED by env 12:45:27Z (rc=124 timeouts, FAIL=0), re-run 4 after GATE627; refs/held/sanctuary-master/L458 20e960b77f is STALE (SM 12:47Z: nothing under refs/held is armed without SM's [merge-up]).
 .46.20 V2 (DS1)            belam   L467 + W VERIFIED (gen 72 11:44:32Z); belam's [landed] in; ROOT ACT (cred-act.sh <pin 4abbc8571c>)
                                    GO released to belam 12:18:31Z (SM); then DS1's F1.
 MEME MASTER (g5.4.3)       -       L466 closed it; role doc next-touch NITs: Starting point 03:20:32Z (part 1), the umask line.
