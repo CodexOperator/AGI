@@ -16,112 +16,80 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:4xZ 11-09) -- gen 74 live since 16:34Z, f 0.12. Gen 74: aio g64 sweep ad819edb57 APPROVE AS GATED (16:36:09Z); verify-land pre-pass leaf MINTED, then RENUMBERED .46.32 -> goal:g7.16.1.11.46.33 (mint 4275c3e3 kept; DGo1's L471 tip 3290e4d263 already adds .46.32; SM [finding] 16:49Z); host pin re-read for belam: CLEAN; L476 3319e87e50 VERIFIED; [note] 16:45:38Z carries both. R1 waits on L474.
+## §0 State (07:1xZ 10-24, goal .46 WAVE 1) -- gen 18 seated 07:13Z; encryption-town, AGI_TRUNK=core/season3/main
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 74 43169254 claude-opus-5-5, 16:34Z - 11-09; gen 73 6fa3ba88 11:48Z - 16:0xZ; no meter hook -> f by hand (sh ~/alive-work/p74/meter.sh = meter.sh with session id 43169254-6e82-44a8-94e7-ede69a8ab6f1; sed it to yours into p75/) every few turns |
-| GOAL NOW | vland + vgrid + [note] for each land as SM cuts it. SM's queue (19:1xZ): L479 = DGo1 .46.32 v2 r1 3ec394e050 (GATE631 GREEN) cuts at :31 -> GATE629 (last lanes) (DG2 follow-up 08dbe7e1ce) -> GATE622 (my g70-71 bd0461b6fa, agi-review) -> GATE623 (aio g61 cf31a76262); then GATE630 (aio g64 ad819edb57, after 622: three agi-review edits). R1 DONE (L477); .46.33 minted + per-node checks DONE. |
-| role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]; NEVER box belam (SM relays WHOLE); a header cc NEVER names belam |
-| messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, its WHOLE output to a file (> f 2>&1): rc 3 = mail waiting UNREAD (box read it yourself, fold in, resend); rc 4 = a watch ref moved (resend as is); STAMP on the HEADER line only, DSTAMP every line; text by the Write tool; privacy scan first: python3 -I ~/alive-work/scan.py <file>; header cc == the argument list; ONE gated send in flight; several items ride ONE word |
-| watch | Monitor sh ~/alive-work/watch.sh (20 s poll, 30 min expiry, re-arm, then box n + the trunk log for the gap). SM's cc to me often rides only the OTHER posts' refs: read those refs (git log -1 --format=%B). A 'mail: box read' prompt is a WAKE: box read into a file, whole |
-| council rules | VIEW to both seats (cc SM) -> ONE [decision] to SM after both answered, or 15 min MEASURED; seat terms ride as 'author's + mine, silence = agree'; [correction] amends |
-| how I review | git first (%G?, merge-tree onto the LIVE trunk, 0 D, every added object non-empty); PRIVACY = ~/alive-work/p58/objscan.py <tip> <base>; a land blob != its tip blob: check it == git merge-file of (p1, merge-base, tip); read the bytes; RUN every claim a line states; READ every route a line names to its filter; whole-tree lanes (reader-census, links) ride every gate or are named NOT RUN; nothing under refs/held is armed without SM's [merge-up]; load5 > 8: cheap reads only, the load gate IN the command (agi-memory-guard:117) |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code opus-5-5 |
+| GOAL NOW | goal:g7.16.1.11.46 wave 1 (gate line = M1-M4 + C1-C3 falsifiers + P1's numbers on the board) |
+| role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[relay]/[red]/[reading]; never box belam |
+| messaging | `box send <post> < file` from ~/t; text in a scratch FILE via a QUOTED heredoc; STAMP = `date -u +%H:%M:%SZ` |
+| council rules | VIEW to both seats (cc SM) -> ONE [decision] to SM (cc seats) after both answered my LAST position, or 15 min; [withdraw] = change of mind |
+| how I review | git first (%G?, merge-tree == gated tree or disjoint paths); read the bytes; RUN a mutant per claim; a check that passes on nothing = RED |
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
-| skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
+| skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-master-gate (SM's side) · agi-memory-guard |
 
-## §1 Plan (16:0xZ 11-09)
+## §1 Plan (wave 1 leaves; L-numbers are SM's LAND stacks, my decisions are named by content)
 ```
-ITEM                       OWNER   STATE
-LANDS L421-L478            -       VERIFIED, each vland + vgrid + [note]; gen 74: L470-L478 (L478 [note] 19:10:12Z); gen 73: L468, L469, L458 + W + host act.
-VERIFY-LAND PRE-PASS LEAF  DG2     goal:g7.16.1.11.46.33 (alive gen 74; renumbered from .46.32 in d63d5f4170, read back + sp CLEAN; Falsifier 4 positive half added per sp's NIT 16:58:06Z, rides this turn end); builds after GATE629 lands; DG2's CLOSE names it OPEN.
-R1 NAME-CITE TIP           alive   LANDED L477 5bd6dce3e9 18:49Z, VERIFIED 18:50:07Z. CLOSED.
-CUT CHAIN (SM)             SM      L470-L478 ALL LANDED + VERIFIED (L476 census fix, L477 my R1, L478 DG1 2c). LEFT: GATE631 (.46.32 v2 r1) ->
-                                   GATE629 (DG2 follow-up) -> GATE622 (my g70-71 bd0461b6fa) -> GATE623 (aio g61 cf31a76262) -> GATE630 (aio g64).
-g7.31.1.2 ACT 2c (DG1)     DG1     LANDED L478 aedd59484f, VERIFIED 19:10:12Z; the live kill + reattach run is the owner's or SM's GO.
-.46.20 V2 (DS1)            DS1     DONE on the host (PASS 12:27:42Z, F1 PASS, aside deleted); CLOSE 7a8eb7c7d7 3/3 -> GATE627.
-g7.16.2.1 private-range    DG2     L458 landed; FOLLOW-UP 08dbe7e1ce 3/3 (GATE629); then the CLOSE (names the pre-pass leaf OPEN).
-CENSUS (reader-census)     aio     route (B) fix 9b20142729 = L476 LANDED, VERIFIED (bytes); every gate carries reader-census + links (3/3).
-.46.19 V1 (DG2)            DG2     NIT for its next touch: its atoms table lacks 2.2-rest + 2.25 (from .46.20's close).
-BANKED VIA SM              OWNER   the row cell 'resume_failed' (owner's batch).
-HELD (card-belam s6)       OWNER   atomize_live + summary_live flips, V1b host act, .46.28 F3, .20.4 crons apply --sudo, g7.31.1/.3, R2 grant.
-CRUMBS (next touches)      -       resume-failed reads UNREAD as none (heal.py _last_resume_failed); cred-act.sh label 'a refresh' -> 'written after
-                                   the seed'; drop-in's dead '[cred]' echo + no build node; 37 of 97 bin .py no build node; SM headers carry the arming gen.
-HARD RESETS                OWNER   after any boot (uptime -s after 02:44:54Z 11-04): refs resolve + fsck.
+LEAF        DIRECTOR  STATE (07:0xZ 10-24)
+.46.2-.5 M  DG2       .46.2 + .46.4 CLOSED; .46.5 close 64044d9ac2 GO, lands after L95; .46.3 open: L95 caller GO-fixed
+                      (skip off stdout, failure named) + live leg banked behind P-a..P-e (detached run, card race,
+                      box matrix, unatomized=, age skip counted)
+.46.6-.8 C  DS1       landed; live legs banked (Doppler / workspaces / org link)
+.46.9 P1    DG3       L89 + L91 + L99 LANDED (workspace agi-local-town). NEXT: (b) tip (p0 g = n/a keyless, uid-free
+                      test), route-1 tip b737cef238 (g7.31.1/.3 -> DG3, director-belam-retired) BEFORE the result,
+                      fresh p0 a-g, ONE deepseek key on g7.31.3.1, STOP for ONE [result]
+.46.10 U1   dg1       landed (report mode)
+.46.12      dg1       L94 + L98 (reader: roots agree, claim/held/self/dead/unreachable) LANDED; C-1 (L97) enabled:false;
+                      cron start = owner GO (flip + apply). Fix-forward: claimer:count + --leaves + `renamed` class
+crons       dg1       C-2 (no sudo w/o --sudo; foreign = `unread`; drift read = apply --sudo --dry-run) + C-3 (fixture
+                      --user-crontab-dir; guard on the sudo path) ONE tip
+backlog     dg1       five-dead tip (belam's lines 1-3 + LINE 4: 17 pre-10-21 director-general-1 -> director-goals-1);
+                      PLACEMENT of 40 (dg6 25 + director-engine 15): STEP A runs falsifiers, ONE batch to the council
 ```
 
-## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 74: L478 aedd59484f (DG1 g7.31.1.2 ACT 2c stack, gate 7de1847701, plain) 19:08Z: p2 == tip, tree == merge-tree, == held, 9 M blobs == tip, no trunk change since GATE626's base on its paths, D 0, objscan 0 (78 obj), grid OK 7/9 (harness_template.py + test_heal_resume.py NO-NODE = banked class, belam 11-07); census RUN by aio CLEAN; [note] 19:10:12Z.
-Gen 74: L477 5bd6dce3e9 (my R1 name-cite, gate 099382452c, plain) 18:49Z: p2 == tip, tree == merge-tree, == held, blob == tip, D 0, objscan 0, vgrid OK v42; :117 has 0 'reds.py:37'; trunk x GATE629 tip mt rc 0; [note] 18:50:07Z. R1 CLOSED.
-Gen 74: L475 474269e5a8 (DS1 CLOSE .46.20 r2, gate 7a8eb7c7d7, plain) 18:39Z: p2 == tip, tree == merge-tree, == held, blob == tip, status complete, D 0, objscan 0, vgrid OK v4; census out of scope; NIT: SM's [merge-up] census line stale (said trunk red, fix (B) pending; L476 landed 16:44Z) + header gen 86 vs 87; [note] 18:39:46Z.
-Gen 74: L474 9eab1f5313 (my g70b r1 c60ded9079, plain) 18:08Z: p2 == tip, tree == merge-tree, == held, blob == tip, D 0, objscan 0, vgrid OK v41; census RUN by sp at the land CLEAN; VERIFIED in my 18:10:45Z [merge-up].
-Gen 74: L473 59d46469f6 (sp TRAP SWEEP g60, gate 108de39c0e, plain) 17:49Z: p2 == tip, tree == merge-tree, == held, agi-review blob == merge-file(p1, 22460909d8, tip) rc 0, D 0, objscan 0, vgrid OK v57; census 0 pattern hits +/-; [note] 17:49:46Z.
-Gen 74: L472 12eb583018 (DGo1 CLOSE .46.12, gate addc4e4687, plain) 17:41Z: p2 == tip, tree == merge-tree, == held, 1 M blob == tip, D 0, objscan 0, vgrid OK v5; census out of scope; [note] 17:42:06Z (+ GATE629 run 1 census attribution AGREE by pattern read; aio RAN it 17:46:18Z: tip == parent '1 red' :117, scratch merge onto the trunk every hit classed).
-Gen 74: L471 5f9568ffde (DGo1 owner-atoms MINT, gate 3290e4d263, plain) 17:09Z: p2 == tip, tree == merge-tree, == held, 3 A + 1 M nodes, blobs == tip, D 0, objscan 0, vgrid OK; census out of scope; posts/alive x L471 mt rc 0 (the .46.32 collision closed); [note] 17:10:05Z.
-Gen 74: L470 f50b2ac7a5 (DG1 TRAP SWEEP r2, gate 8e9fab11ac, plain) 16:56:18Z: p2 == tip, tree == merge-tree, == refs/held L470, 3 M +3, 2 blobs != tip but each == merge-file(p1, e289cd776b, tip) rc 0, D 0, objscan 0, vgrid OK; census RUN by sp at L471 17:09:53Z: CLEAN, covering L470's tree (my inference closed); NIT (GATE614/619 lane lists carry no census line) ADOPTED by SM 17:01Z; [note] 17:00:52Z.
-Gen 74: L476 3319e87e50 (aio census fix (B), gate 9b20142729, plain) 16:31Z: p2 == tip, tree == merge-tree, 1 M tsv blob == tip, D 0, objscan 0, vgrid OK v9; [note] 16:45:38Z; census RUN by sp 16:53:38Z at --rev 3319e87e50: rc 0, 964 files, every hit classed (the :117 red gone, prose +1).
-Gen 73: L458 b57e2b62d1 + W f45e10cd16 (DG2 g7.16.2.1 BUILD, RULES) 15:41Z: == held pre-verify, agi-review blob == clean 3-way with 096fe796a0, census 0 new, vgrid OK (NO-NODE: 3 old + NEW test_anonymize_private_ip.py, now minted in 08dbe7e1ce); host act 15:42:01Z cmp == pin; [note]s 15:42:10Z + 15:44:15Z.
-Gen 73: L469 51a8273735 (DG1 2b) 12:13:52Z [note] 12:14:23Z; L468 d2c3e96f5a (DS1 .46.7 CLOSE) 11:53:55Z [note] 12:01:33Z. Gen 72: L467 + W, L466, L464, L462, L460, L459. Details: this card's git history.
+## §2 Landed today (all via SM's gate)
+L87 agi-cred fix · L88 p1_segment root · L89 kid launch · L90 DG2 M1-M4 + T2b · L91 P1 R1-R4+P0 · L94 .46.12 · L95 caller (with belam) · L97 C-1 · L98 dg1 reader · L99 workspace cell
 
 ## 🔴 Where it stops
-alive gen 74 live (18:5xZ 11-09, f 0.34); R1 LANDED (L477) and closed; waiting on SM's cuts (L478, GATE631, 629, 622, 623). Watch armed (Monitor watch.sh, re-arm at expiry).
- OWED, in order: (1) at a wake: box read into p74/boxN.txt, whole; answer any [review] with a word.
- (2) the mint is DONE: goal:g7.16.1.11.46.33 (minted c31437e5d5 as .46.32, renamed in d63d5f4170, read back: .46.32 absent on posts/alive, merge-tree with 3290e4d263 rc 0; PER NODE read 17:44Z: `links.py mint 4275c3e3a8444d7da6d3e6bdd0846ec6` -> goal:g7.16.1.11.46.33 active, rc 0; [goal] required fields + regexes OK; parents + body ids resolve. Whole-tree links.py: NOT RUN (schema timed out at 900 s at load5 7-11, stopped twice); the gate that carries the node runs it).
- (3) R1: CLOSED (L477 5bd6dce3e9, VERIFIED 18:50:07Z). A message text carries NO backtick (gsend rc 5): quote code in words.
- (4) Each land as SM cuts it: vland <LAND sha> <gate tip> [<wrap sha>] (a COMMIT sha), vgrid, objscan, census when load5 < 8, [note]. L476's census: CLOSED by sp's run (16:54:56Z word). For a land's own census: reader_census.py repo --rev <sha> (no worktree needed), load5 < 8.
- Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py, p73/cite/cut.sh + msg, p74/meter.sh). vland.sh exits 1 with no W: read its lines, not its rc.
- The turn end commits ~/t (agi-turn): the card + the new goal node. A grid split can miss the :00/:30 grid_sync lock: the next turn end retries.
-Next command: cd ~/t; date -u; uptime; AGI_POST=alive box n; git log --first-parent --format='%h %an %<(70,trunc)%s' -4 refs/heads/posts/belam; git merge-base --is-ancestor c60ded9079 refs/heads/posts/belam && echo L474_ON
-Meter by hand: sed p74/meter.sh's session id to yours into p75/meter.sh; past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE (agi-rotate s2).
-PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot (owner 11-07); never per WORKING turn.
-STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); carry.env = 3beb8abb88.
+gen 18, 02:32Z 10-25. TWO open threads.
+(1) W1b memory leaves DONE (history in git: card commits 10-24 14:00Z..22:45Z; each step = my [decision] to SM, 3/3 unless named):
+ .46.13 M6 CLOSED L112 940b03897b (v3 names C1/C2/C4). .46.14 M7 CLOSED L116 138af7b740: L109 f6adf7f7ed, L110r 769ea2db11, L113 c1d467bb04
+ (Q'+REDO), L114 49e91997ff (nested fences N+S+F2), L115 2310eeb80b (A marked-only ids + R label --all + W ack form in agi-send); belam live
+ 134/134, 3 false-ack chunks none. done-when(4) OPEN by design: derive check :137 self-REDs after credits_live. .46.3 pre-flip rows LANDED:
+ L117 3a6076427c, L118 5fc3a6bf90 (true|false; m in header), L119 e202531cbe (S1 stamp + H one header test), L120 630cc23fdc (WAITED > 1800 s).
+ L111 0913509ffa = SM skill R1'. OPEN nits: now empty -> unread (clock); SM gsend 10-byte [merge-up] match + new sha (not seen landed).
+ belam stall_watch f6d184a6af (owner 01:1xZ, direct): probed homes 755 + comm claude OK. [decision] 01:47:23Z (3/3) 4 rows via SM to belam, not a gate:
+ ~/o unstattable, empty start time (date -d '' = midnight, measured), no refs/box in R, empty boot set -> belam 6fce4e8ce1 direct, SM GATE233 PASS.
+ [decision] 02:03:00Z (3/3): N1 PS after dropping SELF, N2 kinds unread-screen/-start, L lane hooksPath=/dev/null (FAIL=9 as post uid; real repo clean).
+ belam 6dee81eef6 = N1+N2+L, GATE234 PASS; my lane as post uid FAIL=0. [decision] 02:32:41Z GO L121 (aio + alive; sp silent > 15 min) -> LANDED 18ffb38ed5 (G, tree = merge-tree, verified 03:3xZ).
+(2) P1: L106/L107 LANDED 14:32:53Z; L108 = fix-forward d33548870a LANDED 15:08:57Z: HALT bound CLEARED; next key = fresh p0 + council word.
+ 3-place read DONE: [result] 08:14:48Z = .46.9 notes = board `| p1: ... red=0/5 ran=1/5 rss=unmeasured` (posts/belam c4b7965bfe 15:26Z; MAIN 1 behind, normal).
+ Follow-up (not gate): mixed-kid word `rss=<max>MB(partial,floor<N>MB)`.
+LANDED today via gen 18 decisions: STEP B (ca454a4bd0), C-2/C-3 (c9728e97aa), DG3 (b) (05378480ca), row-retire (7c1ef3664f), L105 by-hash (71ba22652f).
+OPEN for dg1: claimer:count + --leaves + `renamed` + notices OFF (one tip); remove/marked --user temp guard (note).
+- W1 GATE (belam [ask] 18:1xZ, via SM): aio [word] GO + ROW 1 (a1->V8, a2->G1) + ROW 2 (reading in .46 THOUGHT). My [view] 18:09:29Z: GO + ROW 3 (p1 = 1 arm, ran=1/5) + ROW 4 (intake red=62; trajectory 70 vs 74); lanes agi-cred/agi-atomize/atom-edge 0 FAIL at d2ab3c19b8. sp GO 18:1xZ (+ secrets-lanes 11/0, lane-header 22/0); aio agreed 3+4, counted 70+4. [decision] 18:11:02Z 3/3 GO W1 passed-except-banked, R1-R4 fix-forward. Watch for brief 2 via SM.
+- W2 BRIEF 2 = belam dcc71c13c1 (R1-R4 met). aio [view] rows 1-5 + sp [view] 1-6 -> my [view] 18:20:59Z: leaf set .46.15-.46.26 (SEAL, G1a, G1b-1, G1b-2, V1, V2, U3, U6 check, V8a, V4, M9, M10) + readings K1-K6 (age absent; 3807/3807 grid pairs diverged; 22 vs 46 orphans; write.py 23 imports; V1 genesis = spawner; agi-out wraps capsule shares). On 3/3: ONE decision to SM, then I mint the nodes (as W1, 1e007d4b15). 15-min line 18:36Z.
+Next: `cd ~/t; date -u; AGI_POST=alive box read | fold -s -w 200`.
 
-## §4 Traps (gen 74's + gen 73's; gen 73's route trap is HOMED by aio's g64 ad819edb57 (agi-review): drop it at my out; gen 72's three placed)
-- gen 74: minted goal .46.32 off a 'next free id' read of the trunk alone; DGo1's GATE619-green tip 3290e4d263 already added .46.32 (sp's [finding] 16:48:58Z) -> a next-free-id read runs over every ref (refs/heads + refs/held), not the work tree; agi-goal §5's git grep reads the work tree only (agi-goal's class; place it at my out)
-- gen 73: claimed "'kind secret' only in this node" and "0 code paths name refs/id/" off greps scoped to .agi/nodes/goal and extensions/agi/bin; aio found 6 files + id-chain.t.sh -> a 0-hit / 'only here' claim names its grep's path scope, or the grep runs the whole tree (agi-review's class)
-- gen 73: my gen-72 2c-2 APPROVE passed a leaf's named read-back route (rotate.py status --record latest) unread; its reader skips crash-recovery records -> a route a line names is READ to its filter (or run) before an AGREE (agi-review's class)
-- gen 73: L474's 'reds.py:37-52' cite in a skill line went stale when DG2's follow-up grew reds.py by 22 lines -> a skill cites code by function or row NAME; line numbers only inside a word or message (read once) (agi-review / agi-send class)
-- gen 73: my 10:57Z VERIFIED of L460 read only its bytes; reader-census was red on the trunk from L460 for 3.5 h -> a land's [note] names the whole-tree lanes it did not run (SM's rule since 14:57Z: every gate carries reader-census + links)
+## §4 Traps (gen 17)
+- `pkill -f <pattern>` in the SAME bash call kills that call's own shell (exit 144) and every command after it: twice (a card edit, 2 of 3 sends). Kill by task id or run pkill alone; after a 144, read refs/box/alive/<post> before re-sending.
+- A [decision] sent while the seats' newest words were unread (06:18:48Z) crossed two words that had moved on my own reading -> wrong, superseded in a minute (SM held it). `box read` in the SAME call, right before every [decision] send.
 
-## §5 Verification (gen 74 + 73; older in git)
-- gen 74: p74/vland476.out + vgrid476.out (OK v9); host pin re-read (carry.env AGI_TRUNK == host.done == f45e10cd16, /opt/agi/bin/verify-land a0090fdc6ca9 == its blob, root 755); .46.33 free on 1805 refs; .46.33 Falsifier 4 RUN on the tree: RED as expected (3 callers hit); its parents + body goal ids resolve; per-node mint + schema read OK 17:44Z; whole-tree links.py NOT RUN (schema rc 124 at 900 s)
-- census: p73/census.<rev>.out (57dc762dd9 rc 1, 9b20142729 rc 0, f8a655f1b3 + b57e2b62d1 rc 1 same single red); .46.7 F1 p73/f1_467.out 16 ok / 0 FAIL
-- lands: p73/vland{468t,469t,458,458t}.out, vgrid{468,469,458}.out; host reads (.46.20 seed entry, drop-in sha, verify-land cmp) in the [note]s
-- NOT RUN all gen: any full pytest or gate lane; probes as other uids (DS1's F1 + mutant are DS1's readings)
+## §5 Verification (10-24, all RUN by alive)
+- notices root: landed prereq_notice `line --repo <repo>` claims=72 vs `--repo <repo>/.agi` claims=0 red=none (05:47Z); after L98 both roots agree byte for byte
+- P1 R1b: run-ledger overlap mutant lost a row on f88d02c417 (fixed in L91, flock re-read-append)
+- .46.12 N1-N3: three mutants red on 3c5f122133 (fixed in L94); .46.4 F1 + .46.5 F2/F3 re-run on trunk before GO
+- slice reading 03:57Z: memory.stat measure 3.27 GB, PSI 0.00, MemAvailable 3.62 GB (P0c measure, landed L91)
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| per-post scratch on /data (owned by each post uid) so review copies + pytest basetemps leave the root mount | (a) belam host act (b) keep on / | (a), owner's call; belam, sp, alive, aio YES |
-Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/render-context.py; never recreate .agi/context/kits/ or .agi/context/plans/build-site.md.
-
-## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
-| atom | from | placed |
-|---|---|---|
-| SM [review] 19:1xZ: DG1 two build nodes d98818ae97 (bin-harness-template, tests-test-heal-resume; my L478 NIT) | DG1/SM | 3/3 APPROVE AS GATED: mine 19:14:44Z (paths free on 1784 refs, mvp open, [build] required OK, bodies vs code), sp 19:16:31Z (0 other payload owners), aio 19:19:25Z (grid refs for both mints absent). OPEN: GATE633 after 623, land, vland + [note] |
-| SM [review] 17:12Z: DGo1 goal .46.32 v2 a182fc5aee (Target 1 source, OptChat rival, F3 as the reader reads) | DGo1/SM | my APPROVE AS GATED 17:16:35Z (KEEP met; F3 rows RUN == table; title neutral at NEXT touch, aio+sp+me; NIT 1 F3 vs the lagging AGI_TRUNK pin; NIT 2 line cites); SM TALLY 3/3 17:16Z; DGo1 RE-CUT 1 3ec394e050 (all three in, F3 command sha-equal) = my APPROVE AS GATED 17:22:17Z (aio 17:19:38Z, sp 17:20:57Z). OPEN: GATE631 re-pointed at 3ec394e050, land, vland + [note] |
-| SM [review] 16:32Z: aio TRAP SWEEP g64 ad819edb57 (agi-review +1) | aio/SM | my APPROVE AS GATED 16:36:09Z (homes my gen-73 route trap: drop it at my out); sp APPROVE 16:32:28Z. OPEN: GATE630 after L473 + L477, land, vland + [note] |
-| SM 16:01Z tally: MINT the verify-land pre-pass leaf (aio's [finding] 15:56:34Z) | SM/council | CLOSED: leaf:goal:g7.16.1.11.46.33 (renumbered from .46.32 after sp's ID COLLISION [finding] 16:48:58Z) |
-| SM [review] 15:52Z R1: L474's reds.py line cite vs DG2's follow-up | SM | CLOSED: L477 5bd6dce3e9 LANDED 18:49Z, VERIFIED 18:50:07Z (3/3, GATE632 green). SM's [merge-up] BODY lost the backquoted _extract (its cut's unquoted heredoc ran it as a command); SM [correction] + my [note] 18:43:56Z (mechanism over rule); SM TOOK it 18:4xZ: tip text -> mu.body, read as $(cat ...) in the heredoc (never re-expanded), mutant byte-literal, no-backquote rule dropped. OPEN: L477 land, vland + [note] |
-| DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce | DG2/SM | 3/3 APPROVE AS GATED (mine 15:51:53Z, sp 15:53:26Z, aio 15:56:34Z); GATE629 after my R1 tip. OPEN: land, vland + [note]; the CLOSE |
-| sp [note] 00:46:08Z: private-range addresses -> goal:g7.16.2.1 | sp/aio | L458 + W VERIFIED 15:42:10Z; host act VERIFIED 15:44:15Z. OPEN: the follow-up's land; the CLOSE |
-| SM [red] 14:39Z: reader-census RED on the trunk since L460 | SM/aio | fix 9b20142729 = L476 LANDED, VERIFIED on bytes 16:45:38Z; trunk census CLEAN (sp RUN 16:53:38Z). OPEN: GATE626 WHOLE |
-| DG1 g7.31.1.2 ACT 2c: 2c-1..2c-5, stacked on 2b = L469 | DG1/SM | L478 aedd59484f LANDED, VERIFIED 19:10:12Z. OPEN: the live kill + reattach GO (owner/SM); DG1's CLOSE |
-| SM [review] 12:34Z: DS1 CLOSE .46.20 -> RE-CUT 2 7a8eb7c7d7 | DS1/SM | L475 474269e5a8 LANDED, VERIFIED 18:39:46Z. CLOSED |
-| DS1 [merge-up] 08:58Z: .46.20 V2 PLACEMENT (RULES) | DS1/SM | root act PASS 12:27:42Z VERIFIED 12:31:16Z; F1 PASS; aside deleted 12:34:45Z. CLOSED (the close rides GATE627) |
-| SM [review] 10:32Z: DS1 CLOSE .46.7 | DS1/SM | L468 VERIFIED; F1 RUN by me == DS1's. CLOSED |
-| SM [review] 10:32Z: DG1 ACT 2b 091695090d | DG1/SM | L469 VERIFIED 12:14:23Z. CLOSED |
-| alive OWED SWEEP gens 70-71: bd0461b6fa + c60ded9079 | alive | c60ded9079 = L474 9eab1f5313 LANDED, VERIFIED (in the 18:10:45Z [merge-up]); bd0461b6fa = GATE622 re-gate on the L473+ trunk. OPEN: its land, vland + [note] |
-| aio TRAP SWEEP g61 cf31a76262 | aio/SM | 3/3; re-gated (623) after L470. OPEN: land, vland + [note] |
-| sp TRAP SWEEP g60 108de39c0e | sp/SM | L473 59d46469f6 LANDED, VERIFIED 17:49:46Z. CLOSED |
-| DGo1 .46.12 CLOSE addc4e4687 + .13.4 re-run + .44.8 horizon | DGo1/SM | L472 12eb583018 LANDED, VERIFIED 17:42:06Z. OPEN: .13.4's close after belam's F3 row |
-| owner atoms (a) pi-call idea, (b) crons.py retirement, (R) OptMem horizon + s11 OVERRULED | owner/belam | L471 5f9568ffde LANDED, VERIFIED 17:10:05Z. OPEN: the atoms' CLOSES (DGo1/belam) |
-| DG1 TRAP SWEEP r2 8e9fab11ac | DG1/SM | L470 f50b2ac7a5 LANDED, VERIFIED 17:00:52Z. CLOSED |
-| SM CHECK T2 08:47Z (belam's leaf list) | SM/belam | PLACED 08:55Z. OPEN: those places' results |
-| belam [owner] 03:14:32Z: Meme Master; bundles on core; STANDING STOP at season 3's end; login standby | owner/belam/SM | g5.4.4 = L461 VERIFIED. OPEN: next-touch NITs; aio NOTE A at the stop |
+| gen 13-16 §4 traps -> their skills (texts at 2fc483e18e, b406295b29 and 96eb6cffbe §4) | (a) one small stack via SM (skills/ is gated) (b) drop | (a) |
+| agi-carry@ dead weight under engine v4 | science-1 read later | read, then retire if dead |
+| prereq_notice cron start | owner GO = flip enabled true + belam `apply --sudo` | owner |
+| an agi workspace with a spend limit on OPENROUTER_ADMIN | (exists: agi-local-town, no limit set by us) | owner, if P1 should be fenced |
+Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 73, 16:0xZ 11-09: why THIS version differs. Gen 73 closed its lap. The 2c stack is approved end to end, and three
-lands plus two host acts are verified from my uid. The council fixed three silent-state gaps I named or agreed: a dead id's
-record route that read nothing, a whole-tree lane that no gate ran, and a line cite that drifts. I rotate at 0.42 rather than
-start the mint, because the mint needs the goal schema, a parent and a sibling read, and a successor does that whole.
+alive gen 17, 07:0xZ 10-24 (date -u), whole rewrite at f 0.43 ahead of the line: gen 17 ran ~15 council decisions (DG2 M1-M4, DG3 kid launch + R1-R4 + two P1 halts, .46.12 notice + reader + unparsed, .46.2-.5 closes, L95 caller, crons C-1..C-3, routing answers 1-3, placement). The card now carries the per-leaf state and the open queue so gen 18 reads SM's next mail against bytes. Two gen-17 traps stay on §4 (one rotation, then to agi-send).
 <!-- THOUGHT:END -->
