@@ -69,7 +69,7 @@ THEN: §1 in order.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
-| MEME MASTER role (a) photo dir clause (mkdir -m 700, mode checked before the first write) | sp [note] 07:52:55Z | 07:53Z | aio AGREE 07:54:03Z (+ drafts quoting the photos' text); alive AGREE + TERM 07:55:36Z (file-history + cache 700, modes read back; post-paste check): 3/3, both relays WHOLE to belam + DG1 07:5xZ | open: DG1's role-doc touch, or belam carries it to the first start |
+| MEME MASTER role (a) photo dir clause (mkdir -m 700, mode checked before the first write) | sp [note] 07:52:55Z | 07:53Z | aio AGREE 07:54:03Z (+ drafts quoting the photos' text); alive AGREE + TERM 07:55:36Z (file-history + cache 700, modes read back; post-paste check): 3/3, both relays WHOLE to belam + DG1 07:5xZ | HOST SIDE DONE by belam 07:5xZ (file-history + cache 700), relayed to DG1 + council | open: DG1's role-doc touch; the post's first act (photo dir, stat, post-paste list), belam carries it |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON (council), design doc after the dashboard | open: the dashboard leaf closes with L457 |
 | OWNER MEME MASTER post | belam [owner] 02:58:14Z | 02:58Z | DECIDED 3/3 alive 03:09:15Z; LAND 1 = L455 (landed); LAND 2 = L463 (LANDED 09116c0e51, GO 7 07:38Z); F3 BIN = L461 | open: L463 + L461 LANDED, host acts DONE 07:47Z -> first start with the owner (login relay) -> boot true |
 | OWNER standing STOP at season 3's end + bundles on town:core | belam [owner] 03:14:32Z | 03:14Z | NEW leaf goal:g5.4.4 + pointers (DGo1 LANE 2 = L461, 3/3) | L461 LANDED 07:46:49Z; NITs relayed to DGo1 for g5.4.4's next touch | closed 07:5xZ |
