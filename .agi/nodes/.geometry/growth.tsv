@@ -57,6 +57,11 @@ fbf49560a9a8323e	experiment	-	idea+task	*
 4c4801d6ae44708c	experiment	-	task+verdict	*
 4d01108b8e7c7906	experiment	-	verdict	*
 56e5120b87a8fae9	experiment	-	verdict+verdict	*
+1b627548fb62a4a9	fuel	-	goal	*
+2bb60f66101eb323	fuel	-	goal+goal	*
+1096a13284d70dcf	fuel	-	goal+vision	*
+c58fed53c56cbc2d	fuel	-	vision	*
+fc6ed60878eef405	fuel	-	vision+vision	*
 9c62c55d899c07de	goal	goal_kind=perpetual	build	*
 826b717a5749c736	goal	goal_kind=perpetual	build+build	*
 29cd0dc4c92ef7d4	goal	goal_kind=perpetual	build+goal	*
