@@ -62,6 +62,7 @@ HARD RESETS                OWNER   outages 10-27 x2, 10-28 x2, a boot 02:44:54Z 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 72: L462 16d008072d (sp sweep g59, PLAIN) 11:12:52Z, == pre (p72/vland462.out == vland462t.out), objscan 0, vgrid OK v32 11:13:00Z; [note] 11:13:15Z.
 Gen 72: L460 9a00c318da (aio sweep g60, PLAIN) 10:53:27Z, == pre (p72/vland460.out == vland460t.out), objscan 0, vgrid OK v40 10:53:38Z; [note] in my 10:57:34Z mail (B).
 Gen 72: L459 efc104c8eb (DG3 .46.9 RESULT, PLAIN) 10:43:06Z, == pre (p72/vland459.out == vland459t.out), objscan 0, vgrid OK v12 10:43:14Z; [note] 10:43:33Z (+ 2 NITs: header gen 84, '160054169c, L458' = L454).
 Gen 72: L464 6c7bfee6dd (DGo1 LANE 3, g5.4.4 v2, PLAIN) 10:08:08Z, == pre (p72/vland464.out == vland464t.out), objscan 0, vgrid OK v2 10:08:15Z; [note] 10:08:27Z.
@@ -118,7 +119,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | DG1 [merge-up] 08:00Z: TRAP SWEEP -> r2 8e9fab11ac (both 3/3 terms in its bytes) | DG1/SM | my APPROVE 08:21:39Z. OPEN: gate, land, vland + [note] |
 | DG1 [merge-up] 08:03Z: Meme Master role (a) PRIVACY CLAUSE 5b686121a7 (= L466) | DG1/SM | 3/3. L466 bcaa87a459 LANDED 09:51:45Z, VERIFIED, [note] 09:53:52Z. CLOSED (the role doc's next-touch NITs: 03:20:32Z part 1, the umask line) |
 | SM CHECK T2 08:47Z (belam's leaf list) | SM/belam | CORRECTED 08:52Z (4 'never built' lines refuted by sp + aio + me); my word 08:54:05Z. PLACED 08:55Z (DS1 .46.20 + .46.7; DG2 .46.19 + .9 horizon; DGo1 atoms). OPEN: those places' results |
-| sp gen 59 [merge-up]: TRAP SWEEP g59 d19eb5f0ad | sp/SM | L462 = 16d008072d, [merge-up] to belam 10:54Z; held ref CLEAN (p72/vland462.out, p1 e23de8dae3), in my 10:57:34Z mail (C). OPEN: trunk vland462t + diff, vgrid, [note] |
+| sp gen 59 [merge-up]: TRAP SWEEP g59 d19eb5f0ad | sp/SM | L462 16d008072d LANDED 11:12:52Z, VERIFIED, [note] 11:13:15Z. CLOSED |
 | aio gen 61 [merge-up]: TRAP SWEEP g60 ad42e0fa00 | aio/SM | L460 9a00c318da LANDED 10:53:27Z, VERIFIED, [note] 10:57:34Z. CLOSED |
 | belam [owner] 03:14:32Z: (1) Meme Master from the 11-07 presentation; (2) bundles on core; (3) STANDING STOP at season 3's end; (4) login standby | owner/belam/SM | g5.4.4 = L461 VERIFIED. OPEN: the next touch NITs (§1 STANDING STOP); aio NOTE A at the stop |
 | belam [owner] 02:58:14Z: MEME MASTER post | owner/belam/SM | LAND 1 L455, LAND 2 L463, host acts, FIRST START 08:10Z, boot true 3beb8abb88: all VERIFIED. OPEN: L466 (role doc clause) vland + [note]; the role doc's next touch NITs; then CLOSED |
