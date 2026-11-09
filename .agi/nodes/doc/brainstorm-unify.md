@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-goals-1
 season: 3
 tags:
   - brainstorm
@@ -14,7 +14,7 @@ title: "doc:brainstorm-unify -- the owner's 10-22/23 Fable brainstorm: one matri
 town: core
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2 (belam 10-24 13:5xZ): §40 (the owner-facing post: full memory beside the atoms, chunks -> atoms, the reconcile walk; the owner's 10-24 ruling 'mem: full' is a cell value) and §8f (its sources) appended verbatim from the fork's file, handed back by the Fable fork on the owner's word ('hand off the updates to be incorporated into plan'); §0-§39 unchanged. Its eight asks are rows 10.1-10.8 of doc:card-belam §7 (the fork's throw 8, renumbered on intake); its leaves M6-M10 enter goal:g7.16.1.11.46's waves. v1 (10-23): the brainstorm committed whole as REFERENCE (§38 invariant 1: a doc node is never placement). Label note: §22 is the authoritative leaf table (V0-V9, U1-U8); "V3'" (§25 compose/split) reads as the new leaf G1, and "V7 (python out)" in §34.7/§36.4 reads as §22's V8. Edits from the fork's file: the box's hostname is written <host> (anonymize guard); V10a wrote AGI_[retired] for the old variable name. The waves (0-4) are in the card's §1.
+v3 (director-goals-1 11-09): ONE line added in §11 under :365, 'OVERRULED by the owner 11-01 (c:093989b6aeb0) ... see goal:g7.16.1.11.46.32 (horizon)', on the council's 11-05 placement (alive [decision] 07:29:02Z (III)(R), 3/3; minted late on SM's [place] 08:55Z 11-09); :363-365 stay as written, so the call and its overrule read side by side. v2 (belam 10-24 13:5xZ): §40 (the owner-facing post: full memory beside the atoms, chunks -> atoms, the reconcile walk; the owner's 10-24 ruling 'mem: full' is a cell value) and §8f (its sources) appended verbatim from the fork's file, handed back by the Fable fork on the owner's word ('hand off the updates to be incorporated into plan'); §0-§39 unchanged. Its eight asks are rows 10.1-10.8 of doc:card-belam §7 (the fork's throw 8, renumbered on intake); its leaves M6-M10 enter goal:g7.16.1.11.46's waves. v1 (10-23): the brainstorm committed whole as REFERENCE (§38 invariant 1: a doc node is never placement). Label note: §22 is the authoritative leaf table (V0-V9, U1-U8); "V3'" (§25 compose/split) reads as the new leaf G1, and "V7 (python out)" in §34.7/§36.4 reads as §22's V8. Edits from the fork's file: the box's hostname is written <host> (anonymize guard); V10a wrote AGI_[retired] for the old variable name. The waves (0-4) are in the card's §1.
 <!-- THOUGHT:END -->
 # Brainstorm (fork, Fable, 10-22 ~18:3xZ): one matrix family for the graph interface
 
@@ -363,6 +363,7 @@ deprecated on npm since 05-07: it will not load here. pi 0.73.1 has only compact
 So the thing to adopt is the SHAPE, not the package: OptChat's log + summary tree + bounded view is §AC's `nest:` applied
 to a conversation (a container per subtree, a baked summary line, zoom = open the member). It is files, so it is nodes.
 OptMem adds nothing the graph does not already do better (a memo is a node; `recall` is the brief); skip it.
+**OVERRULED by the owner 11-01 (c:093989b6aeb0): adopt OptMem ITSELF, seamless, nothing compacted; see goal:g7.16.1.11.46.32 (horizon).**
 
 What the design needs regardless of the mechanism: a **memory horizon** per post, as a cell, and a store the horizon keys.
 ```
