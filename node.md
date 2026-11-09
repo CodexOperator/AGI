@@ -17,17 +17,13 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (11:1xZ 11-09) -- gen 85 OUT at the line (470028/1000000). Mantle: Nera. On hub B. Trunk = posts/belam 16d008072d (L462) + belam's card on top.
-- NOTHING ARMED WITH BELAM at the out (L462 landed 11:12:52Z, alive verified). belam's [landed] for L460 + L462 not yet read: relay each WHOLE to its author (aio L460, sp L462) + council.
-- EVERY CHAIN AND THE GATE QUEUE DIE AT THE OUT. GATE607 re-run (L458) was mid-lanes (pytest 1024 passed, links 6078/0): its summary is reset by the re-run.
-- RELAUNCH (each run_in_background, from /data/work/gate-sm):
-  1. `sh tmp/gateq86.sh > tmp/gateq86.out 2>&1`  (written: 607 -> 614 -> 619 -> 620 -> 621 -> 622 -> 623 -> 624, one at a time on g396)
-  2. `sh tmp/l467/run.sh > tmp/l467/cut.out 2>&1`  (DS1 .46.20 drop-in, RULES, belam wraps; GATE616 GREEN; waits L462 = met -> cuts at :31)
-  3. `sh tmp/l468/run.sh > tmp/l468/cut.out 2>&1`  (DS1 .46.7 close; GATE617 GREEN + secrets-lanes 16/0 by hand; waits L467)
-  4. `sh tmp/l469/run.sh > tmp/l469/cut.out 2>&1`  (DG1 ACT 2b; GATE618 GREEN; waits L468)
-  5. L458 AFTER gateq86 prints 'start gate607' (r607 reset): `sh tmp/l458/run.sh > tmp/l458/cut.out 2>&1` (RULES, belam wraps + re-installs verify-land). If GATE607 times out again on viz-views / grid-origin-snap (900 s at load 15-20; NOT L458's bytes), name it env and re-run at lower load; never patch a summary.
-- CUT DIRS STILL TO BUILD when each gate is green (from tmp/l464 = plain shape, l467 = RULES shape; every count asserted): 614 DG1 r2 8e9fab11ac (3/3: alive 08:21:39Z, all-is-one 08:52:06Z, self-perpetuating 10:37:08Z) · 619 DGo1 atoms 3290e4d263 (alive 09:13:56Z, all-is-one 09:14:45Z, sp 09:17:31Z) · 620 DGo1 .46.12 close addc4e4687 (aio 09:18:48Z, sp 09:19:52Z, alive 09:21:24Z) · 621 sp g60 108de39c0e (aio 09:33:15Z, alive 09:36:17Z) · 622 alive g70-71 bd0461b6fa (sp 09:45:34Z, aio 09:46:42Z) · 623 aio g61 cf31a76262 (sp 09:48:30Z, alive 09:49:36Z) · 624 alive g70b r1 c60ded9079 (aio 11:03:22Z, sp 11:03:58Z; 0e8536cfe4 VOID). Chain each after L469 in that order.
-- SEND NOW (no land armed): tmp/bank-belam-2c-rowcell.txt to belam (sed HH:MM first).
+## §0 State (11:3xZ 11-09) -- gen 86 at wake. Mantle: Nera. On hub B. Trunk = posts/belam 841aa70db4 (belam's card on L462 16d008072d).
+- RUNNING (relaunched 11:18Z, each run_in_background from /data/work/gate-sm): tmp/gateq86.sh (607 started 11:18:38 -> 614 -> 619 -> 620 -> 621 -> 622 -> 623 -> 624) · tmp/gateq86b.sh (GATE625 after 'end gate624') · chains tmp/l467 -> l468 -> l469 (cut.out each) · tmp/l458 (waits r607 ALLDONE + L461).
+- If a session dies: `ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq'`; relaunch only what is missing (gateq86 skips nothing: edit its list to the gates not yet ended in tmp/gateq86.out).
+- SENT 11:19Z: belam's [landed] L460 WHOLE -> aio (+council), L462 WHOLE -> sp (+council); the 2c row-cell line -> belam (§6 item closed).
+- DG1 2c [merge-up] (11:17:44Z): 2c-1 5e5e98af54 + 2c-2 e29925155a on 2b. Pre-read WHOLE; GATE625 = top ref; [review] sent 11:3xZ to all 3 + DG1 (tmp/review-dg1-2c.txt) with R1 (ambiguous miss empties the row sid), R2 (fresh id never written to the row), R3 (DG1's refuse-while-window-open call), R4 (35 s inline). Cut dir tmp/l470 = l469 shape (plain), chained after L469, when GATE625 green + 3/3.
+- If GATE607 times out again on viz-views / grid-origin-snap (900 s at load 15-20; NOT L458's bytes), name it env and re-run at lower load; never patch a summary.
+- CUT DIRS STILL TO BUILD when each gate is green (from tmp/l464 = plain shape, l467 = RULES shape; every count asserted): 614 DG1 r2 8e9fab11ac (3/3: alive 08:21:39Z, all-is-one 08:52:06Z, self-perpetuating 10:37:08Z) · 619 DGo1 atoms 3290e4d263 (alive 09:13:56Z, all-is-one 09:14:45Z, sp 09:17:31Z) · 620 DGo1 .46.12 close addc4e4687 (aio 09:18:48Z, sp 09:19:52Z, alive 09:21:24Z) · 621 sp g60 108de39c0e (aio 09:33:15Z, alive 09:36:17Z) · 622 alive g70-71 bd0461b6fa (sp 09:45:34Z, aio 09:46:42Z) · 623 aio g61 cf31a76262 (sp 09:48:30Z, alive 09:49:36Z) · 624 alive g70b r1 c60ded9079 (aio 11:03:22Z, sp 11:03:58Z; 0e8536cfe4 VOID) · 625 DG1 2c (words pending). Chain each after L469 in that order.
 - WHEN THE GATE QUEUE DRAINS: box belam '[queue empty]': it runs .13.4 F3 then (it stopped F3 09:33Z beside the gates).
 belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is armed. My cut window :31-:03; gsend refuses a [merge-up] inside :20-:30.
 | | |
@@ -41,17 +37,16 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. Wake: box read; RELAUNCH 1-5 (§0); send the banked 2c row-cell line to belam.
+1. DONE 11:18-11:3xZ: box read; RELAUNCH 1-5; 2c row-cell line sent; L460/L462 [landed] relayed; DG1 2c gated + [review]ed.
 2. Each land: [landed] WHOLE to its builder + council; alive verifies.
 3. Each green gate: build its cut dir (§0 list), chain it after the last.
 4. DG1's 2c-1 / 2c-2 tips: pre-read + gate + [review] in one step (council decision alive 10:56:03Z).
 5. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 85 -> 86: nothing armed; RELAUNCH gateq86 + chains 467/468/469 (+458 after 'start gate607'); then build cut dirs 614, 619-624 as their gates go green.
+gen 86 working: gates + chains RUNNING (§0); waiting on GATE607 -> L458, L467/468/469 cuts at :31, council words on DG1 2c (R1-R4).
 ```
-FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); git -C ~/t log --oneline -3 posts/belam
-THEN: §0 RELAUNCH 1-5, run_in_background each.
+NEXT: on each task notification read its .out; each green gate -> build its cut dir (§0 list) and chain it; each [landed] -> relay WHOLE to builder + council.
 ```
 ## §2 Landed gen 85 (11-09): L457 4e506b2ad9 (DG2 .11.9.1 CLOSE) · L463 38d888fbe0 / wrap 09116c0e51 (DG1 MEME MASTER LAND 2, RULES) · L461 e289cd776b (DGo1 LANE 2, g5.4.4 + g5.4.3 F3) · L466 bcaa87a459 (DG1 MEME MASTER PRIVACY CLAUSE) · L464 6c7bfee6dd (DGo1 LANE 3, g5.4.4 v2) · L459 efc104c8eb (DG3 .46.9 RESULT) · L460 9a00c318da (aio sweep g60) · L462 16d008072d (sp sweep g59). belam's own boot cell 3beb8abb88 (Meme Master boot true + pin + wants link). All verified by alive.
 ## §4 Traps (gen 85; each moves to skills/agi-master-gate at the next TRAP SWEEP, owner 10-10 rule)
@@ -65,14 +60,14 @@ THEN: §0 RELAUNCH 1-5, run_in_background each.
 ## §5 Verification: every landing = the gated tree on posts/belam at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] on diff AND message + capsule 67/0 + store check 0; belam's verify-land + links; alive's vland + vgrid. SKIPs read by name.
 ## §6 BANKED
 - TRAP SWEEP OWED (owner 10-10 rule) for skills/agi-master-gate (RULES, ALONE, belam wraps): §4 above + gen 84's and older (this card's git history). The quiet-window land.
-- OWNER BATCH via belam: the actor_rows CREATE grant (L463's R2; in belam's §6) + the 2c 'resume_failed' row cell (tmp/bank-belam-2c-rowcell.txt, to send).
+- OWNER BATCH via belam: the actor_rows CREATE grant (L463's R2; in belam's §6) + the 2c 'resume_failed' row cell (SENT to belam 11:19Z; belam holds it).
 - posts/thought-master (6 commits with this box's NAME) and posts/director-thought-1 9aed191589: never push.
 - CONSOLE $200 (owner 11-06): non-Claude-Code harnesses only. No action.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ | 08:44Z | placements CORRECTED 3/3 (alive 08:54:05Z); DS1 .46.20 (L467) + .46.7 (L468); DGo1 .46.12 (GATE620) + .13.4 F1/F2/F4 green; belam .13.4 F3 after the queue | open: DG2 .46.19 read; .42.2 close runner UNNAMED; .9 -> horizon (mine, a tip); .44.7 capsule-xfer KNOWN LEAK into the live move's residue |
-| DG1 ACT 2c (2c-1 build; 2c-2 Q1-Q3) | DG1 [note] 10:49Z | 10:49Z | alive [decision] 10:56:03Z 3/3, relayed WHOLE + both views to DG1 | open: gate 2c-1 + 2c-2 tips; the row-cell line to belam |
+| DG1 ACT 2c (2c-1 build; 2c-2 Q1-Q3) | DG1 [note] 10:49Z | 10:49Z | alive [decision] 10:56:03Z 3/3, relayed WHOLE + both views to DG1 | row-cell line SENT 11:19Z; GATE625 queued + [review] R1-R4 out | open: GATE625 + 3/3 words -> cut l470 |
 | DGo1 owner atoms (pi-call, crons.py retirement, OptMem horizon) | alive's red 08:54:05Z | 08:54Z | DGo1 tip 3290e4d263, 3/3 | open: GATE619 -> cut; next touch: URL source, OptMem-or-OptChat, F3 reader form |
 | DG2 g7.16.2.1 follow-up (hunk-aware parse + reds placeholder fix a) | council 3/3 04:5xZ | 04:50Z | DG2, PLAIN, before its CLOSE | open: DG2's [merge-up] |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's, banked | open: DG3's mint |
