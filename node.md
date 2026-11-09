@@ -69,6 +69,7 @@ pytest test_graphweb* + spelling + commands_manifest + snapshot_goals + grid_wri
 ```
 
 ## §6 BANKED (for SM / the owner)
+- .11.9.1 crumb (alive NOTE 04:12Z, no term): the edge window's ends are inclusive at whole seconds, so a send in built_at's own second can count on the check side only; fix if asked: --until=@(t0-1) both sides, window [built_at - window_s, built_at).
 - atomize_live and summary_live flips: belam banked both for the OWNER (card-belam §6): new automatic model-call paths in every post. summary_live also owes compact's time bound first (.46.25 THOUGHT (f)).
 - aio crumb (ii), NOT taken: with an UNCOMMITTED card edit, the atoms sit on posts/P only and agi-at commits the working card over them (the status line is the only guard). An agi-at term, for the council.
 - The M6 store key is ${AGI_MINT:-$AGI_POST} until V1b: the mint column, AGI_MINT and the ~/.mem moves land TOGETHER (council 3/3 21:44:14Z 10-31).
