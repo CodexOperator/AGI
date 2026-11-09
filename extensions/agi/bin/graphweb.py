@@ -1356,23 +1356,24 @@ def head_sha(graph_root: Path, rev: str | None = None) -> str | None:
     return out.strip() if out else None
 
 
-def uncommitted_nodes(graph_root: Path) -> list[str] | None:
-    """Node files under <graph_root>/nodes that differ from HEAD (modified,
-    added, deleted or untracked), repo-relative and sorted: what the footer
-    names when the drawn graph is not the committed one. Read-only:
-    --no-optional-locks keeps git status from refreshing the index. An
-    unreadable status is None, never [] (clean): the footer says 'unread'.
-    So is a missing nodes directory (a pathspec that matches nothing exits 0
-    like a clean tree), and the pathspec is absolute, so a relative root
-    cannot match nothing either."""
+def _uncommitted(graph_root: Path) -> tuple[list[str] | None, str | None]:
+    """(node files under <graph_root>/nodes that differ from HEAD, None) --
+    modified, added, deleted or untracked, repo-relative and sorted -- or
+    (None, why) when they cannot be read: no nodes directory (a pathspec that
+    matches nothing exits 0 like a clean tree), git status failed, or HEAD
+    names no commit (an unborn branch lists every node as added). Read-only:
+    --no-optional-locks keeps git status from refreshing the index. The
+    pathspec is absolute, so a relative root cannot match nothing."""
     root = Path(graph_root).resolve()
     if not (root / "nodes").is_dir():
-        return None
+        return None, "no nodes directory"
     out = _git(source_root(root), "--no-optional-locks", "status",
                "--porcelain=v1", "-z", "--untracked-files=all", "--",
                str(root / "nodes"))
     if out is None:
-        return None
+        return None, "git status failed"
+    if head_sha(root, "HEAD") is None:
+        return None, "HEAD names no commit"
     paths, items = [], out.split("\0")
     i = 0
     while i < len(items):
@@ -1383,14 +1384,19 @@ def uncommitted_nodes(graph_root: Path) -> list[str] | None:
         paths.append(e[3:])
         if e[0] in "RC" or e[1] in "RC":  # a rename / copy (index or worktree
             i += 1                          # column, git add -N): skip its source
-    return sorted(set(paths))
+    return sorted(set(paths)), None
+
+
+def uncommitted_nodes(graph_root: Path) -> list[str] | None:
+    """What the footer names: _uncommitted's list, None (never []) when unread."""
+    return _uncommitted(graph_root)[0]
 
 
 def uncommitted_fields(graph_root: Path) -> dict:
-    """The two export keys for the footer: the list, and words when unread."""
-    u = uncommitted_nodes(graph_root)
-    return {"uncommitted_nodes": u, "uncommitted_read_nothing": None if u is not None
-            else "uncommitted node files: unread (git status failed)"}
+    """The two export keys for the footer: the list, and words naming why when unread."""
+    u, why = _uncommitted(graph_root)
+    return {"uncommitted_nodes": u, "uncommitted_read_nothing":
+            None if why is None else f"uncommitted node files: unread ({why})"}
 
 
 def _utc_now() -> str:
@@ -1429,7 +1435,8 @@ def build_views(graph_root: Path, rev: str | None = None,
     so in `read_nothing` and carries an empty list."""
     sha = head_sha(graph_root, rev)
     at = sha[:12] if sha else "an unresolvable rev"
-    built_at = _utc_now()
+    now = datetime.now(timezone.utc)    # ONE instant: built_at and the window's start
+    built_at = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     posts = _frontmatter_at(graph_root, sha, "posts.md")
     rows = [r for r in (posts or {}).get("posts") or [] if isinstance(r, dict)]
@@ -1444,14 +1451,15 @@ def build_views(graph_root: Path, rev: str | None = None,
 
     names = {r["name"] for r in crew if isinstance(r.get("name"), str)}
     edges = []
-    since = "--since=@%d" % (int(datetime.now(timezone.utc).timestamp()) - int(window_s))
+    since = "--since=@%d" % (int(now.timestamp()) - int(window_s))
+    until = "--until=@%d" % int(now.timestamp())   # a send during the read is not in this window
     refs = _git(source_root(graph_root), "for-each-ref",
                 "--format=%(refname)", "refs/box/") or ""
     for ref in sorted(refs.split()):
         parts = ref.split("/")
         if len(parts) != 4 or parts[2] not in names or parts[3] not in names:
             continue
-        n = _git(source_root(graph_root), "rev-list", "--count", since, ref)
+        n = _git(source_root(graph_root), "rev-list", "--count", since, until, ref)
         if n is None:
             continue
         edges.append({"from": parts[2], "to": parts[3], "count": int(n.strip())})

@@ -42,12 +42,13 @@ elif a[0] == "clocks":  # clocks EXPORT CRONS_TEXT -> got want same (each job: i
     out(len(got), len(want), int(got == want), ";".join("%s=%s" % tuple(c) for c in got)[:200])
 elif a[0] == "edges":  # edges EXPORT REPO -> got want same edges-as-words
     x = ld(a[1]); names = {r["name"] for r in x["crew"]["rows"]}; w = x["window_s"]
+    import calendar, time; t0 = calendar.timegm(time.strptime(x["built_at"], "%Y-%m-%dT%H:%M:%SZ"))   # the export's own instant: a later 'now' drops a commit at the edge
     g = lambda *c: subprocess.run(["git", "-C", a[2], *c], capture_output=True, text=True).stdout
     want = []
     for ref in sorted(g("for-each-ref", "--format=%(refname)", "refs/box/").split()):
         p = ref.split("/")
         if len(p) == 4 and p[2] in names and p[3] in names:
-            want.append({"from": p[2], "to": p[3], "count": int(g("rev-list", "--count", "--since=%d seconds ago" % w, ref))})
+            want.append({"from": p[2], "to": p[3], "count": int(g("rev-list", "--count", "--since=@%d" % (t0 - w), "--until=@%d" % t0, ref))})
     got = x["comms"]["edges"]
     out(len(got), len(want), int(got == want), sum(int(e.get("count") or 0) for e in got), " ".join("%s>%s=%s" % (e.get("from"), e.get("to"), e.get("count")) for e in got)[:200] or "-")
 elif a[0] == "nosubject":  # nosubject EXPORT TOKEN -> edges-with-extra-keys token-hits
@@ -183,10 +184,16 @@ JS
 FX3=$T/fx3;mkdir -p "$FX3/.agi/nodes";echo '{}' >"$FX3/.agi/config.json";printf -- '---\nid: idea:fx3\n---\n' >"$FX3/.agi/nodes/fx3.md"
 r_unread(){ GIT_CEILING_DIRECTORIES=$T xp "$1" "$FX3/.agi" "" >"$T/xu.json";u=$(py get "$T/xu.json" uncommitted_nodes);w=$(py get "$T/xu.json" uncommitted_read_nothing)
  rc=$(GIT_CEILING_DIRECTORIES=$T git -C "$FX3" status >/dev/null 2>&1;echo $?);xp "$1" "$FX/.agi" "" >"$T/xc0.json";w0=$(py get "$T/xc0.json" uncommitted_read_nothing)
- ok "d-unread-status-says-unread-never-clean no repo (git status rc $rc): uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread ..'); a clean repo's words $w0 (want null)" '[ "$u" = null ]&&echo "$w"|grep -q "uncommitted node files: unread"&&[ "$w0" = null ]&&[ "$rc" != 0 ]';}
+ ok "d-unread-status-says-unread-never-clean no repo (git status rc $rc): uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread (git status failed)'); a clean repo's words $w0 (want null)" '[ "$u" = null ]&&echo "$w"|grep -qF "uncommitted node files: unread (git status failed)"&&[ "$w0" = null ]&&[ "$rc" != 0 ]';}
 # no nodes directory (FX2, a repo whose .agi holds none) reads unread too; a WORKTREE-column rename (git add -N) names the new path alone
 r_nonodes(){ xp "$1" "$FX2/.agi" "" >"$T/xnn.json";u=$(py get "$T/xnn.json" uncommitted_nodes);w=$(py get "$T/xnn.json" uncommitted_read_nothing)
- ok "d-no-nodes-directory-says-unread a repo with no .agi/nodes: uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread ..')" '[ "$u" = null ]&&echo "$w"|grep -q "uncommitted node files: unread"';}
+ ok "d-no-nodes-directory-says-unread a repo with no .agi/nodes: uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread (no nodes directory)': status never ran)" '[ "$u" = null ]&&echo "$w"|grep -qF "uncommitted node files: unread (no nodes directory)"';}
+# an UNBORN branch (git init, one node added, no commit): status rc 0 lists every node as added, but HEAD names no commit, so the list is unread, never 'N uncommitted'
+FX5=$T/fx5;mkdir -p "$FX5/.agi/nodes";echo '{}' >"$FX5/.agi/config.json";printf -- '---\nid: idea:fx5\n---\n' >"$FX5/.agi/nodes/fx5.md"
+GIT_CONFIG_GLOBAL=/dev/null git -C "$FX5" init -q;GIT_CONFIG_GLOBAL=/dev/null git -C "$FX5" add .agi/nodes/fx5.md
+r_unborn(){ st=$(GIT_CONFIG_GLOBAL=/dev/null git -C "$FX5" status --porcelain=v1 -- .agi/nodes|tr '\n' ';');rc=$(GIT_CONFIG_GLOBAL=/dev/null git -C "$FX5" rev-parse -q --verify HEAD >/dev/null 2>&1;echo $?)
+ xp "$1" "$FX5/.agi" "" >"$T/xub.json";u=$(py get "$T/xub.json" uncommitted_nodes);w=$(py get "$T/xub.json" uncommitted_read_nothing)
+ ok "d-unborn-head-says-unread status [$st] (rc 0, every node added), rev-parse HEAD rc $rc: uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread (HEAD names no commit)')" '[ "$u" = null ]&&echo "$w"|grep -qF "unread (HEAD names no commit)"&&echo "$st"|grep -q "^A "&&[ "$rc" != 0 ]';}
 FX4=$T/fx4;cp -r "$FX" "$FX4";f4(){ GIT_CONFIG_GLOBAL=/dev/null git -C "$FX4" -c core.hooksPath=/dev/null "$@";}
 mv "$FX4/.agi/nodes/.geometry/crons.md" "$FX4/.agi/nodes/.geometry/crons-moved.md";f4 add -N .agi/nodes/.geometry/crons-moved.md
 r_wtrename(){ st=$(f4 status --porcelain=v1|tr '\n' ';');xp "$1" "$FX4/.agi" "" >"$T/xwr.json";u=$(py get "$T/xwr.json" uncommitted_nodes)
@@ -257,7 +264,7 @@ r_livenodes(){ P=$(py port)
  pyv jget "$P" /graph.json "${GRAPH_TIMEOUT:-900}";kill "$SPID" 2>/dev/null;wait "$SPID" 2>/dev/null;SPID=
  ok "live-graph-json-nodes-equal-the-verify-active-count /graph.json [$A]: $D entries = $E unique non-seat ids + $F seat:<name> + goal:g17 once more (layer 1); verify's reader (metrics.py:1053 len(_load_graph) - metrics.py:332 deprecated, parsed at verification.py:364): active_node_count ${VC:-UNREAD}, minus $GEO non-deprecated nodes/.geometry/ file(s) graphweb draws as seats = $(( ${VC:-0} - GEO )) (want $E = that; layout warm: $WARM)" '[ "$A" = 200 ]&&[ -n "$VC" ]&&[ "$E" = "$((VC-GEO))" ]';}
 r_crew "$BIN";r_keys "$BIN";r_clocks "$BIN";r_edges "$BIN";r_nosubj "$BIN";r_sha "$BIN";r_scan "$BIN";r_empty "$BIN"
-r_dirty "$BIN";r_unread "$BIN";r_nonodes "$BIN";r_wtrename "$BIN";r_unreadhttp "$BIN";r_foot "$WEB";r_urls "$WEB";r_nowrite "$BIN";r_abs "$WEB"
+r_dirty "$BIN";r_unread "$BIN";r_nonodes "$BIN";r_unborn "$BIN";r_wtrename "$BIN";r_unreadhttp "$BIN";r_foot "$WEB";r_urls "$WEB";r_nowrite "$BIN";r_abs "$WEB"
 mkdir -p "$T/ctl";cp "$WEB/app.js" "$WEB/index.html" "$T/ctl/";printf '\n// control: https://example.invalid/x.js\n' >>"$T/ctl/app.js"
 gg "$T/ctl" "$CE" >"$T/g";n=$(grep -c . "$T/g");grep -q '^ERR$' "$T/g"&&n=ERR;sed 's/^/  control /' "$T/g";ok "c-control-one-absolute-url-in-a-temp-copy-prints-1 $n (want 1)" '[ "$n" = 1 ]'
 r_pagenoread "$WEB";r_port "$BIN";r_live;r_livenodes "$BIN"
@@ -303,11 +310,17 @@ ok "m-b-pinned-base-sees-a-write-two-commits-back fixture: base = the pinned par
 mut export-drops-uncommitted-nodes "$GW" r_dirty '**uncommitted_fields(graph_root),' '"uncommitted_nodes": [],'
 mut graph-json-drops-uncommitted-nodes "$GW" r_port 'g.update(uncommitted_fields(self.graph_root))' 'g["uncommitted_nodes"] = []'
 mut unread-status-reads-clean "$GW" r_unread 'if out is None:
-        return None
+        return None, "git status failed"
+    if head_sha(root, "HEAD") is None:
+        return None, "HEAD names no commit"
     paths, items = [], out.split(' 'paths, items = [], (out or "").split('
 mut unread-status-reads-clean-http "$GW" r_unreadhttp 'if out is None:
-        return None
+        return None, "git status failed"
+    if head_sha(root, "HEAD") is None:
+        return None, "HEAD names no commit"
     paths, items = [], out.split(' 'paths, items = [], (out or "").split('
+mut unborn-head-check-dropped "$GW" r_unborn 'if head_sha(root, "HEAD") is None:' 'if False:'
+mut no-nodes-dir-words-say-status-failed "$GW" r_nonodes 'return None, "no nodes directory"' 'return None, "git status failed"'
 mut no-nodes-dir-reads-clean "$GW" r_nonodes 'if not (root / "nodes").is_dir():' 'if False:'
 mut rename-index-column-only "$GW" r_wtrename 'if e[0] in "RC" or e[1] in "RC":' 'if e[0] in "RC":'
 mut footer-unread-reads-clean "$WEB/app.js" r_foot 'if (!Array.isArray(list)) return " · uncommitted node files: unread";' 'list = list || [];'
