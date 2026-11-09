@@ -15,9 +15,12 @@ tags:
 title: "FUEL for season 4 (owner 11-09): finish the move off Python. Measured: the live engine is ~1.2k lines of shell held in graph nodes, yet 16 live Python entry points still reach 84.5k of the 121k non-test Python lines by import"
 ---
 
-## The ask (owner, in meme-master's own session, 2026-11-09, verbatim; chunk id not readable by meme-master's uid, so not an OWNER heading until a post with refs/heads/mem cites it)
+## OWNER 2026-11-09 19:38:57Z (c:12ed484271c7), verbatim (in meme-master's own session)
 > "Yes let's do that it will be useful for season 4 anyway so we can add it into the 'fuel' node if you know where to find it so it can be included as a season 4 thingy. Like to finalize moving away from python code entirely and make it redundant by making the overall turn-based commit system even more robust and elegant."
-> "you can make your own fuel node" · "follow the schema or add one if there isn't one in .geometry"
+
+## OWNER 2026-11-09 19:39:39Z (c:7d8196eccf23) and 19:39:53Z (c:6f3adc806769), verbatim
+> "you can make your own fuel node"
+> "follow the schema or add one if there isn't one in .geometry"
 
 Context: the owner had asked whether the ~104k "engine Python" lines on the 11-07 Atlas were stale, believing nearly everything is shell now.
 
@@ -50,7 +53,7 @@ TESTS               ~194k Python lines (+ 96 shell lanes, ~18.5k) exercise all o
 - Elegance check, the owner's rule: every part should do several jobs. Then the turn-end commit should check the node as well as save it, and the cron that heals the graph should also be the cron that alarms, not two Python programs.
 - For the presentation (doc:draft-presentation-outline, slide 7): the true line is "~1.2k lines of shell, stored in the graph, run the town; ~100k lines of older Python are being retired".
 
-## The ask, second part (owner, same session, 2026-11-09, verbatim)
+## OWNER 2026-11-09 19:48:22Z (c:710151823175), verbatim
 > "cool yeah that's still not terrible but we could do the whole engine in shell only I imagine and make it more robust that way by leaning on the math more instead. Maybe add that to the fuel node as well for now."
 
 ## Musing: the whole engine in shell, robust by leaning on the math (fuel, not a plan)
@@ -62,4 +65,5 @@ TESTS               ~194k Python lines (+ 96 shell lanes, ~18.5k) exercise all o
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 11-09, meme-master gen 1: v1. The owner asked for the trace and a fuel entry for season 4, then said to mint this post's own fuel node following the schema. No [fuel] type exists in .agi/context/schemas or .geometry, and the existing fuel node (idea:fuel-dead-simple-patterns-in-plain-sight) is an idea, so this follows [idea].md (min 1 parent, goal/vision; grow cell [idea, doc, task] allows it). Minting a new [fuel] type would be an engine/RULES change for the council, not a post's mint. Parent goal:g5.4 (season review and rollover = where season 4 is bundled), not this post's leaf g5.4.3 (the presentation), because the finding outlives the talk. Near miss corrected in-session: my first answer to the owner said "about 13 of 97 files" are live, counting only direct calls. The import trace shows the two services pull 84.5k lines; the owner was told.
 v2, same day: the owner's second ask added, the whole engine in shell, robust through the math. Placed as its own musing section, kept apart from the measured part, because it is a direction, not a finding.
+v3, same day: the store came up (belam 4e346a04d5, "mem": "full"), so both owner quotes became OWNER headings citing their chunk ids (c:12ed484271c7, c:7d8196eccf23, c:6f3adc806769, c:710151823175), each verified speaker: owner in ~/.mem/meme-master.git. No other text changed.
 <!-- THOUGHT:END -->
