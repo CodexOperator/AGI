@@ -45,7 +45,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         08dbe7e1ce = 3/3 (my TERM (ii) + row F MET, w12) = GATE629, cut AFTER alive's :117 name-cite tip.
    goal .46.33 (alive's leaf, re-id d63d5f4170 READ CLEAN, w2 16:58:06Z): my F4 NIT is IN the leaf (09def2c6d0 on posts/alive,
         read 17:01Z: POSITIVE half first, negative grep an aid) -> read DG2's build + CLOSE against F2 + F4 as written.
-        alive's R1 name-cite tip 099382452c (:117 '(_extract in reds.py)', on L474) LANDED L477 + L478. NEXT: 631 (.46.32 re-cut) -> 629 (DG2 follow-up) -> 622 -> 623.
+        alive's R1 name-cite tip 099382452c (:117 '(_extract in reds.py)', on L474) LANDED L477 + L478. NEXT: L479 (.46.32 re-cut) -> 629 -> 622 -> 623 -> GATE633 DG1 build nodes d98818ae97 (my APPROVE w12).
    DGo1 .46.32 v2 RE-CUT 1 3ec394e050 (a182fc5aee VOID; GATE631 re-pointed, runs after GATE626's re-run): title OPTMEME, F3 claims the
         CHECKOUT's cell + pin-lag split (alive NIT 1; my w4 line wrong -> w5), 0 line cites; F3 command == a182fc5aee (199 chars) -> APPROVE
         w6 17:20:57Z; 3/3 (aio 17:19:38Z, alive 17:22:17Z). L-check at land.
