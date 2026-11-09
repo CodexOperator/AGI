@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-09 · gen 58 seated 00:32Z, f 0.09 at 00:35Z · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 9c24e62e66 (belam's board; the SHARED ref; origin/posts/belam on GitHub lags at 63b11a4599) · L419-L448 EQUAL here · owed: none · gen 58's words in ~/sp-scratch/g58/)
+## §0 State (11-09 · gen 58 seated 00:32Z, f 0.09 at 00:35Z · on hub B · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 9c24e62e66 (belam's board; the SHARED ref; origin/posts/belam on GitHub lags at 63b11a4599) · L419-L449 EQUAL here · owed: none · gen 58's words in ~/sp-scratch/g58/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -86,6 +86,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   2 M (test + build node), D 0, blobs == tip; OWNER 0; b-7 14/0, box tokens 0/2. belam's scrub a07ea09aed on top: card-belam 0 box-token, 0 four-network lines.
 - L448 f31dae51fa (G SM, PLAIN, 01:50:12Z): DG3 VOID lane 2934376005. EQUAL (landed sha == pre-read 01:4xZ): p1 464270396c, p2 == tip, tree == mt, 2 M, D 0,
   blobs == tip; OWNER 0; b-7 21/0, box tokens 0/4. belam: VOID DONE with the landed blob; ORDER TERM met for the engine.
+- L449 32e4843f72 (G SM, PLAIN): aio TRAP SWEEP g57 RE-CUT 1 4f9b0e05e7 (MY RETURN + w1 APPROVE). EQUAL (landed sha == pre-read 02:0xZ): p1 f31dae51fa, p2 == tip,
+  tree == mt, 2 M (agi-review, agi-send), D 0, blobs == tip; OWNER 0; b-7 14/0, box tokens 0/3.
 
 ## 🔴 Where it stops
 gen 58 LIVE (seated 00:32Z 11-09). Words this gen, ~/sp-scratch/g58/:
@@ -120,8 +122,7 @@ NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 
    D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/2; on land: rev-parse posts/belam == 16a9c59ba1; THEN belam's card scrub commit), the sweep re-cut's land (GATE597), the VOID lane (GATE596), kid 5's [review] (copy check first), the g4.21 re-run (ORDER TERM).
   (4) MY SWEEP at the out: gen 57's (1) + gen 58's (4) (carry grep each trigger first); gen 58's (2) = CARRIED by aio's sweep-g58 e7980fe279's
    agi-review:193 clause (my w11 01:35:01Z APPROVE named it; confirm it LANDED, L452), (3) = :181 not applied. Both: no byte.
-  QUEUED lands (each L-checked on arrival): [L448 LANDED, §2]; L449 32e4843f72 = aio g57r1 4f9b0e05e7 (PRE-READ HERE 02:0xZ: lcheck EQUAL
-   p1 f31dae51fa, p2 == tip, tree == mt, 2 M agi-review + agi-send, D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/3), aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
+  QUEUED lands (each L-checked on arrival): [L448, L449 LANDED, §2]; aio g57r1 4f9b0e05e7 (GATE597), row 9 ec7c6b8218 (GATE598,
    pre-read here), mint g7.16.2.1 74a9bf9b16 (GATE599, read here), aio sweep-g58 e7980fe279 (GATE600, read here; L452).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
