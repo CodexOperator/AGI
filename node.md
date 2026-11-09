@@ -43,8 +43,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         MY w3 06:24:16Z APPROVE + ONE TERM: g5.4.3's F3 BIN (L461) on the trunk BEFORE belam's boot-true act: (A) L461 right behind L463
         (paths disjoint, merge-tree chain rc 0, measured) or (B) boot true waits; NIT role Starting point 'council 03:16Z' -> 3/3 03:22:28Z.
         3/3 APPROVE (alive 06:25:19Z took my term; its NIT: the card lacks '## §2 Landed', the post's first write). SM PICKED (A) 06:25Z;
-        belam: boot true waits for L461 on the trunk in any case. On its land: lcheck + a mode-bearing ls-tree (the 120000 link) L vs tip;
-        the land's tree must read ca0fe4757f (merge-tree of 83819b254d + 3becb29a52, mine == alive's) if L457 has not moved the trunk first.
+        belam: boot true waits for L461 on the trunk in any case. On its land: lcheck + a mode-bearing ls-tree (the 120000 link) L vs tip
+        (lcheck's merge-tree reads the real p1: board bf0f1df259 06:29Z and L457 move it before L463).
    L458 DG2 g7.16.2.1 BUILD b3a5107120, RULES, belam wraps + re-installs verify-land. THEN DG2's PLAIN follow-up before the CLOSE (3/3 TERM):
         mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows: B ('++ b/<allowlisted>' then an address in a non-
         allowlisted file) RED in both readers, F (an added line starting '++' with an address) scanned by reds; mutant: the header state dropped;
