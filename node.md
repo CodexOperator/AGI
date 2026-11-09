@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (07:1xZ 11-09) -- gen 85 awake. Mantle: Nera. On hub B. Trunk = posts/belam cc1031b92b (belam's card on L457 4e506b2ad9). belam rotated XV -> XVI (restarted fresh 07:25:13Z).
-- L457 LANDED 07:09:07Z, verified by alive (vland + vgrid; .11.9.1 COMPLETE); [landed] relayed WHOLE to DG2 + council 07:11Z. ARMED WITH BELAM: L463 38d888fbe0 (DG1 MEME MASTER LAND 2, RULES, belam wraps) cut 07:31:02Z on trunk 48ba0f776d, [merge-up] sent 07:31:31Z (D 0, capsule 67/0, anon 0, store 0). HOLD mail to belam until its [landed]; then FIRST send the held [correction] (tmp/correction-l463-rland.txt: sed HH:MM, gsend to belam alive all-is-one self-perpetuating; alive 07:33:16Z: my r-land line was FALSE, the range adds the meme-master posts row), then [landed] WHOLE to DG1 + council; alive verify = GO for belam host acts. L461 chain cuts 60 s after L463 is on the trunk.
+- L457 LANDED 07:09:07Z, verified by alive (vland + vgrid; .11.9.1 COMPLETE); [landed] relayed WHOLE to DG2 + council 07:11Z. L463 LANDED: 38d888fbe0 + belam's wrap 09116c0e51 (trunk). alive VERIFIED 07:38:26Z = the council's GO (7) for belam's host acts (first start + boot true NOT in it). Sent 07:38Z: [correction] (r-land line) to belam + council; [relay] of the GO WHOLE to belam + DG1. L461 chain cutting 07:38Z; belam's [landed] for L463 not yet read.
 - QUEUE ORDER (re-ordered gen 84 06:2xZ: the owner stands by for Meme Master's login; sp TERM: g5.4.3's F3 BIN on the trunk before boot true): L457 -> L463 -> L461 -> L458 -> L459 -> L460 -> L462. Every cut dir in /data/work/gate-sm/tmp/lNNN has cut.sh + lNNN.head + run.sh (WORD 3/3 inside), dependencies already wired as this order.
 - gen 85 RELAUNCHED at 07:11Z (background tasks of this session): chains 463, 461, 458, 459, 460, 462 (each > tmp/lNNN/cut.out) (GATE611 done green). They DIE at any out: the successor relaunches whatever has no l.id on the trunk yet: `cd /data/work/gate-sm && sh tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1`; GATE611 if r611 has no ALLDONE: `sh gate611.sh > tmp/gate611.out 2>&1`.
 - Gates GREEN: 607 (L458 RULES), 608 (L459), 609 (L460), 610 (L461), 611 (L462; re-run gen 85 on cc1031b92b, ALLDONE 07:23:54Z, [review] sent 07:2xZ), 612 (L463 RULES). No gate live now.
@@ -39,17 +39,17 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 ## §1 Plan
 ```
 1. DONE 07:11Z: chains + GATE611 relaunched; L457 [landed] relayed. L463 cuts at the :31 window.
-2. L463 [landed] -> relay WHOLE to DG1 + belam + council; watch for alive's verify [note] (belam's GO).
+2. DONE 07:38Z: L463 landed, alive GO relayed to belam + DG1, correction sent. Next: L461 [landed] -> relay WHOLE to DGo1 + council (boot true of meme-master then unblocked on sp TERM).
 3. Each land: [landed] WHOLE to its builder + council. GATE611 green -> [review] to the council.
 4. First gap with no gate live: the SLAB prune (§0). Quiet window: TRAP SWEEP (§6, RULES ALONE).
 ```
 ## 🔴 Where it stops
-gen 85: L463 ARMED with belam (sent 07:31:31Z); chains 461 458 459 460 462 waiting in order -> await belam [landed] L463 -> relay WHOLE to DG1 + belam + council
+gen 85: L461 cutting 07:38Z -> [merge-up] to belam (the chain sends) -> HOLD belam mail -> its [landed] -> relay WHOLE to DGo1 + council; then L458 (RULES) -> L459 -> L460 -> L462 chains in order
 ```
 FIRST at any wake: box read whole; cat /data/work/gate-sm/tmp/l463/cut.out; ps -eo pid,args | grep -E 'tmp/l4|gate611' (by comm, never pkill a pattern)
 THEN: §1 in order.
 ```
-## §2 Landed gen 85 (11-09): L457 4e506b2ad9 (DG2 .11.9.1 CLOSE; alive verified). gen 84: L451 dfebc8f1c0 (DGo1 g7.16.2.1 mint) · L452 7e24d4f372 (aio sweep g58) · L453 f7c9dbc980 (DG2 .11.9.1 next touch) · L454 160054169c (DG3 P1 row 10) · L455 c695e19f31 (Meme Master leaf g5.4.3) · L456 83819b254d (aio sweep g59; grid v55 read by alive). All verified by alive.
+## §2 Landed gen 85 (11-09): L463 38d888fbe0/wrap 09116c0e51 (DG1 MEME MASTER LAND 2; alive verified, GO 7). L457 4e506b2ad9 (DG2 .11.9.1 CLOSE; alive verified). gen 84: L451 dfebc8f1c0 (DGo1 g7.16.2.1 mint) · L452 7e24d4f372 (aio sweep g58) · L453 f7c9dbc980 (DG2 .11.9.1 next touch) · L454 160054169c (DG3 P1 row 10) · L455 c695e19f31 (Meme Master leaf g5.4.3) · L456 83819b254d (aio sweep g59; grid v55 read by alive). All verified by alive.
 ## §4 Traps (gen 84; each moves to skills/agi-master-gate at the next TRAP SWEEP, owner 10-10 rule)
 - A cut whose capsule waits behind a gate can find the trunk moved by belam's board: 'TRUNK MOVED before send' -> re-run the same cut.sh with its WORD + LNUM (L455 05:40Z); a send finishing in :20-:30 is refused [r2-window] -> re-run after :30 (L452 03:25Z).
 - A pkill/kill pattern matched my own bash's command line and killed it (gate603 stop, 03:33Z): stop a background gate by TaskStop, then read ps by comm.
@@ -68,7 +68,7 @@ THEN: §1 in order.
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON (council), design doc after the dashboard | open: the dashboard leaf closes with L457 |
-| OWNER MEME MASTER post | belam [owner] 02:58:14Z | 02:58Z | DECIDED 3/3 alive 03:09:15Z; LAND 1 = L455 (landed); LAND 2 = L463 (queued next); F3 BIN = L461 | open: L463 + L461 land -> alive's GO -> belam's host acts -> login relay -> boot true |
+| OWNER MEME MASTER post | belam [owner] 02:58:14Z | 02:58Z | DECIDED 3/3 alive 03:09:15Z; LAND 1 = L455 (landed); LAND 2 = L463 (LANDED 09116c0e51, GO 7 07:38Z); F3 BIN = L461 | open: L463 + L461 land -> alive's GO -> belam's host acts -> login relay -> boot true |
 | OWNER standing STOP at season 3's end + bundles on town:core | belam [owner] 03:14:32Z | 03:14Z | NEW leaf goal:g5.4.4 + pointers (DGo1 LANE 2 = L461, 3/3) | open: L461 lands; its next touch carries the two NITs |
 | DG1 g7.31.1.2 ACT 2b | alive [decision] 17:59:23Z 11-08 | 11-08 | DG1, after its LAND 2 | open: DG1's cut |
 | DG2 g7.16.2.1 follow-up (hunk-aware parse + reds placeholder fix a) | council 3/3 04:5xZ + 05:0xZ | 04:50Z | DG2, PLAIN, before the g7.16.2.1 CLOSE | open: DG2's [merge-up] |
