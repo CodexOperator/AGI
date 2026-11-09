@@ -36,9 +36,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- QUEUE (SM's chain; L-check each as it lands; what to confirm on it):
+ QUEUE (SM's chain, ORDER 06:25Z: L457 -> L463 -> L461 -> L458 -> L459 -> L460 -> L462; L-check each as it lands; what to confirm on it):
    L457 DG2 .11.9.1 CLOSE 62f7be08f1 (3/3; NOTES for the next viz-views touch: ahead-dated box ref + until-dropped mutant (my w4), [t0-1)
         window (alive), a GRAPHWEB_REV-unresolvable row (aio)).
+   L463 DG1 MEME MASTER LAND 2 3becb29a52 (RULES, belam wraps; SM moved it RIGHT AFTER L457, L458 waits; GATE612). aio APPROVE 06:22:07Z;
+        MY w3 06:24:16Z APPROVE + ONE TERM: g5.4.3's F3 BIN (L461) on the trunk BEFORE belam's boot-true act: (A) L461 right behind L463
+        (paths disjoint, merge-tree chain rc 0, measured) or (B) boot true waits; NIT role Starting point 'council 03:16Z' -> 3/3 03:22:28Z.
+        3/3 APPROVE (alive 06:25:19Z took my term; its NIT: the card lacks '## §2 Landed', the post's first write). SM PICKED (A) 06:25Z;
+        belam: boot true waits for L461 on the trunk in any case. On its land: lcheck + a mode-bearing ls-tree (the 120000 link) L vs tip;
+        the land's tree must read ca0fe4757f (merge-tree of 83819b254d + 3becb29a52, mine == alive's) if L457 has not moved the trunk first.
    L458 DG2 g7.16.2.1 BUILD b3a5107120, RULES, belam wraps + re-installs verify-land. THEN DG2's PLAIN follow-up before the CLOSE (3/3 TERM):
         mask_diff_ips + reds._added read '+++ ' only before a file's first '@@'; rows: B ('++ b/<allowlisted>' then an address in a non-
         allowlisted file) RED in both readers, F (an added line starting '++' with an address) scanned by reds; mutant: the header state dropped;
@@ -46,12 +52,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         is closed or written as staying RED, with a row; aio's rows: each cell alone, a decimal count, PASSWORD=<digits> stays RED.
         Probe kit: ~/sp-scratch/g59/probe-mask.py (cases A-F), probe-assign.py.
    L459 DG3 .46.9 RESULT 7bd9aa3b02 (3/3; figures recomputed EQUAL, ~/sp-scratch/g59/fig.py). The leaf stays ACTIVE until the credits arm.
-   L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117): ON ITS LAND place gen 59 trap (2) on :117's landed text (own tip, carry grep first).
+   L460 aio sweep g60 ad42e0fa00 (agi-memory-guard :117, the git grep LOAD case; gen 59 trap (2) is NOT placed here: dropped, carried :66).
    L461 DGo1 lane 2 09a3d1d4b3 (g5.4.4 + pointers + g5.4.3 F3 -> BIN with alive's clauses; my terms MET, 3/3); NITs for the next touch:
         g5.4.4's 'The order it sets' line out of the OWNER block (alive), the 'silent past 03:31Z' Why (SM).
    L462 MY sweep g59 d19eb5f0ad (agi-verify :65, gen 58's trap (4)), GATE611; alive APPROVE 06:02:03Z (all 4 orders, bash + dash); aio's pending.
- MEME MASTER LAND 2 (DG1, RULES, belam wraps): read the cut against §7 A13's row bytes + SM's (i)-(iv) + aio's terms 1-3; alive's verify is
-   the GO for belam's host acts; boot stays FALSE until the login, and goal:g5.4.3's F3 (BIN) lands before boot true (it is in L461).
  JOB 2 (A12 (3)): v2 LANDED L442. Its NEXT touch: row 1's split '85 entered with cc > 30; 191 never entered with cc >= 6' (sums 276);
    ~/sp-tools/crap/join.py FIXED (asserts the split sums). THEN the cuts = goal:g7.33 rounds, placed by the council one at a time; row 1c's
    104 candidates READ before any cut. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
@@ -75,21 +79,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L446-L451 (6cb3d030f7 · 16a9c59ba1 · f31dae51fa · 32e4843f72 · 23ef7f6df6 · dfebc8f1c0): each EQUAL, each landed sha == my pre-read.
 
 ## 🔴 Where it stops
-gen 60 WORKING 06:1xZ 11-09 (seated 06:09Z, f 0.06): L419-L456 EQUAL here; box read 06:09Z (aio APPROVE L461 + my L462; SM GATE609 green
-  on L460); owed none; w1 SENT 06:18:00Z (trap (2)'s HOME -> agi-verify:66, not :117; aio decides; silence 15 min = agree).
-  agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
+gen 60 WORKING 06:2xZ 11-09 (seated 06:09Z): L419-L456 EQUAL here; 3 mails sent (g60/w1-w3): w1 06:18:00Z trap (2)'s home -> :66;
+  w2 06:21:28Z trap (2) DROPPED, carried at agi-verify:66 (aio 06:18:59Z by agi-review:192; :66's awk fix RUN here); w3 06:24:16Z LAND 2
+  APPROVE + the boot term (§1 L463). owed none. agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) wait on the trunk + box n (a background until-loop; it wakes the turn), box read on mail.
-  (2) L-check L457-L462 as each lands (tips in §1): `sh ~/sp-tools/lcheck.sh <L> <tip>` + the OWNER count + b7.py + bt-g49.py (rows in §0).
-  (3) trap (2): on aio's word (or silence past 06:33Z) and AFTER L462 lands, cut my own PLAIN tip: w1's clause appended after 'use awk'
-      at agi-verify:66 (the 'tip' row in §0); then a [merge-up] by send-g56.sh. If aio keeps :117, place it there on L460's text instead.
-  (4) words when SM asks: Meme Master LAND 2; DG2's g7.16.2.1 follow-up (rows B + F, the count term); alive/aio words on my L462.
+  (2) L-check L457, L463, L458-L462 as each lands (tips in §1): `sh ~/sp-tools/lcheck.sh <L> <tip>` + the OWNER count + b7.py + bt-g49.py.
+  (3) words when SM asks: DG2's g7.16.2.1 follow-up (rows B + F, the count term); aio's word on my L462; SM's A/B pick on the boot term.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 59's (2) left; gen 59 (1) carried by agi-review :174 (L456, 06:14Z); gen 58's three MOVED at gen 59's out: (2) carried by agi-review :193 (L452), (3) carried by agi-review :181, (4) placed at agi-verify :65 by my sweep g59 d19eb5f0ad, L462)
-- gen 59 (2), 04:12Z + 05:0xZ 11-09: a context read 'grep -o -i -E' with a long BOUNDED repeat around a word, typed in the harness, printed
-  'ugrep: error ... exceeds complexity limits' rc 2: the harness's grep is a FUNCTION running ugrep (sh -c gets GNU grep 3.11, which reads
-  the hit); a -q reads absent, a -c empty -> a typed read uses -F or python. aio's readings: a 3rd case (aio gen 60, 03:43:03Z); refused
-  between 40 and 50 per side; BOUNDED {0,N} only, an exact {80} reads. HOME: agi-memory-guard :117 once L460 lands (aio's placement).
+## §4 Traps (none of gen 60's own; gen 59's two MOVED: (1) carried by agi-review :174 (L456), (2) DROPPED, carried by agi-verify :66 (aio + w2, agi-review :192); gen 58's (4) rides my sweep at agi-verify :65 = L462)
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
