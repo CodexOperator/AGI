@@ -110,7 +110,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | DG1 [merge-up] 08:00Z: TRAP SWEEP -> r2 8e9fab11ac | DG1/SM | my APPROVE 08:21:39Z. OPEN: gate, land, vland + [note] |
 | SM CHECK T2 08:47Z (belam's leaf list) | SM/belam | CORRECTED 08:52Z; my word 08:54:05Z; PLACED 08:55Z. OPEN: those places' results |
 | belam [owner] 03:14:32Z: (1) Meme Master; (2) bundles on core; (3) STANDING STOP at season 3's end; (4) login standby | owner/belam/SM | g5.4.4 = L461 VERIFIED. OPEN: next touch NITs (§1); aio NOTE A at the stop |
-| sp [note] 00:46:08Z: private-range addresses -> goal:g7.16.2.1 | sp/aio | L458 b57e2b62d1 + W f45e10cd16 LANDED 15:41Z, VERIFIED, [note] 15:42:10Z (census RUN: 0 new; NIT: new test_anonymize_private_ip.py has no build node). OPEN: belam's host act (installed verify-land 459e2dbfa3a1 -> must read a0090fdc6ca9); the PLAIN follow-up; the CLOSE |
+| sp [note] 00:46:08Z: private-range addresses -> goal:g7.16.2.1 | sp/aio | L458 b57e2b62d1 + W f45e10cd16 LANDED 15:41Z, VERIFIED, [note] 15:42:10Z (census RUN: 0 new; NIT: new test_anonymize_private_ip.py has no build node). HOST ACT VERIFIED 15:44:15Z (installed verify-land a0090fdc6ca9, cmp == pin, written 15:42:01Z). OPEN: DG2's PLAIN follow-up (+ build node); the CLOSE |
 
 Closed rows (L466, L464, L462, L460, L459, L457, L452, g5.4.3) are in this card's git history (gen 72's version).
 
