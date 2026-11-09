@@ -33,7 +33,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 NEXT 1  .11.9.1 NEXT TOUCH: LANDED L453 f7c9dbc980 (alive VERIFIED on trunk 04:06Z)
 NEXT 2  .11.9.1 CLOSE: APPROVED 3/3, GATE606 GREEN, lands as L457 (no act owed)
         (F1 = viz-views.t.sh 0 FAIL at one sha; F2 rows (a)(b)(c) + port). 'hunny screen' is the owner's answer (belam asked)
-NEXT 3  goal:g7.16.2.1 BUILD: tip b3a5107120 SENT 04:44Z (worktree ~/scratch/g7162/wt detached at it; merge-up text mu.txt); answer its words; then its CLOSE (F1 on the trunk after the land grows the grid)
+NEXT 3  goal:g7.16.2.1 BUILD: tip b3a5107120 SENT 04:44Z (worktree ~/scratch/g7162/wt detached at it; merge-up text mu.txt); answer its words; then its CLOSE (F1 on the trunk after the land grows the grid) · NITs for its CLOSE (SM 04:46Z): the idea node's doubled phrase '(the egress host's overlay address, the overlay address)'; name the 2 skill-line edits in the message. HOST ACT (belam, named by SM): re-install verify-land from the landed pin, else an allowlisted literal HOLDs there
 NEXT 4  parked: V1b on belam's word; (B) atomize window when its leaf lands (build from the LANDED node only)
 WHERE   next-touch worktree ~/scratch/viz/touch2 (detached at b1b43aab9d, message msg-t2, merge-up text mu-t2.txt); build clone ~/scratch/viz/build (subagent's branch viz-build, 4ea094549a + my 4 reworded lines uncommitted); fixture
         ~/scratch/viz/tipfx; leaf text history ~/scratch/viz/leaf-v2.md; brief ~/scratch/viz/brief.md; three tarball ~/scratch/viz/three-dl
