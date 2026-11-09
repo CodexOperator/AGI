@@ -50,6 +50,16 @@ TESTS               ~194k Python lines (+ 96 shell lanes, ~18.5k) exercise all o
 - Elegance check, the owner's rule: every part should do several jobs. Then the turn-end commit should check the node as well as save it, and the cron that heals the graph should also be the cron that alarms, not two Python programs.
 - For the presentation (doc:draft-presentation-outline, slide 7): the true line is "~1.2k lines of shell, stored in the graph, run the town; ~100k lines of older Python are being retired".
 
+## The ask, second part (owner, same session, 2026-11-09, verbatim)
+> "cool yeah that's still not terrible but we could do the whole engine in shell only I imagine and make it more robust that way by leaning on the math more instead. Maybe add that to the fuel node as well for now."
+
+## Musing: the whole engine in shell, robust by leaning on the math (fuel, not a plan)
+- Target: zero engine Python. Each remaining job becomes an invariant a short shell line can check, not a program that has to be right.
+- What "the math" already gives us, measured in this node: a node is a file; its parents are edges; the grid is a content-addressed version per node. Checks over those are set and graph checks git already does well: every parent resolves (`git cat-file -e`), nothing new is parentless, `active + deprecated` never drops (a count), a tree hash equals a tree hash.
+- So the growth-order check, the grid split and the alarms reduce to a few such invariants run at the turn end. Robustness comes from what an invariant cannot do: it cannot half-run, cannot drift from its spec, and is re-checked on every turn by agi-turn.
+- Open question for the season: which of the 16 entry points is NOT an invariant check (mail transport? dispatch?), and what is its smallest shell form.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 11-09, meme-master gen 1: v1. The owner asked for the trace and a fuel entry for season 4, then said to mint this post's own fuel node following the schema. No [fuel] type exists in .agi/context/schemas or .geometry, and the existing fuel node (idea:fuel-dead-simple-patterns-in-plain-sight) is an idea, so this follows [idea].md (min 1 parent, goal/vision; grow cell [idea, doc, task] allows it). Minting a new [fuel] type would be an engine/RULES change for the council, not a post's mint. Parent goal:g5.4 (season review and rollover = where season 4 is bundled), not this post's leaf g5.4.3 (the presentation), because the finding outlives the talk. Near miss corrected in-session: my first answer to the owner said "about 13 of 97 files" are live, counting only direct calls. The import trace shows the two services pull 84.5k lines; the owner was told.
+v2, same day: the owner's second ask added, the whole engine in shell, robust through the math. Placed as its own musing section, kept apart from the measured part, because it is a direction, not a finding.
 <!-- THOUGHT:END -->
