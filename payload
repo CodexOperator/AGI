@@ -268,3 +268,95 @@ def test_session_and_resume_together_are_refused_by_name_and_its_mutant(tmp_path
                 "    if False:\n", "ht_mut")
     argv = m.render("grok-bot", bin_path="/x/g", session=UUID, resume=UUID)
     assert "-s" in argv and "-r" in argv                              # both rendered: RED
+
+
+# --- ACT 2c carry-overs from the 2b words (council 10:37Z-10:46Z 11-09) -------------------------------------------------
+
+def test_a_shebang_wrapper_named_like_the_bin_is_not_the_harness_and_its_mutant(tree, tmp_path):
+    """alive: a `#!/bin/sh` script named grok-bot reads comm grok-bot but
+    argv[0] '/bin/sh'. comm is read only when argv is empty, so the wrapper
+    never matches; the old argv-or-comm form commits the SHELL."""
+    w = tmp_path / "bin" / "grok-bot"
+    w.parent.mkdir()
+    w.write_text("#!/bin/sh\nsleep 60\n")
+    w.chmod(0o755)
+    pane = tree(f"{w}; :")
+    end = time.time() + 5
+    while time.time() < end and not any(
+            rotate._proc_argv(p)[1] == "grok-bot" for p in rotate._descendant_chain(pane)):
+        time.sleep(0.05)
+    wrapper = [p for p in rotate._descendant_chain(pane) if rotate._proc_argv(p)[1] == "grok-bot"]
+    assert wrapper and Path(rotate._proc_argv(wrapper[0])[0][0]).name == "sh"
+    assert rotate._pane_harness_pid(pane, "grok-bot")[0] is None
+    m = _mutant(tmp_path, BIN / "rotate.py",
+                "    if argv:\n        return Path(argv[0]).name == want\n",
+                "    if argv and Path(argv[0]).name == want:\n        return True\n", "rot_mutC")
+    assert m._pane_harness_pid(pane, "grok-bot")[0] == wrapper[0]     # the shell committed: RED
+
+
+def test_comm_is_read_only_when_argv_is_empty(monkeypatch):
+    long = "a-very-long-harness-bin"                                  # 23 chars; comm keeps 15
+    monkeypatch.setattr(rotate, "_proc_argv", lambda pid: (["other-tool", "x"], long[:15]))
+    assert not rotate._argv0_is(1, long)                              # another process's 15-char comm prefix
+    monkeypatch.setattr(rotate, "_proc_argv", lambda pid: ([], long[:15]))
+    assert rotate._argv0_is(1, long)                                  # argv unreadable: comm decides
+
+
+@pytest.mark.parametrize("make", [
+    lambda d: (d / "grok-bot.toml").write_text('id = "grok-bot"\n[session\n'),          # TOML parse error
+    lambda d: (d / "grok-bot.toml").write_bytes(b'id = "\xff\xfe"\n'),                  # not UTF-8
+    lambda d: (d / "grok-bot.toml").mkdir(),                                            # unreadable: OSError
+])
+def test_a_template_that_does_not_load_falls_back_to_the_registry_join(tmp_path, monkeypatch, make):
+    """alive + aio: cmd_ack and run_after_join_for_seat render no template
+    first, so a broken template must not kill their join."""
+    d = tmp_path / "tpl"
+    d.mkdir()
+    make(d)
+    monkeypatch.setattr(rotate.harness_template, "template_dir", lambda: d)   # rotate's own module object
+    assert rotate._harness_session_registry("grok-bot") == "claude"
+    assert rotate._harness_resume_proof("grok-bot") == "transcript"
+    monkeypatch.setattr(rotate, "_find_seat", lambda root, s: {"harness": "grok-bot"})
+    monkeypatch.setattr(rotate, "_join_by_pane", lambda **kw: pytest.fail("pane join on a broken template"))
+    j = rotate._join_successor(root=tmp_path, seat="g1", window_id="@5",
+                               registry_dir=str(tmp_path / "noreg"), poll_secs=0)
+    assert j["found"] is False
+
+
+def test_a_cyclic_parent_table_reads_EMPTY_and_its_mutant_spins(tmp_path, monkeypatch):
+    """aio: `seen` is all that stops a cyclic table (10>11>12>10) from walking
+    forever; the deadline in _join_by_pane is checked only between walks."""
+    cyc = {11: 10, 12: 11, 10: 12}
+    monkeypatch.setattr(rotate, "_argv0_is", lambda pid, want: False)
+    assert rotate._pane_harness_pid(10, "x", parent_of=dict(cyc)) == (
+        None, "no process launched as 'x' under pane pid 10")
+    monkeypatch.setattr(rotate, "_argv0_is", lambda pid, want: pid == 12)
+    assert rotate._pane_harness_pid(10, "x", parent_of=dict(cyc)) == (12, "depth 2")
+    m = _mutant(tmp_path, BIN / "rotate.py",
+                "                if c not in seen:\n                    seen.add(c)\n                    nxt.append(c)\n        level, depth = nxt, depth + 1\n",
+                "                if True:\n                    seen.add(c)\n                    nxt.append(c)\n        level, depth = nxt, depth + 1\n",
+                "rot_mutD")
+    monkeypatch.setattr(m, "_argv0_is", lambda pid, want: False)
+
+    def _alarm(*_a):
+        raise TimeoutError
+    old = signal.signal(signal.SIGALRM, _alarm)
+    signal.alarm(1)
+    try:
+        with pytest.raises(TimeoutError):                             # never returns: RED
+            m._pane_harness_pid(10, "x", parent_of=dict(cyc))
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old)
+
+
+def test_resume_proof_is_template_declared_and_closed(tmp_path, monkeypatch):
+    for hid in harness_template.available():
+        want = "session_id" if hid == "grok-bot" else "transcript"
+        assert harness_template.resume_proof(hid) == want, hid
+    assert rotate._harness_resume_proof(None) == "transcript"
+    (tmp_path / "x.toml").write_text('id = "x"\n[session]\nresume_proof = "maybe"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError,
+                       match="unknown session.resume_proof 'maybe'"):
+        harness_template.load("x")
