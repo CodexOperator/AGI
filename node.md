@@ -41,7 +41,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L463 + wrap 09116c0e51: MEME MASTER LAND 2.
 
 ## 🔴 Where it stops
-2b 3/3 (L469). 2c-1 + 2c-2 3/3 APPROVE AS GATED (2c-2 WITH 2c-3 before any grok-bot row / live act); GATE625 on e29925155a. 2c-3 BUILT dg1-7312-2c3 b0ab4d2eb6 (~/w38/2c3; pick (b), council leans (b) 3/3; 486 passed); links running (~/w38/2c3-links.done). Next: links -> merge-tree -> [merge-up] for 2c-3. My abandoned R1/R2 edit: ~/w38/2c2-r1r2-abandoned.diff (superseded).
+2b 3/3 (L469). 2c-1 + 2c-2 3/3 APPROVE AS GATED (2c-2 WITH 2c-3 before any grok-bot row / live act); GATE625 on e29925155a. 2c-3 BUILT dg1-7312-2c3 b0ab4d2eb6 (~/w38/2c3; pick (b), council leans (b) 3/3; 486 passed); SENT 11:4xZ (links 0 broken, merge-tree on 4abbc8571c rc 0). Next: answer TERMs on 2c-3; re-stack after L469 lands if asked. My abandoned R1/R2 edit: ~/w38/2c2-r1r2-abandoned.diff (superseded).
 Home: ~/w38 (this generation: sweep + privacy files, temp indexes); ~/g731; ~/w30-w37 archives.
 
 ## §4 Traps (this generation's)
