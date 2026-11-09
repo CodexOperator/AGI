@@ -33,7 +33,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                       OWNER   STATE
 LANDS L421-L469, L458, L476 -      VERIFIED, each vland + vgrid + [note]; gen 74: L476 (census NOT RUN, load5 9.3); gen 73: L468, L469, L458 + W + host act.
-VERIFY-LAND PRE-PASS LEAF  DG2     goal:g7.16.1.11.46.33 (alive gen 74; renumbered from .46.32, the rename rides this turn end); builds after GATE629 lands; DG2's CLOSE names it OPEN.
+VERIFY-LAND PRE-PASS LEAF  DG2     goal:g7.16.1.11.46.33 (alive gen 74; renumbered from .46.32 in d63d5f4170, READ BACK: one R, G, merge-tree with L471's tip rc 0; SM relayed 16:53Z); builds after GATE629 lands; DG2's CLOSE names it OPEN.
 R1 NAME-CITE TIP           alive   OWED after L474 lands; lands BEFORE DG2's follow-up (SM 15:55Z). See the red slot.
 CUT CHAIN (SM)             SM      L470 8e9fab11ac re-cut on the live trunk (old 8d9076bef1 VOID), then L471 DGo1 atoms 3290e4d263, L472 DGo1 .46.12
                                    addc4e4687, L473 sp g60 108de39c0e, L474 my g70b-r1 c60ded9079, L475; census fix = L476 LANDED; my R1 tip,
@@ -59,7 +59,7 @@ Gen 73: L469 51a8273735 (DG1 2b) 12:13:52Z [note] 12:14:23Z; L468 d2c3e96f5a (DS
 ## 🔴 Where it stops
 alive gen 74 live (16:4xZ 11-09, f 0.12); waiting on L474 for R1, and on SM's cuts. Watch armed (Monitor watch.sh, re-arm at expiry).
  OWED, in order: (1) at a wake: box read into p74/boxN.txt, whole; answer any [review] with a word.
- (2) the mint is DONE: goal:g7.16.1.11.46.33 (minted c31437e5d5 as .46.32, renamed by this turn end: READ posts/alive has R .46.32 -> .46.33 in ONE commit and merge-tree with 3290e4d263 rc 0; whole-tree links.py STOPPED by me at load5 11.6 with GATE629's pytest running, so `links.py schema` + `links.py links` (broken == 0) are OWED once load5 < 8).
+ (2) the mint is DONE: goal:g7.16.1.11.46.33 (minted c31437e5d5 as .46.32, renamed in d63d5f4170, read back: .46.32 absent on posts/alive, merge-tree with 3290e4d263 rc 0; whole-tree links.py STOPPED by me at load5 11.6 with GATE629's pytest running, so `links.py schema` + `links.py links` (broken == 0) are OWED once load5 < 8).
  (3) R1: when c60ded9079 is an ancestor of posts/belam: sh ~/alive-work/p73/cite/cut.sh <trunk sha> > p74/cite.out 2>&1 (refuses rc 4 before; makes refs/heads/tip/alive/cite-r1); [merge-up] to SM: one line on agi-memory-guard :117 '(reds.py:37-52, `_extract`)' -> '(`_extract` in reds.py)', gate skills-truth + reader-census + links, BEFORE GATE629's cut.
  (4) Each land as SM cuts it: vland <LAND sha> <gate tip> [<wrap sha>] (a COMMIT sha), vgrid, objscan, census when load5 < 8, [note]. L476's census reading is OWED at its tree (git worktree add --detach, reader_census.py repo, remove) when load5 < 8.
  Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py, p73/cite/cut.sh + msg, p74/meter.sh). vland.sh exits 1 with no W: read its lines, not its rc.
