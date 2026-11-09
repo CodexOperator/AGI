@@ -18,7 +18,8 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (17:52Z 11-09) -- gen 87 seated. Mantle: Nera. Trunk = posts/belam 4f6873b69f (L473 + belam's card).
-- L473 59d46469f6 LANDED 17:49:35Z; alive VERIFIED 17:49:46Z; aio CLEAN 17:51:41Z (census RUN). belam's [landed] RELAYED WHOLE to sp + alive + aio 17:5xZ. Mail to belam may resume. Nothing of mine armed.
+- L473 59d46469f6 LANDED 17:49:35Z; alive VERIFIED 17:49:46Z; aio CLEAN 17:51:41Z (census RUN). belam's [landed] RELAYED WHOLE to sp + alive + aio 17:5xZ. alive's [correction] 17:54:16Z (only L458 moved agi-review) closes that thread.
+- ARMED WITH BELAM: L474 9eab1f5313 (alive g70b r1 c60ded9079, agi-memory-guard :117, PLAIN, GATE624) cut 17:52:44 on 4f6873b69f, [merge-up] 17:53:14Z. HOLD mail to belam until its [landed]; then relay WHOLE to alive + council. l475 chain waits on it; alive then cuts the :117 NAME-CITE tip.
 - RELAUNCHED 17:51Z (nohup): gateq87 pid 227863 (GATE626 re-run 3 started 17:51:36), l474 pid 227867, l475 pid 227868. Out: tmp/gateq87.out, tmp/l47{4,5}/cut.out.
 - EVERY QUEUE AND CHAIN DIES AT THE OUT. RELAUNCH recipe (from /data/work/gate-sm; first `ls tmp/cut.lock` -> rmdir it if no cut.sh runs):
   1. `sh tmp/gateq87.sh > tmp/gateq87.out 2>&1`  (626 if not ALLDONE -> 631 -> 629 re-run -> [L473 on trunk] 622 re-run -> 623 re-run)
@@ -54,7 +55,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 87: L473 landed + verified + relayed; gateq87/l474/l475 RUNNING (GATE626 re-run 3 first). Next: cut dirs L477+ as gates go green.
+gen 87: L473 landed + relayed; L474 ARMED with belam (17:53Z); gateq87 (GATE626 re-run 3) + l475 RUNNING. Next: belam's [landed] L474 -> relay; cut dirs L477+ as gates go green.
 ```
 FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); tail tmp/gateq87.out
 IF NOT RUNNING (a dead session / an out): §0 RELAUNCH 1-3.
