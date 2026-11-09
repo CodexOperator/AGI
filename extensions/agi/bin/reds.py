@@ -68,8 +68,13 @@ def _secrets(repo, old, new, root):
     """`path:line` of every added line carrying a secret. A line, never a value."""
     import dispatch  # late: keeps a pre-model gate cheap
     toks, allow = anonymize.box_tokens(root), anonymize.email_allow(root)
+    try:   # the ip allowlist is the OLD (base) commit's config, never the new tip's; unreadable = nothing allowed
+        ipa = anonymize.ip_allow(json.loads(_git(repo, "show", f"{old}:.agi/config.json")))
+    except (RuntimeError, ValueError):
+        ipa = []
     return [f"{p}:{n}" for p, n, line in _added(repo, old, new)
-            if anonymize.scan(line, toks, allow, root=root)   # root: without it the `user` class (anonymize.user_roots) never fires
+            if anonymize.scan(anonymize.mask_private_ips(line, anonymize.own_ips(toks)) if anonymize.path_allowed(p, ipa) else line,
+                              toks, allow, root=root)   # root: without it the `user` class (anonymize.user_roots) never fires
             or any(dispatch._looks_like_secret(nm, v) for nm, v in _ASSIGN.findall(line))
             or any(dispatch._looks_like_secret("", v) for v in _BARE.findall(line))]
 

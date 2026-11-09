@@ -138,6 +138,10 @@ for l in text:
     elif names and cur and cur.startswith('extensions/agi/tests/') and l.startswith('+') and not l.startswith('+++'):
         l=paths.HOME_RE.sub(fixture,l)
     res.append(l)
+import anonymize    # the private-range allowlist (anonymize.ip_allow, goal:g7.16.2.1): BASE's config, applied by the '+++ b/' path on the same COPY
+try: ipa=anonymize.ip_allow(json.load(open(cfg)))
+except Exception: ipa=[]
+res=anonymize.mask_diff_ips('\n'.join(res),ipa,anonymize.own_ips(anonymize.box_tokens(None,secrets=False))).split('\n')   # this box's own address is never masked
 open(out,'w').write('\n'.join(res))
 for f,k in sorted(hits.items()): print('anon-diff WARN (fixture class): pinned /home/<'+'|'.join(names)+'> x%d in %s'%(k,f))
 P

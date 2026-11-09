@@ -15,7 +15,7 @@ model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "wire", "cmd": "python3 probes.py  # real box, AGI_ANONYMIZE_FIXTURE unset, box_tokens(root)", "expected": "no loopback token; other addresses still emitted", "observed": "loopback token present=False; real ip tokens count>0=True", "result": "pass - the real ip -o addr path reaches the changed branch live"}
   - {"conjunct": 2, "class": "gate", "cmd": "synthetic ip output 192.0.2.10 + 127.0.0.1 -> scan()", "expected": "routable refused as ip; loopback note passes", "observed": "scan(peer 192.0.2.10)=[ip]; scan(llama-server on 127.0.0.1:8080)=[]", "result": "pass - guard still refuses a routable address, no longer refuses loopback"}
-  - {"conjunct": 3, "class": "gate", "cmd": "synthetic ip output fe80::1%eth0 + fc00::1 + 10.9.8.7 -> box_tokens", "expected": "zoned link-local dropped; ULA and private kept", "observed": "fe80::1 absent; fc00::1 present; 10.9.8.7 present", "result": "pass - skip is neither zone-blind nor over-broad"}
+  - {"conjunct": 3, "class": "gate", "cmd": "synthetic ip output fe80::1%eth0 + fc00::1 + a private IPv4 address -> box_tokens", "expected": "zoned link-local dropped; ULA and private kept", "observed": "fe80::1 absent; fc00::1 present; a private IPv4 address present", "result": "pass - skip is neither zone-blind nor over-broad"}
 production_lines: 9
 profile: balanced
 role: kid
