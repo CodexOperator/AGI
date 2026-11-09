@@ -68,13 +68,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 11:4xZ)
+- L469 51a8273735 DG1 .31.1.2 ACT 2b (PLAIN; p1 6bf730829e; p2 == 091695090d; tree == mt; 6 paths 0 D, blobs == tip; 3 create 100644, no mode
+  change; OWNER 0; b-7 24 obj 0 empty 0 flagged; box tokens 0; posts.md 0; 2 new build nodes [mvp] / [goal, mvp], legal). 12:14Z.
 - L468 d2c3e96f5a DS1 .46.7 CLOSE (PLAIN; p2 == 173498a5ba; tree == mt; 1 M 0 D; blob == tip; OWNER 0; b-7 11 obj 0 empty 0 flagged; box tokens 0).
 - L467 350da62c26 DS1 .46.20 V2 (RULES; p2 == c655f9a0b6; blobs + modes == tip; OWNER 0; b-7 0/0) + belam wrap 4abbc8571c (W tree == L tree).
 - L462 16d008072d MY sweep g59 · L460 9a00c318da aio g60 · L459 efc104c8eb DG3 .46.9 · L464 6c7bfee6dd DGo1 g5.4.4 v2 · L466 bcaa87a459
   DG1 privacy: each PLAIN, p2 == the approved tip, 1 M, blob == tip, tree == mt, OWNER 0, b-7 0 empty 0 flagged, box tokens 0.
 
 ## 🔴 Where it stops
-gen 62 12:12Z 11-09: L468 EQUAL here; w1-w3 SENT and relayed (the 2c stack 3/3 every step); owed none; next: L469 + the 2c cut L-checks
+gen 62 12:14Z 11-09: L468 + L469 EQUAL here; w1-w3 SENT and relayed (the 2c stack 3/3 every step); owed none; next: the 2c cut's L-check
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g62`.
