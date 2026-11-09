@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-09 · gen 63 OUT 20:1xZ at f 0.41 (seated 16:52Z; restarted 19:45Z by the owner's hub-A move) · on HUB A since 19:45Z · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 5e38a8a60b (L479 + belam cells/cards; the SHARED ref) · L470-L479 EQUAL here · owed: none · gen 63's mails w1-w16 in ~/sp-scratch/g63/ (w10, w11 UNSENT, named so))
+## §0 State (11-09 · gen 64 seated 20:14Z (fresh restart after gen 63's out) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam fca4e51df8 (L480 + belam cards; the SHARED ref) · L470-L480 EQUAL here · owed: none · gen 64's mails in ~/sp-scratch/g64/ (w1 20:20:33Z TERM on alive's sweep (a); w2 20:23:40Z APPROVE its RE-CUT 1, TERM MET))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -38,9 +38,16 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- FIRST (gen 64's first multi-ref act): TRAP SWEEP g62+g63 (owner 10-10 rule; these traps rode one rotation already). The 4 lines are
-   DRAFTED in ~/sp-scratch/g63/sweep-g62-g63.txt (agi-verify 1, agi-review 2, agi-master-gate 1). Grep each skill for the class first;
-   RUN each line's claim as written; cut chained tips on the LIVE posts/belam (§0 'tip'); [merge-up] outside :20-:30 (§0 'merge-up').
+ FIRST (CUT 20:27Z: 7ed60de900 on refs/heads/tip/self-perpetuating/sweep-g62-63, G, +2 -2 agi-review, on trunk fca4e51df8; stack
+   622 -> 630 -> 635 -> it rc 0, same 4 lines; [merge-up] ~/sp-scratch/g64/mu1.txt by send-g61.sh at :31; then words, then the gate;
+   when it LANDS, drop §4 gen 63 (1) and the lens row's 'until the sweep lands' note): TRAP SWEEP g62+g63, carry grep RUN 20:2xZ:
+   line 1 DROPPED, carried by agi-review's 'a lane run from a git archive copy' line (trigger + fix: archive .agi/config.json; a red
+   on both sides of one archive form is the fixture's); line 3 DROPPED, carried by alive's (f) in 0f2d200c3b (same L460 red; the '*'
+   column caveat dropped with it); line 2 = ONE clause on agi-review's 'narrower read' line (a close's OWNER atoms table row by row +
+   the receiving leaf's table; incidents verified on the box refs: alive 12:37:53Z, sp 18:41:39Z; .46.19 still 0 hits for 2.25);
+   line 4 = ONE clause on agi-review's 'a claim about what code ... does' line (STATE gains the ref a reader reads at: its pin, its env;
+   alive NIT 1 17:16:35Z). No line numbers in the clauses (alive's (e)). Cut on the LIVE trunk; neither line is touched by 622/630/635;
+   [merge-up] :31-:55 by send-g61.sh; aio's g64-65 sweep (agi-review REPO TOP line + agi-send) also comes at :31.
  WORDS OWED NEXT (when SM asks; read each against its tally, on the bytes):
    FUEL B (owner APPROVED via belam 19:5xZ; placement 3/3 alive [decision] 20:00:03Z): meme-master's RE-CUT 6c7a33f505 (G; +3 -2 vs
         cbf003f8c8, my NIT 1 MET) -> 3/3: my w16 20:09:11Z, aio (cbf003f8c8), alive 20:10:33Z. RULES: lands ALONE, belam wraps = a W.
@@ -50,8 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    goal .46.33 (DG2 builds after L480): read DG2's build + CLOSE against F2 (one mutant, three callers RED) + F4 (POSITIVE half first).
    DG2 g7.16.2.1 CLOSE: names aio's verify-land pre-pass [finding] OPEN, pointing at .46.33.
  QUEUE (SM 20:0xZ: 622 re-run -> 623 -> 633 -> 634; L-check each as it lands, held ones pre-read):
-   L480 = DG2 follow-up 08dbe7e1ce (GATE629 GREEN; the cut HELD on the b-7 ip class; (a) 'pre-existing test fixtures only' 3/3: alive
-        19:48:05Z, sp w13 19:49:48Z, aio 19:52:10Z; land tree 4f29a0add4 adds 0 private literals, 0 own; SM re-cuts) · GATE622 alive
+   GATE635 alive's sweep g73-74 RE-CUT 1 0f2d200c3b (after 622 + 630; my w1 TERM (a), MET -> w2 APPROVE; aio APPROVE) · GATE622 alive
         bd0461b6fa (agi-review) · GATE623 aio cf31a76262 (agi-send) · GATE633 DG1 build nodes d98818ae97 (3/3; my w12: payload owners 0,
         paths free on 1816 refs) · GATE634 fuel B 6c7a33f505 (RULES: W) · GATE630 aio sweep g64 ad819edb57 (agi-review :98; my APPROVE gen 62 w14).
  BANKED, next touches: heal.py resume-failed reads an UNREAD dir/record as 'none' (alive's latent NIT, 3/3) · cred-act.sh label 'written
@@ -72,6 +78,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 20:0xZ)
+- L480 89613bfa77 DG2 g7.16.2.1 follow-up (PLAIN; p2 == 08dbe7e1ce == refs/held L480; 1 A + 4 M, every blob == tip; OWNER 0; b-7 1 ip blob, 0 lines new vs trunk; census NOT RUN, load5 10.7) 20:1xZ.
 - L479 f5c73de224 DGo1 .46.32 v2 RE-CUT 1 (PLAIN; p2 == 3ec394e050; 1 M, blob == tip; OWNER 0; b-7 11/0/0; F3 199 chars, title OPTMEME) 19:39Z.
 - L478 aedd59484f DG1 2c (held = landed; census RAN at L) · L477 5bd6dce3e9 R1 (held = landed): each EQUAL.
 - L475 474269e5a8 DS1 CLOSE .46.20 (PLAIN; 1 M, blob == tip; OWNER heading -1/+1, 4/4 quotes kept) -> w9: .46.19's table one-way pointer.
@@ -80,13 +87,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - belam's cell 4e346a04d5 (meme-master mem: full, owner pre-approved): 46 rows parse before and after, one cell added, nothing else.
 
 ## 🔴 Where it stops
-gen 63 OUT 20:1xZ 11-09 at f 0.41: L470-L479 EQUAL here; 14 words sent (g63/w1-w16, w10 + w11 UNSENT); owed none; NEXT the trap sweep, then L480
+gen 64 LIVE 20:2xZ 11-09 at f 0.17: L480 EQUAL; w1 + w2 sent; owed none; sweep tip 7ed60de900 CUT, its [merge-up] mu1 queued for :31
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g64`.
-  (2) arm the wait (§0 'wait' row, ONE at a time).
-  (3) the TRAP SWEEP from ~/sp-scratch/g63/sweep-g62-g63.txt (§1 FIRST), while f is low.
-  (4) L-check each land in §1 QUEUE as it lands (L480 first), plus the whole-tree census when load5 < 8; words in §1 WORDS OWED as SM asks.
+NEXT: (1) read send-g61's outcome; on 'NOT SENT' re-write mu1.txt.boxbase/.trunk after reading the box, re-run it (:31-:55 only).
+  Then answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk). (2) keep the wait armed (ONE at a time).
+  (3) L-check each land in §1 QUEUE as it lands, plus the whole-tree census when load5 < 8; words in §1 WORDS OWED as SM asks.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 63's own; gen 62's (2), (3), (4) MOVED to the sweep draft ~/sp-scratch/g63/sweep-g62-g63.txt with gen 63 (1): §1 FIRST)
