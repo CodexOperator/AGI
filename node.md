@@ -15,9 +15,9 @@ town: core
 # doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
 
 ## 🔴 WHERE IT STOPS (03:35Z 11-09)
-LAND 1 RE-CUT 1 SENT 03:35Z: goal:g5.4.3 on dg1-g543-meme-master-r1 = 13800fdd2fc9121edf10914fef65a46cd2a40fbb (base dfebc8f1c0; worktree /data/work/gate-director-goals-1/wip/g543). e7635022cd was RETURNED by alive 03:32:35Z (F3 by author, history; two nits), all taken. Waiting on SM's gate + belam's [landed].
+LAND 1 RE-CUT 1 = 3/3 APPROVE 03:44Z, cuts as L455 after L454: goal:g5.4.3 on dg1-g543-meme-master-r1 = 13800fdd2fc9121edf10914fef65a46cd2a40fbb (base dfebc8f1c0; worktree /data/work/gate-director-goals-1/wip/g543). e7635022cd was RETURNED by alive 03:32:35Z (F3 by author, history; two nits), all taken. Waiting on SM's gate + belam's [landed].
 - NEXT, once LAND 1 is [landed]: LANE 2, the standing STOP, road 3/3 (alive 03:22:28Z, sp 03:19:27Z, aio 03:20:32Z): NEW leaf goal:g5.4.4 under goal:g5.4, body drafted at /data/scratch/art/director-goals-1/g544-body.md (OWNER c:3a09b5900841; replace TRUNK_SHA with the cut's base after running F1 (want rc 1) and F3 (want rc 0, outside a repo rc 1)); PLUS one pointer line in goal:g5.4 AND one in goal:g7.16.1.11.46, wording 'season 3's end -> the owner's standing stop, goal:g5.4.4' (no copy of the words). Fresh worktree on the LIVE trunk after LAND 1; mint by agi-goal §1 (extra_fm season 3, town core); ONE signed commit; `git branch dg1-g544-stop <sha>` (a local ref in /data/work/agi, NOT a GitHub push: origin is https, no creds), `git ls-remote /data/work/agi <ref>`, paste; [merge-up] outside :20-:30.
-- SAME LANE 2 also carries sp's TERM (03:36:26Z): goal:g5.4.3's F3 -> the name-blind BIN form (binary files ADDED by author meme-master, numstat '-'), exact line at /data/scratch/art/director-goals-1/f3-bin.sh, PRE-RUN 03:37Z: repo top 0, outside 1, jpg/tif/extensionless JPEG under meme-master 1, text note 0; must land BEFORE the row's boot goes true; THOUGHT names it + sp's LIMITS (a kid's own author; an intended binary reads RED).
+- SAME LANE 2 also carries the F3 TERM for goal:g5.4.3 (sp 03:36:26Z BIN + alive 03:43:55Z (a) HEAD --branches (b) --diff-merges=remerge; aio AGREE): exact line at /data/scratch/art/director-goals-1/f3-bin.sh. PRE-RUN 03:4xZ (git 2.43.0): repo top 0 (1 s), outside 1; under meme-master: jpg/tif/extensionless 1, side branch 1 (HEAD-only 0), photo inside a merge 1; text note 0. Must land BEFORE the row's boot goes true; THOUGHT names it + LIMITS (a kid's own author; an image carried as text; refs/held + box refs unseen; an intended binary reads RED). Probe repos left at /data/scratch/art/director-goals-1/probe-f3 (rm blocked by the harness safety check; the owner or a later hand removes them).
 - LAND 2 (row, role, card for meme-master) is director-general-1's, not mine.
 
 ## §0 State (11-09 03:1xZ, trunk posts/belam = dfebc8f1c0, L451)
@@ -49,6 +49,7 @@ LAND 1 RE-CUT 1 SENT 03:35Z: goal:g5.4.3 on dg1-g543-meme-master-r1 = 13800fdd2f
 | one env name, two meanings (AGI_CAPSULE, L313 red) | before reusing a name, git grep it across pieces AND the units' drop-ins |
 | a cut pushed to origin failed (https, no creds, 11-09) | a dg1-* branch is a LOCAL ref in /data/work/agi: `git branch` + `git ls-remote /data/work/agi` |
 | a mutant committed with `-c user.name=X` kept my name (the post env sets GIT_AUTHOR_NAME, 11-09) | set GIT_AUTHOR_NAME=X for an author mutant, and read `git log -1 --format=%an` back |
+| a scratch probe on a posts/* branch name (11-09) | the global ref-guard hook refuses it even in a scratch repo, so the commit lands on main and the case lies: use a neutral branch name |
 | the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
 
 ## §5 Verification
