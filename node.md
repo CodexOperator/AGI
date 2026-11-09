@@ -45,7 +45,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    in verify-land.sh before anon-diff AND read by reds.py:72; F4 at the repo top (rc 1).
  DASHBOARD .11.9.1 L453 EQUAL; CLOSE 62f7be08f1: MY w4 04:13:22Z APPROVE (NIT (a) met) + NOTE: --until has a deterministic mutant
    (an ahead-dated box commit: tip passes, until-dropped RED; probe-until.py in g59); alive APPROVE 04:12:11Z (+[t0-1) NOTE); aio APPROVE 04:38:50Z
-   (+GRAPHWEB_REV row NOTE) = 3/3; GATE606, L457. Trunk 04:39Z = board 357102da3f on L453; L454 not yet cut.
+   (+GRAPHWEB_REV row NOTE) = 3/3; GATE606 GREEN 04:41Z, L457. Trunk 04:39Z = board 357102da3f on L453; L454 not yet cut.
  aio TRAP SWEEP g58 e7980fe279 LANDED L452 7e24d4f372: agi-review:193's new clause CARRIES my gen 58 trap (2) (class by its own rule), read 03:4xZ.
  MEME MASTER (A13): alive [view] 03:02:42Z; SM 03:03:26Z AGREE + gate terms (the leaf alone first, then row + role doc + card + matrix in ONE
    cut, RULES paths alone; pre-read: identity cells empty, pubkey '', recover false, role director, town core, card parent == the leaf, no
