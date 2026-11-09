@@ -164,6 +164,11 @@ def load(harness_id: str) -> dict:
         raise HarnessTemplateError(
             f"{path}: unknown session.registry {reg!r}; "
             f"known: {list(SESSION_REGISTRIES)}")
+    store = (session or {}).get("store", "")
+    if not isinstance(store, str):
+        raise HarnessTemplateError(
+            f"{path}: session.store is not a string (got "
+            f"{type(store).__name__}: {store!r})")
     proof = (session or {}).get("resume_proof", "transcript")
     if proof not in RESUME_PROOFS:
         raise HarnessTemplateError(
@@ -247,6 +252,13 @@ def resume_proof(harness_id: str) -> str:
     `transcript` (default) or `session_id`. load() refused any other value."""
     return (load(harness_id).get("session") or {}).get(
         "resume_proof", "transcript")
+
+
+def session_store(harness_id: str) -> str:
+    """The declared `[session] store` (goal:g7.31.1.2 ACT 2c-2): the
+    directory a harness keeps its sessions in, one entry per session id; ''
+    when undeclared, which heal reads as UNREAD, never as 'absent'."""
+    return (load(harness_id).get("session") or {}).get("store", "")
 
 
 def slot_flags(harness_id: str, slot: str) -> list[str]:

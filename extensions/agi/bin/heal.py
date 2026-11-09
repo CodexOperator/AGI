@@ -3813,7 +3813,21 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             # named in the log on every use, never read as a pass.
             _watch_log(f"watch: seat {seat} resume proof PROVISIONAL "
                        f"(session_id present; UNMEASURED): resuming {sid}")
-            _proven = True
+            # (B)(1) (alive [decision] 10:56:03Z 11-09, sp T3): the session
+            # store read BEFORE the launch. present -> resume; readable and
+            # the entry absent -> fresh, with its line; absent or unreadable
+            # -> UNREAD (path + the uid that read it), the resume launched.
+            _state, _where = _session_store_read(
+                _rotate._harness_session_store(
+                    str(row.get("harness") or "").strip() or None), sid)
+            if _state == "absent":
+                _watch_log(f"watch: seat {seat} session {sid} absent from "
+                           f"{_where}: fresh spawn, no resume")
+            elif _state == "unread":
+                _watch_log(f"watch: seat {seat} session store UNREAD "
+                           f"({_where}; read as uid {_uid_name()}): resume "
+                           f"of {sid} launched")
+            _proven = _state != "absent"
         else:
             tp = _rotate.transcript_from_registry_dict(
                 {"cwd": str(_seat_tree_dir(root, row)), "session_id": sid})
@@ -3945,6 +3959,60 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         if row_pid is None:
             print(f"watch: {reason}", file=sys.stderr)
             _watch_log(f"watch: {reason}")
+    resume_failed = None
+    _hid = str(row.get("harness") or "").strip() or None
+    if resume and window_id and _rotate._harness_resume_proof(_hid) == "session_id":
+        # (B)(2)-(D) (alive [decision] 10:56:03Z 11-09): read the resume at
+        # the END of a bounded window; only `absent` is a failed resume.
+        _chk = _resume_check(_rotate, seat, _hid, window_id)
+        if _chk.get("found"):
+            row_pid = _chk.get("pid") or row_pid
+        else:
+            kind = _chk.get("miss") or "absent"
+            read = (f"the pane join read {kind} at the end of the "
+                    f"{RESUME_WINDOW_S} s window after the -r launch")
+            if kind != "absent":
+                # ambiguous / no-pane: one loud line, NOTHING launched
+                _watch_log(f"watch: seat {seat} resume of {resume}: {read}; "
+                           f"no fresh launch")
+                resume_failed = {"session_id": resume, "read": read,
+                                 "fresh": None}
+            else:
+                resume_failed = {"session_id": resume, "read": read,
+                                 "fresh": None}
+                fresh = _fresh_after_failed_resume(
+                    root, row, seat, spawn_name, tier, model, effort,
+                    settings, dbg, ack_gate, card_file, launcher,
+                    window_id, window_path, _rotate)
+                resume_failed["fresh"] = fresh.get("session_id") or None
+                _watch_log(f"watch: seat {seat} resume of {resume} FAILED: "
+                           f"{read}; "
+                           + (f"fresh launch with session "
+                              f"{fresh.get('session_id') or '<none>'}"
+                              if fresh.get("launched") else
+                              f"fresh launch refused ({fresh.get('reason')}); "
+                              f"the crash path takes it"))
+                if fresh.get("launched"):
+                    pid, window_id = fresh.get("pid"), fresh.get("window_id")
+                    row_pid = pid or None
+                    if row_pid is None and window_id:   # as the first launch above
+                        try:
+                            row_pid = _pane_pid_of(window_id, window_path) or None
+                        except Exception:  # noqa: BLE001
+                            row_pid = None
+                else:
+                    _dm_crash_recovery(root, row, old_pid, cause, spawn_name,
+                                       window_id, gen)
+                    return {"respawned": False, "name": spawn_name,
+                            "generation": gen, "row": "skipped",
+                            "reason": f"resume of {resume} failed and the "
+                                      f"fresh launch did not land: "
+                                      f"{fresh.get('reason')}",
+                            "resume_failed": resume_failed}
+            # (C): the dead id lives in the crash-recovery RECORD and the
+            # heal log; the row's session_id goes EMPTY, the normal join
+            # writes the fresh launch's own id.
+            resume = None
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
@@ -3953,9 +4021,104 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     except Exception as exc:  # noqa: BLE001
         row_text = f"row write FAILED: {exc}"
     _dm_crash_recovery(root, row, old_pid, cause, spawn_name, window_id, gen)
-    return {"respawned": True, "name": spawn_name, "generation": gen,
-            "pid": pid, "window": window_id, "reason": "", "row": row_text,
-            "resumed": bool(resume)}
+    out = {"respawned": True, "name": spawn_name, "generation": gen,
+           "pid": pid, "window": window_id, "reason": "", "row": row_text,
+           "resumed": bool(resume)}
+    if resume_failed is not None:
+        out["resume_failed"] = resume_failed
+    return out
+
+
+#: goal:g7.31.1.2 ACT 2c-2: a session_id-proof resume is read at the END of
+#: this window (sp T1): a failed -r may start, print its error and exit.
+RESUME_WINDOW_S = 30
+RESUME_FIRST_JOIN_S = 5
+
+
+def _resume_sleep(secs: float) -> None:
+    """The bounded window's wait (a test seam)."""
+    time.sleep(secs)
+
+
+def _resume_check(_rotate, seat: str, hid: str, window_id: str) -> dict:
+    """(B)(2): join once at the launch, wait the bounded window, join again
+    and read THAT. Found at the end = resumed; a miss carries its `miss`
+    field (absent | ambiguous | no-pane). The pid seen at the start must be
+    the one still alive at the end, else the end join decides."""
+    first = _rotate._join_by_pane(seat=seat, window_id=window_id,
+                                  harness=hid, poll_secs=RESUME_FIRST_JOIN_S)
+    _resume_sleep(RESUME_WINDOW_S)
+    end = _rotate._join_by_pane(seat=seat, window_id=window_id, harness=hid,
+                                poll_secs=0)
+    if end.get("found") and first.get("found") and \
+            first.get("pid") != end.get("pid"):
+        _watch_log(f"watch: seat {seat} resume: pid {first.get('pid')} at "
+                   f"the launch, {end.get('pid')} at the end of the window")
+    return end
+
+
+def _uid_name() -> str:
+    """The name of the uid this heal runs as (the line names who READ)."""
+    try:
+        import pwd  # noqa: PLC0415
+        return pwd.getpwuid(os.geteuid()).pw_name
+    except Exception:  # noqa: BLE001
+        return str(os.geteuid())
+
+
+def _session_store_read(store: str, sid: str) -> tuple[str, str]:
+    """(B)(1), sp T3: ('present' | 'absent' | 'unread', where). A store that
+    is undeclared, missing or unreadable is UNREAD, never 'absent': a wrong
+    path must not turn every resume into a fresh spawn. An entry is a name
+    equal to the id, or the id followed by '.'."""
+    if not store:
+        return "unread", "no session store declared by the template (UNMEASURED)"
+    p = Path(os.path.expanduser(store))
+    try:
+        names = os.listdir(p)
+    except OSError as exc:
+        return "unread", (f"{p}: "
+                          f"{errno.errorcode.get(exc.errno or 0, 'OSError')}")
+    hit = any(n == sid or n.startswith(sid + ".") for n in names)
+    return ("present" if hit else "absent"), str(p)
+
+
+def _fresh_after_failed_resume(root, row, seat, spawn_name, tier, model,
+                               effort, settings, dbg, ack_gate, card_file,
+                               launcher, failed_window, window_path,
+                               _rotate) -> dict:
+    """(D): ONE fresh launch after a failed resume, carrying 2b's new uuid
+    (never the dead id). Refused while the failed window is still open (no
+    second window under the seat's name; DG1's call, named in the
+    [merge-up]); a fresh launch that does not land is NOT retried here: the
+    seat falls to heal's crash path and its bound."""
+    if any(w == failed_window for w, _n in _all_windows(window_path)):
+        return {"launched": False,
+                "reason": f"the failed window {failed_window} is still open"}
+    try:
+        rc, shell_cmd = _rotate.spawn_window(
+            name=spawn_name, tier=tier, prompt_file=None, model=model,
+            effort=effort, settings=settings, root=root,
+            window_path=window_path, dry_run=True, debug_file=dbg,
+            extra=ack_gate, seat=seat, resume=None, card_file=card_file,
+            harness=str(row.get("harness") or "").strip() or None)
+    except Exception as exc:  # noqa: BLE001
+        return {"launched": False, "reason": f"spawn_window raised: {exc}"}
+    if rc != 0 or not shell_cmd:
+        return {"launched": False, "reason": f"spawn_window refused (rc={rc})"}
+    hid = str(row.get("harness") or "").strip()
+    sess = _rotate._session_from_argv(["-"] + shlex.split(shell_cmd), hid)
+    try:
+        pid, window_id = launcher(root, spawn_name, shell_cmd, window_path,
+                                  cwd=_seat_tree_dir(root, row))
+    except Exception as exc:  # noqa: BLE001
+        return {"launched": False, "reason": f"launcher raised: {exc}",
+                "session_id": sess}
+    if pid == 0:
+        return {"launched": False, "session_id": sess,
+                "reason": "launcher reported no successor process"}
+    return {"launched": True, "pid": pid, "window_id": window_id,
+            "session_id": sess}
 
 
 def _latest_detected_path(root: Path, seat: str, _rotate, now: float) \
@@ -4038,6 +4201,11 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
             "reason": outcome.get("reason") or "",
             "row": outcome.get("row") or "",
         }
+        if outcome.get("resume_failed"):
+            # goal:g7.31.1.2 ACT 2c-2 (C): the dead id + what the join read;
+            # read it back by the seat name: `rotate.py status --seat
+            # <seat> --record latest`.
+            rec["resume_failed"] = outcome["resume_failed"]
     if res == "detected":
         # one record per death: update the existing detected record in place.
         existing = _latest_detected_path(root, seat, _rotate, now)

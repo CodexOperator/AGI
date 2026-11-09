@@ -143,9 +143,11 @@ def _grok_recover(tmp_path, monkeypatch, heal_mod=heal):
         '{"harnesses": {"grok-bot": {"adapter": "grok_bot", "model": "grok-4"}}}')
     lines: list = []
     monkeypatch.setattr(heal_mod, "_watch_log", lambda m: lines.append(m))
+    monkeypatch.setattr(heal_mod, "_resume_sleep", lambda s: None)          # 2c-2's window
     rotate = _load("rotate")
     _seed_recovery_ack(gdir)
     monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "projects")   # no transcript anywhere
+    monkeypatch.setattr(rotate, "_join_by_pane", lambda **kw: {"found": True, "pid": 77})
     seen: list = []
 
     def launch(root, name, shell_cmd, window_path=None, cwd=None):
@@ -197,3 +199,152 @@ def test_mutant_heal_reads_only_the_transcript_proof_RED_on_the_grok_row(tmp_pat
     spec.loader.exec_module(m)
     out, seen, _lines = _grok_recover(tmp_path, monkeypatch, heal_mod=m)
     assert out["resumed"] is False and " -r " not in seen[0][1]     # a fresh spawn: RED
+
+
+# ------------------------------- ACT 2c-2: the failed -r (alive [decision] 10:56:03Z 11-09, sp T1-T3, aio)
+NEW = "11111111-2222-4333-8444-555555555555"
+
+
+def _mut_heal(tmp_path, old, new):
+    src = (BIN / "heal.py").read_text()
+    assert src.count(old) == 1, old
+    d = tmp_path / "mut"
+    d.mkdir(exist_ok=True)
+    (d / "heal_mut2.py").write_text(src.replace(old, new))
+    spec = importlib.util.spec_from_file_location("heal_mut2", d / "heal_mut2.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def _c2(tmp_path, monkeypatch, *, joins=None, store=None, windows="\n",
+        launches=None, heal_mod=heal):
+    """A grok row recovered with every outside read seamed: the pane joins
+    in order, the session store path, the open windows, each launch's pid."""
+    gdir = tmp_path / "main" / ".agi"
+    gdir.mkdir(parents=True, exist_ok=True)
+    (gdir / "config.json").write_text(
+        '{"harnesses": {"grok-bot": {"adapter": "grok_bot", "model": "grok-4"}}}')
+    _seed_recovery_ack(gdir)
+    lines: list = []
+    monkeypatch.setattr(heal_mod, "_watch_log", lambda m: lines.append(m))
+    monkeypatch.setattr(heal_mod, "_resume_sleep", lambda s: None)
+    monkeypatch.setattr(heal_mod, "_pane_pid_of", lambda w, p=None: 555)
+    rotate = _load("rotate")
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", tmp_path / "projects")
+    q = list(joins or [{"found": True, "pid": 77}, {"found": True, "pid": 77}])
+    monkeypatch.setattr(rotate, "_join_by_pane", lambda **kw: q.pop(0))
+    if store is not None:
+        monkeypatch.setattr(rotate, "_harness_session_store", lambda hid: store)
+    pids = list(launches or [None, None])
+    seen: list = []
+
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
+        seen.append(shell_cmd.split(" -- ", 1)[1])
+        return pids.pop(0), f"@{9 + len(seen) - 1}"
+
+    wf = tmp_path / "w.txt"
+    wf.write_text(windows)
+    row = dict(ROW, harness="grok-bot", model="grok-4")
+    out = heal_mod._recover_seat(gdir, row, "pid gone", rotate, windows=[],
+                                 window_path=str(wf), launcher=launch, now=0.0)
+    return out, seen, lines, rotate
+
+
+# (B)(1) before the launch: present / absent / UNREAD, never 'absent' for a read that cannot happen
+def test_b1_the_entry_present_resumes(tmp_path, monkeypatch):
+    st = tmp_path / "store"
+    st.mkdir()
+    (st / SID).mkdir()
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, store=str(st))
+    assert out["resumed"] and f" -r {SID}" in seen[0], (out, seen)
+    assert not any("UNREAD" in m or "absent from" in m for m in lines), lines
+
+
+def test_b1_a_readable_store_without_the_entry_is_fresh_with_its_line(tmp_path, monkeypatch):
+    st = tmp_path / "store"
+    st.mkdir()
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, store=str(st))
+    assert out["resumed"] is False and " -r " not in seen[0], (out, seen)
+    assert f"watch: seat mainseat session {SID} absent from {st}: fresh spawn, no resume" in lines
+
+
+def test_b1_a_missing_store_is_UNREAD_the_resume_launched_and_its_mutant(tmp_path, monkeypatch):
+    gone = tmp_path / "no-such-store"
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, store=str(gone))
+    assert out["resumed"] and f" -r {SID}" in seen[0], (out, seen)
+    unread = [m for m in lines if "session store UNREAD" in m]
+    assert len(unread) == 1 and f"{gone}: ENOENT" in unread[0] and "read as uid " in unread[0], lines
+    m = _mut_heal(tmp_path, '        return "unread", (f"{p}: "', '        return "absent", (f"{p}: "')
+    out2, seen2, _l, _r = _c2(tmp_path / "m", monkeypatch, store=str(gone), heal_mod=m)
+    assert out2["resumed"] is False and " -r " not in seen2[0]          # fresh: RED
+
+
+def test_b1_grok_bot_declares_no_store_today_so_every_read_is_UNREAD(tmp_path, monkeypatch):
+    out, seen, lines, rot = _c2(tmp_path, monkeypatch)
+    assert rot._harness_session_store("grok-bot") == ""
+    assert out["resumed"] and any(
+        "session store UNREAD (no session store declared by the template (UNMEASURED)" in m
+        for m in lines), lines
+
+
+# (B)(2) after the launch: read at the END of the window; only `absent` is a failed resume
+def test_b2_a_harness_that_exits_inside_the_window_reads_FAILED_and_its_mutant(tmp_path, monkeypatch):
+    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=list(seq))
+    assert len(seen) == 2 and f" -r {SID}" in seen[0], seen              # the -r, then ONE fresh launch
+    assert " -r " not in seen[1] and " -s " in seen[1] and SID not in seen[1], seen[1]
+    rf = out["resume_failed"]
+    assert rf["session_id"] == SID and rf["fresh"] and rf["fresh"] != SID, rf
+    assert rf["read"] == "the pane join read absent at the end of the 30 s window after the -r launch"
+    assert out["resumed"] is False and out["respawned"], out
+    both = [m for m in lines if "FAILED" in m]
+    assert len(both) == 1 and SID in both[0] and rf["fresh"] in both[0], lines
+    m = _mut_heal(tmp_path, "                                poll_secs=0)\n    if end.get",
+                  "                                poll_secs=0)\n    end = first\n    if end.get")
+    out2, seen2, _l, _r = _c2(tmp_path / "m", monkeypatch, joins=list(seq), heal_mod=m)
+    assert out2.get("resumed") and len(seen2) == 1                        # the first hit read as resumed: RED
+
+
+def test_b2_two_harnesses_after_a_resume_launch_nothing_and_its_mutant(tmp_path, monkeypatch):
+    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "ambiguous"}]
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=list(seq))
+    assert len(seen) == 1 and out["resume_failed"]["fresh"] is None, (seen, out)
+    assert any("read ambiguous at the end" in m and "no fresh launch" in m for m in lines), lines
+    m = _mut_heal(tmp_path, '            if kind != "absent":\n', '            if False:\n')
+    _o, seen2, _l, _r = _c2(tmp_path / "m", monkeypatch, joins=list(seq), heal_mod=m)
+    assert len(seen2) == 2                                                # a second harness launched: RED
+
+
+def test_b2_no_pane_is_its_own_line_and_no_launch(tmp_path, monkeypatch):
+    seq = [{"found": False, "miss": "no-pane"}, {"found": False, "miss": "no-pane"}]
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=seq)
+    assert len(seen) == 1 and any("read no-pane at the end" in m for m in lines), lines
+
+
+# (D) ONE fresh attempt; (C) the dead id in the RECORD, the row's session_id the fresh one's
+def test_d_the_fresh_launch_failing_too_is_one_launch_then_the_crash_path(tmp_path, monkeypatch):
+    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=seq, launches=[None, 0])
+    assert len(seen) == 2 and out["respawned"] is False, (seen, out)
+    assert out["resume_failed"]["session_id"] == SID
+    assert "fresh launch did not land" in out["reason"], out
+
+
+def test_d_the_failed_window_still_open_refuses_the_fresh_launch(tmp_path, monkeypatch):
+    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
+    out, seen, lines, _r = _c2(tmp_path, monkeypatch, joins=seq, windows="@9 mainseat\n")
+    assert len(seen) == 1 and out["respawned"] is False, (seen, out)
+    assert "the failed window @9 is still open" in out["reason"], out
+
+
+def test_c_the_dead_id_is_in_the_crash_recovery_record(tmp_path, monkeypatch):
+    seq = [{"found": True, "pid": 77}, {"found": False, "miss": "absent"}]
+    out, _seen, _lines, rot = _c2(tmp_path, monkeypatch, joins=seq)
+    gdir = tmp_path / "main" / ".agi"
+    path = heal._write_crash_recovery(gdir, "mainseat", "pid gone",
+                                      dict(ROW, harness="grok-bot"), rot, 0.0, out)
+    import json
+    rec = json.loads(Path(path).read_text())
+    assert rec["resume_failed"]["session_id"] == SID, rec
+    assert rec["resume_failed"]["fresh"] == out["resume_failed"]["fresh"]
