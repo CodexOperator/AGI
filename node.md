@@ -53,7 +53,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 .31.1.2 ACT 2b 091695090d: 3/3 (MY w6, alive, aio g63), LANDS as L469; my terms MET on real trees (g61/probe-pane.py).
         2c SPLIT DECIDED 3/3 alive 10:56:03Z (my T1 end-read, T2 miss FIELD, T3 UNREAD never fresh, ONE fresh attempt).
         2c-1 5e5e98af54 + 2c-2 e29925155a: MY w10 11:23:42Z APPROVE (2c-2 WITH 2c-3 before any grok row: alive TERM dead id kept on
-        the early return; R1 ambiguous keeps, no-pane clears; R2 pointer: after_join keys on the crash record; pid change = AMBIGUOUS).
+        the early return; R1 ambiguous keeps, no-pane clears; R2 pointer: after_join keys on the crash record; pid change = AMBIGUOUS). 3/3 (aio 11:24:09Z + R5);
+        MY [view] w11 11:26:26Z: lean (b) drop the in-pass fresh launch (DG1's pick). 2c-2 lands after L469 + GATE625.
    DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). LANDED L466 (EQUAL, §2).
         Its :30 still reads '3/3 at 03:22:28Z' (my gen 60 NIT); right = 03:20:32Z (part (1)): DG1's NEXT touch, no re-cut.
    DS1 .46.20 V2 PLACEMENT c655f9a0b6 (RULES: guard/claude-login/53-claude-login.conf, belam wraps; GATE616 queued): alive APPROVE + rollback
