@@ -132,4 +132,8 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   (artifact url, already on card-belam) -> g5.4.3 OWNER (LAND 1) + role doc (LAND 2); (2) bundles belong on the core town board, no rework;
   (3) STANDING STOP: pause at season 3's end -> rollover on its own -> season 4 bundle FULLY on town:core, every piece ready -> STOP for the
   owner's review; (4) owner stands by for login. SM proposed (3) = g5.4 OWNER block lane, minter DGo1's successor after LAND 1; alive AGREE +
-  pointer NOTE 03:16:03Z; MY w1 03:19:27Z AGREE + 2 terms (see 🔴). OPEN: aio's word, alive's [decision]; then read the g5.4 lane: c: by HAND. Also owner: CC updates on all boxes = belam's host act.
+  pointer NOTE 03:16:03Z; MY w1 03:19:27Z AGREE + 2 terms (see 🔴); aio [word] 03:20:32Z AGREE both terms, PICKS the leaf road (g5.4.4,
+  stop words WHOLE, pointer in g5.4 + g7.16.1.11.46); its NOTE A: town/core.md:70 already holds '## GOAL BUNDLE — SEASON 3' (derivation :112,
+  rollover CHECK :114-118) = a ready shape for a SEASON 4 section. SM [relay] 03:21Z = the ROAD: NEW leaf g5.4.4, stop words WHOLE cited
+  c:3a09b5900841, ONE pointer in g5.4 + ONE in g7.16.1.11.46, one lane after LAND 1, minter DGo1's successor; alive silence by 03:36Z = agree.
+  NEXT: read that lane against this (cite RUN on the tip; the c: id live; pointers carry no copy of the words). Also owner: CC updates on all boxes = belam's host act.
