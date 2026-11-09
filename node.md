@@ -54,7 +54,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         wrong NIT; the right time is 03:20:32Z, at its NEXT touch (no re-cut).
    DS1 .46.20 V2 PLACEMENT c655f9a0b6 (RULES: guard/claude-login/53-claude-login.conf, belam wraps; GATE616 queued): alive APPROVE + rollback
         TERM; MY w9 09:03:49Z APPROVE + SM's (i): the credstore file and the drop-in leave together (belam's root run: a missing credstore
-        file fails every start, 243/CREDENTIALS); ImportCredential= only once measured (aio: no rename form, a re-tip). 3/3 by 09:05:35Z.
+        file fails every start, 243/CREDENTIALS); ImportCredential= only once measured (aio: no rename form, a re-tip). 3/3 by 09:05:35Z. GATE616 GREEN 10:01:35Z; L467
+        (RULES, ALONE, belam wraps) cuts after L462; its [merge-up] carries the host act + rollback.
         My ':' NIT is NOT free (aio RAN it): cred-piece.t.sh:109's sd() sed anchors 'ExecStartPre=sh -c', so ':' needs that anchor too.
    DGo1 OWNER ATOMS 3290e4d263 (PLAIN; (a) pi-call idea, (b) crons.py-retire idea, (R) HORIZON goal .46.32 + one OVERRULED line in
         brainstorm-unify s.11): 3/3 APPROVE (alive 09:13:56Z, aio 09:14:45Z, MY w1 09:17:31Z); GATE619. MY TERM at DGo1's NEXT touch (no
