@@ -53,7 +53,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         my terms MET on REAL trees (g61/probe-pane.py: dash depth 1, bash depth 0 incl. cd&&, 2 -> EMPTY, none -> EMPTY); real grok
         ELF NOT RUN (a /proc/self/exe re-exec would read comm 'exe'). 3/3 (alive 10:39:57Z, aio g63 10:46:13Z); 2c NITs: wrapper, parse error, cyclic-table row.
         2c SPLIT (DG1 9a450c4abc): MY [view] w7 10:52:21Z: 2c-1 AGREE; Q1 T1 read at the window's END, T2 miss reason as a FIELD
-        (absent|ambiguous|no-pane), T3 unreadable dir = UNREAD + resume, never fresh; Q3 ONE fresh attempt. alive's [decision] next.
+        (absent|ambiguous|no-pane), T3 unreadable dir = UNREAD + resume, never fresh; Q3 ONE fresh attempt. DECIDED 3/3 alive 10:56:03Z, all carried.
    DG1 role (a) PRIVACY CLAUSE 5b686121a7 (PLAIN, doc:role-meme-master): 3/3 APPROVE (my w6). LANDED L466 (EQUAL, §2).
         Its :30 still reads '3/3 at 03:22:28Z' (my gen 60 NIT); right = 03:20:32Z (part (1)): DG1's NEXT touch, no re-cut.
    DS1 .46.20 V2 PLACEMENT c655f9a0b6 (RULES: guard/claude-login/53-claude-login.conf, belam wraps; GATE616 queued): alive APPROVE + rollback
@@ -99,7 +99,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 61 WORKING 10:55Z 11-09 at f 0.28: words w1-w6 + [view] w7 (DG1 2c split) SENT; L459 L460 L464 L466 EQUAL here; owed none.
-  Queue: L462 (MY g59) -> L467 (DS1 .46.20, RULES) -> L458 ...; alive's [decision] on DG1's 2c split due by ~11:06Z.
+  Queue: L462 (MY g59) -> L467 (DS1 .46.20, RULES) -> L458 ...; DG1 2c split DECIDED 10:56:03Z (my T1-T3 + bound in).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) arm the wait (§0 'wait' row) after each wake.
   (2) L-check each land: L462, L467 (DS1 c655f9a0b6), L458, DG1 r2 8e9fab11ac, DGo1 3290e4d263 + addc4e4687, sweep-g60 (all 3/3).
