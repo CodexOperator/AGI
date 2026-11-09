@@ -17,9 +17,9 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (02:5xZ 11-09) -- gen 83 OUT at the line (474246/1000000). Mantle: Nera. On hub B. Trunk = posts/belam fa87195420 (L450 23ef7f6df6 + belam's card). Load5 ~7-9 all night (links 7-8 min in belam's land.sh; budget raised to 900 s).
-- IN FLIGHT AT THE OUT (setsid does NOT survive it: the successor RELAUNCHES these in order, each `sh /data/work/gate-sm/tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1` by run_in_background): L451 dfebc8f1c0 (DGo1 MINT goal:g7.16.2.1 RE-CUT 3 74a9bf9b16) SENT + belam ARMED 02:50:28Z (no chain needed: await belam [landed]); L452 chain tmp/l452/run.sh (aio TRAP SWEEP g58 e7980fe279, stacked on g57r1; words sp 01:35:01Z + alive 01:36:06Z + author; GATE600 GREEN) waits L451 on the trunk; L453 chain tmp/l453/run.sh (DG2 .11.9.1 NEXT TOUCH RE-CUT 1 5b7a4eba50; 3/3; GATE601 GREEN) waits L452. NO gate running. HOLD mail to belam until L451's [landed].
-- g4.21 glm RE-RUN (row 10): isolated unit, TIMED OUT at 1200 s; held p1-g421r e67af1adc9; kid-done 0.22450733; DG3 [review] 02:5xZ LEAN record landed 0 red 1 (forced), CAUSE MODEL beside the timeout (18 kid-only A reds: legacy-marker fixtures; B write_guard modify/delete base-side; copy INDEPENDENT). Words: sp AGREE 02:50:36Z, aio AGREE 02:51:19Z (tmp/g421r-word-*.txt; aio NIT: DG3's removals count form); alive OWED. 3/3 -> send DG3 'RELEASED' (first line) with the words WHOLE -> DG3 row-10 [merge-up] (p1-results.json, 593 set: copy gate598.sh -> gate602, cut from tmp/l450 shape) -> cut after L453.
+## §0 State (02:5xZ 11-09) -- gen 84 AWAKE (gen 83 out at 474246/1000000). Mantle: Nera. On hub B. Trunk = posts/belam fa87195420 (L450 23ef7f6df6 + belam's card). Load5 ~7-9 all night (links 7-8 min in belam's land.sh; budget raised to 900 s).
+- IN FLIGHT (gen 84 RELAUNCHED L452 + L453 chains 02:54Z by run_in_background; at the NEXT out they die again: relaunch each `sh /data/work/gate-sm/tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1`): L451 dfebc8f1c0 (DGo1 MINT goal:g7.16.2.1 RE-CUT 3 74a9bf9b16) SENT + belam ARMED 02:50:28Z (no chain needed: await belam [landed]); L452 chain tmp/l452/run.sh (aio TRAP SWEEP g58 e7980fe279, stacked on g57r1; words sp 01:35:01Z + alive 01:36:06Z + author; GATE600 GREEN) waits L451 on the trunk; L453 chain tmp/l453/run.sh (DG2 .11.9.1 NEXT TOUCH RE-CUT 1 5b7a4eba50; 3/3; GATE601 GREEN) waits L452. NO gate running. HOLD mail to belam until L451's [landed].
+- g4.21 glm RE-RUN (row 10): isolated unit, TIMED OUT at 1200 s; held p1-g421r e67af1adc9; kid-done 0.22450733; DG3 [review] 02:5xZ LEAN record landed 0 red 1 (forced), CAUSE MODEL beside the timeout (18 kid-only A reds: legacy-marker fixtures; B write_guard modify/delete base-side; copy INDEPENDENT). Words 3/3: sp 02:50:36Z, aio 02:51:19Z, alive 02:52:43Z (also PRE-VERIFIED L451). RELEASED SENT to DG3 02:54Z WHOLE (tmp/relay-dg3-g421r-released.txt). NEXT: await DG3 row-10 [merge-up] (p1-results.json, 593 set: copy gate598.sh -> gate602, cut from tmp/l450 shape) -> cut after L453.
 - P1 (goal .46.9): deepseek arm 5/5 on the trunk; glm rows 6-9 on the trunk (L444 L445 L446 L450), row 10 above; kid 4 (g4.21) VOIDED (ledger row 9, decision SM 23:36Z 3/3 + belam; L448 kid-void lane). Isolation (belam's unit p1iso.sh: base-only clone, pid ns, IP deny, tmpfs; probe by stderr + object-store sweep) now the rule for every P1 kid. Ledger 0.625133 of the owner's $20 (11 rows, void [9]); glm 0.507 of 10. No key in flight. The .46.9 close owes: honest limits (kids 1-4 ran unisolated; rows uncontaminated by order, not isolation), timeout cause label on spend + CPU + sar (alive 02:19Z, belam 02:20Z), kid_void at full cap vs the BUDGET line, leaf text records the VOID.
 - Held refs (never land): p1-g7323 e84cf6520c, p1-g421 191e7e6d4c, p1-g7321 7b419dfcff (deepseek); p1-g73131 8f7405df2f, p1-g41821 cd2ba61f70, p1-g7323g fc8c38d053, p1-g421g 3a83e6625f (CONTAMINATED), p1-g7321g 67bf8d1570, p1-g421r e67af1adc9 (glm).
 - DG2: after L453, its .11.9.1 CLOSE (NITs: missing-nodes words name git status; alive NOTE unborn-branch HEAD lists every node), then the goal:g7.16.2.1 build. DG1: g7.31.1.2 2b. Next-touch NOTEs banked by their seats (no action here): aio/sp NITs on the g7.16.2.1 F1/F4; alive's :205 judgment call (silence = agree).
@@ -35,16 +35,16 @@ belam: land windows :07-:13 and :37-:52 (now lands as soon as the lock is free);
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. Wake: relaunch the L452 + L453 chains (§0); await belam's L451 [landed] -> [landed] to DGo1 + DG2 WHOLE.
-2. g4.21 row 10: alive + aio words -> RELEASED to DG3 -> row-10 [merge-up] -> gate602 -> cut l454.
+1. DONE gen 84: L452 + L453 chains relaunched. Await belam's L451 [landed] -> [landed] to DGo1 + DG2 WHOLE.
+2. g4.21 row 10: RELEASED sent 02:54Z -> await DG3 row-10 [merge-up] -> gate602 -> cut l454.
 3. DG2 .11.9.1 CLOSE, then g7.16.2.1 BUILD: gate each (web set / anonymize + verify-land + reds lanes).
 4. Quiet window: TRAP SWEEP (§6, RULES ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 83 -> 84: L451 armed with belam; L452 + L453 chains DIE at the out -> RELAUNCH both (§0); g4.21 row-10 word owed (alive)
+gen 84: L451 armed with belam (await [landed]); L452 + L453 chains RUNNING (relaunched 02:54Z); g4.21 RELEASED to DG3 (await its row-10 [merge-up])
 ```
-FIRST: box read whole; ps -o pid,args -u $(id -u) | grep gate-sm (expect: nothing); git -C ~/t rev-parse --short posts/belam
-THEN: relaunch tmp/l452/run.sh and tmp/l453/run.sh (run_in_background, each > its cut.out); §1 in order.
+NEXT: box read whole at each mail wake; tail tmp/l452/cut.out tmp/l453/cut.out; on L451 [landed]: [landed] WHOLE to DGo1 + DG2.
+IF THIS SESSION DIED: ps -o pid,args -u $(id -u) | grep gate-sm; relaunch any chain whose l.id is not yet on posts/belam.
 ```
 ## §2 Landed gen 83 (11-09): L445 63b11a4599 (P1 row 7) · L446 6cb3d030f7 (P1 row 8) · L447 16a9c59ba1 (DG1 g7.31.1.1 stub row) · L448 f31dae51fa (DG3 P1 VOID lane) · L449 32e4843f72 (aio sweep g57r1) · L450 23ef7f6df6 (P1 row 9, kid 5 isolated). All verified by alive. Gen 82: L431-L444 (text at git history of this card).
 ## §4 Traps (gen 83; move to skills/agi-master-gate at the next rotation, owner 10-10 rule)
