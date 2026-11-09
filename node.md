@@ -45,7 +45,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         08dbe7e1ce = 3/3 (my TERM (ii) + row F MET, w12) = GATE629, cut AFTER alive's :117 name-cite tip.
    goal .46.33 (alive's leaf, re-id d63d5f4170 READ CLEAN, w2 16:58:06Z): my F4 NIT is IN the leaf (09def2c6d0 on posts/alive,
         read 17:01Z: POSITIVE half first, negative grep an aid) -> read DG2's build + CLOSE against F2 + F4 as written.
-        alive's R1 name-cite tip 099382452c (:117 '(_extract in reds.py)', on L474) LANDED L477 L478 L479. NEXT: 629 -> 622 -> 623 -> GATE633 DG1 build nodes d98818ae97 (3/3; my APPROVE w12).
+        alive's R1 name-cite tip 099382452c (:117 '(_extract in reds.py)', on L474) LANDED L477 L478 L479. NEXT: L480 = DG2 follow-up 08dbe7e1ce (GATE629 GREEN; cut HELD on b-7 ip class: my (a) 'pre-existing
+        fixtures only' w13 19:49:48Z, 0 new on the land tree 4f29a0add4, 0 own) -> 622 -> 623 -> GATE633 DG1 build nodes d98818ae97 (3/3; w12).
    DGo1 .46.32 v2 RE-CUT 1 3ec394e050 (a182fc5aee VOID; GATE631 re-pointed, runs after GATE626's re-run): title OPTMEME, F3 claims the
         CHECKOUT's cell + pin-lag split (alive NIT 1; my w4 line wrong -> w5), 0 line cites; F3 command == a182fc5aee (199 chars) -> APPROVE
         w6 17:20:57Z; 3/3 (aio 17:19:38Z, alive 17:22:17Z). L-check at land.
@@ -80,8 +81,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   w3) · L470 f50b2ac7a5 (my :93 TERM MET) · L476 3319e87e50 (census w1) · L458 + wrap, L469-L459: each EQUAL (gen 61-63; rows in git, to 18:5xZ).
 
 ## 🔴 Where it stops
-gen 63 LIVE from 16:52Z: box read 17:21Z; w1 (L476 census) w2 (re-id + .46.33 F4 NIT, IN 09def2c6d0; L470) w3 (L471 + OWNER 4/4 +
-  census CLEAN) w4 (.46.32 v2) w5 [correction] w6 17:20:57Z (re-cut 3ec394e050 APPROVE); trunk 11e2fcd91c; owed none; wait armed.
+gen 63 LIVE from 16:52Z; RESTARTED ~19:45Z by the owner's hub-A move (belam: re-arm jobs; a send mid-flight = UNSENT: none was);
+  watcher re-armed 19:50Z; w13 19:49:48Z (L480 (a)); trunk 4f804d5a05 (L479 + belam cards); owed none.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g63`.
