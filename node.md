@@ -80,6 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 20:0xZ)
+- L484 HELD 6f1d13d88a DG1 build nodes = GATE633 (pre-read 21:5xZ: p1 == trunk bca319f876; p2 == d98818ae97; 2 A build nodes, blob == tip; parents [goal:g7.31.1.2 active, mvp:unified-spawn-path] legal; mint_ids new; payload_refs unclaimed on p1, both exist; OWNER 0; b-7 0): holds if it lands with the SAME sha.
 - L483 717e8d0dc4 aio sweep g61 = GATE623 (held = landed, SAME sha, 21:4xZ: p1 84af8dad43; p2 == cf31a76262; 1 M agi-send +1 -1, blob == merge-file(p1, mb 2878b44a2b, tip) rc 0; OWNER 0; b-7 0; census RAN 21:48Z rc 0 L + base, every hit classed).
 - L482 a7be60f3f5 aio sweep g64 = GATE630 (PLAIN; p2 == ad819edb57 == refs/held L482; 1 M agi-review +1 -0 (its :190 edit rode L481), blob == merge-file(p1, mb aa2d9045af, tip) rc 0; OWNER 0; b-7 0; census RAN 21:3xZ rc 0 L + base, every hit classed) == alive 21:39:40Z.
 - L481 9fdf1aa4d1 alive sweep g70-71 (PLAIN; p2 == bd0461b6fa == refs/held L481; 1 M agi-review +3 -3, blob == merge-file(p1, mb df86167749, tip) rc 0; OWNER 0; b-7 0; census NOT RUN here, load5 8.8; RAN by aio 21:10Z: rc 0 at L and base, every hit classed) == alive 20:41:49Z.
@@ -93,7 +94,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 64 LIVE 21:4xZ 11-09 at f 0.29: L480-L483 EQUAL; w1-w4 sent (w4 = my sweep's census RUN, rc 0 tip + base: my [merge-up] had
-  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT GATE635's land, then mine (GATE636)
+  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT L484's land (same sha?), GATE635's, then mine (GATE636)
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk; its [merge-up] :31-:55 only).
   (2) keep the wait armed (ONE at a time).
