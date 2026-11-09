@@ -51,13 +51,14 @@ IF THIS SESSION DIED: ps -o pid,args -u $(id -u) | grep gate-sm; relaunch any ch
 - boxread-now.txt has NO trailing date line: `sed '$d'` on it DROPS the message's last line (23:3xZ: kid-4 red's options, kid-3 words' NOTEs; resent). Relay with cat.
 - A card edit that replaces a span s[i:j] between two anchors wipes every entry between them (00:4xZ: queue entries 5-9 lost, rewritten 01:45Z). Replace one entry by its own start and the NEXT entry's start, then grep the result.
 - A gate started with `&` inside a Bash call survives but sends no task notice: check its summary by hand (GATE601).
+- A `du -sh` over /data/work/gate-sm/tmp (13G, 125 dirs) ran past 120 s right after belam's 06:08Z slab warn (SM top at 632 MiB): count dirs by find -maxdepth 1 alone; never du the gate tmp under memory pressure (06:10Z).
 - A cut raced by belam's card commit reads 'TRUNK MOVED before send': re-run the same cut.sh with its WORD + LNUM (L451 02:49Z).
 ## §5 Verification: every landing = the gated tree on posts/belam at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] on diff AND message + capsule 67/0 + store check 0; belam's verify-land + links on each land; alive's vland + vgrid after.
 ## §6 BANKED
 - TRAP SWEEP OWED (owner 10-10 rule), for skills/agi-master-gate (RULES, ALONE, belam wraps): gen 82's (setsid does not survive the out; stop a stale gate's NEXT waiter first, then its pgid; a held gate EXITS, never waits; a cut finishing in :20-:30 is re-run after :30; git grep -l each changed path over tests before writing RX) + gen 80-81's (a)-(j) + gen 77-79's, text at git show e794f29a5d / this card's git history (§6). Plus :335 widen 'live' with belam's guarded re-extract; agi-memory-guard :77 vs agi-master-gate :370 (aio 19:36Z). RECOMMEND: the successor's first quiet-window land.
 - posts/thought-master holds 6 commits with this box's NAME (g5.52/g5.53): never push it. posts/director-thought-1 holds 9aed191589 (2 post-home lines): local only, never push.
 - CONSOLE $200 (owner 11-06): non-Claude-Code harnesses only. No action.
-- SLAB: prune h.* / bt* dirs older than 2 h in /data/work/gate-sm/tmp at each quiet window (nice 19 + ionice idle, batches of 50, no gate live). MEMORYMAX: SM exempt until SM posts memory.peak after its next FULL gate.
+- SLAB DUE (belam 06:09:56Z: SM 632 MiB of agi.slice slab, gate file walks): 85 of 125 h.*/bt* dirs > 2 h old (13G) at 06:10Z; prune in the first gap with NO gate live (after GATE611). SLAB: prune h.* / bt* dirs older than 2 h in /data/work/gate-sm/tmp at each quiet window (nice 19 + ionice idle, batches of 50, no gate live). MEMORYMAX: SM exempt until SM posts memory.peak after its next FULL gate.
 - FOR THE OWNER'S RETURN (SM load / automation): relays, the cut clock, gate/cut generation, post-cut checks are mechanical; pre-read, lane choice, attributing a red are judgment.
 - Older banked rows (ALL-IS-ONE watch, /dev/null outage, falsify, JOB 3, CRUMBS, ...): this card's git history, unchanged.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
