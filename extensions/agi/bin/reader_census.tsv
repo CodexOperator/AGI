@@ -88,6 +88,7 @@ hit	extensions/agi/tests/test_success_metrics.py	fixture	*	a scratch repo's own 
 hit	extensions/agi/tests/test_towns.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	extensions/agi/tests/test_trunk_sync.py	fixture	*	a scratch repo's own ref (the file builds its repo on mktemp / tmp_path)
 hit	skills/agi-master-gate/SKILL.md	prose	*	skill text
+hit	skills/agi-memory-guard/SKILL.md	prose	*	skill text
 hit	skills/agi-merge-pass/SKILL.md	prose	*	skill text
 hit	skills/agi-node-write/SKILL.md	prose	*	skill text
 hit	skills/agi-post/SKILL.md	prose	*	skill text
