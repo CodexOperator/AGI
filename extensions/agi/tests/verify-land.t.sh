@@ -23,7 +23,7 @@ gate(){ n=$1;shift;g checkout -q --detach $BASE;eval "$*";g add -A;if [ -n "$UNS
  tr=$(g merge-tree --write-tree $BASE $GT|head -1);[ -z "$XTRA" ]||{ g checkout -q --detach $GT;echo x >$R/docs/smuggled;g add -A;tr=$(g write-tree);g reset -q --hard $GT;}
  LD=$(g commit-tree -S -p $BASE -p $GT -m "land $n${MSG:+
 $MSG}" -m "$CA" $tr);g update-ref refs/heads/vl/$n $LD;g update-ref refs/held/sanctuary-master/$n $LD;}
-run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=$R0/extensions/agi/bin/anonymize.py VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} ${VPW:+VL_PASSWD=$VPW} ${VGR:+VL_GROUP=$VGR} ${VSY:+VL_SYSUSERS=$VSY} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
+run(){ env -i PATH=$T/bin:/usr/bin:/bin HOME=$T VL_T=$R VL_MAIN=$R VL_OUT=$T/out VL_ANON=${XANON:-$R0/extensions/agi/bin/anonymize.py} VL_CARRY=${CARRY:-$T/carry.env} VL_INSTALLED=$T/bin/verify-land VL_TOOLS=$T/tools/verify-land.sh VL_RING=$T/allowed VL_RLAND_SINCE=${RSX:-$SINCE} VL_WRAP_SIGNER=${WSIG:-t@t} VL_LAND_SIGNER=t@t ${AGI_FIX:+AGI_ANONYMIZE_FIXTURE=$AGI_FIX} ${XLIT:+GIT_LITERAL_PATHSPECS=1} ${XTMP:+TMPDIR=$XTMP} ${VPW:+VL_PASSWD=$VPW} ${VGR:+VL_GROUP=$VGR} ${VSY:+VL_SYSUSERS=$VSY} STUB_LOG=$T STUB_CITE_RC=${CRC:-0} ${XPATH:+PATH=$XPATH} sh ${SELF:-$T/bin/verify-land} "$@" >$T/o 2>&1;rc=$?;}
 v(){ tail -1 $T/o;}
 # wrun(NAME, LAND, BASE, GT): the WRAP step (`verify-land wrap`) then verify-land on what it printed: WS = the wrap sha (empty = plain)
 wrun(){ run wrap "$@";cp $T/o $T/w;WS=$(sed -n 's/^land: wrap \([0-9a-f]*\) over .*/\1/p' $T/w);n=$1;shift;run $n ${WS:-$1} "$2" "$3";}
@@ -295,6 +295,8 @@ ok "i1-an-ip-in-an-allowlisted-path-reads-anon-diff-0 (BASE's ip_allow names ext
 sw $BASE_ipok fx ib "echo 'v = $IPX' >\$R/extensions/agi/tests/other.py";run ib $LD $BASE_ipok $GT
 ok "i2-the-same-ip-OUTSIDE-the-allowlist-HOLDS rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
 fx ic "echo 'v = $IPX' >\$R/extensions/agi/tests/ipfx.py;printf %s '$IPC' >\$R/.agi/config.json";run ic $LD $BASE $GT;LD_ic=$LD;GT_ic=$GT
+sw $BASE_ipok fx id "printf '++ b/extensions/agi/tests/ipfx.py\\nhost %s\\n' $IPX >\$R/docs/z";run id $LD $BASE_ipok $GT;LD_id=$LD;GT_id=$GT
+ok "i4-an-added-line-reading-a-header-never-moves-the-mask (docs/z adds '++ b/<allowlisted path>' then an ip) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&g show $GT_id:docs/z|grep -q "^++ b/extensions/agi/tests/ipfx.py$"'
 ok "i3-the-ip-allowlist-is-read-from-BASE-never-TIP (the land adds its own path on TIP only) rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
 # mutants: the mutated copy runs as SELF; each row is green when the mutant misbehaves (the real row above would then be RED)
 mutate(){ python3 -c '
@@ -305,6 +307,9 @@ open(sys.argv[1],"w").write(s.replace(a,b))' "$@";}
 vmut(){ cp "$VL" $T/vm.sh;mutate $T/vm.sh "$1" "$2";SELF=$T/vm.sh;}
 vmut "res=anonymize.mask_diff_ips(" "res=res or anonymize.mask_diff_ips(";run ia $LD_ia $BASE_ipok $GT_ia;SELF=
 ok "m-ip-allowlist-dropped-reads-RED the allowlisted ip HOLDs (rc $rc, $(v))" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"'
+rm -rf $T/mroot;mkdir -p $T/mroot/extensions/agi;cp -r $R0/extensions/agi/bin $T/mroot/extensions/agi/;ln -s $R0/.agi $T/mroot/.agi   # a project around the copy: anonymize finds its sysusers template by walking up
+mutate $T/mroot/extensions/agi/bin/anonymize.py 'elif not hunk and l.startswith("+++ "):' 'elif l.startswith("+++ "):';XANON=$T/mroot/extensions/agi/bin/anonymize.py;run id $LD_id $BASE_ipok $GT_id;XANON=
+ok "m-hunk-flag-dropped-reads-GREEN the crafted header line moves the mask: docs/z passes (rc $rc, $(grep -E '^anon-diff=' $T/o))" 'grep -qx "anon-diff=0" $T/o'
 vmut 'git show "$B:.agi/config.json" > "$S/$N.cfg"' 'git show "$L:.agi/config.json" > "$S/$N.cfg"';run ic $LD_ic $BASE $GT_ic;SELF=
 ok "m-ip-allowlist-read-from-TIP-reads-RED the TIP-only entry now passes (rc $rc, $(grep -E '^anon-diff=' $T/o))" 'grep -qx "anon-diff=0" $T/o'
 vmut "l=paths.HOME_RE.sub(fixture,l)" "l=l";run fa $LD_fa $BASE $GT_fa;SELF=

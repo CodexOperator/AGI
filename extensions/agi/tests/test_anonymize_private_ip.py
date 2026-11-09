@@ -203,9 +203,98 @@ def test_mutant_one_reader_alone(tmp_path, monkeypatch):
     # reds.py reading NO allowlist (as if only verify-land.sh had it): the allowlisted add reads RED there
     repo, b, t = _repo(tmp_path, ["ok/f.txt"], ["ok/f.txt"], {"ok/f.txt": "v = 10.1.2.3"})
     assert _secrets(repo, b, t) == []
-    monkeypatch.setattr(a, "ip_allow", lambda cfg: [])
+    monkeypatch.setattr(reds.anonymize, "ip_allow", lambda cfg: [])   # the module reds reads (another suite may reload anonymize)
     assert _secrets(repo, b, t) == ["ok/f.txt:1"]
     monkeypatch.undo()
     # and the diff reader with no allowlist reads the same add RED
     assert "ip" in a.scan(a.added_lines(a.mask_diff_ips(_diff("ok/f.txt", "10.1.2.3"), [])), [])
     assert "ip" not in a.scan(a.added_lines(a.mask_diff_ips(_diff("ok/f.txt", "10.1.2.3"), ["ok/f.txt"])), [])
+
+
+# ---- the path is read only in a file's HEADER (all-is-one's term, 04:50:20Z 11-09): an ADDED line whose text is
+# '++ b/<allowlisted path>' shows in the diff as '+++ b/<path>' inside a hunk; it is content, never a path switch
+CRAFT = "++ b/ok/f.txt"
+
+
+def _real_diff(tmp_path):
+    repo, b, t = _repo(tmp_path, ["ok/f.txt"], ["ok/f.txt"], {"no/x.md": CRAFT + "\nhost " + ".".join(["10", "1", "2", "3"])})
+    return repo, b, t, _git(repo, "diff", "--no-color", b, t)
+
+
+def test_crafted_header_line_does_not_move_the_mask(tmp_path):
+    repo, b, t, d = _real_diff(tmp_path)
+    assert "\n+++ b/ok/f.txt" in d   # the crafted line really reads as a header line inside the hunk
+    assert "ip" in a.scan(a.added_lines(a.mask_diff_ips(d, ["ok/f.txt"])), [])
+    assert _secrets(repo, b, t) == ["no/x.md:2"]
+
+
+def test_mutant_hunk_flag_dropped_moves_the_mask(tmp_path):
+    repo, b, t, d = _real_diff(tmp_path)
+    ns = _mut_scan(lambda s: s.replace('elif not hunk and l.startswith("+++ "):', 'elif l.startswith("+++ "):'))
+    assert "ip" not in ns["scan"](ns["added_lines"](ns["mask_diff_ips"](d, ["ok/f.txt"])), [])
+
+
+def test_mutant_reds_hunk_flag_dropped_skips_the_line(tmp_path, monkeypatch):
+    repo, b, t, d = _real_diff(tmp_path)
+    src = (BIN / "reds.py").read_text()
+    old = 'elif not hunk and l.startswith("+++ "):'
+    assert src.count(old) == 1
+    import types
+    m = types.ModuleType("mut_reds"); m.__dict__["__file__"] = str(BIN / "reds.py")
+    exec(compile(src.replace(old, 'elif l.startswith("+++ "):'), "mut_reds", "exec"), m.__dict__)
+    assert m._secrets(repo, b, t, repo) != ["no/x.md:2"]
+
+
+# ---- row F (self-perpetuating 04:51:44Z 11-09, pre-existing in reds._added): an added line whose TEXT starts '++' is content, scanned
+def test_reds_scans_an_added_line_starting_plus_plus(tmp_path):
+    repo, b, t = _repo(tmp_path, [], [], {"no/f.md": "++ host " + ".".join(["10", "1", "2", "3"])})
+    assert _secrets(repo, b, t) == ["no/f.md:1"]
+
+
+def test_mutant_reds_skips_lines_starting_plus_plus(tmp_path):
+    repo, b, t = _repo(tmp_path, [], [], {"no/f.md": "++ host " + ".".join(["10", "1", "2", "3"])})
+    src = (BIN / "reds.py").read_text()
+    old = 'elif hunk and l.startswith("+"):'
+    assert src.count(old) == 1
+    import types
+    m = types.ModuleType("mut_reds_f"); m.__dict__["__file__"] = str(BIN / "reds.py")
+    exec(compile(src.replace(old, 'elif hunk and l.startswith("+") and not l.startswith("+++"):'), "mut_reds_f", "exec"), m.__dict__)
+    assert m._secrets(repo, b, t, repo) == []
+
+
+# ---- the board-line fix (council 3/3, SM 05:02Z 11-09): reds' assignment rule skips (a) an all-caps placeholder
+# followed by '(' and (b) a count under a tokens_per_ metric name; each cell ALONE on its line (all-is-one's reading 1)
+PH = "UNMEASURED(no source yet)"
+GREEN_ASSIGN = ["hierarchy_tokens_per_hour: " + PH, "subscription_tokens_per_season=" + PH, "avg_tokens_per_turn: " + PH,
+                "hierarchy_tokens_per_hour=123456789", "avg_tokens_per_turn=123456.7"]
+RED_ASSIGN = ["PASSWORD=12345678", "API_TOKEN=123456789", "API_TOKEN=UNMEASURED", "x_token=unmeasured(no source)",
+              "api_key=" + "abcdefgh" + "12345678", "SECRET=123456.78"]
+
+
+@pytest.mark.parametrize("x", GREEN_ASSIGN)
+def test_board_cell_alone_reads_green(x):
+    assert reds._assign_secret(x) is False
+
+
+@pytest.mark.parametrize("x", RED_ASSIGN)
+def test_real_or_scoped_value_stays_red(x):
+    assert reds._assign_secret(x) is True
+
+
+def _mut_reds(old, new):
+    src = (BIN / "reds.py").read_text()
+    assert src.count(old) == 1
+    import types
+    m = types.ModuleType("mut_reds_a"); m.__dict__["__file__"] = str(BIN / "reds.py")
+    exec(compile(src.replace(old, new), "mut_reds_a", "exec"), m.__dict__)
+    return m
+
+
+def test_mutant_placeholder_skip_dropped():
+    m = _mut_reds('if re.fullmatch(r"[A-Z]+", v) and line[m.end():m.end() + 1] == "(":', 'if False:')
+    assert any(m._assign_secret(x) for x in GREEN_ASSIGN[:3])
+
+
+def test_mutant_count_skip_by_value_alone():
+    m = _mut_reds('if _METRIC.search(nm) and re.fullmatch(', 'if re.fullmatch(')
+    assert not m._assign_secret("PASSWORD=12345678")
