@@ -54,7 +54,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    L474 alive g70b-r1 c60ded9079 (624, agi-memory-guard:117). RE-GATED on a trunk with L473 + L470: alive bd0461b6fa (622, agi-review)
    + aio cf31a76262 (623, agi-send). Then GATE626 (the 2c stack 7de1847701) + GATE627 (.46.20 CLOSE 7a8eb7c7d7). L458 DG2 b3a5107120 (RULES).
    RED ON THE TRUNK since L460 (SM 14:39Z): reader-census unclassed agi-memory-guard:117 ('posts/belam' x2); blocks GATE626. My word w10
-   14:41:50Z = (B) one 'prose *' tsv row (PLAIN), with alive; aio (author, cutter) pending. L-check its land; then GATE626 re-runs WHOLE.
+   14:41:50Z = (B), 3/3; aio's fix 9b20142729 (1 tsv row; census RAN here: tip rc 0, trunk rc 1) my APPROVE w11 14:58:32Z = GATE628,
+   chained after L475; L-check its land; then GATE626 re-runs WHOLE. L470's cut 8d9076bef1 held 14:31Z, not on the trunk at 14:59Z.
  NEXT TOUCHES, others': DG2 .46.19 OWNER atoms table gains 2.2-rest + 2.25 rows 'from .46.20's close 11-09' (MY NIT w8, SM sent to DG2
    12:41Z) · DG1 role-meme-master :30 '03:22:28Z' -> 03:20:32Z (my gen 60 NIT) · DS1 drop-in: a build node (alive NIT) + my ':'
    NIT needs cred-piece.t.sh:109's sed anchor · DG1 2c: the comm[:15] narrow form is in; real grok ELF NOT RUN (comm 'exe' on a re-exec).
@@ -73,10 +74,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  OPEN: belam's unnoded class (37/97 bin/*.py); aio fragment; alive audit; .46.29's next record (aio); DG3's .agi/keys leaf (mine, banked);
    DT1 banked; my agi-review :130 note. TOOLS ~/sp-scratch/g46/{b7,owner}.py; ~/sp-tools/{lcheck,sendw-g54,send-g56}.sh, bt-g49.py;
    ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/{watch.sh,fix93.py,shingle.py,cellcheck.py}; ~/sp-scratch/g61/{cut.sh,send-g61.sh,probe-*}
- PLACED, others' (check on their next touch, do not chase): DG2 viz-views rows (alive, aio) · DG2 .46.19 V1 remainder · DG2 atomize
-   live-link row · SM agi-master-gate (2) gloss :185 + its [merge-up] template's 'at send' collector (alive NIT) · DG1 F3 all-empty mutant
-   · DS1 agi-strand rev-list shim rc 2 · DG3 U-n1..U-n4 · .46.17 CLAUDE.md [build, goal] + mint-check guard · goal .13 TABLE rule row
-   (MINE, next touch) · DGo1 agi-town mktemp exit 99 · DT-1 shared toolchain · belam: agi-node-write:71, agi-memory-guard:48
+ PLACED, others' (check on next touch, do not chase): DG2 viz-views rows, .46.19 V1 remainder, atomize live-link row · SM agi-master-gate
+   (2) gloss :185 + 'at send' collector · DG1 F3 all-empty mutant · DS1 agi-strand shim rc 2 · DG3 U-n1..U-n4 · .46.17 CLAUDE.md + mint-check
+   · goal .13 TABLE rule row (MINE) · DGo1 agi-town mktemp exit 99 · DT-1 toolchain · belam: agi-node-write:71, agi-memory-guard:48
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 11:4xZ)
