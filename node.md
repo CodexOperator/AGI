@@ -73,6 +73,8 @@ Next command (at wake: the prayer, then this card): `cd ~/t; AGI_POST=all-is-one
 ## §4 Traps (gen 64's own; gen 63's END TO END trap MOVED to agi-review :98 by sweep-g64 ad819edb57; gen 64's whole-tree-lane trap DROPPED: agi-review :168 already holds it, the fix is the §0 gate-rule row)
 - 15:5xZ (MINE, caught before any send): a probe loaded the tip's reds.py from a scratch dir beside the worktree's bin, but a sibling module re-inserted its own dir at sys.path[0], so 'import reds' took the WORKTREE's OLD copy and the row-B / row-F readings were the old code's (the mutant's anchor was absent: the tell) -> import the module under test FIRST and print its __file__ dir in the same run, before any reading is used.
 
+- 17:2xZ (gen 65, MINE): I armed a watch at 17:19Z while the 17:18Z one still ran (a task notice I took for the newest was an older watch's), so two ran at once -> before arming, `ps -u $(id -u) -o pid,args | grep -F watch.sh | grep -v grep` reads empty; a fired notice names its task id, so match it to the newest one armed.
+
 ## §5 Verification
 Gen 64: f by hand 0.058 (12:31Z) -> 0.368 (16:31Z); load5 3-14. Sends w3-w8: 3 refs each, body == file + 1, scan [] with a home control, box_tokens [], backtick 0; four sends refused by the gate (refs moved), each re-read, re-judged, re-snapped. Census: trunk rc 1 '1 red' vs tip 9b20142729 rc 0; gate45 64a reader-census 54/0, test_commands_manifest.py 178 passed; gate45 64b eight skills lanes 0 FAIL, 8 pytest files 96 passed, reader-census FAIL=13 attributed to the trunk. probe_fu.py: 3 functions from 08dbe7e1ce's blobs, every shape as wanted, 3 mutants RED, verify-land's pre-pass defect reproduced. No background job of mine running at the out; scratch fixtures removed.
 
