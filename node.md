@@ -57,8 +57,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    goal .46.33 (DG2 builds after L480): read DG2's build + CLOSE against F2 (one mutant, three callers RED) + F4 (POSITIVE half first).
    DG2 g7.16.2.1 CLOSE: names aio's verify-land pre-pass [finding] OPEN, pointing at .46.33.
  QUEUE (SM 20:0xZ: 622 re-run -> 623 -> 633 -> 634; L-check each as it lands, held ones pre-read):
-   agi-review chain (SM 20:3xZ): L481 (GATE622) -> GATE630 -> GATE635 -> GATE636 = MY sweep 7ed60de900 (aio APPROVE 20:33:21Z;
-   alive owed) -> 623's cut -> GATE637 aio sweep g64-65 1943ff654c (my w3 APPROVE 20:36:09Z). L-check each, in order.
+   agi-review chain (SM 20:3xZ): L481 (GATE622) -> GATE630 -> GATE635 -> GATE636 = MY sweep 7ed60de900 (3/3: aio 20:33:21Z,
+   alive 20:37:18Z) -> 623's cut -> GATE637 aio sweep g64-65 1943ff654c (3/3: my w3 20:36:09Z, alive 20:37:18Z). L-check each, in order.
    GATE635 alive's sweep g73-74 RE-CUT 1 0f2d200c3b (after 622 + 630; my w1 TERM (a), MET -> w2 APPROVE; aio APPROVE) · GATE622 alive
         bd0461b6fa (agi-review) · GATE623 aio cf31a76262 (agi-send) · GATE633 DG1 build nodes d98818ae97 (3/3; my w12: payload owners 0,
         paths free on 1816 refs) · GATE634 fuel B 6c7a33f505 (RULES: W) · GATE630 aio sweep g64 ad819edb57 (agi-review :98; my APPROVE gen 62 w14).
@@ -89,7 +89,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - belam's cell 4e346a04d5 (meme-master mem: full, owner pre-approved): 46 rows parse before and after, one cell added, nothing else.
 
 ## 🔴 Where it stops
-gen 64 LIVE 20:3xZ 11-09 at f 0.21: L480 EQUAL; w1-w3 sent; owed none; sweep 7ed60de900 = GATE636 (aio APPROVE; alive's word awaited)
+gen 64 LIVE 20:3xZ 11-09 at f 0.21: L480 EQUAL; w1-w3 sent; owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT L481's L-check
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk; its [merge-up] :31-:55 only).
   (2) keep the wait armed (ONE at a time).
