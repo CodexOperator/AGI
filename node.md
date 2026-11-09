@@ -21,10 +21,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - LANDED gen 87, each relayed WHOLE to builder + council: L473 59d46469f6 (sp g60) · L474 9eab1f5313 (alive g70b) · L475 474269e5a8 (DS1 .46.20 CLOSE; alive VERIFIED + sp EQUAL; DS1 told).
 - L477 5bd6dce3e9 (alive R1) LANDED 18:49:51Z, relayed; R1 CLOSED. The '_extract' mail correction SENT to belam 19:1xZ (closed).
 - L478 aedd59484f (DG1 ACT 2c) LANDED 19:08:26Z (belam card 8b6a625bd0 on top); aio CLEAN + alive VERIFIED; belam's [landed] RELAYED WHOLE to DG1 + council. Live grok kill + reattach NOT started (owner's GO / belam's word). DG1's call: build nodes for harness_template.py + test_heal_resume.py at its CLOSE.
-- L479 f5c73de224 (DGo1 .46.32 v2) ON THE TRUNK; alive VERIFIED 19:40:23Z, relayed to DGo1. belam's [landed] L479 NOT YET: relay WHOLE to DGo1 + council.
-- CHAINED: L480 = DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce (GATE629 GREEN 19:38:50Z, viz-views 61/0; no shared path since its pre; no host act: verify-land.sh reads anonymize.py from the checkout), tmp/l480, harness bg; waits L479 landed + my window. AFTER L480 LANDS: DG2 builds .46.33 then its g7.16.2.1 CLOSE.
-- QUEUE: tmp/gateq87b.sh (harness bg, out tmp/gateq87.out): 622 RUNNING (19:38:55) -> 623; then tmp/gateq87c.sh -> 633. Next free L = 481.
-- DG1 two build nodes d98818ae97 (ref dg1-7312-nodes; build:bin-harness-template + build:tests-test-heal-resume, [goal, mvp], +70 -0, PLAIN): pre-read WHOLE, [review] to council + DG1 19:1xZ, words 3/3: alive 19:14:44Z, sp 19:16:31Z, aio 19:19:25Z (all relayed to DG1; DG1 author). GATE633 BUILT (631's shape + grid/links set), queued by tmp/gateq87c.sh (harness bg) AFTER 623. Cut dir on 633 green + 3/3.
+- L479 f5c73de224 (DGo1 .46.32 v2) ON THE TRUNK (belam card ba96172c5a on top); alive VERIFIED, relayed. belam's [landed] L479 never seen in box: relay it WHOLE to DGo1 + council if it comes.
+- L480 = DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce (GATE629 GREEN): cut HELD 19:43:27Z for the B-7 (a) word (objscan ip 1; b7eq test_anonymize_private_ip.py hits-not-in-base 0: L458's fixtures). Asked alive + aio + sp 19:4xZ. On 3 words: `cd /data/work/gate-sm && B7WORD='<the three words>' sh tmp/l480/run.sh > tmp/l480/cut2.out 2>&1` (run_in_background) in a window (:31-:03). AFTER L480 LANDS: DG2 builds .46.33 then its CLOSE.
+- HUB A (OWNER ORDER via belam 19:4xZ: core crew to hub A, use it before the reset; do NOT pause to save quota; report any 'limit' reply): relayed to aio + sp + alive. MY MOVE: queue shells STOPPED 19:47Z; gate622.sh (pid 999195) finishing alone. When it ends: box belam '[ready hub A]'. After the restart (it KILLS my bg jobs): relaunch `sh tmp/gateq88.sh >> tmp/gateq87.out 2>&1` (623 -> 633; 622 only if not ALLDONE), and the L480 re-cut on its words.
+- QUEUE NEXT: tmp/gateq88.sh (623 -> 633). Next free L = 481 (L480 is reserved for DG2's follow-up).
+- DG1 two build nodes d98818ae97 (ref dg1-7312-nodes; build:bin-harness-template + build:tests-test-heal-resume, [goal, mvp], +70 -0, PLAIN): pre-read WHOLE, [review] to council + DG1 19:1xZ, words 3/3: alive 19:14:44Z, sp 19:16:31Z, aio 19:19:25Z (all relayed to DG1; DG1 author). GATE633 BUILT (631's shape + grid/links set), queued in tmp/gateq88.sh after 623. Cut dir on 633 green + 3/3.
 - CUT DIR per green gate: add an entry to tmp/gen87/mkcut.py (the mu text goes to tmp/lNNN/mu.body, read by $(cat) so it is never re-expanded: alive's lean 18:43:56Z, mutant-tested; head/word refuse # & backslash, they go through sed), then `python3 tmp/gen86/guard.py tmp/lNNN/cut.sh`, then `sh tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1` by run_in_background. The mu text carries its own 'census:' clause. Words (3/3 unless named):
   · 622 alive g70-71 bd0461b6fa: 'sp 09:45:34Z, aio 09:46:42Z' (author alive). Shares agi-review with L473 (re-gated on it in this queue).
   · 623 aio g61 cf31a76262: 'sp 09:48:30Z, alive 09:49:36Z' (author aio).
@@ -52,7 +53,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 87: L473-L475, L477-L479 landed; L480 (DG2 follow-up) chained; queue 622 (running) -> 623 -> 633 (DG1 build nodes, 3/3). Next: belam's [landed] L479 -> relay; cut dirs for each green gate (next free L481).
+gen 87: L473-L475, L477-L479 landed; L480 HELD for B-7 (a) words; HUB-A move pending (622 finishing, then [ready hub A] to belam); after the restart relaunch tmp/gateq88.sh. Next free L481.
 ```
 FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); tail tmp/gateq87.out
 IF NOT RUNNING (a dead session / an out): §0's last line (Relaunch).
