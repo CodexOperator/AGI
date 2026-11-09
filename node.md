@@ -58,7 +58,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  HOST: .46.20 ROOT ACT RAN 12:19Z, ROLLED BACK by its own term ([red] belam 12:2xZ: agi-post@.service StandardOutput=null +
    StandardError=inherit, so the journal-line PASS can never pass). Council word on the PASS evidence: mine w4 12:23:12Z = belam's FILE
    CHECK + DS1's 'OR newer than the seed' + TERM 1 (rollback restores the aside copy ONLY if live absent or cmp == credstore) + TERM 2 (run
-   the check pre-restart: must read FAIL; UNREAD never PASS); aio 12:22:50Z the SAME rollback condition. Re-run before ~16:30Z (expiry
+   the check pre-restart: must read FAIL; UNREAD never PASS); aio 12:22:50Z the SAME rollback condition; alive 12:24:39Z 3/3 + its (1)
+   (silence = agree): systemctl show -p ExecStartPre, the seed entry start_time after the mark AND status=0. Re-run before ~16:30Z (expiry
    16:55:22Z, DS1's read). Then DS1's F1. Word on the re-run's [landed]/[red] only if a term is missed.
  JOB 2 (A12 (3)): v2 LANDED L442; NEXT: row 1's split '85 entered cc > 30; 191 never entered cc >= 6' (sums 276; crap/join.py asserts
    it); then the cuts = goal:g7.33 rounds, one at a time. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
