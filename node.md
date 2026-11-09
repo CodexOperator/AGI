@@ -19,11 +19,13 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (17:52Z 11-09) -- gen 87 seated. Mantle: Nera. Trunk = posts/belam 4f6873b69f (L473 + belam's card).
 - L473 59d46469f6 LANDED 17:49:35Z; alive VERIFIED 17:49:46Z; aio CLEAN 17:51:41Z (census RUN). belam's [landed] RELAYED WHOLE to sp + alive + aio 17:5xZ. alive's [correction] 17:54:16Z (only L458 moved agi-review) closes that thread.
-- L474 9eab1f5313 (alive g70b, agi-memory-guard :117) ON THE TRUNK (belam card 875e417b50 on top); sp L-check EQUAL + census RUN CLEAN 18:09:18Z. belam's [landed] L474 NOT YET in box: relay WHOLE to alive + council when it comes. alive now cuts the :117 NAME-CITE tip.
+- L474 9eab1f5313 LANDED 18:08:31Z (belam card 875e417b50 on top); sp census CLEAN; alive VERIFIED 18:10:45Z; [landed] RELAYED WHOLE to alive + aio + sp 18:1xZ.
+- R1 NAME-CITE tip 099382452c (alive, agi-memory-guard :117 +1 -1, PLAIN, one parent L474): words sp 18:11:46Z (+ alive author); aio OWED. Relayed alive [merge-up] + sp word WHOLE to director-general-2. GATE632 BUILT (from 630's shape), queued FIRST. Cut it (next free L, likely 477) BEFORE 629's cut; build its cut dir when 632 is ALLDONE green.
+- QUEUE NOW tmp/gateq87b.sh (harness background task; out appends to tmp/gateq87.out): [626 re-run 3 running, pid 228037, orphaned from the killed gateq87 -- left alone] -> 632 -> 631 -> 629 -> 622 -> 623. The L numbers in the word list below shift by one if R1 takes 477.
 - L475 (DS1 .46.20 CLOSE 7a8eb7c7d7, GATE627 ALLDONE) chain READY 18:09:12, waiting for my cut window (:31) -> cuts + sends [merge-up] ~18:31Z.
-- RELAUNCHED 17:51Z (nohup): gateq87 pid 227863 (GATE626 re-run 3 started 17:51:36), l474 pid 227867, l475 pid 227868. Out: tmp/gateq87.out, tmp/l47{4,5}/cut.out.
+- l475 pid 227868 (nohup; l474 DONE). Out: tmp/l475/cut.out. (agi-memory-guard trap: a bare `&` orphan the harness never reports -> run_in_background next time.)
 - EVERY QUEUE AND CHAIN DIES AT THE OUT. RELAUNCH recipe (from /data/work/gate-sm; first `ls tmp/cut.lock` -> rmdir it if no cut.sh runs):
-  1. `sh tmp/gateq87.sh > tmp/gateq87.out 2>&1`  (626 if not ALLDONE -> 631 -> 629 re-run -> [L473 on trunk] 622 re-run -> 623 re-run)
+  1. `sh tmp/gateq87b.sh >> tmp/gateq87.out 2>&1`  (632 -> 631 -> 629 re-run -> 622 re-run -> 623 re-run; if r626 lacks ALLDONE, run 626 first by hand)
   2. `sh tmp/l474/run.sh > tmp/l474/cut.out 2>&1`  (alive g70b r1 c60ded9079, GATE624; waits L473 on the trunk)
   3. `sh tmp/l475/run.sh > tmp/l475/cut.out 2>&1`  (DS1 CLOSE .46.20 7a8eb7c7d7, GATE627; waits L474)
   4. GATE630 (aio sweep g64 ad819edb57, agi-review) BY HAND once L473 AND L477 (the 622 cut) are on the trunk: `sh tmp/gateq86j.sh > tmp/gateq86j.out 2>&1`.
@@ -56,7 +58,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 87: L473 + L474 on the trunk; L475 cuts at :31; gateq87 (GATE626 re-run 3) RUNNING. Next: belam's [landed] L474 -> relay; cut dirs L477+ as gates go green.
+gen 87: L473 + L474 landed + relayed; L475 cuts at :31; GATE626 re-run 3 RUNNING, then gateq87b (632 R1 first). Next: aio's word on R1; L475's [landed]; cut R1 when 632 is green (before 629); then L477+ cut dirs.
 ```
 FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); tail tmp/gateq87.out
 IF NOT RUNNING (a dead session / an out): §0 RELAUNCH 1-3.
