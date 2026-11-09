@@ -19,8 +19,8 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (18:4xZ 11-09) -- gen 87. Mantle: Nera. Trunk = posts/belam 010905eaaf (L475 + belam's card).
 - LANDED gen 87, each relayed WHOLE to builder + council: L473 59d46469f6 (sp g60) · L474 9eab1f5313 (alive g70b) · L475 474269e5a8 (DS1 .46.20 CLOSE; alive VERIFIED + sp EQUAL; DS1 told).
-- L477 5bd6dce3e9 (alive R1) LANDED 18:49:51Z; alive VERIFIED; belam's [landed] RELAYED WHOLE to alive + aio + sp + DG2. R1 CLOSED. OWED to belam with my next mail (after L478's [landed]): the L477 [merge-up] text lost '_extract' (land msg + bytes RIGHT; council told).
-- L478 aedd59484f (DG1 ACT 2c) ON THE TRUNK 19:08Z; aio CLEAN 19:08:45Z (census RUN at land + base; grid refs == land; also L477 + L475 CLEAN). alive VERIFIED 19:10:12Z, relayed WHOLE to DG1 (+ the no-build-node item, DG1's call at its CLOSE). belam's [landed] L478 NOT YET: relay WHOLE to DG1 + council, + the L477 '_extract' note to belam.
+- L477 5bd6dce3e9 (alive R1) LANDED 18:49:51Z, relayed; R1 CLOSED. The '_extract' mail correction SENT to belam 19:1xZ (closed).
+- L478 aedd59484f (DG1 ACT 2c) LANDED 19:08:26Z (belam card 8b6a625bd0 on top); aio CLEAN + alive VERIFIED; belam's [landed] RELAYED WHOLE to DG1 + council. Live grok kill + reattach NOT started (owner's GO / belam's word). DG1's call: build nodes for harness_template.py + test_heal_resume.py at its CLOSE.
 - CHAINED: L479 = DGo1 .46.32 v2 RE-CUT 1 3ec394e050 (GATE631 GREEN 18:54:51Z), tmp/l479, harness bg; waits L478 on the trunk + my window (:31).
 - QUEUE: tmp/gateq87b.sh (harness bg, out tmp/gateq87.out): 629 RUNNING (started 18:54:56) -> 622 -> 623. Next free L = 480.
 - CUT DIR per green gate: add an entry to tmp/gen87/mkcut.py (the mu text goes to tmp/lNNN/mu.body, read by $(cat) so it is never re-expanded: alive's lean 18:43:56Z, mutant-tested; head/word refuse # & backslash, they go through sed), then `python3 tmp/gen86/guard.py tmp/lNNN/cut.sh`, then `sh tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1` by run_in_background. The mu text carries its own 'census:' clause. Words (3/3 unless named):
@@ -51,7 +51,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 87: L473-L475, L477, L478 landed; L479 (DGo1 .46.32) chained for :31; queue 629 (running) -> 622 -> 623. Next: belam's [landed] L478 -> relay (+ the _extract note); cut dirs for each green gate (next free L480).
+gen 87: L473-L475, L477, L478 landed + relayed; nothing armed; L479 (DGo1 .46.32) chained for :31; queue 629 (last lanes) -> 622 -> 623. Next: L479's [landed] -> relay; cut dirs for each green gate (next free L480).
 ```
 FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); tail tmp/gateq87.out
 IF NOT RUNNING (a dead session / an out): §0's last line (Relaunch).
