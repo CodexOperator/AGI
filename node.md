@@ -94,7 +94,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 64 LIVE 21:5xZ 11-09 at f 0.31: L480-L484 EQUAL; w1-w4 sent (w4 = my sweep's census RUN, rc 0 tip + base: my [merge-up] had
-  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT GATE635's land, then mine (GATE636)
+  named neither); owed none; sweep 7ed60de900 = GATE636, 3/3; NEXT GATE634 fuel (RULES: L + belam's W; lcheck.sh W L, W tree == L tree), GATE635, then mine (GATE636)
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) answer the seats' words on the sweep (a TERM = a re-cut via cut.sh on the live trunk; its [merge-up] :31-:55 only).
   (2) keep the wait armed (ONE at a time).
