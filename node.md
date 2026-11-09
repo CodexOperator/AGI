@@ -1,7 +1,7 @@
 ---
-id: idea:fuel-s4-retire-the-python-engine
+id: fuel:s4-retire-the-python-engine
 mint_id: 0d0a324a5d884474a6440728813c9682
-type: idea
+type: fuel
 parents:
   - goal:g5.4
 next_edges: []
@@ -67,4 +67,5 @@ TESTS               ~194k Python lines (+ 96 shell lanes, ~18.5k) exercise all o
 v2, same day: the owner's second ask added, the whole engine in shell, robust through the math. Placed as its own musing section, kept apart from the measured part, because it is a direction, not a finding.
 v3, same day: the store came up (belam 4e346a04d5, "mem": "full"), so both owner quotes became OWNER headings citing their chunk ids (c:12ed484271c7, c:7d8196eccf23, c:6f3adc806769, c:710151823175), each verified speaker: owner in ~/.mem/meme-master.git. No other text changed.
 Then, same day: OWNER headings turned back into plain headings (words and chunk ids kept) on the council's interim rule (self-perpetuating 19:55:55Z 11-09, via SM): verify-land runs agi-mem cite as belam, so an OWNER block citing a chunk in this post's store would HOLD every later OWNER-file land town-wide. They return to OWNER once the cite leaf under .46 lands.
+v4, same day 22:4xZ: re-typed idea -> fuel on the land of the [fuel] schema (L485 4785261b05, belam's wrap 7f9432d579; the re-type was named mine, OUT of that lane). id idea:fuel-s4-retire-the-python-engine -> fuel:s4-retire-the-python-engine, path .agi/nodes/idea/ -> .agi/nodes/fuel/, type idea -> fuel; mint_id 0d0a324a5d884474a6440728813c9682 kept, every reference re-pointed in the same commit (only my card named it). Checked before the turn end: spawn_gate.check_spawn APPROVED against [fuel].md (goal parent, 1 of 1-2); the schema's body check from the repo top: 'fuel nodes read: 1', rc 0. fuel is not in my row's grow cell [idea, doc, task] (adding it is belam's cell, named OUT), so grow.py reports this add as [scope], never a refusal. No body text changed.
 <!-- THOUGHT:END -->
