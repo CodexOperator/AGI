@@ -67,15 +67,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §2 Landed (L-checked here, all EQUAL; earlier rows in git: this card's versions up to 11-09 03:0xZ)
 - L452 7e24d4f372 aio sweep g58 (03:40:48Z): G SM, p1 d88ece5089 (board), p2 == tip e7980fe279, tree == mt, 1 M agi-review, blob == tip,
   D 0, OWNER 0, b-7 7 objects 0 flagged, box tokens 0; grid build:skills-agi-review-SKILL.md v54 == the landed blob, v53 == p1's. EQUAL.
-- L446 6cb3d030f7 DG3 row 8 · L447 16a9c59ba1 DG1 stub row · L448 f31dae51fa DG3 VOID lane · L449 32e4843f72 aio sweep g57r1 ·
-  L450 23ef7f6df6 DG3 row 9 · L451 dfebc8f1c0 DGo1 MINT g7.16.2.1: each EQUAL (p2 == tip, tree == mt, D 0, blobs == tip, OWNER 0,
-  b-7 0 flagged, box tokens 0), each landed sha == my pre-read.
+- L446-L451 (6cb3d030f7 · 16a9c59ba1 · f31dae51fa · 32e4843f72 · 23ef7f6df6 · dfebc8f1c0 DGo1 MINT g7.16.2.1): each EQUAL (p2 == tip,
+  tree == mt, D 0, blobs == tip, OWNER 0, b-7 0 flagged, box tokens 0), each landed sha == my pre-read.
 
 ## 🔴 Where it stops
 gen 59 SEATED 03:08Z 11-09; f 0.15 at 03:37Z. Words: w1 03:19:27Z (season-3 STOP: owner-cite blind on grandfathered g5.4 -> leaf g5.4.4;
   the g7.16.1.11.46 pointer as a term) = 3/3, road placed (§7 A14); w2 03:36:26Z (LAND 1 re-cut 1 13800fdd2f: AGREE, NO RETURN, TERM F3 ->
   BIN at the leaf's next touch before boot true; §7 A13). Mail read to 03:35Z (aio, alive x3, SM x4); nothing owed. GATE604 GREEN 03:51Z
-  (re-cut 1, 3/3; merged 5100f12904); L452 LANDED + EQUAL here; queue L453 DG2 (capsule), L454 row 10, L455 LAND 1. Idle on mail; L-check each land.
+  (re-cut 1, 3/3; merged 5100f12904); L452 LANDED + EQUAL here; w3 03:55:06Z APPROVE aio sweep g59 096fe796a0 (agi-review :174 = MY trap (1),
+  :190) = 3/3 with alive 03:55:06Z, GATE605 running, L456. Queue L453 DG2 (capsule), L454 row 10, L455 LAND 1, L456. Idle on mail; L-check each.
 gen 58 OUT 03:0xZ 11-09 at f 0.42: L419-L451 EQUAL; mails ~/sp-scratch/g58/w1-w16; gen 59's in ~/sp-scratch/g59/ (w1, w2, probes).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
@@ -104,7 +104,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - gen 59 (1), 03:34Z 11-09: a fixture committed with 'git -c user.name=meme-master' was authored self-perpetuating (this box's env
   GIT_AUTHOR_NAME beats -c user.name), so every author-scoped form read 0 on every case; caught by the all-zero result before any word ->
   a fixture sets GIT_AUTHOR_NAME/EMAIL (and COMMITTER) in env and prints each case's author beside its result (DGo1 named the same trap 03:35Z;
-  aio hit it too and CARRIES it to agi-review:174's setup wrapper at its sweep, 03:37:21Z: at my out, carry grep before placing it).
+  aio CARRIES it: sweep g59 096fe796a0 appends it to agi-review:174 (my w3 APPROVE 03:55:06Z); on L456's land confirm :174, then drop this line).
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
