@@ -1356,6 +1356,43 @@ def head_sha(graph_root: Path, rev: str | None = None) -> str | None:
     return out.strip() if out else None
 
 
+def uncommitted_nodes(graph_root: Path) -> list[str] | None:
+    """Node files under <graph_root>/nodes that differ from HEAD (modified,
+    added, deleted or untracked), repo-relative and sorted: what the footer
+    names when the drawn graph is not the committed one. Read-only:
+    --no-optional-locks keeps git status from refreshing the index. An
+    unreadable status is None, never [] (clean): the footer says 'unread'.
+    So is a missing nodes directory (a pathspec that matches nothing exits 0
+    like a clean tree), and the pathspec is absolute, so a relative root
+    cannot match nothing either."""
+    root = Path(graph_root).resolve()
+    if not (root / "nodes").is_dir():
+        return None
+    out = _git(source_root(root), "--no-optional-locks", "status",
+               "--porcelain=v1", "-z", "--untracked-files=all", "--",
+               str(root / "nodes"))
+    if out is None:
+        return None
+    paths, items = [], out.split("\0")
+    i = 0
+    while i < len(items):
+        e = items[i]
+        i += 1
+        if len(e) < 4:
+            continue
+        paths.append(e[3:])
+        if e[0] in "RC" or e[1] in "RC":  # a rename / copy (index or worktree
+            i += 1                          # column, git add -N): skip its source
+    return sorted(set(paths))
+
+
+def uncommitted_fields(graph_root: Path) -> dict:
+    """The two export keys for the footer: the list, and words when unread."""
+    u = uncommitted_nodes(graph_root)
+    return {"uncommitted_nodes": u, "uncommitted_read_nothing": None if u is not None
+            else "uncommitted node files: unread (git status failed)"}
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -1422,6 +1459,7 @@ def build_views(graph_root: Path, rev: str | None = None,
         f"comms: read nothing (no refs/box/<from>/<to> between two posts.md names; posts read at {at})")
 
     return {"sha": sha, "built_at": built_at, "window_s": int(window_s),
+            **uncommitted_fields(graph_root),
             "crew": {"rows": crew, "read_nothing": crew_rn},
             "workflow": {"stages": list(WORKFLOW_STAGES), "clocks": clocks,
                          "read_nothing": wf_rn},
@@ -1473,6 +1511,7 @@ class GraphHandler(BaseHTTPRequestHandler):
             g = dict(cached_build_graph(self.graph_root))
             g["sha"] = head_sha(self.graph_root, "HEAD")
             g["built_at"] = _utc_now()
+            g.update(uncommitted_fields(self.graph_root))
             _json(self, g)
         elif path in ("/views.json", "/views.json/"):
             import anonymize  # noqa: PLC0415  (same bin dir; the privacy gate)

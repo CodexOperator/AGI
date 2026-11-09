@@ -1,12 +1,12 @@
 #!/bin/sh
 # viz-views.t.sh: goal:g7.16.1.11.9.1 (the dashboard): ONE graphweb export (/views.json, build_views) feeds the crew, workflow and comms views beside the 3D graph; every file it reads is `git show <sha>:<path>` at ONE sha, every box count is `git rev-list --count` over the stated window; post names and counts only; loopback only; the page reads only graphweb's own relative endpoints.
-# sh + git + python3 -I on a scratch fixture repo, no network (one loopback port this lane starts and stops), no root, 0 USD. Usage: sh viz-views.t.sh [ROOT] (or ROOT=): ROOT = the tree under test (its extensions/agi/bin/graphweb.py and extensions/agi/web/graph/); row b diffs graphweb.py against this build's PARENT, pinned by sha (PIN_PARENT 32063f957b, resolved in ROOT's repo; unresolvable = a FAIL, never a pass); env BASE is an explicit override, printed in the row. Exit = the FAIL count.
+# sh + git + python3 -I on a scratch fixture repo, no network (one loopback port this lane starts and stops), no root, 0 USD. Usage: sh viz-views.t.sh [ROOT] (or ROOT=): ROOT = the tree under test (its extensions/agi/bin/graphweb.py and extensions/agi/web/graph/); row b diffs graphweb.py against this build's PARENT, pinned by sha (PIN_PARENT 32063f957b1f41184a6c80de01012dd56156fa76, in full, resolved in ROOT's repo; unresolvable = a FAIL, never a pass); env BASE is an explicit override, printed in the row. Exit = the FAIL count.
 # Lanes: f-* the FIXTURE (posts.md 3 rows at S, 4 at S' = HEAD; crons.md 2 jobs; refs/box/a/b 3 commits, b/a 1, c/a 1 old, a/zz not a post); e-* an EMPTY source; live-* ROOT's own trunk at its HEAD (live-graph-json-nodes serves a COPY of ROOT's .agi; with no persisted layout under ROOT/.agi/sessions the cold /graph.json build takes minutes, GRAPH_TIMEOUT default 900 s); a/b/c the page and the diff; p-* the port; m-* MUTANTS, each applied to a COPY and each must turn its row RED.
-# Honest limits: the views' draw code (DOM/SVG) is not executed here (the graphweb pytest harnesses run app.js's 3D boot); 'nodes == the verify count' (leaf Falsifier 1) compares against verify's READER (metrics), not the verify command (see live-graph-json-nodes); a clone with no refs/box reads the live comms view as read_nothing.
+# Honest limits: the views' draw code (DOM/SVG) is not executed here, save the footer (setFoot + dirtyWords, run by node on a stub element, row d) (the graphweb pytest harnesses run app.js's 3D boot); 'nodes == the verify count' (leaf Falsifier 1) compares against verify's READER (metrics), not the verify command (see live-graph-json-nodes); a clone with no refs/box reads the live comms view as read_nothing.
 set -f
 R0=${ROOT:-${1:-$(cd "$(dirname "$0")/../../.." && pwd)}};f=0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
-BIN=$R0/extensions/agi/bin;WEB=$R0/extensions/agi/web/graph;PIN_PARENT=32063f957b
+BIN=$R0/extensions/agi/bin;WEB=$R0/extensions/agi/web/graph;PIN_PARENT=32063f957b1f41184a6c80de01012dd56156fa76
 [ -f "$BIN/graphweb.py" ]&&[ -f "$WEB/app.js" ]&&[ -f "$WEB/index.html" ]||{ echo "FAIL inputs: $BIN/graphweb.py, $WEB/app.js, $WEB/index.html";exit 99;}
 T=$(mktemp -d "${TMPDIR:-/tmp}/viz-views.XXXXXX")||exit 99;SPID=
 trap '[ -n "$SPID" ]&&kill "$SPID" 2>/dev/null;rm -rf "$T"' EXIT
@@ -102,6 +102,11 @@ elif a[0] == "mut":    # mut SRC DST OLD NEW -> the hit line; exit 3 unless OLD 
     i = t[:t.index(a[3])].count("\n") + 1
     print("hit %s:%d: %s" % (os.path.basename(a[1]), i, t.splitlines()[i - 1].strip()[:160]))
     open(a[2], "w").write(t.replace(a[3], a[4]))
+elif a[0] == "jlist":  # jlist PORT PATH KEY -> the list at KEY, comma-joined (- when empty, null when null, ABSENT when no key)
+    try:
+        c = http.client.HTTPConnection("127.0.0.1", int(a[1]), timeout=60); c.request("GET", a[2]); b = json.loads(c.getresponse().read()); v = b.get(a[3])
+        print("ABSENT" if a[3] not in b else "null" if v is None else ",".join(v) if isinstance(v, list) and v else ("-" if v == [] else "OTHER"))
+    except Exception as e: print("ERR", type(e).__name__)
 elif a[0] == "port":   # a free loopback port
     s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()
 elif a[0] == "http":   # http PORT PATH -> status content-type sha256
@@ -158,6 +163,42 @@ r_scan(){ xp "$1" "$FX/.agi" "$S" >"$T/xz.json";pyv scan "$T/xz.json" "$BIN"
  ok "f-anonymize-scan-clean-beside-a-control-that-flags export $A (want []), control $B (want [\"email\"]), one call" '[ "$A" = "[]" ]&&[ "$B" = "[\"email\"]" ]';}
 r_empty(){ xp "$1" "$FX2/.agi" "" >"$T/x0.json";w=$(py get "$T/x0.json" crew.read_nothing);n=$(py get "$T/x0.json" crew.rows)
  ok "e-empty-source-says-read-nothing crew.read_nothing $w, rows $n (want words naming posts.md and the sha, rows [])" '[ "$n" = "[]" ]&&echo "$w"|grep -q "read nothing (posts.md"';}
+# d: the footer names the node files that differ from the shown commit, in words (the export's uncommitted_nodes; the page's setFoot)
+DN=.agi/nodes/.geometry/posts.md;DU=.agi/nodes/idea/fx-untracked.md
+dirty(){ printf '\n# dirty\n' >>"$FX/$DN";mkdir -p "$FX/.agi/nodes/idea";printf -- '---\nid: idea:fx-untracked\n---\n' >"$FX/$DU";}
+clean(){ fg checkout -q -- "$DN";rm -rf "$FX/.agi/nodes/idea";}
+r_dirty(){ xp "$1" "$FX/.agi" "" >"$T/xd0.json";c0=$(py get "$T/xd0.json" uncommitted_nodes);dirty;xp "$1" "$FX/.agi" "" >"$T/xd1.json";clean;c1=$(py get "$T/xd1.json" uncommitted_nodes)
+ ok "d-export-names-each-uncommitted-node-file clean fixture $c0 (want []), one modified + one untracked node file $c1 (want [\"$DN\", \"$DU\"])" '[ "$c0" = "[]" ]&&[ "$c1" = "[\"$DN\", \"$DU\"]" ]';}
+# the footer: app.js's own setFoot + dirtyWords, run by node on a stub element (the one piece of draw code this lane executes)
+cat >"$T/foot.js" <<'JS'
+const t = require("fs").readFileSync(process.argv[2], "utf8");
+const grab = (n) => { const i = t.indexOf("function " + n + "("); if (i < 0) return ""; const j = t.indexOf("\n}\n", i); return t.slice(i, j + 2); };
+const el = { textContent: "" }; const document = { getElementById: () => el };
+eval(grab("setFoot") + grab("dirtyWords"));
+const out = [];
+for (const l of [[], [process.argv[3]], ["a", "b", "c", "d", "e"], null]) { setFoot({ sha: "0123456789abcdef", built_at: "T", uncommitted_nodes: l }); out.push(el.textContent); }
+console.log(out.join("\t"));
+JS
+# an UNREAD status (FX3: no repo; GIT_CEILING_DIRECTORIES=$T keeps git from finding one above it) reads unread in words, never clean
+FX3=$T/fx3;mkdir -p "$FX3/.agi/nodes";echo '{}' >"$FX3/.agi/config.json";printf -- '---\nid: idea:fx3\n---\n' >"$FX3/.agi/nodes/fx3.md"
+r_unread(){ GIT_CEILING_DIRECTORIES=$T xp "$1" "$FX3/.agi" "" >"$T/xu.json";u=$(py get "$T/xu.json" uncommitted_nodes);w=$(py get "$T/xu.json" uncommitted_read_nothing)
+ rc=$(GIT_CEILING_DIRECTORIES=$T git -C "$FX3" status >/dev/null 2>&1;echo $?);xp "$1" "$FX/.agi" "" >"$T/xc0.json";w0=$(py get "$T/xc0.json" uncommitted_read_nothing)
+ ok "d-unread-status-says-unread-never-clean no repo (git status rc $rc): uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread ..'); a clean repo's words $w0 (want null)" '[ "$u" = null ]&&echo "$w"|grep -q "uncommitted node files: unread"&&[ "$w0" = null ]&&[ "$rc" != 0 ]';}
+# no nodes directory (FX2, a repo whose .agi holds none) reads unread too; a WORKTREE-column rename (git add -N) names the new path alone
+r_nonodes(){ xp "$1" "$FX2/.agi" "" >"$T/xnn.json";u=$(py get "$T/xnn.json" uncommitted_nodes);w=$(py get "$T/xnn.json" uncommitted_read_nothing)
+ ok "d-no-nodes-directory-says-unread a repo with no .agi/nodes: uncommitted_nodes $u (want null), words $w (want 'uncommitted node files: unread ..')" '[ "$u" = null ]&&echo "$w"|grep -q "uncommitted node files: unread"';}
+FX4=$T/fx4;cp -r "$FX" "$FX4";f4(){ GIT_CONFIG_GLOBAL=/dev/null git -C "$FX4" -c core.hooksPath=/dev/null "$@";}
+mv "$FX4/.agi/nodes/.geometry/crons.md" "$FX4/.agi/nodes/.geometry/crons-moved.md";f4 add -N .agi/nodes/.geometry/crons-moved.md
+r_wtrename(){ st=$(f4 status --porcelain=v1|tr '\n' ';');xp "$1" "$FX4/.agi" "" >"$T/xwr.json";u=$(py get "$T/xwr.json" uncommitted_nodes)
+ ok "d-worktree-rename-names-the-new-path-alone status [$st] -> $u (want [\".agi/nodes/.geometry/crons-moved.md\"], never the source cut to a path that does not exist)" '[ "$u" = "[\".agi/nodes/.geometry/crons-moved.md\"]" ]&&echo "$st"|grep -q "^ R "';}
+r_unreadhttp(){ P=$(py port)
+ GIT_CEILING_DIRECTORIES=$T python3 -I -c 'import sys;sys.path[:0]=[sys.argv[1],sys.argv[2]];import graphweb;graphweb.main(["serve","--port",sys.argv[3],"--root",sys.argv[4]])' "$1" "$BIN" "$P" "$FX3/.agi" >/dev/null 2>"$T/serve3.err" &
+ SPID=$!;i=0;while [ $i -lt 100 ]&&[ -z "$(ss -Hltn "sport = :$P" 2>/dev/null)" ];do i=$((i+1));sleep 0.1;done
+ GU=$(py jlist "$P" /graph.json uncommitted_nodes);VU=$(py jlist "$P" /views.json uncommitted_nodes);kill "$SPID" 2>/dev/null;wait "$SPID" 2>/dev/null;SPID=
+ ok "p-unread-status-is-null-in-both-exports no repo: /graph.json [$GU], /views.json [$VU] (want null each, never - which reads clean)" '[ "$GU" = null ]&&[ "$VU" = null ]';}
+r_foot(){ if ! command -v node >/dev/null;then echo "FAIL d-footer-says-so-in-words node absent: the footer row is unread, never a pass";f=$((f+1));return;fi
+ node "$T/foot.js" "$1/app.js" "$DN" >"$T/v" 2>&1;A=;B=;C=;D=;IFS='	' read -r A B C D <"$T/v"
+ ok "d-footer-says-so-in-words none [$A] (want no 'uncommitted'), one [$B] (want '1 uncommitted node file: $DN'), five [$C] (want '5 uncommitted node files: a, b, c (+2 more)'), unread (null) [$D] (want 'uncommitted node files: unread')" 'echo "$A"|grep -qv uncommitted&&echo "$B"|grep -qF "· 1 uncommitted node file: $DN"&&echo "$C"|grep -qF "· 5 uncommitted node files: a, b, c (+2 more)"&&echo "$D"|grep -qF "· uncommitted node files: unread"';}
 # a: every fetch( import( getJSON( src= site resolves to one graphweb endpoint
 r_urls(){ py urls "$1" >"$T/u";cat "$T/u"|grep '^  site';b=$(sed -n 's/^BAD //p' "$T/u")
  ok "a-every-page-url-is-a-relative-graphweb-endpoint $(grep -c '^  site' "$T/u") site(s) above, $b not one of /graph.json /live.json /commands.json /views.json /vendor/three.module.min.js /app.js (want 0)" '[ "$b" = 0 ]';}
@@ -187,6 +228,8 @@ r_port(){ P=$(py port);sys_gw=$1
  if [ -n "$L" ];then V=$(py http "$P" /views.json);G=$(py http "$P" /vendor/three.module.min.js);N=$(py http "$P" /vendor/LICENSE)
   ok "p-serves-views-json-and-the-pinned-vendor-file /views.json [$(echo $V|cut -c1-40)], /vendor/three.module.min.js [$(echo $G|cut -c1-30)..] (want 200 application/json; 200 text/javascript sha256 = PIN.txt)" '[ "${V%% *}" = 200 ]&&[ "$(echo $G|cut -d" " -f1-2)" = "200 text/javascript" ]&&grep -q "sha256: $(echo $G|cut -d" " -f3)" "$R0/extensions/agi/web/vendor/three/PIN.txt"'
   pyv jget "$P" /graph.json;ok "p-graph-json-names-its-sha-and-built-at /graph.json [$A] sha $(echo $B|cut -c1-12) (fixture HEAD $(echo $SP|cut -c1-12)), built_at $C, $D node(s) (want 200, equal, UTC ISO)" '[ "$A" = 200 ]&&[ "$B" = "$SP" ]&&echo "$C"|grep -qE "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]{8}Z$"'
+  dirty;GD=$(py jlist "$P" /graph.json uncommitted_nodes);VD=$(py jlist "$P" /views.json uncommitted_nodes);clean
+  ok "p-graph-and-views-json-name-the-uncommitted-node-files one modified + one untracked: /graph.json [$GD], /views.json [$VD] (want $DN,$DU each)" '[ "$GD" = "$DN,$DU" ]&&[ "$VD" = "$DN,$DU" ]'
   ok "p-nothing-else-under-vendor /vendor/LICENSE -> [$(echo $N|cut -d" " -f1)] (want 404)" '[ "${N%% *}" = 404 ]';fi
  kill "$SPID" 2>/dev/null;wait "$SPID" 2>/dev/null;SPID=;}
 # live: ROOT's own trunk at its HEAD (posts.md / crons.md read back at that one sha; refs/box as the clone holds them)
@@ -214,7 +257,7 @@ r_livenodes(){ P=$(py port)
  pyv jget "$P" /graph.json "${GRAPH_TIMEOUT:-900}";kill "$SPID" 2>/dev/null;wait "$SPID" 2>/dev/null;SPID=
  ok "live-graph-json-nodes-equal-the-verify-active-count /graph.json [$A]: $D entries = $E unique non-seat ids + $F seat:<name> + goal:g17 once more (layer 1); verify's reader (metrics.py:1053 len(_load_graph) - metrics.py:332 deprecated, parsed at verification.py:364): active_node_count ${VC:-UNREAD}, minus $GEO non-deprecated nodes/.geometry/ file(s) graphweb draws as seats = $(( ${VC:-0} - GEO )) (want $E = that; layout warm: $WARM)" '[ "$A" = 200 ]&&[ -n "$VC" ]&&[ "$E" = "$((VC-GEO))" ]';}
 r_crew "$BIN";r_keys "$BIN";r_clocks "$BIN";r_edges "$BIN";r_nosubj "$BIN";r_sha "$BIN";r_scan "$BIN";r_empty "$BIN"
-r_urls "$WEB";r_nowrite "$BIN";r_abs "$WEB"
+r_dirty "$BIN";r_unread "$BIN";r_nonodes "$BIN";r_wtrename "$BIN";r_unreadhttp "$BIN";r_foot "$WEB";r_urls "$WEB";r_nowrite "$BIN";r_abs "$WEB"
 mkdir -p "$T/ctl";cp "$WEB/app.js" "$WEB/index.html" "$T/ctl/";printf '\n// control: https://example.invalid/x.js\n' >>"$T/ctl/app.js"
 gg "$T/ctl" "$CE" >"$T/g";n=$(grep -c . "$T/g");grep -q '^ERR$' "$T/g"&&n=ERR;sed 's/^/  control /' "$T/g";ok "c-control-one-absolute-url-in-a-temp-copy-prints-1 $n (want 1)" '[ "$n" = 1 ]'
 r_pagenoread "$WEB";r_port "$BIN";r_live;r_livenodes "$BIN"
@@ -257,6 +300,19 @@ printf '%s\n' '_W = open(p, "w")' >>"$FB/extensions/agi/bin/graphweb.py";fb comm
 v1=$(fb diff HEAD~1 HEAD -- extensions/agi/bin/graphweb.py|grep '^+'|grep -v '^+++'|grep -cE "$WR")
 out=$(r_nowrite "$FB/extensions/agi/bin" "$FB" "$B0");r=$(echo "$out"|grep -c '^FAIL')
 ok "m-b-pinned-base-sees-a-write-two-commits-back fixture: base = the pinned parent's graphweb.py ($(echo $B0|cut -c1-12)), c1 adds 'open(p, \"w\")', c2 touches no graphweb.py; at c2 a HEAD~1 diff finds $v1 write line(s) (the vacuous pass), the pinned-base row -> $r RED row(s): $(echo "$out"|grep '^FAIL'|cut -c1-110)" '[ "$r" -ge 1 ]&&[ "$v1" = 0 ]'
+mut export-drops-uncommitted-nodes "$GW" r_dirty '**uncommitted_fields(graph_root),' '"uncommitted_nodes": [],'
+mut graph-json-drops-uncommitted-nodes "$GW" r_port 'g.update(uncommitted_fields(self.graph_root))' 'g["uncommitted_nodes"] = []'
+mut unread-status-reads-clean "$GW" r_unread 'if out is None:
+        return None
+    paths, items = [], out.split(' 'paths, items = [], (out or "").split('
+mut unread-status-reads-clean-http "$GW" r_unreadhttp 'if out is None:
+        return None
+    paths, items = [], out.split(' 'paths, items = [], (out or "").split('
+mut no-nodes-dir-reads-clean "$GW" r_nonodes 'if not (root / "nodes").is_dir():' 'if False:'
+mut rename-index-column-only "$GW" r_wtrename 'if e[0] in "RC" or e[1] in "RC":' 'if e[0] in "RC":'
+mut footer-unread-reads-clean "$WEB/app.js" r_foot 'if (!Array.isArray(list)) return " · uncommitted node files: unread";' 'list = list || [];'
+mut footer-drops-the-words "$WEB/app.js" r_foot '" · built " + (d.built_at || "unknown") + dirtyWords(d.uncommitted_nodes);' '" · built " + (d.built_at || "unknown");'
+mut status-misses-untracked "$GW" r_dirty '"--untracked-files=all", "--",' '"--untracked-files=no", "--",'
 mut static-import-protocol-relative "$WEB/app.js" r_urls '"use strict";' '"use strict";
 import * as X from "//cdn.example.org/x.js";'
 mut host-default-0000 "$GW" r_port 'serve_p.add_argument("--host", default="127.0.0.1")' 'serve_p.add_argument("--host", default="0.0.0.0")'
