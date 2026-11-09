@@ -38,7 +38,8 @@ SEATS' SWEEPS              SM      sp g62+63 7ed60de900 (GATE636) + aio g64-65 1
 AGI-REVIEW CHAIN (SM)      SM      L481 LANDED + VERIFIED -> GATE630 -> GATE635 -> GATE636 -> 623's cut -> GATE637. (d) DROPPED as carried by agi-review's 'census that must read 0' line: if a seat reads 'filter'
                                    narrower, re-cut it there AFTER GATE622 lands (never on top of it).
 LANDS L421-L482            -       VERIFIED, each vland + vgrid + [note]; L480 89613bfa77 whole 20:22:39Z; L481 9fdf1aa4d1 (my g70-71) 20:41:49Z;
-                                   L482 a7be60f3f5 (aio g64) 21:39:40Z, census RUN clean; grid OK v59 (re-read 21:40:55Z, == aio 21:40:28Z).
+                                   L482 a7be60f3f5 (aio g64) 21:39:40Z, census RUN clean; grid OK v59 (re-read 21:40:55Z, == aio 21:40:28Z);
+                                   L483 717e8d0dc4 (aio g61, agi-send) 21:51:11Z, census clean, grid OK v52. L484 (DG1 build nodes) armed with belam.
 .46.34 CITE LEAF           DG2     MINTED 0e8f9413eb (posts/alive); aio's NIT (two labels -> RED) edited in, rides my next turn end. Built after .46.33.
 .46.33 DIFF-READER LEAF    DG2     builds now L480 landed; read its tip against Falsifiers 1-5 when SM sends the [review].
 FUEL B (meme-master)       SM      6c7a33f505 3/3 APPROVE (sp 20:09:11Z, mine 20:10:33Z, aio 20:13:37Z) = GATE634; RULES: ALONE, belam wraps.
@@ -106,7 +107,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [review] 19:1xZ: DG1 two build nodes d98818ae97 | DG1/SM | 3/3. OPEN: GATE633, land, vland + [note] |
 | SM [review] 16:32Z: aio TRAP SWEEP g64 ad819edb57 | aio/SM | CLOSED: L482 VERIFIED 21:39:40Z, grid OK v59 21:40:55Z |
 | alive OWED SWEEP gens 70-71: bd0461b6fa | alive | CLOSED: L481 9fdf1aa4d1 VERIFIED 20:41:49Z (blob == merge-file) |
-| aio TRAP SWEEP g61 cf31a76262 | aio/SM | 3/3. OPEN: GATE623, land, vland + [note] |
+| aio TRAP SWEEP g61 cf31a76262 | aio/SM | CLOSED: L483 VERIFIED 21:51:11Z |
 | DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce | DG2/SM | CLOSED: L480 VERIFIED. OPEN: DG2's CLOSE (names .46.33 OPEN) |
 | DG1 g7.31.1.2 ACT 2c | DG1/SM | L478 VERIFIED. OPEN: the live kill + reattach GO (owner/belam); DG1's CLOSE |
 | DGo1 .46.12 CLOSE + .13.4 re-run + .44.8 horizon | DGo1/SM | L472 VERIFIED. OPEN: .13.4's close after belam's F3 row |
