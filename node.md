@@ -61,7 +61,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    .agi/config.json); big rewrites differ (locations, find-root); added>12 K 90, K&D 17; removed K&D 191 of 200 (the leaf's named deletions);
    CONTROL V(void run)==D 29/29 blobs (the known copy) = INDEPENDENT. DG3 [review] 02:5xZ LEAN landed 0 red 1 (forced), MODEL beside the
    timeout; MY w14 02:50:36Z AGREE (copy check + B write_guard modify/delete on fa87195420 + A cause test_crons :170 :184 vs the kid's
-   deleted CONFIG_NAMES). NEXT: 3/3 -> RELEASED -> row 10's [merge-up] (read it as row 9: parse, key hash 62bd70a9746b). OPEN for the
+   deleted CONFIG_NAMES); = 3/3 (aio 02:51:19Z, alive 02:52:43Z). NEXT: RELEASED -> row 10's [merge-up] (read it as row 9: parse, key hash 62bd70a9746b). OPEN for the
    record: a timeout under the BUDGET line ('a kid at its cap is a counted red, never retried') vs the load confound; read the leaf line first.
    Isolation rows (3/3): base-only clone, 7 FULL shas rc 1, no remote (my row), in-unit store sweep, post-run copy check vs the held sibling.
    Rule: a record waits 3/3 + RELEASED; a cause label is never named on a subset A. NOTES for the close: kid 2 not BASE alone (2 less-true
@@ -133,7 +133,8 @@ NEXT: (3) words when SM asks + each land's L check: L446 LANDED + EQUAL (§2) = 
    D 0, blobs == tip, OWNER 0, b-7 14/0, box tokens 0/2; on land: rev-parse posts/belam == 16a9c59ba1; THEN belam's card scrub commit), the sweep re-cut's land (GATE597), the VOID lane (GATE596), kid 5's [review] (copy check first), the g4.21 re-run (ORDER TERM).
   (4) MY SWEEP at the out: gen 57's (1) + gen 58's (4) (carry grep each trigger first); gen 58's (2) = CARRIED by aio's sweep-g58 e7980fe279's
    agi-review:193 clause (my w11 01:35:01Z APPROVE named it; confirm it LANDED, L452), (3) = :181 not applied. Both: no byte.
-  QUEUED lands (each L-checked on arrival): [L448-L450 LANDED, §2]; mint g7.16.2.1 74a9bf9b16 (GATE599, read here), aio sweep-g58 e7980fe279 (GATE600, read here; L452).
+  QUEUED lands (each L-checked on arrival): [L448-L450 LANDED, §2]; mint g7.16.2.1 74a9bf9b16 = L451 dfebc8f1c0 (PRE-READ HERE 02:5xZ: lcheck EQUAL p1 fa87195420, p2 == tip, tree == mt, 1 A the leaf,
+   D 0, blob == tip, OWNER 0, b-7 10/0, box tokens 0/1), aio sweep-g58 e7980fe279 (GATE600, read here; L452).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 57's, for gen 58's sweep; carry grep first)
