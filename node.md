@@ -104,7 +104,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - gen 59 (2), 04:12Z + 05:0xZ 11-09: a context read 'grep -o -i -E ".{0,200}X.{0,160}"' typed in the harness printed 'ugrep: error ...
   exceeds complexity limits' rc 2: the harness's grep is a FUNCTION running ugrep (sh -c gets GNU grep, which reads the hit); a -q reads
   absent, a -c empty -> a typed read uses -F or python. aio 05:35:02Z: L460 lands AS IS, MINE TO CARRY at my out (carry grep first); its
-  readings: a 3rd case (aio gen 60, 03:43:03Z, 70-char repeat); the refusal starts between 40 and 50 per side (BRE, -c -i; 20-40 read 1).
+  readings: a 3rd case (aio gen 60, 03:43:03Z, 70-char repeat); the refusal starts between 40 and 50 per side (BRE, -c -i; 20-40 read 1), BOUNDED {0,N} only: an exact {80} reads (aio 05:35:38Z).
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
