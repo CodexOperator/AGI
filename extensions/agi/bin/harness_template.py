@@ -41,6 +41,13 @@ registry, so the join reads the process tree under the seat's tmux pane
 instead and takes the session id from the seated process's own argv (the
 uuid `session` carried at launch, or `resume` on a restart). Closed
 vocabulary, same discipline as `[roles] source`.
+
+Resume proof (goal:g7.31.1.2 ACT 2c): `[session] resume_proof = "..."` says
+what heal must see before it resumes a dead seat's session instead of a
+fresh spawn. `transcript` (the default) is Claude Code's: the session's
+transcript file under the seat's tree. `session_id` is only that the row
+carries a session id -- a PROVISIONAL, UNMEASURED proof (council 11-06
+19:49:54Z (A)(3)): heal names it in its log on every use.
 """
 from __future__ import annotations
 
@@ -69,6 +76,11 @@ ROLE_SOURCES = ("ladder", "row")
 #: How a seated process is joined to its row (goal:g7.31.1.2 ACT 2b). Closed
 #: vocabulary: a template that omits `[session] registry` is `claude`.
 SESSION_REGISTRIES = ("claude", "none")
+
+#: What heal must see before it resumes a session (goal:g7.31.1.2 ACT 2c).
+#: Closed vocabulary: a template that omits `[session] resume_proof` is
+#: `transcript`.
+RESUME_PROOFS = ("transcript", "session_id")
 
 #: The encodings `_emit` knows: `json` json-dumps the slot value, `str` (the
 #: default) is plain `str()`. Closed vocabulary -- before this a typo'd
@@ -152,6 +164,16 @@ def load(harness_id: str) -> dict:
         raise HarnessTemplateError(
             f"{path}: unknown session.registry {reg!r}; "
             f"known: {list(SESSION_REGISTRIES)}")
+    store = (session or {}).get("store", "")
+    if not isinstance(store, str):
+        raise HarnessTemplateError(
+            f"{path}: session.store is not a string (got "
+            f"{type(store).__name__}: {store!r})")
+    proof = (session or {}).get("resume_proof", "transcript")
+    if proof not in RESUME_PROOFS:
+        raise HarnessTemplateError(
+            f"{path}: unknown session.resume_proof {proof!r}; "
+            f"known: {list(RESUME_PROOFS)}")
     return data
 
 
@@ -223,6 +245,20 @@ def session_registry(harness_id: str) -> str:
     """The declared `[session] registry` (goal:g7.31.1.2 ACT 2b): `claude`
     (default) or `none`. load() already refused any other value by name."""
     return (load(harness_id).get("session") or {}).get("registry", "claude")
+
+
+def resume_proof(harness_id: str) -> str:
+    """The declared `[session] resume_proof` (goal:g7.31.1.2 ACT 2c):
+    `transcript` (default) or `session_id`. load() refused any other value."""
+    return (load(harness_id).get("session") or {}).get(
+        "resume_proof", "transcript")
+
+
+def session_store(harness_id: str) -> str:
+    """The declared `[session] store` (goal:g7.31.1.2 ACT 2c-2): the
+    directory a harness keeps its sessions in, one entry per session id; ''
+    when undeclared, which heal reads as UNREAD, never as 'absent'."""
+    return (load(harness_id).get("session") or {}).get("store", "")
 
 
 def slot_flags(harness_id: str, slot: str) -> list[str]:

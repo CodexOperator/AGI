@@ -41,3 +41,9 @@ slot = "prompt"
 # process's own -s / -r argv.
 [session]
 registry = "none"
+# goal:g7.31.1.2 ACT 2c: heal resumes a dead grok-bot seat when its row
+# carries a session id. PROVISIONAL and UNMEASURED (council 11-06 19:49:54Z
+# (A)(3)): no measurement shows where grok-bot keeps a session, so heal logs
+# this proof by name every time it uses it, and no falsifier reads it as a
+# pass. The live kill + reattach run waits for the owner's / belam's GO.
+resume_proof = "session_id"
