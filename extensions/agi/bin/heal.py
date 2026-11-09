@@ -3961,6 +3961,7 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             _watch_log(f"watch: {reason}")
     resume_failed = None
     failed = False
+    row_window = window_id or spawn_name
     _hid = str(row.get("harness") or "").strip() or None
     if resume and window_id and _rotate._harness_resume_proof(_hid) == "session_id":
         # (B)(2) (alive [decision] 10:56:03Z 11-09) read at the END of a
@@ -3992,10 +3993,20 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 resume = None
                 failed = True
                 row_pid = None    # the row keeps its (dead) pid: heal scans only pid > 0
+                if kind == "absent":
+                    # 2c-4 (R6, SM placement 11:44Z 11-09): an absent read
+                    # leaves the failed window OPEN; its @id on the row would
+                    # make _watch_one_seat's (1b) read the seat ALIVE, a
+                    # silent stall. EMPTY window -> the next pass reaches
+                    # _recover_seat and its loud same-name refusal instead.
+                    # NON-chain seats only (aio 11:46:05Z): a chain seat respawns
+                    # under a NEW name and would pass that refusal; named in the
+                    # leaf, latent while no chain seat is on a session_id harness.
+                    row_window = ""
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
-            generation=gen, window=window_id or spawn_name,
+            generation=gen, window=row_window,
             pid=row_pid, session_id=resume or "")
     except Exception as exc:  # noqa: BLE001
         row_text = f"row write FAILED: {exc}"

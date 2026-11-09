@@ -377,3 +377,48 @@ def test_c_the_dead_id_is_in_the_crash_recovery_record(tmp_path, monkeypatch):
     import json
     rec = json.loads(Path(path).read_text())
     assert rec["result"] == "detected" and rec["resume_failed"]["session_id"] == SID, rec
+
+
+# 2c-4 (R6, SM 11:44Z 11-09): an ABSENT read leaves the failed window open; the row must not keep its @id
+def test_r6_an_absent_read_empties_the_row_window_so_the_next_pass_reaches_recover_and_its_mutant(tmp_path, monkeypatch):
+    def run(tp, mod):
+        out, _seen, _l, rot = _c2(tp, monkeypatch, joins=list(OPEN), windows="@9 mainseat\n", heal_mod=mod)
+        row = dict(ROW, harness="grok-bot", window=rot._rows[-1]["window"], pid=999999,
+                   session_id=rot._rows[-1]["session_id"])
+        calls: list = []
+        monkeypatch.setattr(mod, "_recover_seat", lambda *a, **k: calls.append(1) or {"respawned": False})
+        gdir = tp / "main" / ".agi"
+        mod._watch_one_seat(gdir, row, [("@9", "mainseat")], rot, now=0.0,
+                            pid_alive=lambda p: False, pin_table={}, seat_sessions=[],
+                            rows=[row], pane_pids={})
+        return rot._rows[-1]["window"], bool(calls)
+    window, reached = run(tmp_path, heal)
+    assert window == "" and reached, (window, reached)                 # the next pass reaches _recover_seat
+    m = _mut_heal(tmp_path, '                    row_window = ""\n', '                    pass\n')
+    window2, reached2 = run(tmp_path / "m", m)
+    assert window2 == "@9" and not reached2                            # @id kept -> (1b) NOT dead, a silent stall: RED
+
+
+def test_r6_no_pane_keeps_writing_the_launch_window(tmp_path, monkeypatch):
+    """The window is gone on no-pane: (1b) cannot vouch for it anyway, so the
+    row records the -r launch's window as before."""
+    out, _seen, _l, rot = _c2(tmp_path, monkeypatch, joins=list(GONE))
+    assert rot._rows[-1]["window"] == "@9", rot._rows
+
+
+def test_r6_the_next_pass_refuses_the_open_same_name_window_by_name(tmp_path, monkeypatch):
+    """aio's 2c-4 row, end to end through the REAL _recover_seat: after an
+    absent read, a second pass with the failed window still listed reaches
+    _recover_seat, which refuses the same-name window and launches nothing."""
+    out, seen, _l, rot = _c2(tmp_path, monkeypatch, joins=list(OPEN), windows="@9 mainseat\n")
+    assert len(seen) == 1 and rot._rows[-1]["window"] == ""
+    row = dict(ROW, harness="grok-bot", model="grok-4", window="",
+               session_id=rot._rows[-1]["session_id"])
+    launched: list = []
+    wf = tmp_path / "w2.txt"
+    wf.write_text("@9 mainseat\n")
+    out2 = heal._recover_seat(tmp_path / "main" / ".agi", row, "pid gone", rot,
+                              windows=[("@9", "mainseat")], window_path=str(wf), now=0.0,
+                              launcher=lambda *a, **k: launched.append(1) or (None, "@12"))
+    assert not launched and out2["respawned"] is False, out2
+    assert "successor window 'mainseat' already exists" in out2["reason"], out2
