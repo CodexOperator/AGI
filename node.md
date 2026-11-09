@@ -48,7 +48,7 @@ g7.16.2.1 private-range    DGo1/DG2 MINT 74a9bf9b16 3/3 (F2 by class 'ip'; F4 to
 .11.9.1 dashboard          DG2     NEXT TOUCH b1b43aab9d RETURNED, 3 terms all 3/3: mine (unread status -> None + words + row + mutant);
                                    sp's ROW (no nodes dir -> unread; JS half dirtyWords null -> ''); aio's 01:44:21Z (porcelain ' R new\0old':
                                    skip the source when EITHER column is R/C; row + index-only mutant), my AGREE 01:47:57Z, MEASURED
-                                   (p69/probe_rn.out). RE-CUT 1 5b7a4eba50 APPROVED 3/3 02:08Z; LANDED L453 04:06Z, VERIFIED. CLOSE 62f7be08f1: my APPROVE 04:12:11Z (p70/wclose.txt; NOTE: window right bound inclusive at whole seconds, a crumb), GATE606 -> L457.
+                                   (p69/probe_rn.out). RE-CUT 1 5b7a4eba50 APPROVED 3/3 02:08Z; LANDED L453 04:06Z, VERIFIED. CLOSE 62f7be08f1: my APPROVE 04:12:11Z (p70/wclose.txt; NOTE: window right bound inclusive at whole seconds, a crumb), GATE606 GREEN 04:41Z (viz-views 61/0, 367 passed; merged a43c5a4e13 tree == my merge-tree ac20c00b6b) -> L457 after L456.
 g7.31.1.1 F2 row           DG1     LANDED L447 (_STUB_P = the stub's own argv shape); aio's lookahead form = the next touch's option.
 g1.23 (owner)              -       g1.23.1 COMPLETE (L438). g1.23.2 PLUGIN: council horizon. NOTE for its first touch: F2 reads file NAMES only.
 job 2 doc (council)        sp      LANDED L442. Its next touch: row 1's '191 never entered with cc >= 6' + the generator's join.out label.
