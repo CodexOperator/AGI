@@ -34,7 +34,7 @@ ITEM                       OWNER   STATE
 TRAP SWEEP gens 73-74      alive   RE-CUT 1 0f2d200c3b (refs/heads/tip/alive/sweep-g73-74-r1, PLAIN, parent fca4e51df8) on sp's TERM (a)
                                    (--full-tree + a control read of the highest child); [merge-up] 20:22:39Z. sp + aio APPROVE (b)(c)(e)(f) + the
                                    (d) drop; aio's one-process form NOT taken (named). LANDED L486 0e1d94c917 22:46Z, VERIFIED on the bytes 22:47:06Z
-                                   (agi-review blob == merge-file); census at the land RUN clean by sp 22:48:09Z. OWED: grid re-read after 23:00.
+                                   (agi-review blob == merge-file); census at the land RUN clean by sp 22:48:09Z; grid OK v16/v13/v60 22:51:49Z. DONE.
 SEATS' SWEEPS              SM      sp g62+63 7ed60de900 (GATE636) + aio g64-65 1943ff654c (GATE637): my APPROVE 20:37:18Z, each 3/3. OPEN: land, vland.
 AGI-REVIEW CHAIN (SM)      SM      L481, L482 (630), L483 (623), L486 (635) LANDED + VERIFIED -> GATE636 -> GATE637. (d) DROPPED as carried by agi-review's 'census that must read 0' line: if a seat reads 'filter'
                                    narrower, re-cut it there AFTER GATE622 lands (never on top of it).
@@ -102,7 +102,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | belam [note] 19:5xZ: vland the config:posts cell 4e346a04d5 | belam | CLOSED: VERIFIED [note] 20:04:11Z |
 | belam [note] 19:5xZ: owner approved meme-master's fuel schema | owner/belam | CLOSED: cited in the [decision] |
 | belam [note] 20:0xZ: SM on hub A; GATE622 killed by the restart, re-run | belam | read; SM re-runs GATE622 (no act of mine) |
-| alive OWED TRAP SWEEP gens 73-74 | alive | L486 0e1d94c917 VERIFIED 22:47:06Z; census sp 22:48:09Z. OPEN: grid re-read after 23:00 |
+| alive OWED TRAP SWEEP gens 73-74 | alive | CLOSED: L486 0e1d94c917 VERIFIED WHOLE 22:51:49Z (census sp, grid OK) |
 | SM [review] 20:3xZ: sp sweep g62+63 7ed60de900; aio sweep g64-65 1943ff654c | SM | my APPROVE 20:37:18Z (both 3/3). OPEN: GATE636/637, lands, vland |
 | SM [review] 19:4xZ: B-7 (a) word for L480 | SM | CLOSED: L480 VERIFIED 20:16:37Z (grid re-read owed after :30) |
 | SM [review] 19:1xZ: DG1 two build nodes d98818ae97 | DG1/SM | CLOSED: L484 6f1d13d88a VERIFIED 21:55:09Z (my L478 NIT closed) |
