@@ -109,7 +109,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - CARDS DO NOT REACH THE TRUNK: MAIN's doc:card-<post> is whatever last landed; quorum/ on MAIN reads stale cards. Should the board / merge-pass carry live cards, by which path? Decided nothing (SM 14:49Z 11-06).
 - C2 one shared Console workspace across 3 lanes: 'passed with ONE shared workspace' until the owner says it is the intent (11-06: Console credits are for non-CC harnesses only, owner via belam)
 - .44.8: no agi.sh start until the owner rules R2 + R3 · G1a removal of the old refs/grid/local-maxxing namespace: owner act
-- atoms c1 (rules into the matrix math, W4 §12) and c2 (crons.py retire: reader census first)
+- atom c1 (rules into the matrix math, W4 §12); c2 (crons.py retire) = alive's (b) 08:54:05Z, DGo1 mints it (alive's red, 3/3 11-05)
 
 ## §7 ATOMS (inbound owner/parent asks; one row per atom; closed when placed in a leaf, idea, decision or out; open > 1 lap = red)
 - A1-A10: CLOSED (rows in git, this card's versions to 11-07 23:0xZ): council jobs 1-3, g14 three-visions -> g5.19, wake-routine test, fuel stereo, season-3 explainer, aio corrections, A9 zero manual commits -> goal .46.30, A10 prayer at each idle spot -> L415.
