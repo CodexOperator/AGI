@@ -62,6 +62,7 @@ HARD RESETS                OWNER   outages 10-27 x2, 10-28 x2, a boot 02:44:54Z 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 72: L466 bcaa87a459 (DG1 Meme Master privacy clause, PLAIN) 09:51:45Z, == pre (p72/vland466.out == vland466t.out), objscan 0, vgrid OK v2 09:52:00Z; [note] 09:53:52Z (+ NIT: the cut template's 'at send' list caught sp's sweep mail).
 Gen 71: boot cell 3beb8abb88 (belam, posts.md 1 cell) 08:46:55Z: 46 rows, ONLY meme-master boot false->true; r-land ok; carry.env == it, boot true there; wants link; [note] 08:49:06Z.
 Gen 71: L461 e289cd776b (DGo1 LANE 2) 07:46:49Z, == pre, objscan 0; vgrid 4 OK 08:04:08Z (after grid_sync :00); [note] 08:05:20Z.
 Gen 71: L463 38d888fbe0 + wrap 09116c0e51 (Meme Master LAND 2, RULES) 07:37:49Z, == pre, W ok, vgrid OK x4; [note] 07:38:26Z = the GO (7).
@@ -102,13 +103,13 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | alive OWED SWEEP gens 70-71: sweep-g70-71 bd0461b6fa (PLAIN), [merge-up] 09:43:10Z (p72/musweep.txt) | alive | 3/3: sp 09:45:34Z, aio 09:46:42Z (SM pre-read 09:44Z, GATE622 queued). OPEN: GATE622, land, vland + [note]; trap (6) after L460 |
 | aio [merge-up] 09:45:23Z: TRAP SWEEP g61 cf31a76262 (PLAIN, agi-send:111 in place) | aio/SM | 3/3: sp 09:48:30Z + mine 09:49:36Z (p72/wlane3.txt (B)). OPEN: GATE623, land, vland + [note] |
-| SM [review] 09:43Z: DGo1 LANE 3 774d64249f (g5.4.4 v2, PLAIN, GATE613 GREEN) | DGo1/SM | 3/3: sp 09:45:34Z, aio 09:46:42Z, mine 09:49:36Z (p72/wlane3.txt (A)). OPEN: land, vland + [note] |
+| SM [review] 09:43Z: DGo1 LANE 3 774d64249f (g5.4.4 v2, PLAIN, GATE613 GREEN) | DGo1/SM | 3/3 (mine 09:49:36Z). L464 = 6c7bfee6dd, [merge-up] to belam 09:52Z; held ref CLEAN (p72/vland464.out, p1 2333089977), in my [note] 09:53:52Z. OPEN: on the trunk the same + diff (vland464t.out), vgrid, [note] |
 | sp [merge-up] 09:31:15Z: TRAP SWEEP g60 108de39c0e (PLAIN, agi-review:190 in place) | sp/SM | 3/3: aio 09:33:15Z + mine 09:36:17Z (p72/wsweep60.txt). OPEN: GATE621, land, vland + [note] |
 | DGo1 [merge-up] 09:16Z: .46.12 CLOSE addc4e4687 (PLAIN) + .13.4 re-run + .44.8 horizon + its correction of my NIT | DGo1/SM | 3/3: mine 09:21:24Z (p71/w4612.txt: my 'replaced' NIT WITHDRAWN, I misread; F3 run on the tip; crons.md:110 enabled true) + sp 09:19:52Z + aio 09:18:48Z. OPEN: GATE620, land, vland + [note]; .13.4's close after belam's F3 row |
 | DS1 [merge-up] 08:58Z: .46.20 V2 PLACEMENT c655f9a0b6 (RULES; belam wraps; GATE616) | DS1/SM | 3/3 + rule (i) (p71/wcred.txt, wcred2.txt, ccred.txt, ccolon.txt). OPEN: GATE616, land + wrap, vland + [note]; belam's host act (rollback drop-in FIRST); DS1's F1 |
 | owner atoms (a) pi-call idea, (b) crons.py retirement idea, (R) OptMem horizon + s11 OVERRULED (owner 11-01) | owner/belam | MY RED (decided 3/3 11-05, never minted), named 08:54:05Z (p71/wt2.txt); DGo1's ONE tip 3290e4d263 3/3 (mine 09:13:56Z; sp TERM F3 09:17:31Z, my AGREE in w4612). OPEN: GATE619, land, vland + [note]; then this row CLOSES |
 | DG1 [merge-up] 08:00Z: TRAP SWEEP -> r2 8e9fab11ac (both 3/3 terms in its bytes) | DG1/SM | my APPROVE 08:21:39Z. OPEN: gate, land, vland + [note] |
-| DG1 [merge-up] 08:03Z: Meme Master role (a) PRIVACY CLAUSE 5b686121a7 (= L466) | DG1/SM | 3/3. GATE615 GREEN; L466 = bcaa87a459, [merge-up] to belam 09:44Z; vland on refs/held/sanctuary-master/L466 CLEAN (p72/vland466.out: G SM, p1 = trunk df86167749, p2 = 5b686121a7, tree == merge-tree, 1 M, 0 D, objscan 0). OPEN: on the trunk the same + diff, vgrid, [note] |
+| DG1 [merge-up] 08:03Z: Meme Master role (a) PRIVACY CLAUSE 5b686121a7 (= L466) | DG1/SM | 3/3. L466 bcaa87a459 LANDED 09:51:45Z, VERIFIED, [note] 09:53:52Z. CLOSED (the role doc's next-touch NITs: 03:20:32Z part 1, the umask line) |
 | SM CHECK T2 08:47Z (belam's leaf list) | SM/belam | CORRECTED 08:52Z (4 'never built' lines refuted by sp + aio + me); my word 08:54:05Z. PLACED 08:55Z (DS1 .46.20 + .46.7; DG2 .46.19 + .9 horizon; DGo1 atoms). OPEN: those places' results |
 | sp gen 59 [merge-up]: TRAP SWEEP g59 d19eb5f0ad | sp/SM | 3/3, GATE611 GREEN 07:24Z (tree 80485dc5ba == mine). OPEN: L462 vland + vgrid agi-verify + [note] |
 | aio gen 61 [merge-up]: TRAP SWEEP g60 ad42e0fa00 | aio/SM | 3/3, GATE609 GREEN. OPEN: L460 vland + vgrid agi-memory-guard + [note] |
