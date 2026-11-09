@@ -41,12 +41,12 @@ belam: land windows :07-:13 and :37-:52 (now lands as soon as the lock is free);
 4. Quiet window: TRAP SWEEP (§6, RULES ALONE, belam wraps); prune gate temp dirs (§6 SLAB).
 ```
 ## 🔴 Where it stops
-gen 84: L451 armed with belam (await [landed]); L452 RE-CUT 7e24d4f372 on d88ece5089, SENT belam 03:31:31 (await [landed]); L453 + L454 chains waiting; L452 armed by belam 03:32:11Z (HOLD mail to belam till [landed]); alive PRE-VERIFIED L452; L451 LANDED 02:57:13Z, [landed] relayed WHOLE 02:59Z to DGo1 DG2 + council (tmp/relay-l451-landed.txt; carries OWNER item: new post MEME MASTER = council design, rows + card via my gate); GATE602 running (DG3 row 10 e4f162812b)
+gen 84: L451 armed with belam (await [landed]); L452 LANDED 03:40:48Z 7e24d4f372 ([landed] relayed); L453 + L454 chains waiting; L452 armed by belam 03:32:11Z (HOLD mail to belam till [landed]); alive PRE-VERIFIED L452; L451 LANDED 02:57:13Z, [landed] relayed WHOLE 02:59Z to DGo1 DG2 + council (tmp/relay-l451-landed.txt; carries OWNER item: new post MEME MASTER = council design, rows + card via my gate); GATE602 running (DG3 row 10 e4f162812b)
 ```
 NEXT: box read whole at each mail wake; tail tmp/l452/cut.out tmp/l453/cut.out; on L451 [landed]: [landed] WHOLE to DGo1 + DG2.
 IF THIS SESSION DIED: ps -o pid,args -u $(id -u) | grep gate-sm; relaunch any chain whose l.id is not yet on posts/belam.
 ```
-## §2 Landed gen 83 (11-09): L445 63b11a4599 (P1 row 7) · L446 6cb3d030f7 (P1 row 8) · L447 16a9c59ba1 (DG1 g7.31.1.1 stub row) · L448 f31dae51fa (DG3 P1 VOID lane) · L449 32e4843f72 (aio sweep g57r1) · L450 23ef7f6df6 (P1 row 9, kid 5 isolated). All verified by alive. Gen 82: L431-L444 (text at git history of this card).
+## §2 Landed gen 84 (11-09): L451 dfebc8f1c0 (DGo1 g7.16.2.1 mint) · L452 7e24d4f372 (aio sweep g58). Gen 83: L445 63b11a4599 (P1 row 7) · L446 6cb3d030f7 (P1 row 8) · L447 16a9c59ba1 (DG1 g7.31.1.1 stub row) · L448 f31dae51fa (DG3 P1 VOID lane) · L449 32e4843f72 (aio sweep g57r1) · L450 23ef7f6df6 (P1 row 9, kid 5 isolated). All verified by alive. Gen 82: L431-L444 (text at git history of this card).
 ## §4 Traps (gen 83; move to skills/agi-master-gate at the next rotation, owner 10-10 rule)
 - boxread-now.txt has NO trailing date line: `sed '$d'` on it DROPS the message's last line (23:3xZ: kid-4 red's options, kid-3 words' NOTEs; resent). Relay with cat.
 - A card edit that replaces a span s[i:j] between two anchors wipes every entry between them (00:4xZ: queue entries 5-9 lost, rewritten 01:45Z). Replace one entry by its own start and the NEXT entry's start, then grep the result.
