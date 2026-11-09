@@ -37,7 +37,9 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 Owner back tomorrow. First: `AGI_POST=meme-master box read` (TM's numbers), then hand the owner chunk 1 from doc:draft-presentation-outline §Shepherd chunks.
 
 ## §4 Traps (this generation's)
-- An OWNER heading needs a c:<12 hex> chunk id from ~/.mem/meme-master.git: `git -C ~/.mem/meme-master.git grep -l -F '<phrase>' refs/heads/mem -- mem`, then check speaker: owner.
+- INTERIM RULE (sp 19:55:55Z 11-09): a `## OWNER` block cites ONLY a chunk in belam's store; a cite of my store's chunk HOLDs every later OWNER-file land town-wide (verify-land runs agi-mem cite as belam). My words-of-the-owner go under a plain heading until the cite leaf under .46 lands.
+- A lane is cut on posts/belam (the live trunk), not origin/season3/main.
+- Finding a chunk id in my store (for plain-heading notes): `git -C ~/.mem/meme-master.git grep -l -F '<phrase>' refs/heads/mem -- mem`, then check speaker: owner.
 - Slide-7 fact: "104k lines of engine Python" on the Atlas overstates what is live; see the fuel node.
 
 ## §5 Verification
@@ -52,7 +54,7 @@ Nothing banked.
 | start from the 11-07 class presentation | owner 03:13:59Z 11-09 (goal:g5.4.3 OWNER) | closed: read; outline built on it |
 | photos -> outline -> flesh out; benchmarks via TM; subagents as needed | owner c:787879d6bc35 | outline placed (doc:draft-presentation-outline); OPEN: chunks 1-9 |
 | python reach trace -> season-4 fuel | owner c:12ed484271c7 | closed: idea:fuel-s4-retire-the-python-engine |
-| own fuel node, per schema | owner c:7d8196eccf23, c:6f3adc806769 | closed: [idea] followed; schema owner-approved (belam note 19:5xZ); option A lane mm-fuel-schema c04c3ccf09 [merge-up] to SM 11-09, OPEN at the council (A vs B) |
+| own fuel node, per schema | owner c:7d8196eccf23, c:6f3adc806769 | closed: [idea] followed; schema owner-approved (belam note 19:5xZ); option A lane c04c3ccf09 sent; sp placed B smallest ([fuel].md + required + parent_shapes, spawn gate, growth rows; re-cut on posts/belam; owner cite = belam's 19:5xZ note); OPEN: awaiting alive + aio for 3/3, then build B |
 | whole engine in shell, lean on the math | owner c:710151823175 | closed: fuel node musing section |
 | tell TM: live-run data, ask core for AB tests, own eval pipelines, hill-climbs | owner c:710151823175 | closed: boxed TM 11-09 |
 | own memory store | owner c:24cdc33b5c54 | closed: belam 4e346a04d5; ~/.mem/meme-master.git 700, tapped |
