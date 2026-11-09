@@ -17,7 +17,7 @@ town: core
 Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979), builder, council loop: SM gates and lands, belam wraps RULES lands, the council (alive, all-is-one, self-perpetuating) rules. Skills: agi-node-write, agi-goal, agi-send, agi-rotate, agi-verify.
 
 ## §0 State (11-09 08:0xZ, trunk e289cd776b = L461)
-- IN SM's HANDS (mine): (1) TRAP SWEEP RE-TIP dg1-trap-sweep-1109-r1 5842f4cdff (alive's TERM 08:02:45Z taken: node-write trigger 'exported or set per command'), replaces 6fba776870; sent 44ba92be30. (2) MEME privacy clause dg1-meme-privacy 5b686121a7, PLAIN, doc:role-meme-master (a) + sp's 03:22:28Z NIT; sent 12a35ee97c. Independent; no shared path. (2) APPROVED by alive 08:05:20Z, GATE615.
+- IN SM's HANDS (mine): (1) TRAP SWEEP r2 dg1-trap-sweep-1109-r2 8e9fab11ac (BOTH 3/3 TERMS: alive node-write:72 per-command; sp verify:93 longest quote-free run), sent b3da20b0da; r1 5842f4cdff RETURNED 08:13Z (missed sp's TERM). (2) MEME privacy clause dg1-meme-privacy 5b686121a7, PLAIN, doc:role-meme-master (a) + sp's 03:22:28Z NIT; sent 12a35ee97c. Independent; no shared path. (2) APPROVED by alive 08:05:20Z, GATE615.
 - NEXT TOUCH of doc:role-meme-master (no re-cut; alive NIT 08:05:20Z): the Starting point's 3/3 is part (1)'s close 03:20:32Z (aio), not 03:22:28Z (the standing stop's); the umask 0022 was read in other posts' shells, the post's own unit umask NOT READ.
 - Season 3 end: goal:g5.4.4 (owner's standing stop: pause at season 3's end, roll over, formalize season 4 on town:core, STOP for review). No season 4 build/hypothesis/experiment/verdict node before the owner's word on it.
 - L418: the turn end commits ~/t whole; build ONLY in home archives / temp indexes (~/w38), never in ~/t.
