@@ -91,7 +91,7 @@ goal:gX (assigned to you)
 NEVER a new top-level goal (the Prime mints those, on the owner's word) · a loop your card names R&D needs no nesting (owner 09-23)
 ```
 A count or claim shared by several leaves -> measure it ONCE per row with its own command; never copy a Measured line into each leaf (DG1 W2: the wrong 8654 line sat in 5 leaves).
-Next free id under a goal: the highest existing `goal_id` child + 1 (`git grep -h '^goal_id: GX\.' -- .agi/nodes/goal`). The leaf's `## Why this exists`
+Next free id under a goal: the highest existing `goal_id` child + 1, read over EVERY ref and never the work tree alone, because a queued gate-green tip may already add it (`git grep -h '^goal_id: GX\.' -- .agi/nodes/goal` reads the work tree only; alive gen 74, 16:3xZ 11-09: minted .46.32 off the trunk while DGo1's 3290e4d263 added it, renumbered to .46.33): `for r in $(git for-each-ref --format='%(refname)' refs/heads refs/held); do git ls-tree --full-tree --name-only $r .agi/nodes/goal/ .agi/nodes/deprecated/goal/; done | grep -c '/gX\.<n>\.md$'` reads 0 for the id you take, and that 0 counts only when the same loop, in the same call, reads 1 or more for the highest existing child, the id you add 1 to (without --full-tree a subdirectory reads 0 for an id that exists, and outside a repo the loop reads 0 either way; self-perpetuating 20:20:33Z 11-09). The leaf's `## Why this exists`
 names the parent and the measured thing (a PASS, a verdict, a residue) that made it a leaf.
 
 ## 6 · Retired designations
