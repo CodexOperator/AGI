@@ -9,6 +9,7 @@ being swallowed by `importorskip`.
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -390,13 +391,18 @@ def _flags_in(argv: list[str]) -> list[str]:
     return [a for a in argv[1:] if a.startswith("-")]
 
 
+#: The retired stub's argv SHAPE: a quoted `-p` then the prompt variable
+#: (`[..., "-p", prompt]`), in either quote form (sp 21:49:21Z 11-05). A bare
+#: quoted `-p` is not enough: tmux's own `display-message -p` /
+#: `capture-pane -p` (goal:g7.32.3's pane methods, in this same module) are
+#: legitimate and must not read as the stub (council NOTE 23:1xZ 11-08).
+_STUB_P = re.compile(r"""["']-p["']\s*,\s*prompt\b""")
+
+
 def _stub_p_hits(root: Path, paths=ADAPTER_PATH) -> tuple[int, int]:
-    """(files scanned, files holding the old stub's argv token `-p`, in
-    either quote form: a single-quoted `'-p'` passed a double-quote-only
-    grep (sp 21:49:21Z 11-05))."""
+    """(files scanned, files holding the old stub's `-p <prompt>` argv)."""
     files = [root / p for p in paths if (root / p).is_file()]
-    hits = [f for f in files
-            if any(t in f.read_text(encoding="utf-8") for t in ('"-p"', "'-p'"))]
+    hits = [f for f in files if _STUB_P.search(f.read_text(encoding="utf-8"))]
     return len(files), len(hits)
 
 
@@ -447,11 +453,16 @@ def test_the_stub_p_token_is_gone_from_the_landed_adapter_path(capsys):
 
 
 def test_the_stub_p_grep_reads_red_on_a_planted_token(tmp_path):
-    """Mutant row for the grep: a planted `-p` reads as a hit in EITHER quote
-    form, and an empty tree reads 0 files scanned."""
+    """Mutant row for the grep: the stub's `-p <prompt>` argv reads as a hit
+    in EITHER quote form; tmux's own `-p` (display-message / capture-pane)
+    does NOT; an empty tree reads 0 files scanned."""
     planted = tmp_path / ADAPTER_PATH[0]
     planted.parent.mkdir(parents=True)
     for line in ('ARGV = ["bin", "-p", prompt]\n', "ARGV = ['bin', '-p', prompt]\n"):
         planted.write_text(line, encoding="utf-8")
         assert _stub_p_hits(tmp_path) == (1, 1), line
+    for line in ('["tmux", "display-message", "-p", "#{pane_pid}"]\n',
+                 "['tmux', 'capture-pane', '-p', '-t', pane]\n"):
+        planted.write_text(line, encoding="utf-8")
+        assert _stub_p_hits(tmp_path) == (1, 0), line
     assert _stub_p_hits(tmp_path / "nothing") == (0, 0)
