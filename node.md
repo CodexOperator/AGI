@@ -18,7 +18,8 @@ town: core
 THREE THINGS OPEN:
 1. LANE 3 dg1-g544-nits = 774d64249fdbb0899a0b5f7562a41499aecbca0f (goal:g5.4.4 v2, the two NITs): GATE613 queued; wait for [landed].
 2. ATOMS dg1-owner-atoms = 3290e4d263dec4a590cd6202e19e8f468155150a (base 3beb8abb88; worktree wip/atoms): idea (a) pi route under .46.3, idea (b) crons.py retirement under .46, HORIZON goal:g7.16.1.11.46.32 OptMem + one OVERRULED line in doc:brainstorm-unify §11. Sent 09:11Z; words owed.
-3. SM's [ask] 08:50Z re-runs (worktree wip/chk at 3beb8abb88): goal:g7.16.1.11.13.4 F1 pytest 238 passed rc 0 (1084 s), F2 rc 0, F4 prints 0 -> belam runs F3 (host, sudo), then the close is mine with the council's word. goal:g7.16.1.11.46.12: F3 one path + 0 'box send'; F1+F2 = prereq-notice.t.sh RUNNING (output /data/scratch/art/director-goals-1/pn.out); then send ONE results message to SM; .46.12 close if green. .44.8: I read HORIZON like SM (F1/F2 banked on the owner's 10-15 fresh box): say so in that message.
+3. CLOSE TIP dg1-4612-close = addc4e4687bcfeaaaac505bb77a2404b7b219adb (goal:g7.16.1.11.46.12 complete; base 3beb8abb88; wip/c4612), sent 09:16Z; words owed. goal:g7.16.1.11.13.4: F1 238 passed, F2 rc 0, F4 0 -> belam runs F3 (host), THEN I cut its close with the council's word. .44.8 = HORIZON (told SM).
+4. NEXT TOUCH of goal:g7.16.1.11.46.32: Target 1's repo url gains 'belam's reading, c60ab183d2' (alive 09:13:56Z KEEP) AND names the rival reading beside it (aio 09:14:45Z NIT): OPTMEME = OptMem (belam's reading, c60ab183d2) OR OptChat (doc:brainstorm-unify §11 :352-354); F2 asks the owner which, before any plan node under .46.32.
 A RETURN on any: re-cut from the live trunk, ONE commit, new ref -r1, merge-up outside :20-:30.
 - Then: goal:g7.16.2.1's CLOSE when DG2's build lands (§1).
 
@@ -33,7 +34,7 @@ A RETURN on any: re-cut from the live trunk, ONE commit, new ref -r1, merge-up o
 
 ## §1 Plan
 - done: see §2. next: LANE 3's [landed]. then: goal:g7.16.2.1's CLOSE when director-general-2's build lands (run F1-F4 at the live trunk, propose). Its nits for that touch, no change asked: origin-snap's reason = 'a forced local mirror that follows refs/grid/node' (grid.py :2484); F1 reads the grid tree's first .md (node.md by name is safer); F4 passes if anonymize.py is absent.
-- held (alive [decision] 19:09:52Z 10-31, nothing since lifts one): .13.4 (belam's F3 reads), .44.8 (owner), .46.12 (owner's GO for the notices), g6.41.1 (owner's cutover word), g6.41.1.1 (a live-systemd dummy run + the next reboot), g7.31.3.3.1-.5 (a placement). horizon: g4.18.5.3, g4.18.6.4/.4.1/.4.2/.5, g4.18.7.1/.2, g7.33.19.1.
+- held (alive [decision] 19:09:52Z 10-31, nothing since lifts one): .13.4 (belam's F3 reads), .44.8 (owner), g6.41.1 (owner's cutover word), g6.41.1.1 (a live-systemd dummy run + the next reboot), g7.31.3.3.1-.5 (a placement). horizon: g4.18.5.3, g4.18.6.4/.4.1/.4.2/.5, g4.18.7.1/.2, g7.33.19.1.
 - next-touch crumbs, no commit alone: agi-in.t.sh :5 Rows header lacks r11/m10; agi-wt's silent `[ "$f" ]||exit 2` + the kid default REV; old name agi-kid in test labels; memguard n1 + n2 (named in goal:g7.16.1.11.40.1.2's THOUGHT); agi-town.t.sh mktemp guard + agi.sh:95 cap row; grow-scope-report.t.sh 2nd-parent row; g7.16.1.11.44.8's falsifier wording ('until the owner runs them'); season.py `_append_season_row` int compare + g12.3's FIXED marker; agi-captive n1-n3; crons.py temp guard for `remove --user` / `marked --user`.
 
 ## §2 Landed (mine, via SM; detail in git + grid)
