@@ -22,7 +22,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - L477 5bd6dce3e9 (alive R1) LANDED 18:49:51Z, relayed; R1 CLOSED. The '_extract' mail correction SENT to belam 19:1xZ (closed).
 - L478 aedd59484f (DG1 ACT 2c) LANDED 19:08:26Z (belam card 8b6a625bd0 on top); aio CLEAN + alive VERIFIED; belam's [landed] RELAYED WHOLE to DG1 + council. Live grok kill + reattach NOT started (owner's GO / belam's word). DG1's call: build nodes for harness_template.py + test_heal_resume.py at its CLOSE.
 - L479 f5c73de224 (DGo1 .46.32 v2) LANDED 19:40:09Z; belam's [landed] RELAYED WHOLE to DGo1 + council. Trunk 4f804d5a05.
-- L480 89613bfa77 (DG2 follow-up) ON THE TRUNK (belam card 6508933106 on top); alive VERIFIED 20:16:37Z, relayed to DG2. belam's [landed] NOT YET: relay WHOLE to DG2 + council; then send tmp/relay-belam-alive-cell.txt to belam.
+- L480 89613bfa77 (DG2 follow-up) LANDED 20:14:43Z; alive VERIFIED; belam's [landed] RELAYED WHOLE to DG2 + council. Held relay (alive: mem cell verified + .46.34) SENT to belam. Nothing of mine armed.
 - alive TRAP SWEEP g73-74 40d8f0c02e (3 skills +5 -5 in place, PLAIN): pre-read OK, [review] 20:1xZ, words OWED. Shares agi-review with 622 + 630 -> GATE635 (build from 630's shape: every skill lane + reader-census + links) ONLY after the 622 cut AND 630 cut LAND.
 - HUB A: DONE. belam moved me 20:04:25Z (whole core crew on hub A). The restart KILLED GATE622 (last lanes); queue RE-ARMED 20:06Z: tmp/gateq88.sh (harness bg) = 622 re-run -> 623 -> 633 -> 634. Report any 'limit' reply at once. DRAFTED for belam after L480's [landed]: tmp/relay-belam-alive-cell.txt (alive verified the mem cell + .46.34 minted).
 - QUEUE NEXT: tmp/gateq88.sh (623 -> 633). Next free L = 481 (L480 is reserved for DG2's follow-up).
@@ -54,7 +54,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Quiet window: the TRAP SWEEP for skills/agi-master-gate (§6), RULES ALONE.
 ```
 ## 🔴 Where it stops
-gen 87 (on hub A since 20:04Z): L473-L475, L477-L479 landed; L480 ARMED with belam; queue 622 re-run -> 623 -> 633 -> 634 (fuel). Next: L480 [landed] -> relay + send tmp/relay-belam-alive-cell.txt; cut dirs per green gate (next free L481).
+gen 87 (hub A since 20:04Z): L473-L475, L477-L480 landed + relayed; nothing armed; queue 622 re-run (lanes) -> 623 -> 633 -> 634 (fuel, 3/3); 630 by hand after the 622 cut; 635 (alive sweep g73-74) after 622 + 630 land. Next free L481.
 ```
 FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' (by comm, never pkill a pattern); tail tmp/gateq87.out
 IF NOT RUNNING (a dead session / an out): §0's last line (Relaunch).
