@@ -224,13 +224,15 @@ def path_allowed(path, allow):
 def mask_diff_ips(diff, allow, keep=()):
     """A unified diff with private-range tokens masked on the ADDED lines of every
     allowlisted '+++ b/' path (anon-diff's added_lines keeps text, not path)."""
-    cur, out = None, []
+    cur, hunk, out = None, False, []
     for l in diff.split("\n"):
         if l.startswith("diff --git "):
-            cur = None
-        elif l.startswith("+++ "):
-            cur = l[6:] if l.startswith("+++ b/") else None
-        elif cur and l.startswith("+") and path_allowed(cur, allow):
+            cur, hunk = None, False
+        elif l.startswith("@@"):
+            hunk = True
+        elif not hunk and l.startswith("+++ "):   # a path only in a file's HEADER: an added
+            cur = l[6:] if l.startswith("+++ b/") else None   # line reading '++ b/<path>' is content
+        elif hunk and cur and l.startswith("+") and path_allowed(cur, allow):
             l = "+" + mask_private_ips(l[1:], keep)
         out.append(l)
     return "\n".join(out)
