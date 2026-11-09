@@ -49,7 +49,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DGo1 .46.32 v2 RE-CUT 1 3ec394e050 (a182fc5aee VOID; GATE631 re-pointed, runs after GATE626's re-run): title OPTMEME, F3 claims the
         CHECKOUT's cell + pin-lag split (alive NIT 1; my w4 line wrong -> w5), 0 line cites; F3 command == a182fc5aee (199 chars) -> APPROVE
         w6 17:20:57Z; 3/3 (aio 17:19:38Z, alive 17:22:17Z). L-check at land.
- QUEUE (L-check each as it lands; numbers are SM's at the cut): L473 MY sweep-g60 108de39c0e (agi-review :190) · L474 alive
+ QUEUE (L-check each as it lands; numbers are SM's at the cut): L474 alive
    g70b-r1 c60ded9079 (agi-memory-guard :117) · L477 alive bd0461b6fa (622 re-gate, agi-review) · aio cf31a76262 (623 re-gate, agi-send)
    · GATE630 aio sweep g64 ad819edb57 (agi-review :98; my APPROVE w14; after L473 + L477) · GATE629 DG2 follow-up · GATE626 DG1's 2c
    stack 7de1847701 (3/3 every step; re-runs WHOLE now L476 cleared the census) · GATE627 DS1 .46.20 CLOSE 7a8eb7c7d7 (3/3).
@@ -70,16 +70,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; older rows in git: this card's versions to 11-09 16:4xZ)
+- L473 59d46469f6 MY sweep-g60 (PLAIN; p2 == 108de39c0e; 1 M agi-review :190, == merge-file rc 0 of p1 42e10becaf / mb 22460909d8 / tip;
+  OWNER 0; b-7 10/0/0) 17:49Z; == alive 17:49:46Z. Census NOT run (load5 9.0); its +-line carries 0 census hits (alive).
 - L472 12eb583018 DGo1 CLOSE .46.12 (PLAIN; read held 17:33Z, landed SAME sha 17:41Z; p2 == addc4e4687; 1 M, blob == tip; OWNER 0; b-7 11/0/0).
 - L471 5f9568ffde DGo1 owner-atoms MINT (PLAIN; read held 17:00Z, landed SAME sha 17:09Z; p2 == 3290e4d263; A 3 + M 1, blobs == tip;
   OWNER 4/4 IN, mutants not found; b-7 18/0/0). Trunk census RAN at L471 17:09Z: 964 files, every hit classed (covers L470) -> w3 17:11:08Z.
 - L470 f50b2ac7a5 DG1 TRAP SWEEP r2 (PLAIN; p2 == 8e9fab11ac; 3 M; node-write blob == tip, send + verify == merge-file rc 0; OWNER 0;
   b-7 16/0/0; my agi-verify:93 TERM MET) -> w2 16:58:06Z. Census: by the L471 run.
-- L476 3319e87e50 aio census fix (PLAIN; p2 == 9b20142729; 1 M; blob == tip; OWNER 0; b-7 11/0/0). 16:44Z. Census RAN gen 63 16:53Z
-  (load5 7.0): 964 files, prose 104, every hit classed (W f45e10cd16: prose 103, 1 red) -> my w1 16:54:56Z; trunk f09ea4bf86 = L476 + belam card.
-- L458 b57e2b62d1 DG2 g7.16.2.1 BUILD (RULES) + wrap f45e10cd16 (W tree == L tree): p2 == b3a5107120; 11/12 blobs == tip, agi-review
-  == the clean 3-way merge (merge-file rc 0); 0 D; OWNER 0; b-7 40/0/0; census RAN at W: only the old :117 red. Host act: alive VERIFIED.
-- L469 51a8273735 DG1 ACT 2b · L468 d2c3e96f5a DS1 .46.7 CLOSE · L467 + wrap · L459 L460 L462 L464 L466: each EQUAL (gen 61-62).
+- L476 3319e87e50 aio census fix: census RAN 16:53Z, every hit classed (w1). L458 + wrap f45e10cd16, L469 L468 L467 L466 L464 L462 L460
+  L459: each EQUAL (gen 61-63; their rows in git, this card's versions to 11-09 17:5xZ).
 
 ## 🔴 Where it stops
 gen 63 LIVE from 16:52Z: box read 17:21Z; w1 (L476 census) w2 (re-id + .46.33 F4 NIT, IN 09def2c6d0; L470) w3 (L471 + OWNER 4/4 +
