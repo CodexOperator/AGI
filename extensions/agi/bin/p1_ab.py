@@ -8,7 +8,8 @@ Pieces, each one a clause of the leaf's PART 2 RULES or falsifier, none of them 
 - `mint_capped`  the ONLY way a P1 kid key is minted (run by belam's uid, the only reader of the provisioning
                  key): a frozen leaf id, a cap on the call, the cap AND a non-null expires_at inside the run
                  window read BACK from the provisioning API, exposure kept under the cell, one key per
-                 (arm, leaf) ever (a capped kid is a counted red, never retried).
+                 (arm, leaf) (a capped kid is a counted red, never retried) unless every earlier key of the
+                 pair is VOID.
 - `write_key_file` / `acl_problems`  a key lives only in its own 0600 file in a 0700 dir, readable by exactly
                  the kid uid through two ACL entries (file r, dir x with no r); never in argv, env, a repo or mail.
 - `arm_preflight`  the arm's refusals: leaf off the frozen list, pin/tree mismatch, kid as the key holder,
@@ -16,7 +17,10 @@ Pieces, each one a clause of the leaf's PART 2 RULES or falsifier, none of them 
 - `end_arm`      every key disabled and read back as disabled, its file removed.
 - `kid_key` / `kid_done`  belam's thin driver, one kid at a time: mint + write the kid's key file just before the kid
                  starts (at most `max_live` files exist), and after the kid exits read its spend, disable the key,
-                 read it back as disabled and remove the file. The kid runs in the director's post uid (agi-kid's
+                 read it back as disabled and remove the file. `kid_void`: the council's VOID of a run that cannot
+                 be compared (a kid that read a sibling's tree): every row of the pair marked void, citing the
+                 decision, its spend still counted against both caps; only then may the pair mint again.
+                 The kid runs in the director's post uid (agi-kid's
                  model), never belam or root; the secret is in that one file and nowhere else.
 - `kid_plan` / `run_kid` / `record_result`  MY side of a kid (the director's post uid): the node >= node_min check
                  (the system node can be too old for pi 1.x), the models.json whose only secret is a PATH
@@ -284,8 +288,9 @@ def mint_capped(*, arm: str, leaf: str, cfg: dict, ledger: str | Path,
             or limit <= 0 or limit > key_cap):
         raise P1Refused(f"key cap {limit!r} refused at mint: a P1 key carries a finite cap in (0, {key_cap}]")
     rows = _ledger(Path(ledger))
-    if any(r["arm"] == arm and r["leaf"] == leaf for r in rows):
-        raise P1Refused(f"({arm}, {leaf}) already minted a key: a capped kid is a counted red, never retried")
+    if any(r["arm"] == arm and r["leaf"] == leaf and not r.get("void") for r in rows):
+        raise P1Refused(f"({arm}, {leaf}) already minted a key: a capped kid is a counted red, never retried "
+                        f"(a re-mint needs every earlier key of the pair void: kid-void, on the council's decision)")
     if exposure(rows, arm) + limit > float(arm_caps[arm]) + 1e-9:
         raise P1Refused(f"arm {arm}: committed ${exposure(rows, arm):.2f} + ${limit:.2f} would pass the "
                         f"${float(arm_caps[arm]):.2f} arm cap")
@@ -498,6 +503,31 @@ def kid_done(*, key_hash: str, keyfile: str | Path, ledger: str | Path, root: st
     row["usd"], row["done"] = usd, not problems
     Path(ledger).write_text(json.dumps(rows, indent=1))
     return {"arm": row["arm"], "leaf": row["leaf"], "hash": key_hash, "usd": usd, "problems": problems}
+
+
+def kid_void(*, arm: str, leaf: str, ledger: str | Path, decision: str) -> dict:
+    """belam's step when the council VOIDS a run (one that cannot be compared: a kid that read a sibling's tree, P1
+    glm g4.21, 11-08): mark every not-yet-void row of (arm, leaf) void, citing the decision. The row stays and its
+    spend still counts against both caps (`exposure` sums every cap ever minted); a void only lets `mint_capped`
+    mint the pair again. Refused with no decision, no row, a row whose spend is unread (kid-done first: a void never
+    hides an unread spend) or nothing left to void. Returns {"arm", "leaf", "voided"}."""
+    decision = (decision or "").strip()
+    if not decision:
+        raise P1Refused("a void cites the council's decision: --decision is empty")
+    rows = _ledger(Path(ledger))
+    pair = [r for r in rows if r["arm"] == arm and r["leaf"] == leaf]
+    if not pair:
+        raise P1Refused(f"({arm}, {leaf}) has no row in the ledger: nothing to void")
+    if any(not r.get("done") or r.get("usd") is None for r in pair):
+        raise P1Refused(f"({arm}, {leaf}) has a row without a kid-done spend: kid-done first, a void never hides "
+                        f"an unread spend")
+    fresh = [r for r in pair if not r.get("void")]
+    if not fresh:
+        raise P1Refused(f"({arm}, {leaf}) is already void: nothing to void")
+    for r in fresh:
+        r["void"] = {"decision": decision, "at": _now().strftime("%Y-%m-%dT%H:%M:%SZ")}
+    Path(ledger).write_text(json.dumps(rows, indent=1))
+    return {"arm": arm, "leaf": leaf, "voided": len(fresh)}
 
 
 # --- my side of a kid: the launch ---------------------------------------------------
@@ -853,33 +883,44 @@ def live_kids(rows: list[dict], arm: str, leaf: str) -> int:
     return sum(1 for r in rows if not r.get("done") and (r["arm"], r["leaf"]) != (arm, leaf))
 
 
+def _runs_of(rows: list[dict], arm: str, leaf: str, key_hash: str | None, first_hash: str | None) -> list[dict]:
+    """The run rows of ONE key: a run row names its key's hash; a row from before hashes were written (none named)
+    is the pair's FIRST key's. Pairing by hash, never by counts: a void key that never ran must not let the next
+    key run twice."""
+    return [r for r in rows if r["arm"] == arm and r["leaf"] == leaf
+            and (r.get("hash") == key_hash or (r.get("hash") is None and key_hash == first_hash))]
+
+
 def run_logged(*, arm: str, leaf: str, cfg: dict, ledger: str | Path, runs: str | Path, repo: str | Path,
                plan: dict, gb: float | None) -> dict:
-    """R1/R2: count live kids from the ledger (no default), refuse a second run of the pair, run, and write the run
-    row {arm, leaf, rc, secs, timed_out, sweep, brief_sha256}. The row is what `record` later reads."""
+    """R1/R2: count live kids from the ledger (no default), refuse a second run of the key, run, and write the run
+    row {arm, leaf, hash, rc, secs, timed_out, sweep, brief_sha256}. The row is what `record` later reads; `hash`
+    is the key it ran under (the pair's newest non-void mint)."""
     rows = _ledger(Path(ledger))
-    if not any(r["arm"] == arm and r["leaf"] == leaf for r in rows):
+    pair = [r for r in rows if r["arm"] == arm and r["leaf"] == leaf]
+    live = [r for r in pair if not r.get("void")]
+    if not live:
         raise P1Refused(f"({arm}, {leaf}) has no mint row in the ledger: belam's kid-key comes first")
-    runs_rows = _runs(runs)
-    if any(r["arm"] == arm and r["leaf"] == leaf for r in runs_rows):
+    key_hash, first_hash = live[-1].get("hash"), pair[0].get("hash")
+    if _runs_of(_runs(runs), arm, leaf, key_hash, first_hash):
         raise P1Refused(f"({arm}, {leaf}) already has a run row: a kid runs once, never again")
     res = run_kid(plan, cfg, live=live_kids(rows, arm, leaf), gb=gb)
     row = {"arm": arm, "leaf": leaf, "rc": res["rc"], "secs": res["secs"], "timed_out": res["timed_out"],
            "sweep": res["sweep"], "older": res["older"], "peak_rss_kb": res["peak_rss_kb"],
            "rss_floor_kb": res["rss_floor_kb"],
-           "brief_sha256": brief_digest(plan["prompt"])}
-    _append_run(runs, row)
+           "brief_sha256": brief_digest(plan["prompt"]), "hash": key_hash}
+    _append_run(runs, row, first_hash=first_hash)
     return row
 
 
-def _append_run(runs: str | Path, row: dict) -> None:
+def _append_run(runs: str | Path, row: dict, *, first_hash: str | None = None) -> None:
     """R1b: re-read the run ledger AT WRITE TIME and append, under an exclusive flock on a sibling lock file, so two
     kids that overlap under max_live never erase each other's row (a read at start + a write at the end did)."""
     runs = Path(runs)
     with open(str(runs) + ".lock", "a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         current = _runs(runs)
-        if any(r["arm"] == row["arm"] and r["leaf"] == row["leaf"] for r in current):
+        if _runs_of(current, row["arm"], row["leaf"], row.get("hash"), first_hash):
             raise P1Refused(f"({row['arm']}, {row['leaf']}) got a run row while it ran: a kid runs once")
         fd, tmp = tempfile.mkstemp(dir=str(runs.parent), prefix=runs.name + ".")
         with os.fdopen(fd, "w") as fh:
@@ -891,13 +932,19 @@ def record_from_ledgers(results: str | Path, cfg: dict, *, arm: str, leaf: str, 
                         runs: str | Path, landed: bool, red: bool, reviewed: str | None = None) -> dict:
     """R1: RECORD READS, NEVER TYPED. usd comes from the (arm, leaf) kid-done row of belam's ledger, secs and the brief
     sha from my run row; either absent = refused. A timed-out, non-zero or swept run is red and cannot be landed:
-    a record that says otherwise is refused."""
-    mint = next((r for r in _ledger(Path(ledger)) if r["arm"] == arm and r["leaf"] == leaf), None)
+    a record that says otherwise is refused. After a void, the pair's NEWEST mint and the run row of THAT key (by
+    hash) are the ones read; a newest mint that is void records nothing."""
+    mints = [r for r in _ledger(Path(ledger)) if r["arm"] == arm and r["leaf"] == leaf]
+    mint = mints[-1] if mints else None
+    if mint is not None and mint.get("void"):
+        raise P1Refused(f"({arm}, {leaf})'s newest key is void ({mint['void'].get('decision', '')[:80]}): "
+                        f"a void run records nothing")
     if mint is None or not mint.get("done") or mint.get("usd") is None:
         raise P1Refused(f"({arm}, {leaf}) has no kid-done row (usd) in the ledger: belam's kid-done comes first")
-    run = next((r for r in _runs(runs) if r["arm"] == arm and r["leaf"] == leaf), None)
-    if run is None:
+    key_runs = _runs_of(_runs(runs), arm, leaf, mint.get("hash"), mints[0].get("hash"))
+    if not key_runs:
         raise P1Refused(f"({arm}, {leaf}) has no run row: run-kid comes first")
+    run = key_runs[-1]
     forced = bool(run["timed_out"]) or run["rc"] != 0 or bool(run["sweep"]) or bool(run.get("older"))
     if forced and (landed or not red):
         raise P1Refused(f"({arm}, {leaf}) ran red (timed_out={run['timed_out']} rc={run['rc']} sweep={run['sweep']} older={run.get('older')}): "
@@ -1172,14 +1219,19 @@ def read_results(root: str | Path, cfg: dict) -> dict | None:
 
 
 def _driver(cmd: str, args: list[str], cfg: dict) -> int:
-    """`kid-key ARM LEAF --kid-uid N --keydir D --ledger L` and `kid-done --hash H --file F --ledger L`, run as the
-    provisioning key's holder. One JSON line on stdout, never the secret; rc 1 + a `p1 <cmd>: RED` line on refusal."""
+    """`kid-key ARM LEAF --kid-uid N --keydir D --ledger L`, `kid-done --hash H --file F --ledger L` and
+    `kid-void ARM LEAF --decision TEXT --ledger L`, run as the provisioning key's holder. One JSON line on stdout,
+    never the secret; rc 1 + a `p1 <cmd>: RED` line on refusal."""
     import argparse  # noqa: PLC0415
     ap = argparse.ArgumentParser(prog=f"p1_ab.py {cmd}")
     if cmd == "kid-key":
         ap.add_argument("arm")
         ap.add_argument("leaf")
         ap.add_argument("--kid-uid", type=int, required=True)
+    elif cmd == "kid-void":
+        ap.add_argument("arm")
+        ap.add_argument("leaf")
+        ap.add_argument("--decision", required=True)
     else:
         ap.add_argument("--hash", required=True)
         ap.add_argument("--file", required=True)
@@ -1192,6 +1244,8 @@ def _driver(cmd: str, args: list[str], cfg: dict) -> int:
         if cmd == "kid-key":
             out = kid_key(arm=a.arm, leaf=a.leaf, cfg=cfg, keydir=a.keydir, ledger=a.ledger, kid_uid=a.kid_uid,
                           root=root, workspace_id=ws)
+        elif cmd == "kid-void":
+            out = kid_void(arm=a.arm, leaf=a.leaf, ledger=a.ledger, decision=a.decision)
         else:
             out = kid_done(key_hash=a.hash, keyfile=a.file, ledger=a.ledger, root=root, workspace_id=ws)
     except (P1Refused, provisioning.ProvisioningError) as exc:
@@ -1258,9 +1312,9 @@ def main(argv: list[str]) -> int:
     cmd = argv[1] if len(argv) > 1 else ""
     if cmd in ("-h", "--help"):
         print(__doc__.strip().split("\n\n")[0])
-        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done | run-kid | record | p0")
+        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done | kid-void | run-kid | record | p0")
         return 0
-    if cmd in ("kid-key", "kid-done"):
+    if cmd in ("kid-key", "kid-done", "kid-void"):
         return _driver(cmd, argv[2:], cfg)
     if cmd in ("run-kid", "record", "p0"):
         return _mine(cmd, argv[2:], cfg, root)
@@ -1278,7 +1332,7 @@ def main(argv: list[str]) -> int:
     elif cmd == "old-pi":
         problems = old_pi_untouched()
     else:
-        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done | run-kid | record | p0", file=sys.stderr)
+        print("usage: p1_ab.py install|seal|pin-check [prefix] | old-pi | kid-key | kid-done | kid-void | run-kid | record | p0", file=sys.stderr)
         return 2
     for pr in problems:
         print(f"p1 {cmd}: {pr}")

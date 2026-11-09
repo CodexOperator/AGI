@@ -1781,3 +1781,134 @@ def test_r1b_eight_simultaneous_appends_all_land_even_with_the_read_to_write_win
     with ThreadPoolExecutor(8) as ex:
         list(ex.map(lambda r: p1_ab._append_run(runs, r), rows))
     assert sorted(r["leaf"] for r in real_runs(runs)) == sorted(r["leaf"] for r in rows)
+
+
+# --- the council's VOID of a run that cannot be compared (P1 glm g4.21, 11-08) ---------------------------
+
+def _kid_done_by_hand(led, h, usd):
+    rows = json.loads(led.read_text())
+    for r in rows:
+        if r["hash"] == h:
+            r["usd"], r["done"] = usd, True
+    led.write_text(json.dumps(rows))
+
+
+def test_void_a_pair_mints_again_only_once_every_row_is_void_and_the_caps_still_count_it(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    led = tmp_path / "l.json"
+    p1_ab.mint_capped(arm="glm", leaf=LEAVES[3], cfg=CFG, ledger=led)
+    with pytest.raises(p1_ab.P1Refused, match="never retried"):          # RED row: not void, no re-mint
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[3], cfg=CFG, ledger=led)
+    with pytest.raises(p1_ab.P1Refused, match="kid-done first"):          # a void never hides an unread spend
+        p1_ab.kid_void(arm="glm", leaf=LEAVES[3], ledger=led, decision="council 3/3 (a)")
+    _kid_done_by_hand(led, "h1", 0.11)
+    before = p1_ab.exposure(json.loads(led.read_text()), "glm")
+    out = p1_ab.kid_void(arm="glm", leaf=LEAVES[3], ledger=led, decision="council 3/3 (a)")
+    rows = json.loads(led.read_text())
+    assert out == {"arm": "glm", "leaf": LEAVES[3], "voided": 1}
+    assert rows[0]["void"]["decision"] == "council 3/3 (a)" and rows[0]["usd"] == 0.11 and len(rows) == 1
+    assert p1_ab.exposure(rows, "glm") == before == 0.5 and p1_ab.exposure(rows) == 0.5     # caps unchanged by a void
+    p1_ab.mint_capped(arm="glm", leaf=LEAVES[3], cfg=CFG, ledger=led)    # GREEN row: every row void, it mints
+    rows = json.loads(led.read_text())
+    assert len(api.sent) == 2 and len(rows) == 2 and "void" not in rows[1]
+    assert p1_ab.exposure(rows, "glm") == 1.0                            # the void key's cap still counts
+    with pytest.raises(p1_ab.P1Refused, match="never retried"):          # the new key is not void: no third
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[3], cfg=CFG, ledger=led)
+    assert len(api.sent) == 2
+
+
+def test_a_void_frees_no_cap(monkeypatch, tmp_path):
+    api = Api(monkeypatch)
+    cfg = copy.deepcopy(CFG)
+    cfg["p1"]["arm_cap_usd"]["glm"] = 0.9
+    led = tmp_path / "l.json"
+    p1_ab.mint_capped(arm="glm", leaf=LEAVES[3], cfg=cfg, ledger=led)
+    _kid_done_by_hand(led, "h1", 0.01)
+    p1_ab.kid_void(arm="glm", leaf=LEAVES[3], ledger=led, decision="d")
+    with pytest.raises(p1_ab.P1Refused, match="arm cap"):
+        p1_ab.mint_capped(arm="glm", leaf=LEAVES[3], cfg=cfg, ledger=led)
+    assert len(api.sent) == 1
+
+
+def test_kid_void_refuses_without_a_decision_a_row_or_anything_left_to_void(tmp_path):
+    led = _ledger_with(tmp_path, [{"arm": "glm", "leaf": LEAVES[3], "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}])
+    with pytest.raises(p1_ab.P1Refused, match="decision"):
+        p1_ab.kid_void(arm="glm", leaf=LEAVES[3], ledger=led, decision="  ")
+    with pytest.raises(p1_ab.P1Refused, match="no row"):
+        p1_ab.kid_void(arm="deepseek", leaf=LEAVES[3], ledger=led, decision="d")
+    p1_ab.kid_void(arm="glm", leaf=LEAVES[3], ledger=led, decision="d")
+    with pytest.raises(p1_ab.P1Refused, match="already void"):
+        p1_ab.kid_void(arm="glm", leaf=LEAVES[3], ledger=led, decision="d")
+
+
+def test_kid_void_through_the_driver_prints_one_line_and_reds_a_refusal(tmp_path, capsys):
+    led = _ledger_with(tmp_path, [{"arm": "glm", "leaf": LEAVES[3], "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}])
+    assert p1_ab._driver("kid-void", ["glm", LEAVES[3], "--decision", "council (a)", "--ledger", str(led)], CFG) == 0
+    assert json.loads(capsys.readouterr().out.strip()) == {"arm": "glm", "leaf": LEAVES[3], "voided": 1}
+    assert p1_ab._driver("kid-void", ["glm", LEAVES[3], "--decision", "again", "--ledger", str(led)], CFG) == 1
+    assert capsys.readouterr().out.strip().endswith("p1 kid-void: RED")
+
+
+def test_a_void_pair_runs_once_more_and_never_twice(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="glm", leaf=LEAVES[3], cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    first = {"arm": "glm", "leaf": LEAVES[3], "hash": "h1", "cap": 0.5, "usd": 0.11, "done": True}
+    p1_ab.run_logged(ledger=_ledger_with(tmp_path, [first]), **kw)
+    with pytest.raises(p1_ab.P1Refused, match="no mint row"):           # void and no new key: nothing to run
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, [{**first, "void": {"decision": "d"}}]), **kw)
+    led = _ledger_with(tmp_path, [{**first, "void": {"decision": "d"}}, {"arm": "glm", "leaf": LEAVES[3], "hash": "h2", "cap": 0.5}])
+    p1_ab.run_logged(ledger=led, **kw)                                  # one void row: one more run
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):
+        p1_ab.run_logged(ledger=led, **kw)
+    assert len(json.loads(runs.read_text())) == 2
+
+
+def test_record_reads_the_newest_mint_and_run_and_a_void_newest_records_nothing(tmp_path):
+    led, runs = tmp_path / "ledger.json", tmp_path / "runs.json"
+    old = {"arm": "glm", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.11, "done": True}
+    run1 = {"arm": "glm", "leaf": LEAF, "rc": 0, "secs": 405.0, "timed_out": False, "sweep": [], "brief_sha256": "a" * 64}
+    led.write_text(json.dumps([{**old, "void": {"decision": "council (a)"}}]))
+    runs.write_text(json.dumps([run1]))
+    kw = dict(cfg=CFG, arm="glm", leaf=LEAF, ledger=led, runs=runs, landed=False, red=True)
+    with pytest.raises(p1_ab.P1Refused, match="void run records nothing"):
+        p1_ab.record_from_ledgers(tmp_path / "res.json", **kw)
+    new = {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5, "usd": 0.07, "done": True}
+    led.write_text(json.dumps([{**old, "void": {"decision": "council (a)"}}, new]))
+    with pytest.raises(p1_ab.P1Refused, match="no run row"):            # the new key has not run yet
+        p1_ab.record_from_ledgers(tmp_path / "res.json", **kw)
+    runs.write_text(json.dumps([run1, {**run1, "secs": 99.0, "brief_sha256": "b" * 64, "hash": "h2"}]))
+    k = p1_ab.record_from_ledgers(tmp_path / "res.json", **kw)["arms"][0]["kids"][0]
+    assert (k["usd"], k["secs"], k["brief_sha256"]) == (0.07, 99.0, "b" * 64)
+
+
+def test_case_b_a_void_key_that_never_ran_lets_the_next_key_run_once_and_record_never_twice(tmp_path):
+    """self-perpetuating's RETURN 23:51:51Z 11-08: pairing runs to mints by COUNT let one key run twice when the void
+    key had no run row. By hash: the new key runs once, records, and a second run of it is refused."""
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    kw = dict(arm="glm", leaf=LEAF, cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    void = {"arm": "glm", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.0, "done": True, "void": {"decision": "d"}}
+    led = _ledger_with(tmp_path, [void, {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5}])
+    row = p1_ab.run_logged(ledger=led, **kw)                            # h1 never ran: h2 runs
+    assert row["hash"] == "h2"
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):       # h2 never runs twice
+        p1_ab.run_logged(ledger=led, **kw)
+    assert [r["hash"] for r in json.loads(runs.read_text())] == ["h2"]
+    led.write_text(json.dumps([void, {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5, "usd": 0.05, "done": True}]))
+    k = p1_ab.record_from_ledgers(tmp_path / "res.json", CFG, arm="glm", leaf=LEAF, ledger=led, runs=runs,
+                                  landed=False, red=True)["arms"][0]["kids"][0]
+    assert (k["usd"], k["secs"]) == (0.05, row["secs"])
+
+
+def test_a_run_row_names_its_key_and_a_legacy_row_belongs_to_the_pairs_first_key(tmp_path):
+    cfg, plan = _run_env(tmp_path)
+    runs = tmp_path / "runs.json"
+    runs.write_text(json.dumps([{"arm": "glm", "leaf": LEAF, "rc": 0, "secs": 1.0, "timed_out": False, "sweep": [],
+                                 "brief_sha256": "a" * 64}]))         # a row from before hashes: h1's
+    kw = dict(arm="glm", leaf=LEAF, cfg=cfg, runs=runs, repo=tmp_path, plan=plan, gb=1.0)
+    h1 = {"arm": "glm", "leaf": LEAF, "hash": "h1", "cap": 0.5, "usd": 0.1, "done": True}
+    with pytest.raises(p1_ab.P1Refused, match="a kid runs once"):       # h1 already ran (the legacy row)
+        p1_ab.run_logged(ledger=_ledger_with(tmp_path, [h1]), **kw)
+    led = _ledger_with(tmp_path, [{**h1, "void": {"decision": "d"}}, {"arm": "glm", "leaf": LEAF, "hash": "h2", "cap": 0.5}])
+    assert p1_ab.run_logged(ledger=led, **kw)["hash"] == "h2"            # case A, the g4.21 shape
