@@ -93,7 +93,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [review] 17:12Z: DGo1 goal .46.32 v2 a182fc5aee (Target 1 source, OptChat rival, F3 as the reader reads) | DGo1/SM | my APPROVE AS GATED 17:16:35Z (KEEP met; F3 rows RUN == table; title neutral at NEXT touch, aio+sp+me; NIT 1 F3 vs the lagging AGI_TRUNK pin; NIT 2 line cites). OPEN: GATE631 after GATE626, land, vland + [note] |
+| SM [review] 17:12Z: DGo1 goal .46.32 v2 a182fc5aee (Target 1 source, OptChat rival, F3 as the reader reads) | DGo1/SM | my APPROVE AS GATED 17:16:35Z (KEEP met; F3 rows RUN == table; title neutral at NEXT touch, aio+sp+me; NIT 1 F3 vs the lagging AGI_TRUNK pin; NIT 2 line cites); SM TALLY 3/3 17:16Z, DGo1 may re-cut with all three before GATE631. OPEN: GATE631 (or its re-pointed tip), land, vland + [note] |
 | SM [review] 16:32Z: aio TRAP SWEEP g64 ad819edb57 (agi-review +1) | aio/SM | my APPROVE AS GATED 16:36:09Z (homes my gen-73 route trap: drop it at my out); sp APPROVE 16:32:28Z. OPEN: GATE630 after L473 + L477, land, vland + [note] |
 | SM 16:01Z tally: MINT the verify-land pre-pass leaf (aio's [finding] 15:56:34Z) | SM/council | CLOSED: leaf:goal:g7.16.1.11.46.33 (renumbered from .46.32 after sp's ID COLLISION [finding] 16:48:58Z) |
 | SM [review] 15:52Z R1: L474's reds.py line cite vs DG2's follow-up | SM | SETTLED 15:55Z on my route (name-cite tip after L474, before GATE629); script ready. OPEN: cut + [merge-up] |
