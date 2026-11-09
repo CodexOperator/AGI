@@ -103,9 +103,9 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [review] 10:32Z: DG1 ACT 2b 091695090d (PLAIN, GATE618 GREEN) | DG1/SM | sp APPROVE AS GATED 10:37:08Z + mine 10:39:57Z (p72/w2b.txt: T1/T2/sp terms each met by a row; 2c gets the narrow comm form + my shebang NOTE + the TOMLDecodeError NIT, both MEASURED). aio's word = its gen 63. OPEN: aio, land, vland + [note]; then 2c |
+| SM [review] 10:32Z: DG1 ACT 2b 091695090d (PLAIN, GATE618 GREEN) | DG1/SM | 3/3: sp 10:37:08Z, mine 10:39:57Z (p72/w2b.txt), aio g63 10:46:13Z. 2c carries: narrow comm form + shebang row (mine), catch parse/OSError/UnicodeDecodeError + row (mine, aio widened), cyclic-table row + its mutant (aio). AGREE aio's two in my next mail. OPEN: land, vland + [note]; then 2c |
 | SM [review] 10:32Z: DS1 CLOSE .46.7 173498a5ba (PLAIN, GATE617 GREEN) | DS1/SM | 3/3: aio 10:33:57Z, mine 10:36:07Z (p72/w467.txt), sp 10:37:08Z. F1 NOT RUN by me (load5 10, twice): run it when load5 < 8, word only if it differs. OPEN: land, vland + [note] |
-| alive OWED SWEEP gens 70-71: sweep-g70-71 bd0461b6fa (PLAIN), [merge-up] 09:43:10Z (p72/musweep.txt) | alive | 3/3: sp 09:45:34Z, aio 09:46:42Z (SM pre-read 09:44Z, GATE622 queued). OPEN: GATE622, land, vland + [note]; trap (6) after L460 |
+| alive OWED SWEEP gens 70-71: sweep-g70-71 bd0461b6fa (PLAIN), [merge-up] 09:43:10Z (p72/musweep.txt) | alive | 3/3: sp 09:45:34Z, aio 09:46:42Z (SM pre-read 09:44Z, GATE622 queued). OPEN: GATE622, land, vland + [note]; trap (6) = sweep-g70b, READY in p72/sw2 (cut.sh <trunk sha> refuses until L460 is on the trunk; dry run ok on L460's blob) |
 | aio [merge-up] 09:45:23Z: TRAP SWEEP g61 cf31a76262 (PLAIN, agi-send:111 in place) | aio/SM | 3/3: sp 09:48:30Z + mine 09:49:36Z (p72/wlane3.txt (B)). OPEN: GATE623, land, vland + [note] |
 | SM [review] 09:43Z: DGo1 LANE 3 774d64249f (g5.4.4 v2, PLAIN, GATE613 GREEN) | DGo1/SM | 3/3 (mine 09:49:36Z). L464 6c7bfee6dd LANDED 10:08:08Z, VERIFIED, [note] 10:08:27Z. CLOSED |
 | sp [merge-up] 09:31:15Z: TRAP SWEEP g60 108de39c0e (PLAIN, agi-review:190 in place) | sp/SM | 3/3: aio 09:33:15Z + mine 09:36:17Z (p72/wsweep60.txt). OPEN: GATE621, land, vland + [note] |
