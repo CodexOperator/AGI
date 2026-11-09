@@ -102,4 +102,18 @@ s=open(sys.argv[1]).read();open(sys.argv[2],'w').write(s.replace(sys.argv[3],sys
 P
 row "$BAD"|posts;python3 $T/mut.py $T/p.md >$T/o 2>$T/e;m3=$?
 ok "cred-r3-mutant-the-assert-dropped-leaves-an-unmutated-copy-whose-own-row-reads-RED (rc $m3, the refusal is still there: $(grep -c 'names another login' $T/e))" '[ $m3 = 1 ]&&grep -q "names another login" $T/e'
+# --- V2 placement drop-in (owner GO 11-01): extensions/agi/guard/claude-login/53-claude-login.conf. Its ExecStartPre runs here in a SCRATCH home with a fake credential
+# (the systemd specifier %i and /var/lib/agi/%i rewritten to the scratch); no root, no real login. Seed ONLY when the post has no file; never overwrite.
+DI=$R0/extensions/agi/guard/claude-login/53-claude-login.conf
+ok "s-a-the-drop-in-loads-one-credential-and-sets-no-environment: LoadCredential lines $(grep -c '^LoadCredential=claude-login:/etc/credstore/claude-login-%i$' $DI), Environment lines $(grep -c '^Environment' $DI)" '[ "$(grep -c "^LoadCredential=claude-login:/etc/credstore/claude-login-%i$" $DI)" = 1 ]&&[ "$(grep -c "^Environment" $DI)" = 0 ]'
+sd(){ sed -n 's/^ExecStartPre=sh -c //p' $1|sed "s/^'//;s/'\$//;s|/var/lib/agi/%i|$T/home|g;s|%i|tpost|g";}
+seed(){ rm -rf $T/home;mkdir -p $T/cd $T/home;printf 'FAKE-LOGIN-1' >$T/cd/claude-login;[ -z "$1" ]||{ mkdir -p $T/home/.claude;printf %s "$1" >$T/home/.claude/.credentials.json;};CREDENTIALS_DIRECTORY=$T/cd sh -c "$(sd ${2:-$DI})" 2>$T/e;src=$?;}
+seed '';m=$(stat -c %a $T/home/.claude/.credentials.json 2>/dev/null)
+ok "s-b-no-file-is-seeded-0600-from-the-credential rc $src mode $m: $(cat $T/e)" '[ $src = 0 ]&&[ "$m" = 600 ]&&[ "$(cat $T/home/.claude/.credentials.json)" = FAKE-LOGIN-1 ]&&grep -q "login seeded from the credential (one-shot)" $T/e'
+seed 'LIVE-REFRESHED-2'
+ok "s-c-an-existing-file-is-never-overwritten rc $src: holds [$(cat $T/home/.claude/.credentials.json)]" '[ $src = 0 ]&&[ "$(cat $T/home/.claude/.credentials.json)" = LIVE-REFRESHED-2 ]&&[ ! -s $T/e ]'
+sed 's/\[ -e "\$f" \]&&exit 0;//' $DI >$T/mut.conf
+ok "s-d-the-mutant-really-differs (the seed-only test removed: $(cmp -s $DI $T/mut.conf&&echo NO||echo yes))" '! cmp -s $DI $T/mut.conf'
+seed 'LIVE-REFRESHED-2' $T/mut.conf
+ok "s-d-MUTANT-without-the-absent-test-overwrites-a-live-login-RED: holds [$(cat $T/home/.claude/.credentials.json)] (the clean row keeps LIVE-REFRESHED-2)" '[ "$(cat $T/home/.claude/.credentials.json)" = FAKE-LOGIN-1 ]'
 echo "cred-piece: $f FAIL";exit $f
