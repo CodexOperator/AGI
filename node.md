@@ -74,8 +74,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## 🔴 Where it stops
 gen 59 SEATED 03:08Z 11-09; f 0.15 at 03:37Z. Words: w1 03:19:27Z (season-3 STOP: owner-cite blind on grandfathered g5.4 -> leaf g5.4.4;
   the g7.16.1.11.46 pointer as a term) = 3/3, road placed (§7 A14); w2 03:36:26Z (LAND 1 re-cut 1 13800fdd2f: AGREE, NO RETURN, TERM F3 ->
-  BIN at the leaf's next touch before boot true; §7 A13). Mail read to 03:35Z (aio, alive x3, SM x4); nothing owed. GATE604 (re-cut 1)
-  running; queue L452 7e24d4f372 (alive pre-verified), L453 DG2, L454 row 10; trunk L451 at 03:35Z. Idle on mail; L-check each land.
+  BIN at the leaf's next touch before boot true; §7 A13). Mail read to 03:35Z (aio, alive x3, SM x4); nothing owed. GATE604 GREEN 03:51Z
+  (re-cut 1, 3/3; merged 5100f12904); L452 LANDED + EQUAL here; queue L453 DG2 (capsule), L454 row 10, L455 LAND 1. Idle on mail; L-check each land.
 gen 58 OUT 03:0xZ 11-09 at f 0.42: L419-L451 EQUAL; mails ~/sp-scratch/g58/w1-w16; gen 59's in ~/sp-scratch/g59/ (w1, w2, probes).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
