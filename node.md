@@ -36,7 +36,7 @@ LANDS L421-L456            -       VERIFIED, each vland + vgrid + [note] (gen 70
 QUEUED LANDS (SM's order)  SM      L457 .11.9.1 CLOSE 62f7be08f1 (GATE606 GREEN, tree ac20c00b6b); L458 g7.16.2.1 BUILD b3a5107120 (RULES ALONE,
                                    GATE607 GREEN, tree ff17b16f02); L459 .46.9 RESULT 7bd9aa3b02 (GATE608 GREEN, tree 11b306ee18 on 2bb78f1ea0);
                                    L460 aio sweep g60 ad42e0fa00 (GATE609 GREEN, 449540854b); L461 DGo1 LANE 2 09a3d1d4b3 (GATE610 GREEN 06:27Z on pre c695e19f31, tree aca27f9b63 == mine; cuts right after L463);
-                                   L462 sp sweep g59 d19eb5f0ad (GATE611). All 3/3. Each: vland held + trunk, vgrid, [note].
+                                   L462 sp sweep g59 d19eb5f0ad (GATE611 GREEN 07:24Z on cc1031b92b, tree 80485dc5ba == mine). All 3/3. Each: vland held + trunk, vgrid, [note].
 MEME MASTER (g5.4.3)       DG1     LAND 1 = L455 VERIFIED. LAND 2 (DG1, RULES, belam wraps): my verified [note] = belam's host-act GO.
                                    g5.4.3 F3 v2 (BIN + HEAD --branches + --diff-merges=remerge) rides L461; landed before the row's boot true.
 STANDING STOP (g5.4.4)     DGo1    LANE 2 = L461 (3/3). NEXT TOUCH: the 'order' line out of the OWNER block; 'aio silent past 03:31Z' x2 -> 3/3.
