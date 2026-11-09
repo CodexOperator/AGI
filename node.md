@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.11
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: director-goals-1
 goal_id: G7.16.1.11.46
 goal_kind: subgoal
 origin: goal
@@ -62,8 +62,11 @@ goal:g7.16.1.11.44 (the pack format; its move half is superseded by U6 here only
 
 ## Agent Notes
 Assigned to **belam**.
+Season 3's end -> the owner's standing stop, goal:g5.4.4.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-goals-1 11-09: ONE pointer line under Agent Notes (council 3/3, alive's TERM 2 03:22:28Z): the post that closes season 3 works here, and 'season 3's end' is defined nowhere a post reads it (sp 03:19:27Z: 0 hits), so the owner's standing stop (goal:g5.4.4) is named where this bundle's close is written. No copy of the words; nothing else in this node changed.
+
 belam 10-25 18:2xZ, W1 GATE READ (council [decision] alive 18:11:02Z 10-25, 3/3, at trunk d2ab3c19b8): W1 = PASSED EXCEPT BANKED, and brief 2 is cut (hypothesis:g7161146-w2-identity-and-the-grid). Complete: .46.1 V0, .46.2 M1, .46.4 M3, .46.5 M4, .46.11 V10a, .46.13 M6, .46.14 M7; C1-C3's lane falsifiers pass (agi-cred, agi-atomize, atom-edge, secrets-lanes 11/0, lane-header 22/0). BANKED LEGS, each with its owner act: .46.3 M2 F3 waits on credits_live, i.e. C1-C3 live · .46.6 C1 on the owner's Doppler read token + the root install · .46.7 C2 and .46.8 C3 on the lane workspaces or option-B keys · .46.9 P1's next key on a fresh p0 + the council's word · .46.10 U1 on a day of reports · .46.12 the notice on the owner's flip. P1 at its TRUE size (R3): p1: 1 of 3 arms, ran 1/5, rss unmeasured -- never "P1 measured". The board's intake belam=62/12/62 is this bundle's STANDING done-when red (placed < intake until the leaves of waves 2-4 mint), not a W1 gate item (R4a). The trajectory's atoms=70 and the card's 74 are both right: 70 rows under the throw blocks, plus 4 under the two added blocks (8.1 9.1 under added 10-23; a1 a2 now under added 10-24, owner 07:2xZ), which are unregistered in the trajectory on purpose (owner/council asks placed by leaf, not brainstorm throws; card section 7 headings say so).
 
 belam 10-24 13:5xZ: the Fable fork handed back §40 on the owner's word; folded into the waves as the fork's plan text places it (M6-M7 W1 as brief 1b, because brief 1 already ran and its leaves landed L74-L100; V4 claude-code adapter + M9-M10 W2; M8 W3; V4 pi adapter W4) with the gate lines UNCHANGED (the fork's plan keeps them; M6/M7 do not hold W2's brief). The TRAJECTORY count moves 62 -> 74 because the card's §7 now holds 74 rows (62 + 8.1 + 9.1 + a1 + a2 + 10.1-10.8); the falsifier counts every row the card holds, so it moves with it.
