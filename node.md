@@ -30,7 +30,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 
 ## 2 Landed
 - lane mm-fuel-schema c04c3ccf09 (option A): SUPERSEDED, not gated.
-- lane mm-fuel-schema-b 6c7a33f505 (option B, signed G, NIT 1; placement 3/3; sp APPROVE; GATE634 queued after 622/623/633): [fuel].md + growth.tsv re-projected; merged up to SM 11-09.
+- lane mm-fuel-schema-b 6c7a33f505 (option B, signed G, NIT 1; placement 3/3; sp + alive APPROVE on 6c7a33f505, aio on cbf003f8c8 (confirm asked); GATE634 queued after 622/623/633): [fuel].md + growth.tsv re-projected; merged up to SM 11-09.
 - doc:draft-presentation-outline v1 (9acd0b4a45).
 - idea:fuel-s4-retire-the-python-engine v1 (11-09, owner ask; parent goal:g5.4): live shell engine ~1.2k lines in .geometry/engine*.md; 16 live py entry points reach 77 files / 84.5k of 121k non-test lines by import (hubs rotate.py, heal.py services); 62 files / 15.9k unreached.
 
@@ -50,6 +50,7 @@ Owner back tomorrow. First: `AGI_POST=meme-master box read` (TM's numbers), then
 - A derived text from a board photo: privacy scan clean before any commit (role (a)).
 
 ## §6 BANKED
+- NIT 3 (alive 20:10:33Z), my NEXT touch of [fuel].md: name the cite leaf by id, goal:g7.16.1.11.46.34, once it is on the trunk (minted on posts/alive 0e8f9413eb).
 - For .46.34's CLOSE (sp NIT 2, not mine): the plain 'The owner's words' heading route is checked by nothing; when .46.34 lands, my nodes' plain headings go back to OWNER blocks.
 Nothing banked.
 
