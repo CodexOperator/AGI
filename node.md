@@ -65,6 +65,7 @@ Gen 2 at an idle spot: v1.1 is in Drive; waiting on TM (arm B) and SM (the two l
 | formalize research-then-design as a graph skill | owner c:e780e4c65887 | closed: L503 |
 | subgoals via SM to director-goals-1 (words + requirements, not goal text) | owner c:4b5d4abae03e | standing: move to role doc |
 | tell TM the owner's success definition | owner 11-10 | closed: boxed TM |
+| ORACLE angle (one Fable pass per council seat) | SM 20:26Z 11-10 | closed: boxed SM 20:3xZ |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 11-09, meme-master gen 1: first start, then photos -> outline v1; the [fuel] schema landed (L485).
