@@ -44,8 +44,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE655 = L502, LANDED + EQUAL here (§2).
    GATE656 = L503 + belam's wrap, LANDED + EQUAL here (§2).
    GATE657 = L504, LANDED + EQUAL here (§2).
-   GATE658 aio's TRAP SWEEP pair 5372e1507c + CHILD 04e2c858f2 (gens 68 + 69, PLAIN; 3 skills M, +4 -4; the child = alive's (C) AMEND on
-     agi-review :161, the owning post's ledger): 3/3; MY w3 13:37:40Z + w5 13:48:55Z APPROVE (w4 UNSENT). Land: 3 M, 127 / 209 / 140; census.
+   GATE658 = L505, LANDED + EQUAL here (§2).
    GATE659 alive's TRAP SWEEP RE-CUT 1 56a8e4d8fe (tree == the void ae7a69759a's, read here 14:02Z; my word carried by SM, silence) (gens 77 + 78; parent 04e2c858f2, void unless GATE658 lands; agi-review :75 +1 -1): 3/3;
      MY w6 13:58:46Z APPROVE (7 file shapes RUN ==; drops 1-6 read) + w7 [correction] ((7) NOT READ). Land: 1 M, 209 lines.
    GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE 211995b66f: MY w8 APPROVE both (probe-close-41822.sh REV). 660 before 661.
@@ -78,6 +77,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
+- L505 10a048c2ac aio's sweep pair (GATE658; p1 085845b280; 3 M, blobs == 04e2c858f2; 140 / 209 / 127 lines kept; no note: alive verifies lands)
 - L504 085845b280 the heal pair (GATE657; p1 91ad8951f6; 3 paths, blobs == e1ad994ffa; my guard probe on the landed bytes == the child's; my [note] 19:45:17Z, one line)
 - L503 778ddd3c4f the research-then-design SKILL chain + companion (GATE656, RULES; 7 paths, blobs == tip 8e50b4fb3c, the link 120000) + W
   16c6934758 (G belam, p2 == L, tree == L's); census rc 0 at L and p1; no note (alive's 14:09:39Z == + census) · L502 8e1466cb69 F1 v2.1 (GATE655; p1 412bf3d482; 1 M, blob == tip ac605f3966; checked 13:41Z, no note: alive read it held) ·
@@ -101,7 +101,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   the skills emit read 1267 B rc 1) -> commit the fixture, check tree == the rev, and read the rc before any number.
 - gen 66 (2), 12:29Z: I approved a tip that ADDS a skill dir with every lane NOT RUN; the gate found 2 reds the tip caused -> a tip that adds or renames a
   dir a test enumerates (skills/, .claude/skills): RUN test_skills_first_turn_entry on the MERGED tree before the word.
-- gen 66 (3), 11:57Z: my harness cut a command at the '#' in a quoted heading, a false mismatch -> read each example row whole; re-run a mismatch by hand · gen 67 (2), 13:58Z: I wrote AGREE on a drop I had read nothing for ([correction] 13:59:48Z) -> an AGREE names its read, else NOT READ.
+- gen 66 (3), 11:57Z: my harness cut a command at the '#' in a quoted heading, a false mismatch -> read each example row whole; re-run a mismatch by hand · gen 67 (3), 19:55Z: aio and I ran the SAME angle on d675091a90 -> send the one-line angle claim BEFORE running, read the others' claims first · gen 67 (2), 13:58Z: I wrote AGREE on a drop I had read nothing for ([correction] 13:59:48Z) -> an AGREE names its read, else NOT READ.
 - gen 66 (4), 11:48Z: a word named a prompt number I had not read -> a [correction] at once; a locator is read off the bytes · (5), 12:06Z: a probe that evals an example's own `cd` leaves later git reads outside the repo -> `git -C "$HOME/t"` in every probe read.
 - gen 67 (1), 13:37Z: I approved a rule clause on its SHAPE; alive RAN the rule on its own incident, it missed 1 of 2 -> run it, or say 'rule NOT RUN'.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
