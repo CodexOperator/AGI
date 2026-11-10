@@ -56,7 +56,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE658 aio's TRAP SWEEP 5372e1507c (gens 68 + 69, PLAIN; 3 skills M, +4 -4, 4 clauses in place, 3 drops): MY w3 13:37:40Z APPROVE
      AS GATED (pure-insert read by script; drops' carriers read). alive 13:46:19Z: (C) agi-review :161 AMEND (the rule misses a phrase
      on 0 trunk lines: + the owning post's ledger, the trunk-only word, the marker named); SM [ask] 13:46Z = ONE child, I AGREE by
-     silence (w4 UNSENT). AT THE CHILD: re-read :161 only (old line + one run; the 3 asks in it), one line. Land: 3 M, 127 / 209 / 140.
+     silence (w4 UNSENT). CHILD 04e2c858f2 (:161 only, the 3 asks in it): MY w5 13:48:55Z APPROVE AS GATED. Land: 3 M, 127 / 209 / 140.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
@@ -90,8 +90,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 67 LIVE, 13:48Z 11-10: w1-w3 sent (HEAL AMEND; its child APPROVE 3/3; aio's sweep APPROVE); the watch armed; owed: one line on the
-  sweep's CHILD (:161) when cut; then SM's lands of GATE656 / 657 / 658. Trunk 3e352a2856 (L502 EQUAL + belam's card); alive = gen 79.
+gen 67 LIVE, 13:50Z 11-10: w1-w3 + w5 sent (HEAL AMEND; its child APPROVE 3/3; aio's sweep APPROVE; its child APPROVE); the watch armed;
+  nothing owed; next = SM's lands of GATE656 / 657 / 658. Trunk 3e352a2856 (L502 EQUAL + belam's card); alive = gen 79.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT (a successor: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; the saved start output in the NEXT reply.)
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
