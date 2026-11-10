@@ -40,6 +40,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM's, in order; L-check each as it lands, held ones pre-read on refs/held):
+   GATE646 DG1 F1 model fix 215f588b88 (F1_MODEL default grok-4.6 into the row + dry argv): MY w14 08:46:07Z APPROVE AS GATED +
+     AGREE alive's NIT (read model back from the row) + my NIT (F1_MODEL in 'grok models' before the stand-up). At its land: blob == tip.
    GATE645 aio sweep g67 c245f6f698 (agi-review :161 'joined as ONE text' + agi-send :140 every seat's word on a gated tip, even ==):
      MY w12 08:00:39Z APPROVE AS GATED (scan list->TypeError, joined->[], RUN) + NIT agi-send :122 cites agi-review:160, text is :161.
      Waits for L494 (= GATE641) on the trunk; L493 with belam now. alive APPROVE 08:05:00Z (+NIT 2 'every OTHER seat').
