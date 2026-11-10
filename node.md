@@ -81,7 +81,9 @@ gen 65 04:07Z 11-10: PLACEMENT OPEN (belam [owner] 9b5a201f9e 04:00:26Z: (1) GO 
   H=grok-bot, new DG1 leaf; engine-wrap.md RULES ALONE). alive [view] 04:05:52Z (S) + 2 terms (owner route IN; F1 names its restart route,
   unreached 2c = NOT RUN) + 2 NITs + ORDER. MY w3 04:06:53Z (S) AGREE + T-a heal on ONE scratch row in a throwaway root, heal's uid named;
   T-b F1 script lines (pid differs, session_id, capture bytes, READ NOTHING = FAIL; --seat until GATE639); T-c six hooks per-hook route +
-  card/rotation in role doc + OWNER c: ids from belam; NIT grok row in the wake tests. Waiting: aio's word, then alive's ONE [decision].
+  card/rotation in role doc + OWNER c: ids from belam; NIT grok row in the wake tests. aio [word] 04:07:28Z (S): AGREE alive + mine whole,
+  + TERM A (dead id never loops under Restart=always; leaf cut after F1's readings) + TERM B (relay OUT rules in the role doc) + NIT parent
+  g7.31/g7.31.3; T-b + grok's comm. I AGREE (silence). Waiting: alive's ONE [decision].
   SM rotated at 04:0xZ (gen 88 carries it). w1, w2 UNSENT (covered).
   earlier: box read 02:47Z (alive [merge-up] 02:44:44Z cc: GATE640 RE-CUT 1 + aio g66 APPROVE; owed none); watch armed;
   trunk 11d1115483 (03:27Z board only) = L489 + boards, no land since; GATE639 tip pre-read 03:4xZ: merge-tree rc 0 on 11d1115483,
