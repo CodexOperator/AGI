@@ -59,7 +59,7 @@ Lines the target marks as the owner's must be byte-identical before and after th
 | target | owner-line marker | one line? |
 |---|---|---|
 | `.tex` (a deck) | `% OWNER c:<12 hex>` (or `c:pending-tap`) on the same physical line; a spoken line in `\note` opens `OWNER (c:...)` | yes: an owner sentence stays on one physical line |
-| a graph node (`.md`) | the `## OWNER` block, and the `[... store; not an OWNER heading ...]` interim quote block | no: the guard's BLOCK mode (marker `## OWNER`) compares the block whole, from its heading to the next `## ` |
+| a graph node (`.md`) | each `OWNER` heading (any level), and the `[... store; not an OWNER heading ...]` interim quote block | no: BLOCK mode; the marker is the node's WHOLE OWNER heading line (most carry a date or speaker after `OWNER`), one run per OWNER heading |
 | anything else | the brief names its marker before the first launch, or says the target holds no owner lines (the guard's explicit `none`) | the brief says |
 
 'The owner writes every final line' is goal:g5.4.3's own rule for the class paper, not every target's: a target's
@@ -69,13 +69,15 @@ per marker, or once by their common word (`OWNER`); every run must PASS. A guard
 that edits the other's lines (§7 runs that mutant).
 ```bash
 # guard TARGET PATCH MARKER [none]: applies PATCH to a COPY; PASS only when every MARKER line is byte-identical.
-# A MARKER opening '## ' (a node's '## OWNER') is BLOCK mode: the block from that heading line to the next '## ' is compared whole.
+# A MARKER opening with hashes and a space (a node's WHOLE OWNER heading line, any level) is BLOCK mode: the block from that
+# line to the next heading of the same or a higher level is compared whole.
 # Closed by default: 0 MARKER lines in TARGET is READ NOTHING (rc 2) unless the 4th argument is 'none' (the brief says
 # TARGET holds no owner lines). An empty or missing PATCH, or an empty MARKER, is READ NOTHING (rc 2).
 guard() { t=$1 p=$2 m=$3 e=${4-}
   [ -n "$m" ] || { echo "GUARD: READ NOTHING (no marker named)"; return 2; }
   [ -s "$p" ] || { echo "GUARD: READ NOTHING (patch $p missing or empty: a pass that wrote nothing)"; return 2; }
-  sel() { case $m in '## '*) awk -v h="$m" '$0==h{f=1;print;next} f&&/^## /{f=0} f' "$1";; *) grep -F -- "$m" "$1";; esac; }
+  sel() { local r='^(#+) '; if [[ $m =~ $r ]]; then awk -v h="$m" -v L=${#BASH_REMATCH[1]} \
+    '$0==h{f=1;print;next} f&&match($0,/^#+ /)&&RLENGTH-1<=L{f=0} f' "$1"; else grep -F -- "$m" "$1"; fi; }
   w=$(mktemp -d) || return 2
   cp -- "$t" "$w/pre" && cp -- "$t" "$w/post" || { echo "GUARD: READ NOTHING (cannot copy $t)"; return 2; }
   b=$(sel "$w/pre" | wc -l); [ "$b" = 0 ] && [ "$e" != none ] && { echo "GUARD: READ NOTHING (0 '$m' lines in $t; pass 'none' only when the brief says it holds no owner lines)"; return 2; }
@@ -86,9 +88,11 @@ guard() { t=$1 p=$2 m=$3 e=${4-}
     echo "GUARD: REFUSED (a marked line changed):"; diff <(sel "$w/pre") <(sel "$w/post") | sed 's/^/  /'; return 1; fi; }
 ```
 - The line mode matches every line holding the marker, an agent line that QUOTES it too: the compared set is a superset,
-  which can only over-refuse. The block mode compares every block under that exact heading line, blank lines included.
+  which can only over-refuse. The block mode compares every block under that exact heading line, blank lines included,
+  up to the next heading of the same or a higher level (a deeper sub-heading stays inside).
 - FLOORS (alive, named): the guard compares the marked SET, not places: a marked line moved whole, with an edited
-  unmarked copy left where it stood, reads PASS. The interim `[... store; not an OWNER heading ...]` quote block has no
+  unmarked copy left where it stood, reads PASS. A node guarded in LINE mode (the bare word `OWNER`, not its heading
+  line) compares the heading alone and PASSes an edited block body (all-is-one): a node is guarded in BLOCK mode only. The interim `[... store; not an OWNER heading ...]` quote block has no
   mode yet: compare it by hand. Every run leaves its `mktemp -d` dir (the PASS line names it); the coordinator clears its own.
 - A patch that adds or drops a marked line is refused as well (the set changed): the owner writes those lines.
 
@@ -116,6 +120,10 @@ cp deck.tex b.tex; sed -i 's/every thought/each thought/' b.tex; diff -u deck.te
 cp deck.tex c.tex; sed -i 's/one file/a single file/' c.tex; diff -u deck.tex c.tex > note.patch
 printf 'no marker here\n' > empty.tex; : > nothing.patch
 printf '%s\n' '## OWNER' '> keep every thought.' '' '## Body' 'agent text' > node.md
+printf '%s\n' '# Node' '### OWNER 11-10, verbatim' '> keep every thought.' '#### aside' 'agent note' '### Body' 'agent text' > deep.md
+cp deep.md g.md; sed -i 's/every thought/each thought/' g.md; diff -u deep.md g.md > deep.patch
+cp deep.md h.md; sed -i 's/^agent text/agent words/' h.md; diff -u deep.md h.md > out.patch
+cp deep.md i.md; sed -i 's/agent note/agent words/' i.md; diff -u deep.md i.md > sub.patch
 cp node.md n.md; sed -i 's/every thought/each thought/' n.md; diff -u node.md n.md > block.patch
 cp empty.tex e.tex; sed -i 's/here/at all/' e.tex; diff -u empty.tex e.tex > none.patch
 guard deck.tex ok.patch OWNER                  # GUARD: PASS (2 marked line(s) byte-identical) ...        rc 0
@@ -128,6 +136,9 @@ guard empty.tex none.patch OWNER none          # GUARD: PASS (0 marked line(s) .
 guard deck.tex nothing.patch OWNER             # GUARD: READ NOTHING (patch ... missing or empty ...)      rc 2
 guard deck.tex absent.patch OWNER              # GUARD: READ NOTHING (patch ... missing or empty ...)      rc 2
 guard node.md block.patch '## OWNER'           # BLOCK mode: REFUSED (the block body changed)              rc 1
+guard deep.md deep.patch '### OWNER 11-10, verbatim'  # BLOCK mode, level 3: REFUSED (body changed)   rc 1
+guard deep.md out.patch '### OWNER 11-10, verbatim'   # BLOCK mode, level 3: PASS (edit after the block) rc 0
+guard deep.md sub.patch '### OWNER 11-10, verbatim'   # BLOCK mode: REFUSED (a deeper sub-heading stays in) rc 1
 ```
 
 ## 8 · Never
