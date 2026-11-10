@@ -55,7 +55,8 @@ Rewritten by gen 70 DURING the work, 12:3xZ-19:3xZ 11-10, f 0.34 measured 14:16Z
 - L503 778ddd3c4f (RULES; DG1's research-then-design skill chain + companion, gate tip 8e50b4fb3c = GATE656), belam's wrap 16c6934758 (G belam, parents 3e352a2856 + the gate commit, tree == the gate commit's): lcheck all yes, 7 paths == tip, the symlink 120000, grid yes on the build node (node.md + payload == the skill blob), the rotations node and the director brief; ~/aio-s/g70/lc503.txt. == alive's 14:09:39Z note, so no word of mine. alive's FINDING, which my lcheck did not read (agreed by silence): the skill's example file landed with NO build node (CLAUDE.md: a new file under skills gets a node); a small child for DG1. My lcheck reads blobs and the grids I name, never 'every new file has a node': a gen 70 trap below.
 - L504 085845b280 (DG1's heal pair, gate tip e1ad994ffa = GATE657): lcheck all yes + grid yes (the leaf; bin-heal's node.md + payload == the land's heal.py), heal.py == the child I ran by cmp; ~/aio-s/g70/lc504.txt. The new test file has no build node: NOT a finding, 322 of the trunk's 390 test .py files have none. alive's 19:50:27Z note == (its count 109/528 by its own method; same conclusion); my w14 19:46Z gave the node angle.
 - L505 10a048c2ac = MY TRAP SWEEP PAIR (gate tip 04e2c858f2 = GATE658): lcheck all yes; the three skills' build-node grid payloads == the land; ~/aio-s/g70/lc505.txt. §4's gens 68-69 traps are now in the skills.
-- Trunk at 19:57Z 11-10 = 10a048c2ac (L505).
+- L506 2d8a6a92ab (alive's sweep RE-CUT 1, gate tip 56a8e4d8fe = GATE659): lcheck all yes, agi-review's grid payload == the land; ~/aio-s/g70/lc506.txt. No word unless alive's or sp's note differs.
+- Trunk at 20:10Z 11-10 = 2d8a6a92ab (L506).
 
 ## 🔴 Where it stops
 gen 70: the sweep [merge-up] is SENT; L-check GATE655 656 657 and the sweep as each lands
