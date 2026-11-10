@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:54Z 11-10) -- gen 78 woke 11:05Z (fable, medium). The owed word on goal:g7.31.1.3 is SENT 11:08:46Z: child 08b1f71154 APPROVE AS GATED, 3/3, F2 / F3 RUN (8 cases + 7 floor mutants). L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128 LANDED and VERIFIED (vland, objscan, vgrid; [note]s 11:12:41Z, 11:38:47Z, 11:51:31Z, 12:22:26Z, 12:44:31Z). belam's F1 v2 run 12:16Z: FAIL=1, nothing killed; the owner's opt-in choice is asked by belam. The skill chain ..43362c7158 went RED at GATE654 (2 pytest reds of the tip); DG1's companion 8e50b4fb3c (config:rotations, RULES) = my APPROVE AS GATED 12:52:25Z + [correction] 12:52:38Z, the skills test RUN on the merged tree; it gates as GATE656, ONE RULES land of chain + companion, belam wraps. F1 v2.1 ac605f3966 (GATE655): 3/3 APPROVE AS GATED, mine 12:35:30Z.
+## §0 State (12:59Z 11-10) -- gen 78 woke 11:05Z (fable, medium). The owed word on goal:g7.31.1.3 is SENT 11:08:46Z: child 08b1f71154 APPROVE AS GATED, 3/3, F2 / F3 RUN (8 cases + 7 floor mutants). L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128 LANDED and VERIFIED (vland, objscan, vgrid; [note]s 11:12:41Z, 11:38:47Z, 11:51:31Z, 12:22:26Z, 12:44:31Z). belam's F1 v2 run 12:16Z: FAIL=1, nothing killed; the owner's opt-in choice is asked by belam. The skill chain ..43362c7158 went RED at GATE654 (2 pytest reds of the tip); DG1's companion 8e50b4fb3c (config:rotations, RULES) = my APPROVE AS GATED 12:52:25Z + [correction] 12:52:38Z, the skills test RUN on the merged tree; it gates as GATE656 (3/3), ONE RULES land of chain + companion, belam wraps. DG1's HEAL tip d389ac39c0 (GATE657, the WHOLE-suite gate): my APPROVE AS GATED 12:57:48Z, the rows RUN against 10 skip-kept spellings + the guard on the 483 real records. F1 v2.1 ac605f3966 (GATE655): 3/3 APPROVE AS GATED, mine 12:35:30Z.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, fable medium since 10:48Z 11-10; gen 78 927a352d 11:05Z-; on HUB A (owner order via belam: report any 'limit' reply at once); f by hand: sh ~/alive-work/p78/meter.sh (gen 78's session id; a successor seds it to its own into p79/); p78/ next free: box12, a5 |
@@ -28,15 +28,16 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
-## §1 Plan (12:54Z 11-10)
+## §1 Plan (12:59Z 11-10)
 ```
 ITEM                        OWNER   STATE
-GATE656 skill chain + comp. DG1/SM  chain ..43362c7158 + companion 8e50b4fb3c (rows name the new skill; cap 8400, emit 7627 B measured here). Words: aio 12:50:16Z,
-                                    mine 12:52:25Z; sp open. ONE RULES land, belam wraps: vland (a WRAP: pass W) + objscan + vgrid + CENSUS behind the load guard.
+GATE656 skill chain + comp. DG1/SM  chain ..43362c7158 + companion 8e50b4fb3c (rows name the new skill; cap 8400, emit 7627 B measured here). Words 3/3: aio 12:50:16Z,
+                                    mine 12:52:25Z, sp 12:53:40Z (its cap NIT: my view the 8400 stands). ONE RULES land, belam wraps: vland (a WRAP: pass W) + objscan + vgrid + CENSUS behind the load guard.
 GATE655 F1 v2.1             SM      ac605f3966: 3/3 APPROVE AS GATED (sp 12:31:05Z, aio 12:32:18Z, mine 12:35:30Z). Floors named: 0b knows one banner shape; a missing
                                     grok log reads 'no drop'. OPEN: gate, land; belam's re-run after the owner's opt-in answer (L500 is safe to run).
-heal.py tip (DG1)           DG1/SM  the leaf LANDED as L501. AT THE TIP (engine bin/ = the WHOLE-suite gate): RUN F1's rows vs the skip-kept mutants in EACH spelling the
-                                    cut names (7), and the guard on REAL rotation-record shapes; a non-object JSON row; then a word.
+GATE657 heal.py tip         DG1/SM  d389ac39c0: my APPROVE AS GATED 12:57:48Z (+ a time [correction]); seats' words open. NIT for belam at the land: the window-present
+                                    line writes every 30 s pass per gone-pid row whose window vouches (3 gone-pid rows live today; count unknown to me).
+                                    Land: vland + objscan + vgrid + CENSUS behind the load guard (extensions/).
 OUTLINE + FUEL (meme-mstr)  SM      e2bae92830 + 0881087b6b: NOT read by me; wait for SM's [review].
 (3)(a) OWNER QUESTION       belam   the research-then-design DESIGN stage excepted from the brief's SUBAGENTS rule? (c:e780e4c65887)
 GRANT plan-master leaf      DG1     after F1 v2's run (T7); the typed-DM fix for a non-claude harness belongs there.
@@ -58,7 +59,7 @@ L494 c6d9e54f46 (aio g66): blob == merge-file over L491; objscan 0; grid OK v64;
 L493 969357f112 (DG1 F1 script): blob == merge-file over L490's :58; objscan 0; grid OK v5; [note] 08:38:00Z.
 
 ## 🔴 Where it stops
-alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: GATE655's land (F1 v2.1); GATE656's RULES land (chain + companion); DG1's heal tip.
+alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: GATE655's land (F1 v2.1); GATE656's RULES land (chain + companion); GATE657's land (heal), each vland + objscan + vgrid (+ census) + [note].
  OWED, in order: (1) a successor's WAKE: the prayer ALONE, then this card, then box read into a file under ~/alive-work/p79, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) DG1's heal tip, when cut: extract the leaf's F1 rows and RUN them against the three skip mutants before any word (p78/f23.sh is the F2 / F3 harness).
  (3) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p78/vlandN.out 2>&1 (read its lines); a blob != tip: == git merge-file (p1, merge-base, tip);
@@ -90,6 +91,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - gen 78: skill tip bb666aa535: F1-F4 tip 0, trunk 1, 21 mutants (2 floors) p78/rtd.out; guard 3 example rows + 12 of mine p78/guard.out (PASS on: node block body, note marker, moved line); words a5, a6, a7 (the correction), a8; the THIRD child 43362c7158: p78/rtd-child3.out, guard3.out (13 rows == written; SWEEP 241 real headings, first + last line, all REFUSED); the CHILD 6d11a00871: p78/rtd-child.out, guard2.out (10 example rows == written; block mode 8 REFUSED + control). MISSED by me, caught by aio / sp: the private dir name at example :189 :202; the kept owner quote at :79
 - gen 78: F1 v2.1 ac605f3966: waitdead 14 rows new vs L500, drops 5, 0b verdict 13 screens (p78/f1v21.out); word a9
 - gen 78: companion 8e50b4fb3c: p78/comp.out (merged tree 0ee0920207: 4 passed; controls B 2 failed, C cap, D dead clause, E node gone; emit 7627 / 8400 both roles); words a10, c1
+- gen 78: heal tip d389ac39c0: p78/heal.out (12 passed; 10 spellings 3 failed each; 6 other mutants red; 71 passed on 3 files; 483 real records, 0 seats differ tip vs trunk); words a11, c2
 - NOT RUN all gen: any full pytest, links whole-tree, any lane on a land
 
 ## §6 BANKED
@@ -101,7 +103,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [review] 11:03Z: goal:g7.31.1.3 -> L501 e11807d128 | DG1/SM | LANDED, VERIFIED, [note] 12:44:31Z. OPEN: DG1's heal tip (F1 rows vs the mutants, mine to RUN) |
+| SM [review] 11:03Z + 12:54Z: goal:g7.31.1.3 -> L501; the HEAL tip d389ac39c0 (GATE657) | DG1/SM | L501 VERIFIED 12:44:31Z; the heal tip APPROVE AS GATED 12:57:48Z, rows RUN vs 10 spellings. OPEN: seats, the whole-suite gate, land |
 | SM [review] 12:29Z: F1 v2.1 ac605f3966 (GATE655) | DG1/SM | APPROVE AS GATED 12:35:30Z (3/3). OPEN: gate, land |
 | SM [red] 12:29Z + [review] 12:46Z: GATE654's reds, the companion 8e50b4fb3c (GATE656) | DG1/belam/SM | APPROVE AS GATED 12:52:25Z, the test RUN (4 passed; 3 red controls), [correction] 12:52:38Z (3 of 4, not 4). OPEN: sp's word, gate, belam's wrap, land |
 | SM [review] 10:49Z + 10:55Z (A): F1 v2 -> L500 641d8dea53 | DG1/SM | LANDED, VERIFIED, [note] 12:22:26Z. OPEN, others': the owner's opt-in answer (belam), belam's re-run, DG1's 0b fix |
