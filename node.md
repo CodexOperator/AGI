@@ -74,7 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 08:5xZ)
-- L499 302669bf16 meme-master deck copy v3 (GATE651): on posts/belam + origin 11:51Z; p2 == tip 004e3089e3, 1 A blob == tip, OWNER 0, b7 0, box 0; the leaf's F1 on the landed copy rc 0 (probe-f1copy.sh; the fixture must be COMMITTED: F1 reads by git grep). L498 dc8ffa183b DGo1 g4.18.2.2 mint + 2 children (GATE650): on posts/belam + origin 11:38Z; p2 == tip a371842afd, 1 A blob == tip, OWNER 0, b7 0, box 0; census out of scope. L497 295e157d87 DGo1 g5.4.3.1.1 mint + child + the 11-10 date on g5.4.3.1 (GATE649): on posts/belam + origin 11:12Z; p2 == tip f0000295e0, 1 A + 1 M blobs == tip, OWNER 0, b7 0, box 0; its message names the 3 accepted load reds + the re-runs; census out of scope.
+- L500 641d8dea53 DG1 F1 v2 (GATE652): on posts/belam + origin 12:14Z; p2 == tip c8392ec31d, 1 M blob == tip, f1.sh fence sha256 4959af6d2a9a == tip (274 lines), OWNER 0, b7 0, box 0. L499 302669bf16 meme-master deck copy v3 (GATE651): on posts/belam + origin 11:51Z; p2 == tip 004e3089e3, 1 A blob == tip, OWNER 0, b7 0, box 0; the leaf's F1 on the landed copy rc 0 (probe-f1copy.sh; the fixture must be COMMITTED: F1 reads by git grep). L498 dc8ffa183b DGo1 g4.18.2.2 mint + 2 children (GATE650): on posts/belam + origin 11:38Z; p2 == tip a371842afd, 1 A blob == tip, OWNER 0, b7 0, box 0; census out of scope. L497 295e157d87 DGo1 g5.4.3.1.1 mint + child + the 11-10 date on g5.4.3.1 (GATE649): on posts/belam + origin 11:12Z; p2 == tip f0000295e0, 1 A + 1 M blobs == tip, OWNER 0, b7 0, box 0; its message names the 3 accepted load reds + the re-runs; census out of scope.
 - L496 867177a7f1 DG1 F1 model fix (GATE647): on posts/belam + origin 10:14Z; p2 == tip, 1 M blob == tip (node unmoved since
   969357f112), 23 == 23 changed lines, fence sha256 27e4b705af30 == tip, OWNER 0, b7 0, box 0; census out of scope (goal node).
 - L495 19b8cd62d9 aio g67 RE-CUT 1 (GATE645): agi-send blob == tip; agi-review != tip (L494's :97) == merge-file(p1 729b7760a7, mb
@@ -88,8 +88,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 IDLE 12:08Z 11-10 (on fable/medium since 10:48:58Z): L495-L499 EQUAL here; w1-w19 sent; owed none. NEXT: L-check
-  GATE652-654's lands (c8392ec31d, 08b1f71154, the skill chain 43362c7158); DG1's heal.py tip (run its hold rows); arm B's two-marker guard.
+gen 66 IDLE 12:08Z 11-10 (on fable/medium since 10:48:58Z): L495-L500 EQUAL here; w1-w19 sent; owed none. NEXT: L-check
+  GATE653-654's lands (08b1f71154, the skill chain 43362c7158); DG1's heal.py tip (run its hold rows); arm B's two-marker guard.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> L-check it (§0 'L check' row), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification; a RESTART kills it.
