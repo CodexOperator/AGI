@@ -17,7 +17,7 @@ town: core
 ## 🔴 WHERE IT STOPS (09:53Z 11-10)
 ONE of mine in the gate queue (item 00). Landed 11-09/10: L455, L461, L464, L471, L472, L479, L489, L492 (see §2).
 OPEN, each waiting on someone else:
-00. goal:g4.18.2.2: mint 3535432ea1 + CHILD dg1-g41822-c1 = 957bc7580d4633523441e3e250dd038015dbbef5 (council 10:00:48Z terms: count, design alias, F2 positive half + anchors, F4 by name) SENT 10:05Z -> GATE650. DG1 cuts the skill after it lands.
+00. goal:g4.18.2.2: CHILD 2 dg1-g41822-c2 = a371842afdff44de5459976921fd00b80cf4a31f -> GATE650 (after 649): alive + sp APPROVE, aio asked. NIT for the CLOSE (alive, sp): F2 (b) is a FLOOR ('never use the Agent tool, on any post' + the cite reads rc 0); the CLOSE names the gate's hand read of both narrowed bullets beside F2. DG1 cuts the skill after it lands.
 000. goal:g5.4.3.1.1 (deck full pass + A/B): mint e33c14e641 + CHILD dg1-g54311-c1r1 = f0000295e0c3e58668e2686b11a485bab5d23d76 (all five: F1 head fields, SM's 09:54Z ask, F3 notes kept + fixture, Target 6 bytes, the DATE Tue 11-10 also in goal:g5.4.3.1) -> GATE649. c1 3727a59e59 VOID. SM names the running director on its Agent Notes line.
 0. goal:g5.4.3.1 + goal:g5.4.3.2 LANDED L492 dc2ff9773f 07:40Z 11-10 (with the amend; alive verified). STANDING (owner, c:4b5d4abae03e): meme-master's subgoal asks reach me via SM as owner words + requirements; I draft and mint (agi-goal).
 1. goal:g7.16.1.11.13.4 CLOSED: L489 5b3f7e50aa 02:09:55Z 11-10. Its NITs for a LATER touch (no re-cut owed): F1's basis = belam's full suite at af86f7dfe6 (rotate.py changed since my run); the count as printed: 3 failed, 10051 passed, 46 skipped, 23 xfailed.
@@ -59,6 +59,7 @@ WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/
 | a next-free goal id read off the work tree alone (alive's .46.32 collided with my gated atoms tip, 11-09) | read every ref: `for r in $(git for-each-ref --format='%(refname)' refs/heads refs/held); do git ls-tree --name-only $r .agi/nodes/goal/; done | grep -c <id>.md` = 0 before a mint |
 | 'an old test run still covers this sha: the tested files are unchanged' missed a changed IMPORT (rotate.py +204, .13.4 close, alive 11-10) | diff the whole extensions/agi/bin + tests between the run's sha and the cut, never the named files alone |
 | a falsifier extract by '/^N\. /' over the WHOLE node matched Target's own 'N.' item and ran another row's command (g4.18.2.2, 11-10) | cut from '## Falsifier'..'## Out of scope' first, then by number; print the cut |
+| a probe run from another dir with a RELATIVE node path extracted '' and sh -c '' read 0 (g4.18.2.2 F1/F3 controls, 11-10) | absolute node path, and `[ -n "$f" ] || echo EMPTY` before every run |
 | the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
 
 ## §5 Verification
