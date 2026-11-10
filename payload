@@ -2863,7 +2863,8 @@ CRASH_LOOP_MAX_PER_HOUR = 3
 
 
 def _crash_recovery_recorded(root: Path, seat: str, _rotate,
-                             now: float | None = None) -> bool:
+                             now: float | None = None,
+                             why: list | None = None) -> bool:
     """The once-guard, keyed on a RESPAWN OUTCOME, never on mere detection
     (the defect kid 2 holds) — and BOUNDED IN TIME, never "ever". A
     `crash-recovery` record whose `result` is `respawned` within the last
@@ -2879,7 +2880,16 @@ def _crash_recovery_recorded(root: Path, seat: str, _rotate,
     retry). CRASH LOOP: `CRASH_LOOP_MAX_PER_HOUR` or more `respawned` records
     in the last hour -> suppressed and NAMED in the watch log, because a seat
     that dies every few minutes is a finding for a human, not a spawn budget
-    (the Belam cap of FIVE bounds the numeral chain the same way)."""
+    (the Belam cap of FIVE bounds the numeral chain the same way).
+
+    goal:g7.31.1.3: an unread record FILE or FIELD cannot prove "no earlier
+    respawn" either (the dir rule above, at file and field grain): a record
+    of the seat that cannot be read (OSError) or parsed (torn JSON, not an
+    object), and a respawned record whose `recorded_at` does not parse, each
+    HOLD the respawn and write one line naming the file. A hold is
+    fail-closed: a record that STAYS unreadable holds every pass and is named
+    every pass; clearing it is a human act. `why`, when a list, receives the
+    in-window hold's reason (`<file> <age> s old`) for the caller to name."""
     rot = _rotate._rotations_dir(root)
     rot_state = _sweep_is_dir(rot)
     if rot_state is None:
@@ -2894,15 +2904,28 @@ def _crash_recovery_recorded(root: Path, seat: str, _rotate,
     for path in sorted(rot.glob(f"{seat}.*.json")):
         try:
             rec = json.loads(path.read_text())
-        except (OSError, json.JSONDecodeError):
-            continue
+        # aio 12:59:54Z: ValueError covers JSONDecodeError AND UnicodeDecodeError: a record with bytes that are not
+        # UTF-8 would otherwise RAISE out of the guard and stop the dead-seat scan for every seat
+        except (OSError, ValueError) as exc:
+            _watch_log(f"watch: seat {seat} crash-recovery record {path.name} "
+                       f"unreadable ({type(exc).__name__}: {exc}): respawn held")
+            return True
+        if not isinstance(rec, dict):
+            _watch_log(f"watch: seat {seat} crash-recovery record {path.name} "
+                       f"is not a JSON object: respawn held")
+            return True
         if (rec.get("rotation") != "crash-recovery"
                 or rec.get("result") != "respawned"):
             continue
-        ts = _parse_record_ts(rec.get("recorded_at", ""))
+        ts = _parse_record_ts(str(rec.get("recorded_at", "")))
         if ts is None:
-            continue
+            _watch_log(f"watch: seat {seat} crash-recovery record {path.name} "
+                       f"recorded_at {rec.get('recorded_at')!r} unparsable: "
+                       f"respawn held")
+            return True
         if (now - ts) <= SEAT_DEAD_WINDOW_S:
+            if why is not None:
+                why.append(f"{path.name} {int(now - ts)} s old")
             return True
         if (now - ts) <= 3600:
             recent.append(ts)
@@ -4305,7 +4328,15 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # means this death is already healed — never re-name, never re-record,
     # never re-spawn on a later pass. A `detected`-only record does NOT stop
     # the respawn (the defect pin: that seat is still dead).
-    if _crash_recovery_recorded(root, seat, _rotate, now=now):
+    _held: list = []
+    if _crash_recovery_recorded(root, seat, _rotate, now=now, why=_held):
+        # goal:g7.31.1.3: named when the pid is gone (a live seat inside the
+        # window is the successor waking, not news); an unread record names
+        # itself inside the guard.
+        if _held and not pid_alive(pid):
+            _watch_log(f"watch: seat {seat} pid {pid} gone; held by a respawned "
+                       f"record {_held[0]} (SEAT_DEAD_WINDOW_S "
+                       f"{SEAT_DEAD_WINDOW_S}): not respawned")
         return {}
     # (1a) the row pid is gone from the process table.
     if pid_alive(pid):
@@ -4319,6 +4350,14 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                                          rows=rows, _rotate=_rotate,
                                          pane_pids=pane_pids)
     if id_present:
+        # goal:g7.31.1.3 (sp 13:03:33Z): say only what was READ. The row pid is
+        # gone, so the chain can never hold it: at most it shows the window is
+        # not another seat's; a pane absent from the pass map is UNKNOWN.
+        _wid = (row.get('window') or '').strip()
+        _pp = (pane_pids or {}).get(_wid, 0)
+        _watch_log(f"watch: seat {seat} pid {pid} gone; window {_wid} present "
+                   f"(pane pid {_pp if _pp > 0 else 'unknown'}); not another "
+                   f"seat's window: not respawned")
         return {}
     # LIVENESS BEFORE DEATH (L4.292): a seat whose pin leases a live registry
     # session is ALIVE regardless of its row's stale pid/@id -- never DEAD,
@@ -4505,8 +4544,11 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
                                   admission=admission)
         if summary:
             acted.append(summary)
+    # goal:g7.31.1.3: the count is the seats heal ACTED on (named a cause),
+    # beside the rows whose pid is gone, so '0' never reads as 'no dead pid'.
+    gone = sum(1 for r in pid_rows if not (pid_alive or _pid_alive)(int(r.get("pid", 0) or 0)))
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
-               f"row(s); {len(acted)} dead")
+               f"row(s); {gone} pid(s) gone; {len(acted)} acted")
     _alert_deferred(root, acted, rows)
     return acted
 
