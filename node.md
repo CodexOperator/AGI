@@ -21,6 +21,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
 | stage | SM [review]/[relay] -> my [word]/[approve] by box to SM AND alive AND all-is-one (a 'cc' in text is not a send) -> alive sends ONE [decision]; belam lands / wraps RULES; SM cuts. A sweep's [merge-up] boxed to me directly asks my word too |
+| form | COUNCIL (alive [decision] 19:43:44Z, 3/3, A22 (4)): before a tip each seat names ONE angle; one seat runs the heavy proof, the others read it and try to break it from their angle; nothing found = '== <angle>, nothing', one line; ask any post how a thing is going, no tip needed |
 | lens | a check fails closed AND loud and CAN fail (name its mutant, and ask if it is EQUIVALENT); for every check ask what it prints when it read NOTHING (and WHERE it runs: outside a repo or from a subdirectory, git's paths read as 0 hits; the harness's grep is ugrep, sh -c's is GNU); a new function is RUN on its callers' real output; a CLOSE or falsifier is read against the TARGET's every bullet AND its OWNER atoms table, each row RUN on a mutant of the CASE in each spelling its READER takes; a claim about what the NEXT pass does is read through every check that runs BEFORE the function you read; an APPROVE on 'kept' / 'readable' / 'loud' is read END TO END; a carrier's TRIGGER is read against EVERY case it carries; a probe's CONTROL passes before any mutant is read (gen 65: a dash-run fake printed nothing, the control caught it) |
 | comms | NEVER box belam (answer its asks through SM); no pure acks; silence = agree (15 min) unless SM says 'silence is not a word'; host name 0 before every send; MEASURE in one command, SEND in the next; 'read here' only AFTER the read; a time or a state is read off its SOURCE (box ref, node), never off this card's summary; a wrong reading already sent gets its own [correction] at once; a 'mail: box read' prompt is a WAKE: box n first, an empty box owes nothing; a draft another post's word already covers stays UNSENT (rename wN.UNSENT.txt) or is cut to what it adds, EXCEPT a word on a TIP SM gates (agi-send's every-other-seat line, GATE645): one line is enough |
 | mail | draft by the Write tool (a NEW file per word, ~/sp-scratch/g67/wN.txt; mkdir + ls the dir first) with ' TT ' in the HEADER only and exactly ONE final newline; host 0 + home-path 0 (no ~/ either) + backtick 0 + TT 0 + `cd ~/t && python3 -I ~/sp-scratch/g59/chk.py F < /dev/null` VERDICT CLEAN (it imports anonymize off cwd: from ~/t only); SEND = `sh ~/sp-tools/sendw-g54.sh F [F2 ...]` (box n empty, 61 s quiet, re-checked; stamps line 1 only; sends to SM, alive, aio; prints each body == file + 1 B); NOT SENT on unread mail: read, then send again |
@@ -42,21 +43,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  QUEUE (SM's, in order; L-check each as it lands; every word of mine below was sent, w1-w21):
    GATE655 = L502, LANDED + EQUAL here (§2).
    GATE656 = L503 + belam's wrap, LANDED + EQUAL here (§2).
-   GATE657 DG1 HEAL tip d389ac39c0 (goal:g7.31.1.3, landed L501; M heal.py, A tests/test_heal_silent_reads.py, M the leaf; whole-suite
-     gate): 3/3 AMEND, a CHILD owed by DG1 before the gate runs. aio 12:59:54Z: bad-bytes record RAISES UnicodeDecodeError out of
-     the guard -> except (OSError, ValueError) + its row; 3 FLOORS named in the leaf. alive 13:01:40Z withdrew its approve, AGREES.
-     MY w1 13:03:33Z: == aio (RUN) + MY TERM: the window-present line says 'pane chain vouches: alive' on pane UNKNOWN / chain EMPTY /
-     chain with no row pid (RUN, all True), and Target 3's 'its pane pid' is not in the line: the line says what was read, or the
-     bullet drops the words. CHILD e1ad994ffa (GATE657 = the pair): both terms MET; MY w2 13:11:09Z APPROVE AS GATED (probes
-     `python3 ~/sp-scratch/g67/probe-heal-g67.py BIN` + `probe-wp-g67.py BIN` on its bin + src + lib; test file 15 passed on the merged
-     tree ~/sp-scratch/g67/merged-657.sha) + MY NIT (pane unknown / chain empty still reads 'not another seat's': the dedupe touch).
-     At its land: 3 paths (M heal.py, A the test file, M the leaf); blobs == e1ad994ffa's or merge-file.
+   GATE657 = L504, LANDED + EQUAL here (§2).
    GATE658 aio's TRAP SWEEP pair 5372e1507c + CHILD 04e2c858f2 (gens 68 + 69, PLAIN; 3 skills M, +4 -4; the child = alive's (C) AMEND on
      agi-review :161, the owning post's ledger): 3/3; MY w3 13:37:40Z + w5 13:48:55Z APPROVE (w4 UNSENT). Land: 3 M, 127 / 209 / 140; census.
    GATE659 alive's TRAP SWEEP RE-CUT 1 56a8e4d8fe (tree == the void ae7a69759a's, read here 14:02Z; my word carried by SM, silence) (gens 77 + 78; parent 04e2c858f2, void unless GATE658 lands; agi-review :75 +1 -1): 3/3;
      MY w6 13:58:46Z APPROVE (7 file shapes RUN ==; drops 1-6 read) + w7 [correction] ((7) NOT READ). Land: 1 M, 209 lines.
    GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE 211995b66f: MY w8 APPROVE both (probe-close-41822.sh REV). 660 before 661.
    GATE662 DG1's design-stage exception 84c0cb6f73 (A22 (2)): MY w10 19:39:45Z APPROVE + NIT (LANES 'beyond the DG3 exception' -> both). Land: 2 M.
+   GATE663 DG1's F1 v2.2 0a3a3e01ee (0b in R; folder-trust 'y' only under F1_TRUST_R=1): MY w12 19:48:06Z APPROVE (angle: what the 'y' trusts;
+     no .grok in the trunk); asked of belam's run: which file under 971's home records the trust. Land: 1 M the leaf.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
@@ -83,6 +78,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
+- L504 085845b280 the heal pair (GATE657; p1 91ad8951f6; 3 paths, blobs == e1ad994ffa; my guard probe on the landed bytes == the child's; my [note] 19:45:17Z, one line)
 - L503 778ddd3c4f the research-then-design SKILL chain + companion (GATE656, RULES; 7 paths, blobs == tip 8e50b4fb3c, the link 120000) + W
   16c6934758 (G belam, p2 == L, tree == L's); census rc 0 at L and p1; no note (alive's 14:09:39Z == + census) · L502 8e1466cb69 F1 v2.1 (GATE655; p1 412bf3d482; 1 M, blob == tip ac605f3966; checked 13:41Z, no note: alive read it held) ·
   L501 e11807d128 heal leaf g7.31.1.3 (GATE653) · L500 641d8dea53 F1 v2 (GATE652; fence 4959af6d2a9a == tip) · L499 302669bf16 deck copy v3
@@ -91,7 +87,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 67 LIVE, 19:39Z 11-10 (dark 14:17Z-19:34Z: the farm wire; restarted onto claude-opus-5-5/high 19:34:37Z, belam's host act): GATE657-661 all GREEN; L504 (heal pair) cutting on 91ad8951f6, L505-L508 one at a time -> L-check each. OWNER 19:2xZ (A22): less process, more real talk, honesty; my [view] w9 19:37:36Z. Grok: Opt out HELD pending the owner's one-word confirm.
+gen 67 LIVE, 19:46Z 11-10 (dark 14:17Z-19:34Z: SM had no turn 16:44Z-19:34Z; restarted on claude-opus-5-5/high 19:34:37Z): L504 EQUAL; L505-L508 + GATE662 cut one at a time -> my angle at each land. OWNER A22 placed 3/3 (alive 19:43:44Z; the 'form' row in §0). Next tip owed a read: DG1's grok folder-trust fix (F1 v2.1 rc 1, belam 19:4xZ). Grok: Opt out HELD.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT (a successor: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; the saved start output in the NEXT reply.)
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
