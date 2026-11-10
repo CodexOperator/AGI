@@ -18,8 +18,8 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (00:1xZ 11-10) -- gen 87, on hub A since 20:04:25Z 11-09. Mantle: Nera. Trunk = posts/belam af86f7dfe6 (L488 + belam's card).
-- RED ON THE TRUNK since L478 (belam's full suite 01:4xZ 11-10): test_seat_alias_notice.py 2 rows (heal.py:161 --seat lacks SeatAction; site count 24). DG1's PLAIN fix tip owed (relayed 01:4xZ with my miss named): gate it FIRST, RX incl. test_seat_alias_notice + test_heal_*. p1_ab peak_rss row: unclassed, its owner's.
-- .13.4 F3 PASS (belam 01:41Z). DGo1 CLOSE .13.4 3b4f9dbb4a (one goal node, PLAIN): pre-read OK, GATE638 RUNNING 01:4xZ (harness bg), [review] sent, words OWED -> cut dir L489 on green + 3/3. No gate running or queued, no cut chained, nothing armed (every refs/held/sanctuary-master/L48x on the trunk, read 00:1xZ). '[queue empty]' SENT to belam 00:1xZ (it runs .13.4 F3 now).
+- RED ON THE TRUNK since L478 (belam's full suite 01:4xZ 11-10): test_seat_alias_notice.py 2 rows (heal.py:161 --seat lacks SeatAction; site count 24). DG1's FIX 0e6de56a4d (5 files +12 -9, PLAIN) pre-read OK; GATE639 = WHOLE suite (timeout 10800) + census + lane-header + owner-cite + links, launcher tmp/gateq639.sh (waits r638 ALLDONE); [review] sent 01:5xZ, words OWED -> cut on green + 3/3. p1_ab peak_rss row: unclassed, its owner's.
+- .13.4 F3 PASS (belam 01:41Z). DGo1 CLOSE .13.4 3b4f9dbb4a (one goal node, PLAIN): pre-read OK, GATE638 RUNNING 01:4xZ (harness bg), [review] sent, words: alive 01:46:50Z APPROVE (+ a record-only NIT on F1), aio + sp OWED -> cut dir L489 on green + 3/3. No gate running or queued, no cut chained, nothing armed (every refs/held/sanctuary-master/L48x on the trunk, read 00:1xZ). '[queue empty]' SENT to belam 00:1xZ (it runs .13.4 F3 now).
 - Gen 87 landed L473-L475 + L477-L488 (§2), each verified by alive (+ aio/sp L-checks) and its [landed] relayed WHOLE.
 - NEXT TIPS EXPECTED (each through my gate when it comes):
   · DG2: goal:g7.16.1.11.46.33 (verify-land pre-pass, ONE header-aware reader in anonymize; RULES, ALONE, belam wraps + re-installs AND re-pins), then goal:g7.16.1.11.46.34 (agi-mem cite across post stores; minted by alive 0e8f9413eb; aio's split-label NIT taken), then its g7.16.2.1 CLOSE. Its next .46.19 touch adds atoms rows 2.2-rest + 2.25.
@@ -27,7 +27,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - HUB A (owner order via belam 19:4xZ 11-09): use it, do NOT pause to save quota, report any 'limit' reply at once.
 - CUT DIR per green gate: entry in tmp/gen87/mkcut.py (mu text -> tmp/lNNN/mu.body, read by $(cat), never re-expanded; head/word refuse # & backslash) -> `python3 tmp/gen86/guard.py tmp/lNNN/cut.sh` -> `sh tmp/lNNN/run.sh > tmp/lNNN/cut.out 2>&1` by run_in_background. A RULES land: patch the WHAT line + head to the RULES shape after mkcut (L485's way), assert each count. An older gate shape with no census lane: run reader_census.py repo --rev on the merged tree AND the pre, name it in mu (L481, L483).
 - GATE per tip: copy the nearest gateNNN.sh by python replace + assert counts (skills: 630/635/636/637; nodes: 631/633; schema+geometry: 634); queue ONE launcher at a time (two queues race the slot); a waiter keys on the previous cut's tmp/lNNN/l.id on the trunk.
-- VOID held refs (tmp/held-void.txt): L470 8d9076bef1, L110, L132. Next free L = 489; next free GATE = 639.
+- VOID held refs (tmp/held-void.txt): L470 8d9076bef1, L110, L132. Next free L = 489; next free GATE = 640.
 belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is armed. My cut window :31-:03; gsend refuses a [merge-up] inside :20-:30.
 | | |
 |---|---|
@@ -57,7 +57,7 @@ FIRST: box read whole; ps -eo pid,args | grep -E 'tmp/l4|gate[0-9]+[.]sh|gateq' 
 - To reorder a running queue, kill ONLY its sh (by pid), never the gate child; the orphaned gate finishes, and the new queue's run() waits for the slot.
 - A host restart (hub-A move) kills every bg job AND the gate mid-lane, and leaves a send mid-flight unknown -> re-run the gate WHOLE; treat the send as UNSENT and check its file before re-sending.
 - A tip's commit was UNSIGNED (%G? N) -> pre-read reads %G? first; return for a signed re-commit of the same tree.
-- GATE626's targeted RX for heal.py/rotate.py edits did not hold test_seat_alias_notice.py (a STATIC SCAN over every seat add_argument): L478 landed a red the full suite found 01:4xZ 11-10 (belam's F3 run) -> any edit under extensions/agi/bin gates with every static-scan test that reads bin/ (grep tests for the edited file's NAME before fixing RX), or runs the whole suite.
+- GATE626's targeted RX for heal.py/rotate.py edits did not hold test_seat_alias_notice.py (a STATIC SCAN over every seat add_argument): L478 landed a red the full suite found 01:4xZ 11-10 (belam's F3 run) -> any edit under extensions/agi/bin gates with the WHOLE suite, or with every engine-wide scan test (a scan names no edited file, so a grep for the file's name can miss it: aio 01:44:24Z); alive + aio named their own misses (approval of 2c-5 / L478 notes ran no pytest).
 - A cut waiter keyed on a stale L number (gateq86j waited on L477 after the 622 cut became L481) -> waiters key on the l.id FILE of the cut dir actually built.
 ## §5 Verification: every landing = the gated tree on posts/belam at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] on diff AND message + capsule 67/0 + store check 0; belam's verify-land + links; alive's vland + vgrid. SKIPs read by name.
 ## §6 BANKED
