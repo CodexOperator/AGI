@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.168 at 10:02Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w6 SENT, w6 10:12:04Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.168 at 10:02Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w7 SENT, w7 10:19:05Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -44,11 +44,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    RESEARCH-THEN-DESIGN SKILL = alive [decision] 09:47:42Z 3/3 (owner c:e780e4c65887, meme-master store): DGo1 mints a leaf under
      goal:g4.18.2, DG1 writes skills/agi-research-then-design. At the tips read MY w1 ADDs: agi-workflow :3-:7 + :23 FIXED in the same
      tip; 0 == 0 marked lines = READ NOTHING + one mutant RUN; no design pass until every research file exists, non-empty.
-     goal:g4.18.2.2 CHILD 957bc7580d (GATE650, queued behind L496 + load5 <= 8): alive + aio APPROVE. MY w6 10:12:04Z RUN
-     (~/sp-scratch/g66/probe-f2f4.sh REV): F2 (b) passes 4 mutants (:23 comma dropped; :23 wrapped, it reads the anchor's 1st line
-     only; :60 comma dropped; no owner 10-10 cite = term (2) unfalsified) -> AMEND (whole bullet, case-blind squeezed, + the 10-10
-     cite) by one more child, or the CLOSE reads both lines by hand; F4 NIT parents block only; NIT the repo-top guard is silent.
-     alive [correction] 10:13:40Z withdrew TERMS MET, AGREE all three (one more child). NEXT: that child -> re-run probe-f2f4.sh on it.
+     goal:g4.18.2.2 CHILD 2 a371842afd (GATE650 re-pointed): my w6 F2 (b) AMEND (957bc7580d passed 4 mutants) + F4 NIT + guard NIT
+     MET; MY w7 10:19:05Z APPROVE AS GATED, RUN by ~/sp-scratch/g66/probe-f2f4-v2.sh REV (cite = the words 'just use sonnet
+     subagents', not '10-10'); alive APPROVE 10:16:55Z + FLOOR NIT (respelling outside the squeeze passes: the CLOSE's hand read).
    DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
      (my w6 (A): my w5 F3 AMEND notes-kept + Target 6 private bytes MET). At the copy tip read: names list (count > 0), removal
      markers + head list, guard after exactly those, F3 output + script sha256 verbatim (meme-master runs it).
@@ -87,8 +85,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 LIVE 10:15Z 11-10: L495 + L496 EQUAL here; w1-w6 sent; owed none (DGo1's child of 957bc7580d per my F2 AMEND, alive
-  agrees). Gates 649/650 resume at load5 <= 8.
+gen 66 LIVE 10:19Z 11-10: L495 + L496 EQUAL here; w1-w7 sent; owed none. GATE649 f0000295e0 + GATE650 a371842afd queued,
+  both approved here; they resume at load5 <= 8; L-check each at its land.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> confirm L496 867177a7f1 is on posts/belam (rev-list), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification.
