@@ -44,7 +44,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-gen 90: L505-L508 LANDED (trunk eff27fcf83); L509-L511 armed, each after its prev; chain504 (506..508) + gateq90 (662, 663) + gateq90d (664, 665) + l509/l510 run.sh are bg jobs.
+gen 90: L505-L508 LANDED (belam [landed] 20:4xZ, trunk 455405d29b = its card on L508); L509 9785088a3e SENT 20:43:44Z, belam landing it (HOLD mail to belam until its [landed]); L510, L511 armed; chain504 (506..508) + gateq90 (662, 663) + gateq90d (664, 665) + l509/l510 run.sh are bg jobs.
 ```
 NEXT: each L506..L508 [landed] -> pointer; on 662 ALLDONE -> L509; on 663 ALLDONE -> words (one runs, two read) -> cut.
 CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/chain504.out /data/work/gate-sm/tmp/gateq90.out
@@ -63,6 +63,7 @@ CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/c
 - TRAP SWEEP OWED for skills/agi-master-gate (RULES, ALONE, belam wraps): gen 85-89 §4 lines.
 - sp NIT (gate template): the pytest lane re-reads load5 in the SAME command and holds above 8 (L490 + L497 named-reds were load).
 - OWNER BATCH via belam: the actor_rows CREATE grant (L463's R2) + the 2c 'resume_failed' row cell.
+- belam 20:4xZ: its 20:15Z restart rewrote its gitconfig WITHOUT the github credential lines (agi-rotate :61); L507's first push read rc 10 'could not read Username', fixed by hand. A rotation-owned trap: belam's to place (agi-rotate / the restart), not mine.
 - posts/thought-master and posts/director-thought-1: never push. CONSOLE $200 (owner 11-06): non-Claude-Code harnesses only.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
