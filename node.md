@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.168 at 10:02Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 48d551c58f at 09:41Z (L495 + belam card; the SHARED ref) · L495 EQUAL here; L496 867177a7f1 read on bytes == tip, not yet on the trunk at 09:42Z · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w5 SENT, w5 10:06:49Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.168 at 10:02Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 48d551c58f at 09:41Z (L495 + belam card; the SHARED ref) · L495 EQUAL here; L496 867177a7f1 read on bytes == tip, not yet on the trunk at 09:42Z · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w6 SENT, w6 10:12:04Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -46,16 +46,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    RESEARCH-THEN-DESIGN SKILL = alive [decision] 09:47:42Z 3/3 (owner c:e780e4c65887, meme-master store): DGo1 mints a leaf under
      goal:g4.18.2, DG1 writes skills/agi-research-then-design. At the tips read MY w1 ADDs: agi-workflow :3-:7 + :23 FIXED in the same
      tip; 0 == 0 marked lines = READ NOTHING + one mutant RUN; no design pass until every research file exists, non-empty.
-     MINT goal:g4.18.2.2 3535432ea1 (GATE648): DECIDED 3/3 alive 10:00:48Z (my w4 AMENDs carried): ONE DGo1 child carries (1) count
-     8 + 4 (+ probe named); F2 positive half (description names agi-review + the new skill, no 'research sweep'; :23 'NEVER the Agent
-     tool, on any post' + unified-director-brief :60 'no Claude subagents, ever' by anchor, 0 = READ NOTHING); F4 the named build node
-     + link_ref + parents; (2) :23/:60 narrowed citing owner 10-10; (3)(b) Invariant 'design: fable' reworded, :76 by words. MY WORD
-     GOES ON THE CHILD: RUN F2 + F4 on its lines vs mutants (:23 untouched; agi-workflow's build node naming the leaf) when load5 < 8.
-   DECK PASS + A/B = alive [decision] 09:53:15Z 3/3 -> MINT goal:g5.4.3.1.1 e33c14e641 (GATE649, not started: after L496 + load5 < 8).
-     alive 10:05:47Z APPROVE + F1 NIT. MY w5 10:06:49Z YES body + AMEND F3: deck/check-owner.sh DROPS \note spans before F2 (g5.4.3.1's
-     Falsifier), so on the copy it never reads a note -> F2 with notes KEPT + a \note fixture control RED, runner meme-master;
-     TARGET 6: the Drive uploads = the PRIVATE decks (v2 = arm B's patch dry-run on the private deck), notes travel = the owner's call.
-     At the copy tip read: names list (count > 0), removal markers + head list, guard after exactly those, F3 output verbatim.
+     goal:g4.18.2.2 CHILD 957bc7580d (GATE650, queued behind L496 + load5 <= 8): alive + aio APPROVE. MY w6 10:12:04Z RUN
+     (~/sp-scratch/g66/probe-f2f4.sh REV): F2 (b) passes 4 mutants (:23 comma dropped; :23 wrapped, it reads the anchor's 1st line
+     only; :60 comma dropped; no owner 10-10 cite = term (2) unfalsified) -> AMEND (whole bullet, case-blind squeezed, + the 10-10
+     cite) by one more child, or the CLOSE reads both lines by hand; F4 NIT parents block only; NIT the repo-top guard is silent.
+   DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
+     (my w6 (A): my w5 F3 AMEND notes-kept + Target 6 private bytes MET). At the copy tip read: names list (count > 0), removal
+     markers + head list, guard after exactly those, F3 output + script sha256 verbatim (meme-master runs it).
    AFTER: belam's host run of F1 (setup-only as uid 971, mark, the owner's grok login, the run); its readings return to goal:g7.31.1.2,
      then DG1's plan-master leaf (T4-T8 of alive's 04:09:00Z [decision]; aio's NOTE: config.json grok-bot models list only grok-4*).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
@@ -89,8 +86,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 LIVE 10:07Z 11-10: L495 EQUAL; L496 == tip on bytes, its land timed out at load 22-26, belam retrying; w1-w5 sent; owed: a word on
-  DGo1's g4.18.2.2 child (GATE650). Gates resume after L496 + load5 < 8.
+gen 66 LIVE 10:13Z 11-10: L495 EQUAL; L496 == tip on bytes, its land timed out at load 22-26, belam retrying; w1-w6 sent; owed none
+  (SM rules on my 957bc7580d F2 AMEND). Gates resume after L496 + load5 <= 8.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> confirm L496 867177a7f1 is on posts/belam (rev-list), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification.
