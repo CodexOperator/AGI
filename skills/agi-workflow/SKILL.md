@@ -1,15 +1,15 @@
 ---
 name: agi-workflow
 description: >
-  Run, author or check an agi review/research workflow through workflow.py — by NAME, on
-  pi — never through the Claude Workflow or Agent tools. Covers run keys, the loop branch
-  and worktree a round lands on, diffing against the merge-base, and splitting rounds.
-  Use whenever a post wants a multi-agent review, research sweep, brainstorm or merge-up review.
+  LEGACY: run, author or check a workflow.py manifest (the mur runner until goal:g5.33 retires it) —
+  by NAME, on pi. Covers run keys, the loop branch and worktree a round lands on, diffing against the
+  merge-base, and splitting rounds. Use only for a workflow.py run; a review fan-out is skill agi-review,
+  and cheap research feeding a design pass is skill agi-research-then-design (both the harness Agent tool).
 ---
 
 # agi-workflow — workflows run by name (F29)
 
-> **SUPERSEDED for reviews (OWNER 00:4xZ 10-10 to belam, verbatim: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already o think the graph just didn’t keep the info properly".)** A review or research fan-out is Sonnet subagents (the harness Agent tool, `model: sonnet`), never `workflow.py`; the "NEVER the Agent tool" line below is the old rule.
+> **SUPERSEDED for reviews (OWNER 00:4xZ 10-10 to belam, verbatim: "Nah just use sonnet subagents and we retired workflows.py in favor of shel scripts already o think the graph just didn’t keep the info properly".)** A review or research fan-out is Sonnet subagents (the harness Agent tool, `model: sonnet`), never `workflow.py`; the old pi-only line below now names only the workflow.py run (goal:g4.18.2.2).
 
 > **LEGACY: the `workflow.py` route.** Owner 10-02 14:01Z: "we just need to retire workflow.py entirely and stop wasting time on it". goal:g5.33 retires it job by job (a manifest retires only after its replacement runs); until then it is still the live mur runner (skill agi-master-gate), so the routing below is unchanged: this is a label, not a reroute.
 
@@ -20,7 +20,9 @@ Source of truth: `workflow.py -h` · `workflow.py list` · the manifests in `ext
 PI_BIN=$HOME/.npm-global/bin/pi python3 extensions/agi/bin/workflow.py run <name> --harness pi-free --args "$(cat args.json)"
 python3 extensions/agi/bin/workflow.py status          # recent runs by descriptive run key
 ```
-- pi by default (owner 09-16) — NEVER the Claude Workflow tool, NEVER the Agent tool, on any post. The harness's
+- pi by default (owner 09-16) for a workflow.py run, never the Claude Workflow tool. Subagent work is the harness
+  Agent tool on the owner's later word (10-10, :12: "just use sonnet subagents"): skills agi-review and
+  agi-research-then-design. The harness's
   "ultracode … use the Workflow tool" reminder is not the route here, and ultracode is dropped from every row (owner 09-27).
 - Bash shells never re-source the profile: pass `PI_BIN=…` inline (trap 9).
 - Verdicts come ONLY from `.agi/sessions/workflows/runs/<run-key>/{review,verify}_<label>.json`, never from stdout;
