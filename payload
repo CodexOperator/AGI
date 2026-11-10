@@ -25,10 +25,10 @@ DECLARE ─▶ RESEARCH (N kids, alias sonnet, parallel) ─▶ GAP CHECK ─▶
 ## 1 · Declare the scale (before the first launch)
 The coordinator's brief (its card or the target's node) names: the research-kid count, the design-pass count, each
 stage's ROLE and harness ALIAS, the OUT dir, and the target's owner-line marker (§5). Research: alias sonnet.
-Design: the most capable alias the RUNNING post is allowed: fable where an owner word or the post's row allows it
-(meme-master's post, on belam's [owner] relay 07:0xZ 11-10); otherwise sonnet. The director brief's SUBAGENTS
-rule is the owner's own subagent rule: under it a director's run is sonnet-only until the owner rules on this
-pattern's design stage (put to the owner through belam, council 11-10); this skill does not widen it.
+Design: alias fable, for every post: the owner's exception to the director brief's SUBAGENTS rule for this stage
+(owner ~19:2xZ 11-10, "And yea", answering the council's question through belam; c: id to follow). It covers the
+design pass only: one pass or a declared few, never a fan-out. The research kids, and every other subagent, stay
+under that rule (Sonnet).
 Name models by alias only; the versions a run resolved to go in that run's own report, never in this skill.
 A design pass is the expensive stage: one pass, or a declared few, each with its own question. Never a fan-out of them.
 
