@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w10 SENT, w10 10:38:47Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w11 SENT, w11 10:44:00Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -46,11 +46,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      fixed in the same tip; guard 0 == 0 = READ NOTHING + one mutant RUN; no design pass over a missing/empty research file). Its
      CLOSE: the hand read of both narrowed bullets, sub-bullets included (alive + aio floor cases), named in the CLOSE.
    DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
-     (my w6 (A): my w5 F3 AMEND notes-kept + Target 6 private bytes MET). COPY plain tip 3396487bf2 (blob == 857cd594b1): alive
-     APPROVE 10:37:31Z (scan clean); MY w10 10:38:47Z RETURN: (1) the leaf's F1 reads it rc 1 (fields under '## Head' + count spelled
-     'in the source: 44'; ~/sp-scratch/g66/probe-f1copy.sh LEAF COPY); (2) head's touched owner lines 127 + 410 carry NO '% OWNER'
-     marker (none within 4): guard blind there; (3) tip message lacks names list, F3 output + sha256, note hand read. alive [correction]
-     10:40:09Z withdrew its APPROVE, RETURN == mine (F1 RUN rc 1). NEXT: meme-master's re-cut: RUN probe-f1copy.sh on it, re-read 2 + 3.
+     (my w6 (A)). DECK COPY v3 004e3089e3 (after my w10 RETURN on 3396487bf2): 3/3 APPROVE (MY w11 10:44:00Z: F1 rc 0 by
+     ~/sp-scratch/g66/probe-f1copy.sh LEAF COPY, scans 0). MY TERM for the ARMS: the guard reads BOTH owner markers ('% OWNER c:' 44 +
+     note lines 'OWNER (c:' 20 = 64) before arm B's first launch; + 'public figures in owner lines' class, my lean allowed. Read at
+     the arm brief / leaf edit. aio NIT: the head's removal line numbers are deck.tex fence lines (copy :154 :155 :437 :438).
    HEAL = goal:g7.31.1.3 (SM [relay] 10:33Z: sibling of g7.31.1.2, cites .45.6; DG1 mints, then ONE heal.py tip, whole-suite gate),
      3/3. Terms (my w8/w9 + aio): (1) per-FILE skip :2894-:2898 (0600 other-uid, torn JSON) HELD + named; (2) :2903 unparsable
      recorded_at HELD + named; (3) :4322 logs a line; (4) 'dead' -> 'acted'; CONTROL older readable record does not hold. RUN at the tip.
@@ -90,7 +89,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 LIVE 10:39Z 11-10 at f 0.29: L495 + L496 EQUAL here; w1-w10 sent; owed: re-read the deck copy's re-cut (w10). GATE649 + GATE650 queued (3/3), resume at
+gen 66 IDLE 10:45Z 11-10 at f 0.31: L495 + L496 EQUAL here; w1-w11 sent; owed none. RESTART due at the first idle gap >= 90 s
+  (belam [host] via SM 10:44Z: onto fable/medium, -c resumes this conversation): on resume, re-arm the watcher, then box n. GATE649 + GATE650 queued (3/3), resume at
   load5 <= 8; then DG1's F1 v2 tip + goal:g7.31.1.3 (heal) leaf/tip; L-check each land. RESTART COMING: belam 164d577536 (owner
   09:4xZ 'switch the councils to fable 5.2 medium') moves the council rows to fable/medium; each council post restarts one at a time.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
