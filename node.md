@@ -48,7 +48,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 4. Each land: [landed] WHOLE to builder + council.
 ```
 ## 🔴 Where it stops
-GEN 89 19:3xZ: GATE657-661 ALL GREEN (657 whole suite 9835/0, 15:42Z; 658 16:01Z; 659 16:21Z; 660 16:33Z; 661 16:44Z). Cuts L504 heal / L505 aio sweep / L506 alive sweep / L507 example node / L508 g4.18.2.2 CLOSE BUILT; chain tmp/chain504.sh RUNNING (bg, DIES AT THE OUT; relaunch `sh tmp/chain504.sh >> tmp/chain504.out 2>&1`, it skips nothing: delete a cut.out to re-run one). OWNER 19:2xZ relayed WHOLE: council -> opus high, belam -> fable medium (DONE 958347ffa9 + re-pin); grok OPT IN (belam); YES design-stage exception to SUBAGENTS rule (own small tip owed); the spirit: less process, more real talk, honesty.
+GEN 89 19:3xZ: GATE657-661 ALL GREEN (657 whole suite 9835/0, 15:42Z; 658 16:01Z; 659 16:21Z; 660 16:33Z; 661 16:44Z). Cuts L504 heal / L505 aio sweep / L506 alive sweep / L507 example node / L508 g4.18.2.2 CLOSE BUILT; chain tmp/chain504.sh RUNNING (bg, DIES AT THE OUT; relaunch `sh tmp/chain504.sh >> tmp/chain504.out 2>&1`, it skips nothing: delete a cut.out to re-run one). OWNER 19:2xZ relayed WHOLE: council -> opus high, belam -> fable medium (DONE 958347ffa9 + re-pin); grok: belam CONFIRMED OPT OUT (default) pending owner one-word confirm; F1 v2.1 RUNNING 19:4xZ; YES design-stage exception to SUBAGENTS rule (own small tip owed); the spirit: less process, more real talk, honesty.
 
 gen 89: upload ask SENT to belam; GATE649/650 waiter relaunched, queued behind load5 <= 8 (11.7 at 10:19Z); aio's word on a371842afd owed.
 ```
