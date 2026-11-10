@@ -17,12 +17,12 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:57Z 11-10) -- gen 90 awake. Hub A. Trunk = posts/belam 085845b280 (L504). Next free L = 509. Next free GATE = 664.
+## §0 State (19:57Z 11-10) -- gen 90 awake. Hub A. Trunk = posts/belam 10a048c2ac (L505). Next free L = 509. Next free GATE = 664.
 - LANDED gen 89: L497 295e157d87 · L498 dc8ffa183b · L499 302669bf16 · L500 641d8dea53 · L501 e11807d128 · L502 8e1466cb69 · L503 778ddd3c4f (RULES, belam wrap 16c6934758) · L504 085845b280 (heal pair; alive verified 19:50Z).
-- IN FLIGHT: L505 10a048c2ac (aio sweep pair 04e2c858f2) SENT 19:47:19Z, awaiting belam's land. Then the chain cuts L506 alive sweep 56a8e4d8fe -> L507 DG1 example build node 71c48c9d7c -> L508 DGo1 CLOSE g4.18.2.2 211995b66f. All four gated GREEN and 3/3; cut dirs tmp/l505..l508 BUILT + guarded.
+- LANDED gen 90: L505 10a048c2ac (aio sweep pair 04e2c858f2). IN FLIGHT: the chain cuts L506 alive sweep 56a8e4d8fe -> L507 DG1 example build node 71c48c9d7c -> L508 DGo1 CLOSE g4.18.2.2 211995b66f. All four gated GREEN and 3/3; cut dirs tmp/l505..l508 BUILT + guarded.
 - CHAIN: `tmp/chain504.sh` (bg; DIES AT THE OUT; gen 90 relaunched 19:56Z, loop now 506 507 508). Relaunch at wake if not in ps: `cd /data/work/gate-sm && sh tmp/chain504.sh >> tmp/chain504.out 2>&1` (run_in_background). It loops 504..508; a cut whose cut.out ends 'sent belam' is DONE: before relaunch, edit the loop to start at the first unsent L (or it re-cuts a sent one).
 - GATES: `tmp/gateq90.sh` (bg, DIES AT THE OUT; out tmp/gateq90.out) runs GATE662 WHOLE again (gen 89's run died after skills-truth; 354/0, links 0 broken read) then GATE663. 662 ALLDONE -> build L509 (mkcut n=509 g=662 prev=508). DG1 fixes the brief's LANES 'every post uses Sonnet' line at the next touch.
-- GATE663 TIP RE-POINTED to DG1's child d675091a90 (%G? G, +8 -2): alive APPROVE AS GATED (19:54Z) + one NIT (two-bracketed-choices alternation before the y), DG1's choice; pointer sent 19:56Z. DG1 19:5xZ: NO new tip, 663 gates d675091a90; the nit is a FLOOR until belam's run 4 prints grok's real trust screen. Words in: alive APPROVE 19:54Z, sp APPROVE 19:55Z (the .grok find fails closed on an unread R); aio's owed.
+- GATE663 TIP RE-POINTED to DG1's child d675091a90 (%G? G, +8 -2): alive APPROVE AS GATED (19:54Z) + one NIT (two-bracketed-choices alternation before the y), DG1's choice; pointer sent 19:56Z. DG1 19:5xZ: NO new tip, 663 gates d675091a90; the nit is a FLOOR until belam's run 4 prints grok's real trust screen. WORDS 3/3: alive APPROVE 19:54Z, sp APPROVE 19:55Z (the .grok find fails closed on an unread R), aio APPROVE 19:56:49Z (floor: a symlinked subdir's .grok passes; no risk, grok reads R's root) = 3/3. On 663 ALLDONE green: cut L509/L510 per order.
 - F1 (goal:g7.31.1.2): v2.1 run 3 (19:35Z) rc 1, nothing killed, caught grok's FOLDER-TRUST screen in R. belam CONFIRMED grok Opt OUT (default) pending the owner's one-word confirm. Ask of belam's next run: which file under 971's home grows when grok records the trust.
 - OWNER 19:2xZ + 19:3xZ (relayed WHOLE): council on opus/high, belam fable/medium (DONE 958347ffa9 + re-pin); 'And yea' = design-stage exception (GATE662; belam to fold a confirm into its owner message); the SPIRIT below.
 - HOW WE WORK (council [decision] alive 19:43:44Z, 3/3, the owner's spirit): one-line ANGLE per seat; one seat runs the heavy proof, two read + challenge, '== <angle>, nothing'; SM sends a one-line POINTER when the builder is cc'd and gates a chain once it settles; any post may ask another how it is, no tip needed. alive cuts one agi-review line after L506.
@@ -42,9 +42,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-gen 90: L505 sent 19:47Z, unlanded; chain504 (506..508) + gateq90 (662 then 663) relaunched 19:56Z as bg jobs.
+gen 90: L505 LANDED 10a048c2ac ([landed] pointer sent 19:5xZ); chain504 (506..508) + gateq90 (662 then 663) relaunched 19:56Z as bg jobs.
 ```
-NEXT: on L505 [landed] -> pointer to aio + council; on 662 ALLDONE -> L509; on 663 ALLDONE -> words (one runs, two read) -> cut.
+NEXT: each L506..L508 [landed] -> pointer; on 662 ALLDONE -> L509; on 663 ALLDONE -> words (one runs, two read) -> cut.
 CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/chain504.out /data/work/gate-sm/tmp/gateq90.out
 ```
 ## §2 Landed gen 89: L497-L504 (see §0). Gates green: 649-661 (657 the WHOLE suite 9835/0). L501 first cut 4db836bbd8 VOID (crossed belam's card).
