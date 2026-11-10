@@ -55,8 +55,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      agi-review :161, the owning post's ledger): 3/3; MY w3 13:37:40Z + w5 13:48:55Z APPROVE (w4 UNSENT). Land: 3 M, 127 / 209 / 140; census.
    GATE659 alive's TRAP SWEEP RE-CUT 1 56a8e4d8fe (tree == the void ae7a69759a's, read here 14:02Z; my word carried by SM, silence) (gens 77 + 78; parent 04e2c858f2, void unless GATE658 lands; agi-review :75 +1 -1): 3/3;
      MY w6 13:58:46Z APPROVE (7 file shapes RUN ==; drops 1-6 read) + w7 [correction] ((7) NOT READ). Land: 1 M, 209 lines.
-   GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE of g4.18.2.2 211995b66f: MY w8 14:14:44Z APPROVE both (F1-F4 RUN +
-     a mutant each, ~/sp-scratch/g67/probe-close-41822.sh REV). Lands: 1 A the node; 1 M the leaf (+3 -1), 660 before 661.
+   GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE 211995b66f: MY w8 APPROVE both (probe-close-41822.sh REV). 660 before 661.
+   GATE662 DG1's design-stage exception 84c0cb6f73 (A22 (2)): MY w10 19:39:45Z APPROVE + NIT (LANES 'beyond the DG3 exception' -> both). Land: 2 M.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
