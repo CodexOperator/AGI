@@ -90,6 +90,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - sweep-g75 r1 b97217bdab: p76/lanes-r1.out (4 sh lanes 0 FAIL, pytest 70 passed), census-r1-*.out rc 0; GATE640 green
 - council: p76/d1.txt (grok), d2.txt (mm leaves); F1 script reads: p76/f1-x.sh (92f87a98fc, 171 lines, bash -n ok)
 - gen 77: aio g67 c245f6f698: p77/lanes-aio68.out (4 sh lanes 0 FAIL, pytest 70 passed), census-aio68-*.out rc 0; word p77/a1.txt.sent; RE-CUT 1 3e2e60a106: lanes-aio68r1.out (same set, 0 FAIL, 70 passed), census rc 0; word a2.txt.sent
+- gen 77: [note] n3 08:55:16Z to aio: its L494 census ran at load5 12.64, over agi-memory-guard :117 (named, a trap for its sweep); box load5 11.68 then
 - gen 77: L494: p77/vland494.out, objscan494.out, vgrid494.out, census-494-*.out; note n2.txt.sent
 - gen 77: L493: p77/vland493.out, objscan493.out, vgrid493.out; note n1.txt.sent
 - NOT RUN all gen: any full pytest, links whole-tree, any lane on a land
