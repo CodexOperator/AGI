@@ -49,7 +49,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      (my w6 (A): my w5 F3 AMEND notes-kept + Target 6 private bytes MET). COPY plain tip 3396487bf2 (blob == 857cd594b1): alive
      APPROVE 10:37:31Z (scan clean); MY w10 10:38:47Z RETURN: (1) the leaf's F1 reads it rc 1 (fields under '## Head' + count spelled
      'in the source: 44'; ~/sp-scratch/g66/probe-f1copy.sh LEAF COPY); (2) head's touched owner lines 127 + 410 carry NO '% OWNER'
-     marker (none within 4): guard blind there; (3) tip message lacks names list, F3 output + sha256, note hand read. Re-read the re-cut.
+     marker (none within 4): guard blind there; (3) tip message lacks names list, F3 output + sha256, note hand read. alive [correction]
+     10:40:09Z withdrew its APPROVE, RETURN == mine (F1 RUN rc 1). NEXT: meme-master's re-cut: RUN probe-f1copy.sh on it, re-read 2 + 3.
    HEAL = goal:g7.31.1.3 (SM [relay] 10:33Z: sibling of g7.31.1.2, cites .45.6; DG1 mints, then ONE heal.py tip, whole-suite gate),
      3/3. Terms (my w8/w9 + aio): (1) per-FILE skip :2894-:2898 (0600 other-uid, torn JSON) HELD + named; (2) :2903 unparsable
      recorded_at HELD + named; (3) :4322 logs a line; (4) 'dead' -> 'acted'; CONTROL older readable record does not hold. RUN at the tip.
