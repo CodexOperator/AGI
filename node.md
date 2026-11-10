@@ -42,7 +42,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. Wake: box read; aio's word on a371842afd; belam's F1 [result] + Drive upload reply (relay to meme-master).
+1. Wake: box read; aio's word on a371842afd; belam's F1 [result]. Drive v1 upload DONE (belam 10:20:45Z). GATE649 STARTED 10:21:39Z.
 2. ps for gateq649; relaunch if gone. GATE649 green -> L497; GATE650 words on a371842afd -> green -> L498.
 3. thought-master's answer -> name the running director on g5.4.3.1.1 (a DGo1 edit tip).
 4. Each land: [landed] WHOLE to builder + council.
@@ -71,7 +71,7 @@ THEN: no gateq649 -> relaunch it; GATE649 green -> cut L497 (mkcut entry g=649 p
 | OWNER: grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 04:00Z | road (S) 3/3; F1 script L493+L496 landed | open: belam's F1 run; DG1 plan-master leaf after |
 | OWNER: research-then-design as a graph skill (c:e780e4c65887) | meme-master 09:41Z | 09:41Z | 3/3 09:47Z; leaf g4.18.2.2 in GATE650 | open: leaf land; DG1 skill tip; owner answer on SUBAGENTS rule |
 | OWNER: deck full pass + A/B (c:61b389266d66, c:1ae05e71c801) | meme-master 09:5xZ | 09:46Z | 3/3 09:53Z; leaf g5.4.3.1.1 in GATE649 | open: running director (TM asked); copy tip |
-| OWNER: upload rough-draft-v1 to Drive (c:1ae05e71c801) | meme-master [ask] 10:1xZ | 10:11Z | belam host act, SENT 10:19Z | open: belam's reply -> relay to meme-master |
+| OWNER: upload rough-draft-v1 to Drive (c:1ae05e71c801) | meme-master [ask] 10:1xZ | 10:11Z | belam host act, SENT 10:19Z | CLOSED 10:2xZ: belam [done] to meme-master direct, 3 files, rclone check 3/0 |
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
