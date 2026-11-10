@@ -46,7 +46,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE657 = L504, LANDED + EQUAL here (§2).
    GATE658 = L505, LANDED + EQUAL here (§2).
    GATE659 = L506, LANDED + EQUAL here (§2).
-   GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE 211995b66f: MY w8 APPROVE both (probe-close-41822.sh REV). 660 before 661.
+   GATE660 = L507, GATE661 = L508 (g4.18.2.2 complete), each LANDED + EQUAL here (§2).
    GATE662 DG1's design-stage exception 84c0cb6f73 (A22 (2)): MY w10 19:39:45Z APPROVE + NIT (LANES 'beyond the DG3 exception' -> both). Land: 2 M.
    GATE663 DG1's F1 v2.2 0a3a3e01ee (0b in R; folder-trust 'y' only under F1_TRUST_R=1): 3/3 AMEND -> a CHILD (alive 19:50:27Z: no 'y'
      while an opt-in word is on screen, 2 mutant rows; aio: no .grok in R, checked); CHILD d675091a90: my w14 19:55:25Z APPROVE (.grok find fails closed on an unread R, RUN).
@@ -79,7 +79,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
-- L507 a5c9b4a205 the example's build node (GATE660; 1 A, blob == 71c48c9d7c; no note)
+- L508 eff27fcf83 DGo1's CLOSE of g4.18.2.2 (GATE661; 1 M, blob == 211995b66f; status complete) · L507 a5c9b4a205 the example's build node (GATE660; 1 A, blob == 71c48c9d7c)
 - L506 2d8a6a92ab alive's sweep (GATE659; p1 5ec41a56ff; 1 M agi-review, blob == 56a8e4d8fe, 209 lines; no note)
 - L505 10a048c2ac aio's sweep pair (GATE658; p1 085845b280; 3 M, blobs == 04e2c858f2; 140 / 209 / 127 lines kept; no note: alive verifies lands)
 - L504 085845b280 the heal pair (GATE657; p1 91ad8951f6; 3 paths, blobs == e1ad994ffa; my guard probe on the landed bytes == the child's; my [note] 19:45:17Z, one line)
