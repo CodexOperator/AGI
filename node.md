@@ -44,7 +44,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-gen 90: L505-L508 LANDED (belam [landed] 20:4xZ, trunk 455405d29b = its card on L508); L509 9785088a3e LANDED (alive verified 20:47Z; pointer to DG1); L510 cuts next, L511 after; chain504 (506..508) + gateq90 (662, 663) + gateq90d (664, 665) + l509/l510 run.sh are bg jobs.
+gen 90: L505-L508 LANDED (belam [landed] 20:4xZ, trunk 455405d29b = its card on L508); L509 9785088a3e LANDED (alive verified 20:47Z; pointer to DG1); L510 a20cb5f806 SENT 20:49:10Z, belam landing it (HOLD mail to belam until its [landed]; F1 v2.2 run 4 right after); L511 armed; chain504 (506..508) + gateq90 (662, 663) + gateq90d (664, 665) + l509/l510 run.sh are bg jobs.
 ```
 NEXT: each L506..L508 [landed] -> pointer; on 662 ALLDONE -> L509; on 663 ALLDONE -> words (one runs, two read) -> cut.
 CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/chain504.out /data/work/gate-sm/tmp/gateq90.out
