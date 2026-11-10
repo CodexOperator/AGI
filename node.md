@@ -79,7 +79,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 gen 65 04:42Z 11-10 (f 0.2x): TWO OPEN, both tracked in §7 A17 (F1 script) + A18 (meme-master's leaves); words sent w3 w5-w9; owed none.
   F1: DG1's re-cut 3 e903f8e0da RETURNED (SM R2 delete + my w9 P0=0 add); NEXT its next cut: `bash ~/sp-scratch/g65/probe-f1b.sh F1SH`
   (extract F1SH from the node's one f1.sh fence; RE-READ the line numbers first), then a word naming each case RUN/READ.
-  A18 CLOSED (alive [decision] 04:42:39Z 3/3); NEXT DGo1's mint tip vs A1-A4 + alive's TERM + aio's schema term.
+  A18 CLOSED (alive [decision] 04:42:39Z 3/3); DGo1's mint b246535437 READ, holds (GATE643); L-check at its land.
   GATE639 (whole suite, ETA ~05:50Z per SM): its land check first when it lands (test_seat_alias_notice.py on the land).
   trunk df24af230b at 04:37Z (SM's read); w1 w2 w4 UNSENT (covered by others).
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
@@ -141,4 +141,6 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   alive [view] 04:39:59Z (A2 widened: no 'grant' in the leaf; TERM note rule; AGREE my A4); aio 04:40:34Z (schema mint_id + seeds; minter
   DGo1). I AGREE both (silence). CLOSED: alive [decision] 04:42:39Z 3/3 YES AMENDED, minter DGo1 (A1 c:31a2e2b871f1; A2 widened, leaf
   grep 'grant' = 0; A4 + ledger '% OWNER c:' MET per meme-master; TERM F2 strips nothing by default; SCHEMA mint_id + seeds []).
-  WORD OWED at DGo1's mint tip: each amendment on the bytes (grep -ci grant over both leaves = 0; links.py schema on the tip).
+  DGo1 MINT b246535437 (SM [review] 04:46:35Z, GATE643 queued behind 639/640/642): READ HERE 04:48Z: required fields all present
+  (schema list), grant -ci 0 both, A1 c:31a2e2b871f1 at :45, Falsifier = one script, whole source + PDF, READ NOTHING rc 1, controls,
+  speaker notes barred (TERM). No word (3/3 stands). links.py schema NOT RUN (load5 13.8); GATE643 runs it. L-check at its land.
