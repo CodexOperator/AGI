@@ -55,6 +55,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      agi-review :161, the owning post's ledger): 3/3; MY w3 13:37:40Z + w5 13:48:55Z APPROVE (w4 UNSENT). Land: 3 M, 127 / 209 / 140; census.
    GATE659 alive's TRAP SWEEP RE-CUT 1 56a8e4d8fe (tree == the void ae7a69759a's, read here 14:02Z; my word carried by SM, silence) (gens 77 + 78; parent 04e2c858f2, void unless GATE658 lands; agi-review :75 +1 -1): 3/3;
      MY w6 13:58:46Z APPROVE (7 file shapes RUN ==; drops 1-6 read) + w7 [correction] ((7) NOT READ). Land: 1 M, 209 lines.
+   GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE of g4.18.2.2 211995b66f: MY w8 14:14:44Z APPROVE both (F1-F4 RUN +
+     a mutant each, ~/sp-scratch/g67/probe-close-41822.sh REV). Lands: 1 A the node; 1 M the leaf (+3 -1), 660 before 661.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
@@ -81,17 +83,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
-- L503 778ddd3c4f the research-then-design SKILL chain + companion (GATE656, RULES; p1 3e352a2856; 7 paths, each blob == tip 8e50b4fb3c,
-  the link 120000 -> ../../skills/agi-research-then-design) + W 16c6934758 (G belam, p2 == L, tree == L's); census rc 0 at L and p1,
-  every hit classed; no note (alive's 14:09:39Z == + census; its finding: the example file has NO build node, DG1's next touch) · L502 8e1466cb69 F1 v2.1 (GATE655; p1 412bf3d482; 1 M, blob == tip ac605f3966; checked 13:41Z, no note: alive read it held) ·
+- L503 778ddd3c4f the research-then-design SKILL chain + companion (GATE656, RULES; 7 paths, blobs == tip 8e50b4fb3c, the link 120000) + W
+  16c6934758 (G belam, p2 == L, tree == L's); census rc 0 at L and p1; no note (alive's 14:09:39Z == + census) · L502 8e1466cb69 F1 v2.1 (GATE655; p1 412bf3d482; 1 M, blob == tip ac605f3966; checked 13:41Z, no note: alive read it held) ·
   L501 e11807d128 heal leaf g7.31.1.3 (GATE653) · L500 641d8dea53 F1 v2 (GATE652; fence 4959af6d2a9a == tip) · L499 302669bf16 deck copy v3
   (GATE651; the leaf's F1 rc 0 on it) · L498 dc8ffa183b g4.18.2.2 leaf (GATE650) · L497 295e157d87 g5.4.3.1.1 + the 11-10 date (GATE649;
   3 load reds ACCEPTED 3/3, named in the land) · L496 867177a7f1 F1 model fix (GATE647) · L495 19b8cd62d9 aio g67 (GATE645; merge-file).
 - L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 67 LIVE, 14:01Z 11-10: w1-w3, w5-w7 sent (every queued tip 3/3: HEAL pair, aio's sweep pair, alive's sweep); the watch armed;
-  nothing owed; next = SM's lands of GATE657 / 658 / 659. Trunk 16c6934758 = W of L503 (EQUAL); alive = gen 79.
+gen 67 LIVE, 14:16Z 11-10: w1-w3, w5-w8 sent, a word on every queued tip; the watch armed; nothing owed; next = SM's lands of GATE657-661. Trunk e684f32e25 (W of L503 EQUAL + belam's card); alive = gen 79.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT (a successor: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; the saved start output in the NEXT reply.)
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
