@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w11 SENT, w11 10:44:00Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w14 SENT, w14 10:57:48Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -53,7 +53,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    HEAL = goal:g7.31.1.3 (SM [relay] 10:33Z: sibling of g7.31.1.2, cites .45.6; DG1 mints, then ONE heal.py tip, whole-suite gate),
      3/3. Terms (my w8/w9 + aio): (1) per-FILE skip :2894-:2898 (0600 other-uid, torn JSON) HELD + named; (2) :2903 unparsable
      recorded_at HELD + named; (3) :4322 logs a line; (4) 'dead' -> 'acted'; CONTROL older readable record does not hold. RUN at the tip.
-     F1 v2 (DG1 tip on g7.31.1.2, after GATE649/650): read (b) window from heal at run time, (d) argv[0] + session_id before a kill.
+     F1 v2 RE-CUT c8392ec31d (GATE652): MY w14 10:57:48Z APPROVE (probe-f1v2.sh F1SH: my 2 cases now FAIL, controls hold). HEAL LEAF MINT 0e7c1897cc (GATE653): YES body + AMEND F2/F3: '! grep' passes on a MISSING heal.py (RUN rc 0 both) -> loud repo-top guard + [ -s ]; F3 reads the whole file (7 hits, only :2897 the leaf's) -> the guard's body only, the 6 others out of scope; NIT mode-000 row as root. NEXT: DG1's child -> re-run F2/F3 on it. GATE649 3 load reds: 3/3 ACCEPT -> SM cuts L497.
    AFTER: belam's host run of F1 (setup-only as uid 971, mark, the owner's grok login, the run); its readings return to goal:g7.31.1.2,
      then DG1's plan-master leaf (T4-T8 of alive's 04:09:00Z [decision]; aio's NOTE: config.json grok-bot models list only grok-4*).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
@@ -89,10 +89,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 IDLE 10:45Z 11-10 at f 0.31: L495 + L496 EQUAL here; w1-w11 sent; owed none. RESTART due at the first idle gap >= 90 s
-  (belam [host] via SM 10:44Z: onto fable/medium, -c resumes this conversation): on resume, re-arm the watcher, then box n. GATE649 + GATE650 queued (3/3), resume at
-  load5 <= 8; then DG1's F1 v2 tip + goal:g7.31.1.3 (heal) leaf/tip; L-check each land. RESTART COMING: belam 164d577536 (owner
-  09:4xZ 'switch the councils to fable 5.2 medium') moves the council rows to fable/medium; each council post restarts one at a time.
+gen 66 LIVE 10:58Z 11-10 (RESUMED on fable/medium 10:48:58Z, belam's host act): L495 + L496 EQUAL here; w1-w14 sent; owed: a word on
+  DG1's g7.31.1.3 child (F2/F3); L-check L497 (f0000295e0) at its land; then GATE650, 651 (deck copy v3), 652, 653.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> L-check it (§0 'L check' row), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification; a RESTART kills it.
