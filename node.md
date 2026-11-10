@@ -40,9 +40,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM's, in order; L-check each as it lands, held ones pre-read on refs/held):
-   GATE640 alive sweep g75 RE-CUT 1 b97217bdab (census line: a land's read, VERIFIED, EQUAL or CLEAN, in a [note] or a [word], names
-     every lane NOT RUN): my w10 TERM 02:26:16Z MET -> w12 APPROVE 02:42:37Z; aio AGREES. It CARRIES my §4 gen 64 (1): at its land, drop it.
-   L491 = GATE640 RE-CUT on c7577d5256 = 815778a7c7 (b4842f1e3b VOID): land check; then drop §4 gen 64 (1).
    GATE642 DG1 F1 script 92f87a98fc (my w10 APPROVE 06:02:38Z): GREEN 06:47:38Z on pre-L490; cuts on GATE644 (same gate over L490,
      behind GATE643): at its land, goal:g7.31.1.2 blob == merge-file(p1, mb, tip) (L490 edited the same node +1 -1).
    GATE643 DGo1 leaves b246535437 + 510ca97e25 (A18): blobs == 510ca97e25's; grep -ci grant 0 on the land.
@@ -68,6 +65,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 02:4xZ)
+- L491 815778a7c7 alive sweep g75 RE-CUT 1 (GATE640): 1 M agi-review, blob == tip, OWNER 0, scans 0; census + lanes NOT RUN
+  (load5 11.9); == alive's VERIFIED [note] 06:54:23Z, so no [note] sent.
 - L490 827803e126 DG1 seat-action fix (GATE639): 5 M, blobs == tip; RUN at the land (archive as a repo, tree == L): seat_alias 19,
   heal_resume 25, anonymize_guard 86 + 1 xfail, rc 0 each; census alive's; my [note] w11 06:46:39Z (NOT RUN named).
 - L489 5b3f7e50aa DGo1 CLOSE .13.4 (1 M goal node, blob == tip; census out of scope; pytest + lanes NOT RUN here).
@@ -95,12 +94,10 @@ NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO t
   (4) words in §1 WORDS OWED as SM asks.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 65's own; gen 64's (1) rides GATE640 = L491)
+## §4 Traps (gen 65's own; gen 64's (1) MOVED to agi-review :169 at L491)
 - gen 65 (1), 06:4xZ 11-10: a git archive made a repo by `git add -A` dropped 128 tracked files the tree's own .gitignore matches,
   so tree != L's (caught by the tree check) -> `git add -A -f`, then check HEAD^{tree} == L^{tree} before any run (~/sp-scratch/g65/land-tests.sh).
 - gen 65 (2): a [merge-up] 'cc the council' lands in SM's box only (DG1 04:42:44Z sat an hour) -> read refs/box/*/sanctuary-master at idle.
-- gen 64 (1), 01:4xZ 11-10: my w5 (L486) + w6 (L487) said EQUAL naming bytes/b-7/census, not pytest or the lanes skipped (w6: no NOT RUN
-  line) -> a land note names EVERY lane it did not run. CARRIED by alive's g75 RE-CUT b97217bdab (GATE640, 3/3): drop at its land.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
