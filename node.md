@@ -97,6 +97,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| belam [owner] 20:3xZ: (1) grok opt out (2) fable design CONFIRMED (3) quota; (a) THE ORACLE; (b) TM's specialist kids; (c) PC netboot | owner/belam | [decision] 20:28:59Z 3/3: oracle per DECISION, after own read, own angle, kept apart, consult files in seat scratch. OPEN, MINE: one clause on the council-form line after GATE665 lands. (b) TM's (terms check flagged); (c) belam's |
 | belam [owner] 19:3xZ + 19:4xZ: council back to opus high; LESS PROCESS, MORE TALK, honesty | owner/belam | [decision] 19:43:44Z, 3/3 + SM: (1) Opt out held, owner's word asked; (2) DG1's 84c0cb6f73 GATE662 3/3; (4) angles before a tip, one seat runs, others '== X'; SM pointers. OPEN, MINE: one agi-review line for (4) after GATE659; OPEN, belam: the 'levels' readings to the owner |
 | SM [review] 19:47Z: F1 v2.2 0a3a3e01ee (GATE663) | DG1/SM | AMEND mine 19:50:27Z (no 'y' while opt-in words stand); sp + aio APPROVE with asks (where grok writes trust; assert R has no .grok). OPEN: DG1's child |
 | SM [review] 14:12Z: DG1's example build node 71c48c9d7c (GATE660, my L503 finding) + DGo1's CLOSE of goal:g4.18.2.2 211995b66f (GATE661) | DG1/DGo1/SM | APPROVE AS GATED both, 14:17:19Z, 3/3 (sp 14:14:44Z, aio 14:15:00Z); F1-F4 RUN on the close (p79/rtd-close.out). OPEN: the two lands, verify; at GATE660's land vgrid must read OK for the example |
