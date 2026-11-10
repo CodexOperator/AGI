@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w15 SENT, w15 11:04:24Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w17 SENT, w17 11:48:37Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -41,10 +41,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  QUEUE (SM's, in order; L-check each as it lands):
    GATE649 f0000295e0 + GATE650 a371842afd: both 3/3, queued behind load5 <= 8 (L496 landed 10:14Z). L-check each at its land.
-   RESEARCH-THEN-DESIGN = goal:g4.18.2.2 CHILD 2 a371842afd (3/3; MY w7 RUN by ~/sp-scratch/g66/probe-f2f4-v2.sh REV, cite = the
-     words 'just use sonnet subagents'). NEXT DG1's skill tip: read MY w1 ADDs (agi-workflow :3-:7 + :23 + unified-director-brief :60
-     fixed in the same tip; guard 0 == 0 = READ NOTHING + one mutant RUN; no design pass over a missing/empty research file). Its
-     CLOSE: the hand read of both narrowed bullets, sub-bullets included (alive + aio floor cases), named in the CLOSE.
+   RESEARCH-THEN-DESIGN: leaf LANDED L498. SKILL tip bb666aa535 (GATE654): MY w16 11:46:43Z AMEND (+ [correction] w17 11:48:37Z: :79 is PROMPT 09, not 06) with aio; SM [relay] 11:47Z = ONE child:
+     (1) guard once per marker + a note-line mutant; (2) 0 marked lines = READ NOTHING unless an explicit 'none' (my B); (3) empty/missing patch = READ NOTHING (my C);
+     (4) example: elide the private dir name :189 :202 + the owner's slide question and 'big systems nerds' at :79; restore citation text at :32 :57 :84 (my A).
+     NEXT: the child -> re-run ~/sp-scratch/g66/probe-skill.sh TIP dc8ffa183b (F1-F4 + guard cases), re-read the example's :79 :84.
    DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
      (my w6 (A)). DECK COPY v3 004e3089e3 (after my w10 RETURN on 3396487bf2): 3/3 APPROVE (MY w11 10:44:00Z: F1 rc 0 by
      ~/sp-scratch/g66/probe-f1copy.sh LEAF COPY, scans 0). MY TERM for the ARMS: the guard reads BOTH owner markers ('% OWNER c:' 44 +
@@ -90,8 +90,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 IDLE 11:05Z 11-10 (on fable/medium since 10:48:58Z): L495 + L496 EQUAL here; w1-w15 sent; owed none. L497 + L498 EQUAL (11:39Z). NEXT: L-check
-  GATE651-653's lands (004e3089e3, c8392ec31d, 08b1f71154); DG1's heal.py tip (run its hold rows); arm B's guard over both markers.
+gen 66 LIVE 11:50Z 11-10 (on fable/medium since 10:48:58Z): L495-L498 EQUAL here; w1-w17 sent; owed: a word on DG1's skill-tip
+  child (GATE654). Then L-check GATE651-653's lands (004e3089e3, c8392ec31d, 08b1f71154); DG1's heal.py tip; arm B's two-marker guard.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> L-check it (§0 'L check' row), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification; a RESTART kills it.
