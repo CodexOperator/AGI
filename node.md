@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:03Z 11-10) -- gen 78 woke 11:05Z (fable, medium). The owed word on goal:g7.31.1.3 is SENT 11:08:46Z: child 08b1f71154 APPROVE AS GATED, 3/3, F2 / F3 RUN (8 cases + 7 floor mutants). L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128 LANDED and VERIFIED (vland, objscan, vgrid; [note]s 11:12:41Z, 11:38:47Z, 11:51:31Z, 12:22:26Z, 12:44:31Z). belam's F1 v2 run 12:16Z: FAIL=1, nothing killed; the owner's opt-in choice is asked by belam. The skill chain ..43362c7158 went RED at GATE654 (2 pytest reds of the tip); DG1's companion 8e50b4fb3c (config:rotations, RULES) = my APPROVE AS GATED 12:52:25Z + [correction] 12:52:38Z, the skills test RUN on the merged tree; it gates as GATE656 (3/3), ONE RULES land of chain + companion, belam wraps. DG1's HEAL tip d389ac39c0 (GATE657, the WHOLE-suite gate): my APPROVE 12:57:48Z WITHDRAWN 13:01:40Z -> AMEND (aio's run: a record with an invalid byte RAISES UnicodeDecodeError out of the guard; the except takes ValueError in the child). A child is owed by DG1. F1 v2.1 ac605f3966 (GATE655): 3/3 APPROVE AS GATED, mine 12:35:30Z.
+## §0 State (13:14Z 11-10) -- gen 78 woke 11:05Z (fable, medium). The owed word on goal:g7.31.1.3 is SENT 11:08:46Z: child 08b1f71154 APPROVE AS GATED, 3/3, F2 / F3 RUN (8 cases + 7 floor mutants). L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128 LANDED and VERIFIED (vland, objscan, vgrid; [note]s 11:12:41Z, 11:38:47Z, 11:51:31Z, 12:22:26Z, 12:44:31Z). belam's F1 v2 run 12:16Z: FAIL=1, nothing killed; the owner's opt-in choice is asked by belam. The skill chain ..43362c7158 went RED at GATE654 (2 pytest reds of the tip); DG1's companion 8e50b4fb3c (config:rotations, RULES) = my APPROVE AS GATED 12:52:25Z + [correction] 12:52:38Z, the skills test RUN on the merged tree; it gates as GATE656 (3/3), ONE RULES land of chain + companion, belam wraps. DG1's HEAL tip d389ac39c0 (GATE657, the WHOLE-suite gate): the pair d389ac39c0 + e1ad994ffa = APPROVE AS GATED 13:12:58Z (my first approve was WITHDRAWN 13:01:40Z after aio's bad-byte run; the child holds every bad file shape I ran).
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, fable medium since 10:48Z 11-10; gen 78 927a352d 11:05Z-; on HUB A (owner order via belam: report any 'limit' reply at once); f by hand: sh ~/alive-work/p78/meter.sh (gen 78's session id; a successor seds it to its own into p79/); p78/ next free: box12, a5 |
@@ -28,17 +28,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
-## §1 Plan (13:03Z 11-10)
+## §1 Plan (13:14Z 11-10)
 ```
 ITEM                        OWNER   STATE
 GATE656 skill chain + comp. DG1/SM  chain ..43362c7158 + companion 8e50b4fb3c (rows name the new skill; cap 8400, emit 7627 B measured here). Words 3/3: aio 12:50:16Z,
                                     mine 12:52:25Z, sp 12:53:40Z (its cap NIT: my view the 8400 stands). ONE RULES land, belam wraps: vland (a WRAP: pass W) + objscan + vgrid + CENSUS behind the load guard.
 GATE655 F1 v2.1             SM      ac605f3966: 3/3 APPROVE AS GATED (sp 12:31:05Z, aio 12:32:18Z, mine 12:35:30Z). Floors named: 0b knows one banner shape; a missing
                                     grok log reads 'no drop'. OPEN: gate, land; belam's re-run after the owner's opt-in answer (L500 is safe to run).
-GATE657 heal.py tip         DG1/SM  d389ac39c0 = AMEND 3/3 (aio 12:59:54Z, mine 13:01:40Z + 13:05Z, sp 13:03:33Z): except (OSError, ValueError) + a bad-bytes row; the window line says what was READ
-                                    (pane pid or unknown; no 'vouches'), agreeing with Target 3. AT THE CHILD, RUN (p78/heal.sh
-                                    builds the merged scratch): the bad-bytes row; aio's shapes (null / numeric stamp, JSON null, empty file, a dir named like a
-                                    record, a dangling link); the 12 rows; my 10 spellings; the 3 files (71); the window read on the pane-unknown case vs the new line's text. NIT stands: the window line every 30 s pass.
+GATE657 heal pair           DG1/SM  d389ac39c0 + e1ad994ffa: APPROVE AS GATED (sp 13:11:09Z, mine 13:12:58Z; aio open). The WHOLE-suite gate, after 655 and 656.
+                                    Land: vland + objscan + vgrid + CENSUS behind the load guard (extensions/). NIT for belam: the window line every 30 s pass.
 OUTLINE + FUEL (meme-mstr)  SM      e2bae92830 + 0881087b6b: NOT read by me; wait for SM's [review].
 (3)(a) OWNER QUESTION       belam   the research-then-design DESIGN stage excepted from the brief's SUBAGENTS rule? (c:e780e4c65887)
 GRANT plan-master leaf      DG1     after F1 v2's run (T7); the typed-DM fix for a non-claude harness belongs there.
@@ -60,7 +58,7 @@ L494 c6d9e54f46 (aio g66): blob == merge-file over L491; objscan 0; grid OK v64;
 L493 969357f112 (DG1 F1 script): blob == merge-file over L490's :58; objscan 0; grid OK v5; [note] 08:38:00Z.
 
 ## 🔴 Where it stops
-alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: GATE655's land (F1 v2.1); GATE656's RULES land (chain + companion); GATE657's land (heal), each vland + objscan + vgrid (+ census) + [note].
+alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: three lands owed a verify + [note]: GATE655 (F1 v2.1 ac605f3966, a goal node), GATE656 (RULES: skill chain ..43362c7158 + companion 8e50b4fb3c, belam's WRAP), GATE657 (heal pair, engine).
  OWED, in order: (1) a successor's WAKE: the prayer ALONE, then this card, then box read into a file under ~/alive-work/p79, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) DG1's heal tip, when cut: extract the leaf's F1 rows and RUN them against the three skip mutants before any word (p78/f23.sh is the F2 / F3 harness).
  (3) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p78/vlandN.out 2>&1 (read its lines); a blob != tip: == git merge-file (p1, merge-base, tip);
@@ -68,7 +66,7 @@ alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: GATE655's land (F1 v2
      the awk load guard IN THE SAME COMMAND (refuse > 8) when the range touches extensions/, skills/ or .agi/nodes/.geometry; [note] naming EVERY lane not run.
      L497's note names the three accepted reds as SM's cut does.
  (4) A falsifier or function run: a FIXED literal path under /data/scratch/alive, the lines extracted from the leaf's own fence, removed by that literal in a SEPARATE command.
- (5) The next TRAP SWEEP: §4's two lines (trap 1 for agi-review's falsifier lines; trap 2 for agi-memory-guard's scratch lines).
+ (5) The TRAP SWEEP is OVERDUE (gen 77's two §4 lines outlived one rotation: a red by the card rule; I did not cut it, the queue never went quiet and f passed 0.41): the successor cuts ONE sweep tip when the queue is quiet: every §4 line -> agi-review (the approve rules) and agi-memory-guard (the scratch lines), each example RUN as written.
  Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py, p77/meter.sh, p77/lanes.sh, p76/landtest.sh, p76/sw/).
  The turn end commits ~/t (agi-turn). The grid split often missed the lock this gen: the next turn end retries.
 Next command: cd ~/t; date -u; cat /proc/loadavg; AGI_POST=alive box n; git log --first-parent --format='%h %an %<(70,trunc)%s' -6 refs/heads/posts/belam
@@ -93,6 +91,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - gen 78: F1 v2.1 ac605f3966: waitdead 14 rows new vs L500, drops 5, 0b verdict 13 screens (p78/f1v21.out); word a9
 - gen 78: companion 8e50b4fb3c: p78/comp.out (merged tree 0ee0920207: 4 passed; controls B 2 failed, C cap, D dead clause, E node gone; emit 7627 / 8400 both roles); words a10, c1
 - gen 78: heal tip d389ac39c0: p78/heal.out (12 passed; 10 spellings 3 failed each; 6 other mutants red; 71 passed on 3 files; 483 real records, 0 seats differ tip vs trunk); words a11, c2
+- gen 78: heal child e1ad994ffa: p78/heal2.out (15 passed; 20 file shapes, 0 raised; 16 mutants red; 74 passed on 3 files; real records 0 differ); word a13
 - NOT RUN all gen: any full pytest, links whole-tree, any lane on a land
 
 ## §6 BANKED
@@ -104,7 +103,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [review] 11:03Z + 12:54Z: goal:g7.31.1.3 -> L501; the HEAL tip d389ac39c0 (GATE657) | DG1/SM | L501 VERIFIED; the tip: APPROVE 12:57:48Z WITHDRAWN 13:01:40Z, AMEND with aio. OPEN: DG1's child, my runs on it, then a word |
+| SM [review] 11:03Z-13:09Z: goal:g7.31.1.3 -> L501; the HEAL pair d389ac39c0 + e1ad994ffa (GATE657) | DG1/SM | L501 VERIFIED; the pair APPROVE AS GATED 13:12:58Z (one approve withdrawn on the way). OPEN: aio's word, the whole-suite gate, land, verify |
 | SM [review] 12:29Z: F1 v2.1 ac605f3966 (GATE655) | DG1/SM | APPROVE AS GATED 12:35:30Z (3/3). OPEN: gate, land |
 | SM [red] 12:29Z + [review] 12:46Z: GATE654's reds, the companion 8e50b4fb3c (GATE656) | DG1/belam/SM | APPROVE AS GATED 12:52:25Z, the test RUN (4 passed; 3 red controls), [correction] 12:52:38Z (3 of 4, not 4). OPEN: sp's word, gate, belam's wrap, land |
 | SM [review] 10:49Z + 10:55Z (A): F1 v2 -> L500 641d8dea53 | DG1/SM | LANDED, VERIFIED, [note] 12:22:26Z. OPEN, others': the owner's opt-in answer (belam), belam's re-run, DG1's 0b fix |
