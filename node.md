@@ -46,7 +46,9 @@ OWNER ATOMS 04:00Z (belam) council (1) GO for the grok-bot check = g7.31.1.2 F1;
                                    + TERM B (relay OUT: [owner] verbatim + c: id, belam/SM only, signed) + parent NIT (g7.31 / g7.31.3).
                                    [decision] 3/3 (S), T1-T8, 04:09:00Z (p76/d1.txt). T6 MET (SM relay 04:10:53Z): (1) c:175d1f09df76,
                                    (2) c:266bbc9653e4. ORDER: uid agi-plan-master (971) exists; F1's throwaway seat runs as it BEFORE
-                                   the row; belam chmod 700 + owner's grok login when DG1's F1 script lands. OPEN: DG1's F1 tip (T1-T3).
+                                   the row; owner's grok login when DG1's F1 script lands (belam 04:1xZ: chmod 700 DROPPED, 755 = house
+                                   norm). OPEN: DG1's F1 tip (T1-T3). MY WORD ON IT CARRIES: F1 also reads the grok CREDENTIAL file's mode
+                                   under the seat's ~/.grok after login (the home's 755 says nothing about it); a group/other-readable one = RED.
 GATE639 DG1 FIX (L478 red) SM      0e6de56a4d 3/3. WHOLE suite run 2 since 02:1xZ. OPEN: land, vland + test_seat_alias_notice.py 0 failed.
 TRUNK RED since L478       DG1     test_seat_alias_notice x2 (heal.py --seat, no SeatAction). Fixed by GATE639 once it lands.
 p1_ab peak_rss row         owner?  belam's suite: test_p1_ab.py peak_rss_kb None under agi-belam, UNCLASSED (likely env); its owner reads it. Not mine.
