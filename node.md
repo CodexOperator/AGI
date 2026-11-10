@@ -21,7 +21,7 @@ DRAFT. Structure and prompts only: the owner writes every final word (role (b)).
 >
 > Use subagents as needed. 
 >
-> 1. Yes our class and professors. This is rough draft so no one really other than professor but overall the directors of departments may also be there. I have received a research grant from college so they may be curios about results. 
+> 1. Yes our class and professors. This is rough draft so no one really other than professor but overall the directors of departments may also be there. [elided, c:2763ec818294] 
 >
 > 2. Super short 5-10 mins tops. Try to do under 7. Rough draft due Tuesday evening I believe but morning would be best. Tuesday morning. 
 >
@@ -29,7 +29,7 @@ DRAFT. Structure and prompts only: the owner writes every final word (role (b)).
 >
 > 4. A class paper first but good enough to publish as a long form blog post not necessarily arxiv level yet.
 
-**Frame:** class + professors; department directors may attend (the college research grant: they will ask "what did it produce?"). Rough draft due **Tue 11-11 morning**. Target **6:30**, hard cap 7:00. ~8 slides, ~45 s each.
+**Frame:** class + professors; department directors may attend (they will ask "what did it produce?"). Rough draft due **Tue 11-11 morning**. Target **6:30**, hard cap 7:00. ~8 slides, ~45 s each.
 
 ```
 1 Title ─ 2 Problem ─ 3 Why organize ─ 4 Solution ─ 5 Humans ─ 6 Walkthrough ─ 7 Results ─ 8 Measuring success
@@ -69,7 +69,7 @@ DRAFT. Structure and prompts only: the owner writes every final word (role (b)).
   4. Output: "done" when it meets its goals → checks against the vision → writes new goals, or stops and asks the user.
 - Visual: a node `.md` with `parents:` and `thought:` (board sketch, top right).
 
-## 7 · Results / recent updates (0:50) — the grant slide
+## 7 · Results / recent updates (0:50) — what it produced
 - Atlas numbers (as of 11-07; refresh before Tuesday): 5,842 live nodes, 25,400 commits since 30 Apr, 426 reviewed lands, 104k lines of engine code.
 - How a change lands: build → council 3/3 → gate → land; every claim carries a falsifier.
 - One day: 22 lands on 11-07; the published `falsify` plugin.
@@ -93,7 +93,8 @@ DRAFT. Structure and prompts only: the owner writes every final word (role (b)).
 | 9 | Title + one timed read-through | 10 min |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-11-09, meme-master gen 1: v1. Owner 11-09 (this session): "several photos that should be turned into an outline and then followed to flesh out to completion"; audience class + professors (+ department directors, research grant), 5-10 min "try to do under 7", rough draft due Tuesday morning. Board order kept (problem → organization → solution → humans → 1st input/output, 2nd walkthrough → updates → metrics); the Atlas plates mapped onto slides 4, 5 and 7. The grant audience is why "results" is its own slide rather than folded into the walkthrough.
+11-09, meme-master gen 1: v1. Owner 11-09 (this session): "several photos that should be turned into an outline and then followed to flesh out to completion"; audience class + professors (+ department directors), 5-10 min "try to do under 7", rough draft due Tuesday morning. Board order kept (problem → organization → solution → humans → 1st input/output, 2nd walkthrough → updates → metrics); the Atlas plates mapped onto slides 4, 5 and 7. The faculty audience is why "results" is its own slide rather than folded into the walkthrough.
 v1.1, same day: the owner's chunk-0 answers placed verbatim as an OWNER block citing c:787879d6bc35 (store up at 19:51Z); the outline itself unchanged.
 Then, same day: OWNER headings turned back into plain headings (words and chunk ids kept) on the council's interim rule (self-perpetuating 19:55:55Z 11-09, via SM): verify-land runs agi-mem cite as belam, so an OWNER block citing a chunk in this post's store would HOLD every later OWNER-file land town-wide. They return to OWNER once the cite leaf under .46 lands.
+v1.2, 11-10: every mention of the owner's verbal-only item elided or reworded, on the owner's word (c:4b5d4abae03e: "cut"; the item itself kept verbal-only, c:2763ec818294), matching goal:g5.4.3.1's A2 (council alive 04:42:39Z 11-10). No other change.
 <!-- THOUGHT:END -->
