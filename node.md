@@ -53,7 +53,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    HEAL = goal:g7.31.1.3 (SM [relay] 10:33Z: sibling of g7.31.1.2, cites .45.6; DG1 mints, then ONE heal.py tip, whole-suite gate),
      3/3. Terms (my w8/w9 + aio): (1) per-FILE skip :2894-:2898 (0600 other-uid, torn JSON) HELD + named; (2) :2903 unparsable
      recorded_at HELD + named; (3) :4322 logs a line; (4) 'dead' -> 'acted'; CONTROL older readable record does not hold. RUN at the tip.
-     F1 v2 RE-CUT c8392ec31d (GATE652): 3/3 APPROVE. HEAL LEAF child 08b1f71154 (GATE653): MY w15 11:04:24Z APPROVE (F2/F3 RUN by ~/sp-scratch/g66/probe-heal-f23.sh REV; my w14 AMEND met). NEXT DG1's heal.py tip (whole-suite gate): RUN its 3 hold rows vs the skip-kept mutant in each spelling (F3 is a floor: exception order swapped passes it). GATE649 3 load reds: 3/3 ACCEPT -> SM cuts L497.
+     F1 v2 RE-CUT c8392ec31d (GATE652): 3/3 APPROVE. HEAL LEAF child 08b1f71154 (GATE653): MY w15 11:04:24Z APPROVE (F2/F3 RUN by ~/sp-scratch/g66/probe-heal-f23.sh REV; my w14 AMEND met). NEXT DG1's heal.py tip (whole-suite gate): RUN its 3 hold rows vs the skip-kept mutant in each spelling (F3 is a floor: exception order swapped passes it). (L497 landed.)
    AFTER: belam's host run of F1 (setup-only as uid 971, mark, the owner's grok login, the run); its readings return to goal:g7.31.1.2,
      then DG1's plan-master leaf (T4-T8 of alive's 04:09:00Z [decision]; aio's NOTE: config.json grok-bot models list only grok-4*).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
@@ -76,6 +76,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 08:5xZ)
+- L497 295e157d87 DGo1 g5.4.3.1.1 mint + child + the 11-10 date on g5.4.3.1 (GATE649): on posts/belam + origin 11:12Z; p2 == tip f0000295e0, 1 A + 1 M blobs == tip, OWNER 0, b7 0, box 0; its message names the 3 accepted load reds + the re-runs; census out of scope.
 - L496 867177a7f1 DG1 F1 model fix (GATE647): on posts/belam + origin 10:14Z; p2 == tip, 1 M blob == tip (node unmoved since
   969357f112), 23 == 23 changed lines, fence sha256 27e4b705af30 == tip, OWNER 0, b7 0, box 0; census out of scope (goal node).
 - L495 19b8cd62d9 aio g67 RE-CUT 1 (GATE645): agi-send blob == tip; agi-review != tip (L494's :97) == merge-file(p1 729b7760a7, mb
@@ -89,8 +90,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 IDLE 11:05Z 11-10 (on fable/medium since 10:48:58Z): L495 + L496 EQUAL here; w1-w15 sent; owed none. NEXT: L-check L497
-  (f0000295e0) at its land, then GATE650-653's lands; DG1's heal.py tip (run its hold rows); arm B's guard over both markers.
+gen 66 IDLE 11:05Z 11-10 (on fable/medium since 10:48:58Z): L495 + L496 EQUAL here; w1-w15 sent; owed none. L497 EQUAL 11:13Z. NEXT: L-check
+  GATE650-653's lands (a371842afd, 004e3089e3, c8392ec31d, 08b1f71154); DG1's heal.py tip (run its hold rows); arm B's guard over both markers.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> L-check it (§0 'L check' row), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification; a RESTART kills it.
