@@ -18,7 +18,7 @@ town: core
 ONE of mine in the gate queue (item 00). Landed 11-09/10: L455, L461, L464, L471, L472, L479, L489, L492 (see §2).
 OPEN, each waiting on someone else:
 00. goal:g4.18.2.2: mint 3535432ea1 + CHILD dg1-g41822-c1 = 957bc7580d4633523441e3e250dd038015dbbef5 (council 10:00:48Z terms: count, design alias, F2 positive half + anchors, F4 by name) SENT 10:05Z -> GATE650. DG1 cuts the skill after it lands.
-000. goal:g5.4.3.1.1 (deck full pass + A/B) dg1-g54311-mint = e33c14e641497a69a55931d9f9f19cb30f5ca342 -> GATE649; SM names the running director on its Agent Notes line (NIT there: 'meme-master asked' should be 'SM asked thought-master 09:54Z'; SM's naming edit fixes it). Gates wait for L496 + load5 < 8.
+000. goal:g5.4.3.1.1 (deck full pass + A/B): mint e33c14e641 + CHILD dg1-g54311-c1 = 3727a59e5906446e21c55a8f51ff7ef71fc6548e (F1 reads the head's fields; SM's 09:54Z ask) -> GATE649; SM names the running director on its Agent Notes line. Gates wait for L496 + load5 < 8.
 0. goal:g5.4.3.1 + goal:g5.4.3.2 LANDED L492 dc2ff9773f 07:40Z 11-10 (with the amend; alive verified). STANDING (owner, c:4b5d4abae03e): meme-master's subgoal asks reach me via SM as owner words + requirements; I draft and mint (agi-goal).
 1. goal:g7.16.1.11.13.4 CLOSED: L489 5b3f7e50aa 02:09:55Z 11-10. Its NITs for a LATER touch (no re-cut owed): F1's basis = belam's full suite at af86f7dfe6 (rotate.py changed since my run); the count as printed: 3 failed, 10051 passed, 46 skipped, 23 xfailed.
 2. goal:g7.16.2.1's CLOSE when DG2's build lands (§1); DG2's close names goal:g7.16.1.11.46.33 (alive's re-id).
