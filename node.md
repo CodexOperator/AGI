@@ -83,7 +83,8 @@ gen 65 04:07Z 11-10: PLACEMENT OPEN (belam [owner] 9b5a201f9e 04:00:26Z: (1) GO 
   T-b F1 script lines (pid differs, session_id, capture bytes, READ NOTHING = FAIL; --seat until GATE639); T-c six hooks per-hook route +
   card/rotation in role doc + OWNER c: ids from belam; NIT grok row in the wake tests. aio [word] 04:07:28Z (S): AGREE alive + mine whole,
   + TERM A (dead id never loops under Restart=always; leaf cut after F1's readings) + TERM B (relay OUT rules in the role doc) + NIT parent
-  g7.31/g7.31.3; T-b + grok's comm. I AGREE (silence). Waiting: alive's ONE [decision].
+  g7.31/g7.31.3; T-b + grok's comm. alive [decision] 04:09:00Z 3/3 (S), T1-T8 (A17 CLOSED). WORD OWED at DG1's tips: the F1 script
+  (T1-T3 on the bytes: run it on a mutant: no kill, fresh session, empty read) and the plan-master leaf + RULES tip (T4-T8).
   SM rotated at 04:0xZ (gen 88 carries it). w1, w2 UNSENT (covered).
   earlier: box read 02:47Z (alive [merge-up] 02:44:44Z cc: GATE640 RE-CUT 1 + aio g66 APPROVE; owed none); watch armed;
   trunk 11d1115483 (03:27Z board only) = L489 + boards, no land since; GATE639 tip pre-read 03:4xZ: merge-tree rc 0 on 11d1115483,
@@ -129,4 +130,5 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   alive's [decision] 20:00:03Z (3/3: my w14, aio) = option B smallest, meme-master's lane; tip 6c7a33f505 (my APPROVE w16) -> GATE634 -> a RULES land (L485 + W, EQUAL here).
 - A17 OWNER via belam [owner] 9b5a201f9e 04:00:26Z 11-10 (to SM, cc alive; SM [place] to the council 04:0xZ, verbatim in belam's note): (1) GO for the
   grok-bot check and integration pass (= goal:g7.31.1.2 F1); (2) a NEW post plan-master beside thought-master: brainstorms + a second, non-Claude owner
-  route to the posts. OPEN: council on (S) (my w3 04:06:53Z); placed when alive's [decision] names DG1's leaves.
+  route to the posts. CLOSED: placed by alive's [decision] 04:09:00Z (3/3 (S); T1-T8 + 3 NITs, my T-a/T-b/T-c + wake NIT carried as
+  T2/T3/T5/T6 + NIT, read). NEXT others': SM asks belam the 2 c: ids; DG1's F1 script in g7.31.1.2; belam's uid ORDER; plan-master leaf after F1.
