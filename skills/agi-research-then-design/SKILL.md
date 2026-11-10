@@ -59,26 +59,37 @@ Lines the target marks as the owner's must be byte-identical before and after th
 | target | owner-line marker | one line? |
 |---|---|---|
 | `.tex` (a deck) | `% OWNER c:<12 hex>` (or `c:pending-tap`) on the same physical line; a spoken line in `\note` opens `OWNER (c:...)` | yes: an owner sentence stays on one physical line |
-| a graph node (`.md`) | the `## OWNER` block, and the `[... store; not an OWNER heading ...]` interim quote block | no: compare the whole block, from its heading to the next `## ` |
-| anything else | the brief names its marker before the first launch; none named = the target holds no owner lines | the brief says |
+| a graph node (`.md`) | the `## OWNER` block, and the `[... store; not an OWNER heading ...]` interim quote block | no: the guard's BLOCK mode (marker `## OWNER`) compares the block whole, from its heading to the next `## ` |
+| anything else | the brief names its marker before the first launch, or says the target holds no owner lines (the guard's explicit `none`) | the brief says |
 
 'The owner writes every final line' is goal:g5.4.3's own rule for the class paper, not every target's: a target's
 brief says whether it has owner lines at all.
+A target with more than one marker (a deck: the on-screen `% OWNER c:` and the spoken `OWNER (c:`) is guarded once
+per marker, or once by their common word (`OWNER`); every run must PASS. A guard on one marker alone passes a patch
+that edits the other's lines (§7 runs that mutant).
 ```bash
-# guard TARGET PATCH MARKER [owner]: applies PATCH to a COPY; PASS only when every MARKER line is byte-identical.
-# 'owner' = the brief says TARGET holds owner lines, so 0 marked lines before the patch is READ NOTHING (refused).
-guard() { t=$1 p=$2 m=$3 e=${4-}; w=$(mktemp -d) || return 2
+# guard TARGET PATCH MARKER [none]: applies PATCH to a COPY; PASS only when every MARKER line is byte-identical.
+# A MARKER opening '## ' (a node's '## OWNER') is BLOCK mode: the block from that heading line to the next '## ' is compared whole.
+# Closed by default: 0 MARKER lines in TARGET is READ NOTHING (rc 2) unless the 4th argument is 'none' (the brief says
+# TARGET holds no owner lines). An empty or missing PATCH, or an empty MARKER, is READ NOTHING (rc 2).
+guard() { t=$1 p=$2 m=$3 e=${4-}
+  [ -n "$m" ] || { echo "GUARD: READ NOTHING (no marker named)"; return 2; }
+  [ -s "$p" ] || { echo "GUARD: READ NOTHING (patch $p missing or empty: a pass that wrote nothing)"; return 2; }
+  sel() { case $m in '## '*) awk -v h="$m" '$0==h{f=1;print;next} f&&/^## /{f=0} f' "$1";; *) grep -F -- "$m" "$1";; esac; }
+  w=$(mktemp -d) || return 2
   cp -- "$t" "$w/pre" && cp -- "$t" "$w/post" || { echo "GUARD: READ NOTHING (cannot copy $t)"; return 2; }
-  b=$(grep -cF -- "$m" "$w/pre"); [ "$e" = owner ] && [ "$b" = 0 ] && { echo "GUARD: READ NOTHING (0 '$m' lines in $t; the brief says it holds owner lines)"; return 2; }
+  b=$(sel "$w/pre" | wc -l); [ "$b" = 0 ] && [ "$e" != none ] && { echo "GUARD: READ NOTHING (0 '$m' lines in $t; pass 'none' only when the brief says it holds no owner lines)"; return 2; }
   patch -s --dry-run "$w/post" < "$p" >/dev/null 2>&1 || { echo "GUARD: REFUSED (the patch does not apply)"; return 1; }
   patch -s "$w/post" < "$p" >/dev/null 2>&1
-  if diff <(grep -F -- "$m" "$w/pre") <(grep -F -- "$m" "$w/post") >/dev/null; then
+  if diff <(sel "$w/pre") <(sel "$w/post") >/dev/null; then
     echo "GUARD: PASS ($b marked line(s) byte-identical); apply: cp $w/post $t"; else
-    echo "GUARD: REFUSED (a marked line changed):"; diff <(grep -F -- "$m" "$w/pre") <(grep -F -- "$m" "$w/post") | sed 's/^/  /'; return 1; fi; }
+    echo "GUARD: REFUSED (a marked line changed):"; diff <(sel "$w/pre") <(sel "$w/post") | sed 's/^/  /'; return 1; fi; }
 ```
-- The grep matches every line holding the marker, an agent line that QUOTES it too: the compared set is a superset,
-  which can only over-refuse. A multi-line block marker (a node's `## OWNER`) is compared whole: extract the block
-  with `awk` before and after, never one grep line.
+- The line mode matches every line holding the marker, an agent line that QUOTES it too: the compared set is a superset,
+  which can only over-refuse. The block mode compares every block under that exact heading line, blank lines included.
+- FLOORS (alive, named): the guard compares the marked SET, not places: a marked line moved whole, with an edited
+  unmarked copy left where it stood, reads PASS. The interim `[... store; not an OWNER heading ...]` quote block has no
+  mode yet: compare it by hand. Every run leaves its `mktemp -d` dir (the PASS line names it); the coordinator clears its own.
 - A patch that adds or drops a marked line is refused as well (the set changed): the owner writes those lines.
 
 ## 6 · Apply and report
@@ -88,23 +99,35 @@ agents' own replies), every file that arrived late, and each guard verdict with 
 
 ## 7 · Worked example (meme-master, goal:g5.4.3.1, the class presentation deck, 11-10)
 Declared and run: 8 research kids (alias sonnet) + 4 design passes (alias fable) + 1 one-line version probe = 13 Agent
-calls. Tokens: research 65,458 to 111,243 each, 698,317 in all; design 108,669 to 289,299 each, 845,293 in all;
+calls. Tokens: research 65,458 to 111,243 each, 697,817 in all; design 108,669 to 289,299 each, 845,293 in all;
 the probe 40,464. Wall time: research about 80 to 220 s each, design 330 to 1,350 s each. Two inputs reached a running
 design pass by follow-up message (one research file, the owner's decisions twice). Guard: 4 of 4 patches PASS, the
 marked-line set growing 16 -> 31 -> 66 -> 70 as the owner wrote lines between passes. Gap check: not run mechanically
 that night (each kid's reply named its file): §3 is new practice. The prompts, owner lines and private paths elided:
 `skills/agi-research-then-design/example-2026-11-10.md`.
 
-The guard's mutant, RUN (a scratch dir; one owner line, two one-line patches; the mutant edits the marked line):
+The guard's mutants, RUN (a scratch dir; a deck with one on-screen and one spoken owner line; one-line patches):
 ```bash
 d=$(mktemp -d); cd "$d"
-printf '%s\n' '\begin{frame}{Why}' 'The graph keeps every thought. % OWNER c:000000000000' 'Agents add one node a turn.' '\end{frame}' > deck.tex
+printf '%s\n' '\begin{frame}{Why}' 'The graph keeps every thought. % OWNER c:000000000000' 'Agents add one node a turn.' \
+  '\note{OWNER (c:000000000000) We started with one file.}' '\end{frame}' > deck.tex
 cp deck.tex a.tex; sed -i 's/one node a turn/one node per turn/' a.tex; diff -u deck.tex a.tex > ok.patch
 cp deck.tex b.tex; sed -i 's/every thought/each thought/' b.tex; diff -u deck.tex b.tex > mutant.patch
-printf 'no marker here\n' > empty.tex
-guard deck.tex ok.patch '% OWNER c:' owner       # GUARD: PASS (1 marked line(s) byte-identical) ...   rc 0
-guard deck.tex mutant.patch '% OWNER c:' owner   # GUARD: REFUSED (a marked line changed): ...          rc 1
-guard empty.tex ok.patch '% OWNER c:' owner      # GUARD: READ NOTHING (0 '% OWNER c:' lines ...)       rc 2
+cp deck.tex c.tex; sed -i 's/one file/a single file/' c.tex; diff -u deck.tex c.tex > note.patch
+printf 'no marker here\n' > empty.tex; : > nothing.patch
+printf '%s\n' '## OWNER' '> keep every thought.' '' '## Body' 'agent text' > node.md
+cp node.md n.md; sed -i 's/every thought/each thought/' n.md; diff -u node.md n.md > block.patch
+cp empty.tex e.tex; sed -i 's/here/at all/' e.tex; diff -u empty.tex e.tex > none.patch
+guard deck.tex ok.patch OWNER                  # GUARD: PASS (2 marked line(s) byte-identical) ...        rc 0
+guard deck.tex mutant.patch OWNER              # GUARD: REFUSED (a marked line changed): ...               rc 1
+guard deck.tex note.patch OWNER                # GUARD: REFUSED (a marked line changed): the spoken line rc 1
+guard deck.tex note.patch '% OWNER c:'         # GUARD: PASS: the one-marker hole; never guard a deck so   rc 0
+guard deck.tex note.patch 'OWNER (c:'          # GUARD: REFUSED: once per marker, every run must PASS      rc 1
+guard empty.tex ok.patch OWNER                 # GUARD: READ NOTHING (0 'OWNER' lines ...): closed default rc 2
+guard empty.tex none.patch OWNER none          # GUARD: PASS (0 marked line(s) ...): the brief said none   rc 0
+guard deck.tex nothing.patch OWNER             # GUARD: READ NOTHING (patch ... missing or empty ...)      rc 2
+guard deck.tex absent.patch OWNER              # GUARD: READ NOTHING (patch ... missing or empty ...)      rc 2
+guard node.md block.patch '## OWNER'           # BLOCK mode: REFUSED (the block body changed)              rc 1
 ```
 
 ## 8 · Never
