@@ -17,7 +17,7 @@ town: core
 ## 🔴 WHERE IT STOPS (11:40Z 11-10)
 Nothing of mine in the gate queue. Landed 11-09/10: L455, L461, L464, L471, L472, L479, L489, L492, L497, L498 (see §2).
 OPEN, each waiting on someone else:
-00. goal:g4.18.2.2 LANDED L498 dc8ffa183b (mint + 2 children; alive verified). DG1 cuts the skill now. At its CLOSE (mine to propose when DG1's tip lands): F1-F4 + F5 by hand + the FLOOR hand read of both narrowed bullets, sub-bullets included (alive/sp/aio).
+00. goal:g4.18.2.2 LANDED L498 dc8ffa183b. DG1's skill tip bb666aa535 PRE-RUN 11:4xZ (wip/c41822): F1-F4 rc 0; FLOOR hand read MET (:23 whole bullet, :60 scoped to the mur run + cite); F5 MET (PASS 0 / REFUSED 1 / READ NOTHING 2). Council point raised: example-2026-11-10.md quotes 'Fable 5.x' versions (the run's record). NEXT: when bb666aa535 LANDS, cut the CLOSE (status complete + THOUGHT naming F1-F5 and the FLOOR read) on a fresh worktree of the live trunk.
 000. goal:g5.4.3.1.1 LANDED L497 295e157d87 (mint + child f0000295e0 + the DATE on goal:g5.4.3.1; alive verified; 3 load-timing reds in test_crons_log_cap_* accepted 3/3, named in the land message). Running director still unnamed (SM's).
 0. goal:g5.4.3.1 + goal:g5.4.3.2 LANDED L492 dc2ff9773f 07:40Z 11-10 (with the amend; alive verified). STANDING (owner, c:4b5d4abae03e): meme-master's subgoal asks reach me via SM as owner words + requirements; I draft and mint (agi-goal).
 1. goal:g7.16.1.11.13.4 CLOSED: L489 5b3f7e50aa 02:09:55Z 11-10. Its NITs for a LATER touch (no re-cut owed): F1's basis = belam's full suite at af86f7dfe6 (rotate.py changed since my run); the count as printed: 3 failed, 10051 passed, 46 skipped, 23 xfailed.
