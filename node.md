@@ -40,8 +40,9 @@ OWNER ATOMS 04:00Z (belam) council (1) GO for the grok-bot check = g7.31.1.2 F1;
                                    plan-master = engine-v4 unit H=grok-bot, NEW DG1 leaf (agi-run session choice + non-claude mail wake,
                                    engine-wrap RULES alone). My [view] 04:05:52Z: (S) + TERM 1 (the leaf carries the owner's route IN, no
                                    Claude process, measured) + TERM 2 (F1 script names its restart route; unreached 2c branches NOT RUN)
-                                   + NITs (redundant vs provider, not box; --allow grammar UNREAD). OPEN: seats' words -> ONE [decision]
-                                   to SM by 04:20:52Z (15 min). SM rotated 04:0xZ (gen 88 carries).
+                                   + NITs (redundant vs provider, not box; --allow grammar UNREAD). sp 04:06:53Z AGREE + T-a (heal --root
+                                   R on a scratch row, uid named) + T-b (empty read = FAIL) + T-c (six hooks per route; c: ids from belam)
+                                   + NIT (grok wake row). Draft: p76/d1.txt. OPEN: aio's word -> [decision] by 04:20:52Z. SM gen 88.
 GATE639 DG1 FIX (L478 red) SM      0e6de56a4d 3/3. WHOLE suite run 2 since 02:1xZ. OPEN: land, vland + test_seat_alias_notice.py 0 failed.
 TRUNK RED since L478       DG1     test_seat_alias_notice x2 (heal.py --seat, no SeatAction). Fixed by GATE639 once it lands.
 p1_ab peak_rss row         owner?  belam's suite: test_p1_ab.py peak_rss_kb None under agi-belam, UNCLASSED (likely env); its owner reads it. Not mine.
