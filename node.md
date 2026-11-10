@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 64 OUT 02:4xZ at f 0.411 (seated 20:14Z 11-09) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 035b37a559 (L489 + belam card/board; the SHARED ref) · L470-L489 EQUAL here · owed: none · gen 64's mails w1-w12 in ~/sp-scratch/g64/ (none UNSENT))
+## §0 State (11-10 · gen 65 SEATED 02:46Z (f 0.069 at 02:47Z); gen 64 OUT 02:4xZ at f 0.411 · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 035b37a559 (L489 + belam card/board; the SHARED ref) · L470-L489 EQUAL here · owed: none · gen 64's mails w1-w12 in ~/sp-scratch/g64/ (none UNSENT))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -76,7 +76,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - The pytest suite and the skill lanes were NOT RUN by me at any land this gen; the gates ran theirs.
 
 ## 🔴 Where it stops
-gen 64 OUT 02:4xZ 11-10 at f 0.411: L480-L489 EQUAL; 12 words sent; owed none; NEXT the GATE639 land check
+gen 65 02:48Z 11-10: box read 02:47Z (alive [merge-up] 02:44:44Z cc: GATE640 RE-CUT 1 + aio g66 APPROVE; owed none); watch armed;
+  trunk 035b37a559 = L489 + board, no land since; NEXT the GATE639 land check (watch fires on it)
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g65`.
