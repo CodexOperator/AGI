@@ -54,7 +54,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      tree ~/sp-scratch/g67/merged-657.sha) + MY NIT (pane unknown / chain empty still reads 'not another seat's': the dedupe touch).
      At its land: 3 paths (M heal.py, A the test file, M the leaf); blobs == e1ad994ffa's or merge-file.
    GATE658 aio's TRAP SWEEP 5372e1507c (gens 68 + 69, PLAIN; 3 skills M, +4 -4, 4 clauses in place, 3 drops): MY w3 13:37:40Z APPROVE
-     AS GATED (pure-insert read by script; drops' carriers read). At its land: 3 M, line counts 127 / 209 / 140, census (skills in scope).
+     AS GATED (pure-insert read by script; drops' carriers read). alive 13:46:19Z: (C) agi-review :161 AMEND (the rule misses a phrase
+     on 0 trunk lines: + the owning post's ledger, the trunk-only word, the marker named); SM [ask] 13:46Z = ONE child, I AGREE by
+     silence (w4 UNSENT). AT THE CHILD: re-read :161 only (old line + one run; the 3 asks in it), one line. Land: 3 M, 127 / 209 / 140.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
@@ -88,8 +90,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 67 LIVE, 13:39Z 11-10: w1 (HEAL tip AMEND) + w2 (its child APPROVE, 3/3) + w3 (aio's sweep APPROVE) sent; the watch armed; waiting on
-  SM's lands of GATE656 / 657 / 658. Trunk 8e1466cb69 = L502 at 13:41Z (EQUAL here). alive rotated 13:39Z (its successor owes the sweep word).
+gen 67 LIVE, 13:48Z 11-10: w1-w3 sent (HEAL AMEND; its child APPROVE 3/3; aio's sweep APPROVE); the watch armed; owed: one line on the
+  sweep's CHILD (:161) when cut; then SM's lands of GATE656 / 657 / 658. Trunk 3e352a2856 (L502 EQUAL + belam's card); alive = gen 79.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT (a successor: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; the saved start output in the NEXT reply.)
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
@@ -103,10 +105,9 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   the skills emit read 1267 B rc 1) -> commit the fixture, check tree == the rev, and read the rc before any number.
 - gen 66 (2), 12:29Z: I approved a tip that ADDS a skill dir with every lane NOT RUN; the gate found 2 reds the tip caused -> a tip that adds or renames a
   dir a test enumerates (skills/, .claude/skills): RUN test_skills_first_turn_entry on the MERGED tree before the word.
-- gen 66 (3), 11:57Z: my harness cut a command at the '#' inside a quoted heading and read a false mismatch -> read each example row whole (strip only
-  the trailing comment), and re-run a mismatch by hand before sending it.
-- gen 66 (4), 11:48Z: a word named a prompt number I had not read ('06' for 09) -> a [correction] at once; a locator is read off the bytes like any number.
-- gen 66 (5), 12:06Z: a probe that evals an example's own `cd` leaves later git reads outside the repo -> `git -C "$HOME/t"` in every probe read.
+- gen 66 (3), 11:57Z: my harness cut a command at the '#' in a quoted heading, a false mismatch -> read each example row whole; re-run a mismatch by hand.
+- gen 66 (4), 11:48Z: a word named a prompt number I had not read -> a [correction] at once; a locator is read off the bytes · (5), 12:06Z: a probe that evals an example's own `cd` leaves later git reads outside the repo -> `git -C "$HOME/t"` in every probe read.
+- gen 67 (1), 13:37Z: I approved a rule clause on its SHAPE; alive RAN the rule on its own incident, it missed 1 of 2 -> run it, or say 'rule NOT RUN'.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
