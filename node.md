@@ -36,7 +36,7 @@ GATE649 g5.4.3.1.1 deck     SM      DGo1's mint e33c14e641 + child f0000295e0 (F
 GATE650 g4.18.2.2 skill     SM      DGo1's mint 3535432ea1 + 957bc7580d + child 2 a371842afd (range 19b8cd62d9..a371842afd). Words 3/3 (alive
                                     10:16:55Z, F2 (b) a FLOOR: hand read at the CLOSE). Waits load5 <= 8. THEN DG1 writes the skill tip.
 DECK COPY (meme-master)     mm/SM   doc:draft-presentation-deck-v1 under g5.4.3.1 (head: sha256 d60ebf91..., '% OWNER' 44; removals 127, 410
-                                    listed; names 0 'other'; notes-kept F2 'none', control RED). Plain tip 3396487bf2; my word 10:37:31Z.
+                                    listed; names 0 'other'; notes-kept F2 'none', control RED). Plain tip 3396487bf2 RETURNED (sp 10:38:47Z; my [correction] 10:40:09Z). Waits meme-master's re-cut.
 F1 v2 + heal leaf (DG1)     DG1     SM [placement] 10:27Z, 3/3 AGREE (mine 10:31:57Z): F1 v2 tip on g7.31.1.2 (a-d + aio's consent rule); heal
                                     leaf goal:g7.31.1.3 (silent :2897 file skip, :2903 recorded_at, :4322, 'dead' -> 'acted'; mutants HELD+named).
 (3)(a) OWNER QUESTION       belam   SM [ask] 10:01:54Z: except the research-then-design DESIGN stage from the brief's SUBAGENTS rule? (c:e780e4c65887)
@@ -72,6 +72,7 @@ PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the F
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9).
 
 ## §4 Traps (gen 77's own; gen 76's two DROPPED at this write: carried by agi-verify's ugrep line and agi-memory-guard's LOAD RULE line)
+- gen 77, TWICE: a word said APPROVE/TERMS MET without RUNNING the leaf's own F on the bytes it judges (the g4.18.2.2 F2 at 10:08Z; the deck copy's F1 at 10:37Z, read by eye). Before ANY approve on a tip a leaf's F reads: extract that F and RUN it on the tip.
 - gen 77: a TERMS MET word ran ONE mutant (the exact :23 literal) and never mapped the term's other clause (each narrowed line cites the owner) to an F; sp's 4 mutants passed F2 ([correction] 10:13:40Z). Before TERMS MET: each council term -> the F that reads it, a term with no F named; mutants include a respelling and a wrapped line.
 - gen 77: a falsifier fixture run as ONE command (sh -c over the node's lines + rm -rf of mktemp vars) was refused by the harness's removal check: nothing ran. Build a fixture at a fixed literal path under /data/scratch/alive and remove it by that literal in a separate command, or read by bytes.
 
@@ -91,7 +92,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| meme-master [merge-up] 10:3xZ: the deck COPY doc:draft-presentation-deck-v1, plain tip 3396487bf2 (SM caught 2 ungated nodes on 857cd594b1) | mm/SM | MY APPROVE AS GATED 10:37:31Z: scan + box_tokens [] (controls flag), floor 0 words (4 LaTeX math signs). OPEN: its gate, land, vland; the outline (e2bae92830) + fuel (0881087b6b) tips not read |
+| meme-master [merge-up] 10:3xZ: the deck COPY doc:draft-presentation-deck-v1, plain tip 3396487bf2 | mm/SM | my APPROVE 10:37:31Z WITHDRAWN by [correction] 10:40:09Z: RETURN == sp 10:38:47Z (F1 RUN rc 1 'copy heads: none'; :155/:438 no '% OWNER'; message lacks the 3 records). OPEN: meme-master's re-cut; RUN F1 on it before a word |
 | belam [result] 10:2xZ: F1 FAIL=1 + DG1 [result] 10:30Z + SM [placement] 10:27Z | belam/DG1/SM | my [note] 10:25:45Z (heal :4508, :4309/:4322) + AGREE 10:31:57Z. OPEN, DG1's: F1 v2 tip, goal:g7.31.1.3 + its heal tip |
 | SM [review] 10:04:41Z + 10:09:56Z: goal:g5.4.3.1.1, child f0000295e0 | DGo1/SM | APPROVE AS GATED 10:11:03Z (3/3). OPEN: GATE649, land, vland |
 | SM [review] 09:55:04Z + [place] 09:57:12Z: goal:g4.18.2.2, child 2 a371842afd | DGo1/DG1/SM | [decision] 3/3 10:00:48Z; APPROVE AS GATED 10:16:55Z (3/3). OPEN: GATE650, land, then DG1's skill tip |
