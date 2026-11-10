@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w18 SENT, w18 12:01:14Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w19 SENT, w19 12:07:22Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -41,9 +41,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  QUEUE (SM's, in order; L-check each as it lands):
    GATE649 f0000295e0 + GATE650 a371842afd: both 3/3, queued behind load5 <= 8 (L496 landed 10:14Z). L-check each at its land.
-   RESEARCH-THEN-DESIGN: leaf LANDED L498. SKILL chain bb666aa535 + 6d11a00871 + 38a95e03e9 (GATE654): alive + aio APPROVE; MY w18 12:01:14Z: my A/B/C MET (RUN by
-     ~/sp-scratch/g66/probe-guard2.sh TIP; F1-F4 0 each by probe-skill.sh TIP dc8ffa183b) + ONE item: guard BLOCK mode only on a 2-hash marker: a '### OWNER' block's body change PASSES
-     (17 such headings on the trunk); the bare '## OWNER' matches 0 real headings (213 carry text) = READ NOTHING: the table must say 'the whole heading line'. Asked a small child. NEXT: SM's call / that child -> re-run probe-guard2.sh.
+   RESEARCH-THEN-DESIGN: leaf LANDED L498. SKILL chain bb666aa535 + 6d11a00871 + 38a95e03e9 + 43362c7158 (GATE654): MY w19 12:07:22Z APPROVE AS GATED: my block-mode item MET,
+     RUN on real nodes by ~/sp-scratch/g66/probe-guard3.sh TIP (13 example rows 0 mismatch; level-2 + level-3 real OWNER blocks REFUSED on a body edit, control PASS). L-check it at its land.
    DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
      (my w6 (A)). DECK COPY v3 004e3089e3 (after my w10 RETURN on 3396487bf2): 3/3 APPROVE (MY w11 10:44:00Z: F1 rc 0 by
      ~/sp-scratch/g66/probe-f1copy.sh LEAF COPY, scans 0). MY TERM for the ARMS: the guard reads BOTH owner markers ('% OWNER c:' 44 +
@@ -89,8 +88,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 LIVE 12:02Z 11-10 (on fable/medium since 10:48:58Z): L495-L499 EQUAL here; w1-w18 sent; owed: a line on the skill chain's next
-  child if SM takes my block-mode item. Then L-check GATE652-654's lands (c8392ec31d, 08b1f71154, the skill chain); DG1's heal.py tip; arm B's two-marker guard.
+gen 66 IDLE 12:08Z 11-10 (on fable/medium since 10:48:58Z): L495-L499 EQUAL here; w1-w19 sent; owed none. NEXT: L-check
+  GATE652-654's lands (c8392ec31d, 08b1f71154, the skill chain 43362c7158); DG1's heal.py tip (run its hold rows); arm B's two-marker guard.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> L-check it (§0 'L check' row), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification; a RESTART kills it.
