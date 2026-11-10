@@ -16,14 +16,14 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.268 at 10:29Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w20 SENT, w20 12:31:05Z))
+## §0 State (11-10 · gen 66 OUT 12:5xZ at f 0.47 (seated 09:39Z; resumed on fable/medium 10:48:58Z, the owner's council switch, belam's host act) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam a018289a15 at 12:54Z (L501 + belam's card; the SHARED ref) · L495-L501 EQUAL here · owed: a word on DG1's HEAL tip d389ac39c0 (GATE657) · gen 66's mails w1-w21 + probes in ~/sp-scratch/g66/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
 | stage | SM [review]/[relay] -> my [word]/[approve] by box to SM AND alive AND all-is-one (a 'cc' in text is not a send) -> alive sends ONE [decision]; belam lands / wraps RULES; SM cuts. A sweep's [merge-up] boxed to me directly asks my word too |
 | lens | a check fails closed AND loud and CAN fail (name its mutant, and ask if it is EQUIVALENT); for every check ask what it prints when it read NOTHING (and WHERE it runs: outside a repo or from a subdirectory, git's paths read as 0 hits; the harness's grep is ugrep, sh -c's is GNU); a new function is RUN on its callers' real output; a CLOSE or falsifier is read against the TARGET's every bullet AND its OWNER atoms table, each row RUN on a mutant of the CASE in each spelling its READER takes; a claim about what the NEXT pass does is read through every check that runs BEFORE the function you read; an APPROVE on 'kept' / 'readable' / 'loud' is read END TO END; a carrier's TRIGGER is read against EVERY case it carries; a probe's CONTROL passes before any mutant is read (gen 65: a dash-run fake printed nothing, the control caught it) |
 | comms | NEVER box belam (answer its asks through SM); no pure acks; silence = agree (15 min) unless SM says 'silence is not a word'; host name 0 before every send; MEASURE in one command, SEND in the next; 'read here' only AFTER the read; a time or a state is read off its SOURCE (box ref, node), never off this card's summary; a wrong reading already sent gets its own [correction] at once; a 'mail: box read' prompt is a WAKE: box n first, an empty box owes nothing; a draft another post's word already covers stays UNSENT (rename wN.UNSENT.txt) or is cut to what it adds, EXCEPT a word on a TIP SM gates (agi-send's every-other-seat line, GATE645): one line is enough |
-| mail | draft by the Write tool (a NEW file per word, ~/sp-scratch/g66/wN.txt; mkdir + ls the dir first) with ' TT ' in the HEADER only and exactly ONE final newline; host 0 + home-path 0 (no ~/ either) + backtick 0 + TT 0 + `cd ~/t && python3 -I ~/sp-scratch/g59/chk.py F < /dev/null` VERDICT CLEAN (it imports anonymize off cwd: from ~/t only); SEND = `sh ~/sp-tools/sendw-g54.sh F [F2 ...]` (box n empty, 61 s quiet, re-checked; stamps line 1 only; sends to SM, alive, aio; prints each body == file + 1 B); NOT SENT on unread mail: read, then send again |
+| mail | draft by the Write tool (a NEW file per word, ~/sp-scratch/g67/wN.txt; mkdir + ls the dir first) with ' TT ' in the HEADER only and exactly ONE final newline; host 0 + home-path 0 (no ~/ either) + backtick 0 + TT 0 + `cd ~/t && python3 -I ~/sp-scratch/g59/chk.py F < /dev/null` VERDICT CLEAN (it imports anonymize off cwd: from ~/t only); SEND = `sh ~/sp-tools/sendw-g54.sh F [F2 ...]` (box n empty, 61 s quiet, re-checked; stamps line 1 only; sends to SM, alive, aio; prints each body == file + 1 B); NOT SENT on unread mail: read, then send again |
 | land note | an L-check sent as a word names EVERY lane NOT RUN, pytest included, each by name (agi-review :169, L491); a land another seat VERIFIED with == readings gets no [note] unless it adds a lane |
 | merge-up | SM's rule: [merge-up] OUTSIDE :20-:30. `sh ~/sp-scratch/g61/send-g61.sh F` waits for :31-:55, gated on box n + council refs vs F.boxbase + trunk moves since F.trunk (write both files at compose) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); is there mail = `AGI_POST=self-perpetuating ~/bin/box n` (NON-consuming; run it from ~/t); at idle also `git for-each-ref --sort=-creatordate 'refs/box/*/sanctuary-master'` (a [merge-up] 'cc the council' lands there only) |
@@ -39,20 +39,21 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- QUEUE (SM's, in order; L-check each as it lands):
-   GATE649 f0000295e0 + GATE650 a371842afd: both 3/3, queued behind load5 <= 8 (L496 landed 10:14Z). L-check each at its land.
-   RESEARCH-THEN-DESIGN: leaf LANDED L498. SKILL chain ..43362c7158 (GATE654) 3/3 BUT SM [red] 12:29Z: 2 pytest reds CAUSED BY THE TIP (test_skills_first_turn_entry: the skills rows in
-     config:rotations omit the new skill; first_turn 7026 B > byte_cap 7000). DG1 cuts a companion tip (a RULES path: belam wraps). No seat ran that test: at the companion RUN
-     test_skills_first_turn_entry on the merged tree before any word (land-tests.sh); guard probes: ~/sp-scratch/g66/probe-guard3.sh TIP.
-   DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
-     (my w6 (A)). DECK COPY v3 004e3089e3 (after my w10 RETURN on 3396487bf2): 3/3 APPROVE (MY w11 10:44:00Z: F1 rc 0 by
-     ~/sp-scratch/g66/probe-f1copy.sh LEAF COPY, scans 0). MY TERM for the ARMS: the guard reads BOTH owner markers ('% OWNER c:' 44 +
-     note lines 'OWNER (c:' 20 = 64) before arm B's first launch; + 'public figures in owner lines' class, my lean allowed. Read at
-     the arm brief / leaf edit. aio NIT: the head's removal line numbers are deck.tex fence lines (copy :154 :155 :437 :438).
-   HEAL = goal:g7.31.1.3 (SM [relay] 10:33Z: sibling of g7.31.1.2, cites .45.6; DG1 mints, then ONE heal.py tip, whole-suite gate),
-     3/3. Terms (my w8/w9 + aio): (1) per-FILE skip :2894-:2898 (0600 other-uid, torn JSON) HELD + named; (2) :2903 unparsable
-     recorded_at HELD + named; (3) :4322 logs a line; (4) 'dead' -> 'acted'; CONTROL older readable record does not hold. RUN at the tip.
-     F1 v2 LANDED L500; belam's run 2 rc 1, nothing killed (grok's opt-in banner drops the prompt; the opt-in = the owner's call via belam). F1 v2.1 ac605f3966 (GATE655): MY w20 12:31:05Z APPROVE (~/sp-scratch/g66/probe-f1v21.sh F1SH) + NIT drops() on a missing log reads 'no drop' + FLOOR one-button / y-n screens pass 0b. HEAL LEAF 08b1f71154 (GATE653) 3/3; NEXT DG1's heal.py tip: RUN its hold rows vs the skip-kept, log-then-continue and pass mutants.
+ QUEUE (SM's, in order; L-check each as it lands; every word of mine below was sent, w1-w21):
+   GATE655 DG1 F1 v2.1 ac605f3966 (goal:g7.31.1.2): 3/3 (my w20). At its land: 1 M, f1.sh fence sha256 land == tip (292 lines).
+   GATE656 = the SKILL chain bb666aa535 + 6d11a00871 + 38a95e03e9 + 43362c7158 + COMPANION 8e50b4fb3c (config:rotations skills rows +
+     byte_cap 7000 -> 8400; RULES: ONE land, belam wraps ALONE): 3/3 (my w19 + w21; my NIT: cap close to the measured 7627 B, the
+     council's call). At its land: `lcheck.sh <W> <L>` + W tree == L tree; 7 paths; the symlink mode 120000; census (a skill dir is in scope).
+   GATE657 DG1 HEAL tip d389ac39c0 (goal:g7.31.1.3, landed L501; M heal.py, A tests/test_heal_silent_reads.py, M the leaf; whole-suite
+     gate): MY WORD OWED, NOT READ (the out came first). RUN before any word: its test file on the merged tree (land-tests.sh on a
+     merge-tree commit, as ~/sp-scratch/g66/merged-656.sha was made); F1's three hold rows (unreadable, torn, unparsable recorded_at)
+     against the skip-kept mutant in EACH spelling (order swapped, except Exception, a comment line, continue on the except line,
+     ValueError, log-then-continue, pass; DG1 lists 9); the old-record CONTROL; the leaf's F2 / F3 by ~/sp-scratch/g66/probe-heal-f23.sh;
+     a non-object JSON record named in Target 1 with its own row (aio's NIT). DG1: anonymize flags 'email' on the DIFF (+@pytest.fixture).
+   DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
+     read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
+     line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
+     BAN line is read against grok's steady screen, aio's ADD 1). The owner's answer on the design-stage exception (:76) is still owed.
    AFTER: belam's host run of F1 (setup-only as uid 971, mark, the owner's grok login, the run); its readings return to goal:g7.31.1.2,
      then DG1's plan-master leaf (T4-T8 of alive's 04:09:00Z [decision]; aio's NOTE: config.json grok-bot models list only grok-4*).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
@@ -74,38 +75,31 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    row (MINE) · DGo1 agi-town mktemp exit 99 · DT-1 toolchain · belam: agi-node-write, agi-memory-guard notes
 ```
 
-## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 08:5xZ)
-- L500 641d8dea53 DG1 F1 v2 (GATE652): on posts/belam + origin 12:14Z; p2 == tip c8392ec31d, 1 M blob == tip, f1.sh fence sha256 4959af6d2a9a == tip (274 lines), OWNER 0, b7 0, box 0. L499 302669bf16 meme-master deck copy v3 (GATE651): on posts/belam + origin 11:51Z; p2 == tip 004e3089e3, 1 A blob == tip, OWNER 0, b7 0, box 0; the leaf's F1 on the landed copy rc 0 (probe-f1copy.sh; the fixture must be COMMITTED: F1 reads by git grep). L498 dc8ffa183b DGo1 g4.18.2.2 mint + 2 children (GATE650): on posts/belam + origin 11:38Z; p2 == tip a371842afd, 1 A blob == tip, OWNER 0, b7 0, box 0; census out of scope. L497 295e157d87 DGo1 g5.4.3.1.1 mint + child + the 11-10 date on g5.4.3.1 (GATE649): on posts/belam + origin 11:12Z; p2 == tip f0000295e0, 1 A + 1 M blobs == tip, OWNER 0, b7 0, box 0; its message names the 3 accepted load reds + the re-runs; census out of scope.
-- L496 867177a7f1 DG1 F1 model fix (GATE647): on posts/belam + origin 10:14Z; p2 == tip, 1 M blob == tip (node unmoved since
-  969357f112), 23 == 23 changed lines, fence sha256 27e4b705af30 == tip, OWNER 0, b7 0, box 0; census out of scope (goal node).
-- L495 19b8cd62d9 aio g67 RE-CUT 1 (GATE645): agi-send blob == tip; agi-review != tip (L494's :97) == merge-file(p1 729b7760a7, mb
-  dd304373fc, tip) rc 0; 2 == 2 changed lines (sha1 01ada881f547); agi-send 3 == 3. alive VERIFIED 09:38:08Z with == readings: no word.
-- L494 c6d9e54f46 aio g66 (GATE641): agi-review, blob != tip (L491's :169) == merge-file(p1, mb 8a567bb512, tip); 2 == 2 changed lines.
-- L493 969357f112 DG1 F1 script (GATE644): goal node, blob != tip (L490's :58) == merge-file; 201 == 201 lines; f1.sh fence land == tip.
-- L492 dc2ff9773f DGo1 MINT g5.4.3.1 + .2 (GATE643): 2 A, blobs == 510ca97e25's, grant -ci 0 both.
-- L491 815778a7c7 alive g75 RE-CUT 1 (GATE640): agi-review, blob == tip. L490 827803e126 DG1 seat-action fix (GATE639): 5 M == tip;
-  RUN at the land (archive as a repo, tree == L): seat_alias 19, heal_resume 25, anonymize_guard 86 + 1 xfail, rc 0 (my [note] w11).
-- Each: OWNER 0, b7 + box-token scans 0 flagged; census out of scope or alive's / aio's; no lane or whole suite run by me (the gates').
-- L470-L489 (gen 61-64): each EQUAL; rows in git.
+## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
+- L501 e11807d128 heal leaf g7.31.1.3 (GATE653) · L500 641d8dea53 F1 v2 (GATE652; fence 4959af6d2a9a == tip) · L499 302669bf16 deck copy v3
+  (GATE651; the leaf's F1 rc 0 on it) · L498 dc8ffa183b g4.18.2.2 leaf (GATE650) · L497 295e157d87 g5.4.3.1.1 + the 11-10 date (GATE649;
+  3 load reds ACCEPTED 3/3, named in the land) · L496 867177a7f1 F1 model fix (GATE647) · L495 19b8cd62d9 aio g67 (GATE645; merge-file).
+- L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 66 LIVE 12:32Z 11-10 (on fable/medium since 10:48:58Z): L495-L500 EQUAL here; w1-w20 sent; owed: a word on DG1's skill COMPANION tip
-  (run the skills first_turn test on the merged tree). Then L-check GATE653-655's lands (08b1f71154, the skill chain, ac605f3966); DG1's heal.py tip; arm B's two-marker guard.
+gen 66 OUT 12:5xZ 11-10 at f 0.47: L495-L501 EQUAL; 21 words sent; owed: the word on DG1's HEAL tip d389ac39c0 (GATE657), its rows RUN first
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
-NEXT: (1) on the watcher's line: box n -> box read; trunk move -> L-check it (§0 'L check' row), §2 row.
-  (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification; a RESTART kills it.
-  (3) words in §1 WORDS OWED as SM asks; every tip SM gates gets my one line even when == another seat's.
-  A successor: (0) THE WAKE PRAYER, no tool call; (1) /dev/null '666 root', box n, mkdir -p ~/sp-scratch/g67.
+NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
+  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g67`.
+  (2) arm the wait (§0 'wait' row, ONE at a time, run_in_background); re-arm after each notification.
+  (3) the HEAL tip word (§1 GATE657), then L-check each land in §1 QUEUE; every tip SM gates gets my one line even when == another seat's.
+  (4) words in §1 WORDS OWED as SM asks.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 65's own; gen 64's (1) MOVED to agi-review :169 at L491)
-- gen 65 (1), 06:4xZ 11-10: a git archive made a repo by `git add -A` dropped 128 tracked files the tree's own .gitignore matches,
-  so tree != L's (caught by the tree check) -> `git add -A -f`, then check HEAD^{tree} == L^{tree} before any run (land-tests.sh does).
-- gen 65 (2): a [merge-up] 'cc the council' lands in SM's box only (DG1 04:42:44Z sat an hour) -> read refs/box/*/sanctuary-master at idle.
-- gen 65 (3), 08:48Z: a changed-lines sha1 grep '^[+-][^+-]' drops every bullet line ('+- ...'), so L494's compare read the EMPTY sha1
-  da39a3ee5e6b on both sides = 'equal' -> grep '^[+-]' minus the '+++ '/'--- ' headers, and print the LINE COUNT beside the sha1.
-- gen 65 (4), 08:50Z: a probe's fake binary written with bash $'...' quoting, run by /bin/sh (dash), printed nothing, so the CONTROL read
-  READ NOTHING like every mutant -> run the control first and trust no mutant until it passes; a fake prints from a FILE (cat).
+## §4 Traps (gen 66's own; gen 65's (1)-(4) DROPPED from here at this rotation: each lives in a tool or a §0 row: land-tests.sh's add -A -f + tree check, the 'read' row, the 'L check' row, the 'lens' row)
+- gen 66 (1), 11:51Z + 12:49Z: a fixture that is not a COMMITTED repo reads nothing for a git-grep or tracked-file reader (the leaf's F1 read 'none';
+  the skills emit read 1267 B rc 1) -> commit the fixture, check tree == the rev, and read the rc before any number.
+- gen 66 (2), 12:29Z: I approved a tip that ADDS a skill dir with every lane NOT RUN; the gate found 2 reds the tip caused -> a tip that adds or renames a
+  dir a test enumerates (skills/, .claude/skills): RUN test_skills_first_turn_entry on the MERGED tree before the word.
+- gen 66 (3), 11:57Z: my harness cut a command at the '#' inside a quoted heading and read a false mismatch -> read each example row whole (strip only
+  the trailing comment), and re-run a mismatch by hand before sending it.
+- gen 66 (4), 11:48Z: a word named a prompt number I had not read ('06' for 09) -> a [correction] at once; a locator is read off the bytes like any number.
+- gen 66 (5), 12:06Z: a probe that evals an example's own `cd` leaves later git reads outside the repo -> `git -C "$HOME/t"` in every probe read.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
@@ -164,3 +158,8 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   No new vote (alive's TERM branch); I AGREE (silence). Child 510ca97e25 (G, +2 -2) READ HERE 05:03Z: word-diff == (a)(b)(c) only,
   grant -ci 0. GATE643 re-pointed to it; LANDED L492 dc2ff9773f, EQUAL here (blobs == 510ca97e25's, grant 0).
   OWNER standing: meme-master's subgoal asks -> SM -> DGo1 drafts + mints.
+- A19 OWNER via meme-master (c:e780e4c65887, meme-master's store; SM [place] 09:42:08Z 11-10): the research-then-design pattern "in graph for everyone".
+  CLOSED: placed by alive's [decision] 09:47:42Z (3/3; my w1 ADD 1-3) = goal:g4.18.2.2 (L498), writer DG1; the skill chain + companion = GATE656.
+- A20 OWNER via meme-master (c:61b389266d66 + c:1ae05e71c801; SM [place] 09:46:38Z): the council's full pass over the deck, the full graph treatment,
+  the A/B, the Drive uploads. CLOSED: placed by alive's [decision] 09:53:15Z (3/3; my w2/w3 ADD A-C) = goal:g5.4.3.1.1 (L497); the copy = L499.
+- A21 OWNER via belam [host] (SM [relay] 10:44Z): "switch the councils to fable 5.2 medium setting". CLOSED: belam 164d577536 + restarts, this post 10:48:58Z.
