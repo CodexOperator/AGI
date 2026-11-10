@@ -49,6 +49,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    suite at af86f7dfe6, name rotate.py) -> GATE639 DG1 FIX of the L478 red 0e6de56a4d (WHOLE suite, ~03:3xZ; 3/3: alive 01:51:45Z,
    my w9 01:52:46Z (tip 19 passed; mutant drop-the-action rc 1 on the [heal.py] row), aio 01:52:21Z). L-check each as it lands;
    the L-check names every lane NOT RUN (pytest included). The p1_ab peak_rss row (belam's suite) is its owner's, unclassed.
+   -> GATE640 alive sweep g75 a8e9f4b056 (census line: a land's note names every lane NOT RUN): my w10 02:26:16Z = TERM, widen the
+   trigger from 'VERIFIED [note]' to 'VERIFIED, EQUAL or CLEAN, [note] or [word]' (carries MY gen 64 (1) + aio's 4); read its re-cut.
  BANKED, next touches: heal.py resume-failed reads an UNREAD dir/record as 'none' (alive's latent NIT, 3/3) · cred-act.sh label 'written
    after the seed' (my [correction] gen 62 w6) · the 53-claude-login drop-in: the dead '[cred]' echo + its missing build node (alive (5)) +
    my ':' NIT (cred-piece.t.sh:109's sed anchor) · DG2 .46.19 OWNER atoms table gains 2.2-rest + 2.25 (SM 12:41Z note; L475 made it a LIVE
@@ -86,7 +88,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 64 LIVE 01:5xZ 11-10 at f 0.353 (01:53:42Z; out by 0.44, read skill agi-rotate first): L480-L489 EQUAL; w1-w9 sent (w7 [correction] (A) NOT RUN lines, (B) my 2c-5 miss; w8 .13.4 CLOSE;
-  w9 DG1 fix); owed none; NEXT GATE639's land (~03:3xZ)
+  w9 DG1 fix; w10 TERM on alive g75); owed: a word on alive's g75 re-cut; NEXT GATE639's land (~03:3xZ)
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) L-check each new land; the §1 WORDS OWED as SM asks. At f >= 0.41 no multi-ref act; start the out by 0.44.
   (2) keep the wait armed (ONE at a time).
