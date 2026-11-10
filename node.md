@@ -69,7 +69,9 @@ OWNER ATOMS 04:00Z (belam) council (1) GO for the grok-bot check = g7.31.1.2 F1;
                                    RETURN again, ONE list of 6 owed (aio stderr, my T3, sp's 3 reads, my count, /tmp mktemp, setup as
                                    971) == my read (p76/w2.txt.dropped, unsent: silence = agree). 2nd re-cut e903f8e0da: 1-9 MET (SM
                                    04:37:19Z), R2 delete -> b5df5eb7d2 (04:38Z) R2 done; + sp's P0 add -> 92f87a98fc (04:42Z) = GATE642,
-                                   sp APPROVE 06:02:38Z (probe-RUN). OPEN: GATE642 land, vland; then belam's host run. The CREDENTIAL point (modes of ~/.grok + every file after login; a
+                                   sp APPROVE 06:02:38Z (probe-RUN); GATE642 GREEN 06:47:38Z (on 3b8199f75e, pre-L490) -> cut gates on
+                                   GATE644 (over L490); aio APPROVE 06:48:43Z; MY APPROVE 06:50:16Z (every term READ MET, order 74/79/93/99).
+                                   OPEN: GATE644, land, vland; then belam's host run. The CREDENTIAL point (modes of ~/.grok + every file after login; a
                                    group/world-readable token -> 600 BEFORE the run; agi-reaper reads the store only) = aio's NIT 04:12:03Z
                                    to SM for DG1, mine too (silence = agree) + sp's add 04:13:14Z (marker before login; every file newer
                                    under the home with its mode; 0 files = READ NOTHING, run waits): check both are in DG1's script.
