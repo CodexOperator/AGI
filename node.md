@@ -20,7 +20,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - IN SM's HANDS (mine), three tips, each PLAIN, gate order GATE652 -> 653 -> 654:
   (1) dg1-f1-v2 c8392ec31d (~/w40/f3): F1 v2 in goal:g7.31.1.2. 3/3 APPROVE AS GATED (sp 10:57:48Z, alive 10:59:28Z, aio 11:02:37Z). GATE652.
   (2) dg1-g73113-mint 08b1f71154 (~/w40/h1): MINT goal:g7.31.1.3 (heal names every silent seat read). 3/3 APPROVE AS GATED (sp 11:04:24Z, aio 11:07:13Z, alive gen78 11:08:46Z). GATE653.
-  (3) dg1-rtd-skill 6d11a00871 (~/w40/s1), the ONE child of bb666aa535 (council 3/3 AMEND 11:45-11:50Z, items 1-7): guard closed by default ('none'), empty/missing patch READ NOTHING, multi-marker, BLOCK mode, the sum 697,817, the example's elisions. SENT 11:58Z (~/w40/send17); council words owed. GATE654. OPEN to meme-master: the 5 '[elided: owner words and agent text]' spans: restore only if it sends the text.
+  (3) dg1-rtd-skill 38a95e03e9 (~/w40/s1) = bb666aa535 -> 6d11a00871 (the council's items 1-7; alive APPROVE 11:58:06Z, aio + sp owed) -> 38a95e03e9 (example only: the 14 agent spans restored from meme-master's bytes 12:0xZ, 6 owner marks kept). Sent 12:0xZ (~/w40/send18); SM picks: gate 38a95e03e9 as GATE654's tip or land 6d11a00871 then this. GATE654 runs after GATE653.
 - UNSENT: dg1-heal-wip 00194126ca (child of 08b1f71154): the heal tip DRAFT for goal:g7.31.1.3 (heal.py + tests/test_heal_silent_reads.py 12/12). Mutant scripts ~/w40/mutants.py (6 source mutants, RED) + ~/w40/mutants2.py (9 floor spellings of the kept skip, the 3 guard rows RED).
 - Landed this generation: L490 (seat-action fix), L493 (F1 script), L496 (F1_MODEL + model read-back + grok models check).
 - F1 RUN 1 FAILED (belam 10:15Z, grok-4.7): my design error (killed inside heal's 600 s respawned window, heal :4309) + row pid = pane bash (grok quit 10:18:20.378 before the after-join join) + grok's first-run screen dropped the prompt. v2 = (1).
@@ -40,7 +40,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L490 827803e126 heal resume-failed --seat/--post via SeatAction. L493 969357f112 the F1 script. L496 867177a7f1 F1_MODEL + the row's model read back + the grok models check.
 
 ## 🔴 Where it stops
-11-10 11:5xZ: the GATE654 child 6d11a00871 sent; GATE652/653 at SM; dg1-heal-wip unsent (waits on GATE653's land).
+11-10 12:0xZ: GATE654's second child 38a95e03e9 sent; waiting on aio + sp words and SM's pick; GATE652/653 at SM (653 started 11:56:45Z); dg1-heal-wip waits on GATE653's land.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -3 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c: it consumes the whole read).
 Homes: ~/w40/f3 (F1 v2), ~/w40/h1 (g7.31.1.3 + the heal WIP), ~/w40/s1 (the skill), ~/w40/send* + msg* (sent texts), ~/w41/draft (skill drafts), ~/w38-w39 (older lanes, branches not droppable by this uid: packed-refs is not writable).
 
@@ -72,7 +72,7 @@ Nothing banked by me.
 | grid_sync misses runs on the grid lock: measure, then propose (SM 11-05) | SM | ACT 1 CLOSED; ACT 2 waits on N = 5 holder lines |
 | "you are go for grok-bot check and integration pass I can log in as needed/when needed" (owner 11-10, c:175d1f09df76) | owner via belam/SM | IN PROGRESS: run 1 FAILED (readings in the leaf); F1 v2 c8392ec31d 3/3 at GATE652; run 2 = belam's host act after the land |
 | plan-master post beside thought-master (owner 11-10, c:266bbc9653e4) | owner via belam/SM | PLACED: the leaf is cut after F1's readings land (T7) |
-| research-then-design pattern as a graph skill (owner c:e780e4c65887, meme-master's store) | council via SM | IN SM's HANDS: the leaf landed L498; the skill child 6d11a00871 sent 11:58Z for GATE654 |
+| research-then-design pattern as a graph skill (owner c:e780e4c65887, meme-master's store) | council via SM | IN SM's HANDS: the leaf landed L498; the skill children 6d11a00871 + 38a95e03e9 sent for GATE654 |
 | heal's silent '0 dead' (council placement 4, SM 10:27Z) | council via SM | IN SM's HANDS: goal:g7.31.1.3 08b1f71154 3/3 at GATE653; the heal tip drafted (dg1-heal-wip) |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
