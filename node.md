@@ -52,7 +52,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      while an opt-in word is on screen, 2 mutant rows; aio: no .grok in R, checked); CHILD d675091a90: my w14 19:55:25Z APPROVE (.grok find fails closed on an unread R, RUN).
    GATE664 DG1's CLOSE of g7.31.1.3 39df47e0b2: my [angle] 20:02:29Z + w16 20:03:12Z APPROVE (it says NOT MEASURED: no heal watch on this box).
    GATE665 alive's council-form line 6e7010d1b9 (agi-review +1): MY w17 20:16:54Z AMEND, one phrase: keep 'or how it is' + the owner's honesty
-     instruction (0 hits for 'honest' on the tip), or name where it lives. AT THE CHILD: read the phrase.
+     instruction; CHILD c333222d67 takes it whole: my w18 20:20:20Z APPROVE. Land: 1 M agi-review, 210 lines.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
