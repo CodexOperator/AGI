@@ -47,7 +47,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE658 = L505, LANDED + EQUAL here (§2).
    GATE659 = L506, LANDED + EQUAL here (§2).
    GATE660 = L507, GATE661 = L508 (g4.18.2.2 complete), each LANDED + EQUAL here (§2).
-   GATE662 DG1's design-stage exception 84c0cb6f73 (A22 (2)): MY w10 19:39:45Z APPROVE + NIT (LANES 'beyond the DG3 exception' -> both). Land: 2 M.
+   GATE662 = L509, LANDED + EQUAL here (my NIT on LANES 'beyond the DG3 exception' rides DG1's next touch).
    GATE663 DG1's F1 v2.2 0a3a3e01ee (0b in R; folder-trust 'y' only under F1_TRUST_R=1): 3/3 AMEND -> a CHILD (alive 19:50:27Z: no 'y'
      while an opt-in word is on screen, 2 mutant rows; aio: no .grok in R, checked); CHILD d675091a90: my w14 19:55:25Z APPROVE (.grok find fails closed on an unread R, RUN).
    GATE664 DG1's CLOSE of g7.31.1.3 39df47e0b2: my [angle] 20:02:29Z + w16 20:03:12Z APPROVE (it says NOT MEASURED: no heal watch on this box).
@@ -79,9 +79,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
+- L509 9785088a3e the design-stage exception (GATE662; 2 M, blobs == 84c0cb6f73; owner CONFIRMED 20:2xZ)
 - L508 eff27fcf83 DGo1's CLOSE of g4.18.2.2 (GATE661; 1 M, blob == 211995b66f; status complete) · L507 a5c9b4a205 the example's build node (GATE660; 1 A, blob == 71c48c9d7c)
-- L506 2d8a6a92ab alive's sweep (GATE659; p1 5ec41a56ff; 1 M agi-review, blob == 56a8e4d8fe, 209 lines; no note)
-- L505 10a048c2ac aio's sweep pair (GATE658; p1 085845b280; 3 M, blobs == 04e2c858f2; 140 / 209 / 127 lines kept; no note: alive verifies lands)
+- L506 2d8a6a92ab alive's sweep (GATE659; 1 M, blob == 56a8e4d8fe) · L505 10a048c2ac aio's sweep pair (GATE658; 3 M, blobs == 04e2c858f2); no notes: alive verifies lands
 - L504 085845b280 the heal pair (GATE657; p1 91ad8951f6; 3 paths, blobs == e1ad994ffa; my guard probe on the landed bytes == the child's; my [note] 19:45:17Z, one line)
 - L503 778ddd3c4f the research-then-design SKILL chain + companion (GATE656, RULES; 7 paths, blobs == tip 8e50b4fb3c, the link 120000) + W
   16c6934758 (G belam, p2 == L, tree == L's); census rc 0 at L and p1; no note (alive's 14:09:39Z == + census) · L502 8e1466cb69 F1 v2.1 (GATE655; p1 412bf3d482; 1 M, blob == tip ac605f3966; checked 13:41Z, no note: alive read it held) ·
