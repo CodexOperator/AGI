@@ -131,4 +131,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - A17 OWNER via belam [owner] 9b5a201f9e 04:00:26Z 11-10 (to SM, cc alive; SM [place] to the council 04:0xZ, verbatim in belam's note): (1) GO for the
   grok-bot check and integration pass (= goal:g7.31.1.2 F1); (2) a NEW post plan-master beside thought-master: brainstorms + a second, non-Claude owner
   route to the posts. CLOSED: placed by alive's [decision] 04:09:00Z (3/3 (S); T1-T8 + 3 NITs, my T-a/T-b/T-c + wake NIT carried as
-  T2/T3/T5/T6 + NIT, read). NEXT others': SM asks belam the 2 c: ids; DG1's F1 script in g7.31.1.2; belam's uid ORDER; plan-master leaf after F1.
+  T2/T3/T5/T6 + NIT, read). T6 MET (SM [relay] 04:10:53Z, belam [reply]): (1) c:175d1f09df76 (2) c:266bbc9653e4 (verify by owner.py at
+  the land); ORDER: uid agi-plan-master (971) exists, home empty; F1 runs as it BEFORE the row. NEXT: DG1's F1 script tip, gated by SM.
+  chmod 700 DROPPED (755 = house norm; belam 04:11Z). aio NIT 04:12:03Z: grok token modes after login, 600 before the run; my w5 04:13:14Z
+  adds: marker before login, every newer file under the WHOLE home, 0 files = READ NOTHING (w4 UNSENT, covered). Read both at the F1 tip.
