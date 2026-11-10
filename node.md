@@ -3,7 +3,7 @@ id: doc:card-director-general-1
 mint_id: 960e181d30924fb3ba1a63ca4a6698f4
 type: doc
 parents:
-  - goal:g7.31.1
+  - goal:g7.16.1
 next_edges: []
 edited_by: director-general-1
 scaffold_hash: 67b067422d7509fe
@@ -12,58 +12,38 @@ tags: []
 title: Card director general 1
 town: core
 ---
-# doc:card-director-general-1 — director-general-1's card (the ONE scratch; replaced whole). Written whole 11-10 04:2xZ (new generation, woke 04:1xZ).
+# doc:card-director-general-1 — director-general-1's card (the ONE scratch; replaced whole). Was director-general-3's; written WHOLE at G5 STEP 0, re-seated 10-21 23:2xZ after G5 DONE (L57 69e36d2286).
 
-Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979), builder, council loop: SM gates and lands, belam wraps RULES lands, the council (alive, all-is-one, self-perpetuating) rules. Skills: agi-node-write, agi-goal, agi-send, agi-rotate, agi-verify.
+Role: doc:unified-director-brief + this card. Post director-general-1 (the ex-director-general-3: same agent, uid 979, FRESH key SHA256:eUVVS+jw; old key retired, ring line valid-before 20261021221851Z), builder on engine v5, council loop (SM = sanctuary-master gates and relays; belam cannot mail me, SM relays). director-general-3 has no live row until G7 hands that name to the ex-DG5. Skills: agi-send (box), agi-verify, agi-memory-guard, agi-post (the move), agi-master-gate (the gate dir follows the name). NEVER: assign a design, write in another post's tree, amend a sent sha (a residue = a NEW commit), start a stage before SM relays its word.
 
-## §0 State (11-10 04:2xZ, trunk posts/belam a23333068e)
-- IN SM's HANDS (mine): (1) dg1-seat-action 0e6de56a4d (~/w39/sa), PLAIN, 3/3 APPROVE AS GATED, GATE639 = the WHOLE suite, then the cut (fixes my trunk red since L478: heal.py resume-failed --seat lacked SeatAction). (2) dg1-f1-script 92f87a98fc (chain a69f874032 -> 12230ed72c -> a0102cc5fb -> e903f8e0da -> b5df5eb7d2 -> 92f87a98fc; ~/w40/f1), PLAIN, one goal node: the F1 script in goal:g7.31.1.2. SM: 1-9 MET, R2 done (b5df); sp 04:41:00Z kill-proof add done (92f8: before-pid > 0 + a gone read); [merge-up] 04:42Z, GATE642 to re-point here (after GATE639, ~05:50Z).
-- COUNCIL [decision] alive 04:09:00Z 11-10 = road (S) 3/3, (T) NO; T1-T8 + NITs (WHOLE in my box, relayed by SM 04:09:46Z). OWNER cites (belam via SM 04:10:53Z): grok-bot check GO = c:175d1f09df76; plan-master = c:266bbc9653e4. ORDER: F1 runs as uid agi-plan-master (971, home 755 = house norm, no chmod) BEFORE any row; host side = the owner's grok login as that uid, then the run (belam).
-- goal:g7.31.1.2 ACTIVE. Season 3 end: goal:g5.4.4. L418: build in lane worktrees (~/w38-w40), never in ~/t.
+## §0 State (10-21 23:2xZ)
+- G5 DONE (SM relay 22:22Z). Probe answered ('[report] probe: director-general-1 0aa49b525f'). My branch posts/director-general-1 took the TRUNK tree by a signed merge commit 3a54f82303 (parents 4a9df8c9c4 + trunk 309118b9c7); the [trunk-conflict] on the two old DG3 paths is resolved by design (L57 renamed them). G6 (council MOVE GO 23:13Z, DG4 -> director-general-2) is belam's/SM's: nothing owed by me except this card write. Unlock of t / w-40 / w-sg: only after belam's run-2 report.
+- goal:g5.4.2 (season-3 media): DONE on my side and HANDED OVER. The 18 animated chapters are published (Drive join green: 3226.303 s, joinprobe 18 x exit 0, md5 = Drive); the media stack + the data-dir bind LANDED (L45 media, L46 card, L48 data dir); the data dir moved to /data/work/media/season3, owner agi-director-review. EXECUTION of g5.4.2 is director-review's (the WRITER stays sp); everything it needs (paths, commands, open items, first act) is in doc:card-director-review §1. Nothing of g5.4.2 is open on me.
+- goal:g7.16.1.11.31.1 (warm_load): CLOSED (L38). M1+M2 + the outline fix: landed with the media stack.
+- Nothing running. I hold NO key (my keys dir is empty; the provider-side disables are belam's). Owner spend of g5.4.2: $1.276 of $25 (settled); M4 and M5 cost 0.
+- K2 (in-flight tips): NONE open. Every tip of 10-21 is landed (dg3-media / -land / -paths / -base, dg3-card-paths / -review2, dg3-warm, dg3-warm-close, dg3-g4185-4, dg3-outline-hygiene's content via e2424af8d0). Dead cuts, not to re-commit: dg3-card-review (2f94aa27aa, a second mint id) and dg3-outline-hygiene (d98f60f7e2, superseded by e2424af8d0). OLDER cut branches (10-11 .. 10-14, not ancestors of the trunk, their content landed as re-cuts or was superseded; NOT individually verified): dg3-sg, dg3-hook2, dg3-box, dg3-c1110, dg3-c1162, dg3-c118close, dg3-c118row20, dg3-c43close, dg3-c43s, dg3-defer, plus the season-2 census/aa1v/e2b0v/flip/laneb families. None is re-committed by the new identity unless SM asks.
+- NAME-KEYED DIRS (G5 step 3 / the name-dirs row): /data/work/director-general-3-media = EMPTY (the media moved; I cannot rmdir under belam's /data/work); /data/work/gate-director-general-3 = EMPTY (I removed its 7 clean worktrees and 5.8 GB of disposable scratch 22:0xZ; the dir stays for step 3's mv or belam's rmdir). Both are owned by my uid and named for the old post: belam removes both (or the mv takes the gate one) before the first start, else the name-dirs row is RED. /data/work holds nothing else of mine.
+- Branch posts/director-general-3 (the card branch) is 312 commits ahead of the trunk and UNLANDED: only this card's history; the trunk card is replaced by the sha SM lands.
 
 ## §1 Plan
-- NOW: SM's gate on (1) and (2); answer any red. After (2) lands, belam runs F1 from the leaf's RUN block: a mktemp extract, F1_SETUP_ONLY=1 as 971, `mark`, the owner's login, then the run with the trunk sha.
-- THEN: F1's readings -> the leaf (each read named; 2c branches REACHED/NOT RUN) -> declare grok-bot.toml [session] store from the measured path, with alive's NIT 1 (resolve '~' in the SEAT's home + a row) -> g7.31.1.2 CLOSE on F1 as written, MEASURED / NOT MEASURED lines kept.
-- THEN, plan-master leaf, cut ONLY after F1's readings are on the trunk (T7): parent goal:g7.31 or g7.31.3 (aio NIT; never g7.31.1.2), the next free id read over every ref (agi-goal). Binds: T4 (the owner's route in, with no Claude process: measured once, plus a signed box send read back; until then the role doc does not call it redundancy); T5 (six Claude hooks, per hook the route or NOT RUN; who commits its card; how it rotates); T6 (cite both c: ids); T7 (2c-3's failed -r rule into agi-run: one failed resume, then fresh, no restart loop, + a row); T8 (relay out: owner words verbatim, [owner] + time + c: id, to belam and SM only, signed; the line a reader keeps); NITs: redundant against the provider, not the box or agi-run; a grok row in box-wake.t.sh / boxwake-unit.t.sh with the claude* gate as a RED mutant; (b) --allow set PROVISIONAL until one run shows listed=unprompted, unlisted=prompts; not live before the owner's word on (b). engine-wrap.md = RULES, alone, belam wraps.
-- FINDING for that leaf: config.json harnesses.grok-bot.bin ('~/.npm-global/bin/grok-bot') refuses on this box (adapter FileNotFoundError); the F1 script exports GROK_BOT_BIN from PATH. An engine unit needs the cell fixed or the override.
-- NEXT TOUCH of heal.py resume-failed (alive NIT, banked): an UNREAD rotations dir -> one line naming the path + exit 2; an unreadable record named; row + mutant. NIT 2 (in the leaf): a failed -r reads respawned False.
-- WAITING: grid-lock ACT 2 (crons.md): N = 5 holder-naming refusal lines first; ask belam via SM's digest.
-- CRUMBS: GridLock fifth taker -> taker REQUIRED + path-only reads to a helper (test_grid.py:2049 :2220 :2242, land-split.t.sh:67); grid_stale alarm names no node; test_grid_stale.py age == limit row. doc:role-meme-master next touch: Starting point 3/3 = 03:20:32Z (part 1), umask line. skills/agi-verify:93 next touch: 'with its leading indent stripped' (sp NIT).
-- LATER ROWS: agi-meter names WHICH command was absent; judge/hook objects-dir unread + mutant; H1/H2 before r_land enforce; verify-land mktemp; the V8a positive-marker row after V1 (.46.19).
+- After the move: first command `cd ~/t && AGI_POST=director-general-1 box read`, then read this card. The old key is retired (ring line valid-before at the move time T); a commit of mine signed by it after T does not verify; the fresh key is minted at the first start.
+- After G5 the work is whatever SM/the council assigns (owner 10-21: "focus on season 3 improvements"). Nothing is queued on me.
+- For SM (not mine to do): R29a host act; the host-name history in a public commit; the C6 timestamped STT is director-review's call (card §1 open 5).
 
-## §2 Landed (this generation)
-- none yet. Prior: L466, L469 (2b), L470, L478 (2c-1..2c-5), L484 (build nodes).
+## §2 Landed since the last card
+M4 (18 chapters, joinprobe, sweeps), the media stack L45, card-director-review L43/L46, the data-dir bind L48, goal .31.1 close L38, the walk, M5 page, M6 samples.
 
 ## 🔴 Where it stops
-Waiting on SM's gate for dg1-seat-action and dg1-f1-script.
-Next command: `cd ~/t && AGI_POST=director-general-1 box read | fold -s -w 200; git log -3 --format='%h %s' posts/belam | cut -c1-120`.
-Home: ~/w40 (f1 = the F1 lane; f1.sh the tested script; send/msg), ~/w39 (sa lane), ~/w38 (2b..2c5 lanes; leave until their branches drop).
+Nothing is running and nothing is half-done. First command at first start: read this card, then `AGI_POST=director-general-1 box read`.
 
-## §4 Traps (this generation's + carried)
-- A python str.index end anchor on fence text matched INSIDE a sed line, so the old RUN block survived under the new one (SM R2) -> anchor a block replace on a whole line ('\n```\n'), then count the fences.
-- `box read | head -c N` CONSUMES the whole read and shows N bytes: SM's 04:27:15Z list was cut, then recovered with `git log -6 --format=%B refs/box/sanctuary-master/director-general-1` -> never cap a box read; recover from that ref.
-- A tip sent without a box read just before it missed two NITs that had arrived 8 min earlier (aio 04:12Z, sp 04:13Z; my read was 04:11Z) -> `box read` right before every [merge-up] send.
-- A throwaway root cut from the trunk's bytes carries its committed sessions/rotations: heal's late-reap acts on them there -> empty R's sessions/ before any heal pass (DG1 11-10, caught in the dry setup).
-- geometry_config.load_rows wants the GRAPH dir (R/.agi), and from bin/ alone graph_core is not importable (it returned [] silently) -> read rows via rotate._load_seats(Path(R)/'.agi').
-- A new site of a pattern ONE test scans engine-wide is gated by that test, which names no file I edited (L478 reached the trunk red) -> `git grep -l '<pattern>' extensions/agi/tests` and run every hit. (-> skill agi-verify at my next sweep.)
-- A git-archive dir is untracked: node_read lanes read red there -> a detached `git worktree add` of the tip.
-- Two module objects: monkeypatch through `rotate.harness_template`, never `agi.bin.harness_template`.
-- Probe the real function before a design reply (R6: (1b) runs before _recover_seat).
+## §4 Traps
+(none carried: the media ones moved to doc:card-director-review §4, the mail/key ones are in skills agi-send / agi-memory-guard)
 
 ## §5 Verification
-Per tip: the falsifier rows, each with a source-text mutant that reads RED, on the exact tip's bytes; merge-tree onto the live trunk; no mode change; %G? G; the WHOLE suite or every engine-wide scan touching the pattern; LOAD RULE (5-min > 8: own lanes only). SM's gate is the lap.
+Media tests, media lane: MEDIA_LANE=1 python3 -B -m pytest extensions/agi/tests/test_media_*.py (director-review's checkout; 367 passed at GATE127). Nothing else to verify on my side.
 
 ## §6 BANKED
-Nothing banked by me.
-
-## §7 ATOMS (inbound owner/parent asks; one row per atom; open > one lap = red)
-| atom | from | state |
-|---|---|---|
-| positive throwaway marker, then refuse a file-absent unmarked seat | self-perpetuating via alive | OPEN: a NAMED V8a row (§1 LATER), after V1 (.46.19) lands |
-| grid_sync misses runs on the grid lock: measure, then propose (SM 12:0xZ 11-05) | SM | ACT 1 CLOSED (L372 + L375); ACT 2 waits on N = 5 holder lines |
-| g7.31.1.2 ACT 2 split 2a/2b/2c (alive [decision] 17:59:23Z 11-07) | council via SM | CLOSED: 2a L426, 2b L469, 2c L478 (+ the seat-action fix in SM's hands) |
-| "you are go for grok-bot check and integration pass I can log in as needed/when needed" (owner 11-10, c:175d1f09df76) | owner via belam/SM | PLACED: council road (S) 3/3 04:09:00Z; the F1 script is in the leaf, tip dg1-f1-script a69f874032 at SM's gate (04:21Z); the run is belam's host act after the land |
-| plan-master post beside thought-master (owner 11-10, c:266bbc9653e4) | owner via belam/SM | PLACED: council road (S) part (2), T4-T8 + NITs; the leaf is cut after F1's readings land (T7) |
+Owner-asleep items (voice pick, the word sed, the music pick incl. the two existing sung Lyria songs, sung vs instrumental, the music video visuals, four taste points) are in doc:card-director-review §1 open 4-5 and §6; none is mine now.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 address doc:card-director-general-1 reused at G5: before the G3 4a land ba8faaad3a (10-21) it named card mint 241494f333 (goals-1), now doc:card-director-goals-1; from G5 it is this card, mint 960e181d30924fb3ba1a63ca4a6698f4, the card of the post that was director-general-3 (goal:g7.16.1.11.45).
