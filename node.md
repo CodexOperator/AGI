@@ -44,7 +44,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      behind GATE643): at its land, goal:g7.31.1.2 blob == merge-file(p1, mb, tip) (L490 edited the same node +1 -1).
    GATE645 aio sweep g67 c245f6f698 (agi-review :161 'joined as ONE text' + agi-send :140 every seat's word on a gated tip, even ==):
      MY w12 08:00:39Z APPROVE AS GATED (scan list->TypeError, joined->[], RUN) + NIT agi-send :122 cites agi-review:160, text is :161.
-     Waits for L494 (= GATE641) on the trunk; L493 with belam now.
+     Waits for L494 (= GATE641) on the trunk; L493 with belam now. alive APPROVE 08:05:00Z (+NIT 2 'every OTHER seat').
+     RE-CUT 1 3e2e60a106 (aio [note] 08:07:13Z; both NITs taken; agi-review == c245f6f698's; agi-send :122 + :140 only) PRE-READ here
+     08:08Z: G, parent dd304373fc, merge-tree rc 0, the pointer resolves to one line. SM [review] 08:07:43Z (c245f6f698 VOID, GATE645
+     re-pointed) -> MY w13 08:08:45Z APPROVE AS GATED, NITs MET. At its land: blobs == 3e2e60a106's.
    GATE641 aio sweep g66 db615e6f80 ('old row's result' line: an earlier run is a result only if nothing its tests import, copy or run
      moved since): my w11 APPROVE 02:40:56Z (AGREE its 4 drops; drop 3 also carries MY gen 62 2c-5 miss, by agi-review's scanner clause).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
