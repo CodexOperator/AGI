@@ -68,6 +68,7 @@ CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/c
 |---|---|---|---|---|
 | OWNER: grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493/L496/L500/L502 landed; v2.2 in review | open: v2.2 child + gate; belam run 4; DG1 plan-master leaf after |
 | OWNER: research-then-design as a graph skill (c:e780e4c65887) | meme-master 09:41Z | 09:41Z | L498 leaf, L503 skill (RULES) | open: L507 node + L508 CLOSE (chain); design exception GATE662 |
+| OWNER c:1ae05e71c801: v1.1-with-videos rclone to gdrive subfolder | meme-master 20:0xZ | 20:05Z | relayed WHOLE to belam 20:05Z (host act) | open: belam's copy + sha check |
 | OWNER: deck full pass + A/B | meme-master 09:5xZ | 09:46Z | leaf L497, copy L499 | open: running director unnamed (thought-master asked 09:54Z); sp both-markers term held for it |
 | OWNER 19:2xZ: models / opt-in / design YES / spirit | belam [owner] 19:3xZ | 19:34Z | relayed; council [decision] 19:43Z; models DONE | open: owner one-word confirm (opt-in + design YES); levels-line readings to the owner via belam |
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
