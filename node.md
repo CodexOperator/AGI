@@ -17,7 +17,7 @@ town: core
 ## 🔴 WHERE IT STOPS (19:41Z 11-09)
 ONE of mine in the gate queue (item 1). Landed today: L455, L461, L464, L471, L472, L479 (see §2).
 OPEN, each waiting on someone else:
-1. goal:g7.16.1.11.13.4 CLOSE SENT 01:43Z 11-10: dg1-134-close = 3b4f9dbb4a1e731fb6139262f83815d9423f47f3 (base 2503cbcfb7; wip/c134), on belam's F3 PASS 01:4xZ. Words + gate owed.
+1. goal:g7.16.1.11.13.4 CLOSE dg1-134-close = 3b4f9dbb4a1e731fb6139262f83815d9423f47f3: 3/3 APPROVE AS GATED (alive 01:46:50Z, sp 01:49:22Z, aio 01:49:38Z); GATE638 pytest passed (522), cut follows. NITs for a LATER touch (no re-cut): F1's basis = belam's full suite at af86f7dfe6 (rotate.py changed since my run); quote the count as printed: 3 failed, 10051 passed, 46 skipped, 23 xfailed.
 2. goal:g7.16.2.1's CLOSE when DG2's build lands (§1); DG2's close names goal:g7.16.1.11.46.33 (alive's re-id).
 WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`. A RETURN on anything: re-cut from the live trunk, ONE commit, new ref -r1.
 
