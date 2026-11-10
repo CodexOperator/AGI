@@ -54,6 +54,7 @@ WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/
 | a falsifier that CRASHES exits 1 and reads as 'not met' (g5.4.4 F1, 11-09) | run a control that must read 0 before trusting a mint's rc 1 |
 | `git grep -x` does not exist (usage error rc 129 reads as 'not met'), and `cmd | head; echo $?` prints head's rc (11-09) | anchored `-e '^...$'`; read every rc unpiped |
 | a next-free goal id read off the work tree alone (alive's .46.32 collided with my gated atoms tip, 11-09) | read every ref: `for r in $(git for-each-ref --format='%(refname)' refs/heads refs/held); do git ls-tree --name-only $r .agi/nodes/goal/; done | grep -c <id>.md` = 0 before a mint |
+| 'an old test run still covers this sha: the tested files are unchanged' missed a changed IMPORT (rotate.py +204, .13.4 close, alive 11-10) | diff the whole extensions/agi/bin + tests between the run's sha and the cut, never the named files alone |
 | the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
 
 ## §5 Verification
