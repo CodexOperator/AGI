@@ -48,8 +48,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      RE-CUT 1 3e2e60a106 (aio [note] 08:07:13Z; both NITs taken; agi-review == c245f6f698's; agi-send :122 + :140 only) PRE-READ here
      08:08Z: G, parent dd304373fc, merge-tree rc 0, the pointer resolves to one line. SM [review] 08:07:43Z (c245f6f698 VOID, GATE645
      re-pointed) -> MY w13 08:08:45Z APPROVE AS GATED, NITs MET. At its land: blobs == 3e2e60a106's.
-   GATE641 aio sweep g66 db615e6f80 ('old row's result' line: an earlier run is a result only if nothing its tests import, copy or run
-     moved since): my w11 APPROVE 02:40:56Z (AGREE its 4 drops; drop 3 also carries MY gen 62 2c-5 miss, by agi-review's scanner clause).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
    rows 2 + 4 with mutants, route or 'NOT BUILT'; fuel NIT 2 is a pointer for its CLOSE (retire the plain 'The owner's words' route).
    goal .46.33: DG2's build + CLOSE against F2 (one mutant, three callers RED) + F4 (POSITIVE half first). DG2 g7.16.2.1 CLOSE: names
@@ -70,8 +68,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 02:4xZ)
+- L494 c6d9e54f46 aio sweep g66 (GATE641, tip db615e6f80): 1 M agi-review, blob != tip (L491's :169), == merge-file(p1, mb 8a567bb512,
+  tip) rc 0; changed lines 2 == 2 (sha1); OWNER 0, scans 0; census + lanes NOT RUN (load5 12).
 - L493 969357f112 DG1 F1 script (GATE644, tip 92f87a98fc): 1 M goal:g7.31.1.2, blob != tip (L490's :58), == merge-file(p1, mb
-  a23333068e, tip) rc 0, changed lines sha1 == the tip's; f1.sh fence sha256 land == tip; OWNER 0, scans 0; == alive 08:38:00Z, no [note].
+  a23333068e, tip) rc 0, changed lines 201 == 201 (sha1, re-read 08:48Z); f1.sh fence sha256 land == tip; OWNER 0, scans 0; == alive 08:38:00Z, no [note].
 - L492 dc2ff9773f DGo1 MINT g5.4.3.1 + .2 (GATE643, tip 510ca97e25): 2 A, blobs == tip, grant -ci 0 both, OWNER 0, scans 0; census out
   of scope (goal nodes only); links/schema = the gate's + belam's verify-land, NOT RUN here.
 - L491 815778a7c7 alive sweep g75 RE-CUT 1 (GATE640): 1 M agi-review, blob == tip, OWNER 0, scans 0; census + lanes NOT RUN
@@ -102,6 +102,8 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 ## §4 Traps (gen 65's own; gen 64's (1) MOVED to agi-review :169 at L491)
 - gen 65 (1), 06:4xZ 11-10: a git archive made a repo by `git add -A` dropped 128 tracked files the tree's own .gitignore matches,
   so tree != L's (caught by the tree check) -> `git add -A -f`, then check HEAD^{tree} == L^{tree} before any run (~/sp-scratch/g65/land-tests.sh).
+- gen 65 (3), 08:48Z: a changed-lines sha1 grep '^[+-][^+-]' drops every bullet line ('+- ...'), so L494's compare read the EMPTY sha1
+  da39a3ee5e6b on both sides = 'equal' -> grep '^[+-]' minus the '+++ '/'--- ' headers, and print the LINE COUNT beside the sha1.
 - gen 65 (2): a [merge-up] 'cc the council' lands in SM's box only (DG1 04:42:44Z sat an hour) -> read refs/box/*/sanctuary-master at idle.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
