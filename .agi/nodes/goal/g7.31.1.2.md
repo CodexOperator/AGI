@@ -75,13 +75,15 @@ OWNER (c:175d1f09df76, 03:56:36Z 11-10, via belam): "you are go for grok-bot che
 
 - F1 RUN 2 (belam 12:16-12:2xZ 11-10, the landed L500 script as agi-plan-master, F1_MODEL grok-4.7, F1_SILENT=1): FAILED rc 1, NOTHING KILLED (the guards held). 0b read PASS: the probe's grok answered F1READY, but its screen still held grok's unanswered 'Help improve Grok' opt-in; the seat's grok logged 'startup type-ahead dropped (startup screen pending)' 0.2 s after its start and quit, so the row kept the pane bash and sections 2 and 4 were NOT RUN; spawn_row_commit FAILED 'Author identity unknown' (971 has no git identity). The opt-in is the OWNER's data choice; belam asks the owner, dismisses once by hand, re-runs.
 - F1 v2.1 (SM 12:20Z, from run 2): 0b also FAILS on a screen that still shows a pending choice (two bracketed choices on one line, or the opt-in words); a false FAIL launches nothing and prints the line. Right after the stand-up the SEAT's own grok log is read: a dropped type-ahead FAILS the run, sections 2 and 4 NOT RUN, nothing killed. R sets its own git identity by config after init. RUN on fakes: a clean answer PASS; belam's banner, a bracketed pair, a dropped log line, no answer: FAIL each; the seat log dropped: FAIL=1, no join; clean: the join runs. MUTANTS: no banner check -> the banner PASSES; no seat-log check -> the join runs on a dropped prompt. L500 as landed reads the banner PASS (the control). Also the carried FLOOR (aio 11:02:37Z, alive 12:22:26Z): `recs` prints fields by LABEL (result=, age=, rotation= quoted), so a rotation value with a space no longer shifts the age read; a respawned record stamped in the FUTURE reads UNREADABLE, so `waitdead` FAILS and nothing is killed (a wait of the stamp's lead could be unbounded). RUN on fake records: none, 900 s -> no wait; 590 s and 590 s with a spaced rotation -> sleeps 20 s; future 3600 s -> FAIL, nothing killed. L500 reads the last two 'no wait' (the control).
+- F1 RUN 3 (belam 19:35:55Z 11-10, L502's v2.1, F1_MODEL grok-4.7, F1_SILENT=1; grok's opt-in banner answered Opt out, the default, by belam's hand start, the owner's one-word confirm asked): FAILED rc 1, NOTHING KILLED. 0b PASSED; v2.1's seat-log read caught 'startup type-ahead dropped' right after the stand-up, so sections 2 and 4 NOT RUN. CAUSE, read by belam by hand: grok asks 'Do you trust the contents of this directory?' in R (a new git repo each run); the probe ran outside R and never met it.
+- F1 v2.2 (from run 3, SM 19:41Z): 0b runs IN R, the seat's own cwd: first a bare start in R reads the screen for grok's folder-trust question. Trusting R is a security choice: the script answers 'y' only under F1_TRUST_R=1 (the runner's choice; R is a throwaway root of the trunk's own bytes), checks the question is gone, else FAILS with nothing launched; before the 'y' it FAILS if R holds any .grok path, since trusting R would turn on its project rules (aio 19:49Z), and if the same screen shows any opt-in words, since a 'y' there could answer the owner's data choice (alive 19:50:27Z). Then the answer probe runs in R. The council's carried next touch rides with it: drops() reads a missing or unreadable log as READ NOTHING (a FAIL) and matches its two phrases in any case under any key; the BAN line anchors the opt words on a word edge and also names the trust question. RUN with a FAKE grok-bot on a private tmux socket (no real grok on DG1's uid): trust asked, no F1_TRUST_R -> FAIL, nothing launched; trust asked, F1_TRUST_R=1 -> answered, the probe in R PASSES; no trust question -> PASSES; the question stays after y -> FAIL; the grok log missing -> FAIL READ NOTHING. MUTANTS: trust step and probe outside R (the v2.1 shape) -> 0b PASSES (run 3's hole); no missing-log check -> PASSES on no log. drops(): a capitalised phrase and the phrase under another key read DROP; a clean line and a non-JSON line read none.
 RUN (belam, on encryption-town), in this order. The mktemp path must be readable to uid 971: a /tmp mktemp file at 644 is; a file under a 700 scratch dir is not (belam 08:38Z 11-10). The scratch row's model is `F1_MODEL`, default grok-4.6, the box's grok default; `grok models` on this box lists only grok-4.6 and grok-4.5 (belam 08:4xZ). A setup-only pass as the uid comes first (SM NIT 2: whether 971 can read SRC is UNMEASURED, and a refusal there should cost no login). Then the marker, then the owner's login, then the run. The script goes to a mktemp path (SM NIT 1: never a fixed name in /tmp):
 ```
 F=$(mktemp) && sed -n '/^```bash f1.sh$/,/^```$/p' .agi/nodes/goal/g7.31.1.2.md | sed '1d;$d' > "$F" && chmod 644 "$F"
 sudo -u agi-plan-master -H env AGI_BOX=encryption-town SHELL=/bin/bash F1_SETUP_ONLY=1 bash "$F" <trunk sha>
 sudo -u agi-plan-master -H bash "$F" mark
   (the owner's grok login as agi-plan-master)
-sudo -u agi-plan-master -H env AGI_BOX=encryption-town SHELL=/bin/bash bash "$F" <trunk sha>
+sudo -u agi-plan-master -H env AGI_BOX=encryption-town SHELL=/bin/bash F1_TRUST_R=1 bash "$F" <trunk sha>   # F1_TRUST_R=1 only by the runner's choice (v2.2)
 ```
 For v2, after the land and BEFORE the run, belam's host act: if section 0b FAILS, one interactive grok-bot start as agi-plan-master to dismiss grok's first-run screen (any consent there is the owner's, through belam), then the run again. The output stays in `~agi-plan-master/f1-<stamp>/f1.out` with heal.log beside it. Its readings come back to this leaf, and the CLOSE cites them.
 
@@ -259,17 +261,41 @@ if [ -z "$GM" ]; then echo "READ grok models: READ NOTHING (an empty list); noth
 elif printf '%s\n' "$GM" | grep -qxF -- "$F1_MODEL"; then echo "READ grok models: $(printf '%s' "$GM" | paste -sd' '); F1_MODEL $F1_MODEL listed"
 else echo "READ grok models: $(printf '%s' "$GM" | paste -sd' '); FAIL: F1_MODEL $F1_MODEL not listed; nothing launched"; exit 1; fi
 # grok's own log, messages only, after byte offset $1: the lines that say a prompt was dropped behind a startup screen
-drops() { tail -c +"$(($1+1))" "$GL" 2>/dev/null | python3 -c "import sys,json
+# council next touch (sp NIT, aio ADD 2, alive 12:31-12:35Z): a missing or unreadable log is READ NOTHING (a FAIL), never
+# 'no drop'; the two phrases match in any case, under any key of the JSON line
+drops() { [ -r "$GL" ] || { echo "READ NOTHING: grok's log $GL is missing or unreadable"; return 0; }
+  tail -c +"$(($1+1))" "$GL" | python3 -c "import sys,json
 for l in sys.stdin:
-  try: m=str(json.loads(l).get('msg') or json.loads(l).get('message') or '')
+  try: d=json.loads(l)
   except Exception: continue
-  if 'type-ahead dropped' in m or 'screen pending' in m: print(m[:120])"; }
+  t=' '.join(str(v) for v in (d.values() if isinstance(d,dict) else [d])).lower()
+  if 'type-ahead dropped' in t or 'screen pending' in t: print(t[:120])"; }
 # --- 0b. SM term (a): grok's first-run screen swallowed run 1's prompt ('startup type-ahead dropped'). One interactive
 # start as this uid on a PRIVATE tmux socket, a prompt whose answer (F1READY) the prompt itself never spells; the screen is
 # printed (emails masked) and the run FAILS unless grok answered and its log shows no dropped type-ahead.
 echo "== 0b the first-run screen probe"
 GL=$HOME/.grok/logs/unified.jsonl; GO=$(stat -c %s "$GL" 2>/dev/null || echo 0); PS=$R/probe.sock
-tmux -S "$PS" new-session -d -s f1probe -x 200 -y 50 "$GROK_BOT_BIN --model $F1_MODEL 'Reply with exactly two words joined with no space and nothing else: F1 and READY.'"
+# belam F1 v2.1 run (19:35Z 11-10): grok asks 'Do you trust the contents of this directory?' in R (a NEW git repo each run)
+# and that screen ate the seat's prompt; the old probe ran outside R and never met it. So 0b runs IN R. Trusting R is a
+# security choice: the script answers 'y' only under F1_TRUST_R=1 (the runner's explicit choice; R is a throwaway root of
+# the trunk's own bytes), else the run FAILS here and names the question.
+tmux -S "$PS" new-session -d -s f1trust -c "$R" -x 200 -y 50 "$GROK_BOT_BIN --model $F1_MODEL"
+TS=; for _ in $(seq 12); do sleep 5; TS=$(tmux -S "$PS" capture-pane -p -t f1trust 2>/dev/null); [ -n "$(printf '%s' "$TS" | tr -d '[:space:]')" ] && sleep 3 && TS=$(tmux -S "$PS" capture-pane -p -t f1trust 2>/dev/null) && break; done
+if printf '%s' "$TS" | grep -qi 'trust the contents of this directory'; then
+  # aio 19:49Z: trusting R turns on R's project rules (a .grok dir); safe only while R holds none, so CHECK it before the y
+  GK=$(find "$R" -path "$R/.git" -prune -o -name .grok -print 2>&1 | head -5)
+  if [ -n "$GK" ]; then echo "READ folder trust: FAIL: R holds a .grok path, so trusting it would turn on project rules: $(printf '%s' "$GK" | paste -sd' '); nothing launched"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
+  # alive 19:50:27Z: a 'y' on a screen that ALSO shows the opt-in banner could answer the owner's data choice: FAIL first
+  OB=$(printf '%s\n' "$TS" | grep -E -m1 -i 'help improve|\bopt[- ]?(in|out)\b' | cut -c1-120)
+  if [ -n "$OB" ]; then echo "READ folder trust: FAIL: the trust screen also shows an opt-in line ($OB): that choice is the owner's; nothing launched"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
+  if [ "${F1_TRUST_R:-0}" = 1 ]; then echo "READ folder trust: grok asks to trust R (0 .grok paths in R); F1_TRUST_R=1: answering y"; tmux -S "$PS" send-keys -t f1trust y; sleep 8
+    if tmux -S "$PS" capture-pane -p -t f1trust 2>/dev/null | grep -qi 'trust the contents of this directory'; then echo "READ folder trust: FAIL: the question is still on screen after y; nothing launched"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
+    echo "READ folder trust: answered; the question is gone"
+  else echo "READ folder trust: FAIL: grok asks to trust R ($R); nothing launched. Trusting it is the runner's choice: re-run with F1_TRUST_R=1"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
+elif [ -z "$(printf '%s' "$TS" | tr -d '[:space:]')" ]; then echo "READ folder trust: READ NOTHING (an empty pane in R)"; tmux -S "$PS" kill-server 2>/dev/null; exit 1
+else echo "READ folder trust: no trust question in R"; fi
+tmux -S "$PS" kill-session -t f1trust 2>/dev/null; GO=$(stat -c %s "$GL" 2>/dev/null || echo 0)
+tmux -S "$PS" new-session -d -s f1probe -c "$R" -x 200 -y 50 "$GROK_BOT_BIN --model $F1_MODEL 'Reply with exactly two words joined with no space and nothing else: F1 and READY.'"
 for _ in $(seq 24); do sleep 5; tmux -S "$PS" capture-pane -p -t f1probe 2>/dev/null | grep -q F1READY && break; done
 # aio ADD 1 (council 10:30:24Z): printed BEFORE any dismissal; emails and login-code shapes masked, then anonymize-scanned:
 # any class it names withholds the screen (the class names print, never the text)
@@ -282,7 +308,7 @@ DROP=$(drops "$GO")
 # belam run 2 (12:2xZ 11-10): the probe answered F1READY with grok's 'Help improve Grok' opt-in still unanswered on its
 # screen, and that banner then dropped the SEAT's prompt. An answer is not enough: a screen that still shows a pending
 # choice (two bracketed choices on one line, or the opt-in words) FAILS 0b too; any choice on it is the OWNER's
-BAN=$(printf '%s\n' "$SCR" | grep -E -m1 -i '\[[[:alpha:] ]+\][[:space:]]+\[[[:alpha:] ]+\]|help improve|opt[- ]?in|opt[- ]?out' | cut -c1-120)
+BAN=$(printf '%s\n' "$SCR" | grep -E -m1 -i '\[[[:alpha:] ]+\][[:space:]]+\[[[:alpha:] ]+\]|help improve|\bopt[- ]?(in|out)\b|trust the contents of this directory|yes, proceed' | cut -c1-120)
 tmux -S "$PS" kill-server 2>/dev/null; rm -f "$PS"
 if printf '%s' "$SCR" | grep -q F1READY && [ -z "$DROP" ] && [ -z "$BAN" ]; then echo "READ the probe: grok answered F1READY; no dropped type-ahead in its log; no pending choice on its screen"
 else WHY=$DROP; [ -z "$WHY" ] && [ -n "$BAN" ] && WHY="a pending choice on the screen: $BAN"; [ -z "$WHY" ] && WHY="no F1READY reply"
