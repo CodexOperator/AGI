@@ -73,6 +73,8 @@ OWNER (c:175d1f09df76, 03:56:36Z 11-10, via belam): "you are go for grok-bot che
 - F1 v2 (SM [placement] 10:27Z, council 3/3 10:29-10:31Z), on this script: (a) section 0b: before the stand-up, one interactive grok-bot start on a PRIVATE tmux socket with a prompt whose answer (F1READY) the prompt never spells; the screen is printed BEFORE any dismissal, emails and login-code shapes masked, anonymize-scanned (any class withholds it); the run FAILS, nothing launched, unless grok answered and its log shows no dropped type-ahead. The dismissal is belam's host act by hand; any consent on that screen (terms, data sharing, telemetry) is the OWNER's, through belam, never a default (aio ADD 1). (b) every kill waits until SEAT_DEAD_WINDOW_S (read from heal at run time) past the newest respawned record; an unreadable record FAILS, nothing killed; each heal pass prints the seat's records (result, age, delivery) and every window with its pane pid (alive 10:25:45Z). (c) the after-join's delivery and heal's 'after_join performed' line print (READ only). F1_SILENT=1 (default) lists the seat in R's OWN config:rotations alerts.silent, so heal types nothing into grok's pane; F1_SILENT=0 measures the typing. The fix of a typed DM into a non-claude pane belongs to the plan-master leaf, never F1. (d) before each kill: the row's pid has argv[0] grok-bot and the row's session_id == its -s/-r value, else FAIL and nothing is killed (section 4 reads it before the dead id replaces the row's id).
 - F1 v2 RE-CUT (council AMEND 10:52Z: all-is-one, self-perpetuating; alive APPROVE 10:51:35Z): `recs` keeps its whole per-file body in its try. A record that is not a JSON object, or a respawned one with a missing or unparsable recorded_at, reads UNREADABLE, so `waitdead` FAILS and nothing is killed; a non-zero `recs` = READ NOTHING; the age read takes numbers only. MUTANTS, each RUN on the script's own lines and each FAIL with nothing killed: no recorded_at; an unparsable recorded_at; that record sorted FIRST with a fresh respawned record after it; a non-object JSON; a torn record. CONTROLS: no record -> no wait; 590 s -> sleeps past 600; 900 s -> no wait. The join is read AGAIN right before each kill, since the wait can be about 600 s (aio NIT); the section-4 kill and the cleanup TERM each need the row pid's argv[0] to be grok-bot (sp NIT). Under F1_SILENT=1 a delivery that reads typed is a FAIL (the silent cell did not hold), and the run ends with 'NOT MEASURED typing into grok's pane'. The typed-DM reading is NOT RUN at F1_SILENT=1 and needs its own F1_SILENT=0 run (alive NIT), so run 2 never reads as 'typing is safe'.
 
+- F1 RUN 2 (belam 12:16-12:2xZ 11-10, the landed L500 script as agi-plan-master, F1_MODEL grok-4.7, F1_SILENT=1): FAILED rc 1, NOTHING KILLED (the guards held). 0b read PASS: the probe's grok answered F1READY, but its screen still held grok's unanswered 'Help improve Grok' opt-in; the seat's grok logged 'startup type-ahead dropped (startup screen pending)' 0.2 s after its start and quit, so the row kept the pane bash and sections 2 and 4 were NOT RUN; spawn_row_commit FAILED 'Author identity unknown' (971 has no git identity). The opt-in is the OWNER's data choice; belam asks the owner, dismisses once by hand, re-runs.
+- F1 v2.1 (SM 12:20Z, from run 2): 0b also FAILS on a screen that still shows a pending choice (two bracketed choices on one line, or the opt-in words); a false FAIL launches nothing and prints the line. Right after the stand-up the SEAT's own grok log is read: a dropped type-ahead FAILS the run, sections 2 and 4 NOT RUN, nothing killed. R sets its own git identity by config after init. RUN on fakes: a clean answer PASS; belam's banner, a bracketed pair, a dropped log line, no answer: FAIL each; the seat log dropped: FAIL=1, no join; clean: the join runs. MUTANTS: no banner check -> the banner PASSES; no seat-log check -> the join runs on a dropped prompt. L500 as landed reads the banner PASS (the control). Also the carried FLOOR (aio 11:02:37Z, alive 12:22:26Z): `recs` prints fields by LABEL (result=, age=, rotation= quoted), so a rotation value with a space no longer shifts the age read; a respawned record stamped in the FUTURE reads UNREADABLE, so `waitdead` FAILS and nothing is killed (a wait of the stamp's lead could be unbounded). RUN on fake records: none, 900 s -> no wait; 590 s and 590 s with a spaced rotation -> sleeps 20 s; future 3600 s -> FAIL, nothing killed. L500 reads the last two 'no wait' (the control).
 RUN (belam, on encryption-town), in this order. The mktemp path must be readable to uid 971: a /tmp mktemp file at 644 is; a file under a 700 scratch dir is not (belam 08:38Z 11-10). The scratch row's model is `F1_MODEL`, default grok-4.6, the box's grok default; `grok models` on this box lists only grok-4.6 and grok-4.5 (belam 08:4xZ). A setup-only pass as the uid comes first (SM NIT 2: whether 971 can read SRC is UNMEASURED, and a refusal there should cost no login). Then the marker, then the owner's login, then the run. The script goes to a mktemp path (SM NIT 1: never a fixed name in /tmp):
 ```
 F=$(mktemp) && sed -n '/^```bash f1.sh$/,/^```$/p' .agi/nodes/goal/g7.31.1.2.md | sed '1d;$d' > "$F" && chmod 644 "$F"
@@ -128,9 +130,12 @@ for f in sorted(glob.glob(f"{sys.argv[1]}/.agi/sessions/rotations/{sys.argv[2]}.
             if not ra:
                 raise ValueError("respawned record with no recorded_at")
             age = int(time.time() - datetime.datetime.fromisoformat(str(ra).replace("Z", "+00:00")).timestamp())
+            if age < 0:
+                raise ValueError(f"recorded_at {ra} is in the future ({-age} s): it cannot prove no recent respawn")
         aj = d.get("after_join") or {}
         mode = (aj.get("delivery") or {}).get("mode", "-") if isinstance(aj, dict) else "-"
-        print(f"{n} {d.get('rotation')} {d.get('result')} age {age} s; after_join delivery {mode}")
+        # aio FLOOR 11:02:37Z: fields by LABEL, never by column (a rotation value with a space shifted the old awk $3/$5)
+        print(f"{n} result={d.get('result')} age={age} rotation={str(d.get('rotation'))!r}; after_join delivery {mode}")
     except Exception as e:
         print(f"{n} UNREADABLE {e!r}")
 PY2
@@ -142,7 +147,7 @@ waitdead() { local w a; w=$(cd "$R/extensions/agi/bin" && python3 -c "import hea
   # an unreadable record cannot prove 'no recent respawn' (sp 10:27:51Z, heal's dir rule): FAIL, nothing killed
   local out; out=$(recs) || { echo "READ wait before the kill: READ NOTHING (the record read exited non-zero); nothing killed"; FAIL=1; return 1; }
   if printf '%s\n' "$out" | grep -q ' UNREADABLE '; then echo "READ wait before the kill: FAIL: a crash-recovery record of $SEAT is unreadable; nothing killed"; printf '%s\n' "$out" | grep ' UNREADABLE ' | sed 's/^/  /'; FAIL=1; return 1; fi
-  a=$(printf '%s\n' "$out" | awk '$3=="respawned" && $5 ~ /^[0-9]+$/ {print $5}' | sort -n | head -1)
+  a=$(printf '%s\n' "$out" | sed -nE 's/^[^ ]+ result=respawned age=([0-9]+) .*$/\1/p' | sort -n | head -1)
   if [ -n "$a" ] && [ "$a" -le "$w" ]; then echo "READ wait before the kill: newest respawned record is $a s old, SEAT_DEAD_WINDOW_S $w: sleeping $((w-a+10)) s"; sleep $((w-a+10))
   else echo "READ wait before the kill: newest respawned record ${a:-none} s old, SEAT_DEAD_WINDOW_S $w: no wait"; fi; }
 # SM term (d): kill nothing unless the row names the HARNESS: row pid's argv[0] is grok-bot and row session_id == its -s value
@@ -213,7 +218,10 @@ for nid, slug in (("doc:f1-scratch-brief", "f1-scratch-brief"), (f"doc:card-{sea
         f"---\nid: {nid}\ntype: doc\nparents:\n  - goal:g7.31.1.2\ntitle: F1 scratch\n---\n{txt}\n")
 PY
 [ $? = 0 ] || { echo "ABORT: the scratch row write failed"; exit 1; }
-git -C "$R" init -q && git -C "$R" -c user.name=f1 -c user.email=f1@local add -A && \
+# belam run 2 (12:2xZ 11-10): rotate.py's spawn_row_commit runs a plain `git commit` in R and failed 'Author identity unknown'
+# as 971 (no identity): R carries its own, set by config, so every commit in R has one
+git -C "$R" init -q && git -C "$R" config user.name f1 && git -C "$R" config user.email f1@local && \
+  git -C "$R" -c user.name=f1 -c user.email=f1@local add -A && \
   git -C "$R" -c user.name=f1 -c user.email=f1@local commit -qm "F1 throwaway root at $TIP" || { echo "ABORT: R repo"; exit 1; }
 NR=$(cd "$R/extensions/agi/bin" && python3 -c "import rotate,sys;print(len(rotate._load_seats(__import__('pathlib').Path(sys.argv[1]+'/.agi'))))" "$R")
 rd "R's rows (must be 1)" "$( [ "$NR" = 1 ] && echo "1: $(row harness) $(row box)")"
@@ -250,6 +258,12 @@ GM=$("$GROK_BOT_BIN" models 2>&1 | awk '/^Available models:/{a=1;next} a&&/^[[:s
 if [ -z "$GM" ]; then echo "READ grok models: READ NOTHING (an empty list); nothing launched"; exit 1
 elif printf '%s\n' "$GM" | grep -qxF -- "$F1_MODEL"; then echo "READ grok models: $(printf '%s' "$GM" | paste -sd' '); F1_MODEL $F1_MODEL listed"
 else echo "READ grok models: $(printf '%s' "$GM" | paste -sd' '); FAIL: F1_MODEL $F1_MODEL not listed; nothing launched"; exit 1; fi
+# grok's own log, messages only, after byte offset $1: the lines that say a prompt was dropped behind a startup screen
+drops() { tail -c +"$(($1+1))" "$GL" 2>/dev/null | python3 -c "import sys,json
+for l in sys.stdin:
+  try: m=str(json.loads(l).get('msg') or json.loads(l).get('message') or '')
+  except Exception: continue
+  if 'type-ahead dropped' in m or 'screen pending' in m: print(m[:120])"; }
 # --- 0b. SM term (a): grok's first-run screen swallowed run 1's prompt ('startup type-ahead dropped'). One interactive
 # start as this uid on a PRIVATE tmux socket, a prompt whose answer (F1READY) the prompt itself never spells; the screen is
 # printed (emails masked) and the run FAILS unless grok answered and its log shows no dropped type-ahead.
@@ -264,24 +278,30 @@ AC=$(printf '%s' "$SCR" | (cd "$R/extensions/agi/bin" && python3 -c "import sys,
 if [ -z "$SCR" ]; then echo "READ the probe screen: READ NOTHING (an empty pane: grok exited or never drew)"; FAIL=1
 elif [ -z "$AC" ]; then echo "READ the probe screen ($(printf '%s' "$SCR" | grep -c .) non-blank lines; anonymize scan clean):"; printf '%s\n' "$SCR" | sed 's/^/  | /'
 else echo "READ the probe screen: WITHHELD (anonymize classes: $AC)"; fi
-DROP=$(tail -c +"$((GO+1))" "$GL" 2>/dev/null | python3 -c "import sys,json
-for l in sys.stdin:
-  try: m=str(json.loads(l).get('msg') or json.loads(l).get('message') or '')
-  except Exception: continue
-  if 'type-ahead dropped' in m or 'screen pending' in m: print(m[:120])")
+DROP=$(drops "$GO")
+# belam run 2 (12:2xZ 11-10): the probe answered F1READY with grok's 'Help improve Grok' opt-in still unanswered on its
+# screen, and that banner then dropped the SEAT's prompt. An answer is not enough: a screen that still shows a pending
+# choice (two bracketed choices on one line, or the opt-in words) FAILS 0b too; any choice on it is the OWNER's
+BAN=$(printf '%s\n' "$SCR" | grep -E -m1 -i '\[[[:alpha:] ]+\][[:space:]]+\[[[:alpha:] ]+\]|help improve|opt[- ]?in|opt[- ]?out' | cut -c1-120)
 tmux -S "$PS" kill-server 2>/dev/null; rm -f "$PS"
-if printf '%s' "$SCR" | grep -q F1READY && [ -z "$DROP" ]; then echo "READ the probe: grok answered F1READY; no dropped type-ahead in its log"
-else echo "READ the probe: FAIL: ${DROP:-no F1READY reply}; nothing launched. Dismiss grok's first-run screen BY HAND as this uid (one interactive grok-bot start), then re-run. Any consent that screen asks (terms, data sharing, telemetry) is the OWNER's, through belam, never a default (aio ADD 1)"; exit 1; fi
+if printf '%s' "$SCR" | grep -q F1READY && [ -z "$DROP" ] && [ -z "$BAN" ]; then echo "READ the probe: grok answered F1READY; no dropped type-ahead in its log; no pending choice on its screen"
+else WHY=$DROP; [ -z "$WHY" ] && [ -n "$BAN" ] && WHY="a pending choice on the screen: $BAN"; [ -z "$WHY" ] && WHY="no F1READY reply"
+  echo "READ the probe: FAIL: $WHY; nothing launched. Dismiss grok's first-run screen BY HAND as this uid (one interactive grok-bot start), then re-run. Any consent that screen asks (terms, data sharing, telemetry) is the OWNER's, through belam, never a default (aio ADD 1)"; exit 1; fi
 MARK=$R/.marker; touch "$MARK"; sleep 1
 
 # --- 1. the first spawn: the ONE stand-up verb (fresh, 2b's -s uuid), then a heal pass for the after-join
+GO1=$(stat -c %s "$GL" 2>/dev/null || echo 0)
 echo "== 1 stand-up (fresh)"; (cd "$R" && python3 extensions/agi/bin/rotate.py stand-up --post "$SEAT"); echo "stand-up rc $?"
 sleep 20; heal
 P0=$(row pid); W0=$(row window); S0=$(row session_id)
 rd "row pid before" "$P0"; rd "row window before" "$W0"; rd "row session_id before" "$S0"; rd "pane before" "$(panes)"
 [ -n "$P0" ] && [ "$P0" != 0 ] && proc "$P0" "seat before"
 typed
-JOK=0; joinok "after the stand-up" && JOK=1
+# belam run 2: the seat's own grok logged 'startup type-ahead dropped' 0.2 s after its start and quit; the run then
+# read a pane-bash join. Read the SEAT's log here: a dropped prompt FAILS the run and nothing is killed
+DROP1=$(drops "$GO1"); JOK=0
+if [ -n "$DROP1" ]; then echo "READ the seat's grok log: FAIL: $DROP1 (a startup screen dropped the seat's prompt); sections 2 and 4 NOT RUN, nothing killed"; FAIL=1
+else echo "READ the seat's grok log: no dropped type-ahead since the stand-up"; joinok "after the stand-up" && JOK=1; fi
 
 # --- 2. kill the harness; heal's route (the ROUTE, T1): _watch_seats -> _recover_seat -> -r <row session_id> -> 30 s join
 echo "== 2 kill + heal resume (the good id)"
