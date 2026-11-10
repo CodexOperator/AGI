@@ -4,10 +4,10 @@ F1 run 1 of goal:g7.31.1.2 read 'seat-dead scan ... 0 dead' while the row's pid 
 say why. Rows here, each RED on the trunk's heal.py before this leaf (the mutant: the old bare skip / the old label):
 
   guard (_crash_recovery_recorded), an unread record or field HOLDS the respawn and is named:
-    unreadable (mode 000) · torn JSON · not a JSON object · a respawned record with an unparsable recorded_at
+    unreadable (mode 000) · torn JSON · bytes that are not UTF-8 · not a JSON object · a respawned record with an unparsable recorded_at
   CONTROL: a readable respawned record older than SEAT_DEAD_WINDOW_S does NOT hold, and writes no hold line
   in-window: the guard hands the caller '<file> <age> s old'; _watch_one_seat names it only when the pid is gone
-  _watch_one_seat's window-present return names the @id
+  _watch_one_seat's window-present return names the @id and the pane pid (unknown when the pass map lacks it), never 'vouches'
   _watch_seats' summary reads '<n> pid(s) gone; <m> acted', never 'dead'
 """
 from __future__ import annotations
@@ -96,6 +96,21 @@ def test_torn_record_holds_and_is_named(tmp_path, _env):
     assert "crash-recovery record s.A.json unreadable (JSONDecodeError" in _log(tmp_path)
 
 
+def test_invalid_utf8_record_holds_and_is_named(tmp_path, _env):
+    """aio 12:59:54Z: bytes that are not UTF-8 raise UnicodeDecodeError (a ValueError, not a JSONDecodeError); the
+    guard must HOLD + name it, never raise out of the scan for every seat."""
+    (_env / "s.A.json").write_bytes(b'{"rotation": "crash-recovery", "result": "respawned", "x": "\xff"}')
+    assert _guard(tmp_path) is True
+    assert "crash-recovery record s.A.json unreadable (UnicodeDecodeError" in _log(tmp_path)
+
+
+def test_utf16_record_holds_and_is_named(tmp_path, _env):
+    """sp 13:03:33Z: a UTF-16 file (with its mark) is a second bad-bytes shape: held + named, never raised."""
+    (_env / "s.A.json").write_bytes(json.dumps(_respawned(30)).encode("utf-16"))
+    assert _guard(tmp_path) is True
+    assert "crash-recovery record s.A.json unreadable (UnicodeDecodeError" in _log(tmp_path)
+
+
 def test_non_object_record_holds_and_is_named(tmp_path, _env):
     _rec(_env, "A", "[1, 2]")
     assert _guard(tmp_path) is True
@@ -135,7 +150,7 @@ def test_other_rotation_kinds_still_do_not_hold(tmp_path, _env):
 
 # --- _watch_one_seat: the two silent returns now name themselves ------------------------------------------
 
-def _one(tmp_path, monkeypatch, *, held: bool, alive: bool, window: bool):
+def _one(tmp_path, monkeypatch, *, held: bool, alive: bool, window: bool, pane_pids=None):
     def guard(root, seat, _rotate, now=None, why=None):
         if held and why is not None:
             why.append("s.A.json 40 s old")
@@ -144,7 +159,7 @@ def _one(tmp_path, monkeypatch, *, held: bool, alive: bool, window: bool):
     monkeypatch.setattr(heal, "_seat_geometry_dir", lambda root, row: None)
     monkeypatch.setattr(heal, "_window_present", lambda *a, **k: (window, None))
     row = {"name": "s", "pid": 4242, "window": "@7"}
-    return heal._watch_one_seat(tmp_path, row, [], rotate, now=NOW, pid_alive=lambda p: alive)
+    return heal._watch_one_seat(tmp_path, row, [], rotate, now=NOW, pid_alive=lambda p: alive, pane_pids=pane_pids)
 
 
 def test_held_seat_with_a_gone_pid_is_named(tmp_path, monkeypatch):
@@ -159,8 +174,18 @@ def test_held_seat_with_a_live_pid_stays_quiet(tmp_path, monkeypatch):
 
 
 def test_window_present_return_names_the_window(tmp_path, monkeypatch):
-    assert _one(tmp_path, monkeypatch, held=False, alive=False, window=True) == {}
-    assert "watch: seat s pid 4242 gone; window @7 present and its pane chain vouches: alive" in _log(tmp_path)
+    """sp 13:03:33Z: the line says what was READ: the @id, the pane pid from the pass map, and no more than 'not
+    another seat's window' (the row pid is gone, so the chain can never vouch for it)."""
+    assert _one(tmp_path, monkeypatch, held=False, alive=False, window=True, pane_pids={"@7": 9001}) == {}
+    assert ("watch: seat s pid 4242 gone; window @7 present (pane pid 9001); not another seat's window: "
+            "not respawned") in _log(tmp_path)
+    assert "vouches" not in _log(tmp_path)
+
+
+def test_window_present_with_the_pane_unknown_says_unknown(tmp_path, monkeypatch):
+    assert _one(tmp_path, monkeypatch, held=False, alive=False, window=True, pane_pids={}) == {}
+    assert "window @7 present (pane pid unknown); not another seat's window: not respawned" in _log(tmp_path)
+    assert "vouches" not in _log(tmp_path)
 
 
 # --- _watch_seats: the summary says what it counts ------------------------------------------------------

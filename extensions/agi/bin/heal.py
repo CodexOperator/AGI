@@ -2904,7 +2904,9 @@ def _crash_recovery_recorded(root: Path, seat: str, _rotate,
     for path in sorted(rot.glob(f"{seat}.*.json")):
         try:
             rec = json.loads(path.read_text())
-        except (OSError, json.JSONDecodeError) as exc:
+        # aio 12:59:54Z: ValueError covers JSONDecodeError AND UnicodeDecodeError: a record with bytes that are not
+        # UTF-8 would otherwise RAISE out of the guard and stop the dead-seat scan for every seat
+        except (OSError, ValueError) as exc:
             _watch_log(f"watch: seat {seat} crash-recovery record {path.name} "
                        f"unreadable ({type(exc).__name__}: {exc}): respawn held")
             return True
@@ -4348,10 +4350,14 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                                          rows=rows, _rotate=_rotate,
                                          pane_pids=pane_pids)
     if id_present:
-        # goal:g7.31.1.3: the pid is gone but the pane chain vouches; say so.
-        _watch_log(f"watch: seat {seat} pid {pid} gone; window "
-                   f"{(row.get('window') or '').strip()} present and its pane "
-                   f"chain vouches: alive")
+        # goal:g7.31.1.3 (sp 13:03:33Z): say only what was READ. The row pid is
+        # gone, so the chain can never hold it: at most it shows the window is
+        # not another seat's; a pane absent from the pass map is UNKNOWN.
+        _wid = (row.get('window') or '').strip()
+        _pp = (pane_pids or {}).get(_wid, 0)
+        _watch_log(f"watch: seat {seat} pid {pid} gone; window {_wid} present "
+                   f"(pane pid {_pp if _pp > 0 else 'unknown'}); not another "
+                   f"seat's window: not respawned")
         return {}
     # LIVENESS BEFORE DEATH (L4.292): a seat whose pin leases a live registry
     # session is ALIVE regardless of its row's stale pid/@id -- never DEAD,
