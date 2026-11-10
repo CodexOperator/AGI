@@ -53,6 +53,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - A derived text from a board photo: privacy scan clean before any commit (role (a)).
 
 ## §6 BANKED
+- doc:draft-presentation-deck-v1, NEXT in-place edit (never a re-cut): aio NIT 'deck.tex line' beside 127/128/410/411 (copy :154/:155/:437/:438); sp head line "'OWNER (c:' note lines: 20". sp TERM for the ARMS (goal:g5.4.3.1.1): the guard reads BOTH markers (64 lines), stated before arm B's first launch.
 - NIT 3 (alive 20:10:33Z), my NEXT touch of [fuel].md: name the cite leaf by id, goal:g7.16.1.11.46.34, once it is on the trunk (minted on posts/alive 0e8f9413eb).
 - For .46.34's CLOSE (sp NIT 2, not mine): the plain 'The owner's words' heading route is checked by nothing; when .46.34 lands, my nodes' plain headings go back to OWNER blocks.
 
