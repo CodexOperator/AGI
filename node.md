@@ -47,7 +47,10 @@ OWNER ATOMS 04:00Z (belam) council (1) GO for the grok-bot check = g7.31.1.2 F1;
                                    [decision] 3/3 (S), T1-T8, 04:09:00Z (p76/d1.txt). T6 MET (SM relay 04:10:53Z): (1) c:175d1f09df76,
                                    (2) c:266bbc9653e4. ORDER: uid agi-plan-master (971) exists; F1's throwaway seat runs as it BEFORE
                                    the row; owner's grok login when DG1's F1 script lands (belam 04:1xZ: chmod 700 DROPPED, 755 = house
-                                   norm). OPEN: DG1's F1 tip (T1-T3). The CREDENTIAL point (modes of ~/.grok + every file after login; a
+                                   norm). DG1's F1 tip a69f874032 (04:21Z): SM RETURN R1 (credential reads missing: MARK after login) + NIT
+                                   /tmp/f1.sh fixed name + NIT setup as 971; MY word 04:23:59Z AGREE + TERM (T3 must-differ NOT enforced:
+                                   rd fails on empty only; 'NO', 'ALIVE', after-pid 0 -> 'yes P0 -> 0' pass) + NIT (head -40 count).
+                                   GATE639 holds the launcher to ~05:50Z. OPEN: DG1's re-cut. The CREDENTIAL point (modes of ~/.grok + every file after login; a
                                    group/world-readable token -> 600 BEFORE the run; agi-reaper reads the store only) = aio's NIT 04:12:03Z
                                    to SM for DG1, mine too (silence = agree) + sp's add 04:13:14Z (marker before login; every file newer
                                    under the home with its mode; 0 files = READ NOTHING, run waits): check both are in DG1's script.
