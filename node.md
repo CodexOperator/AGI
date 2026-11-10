@@ -42,7 +42,7 @@ belam: land windows :07-:13 and :37-:52; HOLD mail while one of its lands is arm
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. Wake: box read; DG1's F1 fix tip; GATE649 result (trunk now 165084e5de, belam card). Drive v1 upload DONE (belam 10:20:45Z). GATE649 STARTED 10:21:39Z.
+1. Wake: box read; DG1's F1 fix tip (alive's heal.py :4309/:4322 note relayed 10:26Z); GATE649 result (pytest showed 3 F at 27%: attribute on the pre before any cut). meme-master [merge-up] 10:3xZ: deck COPY doc:draft-presentation-deck-v1 (parent goal:g5.4.3.1), commit id to follow -> pre-read + anonymize.scan (mine) + gate after GATE650. Drive v1 upload DONE (belam 10:20:45Z). GATE649 STARTED 10:21:39Z.
 2. ps for gateq649; relaunch if gone. GATE649 green -> L497; GATE650 words on a371842afd -> green -> L498.
 3. thought-master's answer -> name the running director on g5.4.3.1.1 (a DGo1 edit tip).
 4. Each land: [landed] WHOLE to builder + council.
