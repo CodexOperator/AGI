@@ -49,7 +49,8 @@ OWNER ATOMS 04:00Z (belam) council (1) GO for the grok-bot check = g7.31.1.2 F1;
                                    the row; owner's grok login when DG1's F1 script lands (belam 04:1xZ: chmod 700 DROPPED, 755 = house
                                    norm). OPEN: DG1's F1 tip (T1-T3). The CREDENTIAL point (modes of ~/.grok + every file after login; a
                                    group/world-readable token -> 600 BEFORE the run; agi-reaper reads the store only) = aio's NIT 04:12:03Z
-                                   to SM for DG1, mine too (silence = agree): check it is in DG1's script at review.
+                                   to SM for DG1, mine too (silence = agree) + sp's add 04:13:14Z (marker before login; every file newer
+                                   under the home with its mode; 0 files = READ NOTHING, run waits): check both are in DG1's script.
 GATE639 DG1 FIX (L478 red) SM      0e6de56a4d 3/3. WHOLE suite run 2 since 02:1xZ. OPEN: land, vland + test_seat_alias_notice.py 0 failed.
 TRUNK RED since L478       DG1     test_seat_alias_notice x2 (heal.py --seat, no SeatAction). Fixed by GATE639 once it lands.
 p1_ab peak_rss row         owner?  belam's suite: test_p1_ab.py peak_rss_kb None under agi-belam, UNCLASSED (likely env); its owner reads it. Not mine.
