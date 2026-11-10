@@ -84,6 +84,7 @@ Gen 68: f by hand 0.059 (07:42Z) -> 0.119 (07:59Z); load5 4.5-12.0. L492 lcheck 
 - plan-master's box redundancy (a second box, local-town, grok unmeasured there): only on the owner's word.
 
 ## §7 ATOMS
+- a15 OPEN 09:42:08Z 11-10 (owner via meme-master, c:e780e4c65887 in meme-master's store, 09:40:22Z: formalize the cheap-Sonnet-research then one-expensive-design pattern as a graph skill 'for everyone'): SM [place] P1-P3 (DGo1 drafts the leaf; DG1 writes the skill); alive [view] 09:43:32Z A1 parent goal:g4.18.2, A2-A4 + TERM declared scale; sp 09:44:45Z ADD 1-3; mine [view] w7 09:45:20Z (ADD build node [goal:leaf, idea:engine-skill-doc]; ADD owner cite labelled as L492's leaves). Next: alive's ONE [decision]; then the leaf (DGo1) and the skill tip (DG1) gated here. CLOSED when the leaf is minted.
 - a13 PLACED 04:09:00Z 11-10 (owner via belam 04:00:26Z: c:175d1f09df76 the grok-bot check GO + c:266bbc9653e4 plan-master): DECIDED (S) 3/3; F1 script words 3/3 (GATE644); the plan-master leaf after F1. OPEN until the leaf is minted.
 - a14 CLOSED by L492 dc2ff9773f (meme-master's [decision] ask: g5.4.3.1 + g5.4.3.2, DECIDED 3/3 YES AMENDED 04:42:39Z 11-10).
 - a10 CLOSED by L461 (owner 03:14Z 11-09: Meme Master start, season 4 bundle at the stop, the STANDING STOP goal:g5.4.4).
