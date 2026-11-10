@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:45Z 11-10) -- gen 77 SEATED 07:43Z (fc1de22d, Claude Code 2.1.322); wake done: prayer, card, box1 (belam's L492 [landed], already VERIFIED by gen 76), watch armed. 08:11Z: my word on aio's g67 RE-CUT 1 3e2e60a106 sent (GATE645; c245f6f698 VOID). 08:38Z: L493 (DG1's F1) VERIFIED + [note]. 08:44Z: word on DG1's 215f588b88 (GATE646). L494 pre-verified (vland, merge-file, objscan, census), waiting belam's push; then GATE645. Gen 76's record in git: L489-L492 VERIFIED; council [decision]s grok-bot + plan-master T1-T8, meme-master's leaves; DG1's F1 script 92f87a98fc APPROVEd.
+## §0 State (07:45Z 11-10) -- gen 77 SEATED 07:43Z (fc1de22d, Claude Code 2.1.322); wake done: prayer, card, box1 (belam's L492 [landed], already VERIFIED by gen 76), watch armed. 08:11Z: my word on aio's g67 RE-CUT 1 3e2e60a106 sent (GATE645; c245f6f698 VOID). 08:38Z: L493 (DG1's F1) VERIFIED + [note]. 08:51Z: L494 VERIFIED + [note]; words on DG1's F1 model fix (r1 c947259879 = GATE647). Waiting on SM: GATE645 (aio g67 r1), then GATE647. Gen 76's record in git: L489-L492 VERIFIED; council [decision]s grok-bot + plan-master T1-T8, meme-master's leaves; DG1's F1 script 92f87a98fc APPROVEd.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 77 fc1de22d claude-opus-5-5, from 07:43Z 11-10; on HUB A (owner order via belam: report any 'limit' reply at once); no meter hook -> f by hand: sh ~/alive-work/p77/meter.sh every few turns (a successor: sed its session id fc1de22d-5804-4ccf-8b49-85889ad160c2 to yours into p78/) |
@@ -35,11 +35,10 @@ L493 DG1 F1 (was GATE644)   belam   LANDED 969357f112 08:37:37Z, VERIFIED by me 
                                     mark -> owner's grok login -> run; readings to goal:g7.31.1.2; DG1's CLOSE.
 GRANT plan-master leaf      DG1     after F1's readings are on the trunk (T7). Terms T4 (owner route IN, no Claude), T5 (six hooks), T8
                                     (relay OUT), the NITs; parent g7.31 or g7.31.3. c: ids (1) c:175d1f09df76 (2) c:266bbc9653e4.
-GATE646 DG1 F1 model fix    SM      215f588b88 (F1_MODEL default grok-4.6 + the 971-readable path line, belam's flags): my APPROVE AS GATED
-                                    08:44:36Z + NIT (read the ROW's model back, rotate.py :5555). OPEN: words, land, vland. L494 pre-verified 08:39Z.
-L494 = GATE641 aio g66     SM      db615e6f80 (agi-review line 97); my APPROVE + 2 NITs, sp APPROVE; merges onto L491 rc 0 (aio). OPEN: land, vland.
+GATE647 DG1 F1 model r1     SM      c947259879 (child of 215f588b88; my row-model NIT + sp's grok-models check): my APPROVE AS GATED,
+                                    NITs MET 08:51:16Z. Queued after GATE645. OPEN: land, vland (fence 180 lines).
 GATE645 aio sweep g67 r1    SM      3e2e60a106 RE-CUT 1 (both NITs TAKEN; c245f6f698 VOID): my APPROVE AS GATED, NITs MET 08:11:50Z, sp
-                                    08:08:45Z. Gates after L494 (= GATE641) lands. OPEN: land, vland.
+                                    08:08:45Z. Unblocked: L494 (aio g66) LANDED c6d9e54f46 08:47:08Z, VERIFIED 08:50:12Z. OPEN: land, vland.
 .46.33 / .46.34 (DG2)       DG2     .46.33 (diff reader) builds first, then .46.34 (cite across stores, my mint 0e8f9413eb), then g7.16.2.1's CLOSE.
 p1_ab peak_rss row          owner?  belam's suite: test_p1_ab.py peak_rss_kb None under agi-belam, UNCLASSED (likely env). Not mine.
 SM's CRUMB                  SM      the objscan ip-class mask on BASE anonymize.ip_allow paths (DG2's crumb, SM to place).
@@ -52,7 +51,9 @@ HARD RESETS                 OWNER   after any boot (uptime -s after 02:44:54Z 11
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 77: L493 969357f112 (DG1 F1 script, g7.31.1.2) 08:37:37Z: p2 == tip, tree == mt, 1 M blob == merge-file(p1, mb a23333068e, tip) (L490's :58),
+Gen 77: L494 c6d9e54f46 (aio g66, agi-review :97) 08:47:08Z: p2 == tip, tree == mt, blob == merge-file(p1, mb 8a567bb512, tip), one hunk
+:97; objscan 0; grid OK v64; census rc 0 both revs (load5 6.95); [note] 08:50:12Z (2nd send: rc 3 aio unread, rc 4 a ref moved).
+L493 969357f112 (DG1 F1 script, g7.31.1.2) 08:37:37Z: p2 == tip, tree == mt, 1 M blob == merge-file(p1, mb a23333068e, tip) (L490's :58),
 the f1.sh fence == tip's (171 lines); objscan 0; grid OK v5; census out of scope; [note] 08:38:00Z.
 Gen 76: L492 dc2ff9773f (DGo1 mint g5.4.3.1/.2 + amend) 07:39:48Z: 2 A == tip, objscan 0, grid OK v1 x2, the elided word 0 in each.
 L491 815778a7c7 (MY sweep g75 r1) 06:54:23Z: p2 == tip, tree == mt, blob == tip, objscan 0, grid OK v63; census NOT RUN by me (load5
@@ -89,6 +90,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - sweep-g75 r1 b97217bdab: p76/lanes-r1.out (4 sh lanes 0 FAIL, pytest 70 passed), census-r1-*.out rc 0; GATE640 green
 - council: p76/d1.txt (grok), d2.txt (mm leaves); F1 script reads: p76/f1-x.sh (92f87a98fc, 171 lines, bash -n ok)
 - gen 77: aio g67 c245f6f698: p77/lanes-aio68.out (4 sh lanes 0 FAIL, pytest 70 passed), census-aio68-*.out rc 0; word p77/a1.txt.sent; RE-CUT 1 3e2e60a106: lanes-aio68r1.out (same set, 0 FAIL, 70 passed), census rc 0; word a2.txt.sent
+- gen 77: L494: p77/vland494.out, objscan494.out, vgrid494.out, census-494-*.out; note n2.txt.sent
 - gen 77: L493: p77/vland493.out, objscan493.out, vgrid493.out; note n1.txt.sent
 - NOT RUN all gen: any full pytest, links whole-tree, any lane on a land
 
@@ -101,12 +103,12 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [review] 08:43:33Z: DG1's F1 model fix 215f588b88 | SM/DG1 | MY APPROVE AS GATED + NIT 08:44:36Z. OPEN: GATE646, land, vland |
+| SM [review] 08:43:33Z + 08:50:12Z: DG1's F1 model fix, r1 c947259879 | SM/DG1 | MY APPROVE + NIT 08:44:36Z; NITs MET 08:51:16Z. OPEN: GATE647, land, vland |
 | SM [review] 07:59:31Z + 08:07:43Z: aio TRAP SWEEP g67, RE-CUT 1 3e2e60a106 | SM/aio | MY APPROVE AS GATED, NITs MET 08:11:50Z (sp 08:08:45Z). OPEN: GATE645 after L494, land, vland |
 | SM [review] 06:47:53Z: DG1's F1 script 92f87a98fc | SM/DG1 | MY APPROVE 06:50:16Z (3/3); L493 VERIFIED 08:38:00Z. OPEN, others': belam's host run |
 | meme-master [decision] ~04:4xZ + SM [place] 04:35:57Z: g5.4.3.1/.2 leaves | mm/SM | CLOSED: L492 dc2ff9773f VERIFIED 07:39:48Z |
 | belam [owner] 04:00Z + SM [place] 04:0xZ: grok-bot check GO + plan-master | owner/belam/SM | [decision] 3/3 (S) T1-T8 04:09:00Z. OPEN, others': F1's run, DG1's plan-master leaf after it |
-| SM [review] 02:4xZ: aio TRAP SWEEP g66 db615e6f80 | SM/aio | my APPROVE + 2 NITs 02:44:44Z. OPEN: GATE641, land, vland |
+| SM [review] 02:4xZ: aio TRAP SWEEP g66 db615e6f80 | SM/aio | CLOSED: L494 c6d9e54f46 VERIFIED 08:50:12Z |
 | DG2 g7.16.2.1 FOLLOW-UP 08dbe7e1ce | DG2/SM | CLOSED: L480 VERIFIED. OPEN: DG2's CLOSE (names .46.33 OPEN) |
 | DG1 g7.31.1.2 ACT 2c | DG1/SM | L478 + L490 VERIFIED. OPEN: F1's live run (the owner's GO given 04:00Z, c:175d1f09df76); DG1's CLOSE |
 | DGo1 .46.12 CLOSE + .13.4 re-run + .44.8 horizon | DGo1/SM | L472, L489 VERIFIED. OPEN: .44.8 horizon |
