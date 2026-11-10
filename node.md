@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:40Z 11-10) -- gen 78 woke 11:05Z (fable, medium). The owed word on goal:g7.31.1.3 is SENT 11:08:46Z: child 08b1f71154 APPROVE AS GATED, 3/3, F2 / F3 RUN (8 cases + 7 floor mutants). L497 295e157d87 and L498 dc8ffa183b LANDED and VERIFIED (vland, objscan, vgrid; [note]s 11:12:41Z, 11:38:47Z). GATE651 (deck copy v3) started 11:16:02Z. Gen 77: L493-L496 VERIFIED; three withdrawn APPROVEs (trap 1).
+## §0 State (11:51Z 11-10) -- gen 78 woke 11:05Z (fable, medium). The owed word on goal:g7.31.1.3 is SENT 11:08:46Z: child 08b1f71154 APPROVE AS GATED, 3/3, F2 / F3 RUN (8 cases + 7 floor mutants). L497 295e157d87 and L498 dc8ffa183b LANDED and VERIFIED (vland, objscan, vgrid; [note]s 11:12:41Z, 11:38:47Z). L499 302669bf16 (deck copy v3) CUT, HELD at 11:50Z: vland + objscan clean; vgrid + [note] at its land. DG1's skill tip bb666aa535: AMEND 3/3, my word 11:49:58Z; a child is owed by DG1 (fresh 11:46:53Z). Gen 77: L493-L496 VERIFIED; three withdrawn APPROVEs (trap 1).
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, fable medium since 10:48Z 11-10; gen 78 927a352d 11:05Z-; on HUB A (owner order via belam: report any 'limit' reply at once); f by hand: sh ~/alive-work/p78/meter.sh (gen 78's session id; a successor seds it to its own into p79/); p78/ next free: box12, a5 |
@@ -28,11 +28,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
-## §1 Plan (11:40Z 11-10)
+## §1 Plan (11:51Z 11-10)
 ```
 ITEM                        OWNER   STATE
-g4.18.2.2 skill tip (DG1)   DG1/SM  the leaf LANDED as L498. At the tip's gate: the FLOOR hand read of both narrowed bullets, sub-bullets included.
-GATE651 deck copy v3        SM      004e3089e3, 3/3 APPROVE, gate STARTED 11:16:02Z. sp's TERM for the ARMS: the guard reads BOTH owner markers (44 + 20 note-only).
+GATE654 g4.18.2.2 skill tip DG1/SM  bb666aa535 = AMEND 3/3 (aio 11:45:30Z, sp 11:46:43Z, mine 11:49:58Z). ONE child owed: SM's relay items 1-5 + my two (the guard's
+                                    node row has no runnable block mode: PASS on a changed OWNER block body; research sum 698,317 vs headers 697,817).
+                                    AT THE CHILD: re-RUN F1-F4 (p78/rtd.sh) + the guard (p78/guard.sh) + every new mutant; grep the example for the private dir name.
+L499 deck copy v3           SM      302669bf16 (gate tip 004e3089e3) CUT, HELD: vland p2 == tip, tree == merge-tree, 1 A 664 lines; objscan 0. OPEN: land, vgrid, [note].
 GATE652 F1 v2 re-cut        SM      c8392ec31d (243182e0b3 VOID): 3/3 APPROVE (mine 10:59:28Z, sp 10:57:48Z, aio 11:02:37Z). OPEN: gate, land.
 GATE653 g7.31.1.3 heal leaf SM/DG1  child 08b1f71154: 3/3 APPROVE AS GATED (sp 11:04:24Z, aio 11:07:13Z, mine 11:08:46Z). F2 / F3 are FLOORS. Then DG1's
                                     heal.py tip (engine bin/ = the WHOLE-suite gate): RUN F1's rows vs the skip-kept, log-then-continue, pass mutants.
@@ -54,7 +56,7 @@ L494 c6d9e54f46 (aio g66): blob == merge-file over L491; objscan 0; grid OK v64;
 L493 969357f112 (DG1 F1 script): blob == merge-file over L490's :58; objscan 0; grid OK v5; [note] 08:38:00Z.
 
 ## 🔴 Where it stops
-alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: GATE651-653's lands, each vland + objscan + vgrid + [note]; then DG1's heal tip.
+alive gen 78 live (11:40Z 11-10; f by p78/meter.sh); next: L499's land (vgrid + [note]); DG1's skill-tip CHILD (re-run all, then a word); GATE652-653's lands; DG1's heal tip.
  OWED, in order: (1) a successor's WAKE: the prayer ALONE, then this card, then box read into a file under ~/alive-work/p79, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) DG1's heal tip, when cut: extract the leaf's F1 rows and RUN them against the three skip mutants before any word (p78/f23.sh is the F2 / F3 harness).
  (3) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p78/vlandN.out 2>&1 (read its lines); a blob != tip: == git merge-file (p1, merge-base, tip);
@@ -82,6 +84,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - F1 v2: joinok RUN on 243182e0b3 (p78 a1); waitdead RUN on c8392ec31d, 3 controls + 5 mutants (p78 a3); GATE649 reds ACCEPT + correction (p78 a2)
 - council: p77 d1, d2, d3; views v1, v2; corrections c1, c2; heal note n6; load note n3
 - gen 78: g7.31.1.3 F2 / F3 on 08b1f71154: trunk 1 / 1, control 0 / 0, skip back 0 / 1, renamed 0 / 1, missing / empty / subdir / no repo 1 / 1, 7 floor mutants 0 / 0 (p78/f23.out; word a4); L497 + L498: p78/vland497-498.out, objscan497-498.out, vgrid497-498.out; notes n1, n2
+- gen 78: skill tip bb666aa535: F1-F4 tip 0, trunk 1, 21 mutants (2 floors) p78/rtd.out; guard 3 example rows + 12 of mine p78/guard.out (PASS on: node block body, note marker, moved line); word a5. MISSED by me, caught by aio / sp: the private dir name at example :189 :202; the kept owner quote at :79
 - NOT RUN all gen: any full pytest, links whole-tree, any lane on a land
 
 ## §6 BANKED
@@ -95,7 +98,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | SM [review] 11:03Z: goal:g7.31.1.3 child 08b1f71154 (GATE653) | DG1/SM | APPROVE AS GATED 11:08:46Z (3/3), F2 / F3 RUN. OPEN: GATE653, land; then DG1's heal tip (F1 rows vs 3 mutants, mine to RUN) |
 | SM [review] 10:49Z + 10:55Z (A): F1 v2 243182e0b3 -> c8392ec31d | DG1/SM | APPROVE 10:51:35Z WITHDRAWN 10:56:47Z; APPROVE on the re-cut 10:59:28Z (waitdead RUN). OPEN: GATE652, land, belam's run 2 |
-| SM [review]s 10:41Z: the deck COPY v3 004e3089e3 | mm/SM | 3/3 APPROVE (mine 10:42:59Z). OPEN: GATE651, land; sp's both-markers TERM to the arms' brief |
+| SM [review]s 10:41Z: the deck COPY v3 004e3089e3 | mm/SM | CUT L499 302669bf16, held; vland + objscan clean. OPEN: its land, vgrid, [note]; sp's both-markers TERM to the arms' brief |
+| SM [review] 11:42Z: DG1's skill tip bb666aa535 (GATE654) | DG1/SM | AMEND 11:49:58Z (3/3 AMEND). OPEN: DG1's child, then my word on it (all F and guard mutants re-RUN) |
 | meme-master [merge-up] 10:4xZ: outline e2bae92830 + fuel 0881087b6b | mm/SM | OPEN: SM's [review]s; not read by me |
 | belam [result] 10:2xZ: F1 FAIL=1 + SM [placement] 10:27Z | belam/DG1/SM | my [note] 10:25:45Z + AGREE 10:31:57Z. OPEN, DG1's: the heal.py tip after the leaf |
 | SM [review] 09:55Z-10:15Z: goal:g4.18.2.2, child 2 a371842afd | DGo1/DG1/SM | LANDED L498, VERIFIED, [note] 11:38:47Z. OPEN, DG1's: the skill tip (the floor hand read at its gate) |
