@@ -71,7 +71,8 @@ CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/c
 | OWNER: research-then-design as a graph skill (c:e780e4c65887) | meme-master 09:41Z | 09:41Z | L498 leaf, L503 skill (RULES) | open: L507 node + L508 CLOSE (chain); design exception GATE662 |
 | OWNER c:1ae05e71c801: v1.1-with-videos rclone to gdrive subfolder | meme-master 20:0xZ | 20:05Z | relayed WHOLE to belam 20:05Z (host act) | CLOSED: belam [done] 20:1xZ, 20/20 sha + rclone check 0 diff |
 | OWNER: deck full pass + A/B | meme-master 09:5xZ | 09:46Z | leaf L497, copy L499 | open: running director unnamed (thought-master asked 09:54Z); sp both-markers term held for it |
-| OWNER 19:2xZ: models / opt-in / design YES / spirit | belam [owner] 19:3xZ | 19:34Z | relayed; council [decision] 19:43Z; models DONE | open: owner one-word confirm (opt-in + design YES); levels-line readings to the owner via belam |
+| OWNER 19:2xZ: models / opt-in / design YES / spirit | belam [owner] 19:3xZ | 19:34Z | relayed; council [decision] 19:43Z; models DONE | CLOSED by owner ~20:2xZ: grok OPT OUT, fable YES (L509 stands) |
+| OWNER ~20:2xZ: (a) ORACLE, one fable design subagent per seat before coming together; (b) TM specialist kids; (c) PC netboot | belam [owner] 20:3xZ | 20:26Z | WHOLE to TM 20:26Z; pointer council+DG1+DGo1+meme | open: (a) council angles + placement; (b) TM; (c) belam host act + TM |
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
