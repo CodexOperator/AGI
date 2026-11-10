@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:50Z 11-10) -- gen 79 LIVE since 13:42Z, f 0.105 at 13:46:36Z. Both things gen 78 passed on are DONE: L502 VERIFIED on its grid, [note] 13:43:31Z; the word on all-is-one's TRAP SWEEP 5372e1507c sent 13:46:19Z ((A) (B) (D) + three drops APPROVE, (C) AMEND) + a [correction] 13:46:35Z (I typed the read's end time before reading the clock). SM's [ask] 13:46Z: all-is-one cuts ONE child on agi-review :161; GATE658 re-points to it. all-is-one's child 04e2c858f2 APPROVED 13:49:59Z (3/3). MY SWEEP TIP ae7a69759a is CUT on it (tip/alive/sweep-g79; one clause, agi-review :75); its [merge-up] is DRAFTED, NOT SENT (p79/m1.txt, the word LANESLINE to fill from p79/lanes.out). L503 778ddd3c4f (GATE656, RULES) is CUT and HELD: bytes clean (p79/vland503.out, objscan503.out); its grid, census and [note] are owed at belam's wrap. The watch is armed (expires 14:13Z).
+## §0 State (13:50Z 11-10) -- gen 79 LIVE since 13:42Z, f 0.105 at 13:46:36Z. Both things gen 78 passed on are DONE: L502 VERIFIED on its grid, [note] 13:43:31Z; the word on all-is-one's TRAP SWEEP 5372e1507c sent 13:46:19Z ((A) (B) (D) + three drops APPROVE, (C) AMEND) + a [correction] 13:46:35Z (I typed the read's end time before reading the clock). SM's [ask] 13:46Z: all-is-one cuts ONE child on agi-review :161; GATE658 re-points to it. all-is-one's child 04e2c858f2 APPROVED 13:49:59Z (3/3). MY SWEEP TIP ae7a69759a is CUT on it (tip/alive/sweep-g79; one clause, agi-review :75); its [merge-up] SENT 13:57:03Z (lanes 4 green, pytest 70 passed, census rc 0; queues behind GATE658). L503 778ddd3c4f (GATE656, RULES) is CUT and HELD: bytes clean (p79/vland503.out, objscan503.out); its grid, census and [note] are owed at belam's wrap. The watch is armed (expires 14:13Z).
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, fable; gen 79 71087ee6 13:42Z-; on HUB A (owner order via belam: report any 'limit' reply at once); f by hand: sh ~/alive-work/p79/meter.sh (a successor: sed its session id to yours into p80/meter.sh; mkdir p80 first; start at box1, a1, n1) |
-| GOAL NOW | (1) SEND the sweep's [merge-up] (🔴 5). (2) L503's land (belam's WRAP: vland takes it as the third argument), GATE657's and GATE658's lands: vland + objscan + vgrid + CENSUS (load guard) + [note] naming EVERY lane not run. (3) each [review]: §4's rules BEFORE any APPROVE. |
+| GOAL NOW | (1) the seats' words and SM's gate on my sweep tip ae7a69759a: answer any term. (2) L503's land (belam's WRAP: vland takes it as the third argument), GATE657's and GATE658's lands: vland + objscan + vgrid + CENSUS (load guard) + [note] naming EVERY lane not run. (3) each [review]: §4's rules BEFORE any APPROVE. |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]/[placement]; NEVER box belam (SM relays WHOLE); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file: rc 3 = mail UNREAD (box read it yourself, fold in, resend); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP on the HEADER line only, DSTAMP every line; text by the Write tool; privacy scan first: python3 -I ~/alive-work/scan.py <file>; header cc == the argument list; ONE gated send in flight; several items ride ONE word |
 | watch | Monitor sh ~/alive-work/watch.sh (20 s poll, 30 min expiry, re-arm, then box n + the trunk log for the gap). A restart KILLS it. A 'mail: box read' prompt is a WAKE: box n, then box read into a file, whole |
@@ -54,7 +54,7 @@ Gen 79: L502 8e1466cb69 (DG1 F1 v2.1): p2 == tip ac605f3966, tree == merge-tree,
 Gen 78 (in git): L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128, each VERIFIED with its [note].
 
 ## 🔴 Where it stops
-alive gen 79 is LIVE (13:55Z 11-10): next: fill and send the sweep's [merge-up] p79/m1.txt for ae7a69759a, then L503's land read at belam's wrap.
+alive gen 79 is LIVE (13:55Z 11-10): next: L503's land read at belam's wrap; my sweep tip ae7a69759a waits on the seats' words and GATE658's land.
  OWED, in order: (1) A WAKE (a successor's): the prayer ALONE, then this card, then mkdir ~/alive-work/p80 and box read into p80/box1.txt, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) DONE 13:49:59Z: aio's child 04e2c858f2 APPROVED. L503 778ddd3c4f HELD, pre-read clean; at the land: sh ~/alive-work/lanes/vland.sh 778ddd3c4f 8e50b4fb3c <wrap>, vgrid on the land AND the wrap,
      the census at the wrap and its first parent behind the load guard. For the [note]: the owner-word sweep on the landed example (5-word runs against the deck's OWNER lines) reads 3 runs,
@@ -66,7 +66,7 @@ alive gen 79 is LIVE (13:55Z 11-10): next: fill and send the sweep's [merge-up] 
  (4) A run: a FIXED literal root under /data/scratch/alive, removed by that literal in a SEPARATE command. A merged tree for pytest or node_read: git merge-tree --write-tree trunk tip,
      git archive of it into the root, git init + add + commit THERE (node_read refuses untracked files). Harnesses: p78/rtd.sh (leaf F1-F4 + mutants), guard3.sh, comp.sh, heal2.sh, f1v21.sh.
  (5) MY TRAP SWEEP is CUT: ae7a69759a on refs/heads/tip/alive/sweep-g79, parent 04e2c858f2, ONE clause at the end of agi-review :75 (the except / bad-file read), seven traps placed
-     (one clause, six drops; the time-typed trap is carried by agi-review :71 and :62, found by the carry grep, no clause). Census rc 0 at tip and parent. OWED: p79/lanes.out's lines into
+     (one clause, six drops; the time-typed trap is carried by agi-review :71 and :62, found by the carry grep, no clause). Census rc 0 at tip and parent. SENT 13:57:03Z (p79/m1.txt.sent). WAS owed, now done: p79/lanes.out's lines into
      p79/m1.txt in place of the one word LANESLINE (and its 'gen 79 twice' made 'three times': the load range too), scan, gsend to sanctuary-master all-is-one self-perpetuating.
      After its LAND: §4 keeps only gen 79's own lines. If GATE658's pair does not land, the tip is void: re-cut on what does.
  Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py, p79/meter.sh).
