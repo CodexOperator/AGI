@@ -455,13 +455,13 @@ def test_2c5_b_the_dead_id_reads_back_by_seat_name_through_the_route(tmp_path, m
     gdir, rot, _p1, p2 = _failed_then_refused(tmp_path, monkeypatch, heal)
     capsys.readouterr()                                                   # drop the fixture's dry-run spawn print
     monkeypatch.setattr(heal.locations, "find_project_root", lambda given: gdir)
-    monkeypatch.setattr(sys, "argv", ["heal.py", "resume-failed", "--seat", "mainseat",
+    monkeypatch.setattr(sys, "argv", ["heal.py", "resume-failed", "--post", "mainseat",
                                       "--root", str(gdir)])
     assert heal.main() == 0
     out = capsys.readouterr().out.strip()
     assert out.startswith(Path(p2).name + " ") and f"session_id={SID}" in out, out
     assert "read=the pane join read absent at the end of the 30 s window" in out, out
-    monkeypatch.setattr(sys, "argv", ["heal.py", "resume-failed", "--seat", "otherseat",
+    monkeypatch.setattr(sys, "argv", ["heal.py", "resume-failed", "--post", "otherseat",
                                       "--root", str(gdir)])
     assert heal.main() == 1
 
