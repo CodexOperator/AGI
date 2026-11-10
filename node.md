@@ -16,15 +16,16 @@ town: core
 meme-master · engine v4 post · claude-opus-5-5 medium · director under keep, sanctuary-master (SM) its route up · town core · box encryption-town · goal:g5.4.3 (leaves .1 presentation, .1.1 the A/B, .2 paper)
 Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi-send, agi-node-write, agi-rotate, agi-memory-guard, agi-goal, agi-research-then-design (L503, built from this post's 11-10 run).
 
-## §0 State (gen 1 out, 11-10 20:1xZ)
+## §0 State (gen 2, 11-10 20:2xZ)
 - PRIVATE WORK: ~/meme-photos (700). Deck sources ~/meme-photos/deck/v2/ (deck/deck.tex = THE deck; owner ledger ../owner-lines.md; research-a..g + stats-graph.md; prompts/ = the 13 subagent prompts). Build + renders ONLY under /data/scratch/meme-master (council A4: / is 87% full): toolchain/ (tectonic 0.15.0, venv with manim 0.22.1 + pymupdf, npm cache for hyperframes 0.9.30), deck-build/v2 (rsync of v2 + videos/ + posters/; deck/posters -> ../posters), deck-build/render.sh + render-hf.sh (one render at a time, refuse while load5 > 8).
 - DUE DATE: the rough draft was due TUE 11-10 MORNING (not 11-11: my error, fixed in g5.4.3.1 at L497).
-- DELIVERED: rough-draft-v1 (PDF, PDF with notes, sources tar) in the owner's Drive agi/class-presentation/rough-draft-v1/ (belam, rclone gdrive:, 10:2xZ, sha256 checked) + sent by SendUserFile. rough-draft-v1.1 = same + 15 rendered clips (10 manim, 5 HyperFrames): /data/scratch/meme-master/deck-build/rough-draft-v1.1 (+ .sha256), PDF sent to the owner; Drive upload to .../rough-draft-v1/v1.1-with-videos/ ASKED of belam via SM 20:0xZ (SM relayed 20:05Z; belam's word after its restart).
+- DELIVERED: rough-draft-v1 (PDF, PDF with notes, sources tar) in the owner's Drive agi/class-presentation/rough-draft-v1/ (belam, rclone gdrive:, 10:2xZ, sha256 checked) + sent by SendUserFile. rough-draft-v1.1 = same + 15 rendered clips (10 manim, 5 HyperFrames): /data/scratch/meme-master/deck-build/rough-draft-v1.1 (+ .sha256), PDF sent to the owner; IN the owner's Drive at .../rough-draft-v1/v1.1-with-videos/ (belam 20:1xZ: 20 files, sha256 matched, rclone check 0 differences; v1 untouched).
 - Every slide S1-S9 (+1b, 5a, 5b, 8b) carries the owner's titles/lines, marked '% OWNER c:<id>' (on screen) or 'OWNER (c:...)' (notes); 'c:pending-tap' = chunk not yet looked up. 57 AI proposals sit in notes labelled "cleaned up rough draft written by AI:" (owner: leave them for the professor).
 - PDF clips: XeTeX cannot embed \movie, so each poster is a click-to-play \href to ../videos/<clip>.mp4.
 
 ## §1 Plan
-- next: (1) belam's word on the v1.1 Drive upload; (2) arm B (goal:g5.4.3.1.1, the full graph treatment) waits on thought-master accepting as running director (SM asked 09:54Z, I nudged 11:5xZ; no answer); then rough-draft-v2 to Drive .../rough-draft-v2/ and S9 compares basic vs graph; (3) the owner's remaining small items below; (4) then the paper (goal:g5.4.3.2), one chunk at a time.
+- done: v1.1 Drive upload (belam 20:1xZ).
+- next: (1) the two queued lanes (outline, fuel) still not on origin/season3/main at 20:2xZ: wait on SM's gate; (2) arm B (goal:g5.4.3.1.1, the full graph treatment) waits on thought-master accepting as running director (SM asked 09:54Z, I nudged 11:5xZ; no answer); then rough-draft-v2 to Drive .../rough-draft-v2/ and S9 compares basic vs graph; (3) the owner's remaining small items below; (4) then the paper (goal:g5.4.3.2), one chunk at a time.
 - owner-side small items: S5a title (optional slide); the C3t/C3t2 triangle clips have NO source (placeholders); the C5 poster renders the made-up acronym, not the verified mantras (storyboard-v3 'C5 poster content, REAL examples' + Google former motto); the reveal clip is the v4 chain, not the v6 beats (storyboard-v4 'C6 v6').
 - blocked: nothing of mine.
 
@@ -33,7 +34,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - QUEUED at SM, plain one-file lanes off posts/belam 164d577536: mm-outline-v1 e2bae92830 (doc:draft-presentation-outline v1.2), mm-fuel-v1 0881087b6b (fuel:s4-retire-the-python-engine). Neither was ever on the trunk before (turn-end commits are not lands).
 
 ## 🔴 Where it stops
-Gen 1 out at the meter line. Successor: `cd ~/t && AGI_POST=meme-master box read` FIRST (belam's v1.1 upload word; TM; the two queued lanes). Then hand the owner the next open item, one chunk at a time.
+Gen 2 at an idle spot: v1.1 is in Drive; waiting on TM (arm B) and SM (the two lanes). Next: `cd ~/t && AGI_POST=meme-master box read`, then hand the owner the next open §1 item, one chunk at a time.
 
 ## §4 Traps (this generation's)
 - A post's turn-end commit is NOT a land: cut a plain one-file lane off posts/belam (temp index: read-tree, update-index --cacheinfo, write-tree; `git commit-tree -S`, check %G? = G) and send SM a [merge-up]. Outline + fuel sat unlanded a day.
@@ -60,7 +61,7 @@ Gen 1 out at the meter line. Successor: `cd ~/t && AGI_POST=meme-master box read
 | roll through chunks, owner rewords every line | owner c:c083f191f98d | done for S1-S9 titles/lines; S5a title open |
 | Sonnet research then Fable; manim + HyperFrames; LaTeX PDF + videos | owner 11-10 | done; 15 clips rendered |
 | council full pass + full graph treatment, A/B, S9 compare | owner c:61b389266d66 | council 3/3; leaf L497; copy L499; OPEN: TM as running director |
-| upload v1/v2 to Drive agi/class-presentation | owner c:1ae05e71c801 | v1 done; v1.1 asked; v2 after arm B |
+| upload v1/v2 to Drive agi/class-presentation | owner c:1ae05e71c801 | v1 + v1.1 done (belam 20:1xZ); v2 after arm B |
 | formalize research-then-design as a graph skill | owner c:e780e4c65887 | closed: L503 |
 | subgoals via SM to director-goals-1 (words + requirements, not goal text) | owner c:4b5d4abae03e | standing: move to role doc |
 | tell TM the owner's success definition | owner 11-10 | closed: boxed TM |
