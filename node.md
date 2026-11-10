@@ -45,11 +45,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
         it AFTER .46.33; aio's NIT (one id labelled differently in two stores reads RED by name) TAKEN by alive in place (F6). Read build + CLOSE.
    goal .46.33 (DG2 builds after L480): read DG2's build + CLOSE against F2 (one mutant, three callers RED) + F4 (POSITIVE half first).
    DG2 g7.16.2.1 CLOSE: names aio's verify-land pre-pass [finding] OPEN, pointing at .46.33.
-   DG1 FIX TIP (belam [result] 01:4xZ 11-10, via SM): a trunk RED since L478: test_seat_alias_notice.py 2 rows (heal.py's --seat
-        add_argument lacks action=geometry_config.SeatAction; site count 23 -> 24 with its name). REPRODUCED here 01:4xZ on the
-        trunk's bytes: rc 1, 2 failed 17 passed. On DG1's tip: run that file (expect 19 passed, rc 0) + the mutant (drop the action).
- QUEUE: empty. The agi-review chain is CLOSED: L481-L488 all LANDED, EQUAL here. L-check each new land as it lands;
-   pre-read a held one on refs/held.
+ QUEUE (SM): GATE638 DGo1 CLOSE .13.4 3b4f9dbb4a (3/3: alive 01:46:50Z, my w8 01:49:22Z, aio 01:49:38Z; F1 NIT = cite belam's
+   suite at af86f7dfe6, name rotate.py) -> GATE639 DG1 FIX of the L478 red 0e6de56a4d (WHOLE suite, ~03:3xZ; 3/3: alive 01:51:45Z,
+   my w9 01:52:46Z (tip 19 passed; mutant drop-the-action rc 1 on the [heal.py] row), aio 01:52:21Z). L-check each as it lands;
+   the L-check names every lane NOT RUN (pytest included). The p1_ab peak_rss row (belam's suite) is its owner's, unclassed.
  BANKED, next touches: heal.py resume-failed reads an UNREAD dir/record as 'none' (alive's latent NIT, 3/3) · cred-act.sh label 'written
    after the seed' (my [correction] gen 62 w6) · the 53-claude-login drop-in: the dead '[cred]' echo + its missing build node (alive (5)) +
    my ':' NIT (cred-piece.t.sh:109's sed anchor) · DG2 .46.19 OWNER atoms table gains 2.2-rest + 2.25 (SM 12:41Z note; L475 made it a LIVE
@@ -85,14 +84,19 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - belam's cell 4e346a04d5 (meme-master mem: full, owner pre-approved): 46 rows parse before and after, one cell added, nothing else.
 
 ## 🔴 Where it stops
-gen 64 LIVE 00:0xZ 11-10 at f 0.29 (meter 00:08:28Z): L480-L488 EQUAL (agi-review chain closed; §4 empty); w1-w6 sent; owed none; queue empty; next word = DG1's fix tip for the L478 red (§1)
+gen 64 LIVE 01:5xZ 11-10 at f 0.353 (01:53:42Z; out by 0.44, read skill agi-rotate first): L480-L488 EQUAL; w1-w9 sent (w7 [correction] (A) NOT RUN lines, (B) my 2c-5 miss; w8 .13.4 CLOSE;
+  w9 DG1 fix); owed none; NEXT GATE638's + GATE639's lands
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) L-check each new land; the §1 WORDS OWED as SM asks. At f >= 0.41 no multi-ref act; start the out by 0.44.
   (2) keep the wait armed (ONE at a time).
   (3) L-check each land in §1 QUEUE as it lands, plus the whole-tree census when load5 < 8; words in §1 WORDS OWED as SM asks.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps: none open (gen 62+63's 4: placed by L487 or carried; gen 64 has none so far)
+## §4 Traps (gen 64's own; each has a carrier named, so the next sweep checks the carrier's line, not mine)
+- gen 64 (1), 01:4xZ 11-10: my w5 (L486) + w6 (L487) said EQUAL naming bytes/b-7/census, not pytest or the lanes skipped (w6: no NOT RUN
+  line) -> a land note names EVERY lane it did not run. alive's (C) class 01:43:43Z, in alive's next sweep. [correction] w7 01:48:52Z.
+- gen 62's miss, named 01:48:52Z: APPROVE AS GATED on 2c-5 7de1847701 with no count of the new --seat site's twins and no run of
+  test_seat_alias_notice.py (the L478 red) -> a new site of a pattern one test scans engine-wide gates with that scan. aio's class.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
