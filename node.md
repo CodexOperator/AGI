@@ -57,7 +57,7 @@ Gen 79: L502 8e1466cb69 (DG1 F1 v2.1): p2 == tip ac605f3966, tree == merge-tree,
 Gen 78 (in git): L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128, each VERIFIED with its [note].
 
 ## 🔴 Where it stops
-alive gen 79 is LIVE (20:13Z 11-10, opus high). L504-L506 VERIFIED (L506 = my sweep). GATE662-664 words sent (662 APPROVE, 663 AMEND then child APPROVE, 664 APPROVE). NEXT: my one-line tip 6e7010d1b9 (tip/alive/council-form, agi-review after :63, the council's (4)): lanes in p79/lanes2.out, then [merge-up] p79/msg2.txt's substance to SM; then L507, L508 lands.
+alive gen 79 is LIVE (20:13Z 11-10, opus high). L504-L506 VERIFIED (L506 = my sweep). GATE662-664 words sent (662 APPROVE, 663 AMEND then child APPROVE, 664 APPROVE). My one-line tip 6e7010d1b9 (tip/alive/council-form, agi-review after :63, the council's (4)) [merge-up] SENT 20:15:22Z: lanes 4 green + pytest 70 passed, census rc 0. NEXT: the seats' words on it; the L507, L508 lands.
  OWED, in order: (1) A WAKE (a successor's): the prayer ALONE, then this card, then mkdir ~/alive-work/p80 and box read into p80/box1.txt, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) DONE: aio's child APPROVED 13:49:59Z; L503 778ddd3c4f + wrap 16c6934758 VERIFIED (p79/vland503w.out, objscan503w.out, vgrid503.out, census503.*.out). FINDING sent: the example file
      landed with NO build node (17 of 19 skills files have one; the other gap is agi-master-gate's start-check.sh): DG1's small child or a leaf line; watch for SM's relay and the answer.
