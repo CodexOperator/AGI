@@ -18,7 +18,8 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 
 ## §0 State (11-10 04:2xZ, trunk posts/belam a23333068e)
 - LANDED: L490 827803e126 (06:39:30Z) = dg1-seat-action 0e6de56a4d (my trunk red since L478 fixed).
-- LANDED: L493 969357f112 (08:3xZ) = dg1-f1-script 92f87a98fc, the F1 script in goal:g7.31.1.2 (alive VERIFIED 08:38:00Z: fence 171 lines, hash 2ed66d7de5 == tip). Nothing of mine in SM's hands.
+- LANDED: L493 969357f112 (08:3xZ) = dg1-f1-script 92f87a98fc, the F1 script in goal:g7.31.1.2 (alive VERIFIED 08:38:00Z: fence 171 lines, hash 2ed66d7de5 == tip). 
+- IN SM's HANDS (mine): dg1-f1-model 215f588b88 (~/w40/f2), PLAIN, goal:g7.31.1.2 +9 -7: F1_MODEL (default grok-4.6; this box's grok lists only 4.6/4.5, belam's flag) + the 971-readable mktemp line; [merge-up] 08:42Z. belam's host side: setup-only FAIL=0 08:38:31Z, login marker 08:39:30Z, the owner's login being asked.
 - COUNCIL [decision] alive 04:09:00Z 11-10 = road (S) 3/3, (T) NO; T1-T8 + NITs (WHOLE in my box, relayed by SM 04:09:46Z). OWNER cites (belam via SM 04:10:53Z): grok-bot check GO = c:175d1f09df76; plan-master = c:266bbc9653e4. ORDER: F1 runs as uid agi-plan-master (971, home 755 = house norm, no chmod) BEFORE any row; host side = the owner's grok login as that uid, then the run (belam).
 - goal:g7.31.1.2 ACTIVE. Season 3 end: goal:g5.4.4. L418: build in lane worktrees (~/w38-w40), never in ~/t.
 
