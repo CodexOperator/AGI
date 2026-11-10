@@ -16,10 +16,10 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:45Z 11-10) -- gen 77 ROTATES at f 0.44, a natural pause: every owed word SENT, nothing in flight. THE OWNER'S HOST ACT (belam 164d577536, 10:32Z): the council rows model claude-opus-5-5 -> fable, effort xhigh -> medium (owner: "switch the councils to fable 5.2 medium"), so gen 78 wakes on fable. Gen 77: L493-L496 VERIFIED; 3 council [decision]s (the research-then-design skill; meme-master's deck pass + A/B; the g4.18.2.2 re-cut); words on every SM [review]; TWO [correction]s of my own APPROVEs (sp's mutants on g4.18.2.2's F2; sp's F1 run on the deck copy): the same class, now trap 1. Load5 ~20 most of the gen; SM's node gates run when it drops.
+## §0 State (10:52Z 11-10) -- gen 77 CONTINUES on fable: belam's restart 10:48:32Z RESUMED this conversation (-c), no rotation happened; f 0.412 at 10:51Z (past 0.41: no multi-ref act; out at 0.47 or the next pause past 0.43). Every owed word SENT; newest: F1 v2 243182e0b3 APPROVE 10:51:35Z (GATE652). THE OWNER'S HOST ACT (belam 164d577536, 10:32Z): the council rows model claude-opus-5-5 -> fable, effort xhigh -> medium (owner: "switch the councils to fable 5.2 medium"), so gen 78 wakes on fable. Gen 77: L493-L496 VERIFIED; 3 council [decision]s (the research-then-design skill; meme-master's deck pass + A/B; the g4.18.2.2 re-cut); words on every SM [review]; TWO [correction]s of my own APPROVEs (sp's mutants on g4.18.2.2's F2; sp's F1 run on the deck copy): the same class, now trap 1. Load5 ~20 most of the gen; SM's node gates run when it drops.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 77 fc1de22d claude-opus-5-5 07:43Z-10:45Z 11-10; gen 78: fable, medium (164d577536); on HUB A (owner order via belam: report any 'limit' reply at once); f by hand: sed p77/meter.sh's session id fc1de22d-5804-4ccf-8b49-85889ad160c2 to yours into ~/alive-work/p78/meter.sh |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code; gen 77 fc1de22d, opus 07:43Z-10:45Z then fable medium from 10:48:32Z 11-10 (164d577536, same session); on HUB A (owner order via belam: report any 'limit' reply at once); f by hand: sed p77/meter.sh's session id fc1de22d-5804-4ccf-8b49-85889ad160c2 to yours into ~/alive-work/p78/meter.sh |
 | GOAL NOW | (1) each land as SM cuts it: vland + vgrid + objscan + census (load guard) + [note] naming EVERY lane not run. (2) each [review]/[place]/[placement]: extract the leaf's own F and RUN it on the tip's bytes, map EVERY council term to the F that reads it, RUN mutants (a respelling, a wrapped line) BEFORE any APPROVE. |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]/[placement]; NEVER box belam (SM relays WHOLE); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file: rc 3 = mail UNREAD (box read it yourself, fold in, resend); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP on the HEADER line only, DSTAMP every line; text by the Write tool; privacy scan first: python3 -I ~/alive-work/scan.py <file>; header cc == the argument list; ONE gated send in flight; several items ride ONE word |
@@ -37,7 +37,7 @@ GATE650 g4.18.2.2 skill     SM      3535432ea1 + 957bc7580d + child 2 a371842afd
 DECK COPY v3 (meme-master)  SM      004e3089e3 (tree == 4ec14417d8's; 3396487bf2 + 4ec14417d8 VOID): 3/3 APPROVE (mine 10:42:59Z, F1 RUN rc 0). After 650.
                                     sp's TERM for the ARMS (not the copy): the guard reads BOTH owner markers ('% OWNER' 44 + 'OWNER (c:' note-only 20).
 OUTLINE + FUEL (meme-mstr)  SM      e2bae92830 (doc:draft-presentation-outline) + 0881087b6b (fuel:s4-retire-the-python-engine): NOT read by me.
-F1 v2 + heal leaf (DG1)     DG1     SM [placement] 10:27Z, 3/3 (mine 10:31:57Z): F1 v2 tip on g7.31.1.2 (a-d + the owner's consent rule); heal
+F1 v2 + heal leaf (DG1)     DG1     F1 v2 = 243182e0b3, GATE652: my APPROVE 10:51:35Z (joinok RUN; F1_SILENT stays, NIT: typed-DM read NOT RUN at 1); heal
                                     leaf goal:g7.31.1.3 (:2897 file skip, :2903 recorded_at, :4322 silent, 'dead' -> 'acted'; mutants HELD + named).
 (3)(a) OWNER QUESTION       belam   SM [ask] 10:01:54Z: except the research-then-design DESIGN stage from the brief's SUBAGENTS rule? (c:e780e4c65887)
 GRANT plan-master leaf      DG1     after F1's readings (T7). Terms T4, T5, T8, the NITs; c:175d1f09df76, c:266bbc9653e4.
@@ -54,7 +54,7 @@ L494 c6d9e54f46 (aio g66, agi-review :97): blob == merge-file over L491; objscan
 L493 969357f112 (DG1 F1 script): blob == merge-file over L490's :58; fence == tip's (171 lines); objscan 0; grid OK v5; [note] 08:38:00Z.
 
 ## 🔴 Where it stops
-alive gen 77 rotated at f 0.44 (10:45Z 11-10), gen 78 on fable; next: GATE649 (L497), GATE650, the deck copy v3 lands, each vland + [note].
+alive gen 77 resumed on fable 10:48Z 11-10 (no rotation yet, f 0.412); next: GATE649 (L497), GATE650, GATE651 (deck copy v3), GATE652 (F1 v2) lands, each vland + [note].
  OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then box read into ~/alive-work/p78/box1.txt, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p78/vlandN.out 2>&1 (read its lines); a blob != tip: == git merge-file (p1, merge-base, tip);
      python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1; sh ~/alive-work/p52/vgrid.sh <LAND>; census reader_census.py repo --rev <LAND> and ^1 behind
