@@ -14,15 +14,14 @@ town: core
 ---
 # DRAFT — presentation deck v1, graph copy (arm A: basic workflow)
 
-DRAFT. Every on-screen and spoken line marked OWNER is the owner's; every other line is an agent's (labelled "cleaned up rough draft written by AI:" where it proposes wording). The council's full pass reads THIS version (council [decision] alive 09:53:15Z 11-10, goal:g5.4.3.1.1).
+DRAFT. Every on-screen line marked '% OWNER c:<id>' and every spoken note line opening 'OWNER (c:...)' is the owner's; every other line is an agent's (labelled "cleaned up rough draft written by AI:" where it proposes wording). The council's full pass reads THIS version (council [decision] alive 09:53:15Z 11-10, goal:g5.4.3.1.1).
 
-## Head
-- private source: meme-master's private deck.tex, sha256 `d60ebf91091d70dedb54de73e5c5b39d82e92cad1c117dbf1869bb5e16d6571f`
-- copied: 2026-11-10T10:23:38Z
-- '% OWNER' lines in the source: 44
-- removals (each marked in place): `[elided: course]` x4 lines, `[elided: person]` x1; `[withheld: verbal-only]` x0 (the verbal-only item appears nowhere in the source, notes included: F2 with notes kept reads none)
-- owner lines a removal touched, by line number in the source and the copy (same numbering): 127, 410
-- the submitted bytes (rough-draft-v1, the owner's Drive agi/class-presentation/rough-draft-v1/) are the PRIVATE deck as built, not this copy (sp's Target 6).
+source sha256: 30c850e0a5b62554547091628a2ac246ac283e95d355bd24ad2a45f12a6bb192
+copied: 2026-11-10T10:39:58Z
+'% OWNER' lines: 44
+removals: [elided: course] x4 lines (127, 128, 410, 411), [elided: person] x1 line (410), [withheld: verbal-only] x0
+owner lines a removal touched: none (127 and 410 are agent paraphrases of owner asides, labelled so; 128 and 411 are agent suggestions)
+submitted bytes: rough-draft-v1 = the PRIVATE deck as built (the owner's Drive agi/class-presentation/rough-draft-v1/), not this copy
 
 ## deck.tex (copy)
 ````latex
@@ -152,7 +151,7 @@ DRAFT. Every on-screen and spoken line marked OWNER is the owner's; every other 
   Fallback if the room names no game: Doom ("Can it run Doom?"), owner-approved. \\
   OWNER (c:pending-tap), the open loop, spoken: So it makes sense, if you were told to go rewrite Doom, and assigned a room of people, you'd get it done pretty fast. If you were only assigned a single person, it would probably take you a while. But think about being in that room sitting in front of a group of highly-paid, highly-capable, and highly-intelligent software engineers. How do you even organize everyone? Just say `Okay team we're rewriting Doom in Go, good luck!' then go sit on your phone while they do everything themselves? Can someone like you or me who don't know nearly as much about computers or coding even provide effective leadership in an unfamiliar territory? \\
   cleaned up rough draft written by AI: It makes sense: told to rewrite Doom and given a room full of people, you would finish fast. Given one person, it would take a while. But picture yourself at the front of that room, facing a group of highly capable software engineers. How do you even organize them? Do you say ``Okay team, we are rewriting Doom in Go, good luck!'' and then sit on your phone while they do everything? Can someone like you or me, who knows far less about computers and code, lead well in unfamiliar territory? [spoken, the open loop] \\
-  OWNER's aside (theirs): aimed at the humanities professors present: the AI program is part of a new humanities course too, [elided: course], which lets humanities get in on the STEM/software fun via LLM intelligence-hierarchy flattening. \\
+  Agent paraphrase of an owner aside (c:2a8dd9b727c1), not verbatim: aimed at the humanities professors present: the AI program is part of a new humanities course too, [elided: course], which lets humanities get in on the STEM/software fun via LLM intelligence-hierarchy flattening. \\
   cleaned up rough draft written by AI: A nod to the humanities professors here: [elided: course] is a humanities course too. These AI models flatten the ladder of technical expertise, so the humanities get to join the software fun. [spoken aside; ``LLM intelligence-hierarchy flattening'' is jargon] \\
   Cites: Liu et al. 2023 Lost in the Middle, 56.1\% closed-book vs 53.8\% mid-context (GPT-3.5 era). Hong et al. 2025 Context Rot, 18 LLMs degrade as input grows (vendor report).}
 \end{frame}
@@ -435,7 +434,7 @@ DRAFT. Every on-screen and spoken line marked OWNER is the owner's; every other 
   cleaned up rough draft written by AI: Most big companies have some catchy acronym, slogan or mantra. They give us something to hold on to whenever we are unsure about a decision. They are not goals or tasks you can finish; quite the opposite. They are vague on purpose, in a very concrete way: they narrow your choices constructively, not destructively. They say: if you are going to do something, do it like this, or do not bother. [spoken, as the poster appears; ``every company'' softened] \\
   OWNER (c:pending-tap), spoken on ``Morals are shared cornerstones'': Morals are these shared cornerstones that let everyone stay on the same page as far as how we are making decisions and allowing decisions to go through via council votes. Modifying those would let agents decide to focus on something completely outside what the human user wanted to focus on and could include sensitive religious or medical preferences such as if they were building a website for a church. \\
   cleaned up rough draft written by AI: Morals are the shared cornerstones. They keep everyone on the same page about how decisions get made, and about which decisions pass a council vote. If agents could rewrite them, they could drift toward something the human user never asked for. Morals can also carry sensitive preferences, religious or medical ones for example: think of a system building a website for a church. [spoken; the second sentence of the original had no clear subject] \\
-  OWNER's aside (theirs): a nod to [elided: course] and the other humanities faculty, the [elided: person] included: leadership, communications, law, biology... all things the humanities teach here. \\
+  Agent paraphrase of an owner aside (c:24cce6461b83), not verbatim: a nod to [elided: course] and the other humanities faculty, the [elided: person] included: leadership, communications, law, biology... all things the humanities teach here. \\
   cleaned up rough draft written by AI: A nod to [elided: course] and to the humanities faculty: leadership, communications and law are all taught here. [spoken aside; see flag 4 below] \\
   Slots: [OWNER WRITES: the corporate parallel: core values, a unified vision, mantras and acronyms, in your words] Q: which mantra from a job stuck, and why? · [OWNER WRITES: why agents never write the top] · optional [OWNER WRITES: one real example you can vouch for]. \\
   cleaned up rough draft written by AI: [empty slot, why agents never write the top] Agents can grow everything above the ground. The roots are the one thing they never touch: only the human writes the morals. \\
@@ -661,4 +660,5 @@ DRAFT. Every on-screen and spoken line marked OWNER is the owner's; every other 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v1, meme-master 11-10: the copy the council's full pass reads (alive's A1, aio's TERM, sp's ADD A/C). One course name and one faculty role elided; nothing else changed; the guard compared the owner lines after exactly the listed removals (equal). Storyboards and animation sources stay private for now; the clip rows the deck names are summarized in its own \note lines.
+v2, same day: sp's RETURN 10:38:47Z taken: head fields moved above the first '## ' heading, the count in the leaf's control form; source lines 127 and 410 were agent paraphrases of owner asides wrongly labelled "OWNER's aside", relabelled in the private source and here ("Agent paraphrase of an owner aside (c:...), not verbatim"), so no owner line carries a removal; source sha256 changed with that relabel.
 <!-- THOUGHT:END -->
