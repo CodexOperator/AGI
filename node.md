@@ -17,9 +17,9 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:57Z 11-10) -- gen 90 awake. Hub A. Trunk = posts/belam 10a048c2ac (L505). Next free L = 509. Next free GATE = 665.
+## §0 State (19:57Z 11-10) -- gen 90 awake. Hub A. Trunk = posts/belam 2d8a6a92ab (L506). Next free L = 509. Next free GATE = 665.
 - LANDED gen 89: L497 295e157d87 · L498 dc8ffa183b · L499 302669bf16 · L500 641d8dea53 · L501 e11807d128 · L502 8e1466cb69 · L503 778ddd3c4f (RULES, belam wrap 16c6934758) · L504 085845b280 (heal pair; alive verified 19:50Z).
-- LANDED gen 90: L505 10a048c2ac (aio sweep pair 04e2c858f2). IN FLIGHT: the chain cuts L506 alive sweep 56a8e4d8fe -> L507 DG1 example build node 71c48c9d7c -> L508 DGo1 CLOSE g4.18.2.2 211995b66f. All four gated GREEN and 3/3; cut dirs tmp/l505..l508 BUILT + guarded.
+- LANDED gen 90: L505 10a048c2ac (aio sweep pair 04e2c858f2) · L506 2d8a6a92ab (alive sweep, alive verified 20:10Z). IN FLIGHT: the chain cuts (window :31-:03) L507 DG1 example build node 71c48c9d7c -> L508 DGo1 CLOSE g4.18.2.2 211995b66f. All four gated GREEN and 3/3; cut dirs tmp/l505..l508 BUILT + guarded.
 - CHAIN: `tmp/chain504.sh` (bg; DIES AT THE OUT; gen 90 relaunched 19:56Z, loop now 506 507 508). Relaunch at wake if not in ps: `cd /data/work/gate-sm && sh tmp/chain504.sh >> tmp/chain504.out 2>&1` (run_in_background). It loops 504..508; a cut whose cut.out ends 'sent belam' is DONE: before relaunch, edit the loop to start at the first unsent L (or it re-cuts a sent one).
 - GATES: `tmp/gateq90.sh` (bg, DIES AT THE OUT; out tmp/gateq90.out) runs GATE662 WHOLE again (gen 89's run died after skills-truth; 354/0, links 0 broken read) then GATE663. 662 ALLDONE -> build L509 (mkcut n=509 g=662 prev=508). DG1 fixes the brief's LANES 'every post uses Sonnet' line at the next touch.
 - GATE663 TIP RE-POINTED to DG1's child d675091a90 (%G? G, +8 -2): alive APPROVE AS GATED (19:54Z) + one NIT (two-bracketed-choices alternation before the y), DG1's choice; pointer sent 19:56Z. DG1 19:5xZ: NO new tip, 663 gates d675091a90; the nit is a FLOOR until belam's run 4 prints grok's real trust screen. WORDS 3/3: alive APPROVE 19:54Z, sp APPROVE 19:55Z (the .grok find fails closed on an unread R), aio APPROVE 19:56:49Z (floor: a symlinked subdir's .grok passes; no risk, grok reads R's root) = 3/3. On 663 ALLDONE green: cut L509/L510 per order.
@@ -43,7 +43,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-gen 90: L505 LANDED 10a048c2ac; L506 SENT 19:59:53Z; chain504 (506..508) + gateq90 (662, 663) + gateq90b (664) are bg jobs.
+gen 90: L505 + L506 LANDED (trunk 2d8a6a92ab); L507 cuts at :31; chain504 (506..508) + gateq90 (662, 663) + gateq90b (664) are bg jobs.
 ```
 NEXT: each L506..L508 [landed] -> pointer; on 662 ALLDONE -> L509; on 663 ALLDONE -> words (one runs, two read) -> cut.
 CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/chain504.out /data/work/gate-sm/tmp/gateq90.out
@@ -68,7 +68,7 @@ CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/c
 |---|---|---|---|---|
 | OWNER: grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493/L496/L500/L502 landed; v2.2 in review | open: v2.2 child + gate; belam run 4; DG1 plan-master leaf after |
 | OWNER: research-then-design as a graph skill (c:e780e4c65887) | meme-master 09:41Z | 09:41Z | L498 leaf, L503 skill (RULES) | open: L507 node + L508 CLOSE (chain); design exception GATE662 |
-| OWNER c:1ae05e71c801: v1.1-with-videos rclone to gdrive subfolder | meme-master 20:0xZ | 20:05Z | relayed WHOLE to belam 20:05Z (host act) | open: belam's copy + sha check |
+| OWNER c:1ae05e71c801: v1.1-with-videos rclone to gdrive subfolder | meme-master 20:0xZ | 20:05Z | relayed WHOLE to belam 20:05Z (host act) | CLOSED: belam [done] 20:1xZ, 20/20 sha + rclone check 0 diff |
 | OWNER: deck full pass + A/B | meme-master 09:5xZ | 09:46Z | leaf L497, copy L499 | open: running director unnamed (thought-master asked 09:54Z); sp both-markers term held for it |
 | OWNER 19:2xZ: models / opt-in / design YES / spirit | belam [owner] 19:3xZ | 19:34Z | relayed; council [decision] 19:43Z; models DONE | open: owner one-word confirm (opt-in + design YES); levels-line readings to the owner via belam |
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
