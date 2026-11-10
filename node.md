@@ -45,8 +45,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE656 = L503 + belam's wrap, LANDED + EQUAL here (§2).
    GATE657 = L504, LANDED + EQUAL here (§2).
    GATE658 = L505, LANDED + EQUAL here (§2).
-   GATE659 alive's TRAP SWEEP RE-CUT 1 56a8e4d8fe (tree == the void ae7a69759a's, read here 14:02Z; my word carried by SM, silence) (gens 77 + 78; parent 04e2c858f2, void unless GATE658 lands; agi-review :75 +1 -1): 3/3;
-     MY w6 13:58:46Z APPROVE (7 file shapes RUN ==; drops 1-6 read) + w7 [correction] ((7) NOT READ). Land: 1 M, 209 lines.
+   GATE659 = L506, LANDED + EQUAL here (§2).
    GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE 211995b66f: MY w8 APPROVE both (probe-close-41822.sh REV). 660 before 661.
    GATE662 DG1's design-stage exception 84c0cb6f73 (A22 (2)): MY w10 19:39:45Z APPROVE + NIT (LANES 'beyond the DG3 exception' -> both). Land: 2 M.
    GATE663 DG1's F1 v2.2 0a3a3e01ee (0b in R; folder-trust 'y' only under F1_TRUST_R=1): 3/3 AMEND -> a CHILD (alive 19:50:27Z: no 'y'
@@ -78,6 +77,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip or merge-file, OWNER 0, b7 0, box 0; rows in git: this card's versions to 11-10 12:5xZ)
+- L506 2d8a6a92ab alive's sweep (GATE659; p1 5ec41a56ff; 1 M agi-review, blob == 56a8e4d8fe, 209 lines; no note)
 - L505 10a048c2ac aio's sweep pair (GATE658; p1 085845b280; 3 M, blobs == 04e2c858f2; 140 / 209 / 127 lines kept; no note: alive verifies lands)
 - L504 085845b280 the heal pair (GATE657; p1 91ad8951f6; 3 paths, blobs == e1ad994ffa; my guard probe on the landed bytes == the child's; my [note] 19:45:17Z, one line)
 - L503 778ddd3c4f the research-then-design SKILL chain + companion (GATE656, RULES; 7 paths, blobs == tip 8e50b4fb3c, the link 120000) + W
