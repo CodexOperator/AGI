@@ -221,7 +221,8 @@ def test_static_scan_reports_site_count_and_names():
     whose flat parser carried one of them; 22 again since goal:g7.16.1.11.20.2 C1
     added alarm_spool.py's `drain --seat` (alarm_spool.py:211, through SeatAction);
     23 since goal:g7.16.1.11.27.1 added rotate.py `box-unread --seat/--post`
-    (the wake's inbox row, through SeatAction)."""
+    (the wake's inbox row, through SeatAction); 24 since goal:g7.31.1.2 ACT
+    2c-5 added heal.py `resume-failed --seat/--post` (through SeatAction)."""
     sites = []
     for f in sorted(BIN.glob("*.py")):
         try:
@@ -237,7 +238,7 @@ def test_static_scan_reports_site_count_and_names():
                         and isinstance(a.value, str)]
                 if "--seat" in opts:
                     sites.append(f"{f.name}:{node.lineno}")
-    assert len(sites) == 23, sites
+    assert len(sites) == 24, sites
 
 
 @pytest.mark.parametrize("fname", _seat_modules())

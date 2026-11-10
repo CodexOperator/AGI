@@ -151,14 +151,16 @@ def main() -> int:
 
 def _main_resume_failed() -> int:
     """goal:g7.31.1.2 ACT 2c-5 (alive's TERM (b), 11:55:49Z 11-09):
-    `heal.py resume-failed --seat S [--root R]` -- the route from a SEAT NAME
+    `heal.py resume-failed --post S [--root R]` -- the route from a SEAT NAME
     to the dead session id of its newest failed resume. `rotate.py status
     --record latest` skips crash-recovery records by design, so it never
     shows one. Prints `<record> <recorded_at> session_id=<id> read=<what the
     join read>`; exit 0 when found, 1 when no crash-recovery record of the
     seat carries one. Read-only."""
     ap = argparse.ArgumentParser(prog="heal.py resume-failed")
-    ap.add_argument("--seat", required=True, help="the seat (post) name")
+    import geometry_config  # noqa: PLC0415 -- same bin dir; the shared --seat/--post action
+    ap.add_argument("--seat", "--post", action=geometry_config.SeatAction,
+                    required=True, help="the post (seat) name")
     ap.add_argument("--root", type=str, default=".",
                     help="the main checkout / graph root")
     args = ap.parse_args(sys.argv[2:])
@@ -4219,7 +4221,7 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
         }
         if outcome.get("resume_failed"):
             # goal:g7.31.1.2 ACT 2c-2 (C): the dead id + what the join read;
-            # read it back by the seat name: `heal.py resume-failed --seat
+            # read it back by the seat name: `heal.py resume-failed --post
             # <seat>` (rotate.py status --record skips crash-recovery records).
             rec["resume_failed"] = outcome["resume_failed"]
     if res == "detected":
