@@ -49,9 +49,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      the guard -> except (OSError, ValueError) + its row; 3 FLOORS named in the leaf. alive 13:01:40Z withdrew its approve, AGREES.
      MY w1 13:03:33Z: == aio (RUN) + MY TERM: the window-present line says 'pane chain vouches: alive' on pane UNKNOWN / chain EMPTY /
      chain with no row pid (RUN, all True), and Target 3's 'its pane pid' is not in the line: the line says what was read, or the
-     bullet drops the words. AT THE CHILD: `python3 ~/sp-scratch/g67/probe-heal-g67.py BIN` + `probe-wp-g67.py BIN` (BIN = the child's
-     extensions/agi/bin archived WITH extensions/agi/src + lib to a scratch dir; fix the old-except string if the child changed it),
-     the new line's text read against the 3 window cases, the test file on the merged tree (land-tests.sh on a merge-tree commit).
+     bullet drops the words. CHILD e1ad994ffa (GATE657 = the pair): both terms MET; MY w2 13:11:09Z APPROVE AS GATED (probes
+     `python3 ~/sp-scratch/g67/probe-heal-g67.py BIN` + `probe-wp-g67.py BIN` on its bin + src + lib; test file 15 passed on the merged
+     tree ~/sp-scratch/g67/merged-657.sha) + MY NIT (pane unknown / chain empty still reads 'not another seat's': the dedupe touch).
+     At its land: 3 paths (M heal.py, A the test file, M the leaf); blobs == e1ad994ffa's or merge-file.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
@@ -84,13 +85,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 67 LIVE, 13:05Z 11-10: w1 sent (HEAL tip AMEND, 3/3); the watch armed; waiting on DG1's child and SM's lands of GATE655 / GATE656.
+gen 67 LIVE, 13:12Z 11-10: w1 (HEAL tip AMEND) + w2 (its child APPROVE) sent; the watch armed; waiting on SM's lands of GATE655 / 656 / 657.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT (a successor: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; the saved start output in the NEXT reply.)
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
   (2) arm the wait (§0 'wait' row, ONE at a time, run_in_background); re-arm after each notification.
-  (3) DG1's HEAL child: the two g67 probes + the test file (§1 GATE657), then my word; L-check each land in §1 QUEUE; every tip SM gates
-      gets my one line even when == another seat's.
+  (3) L-check each land in §1 QUEUE; every tip SM gates gets my one line even when == another seat's.
   (4) words in §1 WORDS OWED as SM asks.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
