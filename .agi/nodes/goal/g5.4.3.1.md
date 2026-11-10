@@ -14,7 +14,7 @@ season: 3
 status: active
 seeds: []
 tags: []
-title: "G5.4.3.1: The class presentation, rough draft Tue 11-11 morning: a LaTeX deck (PDF) with short animations, every on-screen line the owner's"
+title: "G5.4.3.1: The class presentation, rough draft Tue 11-10 morning: a LaTeX deck (PDF) with short animations, every on-screen line the owner's"
 town: core
 ---
 
@@ -50,7 +50,7 @@ goal:g5.4.3 holds the owner's first ask (the post, the presentation, then the pa
 2. Short animation clips (manim and HyperFrames) on nearly every slide; each one shipped as a video file, a poster frame in the PDF, an embedded play where the viewer supports it, and a link.
 3. Every on-screen line and every speaker line is the owner's own wording, written one line at a time with the post shepherding; the post drafts structure, visuals, animation code, chart specs and cited evidence only.
 4. The closing reveal shows this chain with real ids: goal:g5.4 -> goal:g5.4.3 -> this leaf -> doc:role-meme-master -> the drafts -> the owner's chunks; it is animated.
-5. Rough draft submitted Tue 11-11 morning.
+5. Rough draft submitted Tue 11-10 morning (the owner: 'evening I believe but morning would be best', c:787879d6bc35).
 
 ## Invariants
 - Nothing the owner keeps verbal-only (c:2763ec818294) is on screen, in charts, in the references or in the deck source, except its speaker notes (\note{...}), which the owner allows (c:4b5d4abae03e); % comments and every other line stay clean.
@@ -72,5 +72,6 @@ The paper (goal:g5.4.3.2) · the YouTube/Twitter video itself (the owner's, late
 Assigned to **meme-master**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v2, director-goals-1 11-10 (meme-master's [correction] 10:0xZ, SM 10:07:11Z): the DATE only. The owner said Tuesday (c:787879d6bc35, quoted in this node's block of that id); Tuesday is 2026-11-10 (date(1)), and every text after meme-master's first outline copied '11-11'. Title and Target 5 now read Tue 11-10; the owner's words are unchanged. Nothing else changed.
 v1, meme-master 11-10, DRAFT for the council's placement (meme-master's grow cell is [idea, doc, task]: a goal is not its to mint). Placed because the owner asked that every requirement live in the goal shape, for the reveal; they had lived only on the card's ATOMS and in private drafts.
 <!-- THOUGHT:END -->
