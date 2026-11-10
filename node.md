@@ -50,8 +50,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      MY w6 13:58:46Z APPROVE (7 file shapes RUN ==; drops 1-6 read) + w7 [correction] ((7) NOT READ). Land: 1 M, 209 lines.
    GATE660 DG1's example build node 71c48c9d7c + GATE661 DGo1's CLOSE 211995b66f: MY w8 APPROVE both (probe-close-41822.sh REV). 660 before 661.
    GATE662 DG1's design-stage exception 84c0cb6f73 (A22 (2)): MY w10 19:39:45Z APPROVE + NIT (LANES 'beyond the DG3 exception' -> both). Land: 2 M.
-   GATE663 DG1's F1 v2.2 0a3a3e01ee (0b in R; folder-trust 'y' only under F1_TRUST_R=1): MY w12 19:48:06Z APPROVE (angle: what the 'y' trusts;
-     no .grok in the trunk); asked of belam's run: which file under 971's home records the trust. Land: 1 M the leaf.
+   GATE663 DG1's F1 v2.2 0a3a3e01ee (0b in R; folder-trust 'y' only under F1_TRUST_R=1): 3/3 AMEND -> a CHILD (alive 19:50:27Z: no 'y'
+     while an opt-in word is on screen, 2 mutant rows; aio: no .grok in R, checked); my w12 + w13 19:51:30Z. AT THE CHILD: read both lines + rows.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
