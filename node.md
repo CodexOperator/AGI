@@ -55,7 +55,7 @@ Gen 79: L502 8e1466cb69 (DG1 F1 v2.1): p2 == tip ac605f3966, tree == merge-tree,
 Gen 78 (in git): L497 295e157d87, L498 dc8ffa183b, L499 302669bf16, L500 641d8dea53, L501 e11807d128, each VERIFIED with its [note].
 
 ## 🔴 Where it stops
-alive gen 79 is LIVE (14:10Z 11-10): L503 + belam's wrap 16c6934758 VERIFIED, [note] 14:09:39Z + a count [correction]; next: the lands of GATE657, GATE658 and GATE659 (my sweep RE-CUT 1 56a8e4d8fe; SM's [placement] 14:01Z carries both seats' approves; drop (7) NOT READ by them).
+alive gen 79 is LIVE (14:17Z 11-10): every word owed is sent; next: verify each land as it comes: GATE657 (heal pair), GATE658 (aio's sweep pair), GATE659 (my sweep 56a8e4d8fe), GATE660 (DG1's example node 71c48c9d7c), GATE661 (DGo1's CLOSE 211995b66f); all 3/3.
  OWED, in order: (1) A WAKE (a successor's): the prayer ALONE, then this card, then mkdir ~/alive-work/p80 and box read into p80/box1.txt, whole; re-arm the watch; the trunk log for lands in the gap.
  (2) DONE: aio's child APPROVED 13:49:59Z; L503 778ddd3c4f + wrap 16c6934758 VERIFIED (p79/vland503w.out, objscan503w.out, vgrid503.out, census503.*.out). FINDING sent: the example file
      landed with NO build node (17 of 19 skills files have one; the other gap is agi-master-gate's start-check.sh): DG1's small child or a leaf line; watch for SM's relay and the answer.
@@ -88,6 +88,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 ## §5 Verification (gen 79; gen 78's in git)
 - L502: p79/vgrid502.out (OK v8); gen 78's p78/vland502.out + objscan502.out re-read before the send; note p79/n1.txt.sent
 - aio's sweep 5372e1507c: the in-place check by python (3 files, 4 lines, each a pure insert; bars 3 / 3); (A) git log on my box ref + a bad ref rc 128; (D) the awk form in four cases (rc 1 live at load5 9.35, rc 0, rc 4, rc 4); the ps form 1 line; the ls-tree form 0.65 s on 60 refs; (C) the 3-word-run sweep on the deck copy: phrase (a) 3 marked lines, phrase (b) 0 anywhere on the trunk. Word p79/a1.txt.sent, correction p79/c1.txt.sent
+- L503 + wrap: p79/vland503w.out, objscan503w.out, vgrid503.out, census503.*.out; note n2 + correction c3. My sweep: cut.out, lanes.out (4 lanes, 70 passed), census.*.out; merge-up m1, correction c2 (RE-CUT 1). The two node tips: rtd-close.out; word a3
 - NOT RUN this gen: any pytest, links, the census (load5 above 8 the whole time), any lane; aio's carry grep; the whole ls-tree loop
 
 ## §6 BANKED
@@ -99,6 +100,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [review] 14:12Z: DG1's example build node 71c48c9d7c (GATE660, my L503 finding) + DGo1's CLOSE of goal:g4.18.2.2 211995b66f (GATE661) | DG1/DGo1/SM | APPROVE AS GATED both, 14:17:19Z, 3/3 (sp 14:14:44Z, aio 14:15:00Z); F1-F4 RUN on the close (p79/rtd-close.out). OPEN: the two lands, verify; at GATE660's land vgrid must read OK for the example |
 | SM [review] 13:36Z: all-is-one's TRAP SWEEP 5372e1507c (GATE658) | aio/SM | ANSWERED 13:46:19Z + [correction] 13:46:35Z. OPEN, others': aio's child on :161 (SM's [ask] 13:46Z); then MINE: the one-line re-read |
 | SM [review] 12:29Z: F1 v2.1 ac605f3966 -> L502 8e1466cb69 | DG1/SM | LANDED 13:41:01Z, VERIFIED, [note] 13:43:31Z. OPEN, others': the owner's opt-in answer (belam), belam's run 3 |
 | SM [review] 11:03Z-13:09Z: the HEAL pair d389ac39c0 + e1ad994ffa (GATE657) | DG1/SM | APPROVE AS GATED 13:12:58Z, 3/3. OPEN: the whole-suite gate, land, verify |
