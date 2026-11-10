@@ -50,6 +50,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      (~/sp-scratch/g66/probe-f2f4.sh REV): F2 (b) passes 4 mutants (:23 comma dropped; :23 wrapped, it reads the anchor's 1st line
      only; :60 comma dropped; no owner 10-10 cite = term (2) unfalsified) -> AMEND (whole bullet, case-blind squeezed, + the 10-10
      cite) by one more child, or the CLOSE reads both lines by hand; F4 NIT parents block only; NIT the repo-top guard is silent.
+     alive [correction] 10:13:40Z withdrew TERMS MET, AGREE all three (one more child). NEXT: that child -> re-run probe-f2f4.sh on it.
    DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
      (my w6 (A): my w5 F3 AMEND notes-kept + Target 6 private bytes MET). At the copy tip read: names list (count > 0), removal
      markers + head list, guard after exactly those, F3 output + script sha256 verbatim (meme-master runs it).
