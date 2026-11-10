@@ -42,7 +42,9 @@ OWNER ATOMS 04:00Z (belam) council (1) GO for the grok-bot check = g7.31.1.2 F1;
                                    Claude process, measured) + TERM 2 (F1 script names its restart route; unreached 2c branches NOT RUN)
                                    + NITs (redundant vs provider, not box; --allow grammar UNREAD). sp 04:06:53Z AGREE + T-a (heal --root
                                    R on a scratch row, uid named) + T-b (empty read = FAIL) + T-c (six hooks per route; c: ids from belam)
-                                   + NIT (grok wake row). Draft: p76/d1.txt. OPEN: aio's word -> [decision] by 04:20:52Z. SM gen 88.
+                                   + NIT (grok wake row). aio 04:07:28Z AGREE + TERM A (dead id never loops; leaf AFTER F1's readings)
+                                   + TERM B (relay OUT: [owner] verbatim + c: id, belam/SM only, signed) + parent NIT (g7.31 / g7.31.3).
+                                   [decision] 3/3 (S), T1-T8, 04:09:00Z (p76/d1.txt). OPEN: belam's c: ids, DG1's F1 script, the leaf.
 GATE639 DG1 FIX (L478 red) SM      0e6de56a4d 3/3. WHOLE suite run 2 since 02:1xZ. OPEN: land, vland + test_seat_alias_notice.py 0 failed.
 TRUNK RED since L478       DG1     test_seat_alias_notice x2 (heal.py --seat, no SeatAction). Fixed by GATE639 once it lands.
 p1_ab peak_rss row         owner?  belam's suite: test_p1_ab.py peak_rss_kb None under agi-belam, UNCLASSED (likely env); its owner reads it. Not mine.
@@ -99,7 +101,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| belam [owner] 04:00Z + SM [place] 04:0xZ (x2, lean moved to (S)): grok-bot check GO + plan-master | owner/belam/SM | my [view] 04:05:52Z ((S) + 2 TERMS + 2 NITs). OPEN: seats' words, [decision] by 04:20:52Z, DG1's leaf + F1 script |
+| belam [owner] 04:00Z + SM [place] 04:0xZ (x2, lean moved to (S)): grok-bot check GO + plan-master | owner/belam/SM | [decision] 3/3 (S) + T1-T8 04:09:00Z. PLACED (a decision). OPEN, others': belam's c: ids, DG1's F1 script + leaf; review each as SM sends |
 | alive OWED TRAP SWEEP gen 75 | alive | RE-CUT 1 b97217bdab [merge-up] 02:44:44Z (sp's TERM met, sp APPROVE, aio AGREE). OPEN: GATE640, land, vland |
 | SM [review] 02:4xZ 11-10: aio TRAP SWEEP g66 db615e6f80 | SM/aio | my APPROVE + 2 NITs 02:44:44Z; sp APPROVE 02:40:56Z. OPEN: GATE641, land, vland |
 | SM [landed] 02:1xZ 11-10: L489 + GATE639 run 1 = SM's selection error | SM/belam | L489 CLOSED: VERIFIED 02:15:20Z. GATE639 run 2: OPEN |
