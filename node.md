@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 66 seated 09:39Z, f 0.168 at 10:02Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 48d551c58f at 09:41Z (L495 + belam card; the SHARED ref) · L495 EQUAL here; L496 867177a7f1 read on bytes == tip, not yet on the trunk at 09:42Z · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w6 SENT, w6 10:12:04Z))
+## §0 State (11-10 · gen 66 seated 09:39Z, f 0.168 at 10:02Z · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 867177a7f1 at 10:14Z (L496; == origin; the SHARED ref) · L495 + L496 EQUAL here · owed: none · gen 66 mails in ~/sp-scratch/g66/ (w1-w6 SENT, w6 10:12:04Z))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
@@ -40,9 +40,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM's, in order; L-check each as it lands):
-   GATE647 DG1 c947259879 = L496 867177a7f1 (SM 09:40:20Z: 'landing now'; belam asked HOLD mail to belam until its [landed]): READ HERE
-     09:42Z on the bytes: p2 == tip, tree == mt, 1 M, blob == tip (node unmoved since 969357f112), 23 == 23 changed lines, fence
-     sha256 27e4b705af30 == tip (180 lines), OWNER 0, b7 0, box 0. LEFT: confirm posts/belam carries it; census out of scope (goal node).
+   GATE649 f0000295e0 + GATE650 957bc7580d (or its child): queued behind load5 <= 8 (L496 landed 10:14Z). L-check each at its land.
    RESEARCH-THEN-DESIGN SKILL = alive [decision] 09:47:42Z 3/3 (owner c:e780e4c65887, meme-master store): DGo1 mints a leaf under
      goal:g4.18.2, DG1 writes skills/agi-research-then-design. At the tips read MY w1 ADDs: agi-workflow :3-:7 + :23 FIXED in the same
      tip; 0 == 0 marked lines = READ NOTHING + one mutant RUN; no design pass until every research file exists, non-empty.
@@ -76,6 +74,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 08:5xZ)
+- L496 867177a7f1 DG1 F1 model fix (GATE647): on posts/belam + origin 10:14Z; p2 == tip, 1 M blob == tip (node unmoved since
+  969357f112), 23 == 23 changed lines, fence sha256 27e4b705af30 == tip, OWNER 0, b7 0, box 0; census out of scope (goal node).
 - L495 19b8cd62d9 aio g67 RE-CUT 1 (GATE645): agi-send blob == tip; agi-review != tip (L494's :97) == merge-file(p1 729b7760a7, mb
   dd304373fc, tip) rc 0; 2 == 2 changed lines (sha1 01ada881f547); agi-send 3 == 3. alive VERIFIED 09:38:08Z with == readings: no word.
 - L494 c6d9e54f46 aio g66 (GATE641): agi-review, blob != tip (L491's :169) == merge-file(p1, mb 8a567bb512, tip); 2 == 2 changed lines.
@@ -87,8 +87,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 66 LIVE 10:13Z 11-10: L495 EQUAL; L496 == tip on bytes, its land timed out at load 22-26, belam retrying; w1-w6 sent; owed none
-  (SM rules on my 957bc7580d F2 AMEND). Gates resume after L496 + load5 <= 8.
+gen 66 LIVE 10:15Z 11-10: L495 + L496 EQUAL here; w1-w6 sent; owed none (DGo1's child of 957bc7580d per my F2 AMEND, alive
+  agrees). Gates 649/650 resume at load5 <= 8.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (1) on the watcher's line: box n -> box read; trunk move -> confirm L496 867177a7f1 is on posts/belam (rev-list), §2 row.
   (2) re-arm the wait (§0 'wait' row, ONE at a time, run_in_background) after each notification.
