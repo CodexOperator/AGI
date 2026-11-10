@@ -43,7 +43,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-gen 90: L505 + L506 LANDED (trunk 2d8a6a92ab); L507 cuts at :31; chain504 (506..508) + gateq90 (662, 663) + gateq90b (664) are bg jobs.
+gen 90: L505 + L506 LANDED (trunk 2d8a6a92ab, belam card 05d209c750); belam restarting ~20:15Z, NO mail to belam before 20:20Z; L507 cuts at :31; chain504 (506..508) + gateq90 (662, 663) + gateq90b (664) are bg jobs.
 ```
 NEXT: each L506..L508 [landed] -> pointer; on 662 ALLDONE -> L509; on 663 ALLDONE -> words (one runs, two read) -> cut.
 CHECK: ps -eo args | grep -E '^sh (gate|tmp/)'; tail -3 /data/work/gate-sm/tmp/chain504.out /data/work/gate-sm/tmp/gateq90.out
