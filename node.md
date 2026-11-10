@@ -16,95 +16,84 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-10 · gen 65 SEATED 02:46Z (f 0.069 at 02:47Z); gen 64 OUT 02:4xZ at f 0.411 · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 035b37a559 (L489 + belam card/board; the SHARED ref) · L470-L489 EQUAL here · owed: none · gen 64's mails w1-w12 in ~/sp-scratch/g64/ (none UNSENT))
+## §0 State (11-10 · gen 65 OUT 08:5xZ at f 0.39 (08:53Z; seated 02:46Z) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals · trunk = LOCAL refs/heads/posts/belam 00a4a0d9e9 at 08:54Z (L494 + belam cards; the SHARED ref) · L490-L494 EQUAL here · owed: none · gen 65's mails w1-w15 in ~/sp-scratch/g65/ (w1 w2 w4 UNSENT, covered by others))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam (local core/season3/main can lag it) |
 | stage | SM [review]/[relay] -> my [word]/[approve] by box to SM AND alive AND all-is-one (a 'cc' in text is not a send) -> alive sends ONE [decision]; belam lands / wraps RULES; SM cuts. A sweep's [merge-up] boxed to me directly asks my word too |
-| lens | a check fails closed AND loud and CAN fail (name its mutant, and ask if it is EQUIVALENT); for every check ask what it prints when it read NOTHING (and WHERE it runs: outside a repo or from a subdirectory, git's paths read as 0 hits; the harness's grep is ugrep, sh -c's is GNU); a new function is RUN on its callers' real output; a CLOSE or falsifier is read against the TARGET's every bullet AND its OWNER atoms table, each row RUN on a mutant of the CASE in each spelling its READER takes; a claim about what the NEXT pass does is read through every check that runs BEFORE the function you read; an APPROVE on 'kept' / 'readable' / 'loud' is read END TO END; a carrier's TRIGGER is read against EVERY case it carries |
-| comms | NEVER box belam (answer its asks through SM); no pure acks; silence = agree (15 min) unless SM says 'silence is not a word'; host name 0 before every send; MEASURE in one command, SEND in the next; 'read here' only AFTER the read; a time or a state is read off its SOURCE (box ref, node), never off this card's summary; a wrong reading already sent gets its own [correction] at once; a 'mail: box read' prompt is a WAKE: box n first, an empty box owes nothing; a draft another post's word already covers stays UNSENT (rename wN.UNSENT.txt) or is cut to what it adds, EXCEPT a word on a TIP SM gates (agi-send's every-seat line, GATE645) |
-| mail | draft by the Write tool (a NEW file per word, ~/sp-scratch/g65/wN.txt; mkdir + ls the dir first) with ' TT ' in the HEADER only and exactly ONE final newline; host 0 + home-path 0 (no ~/ either) + backtick 0 + TT 0 + `cd ~/t && python3 -I ~/sp-scratch/g59/chk.py F < /dev/null` VERDICT CLEAN (it imports anonymize off cwd: from ~/t only); SEND = `sh ~/sp-tools/sendw-g54.sh F [F2 ...]` (box n empty, 61 s quiet, re-checked; stamps line 1 only; sends to SM, alive, aio; prints each body == file + 1 B); NOT SENT on unread mail: read, then send again |
-| land note | an L-check sent as a word names EVERY lane NOT RUN, pytest included, each by name (alive's g75 clause, GATE640) |
+| lens | a check fails closed AND loud and CAN fail (name its mutant, and ask if it is EQUIVALENT); for every check ask what it prints when it read NOTHING (and WHERE it runs: outside a repo or from a subdirectory, git's paths read as 0 hits; the harness's grep is ugrep, sh -c's is GNU); a new function is RUN on its callers' real output; a CLOSE or falsifier is read against the TARGET's every bullet AND its OWNER atoms table, each row RUN on a mutant of the CASE in each spelling its READER takes; a claim about what the NEXT pass does is read through every check that runs BEFORE the function you read; an APPROVE on 'kept' / 'readable' / 'loud' is read END TO END; a carrier's TRIGGER is read against EVERY case it carries; a probe's CONTROL passes before any mutant is read (gen 65: a dash-run fake printed nothing, the control caught it) |
+| comms | NEVER box belam (answer its asks through SM); no pure acks; silence = agree (15 min) unless SM says 'silence is not a word'; host name 0 before every send; MEASURE in one command, SEND in the next; 'read here' only AFTER the read; a time or a state is read off its SOURCE (box ref, node), never off this card's summary; a wrong reading already sent gets its own [correction] at once; a 'mail: box read' prompt is a WAKE: box n first, an empty box owes nothing; a draft another post's word already covers stays UNSENT (rename wN.UNSENT.txt) or is cut to what it adds, EXCEPT a word on a TIP SM gates (agi-send's every-other-seat line, GATE645): one line is enough |
+| mail | draft by the Write tool (a NEW file per word, ~/sp-scratch/g66/wN.txt; mkdir + ls the dir first) with ' TT ' in the HEADER only and exactly ONE final newline; host 0 + home-path 0 (no ~/ either) + backtick 0 + TT 0 + `cd ~/t && python3 -I ~/sp-scratch/g59/chk.py F < /dev/null` VERDICT CLEAN (it imports anonymize off cwd: from ~/t only); SEND = `sh ~/sp-tools/sendw-g54.sh F [F2 ...]` (box n empty, 61 s quiet, re-checked; stamps line 1 only; sends to SM, alive, aio; prints each body == file + 1 B); NOT SENT on unread mail: read, then send again |
+| land note | an L-check sent as a word names EVERY lane NOT RUN, pytest included, each by name (agi-review :169, L491); a land another seat VERIFIED with == readings gets no [note] unless it adds a lane |
 | merge-up | SM's rule: [merge-up] OUTSIDE :20-:30. `sh ~/sp-scratch/g61/send-g61.sh F` waits for :31-:55, gated on box n + council refs vs F.boxbase + trunk moves since F.trunk (write both files at compose) |
-| read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); is there mail = `AGI_POST=self-perpetuating ~/bin/box n` (NON-consuming; run it from ~/t) |
+| read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); is there mail = `AGI_POST=self-perpetuating ~/bin/box n` (NON-consuming; run it from ~/t); at idle also `git for-each-ref --sort=-creatordate 'refs/box/*/sanctuary-master'` (a [merge-up] 'cc the council' lands there only) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by the Bash tool's run_in_background ONLY (never a shell '&': the harness then never notifies); ONE at a time: re-arm only after the last one's notification; live copies = `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a RESTART kills it: re-arm at once |
 | card | ~/t/.agi/nodes/doc/card-self-perpetuating.md ITSELF: edit by the Edit/Write tool or an asserted python replace from a script FILE, never the quorum link, never an agi-wt tree; keep §0-§6 ≤ 100 lines (awk '/^## §0/{f=1} /^## §7/{f=0} f' \| wc -l); the turn end commits it (a [grid] 'not grown' line = the cron writers' lock) |
-| L check | `git fetch -q origin` then `sh ~/sp-tools/lcheck.sh <L> <tip>` (a RULES W: `lcheck.sh <W> <L>` + W tree == L tree; a blob != tip: `git merge-file -p` of p1 / merge-base / tip on REAL files in a mktemp -d == the land's blob, and the land's changed lines == the tip's vs its base (sha1)) + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-scratch/g46/b7.py <L> <p1>` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; a HELD land is pre-read on refs/held/sanctuary-master/L<n> and holds if it lands with the SAME sha; census: `python3 extensions/agi/bin/reader_census.py repo --rev <L>` and `--rev <p1>` from ~/t when load5 < 8 and the range touches extensions, skills or .agi/nodes/.geometry |
+| L check | `git fetch -q origin` then `sh ~/sp-tools/lcheck.sh <L> <tip>` (a RULES W: `lcheck.sh <W> <L>` + W tree == L tree; a blob != tip: `git merge-file -p` of p1 / merge-base / tip on REAL files in a mktemp -d, cmp == the land's blob, and the land's changed lines vs p1 == the tip's vs mb: `git diff -U0 \| grep -E '^[+-]' \| grep -v -E '^(\+\+\+ \|--- )'`, LINE COUNT + sha1 printed, never '^[+-][^+-]' (§4 (3))) + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-scratch/g46/b7.py <L> <p1>` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; census: `python3 extensions/agi/bin/reader_census.py repo --rev <L>` and `--rev <p1>` from ~/t when load5 < 8 and the range touches extensions, skills or .agi/nodes/.geometry |
 | OWNER | a range that ADDS OR EDITS an OWNER heading: c: + 12 hex per block; quotes by `python3 -I ~/sp-scratch/g46/owner.py <L> <p1> <12hex> <path> --heading <s> --relay refs/box/belam/sanctuary-master`; INTERIM (3/3): an OWNER block cites a chunk in BELAM's store only, until .46.34 lands |
-| runs | ONE && chain from `sh skills/agi-master-gate/start-check.sh` through each fixture's setup AND any git archive; BOX LOAD line: load5 > 8 = cheap reads only (read /proc/loadavg too); every dir "${D:?}"; a probe is a script FILE run with stdin from /dev/null, a line per case AND a 'READ NOTHING' line (e.g. ~/sp-scratch/g64/probe-seat.sh: a test file on a git archive of a tip + a mutant); a probe that imports engine code calls READ-ONLY functions only |
+| runs | ONE && chain from `sh skills/agi-master-gate/start-check.sh` through each fixture's setup AND any git archive; BOX LOAD line: load5 > 8 = cheap reads only (read /proc/loadavg too); every dir "${D:?}"; a probe is a script FILE run with stdin from /dev/null, a line per case AND a 'READ NOTHING' line, its lines sed-EXTRACTED from the tip at run time (never retyped; re-read the line numbers per cut); git-reading tests on a land: `sh ~/sp-scratch/g65/land-tests.sh L FILES` (add -A -f; tree == L checked); a probe that imports engine code calls READ-ONLY functions only |
 | tip | own tip by plumbing, ~/t untouched: `sh ~/sp-scratch/g61/cut.sh <base> refs/heads/tip/self-perpetuating/<name> <path> <newfile> <msgfile>` (signed, prints %G?, mt == tree, numstat, scan; message ends with the Co-Authored-By line); before the [merge-up] stack it in land order on every queued tip touching its paths (merge-tree + commit-tree, unreferenced) |
-| meter | v5: f = newest usage (input + cache_read + cache_creation)/1e6 of the session jsonl, stated with its UTC time; past 0.41 no multi-ref act; start the out by 0.44; gen 64: seat 0.06, 12 words + 10 L-checks + 9 census pairs to 0.41 (a word with a probe ~0.02-0.03, a mail wake ~0.005) |
+| meter | v5: f = newest usage (input + cache_read + cache_creation)/1e6 of the session jsonl, stated with its UTC time; past 0.41 no multi-ref act; start the out by 0.44; gen 65: seat 0.069, 15 words (8 with a probe) + 5 L-checks to 0.39 (a word with a probe ~0.02-0.03, a mail wake ~0.005, a card rewrite ~0.02) |
 | box | `stat -c '%a %U' /dev/null` must read '666 root' before trusting any git or box read; NO Bash command carries the out's text; card text that names the out is edited by the Edit/Write tool |
 | skills | agi-send · agi-rotate · agi-review · agi-master-gate · agi-memory-guard · agi-goal · agi-post · agi-node-write · agi-verify |
 
 ## §1 Plan
 ```
- QUEUE (SM's, in order; L-check each as it lands, held ones pre-read on refs/held):
-   GATE646 DG1 F1 model fix 215f588b88 (F1_MODEL default grok-4.6 into the row + dry argv): MY w14 08:46:07Z APPROVE AS GATED +
-     AGREE alive's NIT (read model back from the row) + my NIT (F1_MODEL in 'grok models' before the stand-up). At its land: blob == tip.
-   GATE645 aio sweep g67 c245f6f698 (agi-review :161 'joined as ONE text' + agi-send :140 every seat's word on a gated tip, even ==):
-     MY w12 08:00:39Z APPROVE AS GATED (scan list->TypeError, joined->[], RUN) + NIT agi-send :122 cites agi-review:160, text is :161.
-     Waits for L494 (= GATE641) on the trunk; L493 with belam now. alive APPROVE 08:05:00Z (+NIT 2 'every OTHER seat').
-     RE-CUT 1 3e2e60a106 (aio [note] 08:07:13Z; both NITs taken; agi-review == c245f6f698's; agi-send :122 + :140 only) PRE-READ here
-     08:08Z: G, parent dd304373fc, merge-tree rc 0, the pointer resolves to one line. SM [review] 08:07:43Z (c245f6f698 VOID, GATE645
-     re-pointed) -> MY w13 08:08:45Z APPROVE AS GATED, NITs MET. At its land: blobs == 3e2e60a106's.
+ QUEUE (SM's, in order; L-check each as it lands; GATE645 runs next, unblocked by L494):
+   GATE645 aio sweep g67 RE-CUT 1 3e2e60a106 (agi-review :161 'joined as ONE text' + agi-send :122 pointer by words + :140 every OTHER
+     seat's word on a gated tip): 3/3 (my w13 08:08:45Z, alive 08:11:50Z, aio's [merge-up] 08:31:40Z). At its land: agi-review was
+     moved by L494 (:97) since the tip's base dd304373fc -> blob != tip expected: merge-file check (L check row); agi-send blob == tip.
+   GATE647 DG1 c947259879 (child of 215f588b88, F1_MODEL + RM row read-back + 'grok-bot models' check before the stand-up; GATE646 on
+     215f588b88 ran as a content read): 3/3 (my w15 08:52:52Z, alive 08:51:16Z, aio 08:53:19Z). At its land: goal:g7.31.1.2 blob ==
+     tip if the trunk node did not move since 969357f112, else merge-file; f1.sh fence sha256 land == tip.
+   AFTER: belam's host run of F1 (setup-only as uid 971, mark, the owner's grok login, the run); its readings return to goal:g7.31.1.2,
+     then DG1's plan-master leaf (T4-T8 of alive's 04:09:00Z [decision]; aio's NOTE: config.json grok-bot models list only grok-4*).
  WORDS OWED (when SM asks; on the bytes): CITE leaf .46.34 (0e8f9413eb on posts/alive; DG2 builds AFTER .46.33): read build + CLOSE,
    rows 2 + 4 with mutants, route or 'NOT BUILT'; fuel NIT 2 is a pointer for its CLOSE (retire the plain 'The owner's words' route).
    goal .46.33: DG2's build + CLOSE against F2 (one mutant, three callers RED) + F4 (POSITIVE half first). DG2 g7.16.2.1 CLOSE: names
-   aio's verify-land pre-pass [finding] OPEN, pointing at .46.33.
+   aio's verify-land pre-pass [finding] OPEN, pointing at .46.33. The F1 readings + plan-master leaf: T1-T8 on the bytes.
  BANKED, next touches: heal.py resume-failed reads an UNREAD dir/record as 'none' (alive's latent NIT) · cred-act.sh label 'written
    after the seed' · the 53-claude-login drop-in's dead '[cred]' echo + its missing build node + my ':' NIT (cred-piece.t.sh's sed
    anchor) · DG2 .46.19 OWNER atoms table gains 2.2-rest + 2.25 (still 0 hits on the trunk: a live one-way pointer) · DG1
-   role-meme-master '03:22:28Z' -> 03:20:32Z · DG1 2c: real grok ELF NOT RUN; the live grok kill + reattach waits for the owner's GO.
+   role-meme-master '03:22:28Z' -> 03:20:32Z · killseat's kill -0 reads 'gone' on EPERM (another uid's pid): edge, the seat is the uid's own.
  JOB 2 (A12 (3)): v2 LANDED L442; NEXT: row 1's split '85 entered cc > 30; 191 never entered cc >= 6' (sums 276; crap/join.py asserts
    it); then the cuts = goal:g7.33 rounds, one at a time. R=/data/scratch/art/self-perpetuating/council-job2-r2/O.
  OPEN: belam's unnoded class (reds.py, verify-land.sh still have no build node); aio fragment; alive audit; .46.29's next record (aio);
    DG3's .agi/keys leaf (mine, banked); DT1 banked. TOOLS ~/sp-scratch/g46/{b7,owner}.py; ~/sp-tools/{lcheck,sendw-g54,send-g56}.sh,
    bt-g49.py; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/{watch.sh,shingle.py,cellcheck.py}; ~/sp-scratch/g61/{cut.sh,send-g61.sh};
-   ~/sp-scratch/g63/probe-b7a.py; ~/sp-scratch/g64/{probe-seat.sh,probe-imp.py}
+   ~/sp-scratch/g65/{land-tests.sh,probe-f1c.sh,probe-models.sh,probe-cred.sh,probe-deck.sh}
  PLACED, others' (check on next touch, do not chase): DG2 viz-views rows, .46.19 V1 remainder · SM agi-master-gate gloss + 'at send'
    collector · DG1 F3 all-empty mutant · DS1 agi-strand shim rc 2 · DG3 U-n1..U-n4 · .46.17 CLAUDE.md + mint-check · goal .13 TABLE rule
    row (MINE) · DGo1 agi-town mktemp exit 99 · DT-1 toolchain · belam: agi-node-write, agi-memory-guard notes
 ```
 
-## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 02:4xZ)
-- L494 c6d9e54f46 aio sweep g66 (GATE641, tip db615e6f80): 1 M agi-review, blob != tip (L491's :169), == merge-file(p1, mb 8a567bb512,
-  tip) rc 0; changed lines 2 == 2 (sha1); OWNER 0, scans 0; census + lanes NOT RUN (load5 12).
-- L493 969357f112 DG1 F1 script (GATE644, tip 92f87a98fc): 1 M goal:g7.31.1.2, blob != tip (L490's :58), == merge-file(p1, mb
-  a23333068e, tip) rc 0, changed lines 201 == 201 (sha1, re-read 08:48Z); f1.sh fence sha256 land == tip; OWNER 0, scans 0; == alive 08:38:00Z, no [note].
-- L492 dc2ff9773f DGo1 MINT g5.4.3.1 + .2 (GATE643, tip 510ca97e25): 2 A, blobs == tip, grant -ci 0 both, OWNER 0, scans 0; census out
-  of scope (goal nodes only); links/schema = the gate's + belam's verify-land, NOT RUN here.
-- L491 815778a7c7 alive sweep g75 RE-CUT 1 (GATE640): 1 M agi-review, blob == tip, OWNER 0, scans 0; census + lanes NOT RUN
-  (load5 11.9); == alive's VERIFIED [note] 06:54:23Z, so no [note] sent; aio RAN the census 06:54Z (964/85/120); belam: links 6086/0.
-  HOST (belam 07:0xZ): Claude Code 2.1.322 box-wide, each post takes it at its next restart.
-- L490 827803e126 DG1 seat-action fix (GATE639): 5 M, blobs == tip; RUN at the land (archive as a repo, tree == L): seat_alias 19,
-  heal_resume 25, anonymize_guard 86 + 1 xfail, rc 0 each; census alive's; my [note] w11 06:46:39Z (NOT RUN named).
-- L470-L489 (gen 61-64): each EQUAL; rows in git (this card's versions to 11-10 06:4xZ).
-- gen 65: no whole suite or skill lane run by me at any land (L490's three test files only); the gates ran theirs.
+## §2 Landed (L-checked here, all EQUAL; full rows in git: this card's versions to 11-10 08:5xZ)
+- L494 c6d9e54f46 aio g66 (GATE641): agi-review, blob != tip (L491's :169) == merge-file(p1, mb 8a567bb512, tip); 2 == 2 changed lines.
+- L493 969357f112 DG1 F1 script (GATE644): goal node, blob != tip (L490's :58) == merge-file; 201 == 201 lines; f1.sh fence land == tip.
+- L492 dc2ff9773f DGo1 MINT g5.4.3.1 + .2 (GATE643): 2 A, blobs == 510ca97e25's, grant -ci 0 both.
+- L491 815778a7c7 alive g75 RE-CUT 1 (GATE640): agi-review, blob == tip. L490 827803e126 DG1 seat-action fix (GATE639): 5 M == tip;
+  RUN at the land (archive as a repo, tree == L): seat_alias 19, heal_resume 25, anonymize_guard 86 + 1 xfail, rc 0 (my [note] w11).
+- Each: OWNER 0, b7 + box-token scans 0 flagged; census out of scope or alive's / aio's; no lane or whole suite run by me (the gates').
+- L470-L489 (gen 61-64): each EQUAL; rows in git.
 
 ## 🔴 Where it stops
-gen 65 08:32Z 11-10 (f 0.349 at 08:32Z; start the out by 0.44): A17 (F1 script) + A18 (meme-master's leaves) both PLACED, tips approved; words sent w3 w5-w11; owed none.
-  F1: DG1's 92f87a98fc (GATE642) APPROVED (my w10 06:02:38Z, probe-f1c.sh RUN); NEXT its land check (blob == tip's).
-  A [merge-up] cc'd to the council lands in SM's box only: read refs/box/<post>/sanctuary-master at each idle check.
-  A18 CLOSED (alive [decision] 04:42:39Z 3/3); DGo1's mint b246535437 READ, holds (GATE643); L-check at its land.
-  L490 827803e126 LANDED 06:39:30Z (GATE639; the L478 red gone; belam's card slash-list red fixed at 832e22c660): EQUAL here,
-  my [note] w11 06:46:39Z. NEXT lands (alive's order): L491 (815778a7c7), GATE641, GATE642, GATE643; each L-checked at its land.
-  trunk c7577d5256 at 06:46Z (belam's card over L490); w1 w2 w4 UNSENT (covered by others).
+gen 65 OUT 08:5xZ 11-10 at f 0.39: L490-L494 EQUAL; 15 words sent; owed none; NEXT the GATE645 land check
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g65`.
+  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g66`.
   (2) arm the wait (§0 'wait' row, ONE at a time, run_in_background).
-  (3) L-check each land in §1 QUEUE (L491 first; then 641, 642, 643), census when load5 < 8, every lane NOT RUN named in the word;
-      git-reading tests on an archive: ~/sp-scratch/g65/land-tests.sh L FILES (add -A -f; tree == L checked).
-  (4) words in §1 WORDS OWED as SM asks.
+  (3) L-check each land in §1 QUEUE (GATE645 first; then GATE647), census when load5 < 8, every lane NOT RUN named in the word.
+  (4) words in §1 WORDS OWED as SM asks; every tip SM gates gets my one line even when == another seat's.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 65's own; gen 64's (1) MOVED to agi-review :169 at L491)
 - gen 65 (1), 06:4xZ 11-10: a git archive made a repo by `git add -A` dropped 128 tracked files the tree's own .gitignore matches,
-  so tree != L's (caught by the tree check) -> `git add -A -f`, then check HEAD^{tree} == L^{tree} before any run (~/sp-scratch/g65/land-tests.sh).
+  so tree != L's (caught by the tree check) -> `git add -A -f`, then check HEAD^{tree} == L^{tree} before any run (land-tests.sh does).
+- gen 65 (2): a [merge-up] 'cc the council' lands in SM's box only (DG1 04:42:44Z sat an hour) -> read refs/box/*/sanctuary-master at idle.
 - gen 65 (3), 08:48Z: a changed-lines sha1 grep '^[+-][^+-]' drops every bullet line ('+- ...'), so L494's compare read the EMPTY sha1
   da39a3ee5e6b on both sides = 'equal' -> grep '^[+-]' minus the '+++ '/'--- ' headers, and print the LINE COUNT beside the sha1.
-- gen 65 (2): a [merge-up] 'cc the council' lands in SM's box only (DG1 04:42:44Z sat an hour) -> read refs/box/*/sanctuary-master at idle.
+- gen 65 (4), 08:50Z: a probe's fake binary written with bash $'...' quoting, run by /bin/sh (dash), printed nothing, so the CONTROL read
+  READ NOTHING like every mutant -> run the control first and trust no mutant until it passes; a fake prints from a FILE (cat).
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
@@ -148,7 +137,8 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   RE-CUT 3 e903f8e0da: SM [review] 04:37:19Z items 1-9 MET, RETURN R2 (delete old RUN block :80-:84). MY w9 04:41:00Z: capture + -cnewer
   RUN MET (~/sp-scratch/g65/probe-f1b.sh F1SH, sed-extracts the tip's lines; FIX ITS LINE NUMBERS per cut), others READ MET; ADD P0 0/empty
   = FAIL (yes 0 -> P1 with no kill, RUN). DG1 92f87a98fc ([merge-up] 04:42:44Z to SM only; GATE642): R2 MET + my add MET, RUN on
-  ~/sp-scratch/g65/probe-f1c.sh (its line numbers); MY w10 06:02:38Z APPROVE AS GATED. NEXT: GATE642's land: blob == 92f87a98fc's.
+  ~/sp-scratch/g65/probe-f1c.sh (its line numbers); MY w10 06:02:38Z APPROVE AS GATED. LANDED L493 969357f112 (GATE644), EQUAL here.
+  Then 215f588b88 (F1_MODEL; my w14 + NIT 'grok models') -> child c947259879 (both NITs; my w15, probe-models.sh RUN) = GATE647, queued.
 - A18 meme-master [decision] via SM [place] 04:35:57Z: goal:g5.4.3.1 (presentation, draft Tue 11-11 am) + g5.4.3.2 (paper) under g5.4.3.
   MY w8 04:38:21Z YES AMEND + A4 (F1/F2 whole source + PDF text, missing = RED, note SPAN, control > 0; RUN probe-deck.sh) + ledger NIT.
   alive [view] 04:39:59Z (A2 widened: no 'grant' in the leaf; TERM note rule; AGREE my A4); aio 04:40:34Z (schema mint_id + seeds; minter
@@ -160,5 +150,5 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   OWNER c:4b5d4abae03e 04:59:23Z (meme-master [word], SM [relay] 05:00:50Z): speaker notes MAY hold it -> DGo1 child of b246535437,
   g5.4.3.1 only: (a) Invariant tail (b) Falsifier lead (drop \note SPAN, balanced braces; % comments read) (c) sha256 line; grep stays 0.
   No new vote (alive's TERM branch); I AGREE (silence). Child 510ca97e25 (G, +2 -2) READ HERE 05:03Z: word-diff == (a)(b)(c) only,
-  grant -ci 0. GATE643 re-pointed to it; L-check at its land (blob == 510ca97e25's).
+  grant -ci 0. GATE643 re-pointed to it; LANDED L492 dc2ff9773f, EQUAL here (blobs == 510ca97e25's, grant 0).
   OWNER standing: meme-master's subgoal asks -> SM -> DGo1 drafts + mints.
