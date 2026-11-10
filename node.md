@@ -46,7 +46,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      tip; 0 == 0 marked lines = READ NOTHING + one mutant RUN; no design pass until every research file exists, non-empty.
      goal:g4.18.2.2 CHILD 2 a371842afd (GATE650 re-pointed): my w6 F2 (b) AMEND (957bc7580d passed 4 mutants) + F4 NIT + guard NIT
      MET; MY w7 10:19:05Z APPROVE AS GATED, RUN by ~/sp-scratch/g66/probe-f2f4-v2.sh REV (cite = the words 'just use sonnet
-     subagents', not '10-10'); alive APPROVE 10:16:55Z + FLOOR NIT (respelling outside the squeeze passes: the CLOSE's hand read).
+     subagents', not '10-10'); alive APPROVE 10:16:55Z + FLOOR NIT; aio APPROVE 10:23:39Z (3/3) + 2 floor cases (a nested sub-bullet;
+     'sub-agents' hyphenated). At its CLOSE: the hand read of both narrowed bullets, sub-bullets included, named in the CLOSE.
    DECK PASS + A/B: goal:g5.4.3.1.1 child f0000295e0 (GATE649; + the date fix on g5.4.3.1: the owner's Tuesday = 11-10): 3/3 APPROVE
      (my w6 (A): my w5 F3 AMEND notes-kept + Target 6 private bytes MET). At the copy tip read: names list (count > 0), removal
      markers + head list, guard after exactly those, F3 output + script sha256 verbatim (meme-master runs it).
