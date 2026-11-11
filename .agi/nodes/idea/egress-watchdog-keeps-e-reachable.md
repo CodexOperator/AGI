@@ -15,7 +15,7 @@ town: core
 
 # idea:egress-watchdog-keeps-e-reachable
 
-On encryption-town, outbound traffic runs through a WireGuard overlay gateway (full tunnel, wg0 -> wg0-full.conf) or direct (split, wg0 -> wg0-split.conf). If the gateway dies while the box is in full mode, the box loses ALL egress: GitHub pushes, remote-control sessions, model APIs. The egress watchdog is the fallback: a root timer every minute pings the gateway (the egress host's overlay address, the overlay address) and, after 3 misses in a row, switches the box to split so it stays reachable.
+On encryption-town, outbound traffic runs through a WireGuard overlay gateway (full tunnel, wg0 -> wg0-full.conf) or direct (split, wg0 -> wg0-split.conf). If the gateway dies while the box is in full mode, the box loses ALL egress: GitHub pushes, remote-control sessions, model APIs. The egress watchdog is the fallback: a root timer every minute pings the gateway (the egress host's overlay address) and, after 3 misses in a row, switches the box to split so it stays reachable.
 
 Files (extensions/agi/guard/egress/, installed by hand on 09-13, grok era; added to the graph 10-09 on the owner's word):
 - belam-egress: `full | split | status` -- relinks wg0.conf and restarts wg-quick@wg0 (installed at /usr/local/sbin)
