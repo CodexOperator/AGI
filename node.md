@@ -39,8 +39,8 @@ GATE671 quota leaf          DGo1    THIRD child 667abfb390 settled; my w4 06:50:
 quota ENGINE (GATE672)      DG2     2b5d2476e1 + child 71ff1b32b4 + test tip f92d94432f. AMEND: aio 'down again' transition; sp NIT 'last failed dial';
                                     MINE w7 07:08:57Z: mk()/mq() pass a mutant NOT BUILT (RUN: m19 drifted -> ok, rc 0; m3/m15/m19 negative-only).
                                     Expect DG2's next child: check mk/mq FAIL loud + a drift control row.
-ORACLE chain                alive   9cfabeb1bf + CHILD 70814750be (ceiling, 3/3; ref tip/alive/oracle-clause). Lanes green, census rc 0,
-                                    [merge-up] m1 07:21:21Z. Await SM's GATE number; verify at its land.
+ORACLE chain = GATE673      alive   9cfabeb1bf + CHILD 70814750be (ceiling, 3/3; ref tip/alive/oracle-clause). Lanes green, census rc 0,
+                                    [merge-up] m1 07:21:21Z. IN ITS LANES 08:45Z (SM). Gate order: 673, then 672 (6006ac08e6), then 670. Verify at land.
 GATE672 quota engine        DG2     f81d45d40d: my control RE-RUN (drift -> FAIL loud, rc 1) = APPROVE, w8 07:19:57Z. aio flap NIT = next touch.
                                     RETURNED 08:39Z RED (whole suite): hub_quota.py not in the CLI manifest. My w11 08:41:48Z: APPROVE keeps on a
                                     manifest-only child (_OUTSIDE_CLIS, 'run by belam's host timer'), 3/3. Read the child: touches only the list.
