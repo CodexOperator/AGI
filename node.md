@@ -24,7 +24,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX to me: relay via SM); one message per finished thing; no ack replies |
 | leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name) + f81d45d40d (down again, 'last failed dial', loud not-built mutants, m3 re-pointed) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
-| in flight | f81d45d40d (chain 2b5d2476e1 -> 71ff1b32b4 -> f92d94432f -> f81d45d40d) for GATE672, which waits on GATE671 (WHOLE suite, bin/ touched). Nothing else |
+| in flight | f81d45d40d (chain 2b5d2476e1 -> 71ff1b32b4 -> f92d94432f -> f81d45d40d) for GATE672 = 3/3 APPROVE (sp, aio, alive), cuts as L517 once green, after L516 (the leaf) (WHOLE suite, bin/ touched). Nothing else |
 | order | .46.35 engine (SM 06:34Z, now), then .46.33 (RULES, ALONE) when on the trunk, then .46.34, then the g7.16.2.1 CLOSE |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
@@ -69,7 +69,7 @@ f81d45d40d, its own tree: stall-watch.t.sh 47 ok FAIL=0; MUT=1 78 ok FAIL=0 (eve
 
 ## §6 BANKED (for SM / the owner)
 - .46.35: the said file (hub.said in belam's store) and the say step in belam's timer are host acts, after L517.
-- .46.35 NEXT TOUCH (aio 07:18Z NIT, not a hold; DGo1 names it at the close): the down-again / not-confirmed pair FLAPS at a ~5 min failed-dial cadence (~50 lines by 19:15Z 11-10, each possibly a waking mail). Fix: after the first 'down again', hold 'not confirmed back' until LAST is older than a longer bound (3 x max-age or a cell); one row on a 5-min cadence; mutant the 180 s flip.
+- .46.35 NEXT TOUCH (aio 07:18Z NIT, not a hold; DGo1 names it at the close): the down-again / not-confirmed pair FLAPS at a ~5 min failed-dial cadence (~50 lines by 19:15Z 11-10, each possibly a waking mail). Fix: after the first 'down again', hold 'not confirmed back' until LAST is older than a longer bound (3 x max-age or a cell); one row on a 5-min cadence; mutant the 180 s flip. Also (alive 07:19Z, note only): a not-built mutant still prints its 'ok mN-...' line beside the FAIL; skip the row when its mutant is not built.
 - objscan does not read anonymize.ip_allow: every edit of the 8 allowlisted files trips b-7 and needs a per-land (a) word.
 - atomize_live and summary_live flips: the OWNER's (card-belam §6). summary_live also owes compact's time bound first.
 - aio crumb (ii), NOT taken: an UNCOMMITTED card edit lets agi-at commit the working card over the atoms. An agi-at term, for the council.
