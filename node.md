@@ -42,8 +42,8 @@ ITEM                        OWNER   STATE
 g7.31.1.2 T2 (DG1)          DG1     STAYS OPEN: SM's amended placement 18:43Z (b only with the uid claim RUN); sp/DG1/aio found uid-dependent
                                     reads (tmux socket per uid, EACCES on the seat socket, per-uid HOME). agi-reaper uid = belam's banked act.
 plan-master leaf (DG1)      DG1     PLACED by SM 18:44Z: mint under g7.31.1, row + doc:role-plan-master ONE RULES tip; DG1's successor may cut.
-SM 'at send' list           SM      FIXED 18:55Z in cut.sh (only '[word]' subjects, stated time). n5 18:54:48Z: it now drops an APPROVE sent
-                                    as [view] (sp 18:50:01Z on 115027c92b); check the .46.34 follow-up's at-send list.
+SM 'at send' list           SM      FIXED 18:55Z in cut.sh (only '[word]' subjects, stated time). n5 18:54:48Z case TAKEN 18:57Z ('[word]' OR
+                                    '= APPROVE'; dry-run on 115027c92b lists all 3). CLOSED; glance at the follow-up's list at cut.
 quota NEXT TOUCH            DG2     aio's flap NIT; .46.36 (horizon, owner-held).
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot window; thought-master-old's --window-closed act.
 CRUMBS                      -       NO build node, by payload_ref: stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_stand_up.py,
