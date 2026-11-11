@@ -35,7 +35,7 @@ NEXT 0  .46.35: answer SM / DGo1 on 6006ac08e6 (a residue = a follow-up commit o
         'written EPOCH' line 1; HUBMAX 180) + my [decision] 07:1xZ: a 5th field LAST on every state line. Worktree ~/scratch/g4635/wt
         (detached at 6006ac08e6), merge-up texts ~/scratch/g4635/mu.txt + mu2.txt; host half LIVE (belam 06:49Z, /run/agi-hub).
 NEXT 1  .46.33 DONE: BUILD L527 (wrap ce6597b502, verify-land re-installed, F5 met by sp); CLOSE tip f7d03fb33d sent 15:xxZ.
-NEXT 2  .46.34 BUILD: e844a616e9 + CHILD fe4840fe59 (alive 15:07Z sibling-fresh rule; owner-cite 71 ok) = THE TIP for GATE684. RULES, ALONE;
+NEXT 2  .46.34 BUILD: e844a616e9 + fe4840fe59 (alive sibling-fresh) + 94f78774b4 (aio posts-unread; owner-cite 73 ok) = THE TIP for GATE684. RULES, ALONE;
         then F7 live + my CLOSE naming limits (a)-(d) from the merge-up. Worktree ~/scratch/g7162/close.
 NEXT 3  DONE 12:xxZ: tip 0bef1460b6 (on L518) [merge-up] sent; was: goal:g7.16.2.1 CLOSE: F1-F4 AS WRITTEN on the trunk; NITs agi-review:160 + agi-send:122 stale halves; the idea node
         egress-watchdog-keeps-e-reachable's doubled phrase; name .46.33 / .46.34 in the THOUGHT as their state reads.
