@@ -66,10 +66,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      14:45:46Z went out NOT CLEAN; the eye check failed) -> RE-CUT 916c120604 took it; my w25 17:00:39Z APPROVE (== aio). My trap 10 -> S1 at my rotation.
    .46.34 FOLLOW-UP 297f0b9c69 = GATE688 (whole suite, ETA ~19:55Z, RULES after L532): my w29 18:47:25Z AMEND == aio (r7f counts one
      spelling -> parse rows + r7m2). mem-tap at tip 67 ok, r7/r7m ok; r7p FAIL in my extract at tip AND base (my uid/extract).
+     AMEND 115027c92b (r7f parsed + r7m2): my w30 18:50:01Z APPROVE + NARROW set (a) mem-tap only (b) mem-tap on merge (c) trunk-arg-lanes
+     (d) lane-header = GATE689 (SM 18:51Z, beside GATE688 ~19:55Z). Land = ONE RULES cut on 115027c92b.
    g7.31.1.2 T2 (DG1's close): SM 18:43Z rule: any uid-dependent read past the store read = no cut. My w28 18:44:06Z [view]: agi-reaper
      ABSENT (3 lines) but heal.py :2639 tmux default, the L528 seat-socket read + pane join (EACCES from a non-owner uid), :810/:3571
      ~/.claude/sessions are uid-dependent -> T2 stays OPEN, agi-reaper = belam's banked host act. == aio 18:44:38Z.
-   .46.34 F7 (live cite as the land's uid): alive 18:39Z NOT MET (storeless rc 1); my uid has no mem row: NOT mine to run.
+   .46.34 F7: belam RAN it 18:48Z as the land's uid: GREEN as a result (rc 0, 42 -> 43; control unread; post chunk RED). For DG2's CLOSE.
    CLOSE g7.31.1.5 5e0c7d3114 (GATE685, after GATE684 ~17:40Z): my w23 16:40:28Z APPROVE (F3 re-read off MAIN: 46 rows, 1 stranded
      thought-master-old @3, 0 records = MISS). + 2 build nodes for the new test files.
    g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
