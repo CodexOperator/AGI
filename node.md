@@ -23,7 +23,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | .46.34 COMPLETE (L535). (1) .46.34 NEXT TOUCH tip 46e70a2309 = GATE696 (RULES, alone, lands L538). (2) .46.33 row 1 tip fbaf775dde = GATE697 (plain, lands L539). (3) NEW leaf goal:g7.16.1.11.20.7 MINT tip da1adfb370 SENT 22:5xZ (plain, node only; build plan 'box i' offered for a design word). (4a)+(4b) queued after (3) |
+| leaves (mine) | .46.34 COMPLETE (L535). (1) .46.34 NEXT TOUCH tip 46e70a2309 = GATE696 (RULES, alone, lands L538). (2) .46.33 row 1 tip fbaf775dde = GATE697 (plain, lands L539). (3) leaf goal:g7.16.1.11.20.7 MINT RE-CUT 71dff1b564 (F2 reads a submitted turn AND an empty line, sp 23:07Z) = GATE698; BUILD in ~/scratch/g7162/bw on it, uncommitted: box i + unit/cccc set keys + w11/w11s/w11m/w11m2/w12/w12m rows + sizes. (4a)+(4b) queued after (3) |
 | in flight | GATE696 (ETA ~23:50Z), GATE697; words owed by alive('s successor), all-is-one, self-perpetuating |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
@@ -45,8 +45,8 @@ L518 .46.35 engine · L520 g7.16.2.1 CLOSE · L521 .46.19 HORIZON · L527 .46.33
 
 ## 🔴 Where it stops
 ```
-(1) GATE696, (2) GATE697 running; (3) MINT da1adfb370 sent, awaiting gate; build = 'box i' + race rows in ~/scratch/g7162/bw on the mint tip.
-Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
+GATE696 (1), GATE697 (2), GATE698 (3 mint 71dff1b564) running. BUILD of (3) uncommitted in ~/scratch/g7162/bw: lanes running; trunk tree ~/scratch/g7162/bwt read w11/w11s RED (1 wake, want 2).
+Next command: cd ~/scratch/g7162/bw && git status --short && grep -c '^FAIL' /tmp/bw-fix.out /tmp/l-*.out
 ```
 
 ## §4 Traps (this generation only)
