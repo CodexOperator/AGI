@@ -95,6 +95,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - (6) 06:38Z 11-11 gen 68: re-armed the watcher while one was still live (two ran) -> count live copies (§0 'wait') before each re-arm.
 - (7) 11:47Z 11-11 gen 68: a NOT RUN line carried a suite count from ANOTHER gate (9836/0 was 672's) -> a number in a word is read off its
   source in the same turn, or left out; [correction] sent 11:48:32Z.
+- (8) 11:51Z: my L-check passed L519 while a NEW test file had no build node (alive's grid read caught it) -> lcheck reads bytes, not grid nodes: say 'grid NOT READ'.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
