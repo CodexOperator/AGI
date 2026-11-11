@@ -2436,14 +2436,78 @@ def cmd_stand_up(args: argparse.Namespace, root: Path | None,
     if gdir is not None:
         row = _heal._live_seat_row(gdir, post, me) or row
     window_path = getattr(args, "window_path", None)
-    windows = _heal._all_windows(window_path)
+    window_closed = bool(getattr(args, "window_closed", False))
     pid = int(row.get("pid", 0) or 0)
-    if pid > 0 and _heal._pid_alive(pid):
-        print(f"ERR: stand-up refused: {post} row pid {pid} is alive",
+    # goal:g7.31.1.5 target 5 + sp (b): the seat pid read through /proc: a live
+    # process of ANOTHER uid is alive (never EPERM-as-dead); a pid held by
+    # another program is REUSED = dead, named. The same read gates
+    # --window-closed (sp (a)): the flag never passes a live seat.
+    harness = str(row.get("harness") or "claude-code")
+    # the recorded start time counts only when the latest launch record
+    # launched THIS pid (all-is-one 12:22:23Z); else the weaker comm read
+    _lrec, _ = _heal._latest_seat_record(root, post, me)
+    _rstart = (str(_lrec.get("pid_starttime") or "") if _lrec and pid > 0
+               and _heal._launch_record_pid(_lrec) == pid else "")
+    pstate, pwhy = _heal._seat_pid_read(pid, harness, _rstart)
+    if pstate == "alive":
+        print(f"ERR: stand-up refused: {post} row pid {pid} is alive ({pwhy})",
               file=sys.stderr)
         return 1
-    if _heal._window_present(row, windows, window_path=window_path,
-                             rows=_load_seats(root), _rotate=me)[0]:
+    if pstate == "reused":
+        print(f"stand-up: {post}: {pwhy}: the seat's harness is gone",
+              file=sys.stderr)
+    # goal:g7.31.1.5 targets 0-2: the seat's windows are read on the seat's
+    # OWN server (its latest launch record's socket, checked against the live
+    # server's start time and pid); never the caller's default on a hit.
+    windows, how, _sock = _heal._seat_windows(root, post, row, me,
+                                              window_path=window_path)
+    if windows is None:  # a MISS: the seat's server is not known
+        if pid <= 0 and not window_closed:
+            print(f"ERR: stand-up refused: {post} has no pid and the row names "
+                  f"no tmux server ({how}); its window "
+                  f"{row.get('window') or '-'} is the only proof. A person who "
+                  f"has looked at that window on the seat's own server and "
+                  f"found it closed: rotate.py stand-up --post {post} "
+                  f"--window-closed", file=sys.stderr)
+            return 1
+        if pid <= 0:
+            print(f"stand-up: {post}: window closed by hand (--window-closed); "
+                  f"{how}", file=sys.stderr)
+            windows = []
+        else:
+            print(f"stand-up: {post}: {how}; reading the caller's default tmux "
+                  f"server (the row's pid {pid} is gone: the proof)",
+                  file=sys.stderr)
+            windows = _heal._all_windows(window_path)
+    else:
+        if window_closed:
+            # sp 12:56:53Z: the flag stands for a read that CAN'T be made; on a
+            # HIT the seat's own server is read, and its answer decides
+            print(f"ERR: stand-up refused: {post}: --window-closed is for a "
+                  f"seat whose server is not known; its server is known "
+                  f"({how}), and its read decides", file=sys.stderr)
+            return 1
+        print(f"stand-up: {post}: reading its windows on {how}",
+              file=sys.stderr)
+    # goal:g7.31.1.5 (sp 07:27:36Z 11-11): a window list that could not be
+    # read while a server may be up cannot prove the window closed: refuse,
+    # named, with its owner when the socket can't be stat'ed. 'no-server'
+    # (absent, stale, or restarted) goes on: nothing can hold the window.
+    if (isinstance(windows, _heal.WindowsUnread)
+            and getattr(windows, "reason", "read-failed") != "no-server"):
+        print(f"ERR: stand-up refused: {post} window "
+              f"{row.get('window') or '-'} could not be read "
+              f"({windows.reason}: {getattr(windows, 'detail', '') or '-'}); "
+              f"a window that cannot be read cannot be proven closed",
+              file=sys.stderr)
+        return 1
+    # on a join HIT the pane is never read on this process's default server
+    # (another server's @N is another pane): pane_pids={} = UNKNOWN, the @id
+    # stands (goal:g7.31.1.5)
+    if not window_closed and _heal._window_present(
+            row, windows, window_path=window_path,
+            rows=_load_seats(root), _rotate=me,
+            **({"pane_pids": {}} if _sock else {}))[0]:
         print(f"ERR: stand-up refused: {post} window "
               f"{row.get('window')} is open", file=sys.stderr)
         return 1
@@ -6994,10 +7058,26 @@ def _seating_record(*, seat: str, role: str, source: str,
         rec["box"] = box
     if window_id:
         rec["window_id" if _is_prime_role(role) else "window"] = window_id
+        # goal:g7.31.1.5 (alive 12:24:10Z): BOTH launch writers record the
+        # server beside the window (tmux_socket, tmux_server_start,
+        # tmux_server_pid), read from that server
+        try:
+            import heal as _h  # noqa: PLC0415
+            rec.update(_h._window_server(window_id))
+        except Exception:  # noqa: BLE001
+            pass
     if ref:
         rec["ref"] = ref
     if pid is not None:
         rec["pid"] = pid
+        # goal:g7.31.1.5 (all-is-one 12:22:23Z): the reuse proof
+        try:
+            import heal as _h  # noqa: PLC0415
+            _st = _h._proc_starttime(int(pid or 0)) if int(pid or 0) > 0 else ""
+            if _st:
+                rec["pid_starttime"] = _st
+        except Exception:  # noqa: BLE001
+            pass
     if session_id:
         rec["session_id"] = session_id
     if transcript_path:
@@ -11957,7 +12037,7 @@ def _record_s12_self_reap(record_path: Path | None, reap: dict) -> None:
         pass
 
 
-def _pane_pid(tmux_pane: str) -> int | None:
+def _pane_pid(tmux_pane: str, socket: str | None = None) -> int | None:
     """The pane's own controlling process id, from `tmux display-message`.
 
     `$TMUX_PANE` is a `%<N>` token (the pane id) inside a tmux pane; the
@@ -11970,9 +12050,10 @@ def _pane_pid(tmux_pane: str) -> int | None:
     if not tmux_pane:
         return None
     try:
+        # goal:g7.31.1.5: `socket` = the seat's own server; absent = default
         out = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", tmux_pane,
-             "#{pane_pid}"],
+            ["tmux"] + (["-S", socket] if socket else [])
+            + ["display-message", "-p", "-t", tmux_pane, "#{pane_pid}"],
             capture_output=True, text=True, timeout=5).stdout.strip()
         return int(out) if out.isdigit() else None
     except Exception:  # noqa: BLE001
@@ -12807,7 +12888,8 @@ def _session_from_argv(argv: list[str], hid: str) -> str:
 
 
 def _join_by_pane(*, seat: str, window_id: str, harness: str,
-                  poll_secs: int | None = None) -> dict:
+                  poll_secs: int | None = None,
+                  socket: str | None = None) -> dict:
     """JOIN a `[session] registry = "none"` seat by its tmux pane
     (goal:g7.31.1.2 ACT 2b): the pane pid of `window_id`, then the harness
     process under it (`_pane_harness_pid`, matched by the template's `bin`
@@ -12823,7 +12905,7 @@ def _join_by_pane(*, seat: str, window_id: str, harness: str,
                               else REGISTRY_JOIN_TIMEOUT_S)
     why, kind = f"no pane pid for window {window_id}", "no-pane"
     while True:
-        pane = _pane_pid(window_id)
+        pane = _pane_pid(window_id, socket) if socket else _pane_pid(window_id)
         if not pane:
             why, kind = f"no pane pid for window {window_id}", "no-pane"
         else:
@@ -23242,6 +23324,10 @@ def main(argv: list[str] | None = None) -> int:
                          "session when a transcript exists, fresh otherwise")
     p_su.add_argument("--post", required=True, help="the config:posts row name")
     p_su.add_argument("--window-path", default=None, help=argparse.SUPPRESS)
+    p_su.add_argument("--window-closed", action="store_true",
+                      help="goal:g7.31.1.5: the seat's server is not known "
+                           "and a person has looked at its window and found "
+                           "it closed (refused on a live pid)")
     p_su.set_defaults(func=cmd_stand_up)
 
     # autopsy: the recovery seating's predecessor-death forensics, from FILES

@@ -139,12 +139,19 @@ def test_control_a_fresh_claude_launch_is_unchanged_and_joins_no_pane(tmp_path, 
 
 # --- target 4: an EMPTY pid is re-joined each pass, or named --------------------------------------------------------
 
-def _retry(tmp_path, monkeypatch, *, join, heal_mod=heal, rows_in=None):
+def _seat_srv(monkeypatch, mod, windows, sock="/s/seat"):
+    """goal:g7.31.1.5: the seat's OWN server, faked: its window list (or a WindowsUnread / None for a MISS)."""
+    monkeypatch.setattr(mod, "_seat_windows", lambda root, name, r, rot, window_path=None: (
+        (windows, "no launch record", "") if windows is None else (windows, f"socket {sock}", sock)))
+
+
+def _retry(tmp_path, monkeypatch, *, join, heal_mod=heal, rows_in=None, seat=(("@9", "gseat"),), kws=None):
     lines: list = []
     monkeypatch.setattr(heal_mod, "_watch_log", lambda m: lines.append(m))
     monkeypatch.setattr(heal_mod.boxes, "row_is_local", lambda root, r: True)
+    _seat_srv(monkeypatch, heal_mod, None if seat is None else list(seat))
     rotate = _load("rotate")
-    monkeypatch.setattr(rotate, "_join_by_pane", lambda **kw: dict(join))
+    monkeypatch.setattr(rotate, "_join_by_pane", lambda **kw: (kws.append(kw) if kws is not None else None) or dict(join))
     writes: list = []
     monkeypatch.setattr(rotate, "_successor_row_write", lambda root, **kw: writes.append(kw) or "row ok")
     rows = rows_in or [{"name": "gseat", "harness": "grok-bot", "pid": "", "window": "@9", "role": "director",
@@ -195,18 +202,21 @@ def test_retry_skips_rows_it_must_not_touch_and_a_closed_window_is_a_dead_seat(t
     assert joined == [] and writes == [] and lines == []
     for _ in range(2):
         lines.clear()
-        dead = heal._empty_pid_closed_window_rows(tmp_path, [dict(r) for r in ROWS_ABC], [("@9", "a")])
+        _seat_srv(monkeypatch, heal, [("@9", "a")])                 # c's OWN server lists @9 only: @8 closed there
+        dead = heal._empty_pid_closed_window_rows(tmp_path, [dict(r) for r in ROWS_ABC], [("@8", "other")])
         assert [r["name"] for r in dead] == ["c"]
-        assert lines == ["watch: seat c has no pid (grok-bot) and its window @8 is CLOSED: a dead seat, "
-                         "handed to the dead-seat path"]
+        assert lines == ["watch: seat c has no pid (grok-bot) and its window @8 is CLOSED on its own server "
+                         "(socket /s/seat): a dead seat, handed to the dead-seat path"]
 
 
 def test_mutant_a_closed_window_empty_pid_row_is_skipped_silently_RED(tmp_path, monkeypatch):
     """The tip's silent skip: the row is neither named nor handed on -- dead and never respawned."""
-    m = _mut(tmp_path, "                or not win or win in present\n", "                or True\n")
+    m = _mut(tmp_path, "        if win in {w for w, _n in sw}:\n            continue\n",
+             "        if True:\n            continue\n")
     lines: list = []
     monkeypatch.setattr(m, "_watch_log", lambda x: lines.append(x))
     monkeypatch.setattr(m.boxes, "row_is_local", lambda root, r: True)
+    _seat_srv(monkeypatch, m, [("@9", "a")])
     assert m._empty_pid_closed_window_rows(tmp_path, [dict(r) for r in ROWS_ABC], [("@9", "a")]) == []
     assert lines == []
 
@@ -295,25 +305,75 @@ def test_a_failed_tmux_read_is_unread_never_no_windows(monkeypatch):
     assert w == [] and isinstance(w, heal.WindowsUnread)       # every old caller still sees []
 
 
+UNREAD = heal.WindowsUnread("read-failed", "socket live: /s/seat; tmux said: lost server")
+
+
 def test_an_unread_window_list_names_the_row_and_hands_on_nothing(tmp_path, monkeypatch):
-    _tmux_fails(monkeypatch, heal)
+    """L519's fail-closed, now on the seat's OWN server: an unread list there is named, never handed on."""
     lines: list = []
     monkeypatch.setattr(heal, "_watch_log", lambda x: lines.append(x))
     monkeypatch.setattr(heal.boxes, "row_is_local", lambda root, r: True)
+    _seat_srv(monkeypatch, heal, UNREAD)
     rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@7"}]
-    assert heal._empty_pid_closed_window_rows(tmp_path, rows, heal._all_windows()) == []
-    assert lines == ["watch: seat c has no pid (grok-bot); window list unread (the tmux read failed): not recovered"]
+    assert heal._empty_pid_closed_window_rows(tmp_path, rows, []) == []
+    assert lines == ["watch: seat c has no pid (grok-bot); window list unread on its own server (read-failed: "
+                     "socket live: /s/seat; tmux said: lost server): not recovered"]
+
+
+def test_a_join_miss_skips_the_row_named_never_dead(tmp_path, monkeypatch):
+    """goal:g7.31.1.5 target 3: the seat's server not known -> SKIP, named; the caller's own list is never read."""
+    lines: list = []
+    monkeypatch.setattr(heal, "_watch_log", lambda x: lines.append(x))
+    monkeypatch.setattr(heal.boxes, "row_is_local", lambda root, r: True)
+    _seat_srv(monkeypatch, heal, None)
+    rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@7"}]
+    assert heal._empty_pid_closed_window_rows(tmp_path, rows, [("@1", "x")]) == []
+    assert lines == ["watch: seat c has no pid (grok-bot); its tmux server is not known (no launch record): "
+                     "not recovered"]
+
+
+def test_a_restarted_seat_server_hands_the_row_to_the_dead_path(tmp_path, monkeypatch):
+    lines: list = []
+    monkeypatch.setattr(heal, "_watch_log", lambda x: lines.append(x))
+    monkeypatch.setattr(heal.boxes, "row_is_local", lambda root, r: True)
+    _seat_srv(monkeypatch, heal, heal.WindowsUnread("no-server", "server restarted: /s/seat now started 2 pid 9, "
+                                                                 "the launch's started 1 pid 8"))
+    rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@7"}]
+    assert [r["name"] for r in heal._empty_pid_closed_window_rows(tmp_path, rows, [])] == ["c"]
+    assert "server restarted" in lines[0] and "handed to the dead-seat path" in lines[0]
 
 
 def test_mutant_the_failed_read_taken_as_no_windows_RED(tmp_path, monkeypatch):
     """The [] of a failed read taken as 'no windows': window @7 reads CLOSED and a live seat is handed on (fail-OPEN)."""
-    m = _mut(tmp_path, "    return WindowsUnread()\n", "    return []\n")
-    _tmux_fails(monkeypatch, m)
+    m = _mut(tmp_path, "        if isinstance(sw, WindowsUnread):\n            if sw.detail",
+             "        if False:\n            if sw.detail")
     lines: list = []
     monkeypatch.setattr(m, "_watch_log", lambda x: lines.append(x))
     monkeypatch.setattr(m.boxes, "row_is_local", lambda root, r: True)
+    _seat_srv(monkeypatch, m, m.WindowsUnread("read-failed", "x"))
     rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@7"}]
-    assert [r["name"] for r in m._empty_pid_closed_window_rows(tmp_path, rows, m._all_windows())] == ["c"]
+    assert [r["name"] for r in m._empty_pid_closed_window_rows(tmp_path, rows, [])] == ["c"]
+
+
+def test_the_retry_joins_the_pane_on_the_seats_own_socket(tmp_path, monkeypatch):
+    """DG1 12:24Z, placed by SM: the pane join reads the seat's server, never this process's default."""
+    kws: list = []
+    joined, _w, _l = _retry(tmp_path, monkeypatch, join={"found": True, "pid": 4243, "session_id": SID}, kws=kws)
+    assert joined == ["gseat"] and kws[-1]["socket"] == "/s/seat"
+
+
+def test_mutant_the_retry_joins_on_the_callers_server_RED(tmp_path, monkeypatch):
+    m = _mut(tmp_path, "                                  poll_secs=0, socket=sock)\n",
+             "                                  poll_secs=0)\n")
+    kws: list = []
+    _retry(tmp_path, monkeypatch, join={"found": True, "pid": 4243, "session_id": SID}, heal_mod=m, kws=kws)
+    assert "socket" not in kws[-1]
+
+
+def test_the_retry_skips_a_window_not_open_on_the_seats_own_server(tmp_path, monkeypatch):
+    kws: list = []
+    joined, _w, _l = _retry(tmp_path, monkeypatch, join={"found": True, "pid": 1}, seat=(("@1", "x"),), kws=kws)
+    assert joined == [] and kws == []
 
 
 # --- the summary counts the empty-pid dead rows beside the gone pids (alive 07:19:57Z) ---------------------------
@@ -332,6 +392,7 @@ def _summary(tmp_path, monkeypatch, heal_mod):
     monkeypatch.setattr(heal_mod, "_watch_one_seat",
                         lambda *a, **k: {"seat": "c"} if k.get("empty_pid_dead") else {})
     monkeypatch.setattr(heal_mod, "_alert_deferred", lambda *a, **k: None)
+    _seat_srv(monkeypatch, heal_mod, [("@9", "a")])
     heal_mod._watch_seats(tmp_path, now=0.0, pid_alive=lambda p: True)
     return lines
 
