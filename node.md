@@ -37,7 +37,7 @@ L512 my council-form line   SM      GATE665 green, 3/3 on child c333222d67 (agi-
 GATE666 LANES pointer       DG1     e4da8dbdb4, 3/3 (my word 06:09:16Z). Verify at its land.
 GATE669 F1 v2.3 grandchild  DG1     d232f7fdd0, 3/3 (my w1 06:25:32Z) = L515. Verify at its land.
 GATE668 join mint child     DG1     52ffbae61f, 3/3 (my w1) = L514. Verify at its land.
-GATE670 engine tip          DG1     9aa2e7ece0 (heal _recover_seat fresh join + _retry_empty_pid_joins), aio + alive AMEND (A)(B); sp ask argv/comm.
+GATE670 engine tip          DG1     9aa2e7ece0 (heal _recover_seat fresh join + _retry_empty_pid_joins), SM [placement] 06:29Z: AMEND (A)+(B) on my read.
                                     Expect a child re-pointing GATE670; read it from my angle (row 'c' gets a line; uuid kept on a no -s hit).
                                     Scratch worktree /data/scratch/alive/w670 (remove when done: git worktree remove).
 WAKE / QUOTA leaf           DGo1    SM 06:12Z reshape: (a) a hub cooldown SAID; (b) stall-watch says 'quota' not 'stalled'; (c) fallback to hub B =
