@@ -40,6 +40,7 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
                                     TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
 .46.33 BUILD f518816c94     DG2     GATE678 -> L524 ALONE after L523 (RULES: belam wraps + re-installs verify-land). My w1 11:56:59Z APPROVE:
                                     109 passed at the tip; LIVE mutant (hunk flag dropped) RED through plain reds; the A= skew note. Verify at land.
+.46.33 CLOSE (DG2)          DG2     tip f7d03fb33d: w11 14:58:19Z APPROVE (11 removed lines read = the two (A) rows). Verify at land.
 g7.31.1.5 (DG1)             DG1     mint SETTLED 77892ce9d0 (GATE679). ENGINE tip 3a6c11fc29 (GATE682, after GATE678): my launch-record
                                     condition MET in bytes; w6 12:58:21Z AMEND == sp's --window-closed-on-HIT hole; + aio's hidepid NIT:
                                     ENGINE CHILD c85ce75bd8 carries both: w7 13:00:48Z APPROVE (every
