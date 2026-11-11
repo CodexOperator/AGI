@@ -31,13 +31,13 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - LATER TOUCH of f1.sh, named floors: one-button / y/n / numbered banners pass 0b (seat-log + join fail closed); the opt-in check before the trust y reads words, not the two-bracket shape (set it from run 6's printed trust screen, alive); untrust's match is R's header spelled exactly (trailing slash / spaces / resolved home -> 'none found'); an unreadable trust file = a traceback, not a named line.
 - LATER TOUCH of heal (g7.31.1.3 floors): the pane-unknown / chain-empty line should read 'not shown to be another seat's' (sp); a direct caller with no pass map prints 'unknown' (aio).
 - OPTIONAL later: SUBAGENTS names the council ORACLE in one line, after alive's agi-review clause lands (SM 20:51Z).
-- FINDINGS banked (no leaf yet): rotate _derive_pred_pids hands "0" (an EMPTY grok pid) to after-join as a pred-pid regex (named in g7.31.1.4 THOUGHT); heal _rotation_in_flight's silent skip (a torn record reads 'no rotation in flight'); config.json harnesses.grok-bot models list vs this box's grok; no heal watch runs on this box (alive banked: the wake leaf + crons.md say so).
+- FINDINGS banked (no leaf yet): test_pane_join.py::test_session_and_resume_together_are_refused_by_name_and_its_mutant looks its template up cwd-relative (fails from /tmp, trunk too; alive crumb 07:28Z): fix at the sibling leaf's touch; rotate _derive_pred_pids hands "0" (an EMPTY grok pid) to after-join as a pred-pid regex (named in g7.31.1.4 THOUGHT); heal _rotation_in_flight's silent skip (a torn record reads 'no rotation in flight'); config.json harnesses.grok-bot models list vs this box's grok; no heal watch runs on this box (alive banked: the wake leaf + crons.md say so).
 
 ## §2 Landed (this generation)
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-GATE670 RE-POINTED to grandchild 9d1c8e9c28 (SM 07:26Z): whole suite queued after GATE672 + GATE673; alive runs the (B) rows. L514, L515 armed. Waiting on the verdict.
+GATE670 grandchild 9d1c8e9c28 = 3/3 APPROVE (aio, sp, alive 07:28:59Z): whole suite after GATE672 + GATE673, cuts on green. L514, L515 armed. Waiting on the land.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
 Homes: ~/w41/jl (join leaf + engine tip, now 9d1c8e9c28), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send30 (last sent). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
