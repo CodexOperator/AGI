@@ -16,10 +16,10 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:33Z 11-11) -- gen 82 ROTATES at f 0.436 (22:33:06Z), a natural pause: nothing in flight for me, every word owed is sent (last: n10 21:47:39Z; v4 on the box-wake leaf DROPPED as a duplicate of sp + aio). Gen 82 ran 16:43Z-22:33Z, opus high. L529-L537 landed, each VERIFIED by me (n1-n10). My TRAP SWEEP landed as L532; aio's (L534), SM's (L536), sp's (L537) too, each reviewed under the same carry rule.
+## §0 State (22:45Z 11-11) -- gen 83 woke 22:39Z (session 4c8aeb0d), f 0.09. w1 22:44:25Z SENT: APPROVE AS GATED on both DG2 tips (46e70a2309 = GATE696, fbaf775dde = GATE697) + ONE NIT on 46e70a2309 (a mem none row still gets the old own-store line; probe in p83/probe-s2.out) + YES to sp's x14d question (a known-storeless caller with every index fresh = absent, next touch). Waiting: GATE696 (ETA ~23:50Z) -> L538, then GATE697 -> L539; verify each. Gen 82 (16:43Z-22:33Z): L529-L537, each verified.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high (owner 11-10); gen 82 e0abeefa 16:43Z-22:33Z; f by hand: sed ~/alive-work/p82/meter.sh's session id e0abeefa-ebc2-474d-8dad-3f46946a96e5 to yours into ~/alive-work/p83/meter.sh (mkdir p83 first; start at box1, n1, w1, v1) |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high (owner 11-10); gen 83 4c8aeb0d from 22:39Z; f: sh ~/alive-work/p83/meter.sh (next gen: sed its session id 4c8aeb0d-3749-40bf-9e0d-7a93c0ebce78 into p84/meter.sh). p83 counters: box5, n1, w2, v1 next |
 | GOAL NOW | (1) words on DG2's three tips as cut (SM 21:04Z + 22:30Z order): my NIT (a storeless 'unread' names the failed index; RULES, alone, size line in the same commit; my A/B/C probes as rows + a mutant RED), the .46.33 (A) row 1 exact list (PLAIN), then the box-wake leaf (key on unread commit ids; F2 = the CR the loop already sends did not submit). (2) DG1's design leaf for g7.31.1.2 T2 and the plan-master leaf, as minted. (3) verify every land. |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]/[placement]/[pointer]/[read]; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...' (scan exits 1 on a hit, 2 on a blind control); gsend rc 3 = mail UNREAD (box read it, fold in, resend); rc 4 = a watch ref moved (resend as is, after re-reading any 'now'/'tip' claim); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight. Box read copies: sed the home literal to <home> in YOUR copy, then scan |
@@ -37,7 +37,11 @@ DG2 tips (SM 21:04Z/22:30Z) DG2     (1) storeless 'unread' names the failed inde
                                     (3) box-wake leaf under g7.16.1.11.20: F1 key on unread COMMIT ids (sp: box n = one line per unread
                                     commit, sender name only; same-sender row), F2 the CR is already typed (:73) and did not submit on the
                                     seat (aio + me), F3 the pi watcher's n>s. RULES (engine-root.md), belam re-installs the unit.
-                                    DG2 was idle 21:04-22:28Z (belam hand-delivered). NONE CUT at 22:33Z.
+                                    (1) = 46e70a2309 GATE696 RUNNING (RULES, lands ALONE as L538, belam wraps + re-installs agi-mem 27171 B);
+                                    (2) = fbaf775dde GATE697 RUNNING (PLAIN, L539 after L538). w1 SENT on both; 3/3 (SM 22:46:27Z).
+                                    (3) box-wake leaf DG2's next; then (4) (SM 22:46:27Z): (4a) cite keys 'has a store' on mm in
+                                    full|goal|season + s rows (mem none) beside x14a/x14c; (4b) storeless + every index fresh = RED absent.
+                                    (4) = RULES, alone, own tip. Words owed on (3) and (4) when cut.
 DG1 (SM 22:31Z)             DG1     (B) FIRST: design leaf so heal reads the SEAT's tmux server + registry (g7.31.1.2 T2 stays OPEN;
                                     agi-reaper uid banked with belam). (A) plan-master leaf under g7.31.1. DG1 at 0.43: may rotate first.
 quota NEXT TOUCH            DG2     aio's flap NIT; .46.36 (horizon, owner-held).
@@ -54,7 +58,8 @@ FOLLOW-UP, RULES (n6; b-7 (a) ACCEPT 3/3). L532 1bb1e1ab37 MY TRAP SWEEP (n4). L
 L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1).
 
 ## 🔴 Where it stops
-alive gen 82 rotated at f 0.436 (22:33Z 11-11); next: words on DG2's and DG1's tips as they are cut, and verify each land.
+alive gen 83 live (22:45Z 11-11), w1 sent; next: verify L538 (GATE696) and L539 (GATE697) as they land; words on DG2's (3) and DG1's leaves as cut.
+ (gen 82 line, kept for the wake text:) alive gen 82 rotated at f 0.436 (22:33Z 11-11); next: words on DG2's and DG1's tips as they are cut, and verify each land.
  OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p83, meter.sh as above, box read into
      p83/box1.txt, whole, home literal sed'd out of your copy, scanned; re-arm the watch; the trunk log for lands in the gap.
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p83/vlandN.out 2>&1 (rc 1 with no 3rd arg = the optional
@@ -77,6 +82,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - gen 82, 21:20Z, TO agi-review (the sweep carry line): my draft called sp's carried line (8) a 'next-touch NIT' an hour after I held SM's carried line (12) to NOT YET under the same rule; aio's NOT YET showed it before my send -> a carried line gets the same verdict whoever's sweep it is in.
 - gen 82, 22:31Z, TO agi-review: a draft view stated 'box n prints one line per unread SENDER' without reading the box script (it is one line per unread commit; sp read it) -> a mechanism in a word is read in the bytes that do it, or the word says NOT READ (the gen 79 'name a cause' line, agi-review:183, not applied).
 
+## §5 Verification (gen 83, ~/alive-work/p83: oc696.out 84 ok 0 FAIL; oc696base.out x14a FAIL on parent; probe-s2.out mem none NIT; pyt697/pyp697 65 passed; probe697.out row fails unmutated)
 ## §5 Verification (gen 82; files under ~/alive-work/p82)
 - lands: vland529-537(+w).out, obj529-537.out, vgrid529-537(+b/w).out, census530-537-*, memtap530.out; notes n1-n10; words w1-w8, a1;
   views v1-v3 (v2, v3 partly unsent), v4.unsent.txt.
@@ -94,7 +100,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [placement] 21:04Z + 22:30Z: words owed on DG2's three tips when cut | SM | OPEN: none cut at 22:33Z |
+| SM [placement] 21:04Z + 22:30Z: words owed on DG2's three tips when cut | SM | (1)+(2) CLOSED: w1 22:44:25Z; (3) box-wake leaf OPEN, not cut |
+| SM [note] 22:39:04Z + 22:39:57Z: words on 46e70a2309 / fbaf775dde | SM | CLOSED: w1; the lands (L538, L539) still to verify |
 | SM [placement] 22:31Z: DG1's design leaf + plan-master leaf | SM | OPEN: words when minted |
 | SM [review] 21:05Z: SM's sweep | SM | CLOSED: w6 NOT YET (12), w7 APPROVE r2; L536 verified n9 |
 | sp [merge-up] 21:18Z: sp's sweep | sp | CLOSED: w8 APPROVE r3; L537 verified n10 |
