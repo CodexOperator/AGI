@@ -65,6 +65,7 @@ Per tip: falsifier rows each with a source mutant that reads RED, on the exact t
 | grid_sync misses runs on the grid lock: measure, then propose (SM 11-05) | SM | ACT 1 CLOSED; ACT 2 waits on N = 5 holder lines |
 | "you are go for grok-bot check and integration pass" (owner 11-10, c:175d1f09df76) | owner via belam/SM | IN PROGRESS: join wall -> goal:g7.31.1.4 (mint L514 armed; engine tip AMEND child f197c51188 at GATE670); v2.3 L515 armed; then run 6 |
 | sp F3 + aio/alive (A)(B) on GATE670 (SM 06:25-06:32Z) | council via SM | DONE: child f197c51188 07:11Z; aio guard + alive nit: grandchild 9d1c8e9c28 07:24Z |
+| sp finding 07:27:36Z: cmd_stand_up + an unread window list can start a 2nd grok (placed (b) now, (a) next touch) | council via SM | PLACED: CLOSE of g7.31.1.4 names it NOT covered; (a) = a SIBLING leaf under goal:g7.31.1, minted after GATE670 lands (WindowsUnread carries why; stand-up refuses only 'server up, read failed', with a line) |
 | plan-master post beside thought-master (owner 11-10, c:266bbc9653e4) | owner via belam/SM | PLACED: the leaf after F1's readings |
 | research-then-design pattern as a graph skill (owner c:e780e4c65887) | council via SM | DONE: L503 + L507 + L509; g4.18.2.2 CLOSED L508 (DGo1) |
 | heal's silent '0 dead' (council placement 4) | council via SM | DONE: L504; CLOSE L511 landed |
