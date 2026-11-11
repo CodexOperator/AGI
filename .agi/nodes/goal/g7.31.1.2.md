@@ -77,6 +77,8 @@ OWNER (c:175d1f09df76, 03:56:36Z 11-10, via belam): "you are go for grok-bot che
 - F1 v2.1 (SM 12:20Z, from run 2): 0b also FAILS on a screen that still shows a pending choice (two bracketed choices on one line, or the opt-in words); a false FAIL launches nothing and prints the line. Right after the stand-up the SEAT's own grok log is read: a dropped type-ahead FAILS the run, sections 2 and 4 NOT RUN, nothing killed. R sets its own git identity by config after init. RUN on fakes: a clean answer PASS; belam's banner, a bracketed pair, a dropped log line, no answer: FAIL each; the seat log dropped: FAIL=1, no join; clean: the join runs. MUTANTS: no banner check -> the banner PASSES; no seat-log check -> the join runs on a dropped prompt. L500 as landed reads the banner PASS (the control). Also the carried FLOOR (aio 11:02:37Z, alive 12:22:26Z): `recs` prints fields by LABEL (result=, age=, rotation= quoted), so a rotation value with a space no longer shifts the age read; a respawned record stamped in the FUTURE reads UNREADABLE, so `waitdead` FAILS and nothing is killed (a wait of the stamp's lead could be unbounded). RUN on fake records: none, 900 s -> no wait; 590 s and 590 s with a spaced rotation -> sleeps 20 s; future 3600 s -> FAIL, nothing killed. L500 reads the last two 'no wait' (the control).
 - F1 RUN 3 (belam 19:35:55Z 11-10, L502's v2.1, F1_MODEL grok-4.7, F1_SILENT=1; grok's opt-in banner answered Opt out, the default, by belam's hand start, the owner's one-word confirm asked): FAILED rc 1, NOTHING KILLED. 0b PASSED; v2.1's seat-log read caught 'startup type-ahead dropped' right after the stand-up, so sections 2 and 4 NOT RUN. CAUSE, read by belam by hand: grok asks 'Do you trust the contents of this directory?' in R (a new git repo each run); the probe ran outside R and never met it.
 - F1 v2.2 (from run 3, SM 19:41Z): 0b runs IN R, the seat's own cwd: first a bare start in R reads the screen for grok's folder-trust question. Trusting R is a security choice: the script answers 'y' only under F1_TRUST_R=1 (the runner's choice; R is a throwaway root of the trunk's own bytes), checks the question is gone, else FAILS with nothing launched; before the 'y' it FAILS if R holds any .grok path, since trusting R would turn on its project rules (aio 19:49Z), and if the same screen shows any opt-in words, since a 'y' there could answer the owner's data choice (alive 19:50:27Z). Then the answer probe runs in R. The council's carried next touch rides with it: drops() reads a missing or unreadable log as READ NOTHING (a FAIL) and matches its two phrases in any case under any key; the BAN line anchors the opt words on a word edge and also names the trust question. RUN with a FAKE grok-bot on a private tmux socket (no real grok on DG1's uid): trust asked, no F1_TRUST_R -> FAIL, nothing launched; trust asked, F1_TRUST_R=1 -> answered, the probe in R PASSES; no trust question -> PASSES; the question stays after y -> FAIL; the grok log missing -> FAIL READ NOTHING. MUTANTS: trust step and probe outside R (the v2.1 shape) -> 0b PASSES (run 3's hole); no missing-log check -> PASSES on no log. drops(): a capitalised phrase and the phrase under another key read DROP; a clean line and a non-JSON line read none.
+- F1 RUNS 4-5 (belam 06:03Z + 06:04Z 11-11, L510's v2.2, F1_TRUST_R=1): both rc 1, NOTHING KILLED. Run 4 aborted in section 0: the cred find descended into R while its fresh repo repacked (a race). Run 5: the trust step worked, 0b PASSED in R, and for the first time the seat's prompt was not dropped; then the JOIN refused: row pid = the pane bash, session_id empty, sections 2 and 4 NOT RUN. DG1's read (06:1xZ): on a fresh stand-up heal._recover_seat writes the pane pid and an empty session_id, and the after-join's pane join feeds only template values, never the row; a grok seat never acks. That is an ENGINE leaf of its own under goal:g7.31.1, not this script.
+- F1 v2.3 (SM 06:08Z): the cred find PRUNES R (-path "$HOME/f1-*" -prune), so a repack in R cannot abort section 0; the trust 'y' arms an EXIT trap that removes THIS run's [folders."<R>"] table from ~/.grok/trusted_folders.toml at any exit, other entries untouched (one stable R was the alternative: it would carry state between runs, which the throwaway root exists to avoid). RUN: an unreadable dir inside R errors the old find and not the new; the trap on exit 1 removes only R's table from a two-entry file; no entry and no file each print their own line; the fake-grok 0b rows unchanged.
 RUN (belam, on encryption-town), in this order. The mktemp path must be readable to uid 971: a /tmp mktemp file at 644 is; a file under a 700 scratch dir is not (belam 08:38Z 11-10). The scratch row's model is `F1_MODEL`, default grok-4.6, the box's grok default; `grok models` on this box lists only grok-4.6 and grok-4.5 (belam 08:4xZ). A setup-only pass as the uid comes first (SM NIT 2: whether 971 can read SRC is UNMEASURED, and a refusal there should cost no login). Then the marker, then the owner's login, then the run. The script goes to a mktemp path (SM NIT 1: never a fixed name in /tmp):
 ```
 F=$(mktemp) && sed -n '/^```bash f1.sh$/,/^```$/p' .agi/nodes/goal/g7.31.1.2.md | sed '1d;$d' > "$F" && chmod 644 "$F"
@@ -240,7 +242,9 @@ print('rc', rc, (c or '').split(' --',1)[-1].split(\" '\",1)[0], '<PROMPT>')" "$
 # 0 files = READ NOTHING (the token is stored outside the home, UNREAD, never 'safe'): the run stops and waits.
 echo "== 0 the credential (files the login wrote, modes)"
 [ -e "$LM" ] || { echo "READ login marker: READ NOTHING (run 'f1.sh mark' BEFORE the login); the run waits"; exit 1; }
-CRED=$(find "$HOME" -xdev -cnewer "$LM" -type f -not -path "$HOME/f1-*" 2>"$R/cred.err")
+# belam run 1 of v2.2 (06:03Z 11-11): -not -path still DESCENDED into R while its fresh repo repacked, so vanished
+# dirs aborted the run; -prune never walks R at all
+CRED=$(find "$HOME" -xdev -path "$HOME/f1-*" -prune -o -cnewer "$LM" -type f -print 2>"$R/cred.err")
 [ -s "$R/cred.err" ] && { sed 's/^/READ cred find ERROR (an unreadable path is never a silent 0): /' "$R/cred.err"; FAIL=1; }
 echo "READ files the login wrote under HOME (uncapped): $(printf '%s' "$CRED" | grep -c .)"
 [ -n "$CRED" ] || { echo "READ files the login wrote under HOME: READ NOTHING (token outside the home, UNREAD, never safe); the run waits"; exit 1; }
@@ -263,6 +267,25 @@ else echo "READ grok models: $(printf '%s' "$GM" | paste -sd' '); FAIL: F1_MODEL
 # grok's own log, messages only, after byte offset $1: the lines that say a prompt was dropped behind a startup screen
 # council next touch (sp NIT, aio ADD 2, alive 12:31-12:35Z): a missing or unreadable log is READ NOTHING (a FAIL), never
 # 'no drop'; the two phrases match in any case, under any key of the JSON line
+# belam 06:1xZ 11-11: grok records a trusted folder as a [folders."<path>"] table in ~/.grok/trusted_folders.toml, so
+# every passing 0b would leave one stale entry; at ANY exit after the 'y' (an EXIT trap), remove THIS run's R table only
+untrust() { python3 - "$HOME/.grok/trusted_folders.toml" "$R" <<'PYT'
+import sys, os
+p, r = sys.argv[1], sys.argv[2]
+if not os.path.exists(p): print(f"cleanup: trust entry: READ NOTHING ({p} absent)"); sys.exit(0)
+lines = open(p).read().split("\n"); head = f'[folders."{r}"]'; out, skip, n = [], False, 0
+for l in lines:
+    if l.strip().startswith("["): skip = (l.strip() == head); n += skip
+    if not skip: out.append(l)
+if n: open(p, "w").write("\n".join(out)); print(f"cleanup: trust entry for R removed ({n} table)")
+else: print(f"cleanup: trust entry for R: none found in {p}")
+PYT
+  # aio 06:14:49Z: grok may re-save the file as it shuts down, AFTER the removal; and earlier runs' entries stay. Re-read
+  # once and SAY how many f1- tables remain, so a stale entry is seen, never silent
+  sleep 3; local tf="$HOME/.grok/trusted_folders.toml"
+  if [ -r "$tf" ]; then echo "cleanup: trust file now holds $(grep -c '^\[folders\.".*/f1-[0-9TZ]*"\]' "$tf") f1- table(s) (each is a stale trusted R; remove by hand)"
+  else echo "cleanup: trust file: READ NOTHING ($tf absent or unreadable)"; fi
+}
 drops() { [ -r "$GL" ] || { echo "READ NOTHING: grok's log $GL is missing or unreadable"; return 0; }
   tail -c +"$(($1+1))" "$GL" | python3 -c "import sys,json
 for l in sys.stdin:
@@ -288,7 +311,7 @@ if printf '%s' "$TS" | grep -qi 'trust the contents of this directory'; then
   # alive 19:50:27Z: a 'y' on a screen that ALSO shows the opt-in banner could answer the owner's data choice: FAIL first
   OB=$(printf '%s\n' "$TS" | grep -E -m1 -i 'help improve|\bopt[- ]?(in|out)\b' | cut -c1-120)
   if [ -n "$OB" ]; then echo "READ folder trust: FAIL: the trust screen also shows an opt-in line ($OB): that choice is the owner's; nothing launched"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
-  if [ "${F1_TRUST_R:-0}" = 1 ]; then echo "READ folder trust: grok asks to trust R (0 .grok paths in R); F1_TRUST_R=1: answering y"; tmux -S "$PS" send-keys -t f1trust y; sleep 8
+  if [ "${F1_TRUST_R:-0}" = 1 ]; then echo "READ folder trust: grok asks to trust R (0 .grok paths in R); F1_TRUST_R=1: answering y"; trap untrust EXIT; tmux -S "$PS" send-keys -t f1trust y; sleep 8
     if tmux -S "$PS" capture-pane -p -t f1trust 2>/dev/null | grep -qi 'trust the contents of this directory'; then echo "READ folder trust: FAIL: the question is still on screen after y; nothing launched"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
     echo "READ folder trust: answered; the question is gone"
   else echo "READ folder trust: FAIL: grok asks to trust R ($R); nothing launched. Trusting it is the runner's choice: re-run with F1_TRUST_R=1"; tmux -S "$PS" kill-server 2>/dev/null; exit 1; fi
