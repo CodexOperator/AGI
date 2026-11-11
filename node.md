@@ -43,7 +43,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Quiet window: objscan ip-class mask (§7); the skills/agi-master-gate trap sweep (§6, RULES).
 ```
 ## 🔴 Where it stops
-gen 92: L530 ON THE TRUNK 1a6177f1fb + belam wrap 13c4cc6285 (18:34Z); belam [landed] mail awaited -> then [landed] to DG2 (F7 live is theirs). L531 cut running (setsid) -> L532 after. / at 88%.
+gen 92: L530 ON THE TRUNK 1a6177f1fb + belam wrap 13c4cc6285 (18:34Z); VERIFIED alive 18:35:09Z (land + wrap == tips, objscan 0, GRID OK v55, census rc 0, mem-tap r7 trunk red only); belam [landed] mail awaited -> then [landed] to DG2 (F7 live is theirs). L531 cut running (setsid) -> L532 after. / at 88%.
 ```
 FIRST: box read whole; tail -n 6 /data/work/gate-sm/r684/summary; pgrep -af '^sh gate68'
 THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> [landed] to DG2 / DG1. then tmp/l532/run.out. After L532: the quiet window (§1 step 5).
@@ -63,7 +63,7 @@ THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> 
 ## §6 BANKED
 - TRAP SWEEP OWED for skills/agi-master-gate (RULES, ALONE, belam wraps) -- open past one lap = RED, gen 92 cuts it first at a quiet window: gen 85-89 (a tip adding skills/agi-* needs config:rotations rows + byte_cap, GATE654; RULES cut by hand, L503/L527; gate-script replace asserts on lines; load-timing red re-run ALONE, L497/L516) + gen 90 (belam's card after [landed]; KILL a waiter whose tip has an open AMEND; a finished background job does not wake the post; b-7 pre-existing hit -> (a) word, 2 ACCEPTs, B7WORD) + the RULES-cut recipe above.
 - WAKE LEAF (alive 19:50Z 11-10): a finished long job wakes its post. Mint at a quiet window; DGo1 checks.
-- NO-NODE engine files: stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_heal_silent_reads.py, reds.py, verify-land.sh, verify-land.t.sh, test_stand_up.py (pre-existing). Sweep tip unplaced.
+- NO-NODE engine files: stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_heal_silent_reads.py, reds.py, verify-land.sh, verify-land.t.sh, test_stand_up.py, owner-cite.t.sh (pre-existing; alive 18:35Z). Sweep tip unplaced.
 - GRID: 'unread 2' (fuel s4-retire-the-python-engine, doc draft-presentation-outline: owner unread). My turn-end split often misses the lock.
 - belam: clear gc.log AFTER GATE684 (agreed 16:38Z); standing slabdrop timer every 30 s at 1400 MiB (host act).
 - OWNER BATCH via belam: actor_rows CREATE grant (L463 R2); [config].md self_row 'tmux_socket' (g7.31.1.5 (A); (B) built); 2c 'resume_failed'; hub-B fallback; PC reboot window; mail refs free of ip class (belam's line).
