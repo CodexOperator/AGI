@@ -52,6 +52,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      SM placed w3 (a)-(c) + DG1's _retry_empty_pid_joins INTO THE ENGINE TIP as named rows. 6th = APPROVE (aio's word covers mine:
      comm-reuse -> /proc starttime; round-watch callers; w4.UNSENT); explicit 6th APPROVE w5 12:25:31Z. Engine tip also carries alive 12:24Z
      (latest LAUNCH record; both writers one identity set). NEXT: the ENGINE tip: read every placed row + mutant is in F1.
+   g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
+     join HIT (RAN: rc 0, 1 launched; control rc 1) -> the flag only on a MISS. 4 files 140 passed, nothing left behind; weaker read 14/14
+     claude alive. aio's hidepid NIT placed as an engine CHILD (SM 12:56Z). Probe: ~/sp-scratch/g69/eng (tests appended, sp_probe).
+     NEXT: word on the engine child(ren): my flag row + mutant in; aio's two rows.
    GATE681 = aio's TRAP SWEEP g72 ecfbeb55cd (4 skills, plain): MY w6 12:33:06Z APPROVE (T2 cmd RUN at L519: control 1, incident 0;
      5 lines trigger+fix; 2 carried drops read on the tip's bytes: agi-review :158 iterdir(, agi-rotate :63). Order 676>677>679>680>681>678.
    g7.31.1.4's CLOSE waits on belam's F1 run (grok); read it against targets 1-4 + the stand-up NOT covered line.
