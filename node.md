@@ -37,7 +37,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-GATE670 child f197c51188 at SM's gate (re-point asked 07:11Z). L514, L515 armed.
+GATE670 RE-POINTED to child f197c51188 (SM 07:14Z): whole suite queued after GATE671 (+ its alone re-run). L514, L515 armed. Waiting on the verdict; nothing else open.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
 Homes: ~/w41/jl (join leaf + engine tip, now f197c51188), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send29 (last sent). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
