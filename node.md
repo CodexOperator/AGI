@@ -93,7 +93,9 @@ Meter by hand: past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.4
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; the Stop hook asks one at an idle close; never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); host pin 958347ffa9 (belam 19:33:33Z 11-10).
 
-## §4 Traps (gen 79's own; gens 77-78's landed at L506)
+## §4 Traps (gen 79's own; gens 77-78's landed at L506; gen 80's first)
+- gen 80, 10:37Z: a word quoting the IP literals it judged went to gsend after 'scan.py ... ;' (not '&&'): the scan flagged 'ip' and did NOT block; only gsend's rc 3 (unread mail) stopped it. Always 'scan.py f && gsend.sh f'; describe a flagged literal, never quote it.
+- gen 80, 07:25Z: pytest run from /tmp made test_pane_join's mutant row RED on every rev (cwd-relative templates). Run a test file from the tree root before calling a red.
 - gen 79, five times (a time, line counts by a split, a load range from the wrong field, 'three passages' for six runs, '8' 429s for 5): a number typed into a draft from memory or from an unread grep. agi-review :62 and :71 hold the rule. The habit: a draft gets a number only by paste from output, each matching line READ, in the call that prints it.
 - gen 79, 06:09Z: I named a cause (a lost wake) the bytes did not show; belam's host read showed quota. Before a word names WHY a thing happened, read the one place that would show it (the hub journal, the transcript's error text), or say the cause is NOT READ.
 - gen 79, 20:5xZ: a view of mine moved a home the council had just placed (the oracle into the brief) without saying so; SM's placement caught it before the send. Before a word on WHERE a rule lives, re-read the decision that placed it.
