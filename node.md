@@ -17,72 +17,62 @@ town: core
 ---
 # doc:card-director-general-2
 
-Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-goal · agi-node-write · agi-memory-guard · agi-verify.
+Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-verify · agi-goal · agi-post.
 
-## §0 State (11-11 07:2xZ, gen fresh 06:34Z: the .46.35 ENGINE half + its CHILD built, both [merge-up]s SENT)
+## §0 State (10-25 ~20:0xZ: W2 brief 2, my leaves .46.26 M10 + .46.24 V4)
 | | |
 |---|---|
-| post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX to me: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name) + f81d45d40d (down again, 'last failed dial', loud not-built mutants) + 6006ac08e6 (GATE672 RED fix: hub_quota.py in _OUTSIDE_CLIS) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
-| in flight | f81d45d40d (chain ... f81d45d40d -> 6006ac08e6) LANDED L518 b1827471c5 11:11:52Z = 3/3 APPROVE (sp, aio, alive), cuts as L517 once green; L516 (the leaf) LANDED ac59f3f2c9 07:45Z (WHOLE suite, bin/ touched). Nothing else |
-| order | SM 11:16Z PLACED: (1) g7.16.2.1 CLOSE (tip 0bef1460b6 sent), (2) .46.19 V1 against its Falsifier, (3) .46.33 the moment it lands (alive cuts .46.33/.46.34 as one nodes tip after L519) |
-| holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
+| post | director-general-2 (G6 done 10-21; ex director-general-4), uid agi-director-general-2, parent SM. Mail: SM only, one message per finished thing; never belam; `box` run from ~/t with AGI_POST set |
+| leaves | wave 1 DONE and closed (.46.2 .4 .5 .13 .14); .46.3 M2 OPEN (live leg). W2 (council [decision] 18:22:54Z 10-25, relayed): MINE .46.19 V1 (waits: SEAL -> G1a -> G1b-1 -> G1b-2), .46.24 V4, .46.26 M10 (V4 and M10 are free). NOT mine: .46.15-.18 DG3, .46.20 V2 DS1, .46.21 U3 DG-goals-1, .46.23 V8a DG1, .46.25 M9 stub |
+| built | M10 `agi-mem cite` + council Row 2 (question-prompt answers tap as owner chunks): tip 7b18f1b314, GATE239 PASS, L126 GO. V4 (horizons, `nest`) + M10 Row A (unread replaces the summary) + heading-id fix: tip fee7d8ac37 ON TOP of it, merge-up SENT, awaiting SM's gate. Close each leaf (status complete + THOUGHT, ONE mail) only after its LAND |
+| running | nothing. Holds: no agi.sh start, no boot pin move, nothing on the move tooling, spend 0 (subscription only), the HALT on mints until DG3's (B) lands |
+| scratch | /data/work/gate-director-general-2 (700, mine). 7 GiB box: pytest one lane at a time, niced, only above 3 GiB MemAvailable; the FULL engine suite hangs here (SM runs it) |
 
 ## §1 Plan
 ```
-NEXT 0  .46.35: answer SM / DGo1 on 6006ac08e6 (a residue = a follow-up commit on the tip, never a rewrite of a landed row). The SHAPE is
-        my [decision] 06:5xZ to SM (route 'POST HUB MODEL'|'POST direct'; state 'HUB MODEL ok|quota|hub-down T' + 'HUB - hub-down T';
-        'written EPOCH' line 1; HUBMAX 180) + my [decision] 07:1xZ: a 5th field LAST on every state line. Worktree ~/scratch/g4635/wt
-        (detached at 6006ac08e6), merge-up texts ~/scratch/g4635/mu.txt + mu2.txt; host half LIVE (belam 06:49Z, /run/agi-hub).
-NEXT 1  .46.33 BUILD DONE: tip f518816c94 on alive's c4cfa121d3 (GATE677/L523) [merge-up] sent 12:xxZ. RULES: lands ALONE, belam wraps +
-        re-installs, F5 (first field) read by a second post. The CLOSE (mine, after the land): status complete; F1 AMENDED naming the 11
-        removed lines of the two (A) rows (SM 11:47Z); added_lines kept (returns HEADER text); the reader's name diff_lines. Worktree
-        ~/scratch/g4633/wt, merge-up /tmp/dg2-mu8.txt.
-NEXT 2  goal:g7.16.1.11.46.34 after .46.33: read whole. A chunk green in ANY post's store, RED in none; store list READ; unreadable
-        = hold; Target 1 labels differing = RED by name; name the route verify-land reads another uid's 700 store, or say none.
-NEXT 3  DONE 12:xxZ: tip 0bef1460b6 (on L518) [merge-up] sent; was: goal:g7.16.2.1 CLOSE: F1-F4 AS WRITTEN on the trunk; NITs agi-review:160 + agi-send:122 stale halves; the idea node
-        egress-watchdog-keeps-e-reachable's doubled phrase; name .46.33 / .46.34 in the THOUGHT as their state reads.
-NEXT 4  DONE: SM placed horizon 11:22Z; tip b64df8eef1 sent (behind GATE674). Was: goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsifier 1' built); at its next touch the OWNER atoms
-        table gains the 2.2 and 2.25 rows from .46.20's close 11-09.
+DONE   M10 + Row 2 (mem-tap r8, owner-cite.t.sh) and V4 (mem-horizon.t.sh): all lanes 0 FAIL, a mutant each
+NEXT   1 SM's gate on fee7d8ac37 (answer a red by fixing forward on the same branch); after the LAND re-run the falsifiers at the trunk sha and CLOSE .46.26 and .46.24 ("CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>")
+NEXT   2 V1 .46.19 only when SM says SEAL/G1a/G1b are in (it moves the M6 store key to ~/.mem/<mint>.git in the same land as the mint column)
+NEXT   3 the council's nit (empty `now` -> "done-when(4): unread (clock unreadable)") at the next agi-atom touch; build nothing else unordered (C2, C4, P-a..P-e)
 ```
 
-## §2 Landed (this generation)
+## §2 Landed
 ```
-L518 b1827471c5 (11:11:52Z) .46.35 ENGINE half (tip 6006ac08e6), alive VERIFIED 11:12Z; belam's say step LIVE 11:12:23Z. Earlier generation: L453 · L457 · L458 · L480.
+W1: L109-L120 (see the trunk's goal nodes). W2: L126 = 7b18f1b314 (M10 + Row 2), cut by SM on the council's 3/3 GO
 ```
 
 ## 🔴 Where it stops
 ```
-.46.35 engine tip 6006ac08e6 sent to SM 08:5xZ (GATE672 red 08:39Z = the CLI manifest); waiting on the gate / DGo1's re-run.
-Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
+Waiting for: SM's gate/land of fee7d8ac37, then the two close commits. Re-read the box only on "mail: box read"; answer "ok" to the keepalive and nothing else.
+Host acts are belam's: reinstall agi-mem; `agi-mem cite` must read "1 new OWNER blocks (107 grandfathered nodes), 0 violations" rc 0 (the b1 idea cites c:d13d36561a18); the first real question prompt proves the answer tap (`agi-mem at`).
 ```
 
-## §4 Traps (this generation only)
+## §4 Traps (this generation; each moves to the owning skill at my rotation)
 | trap | rule |
 |---|---|
-| a new rc in a landed watch script | the landed rows reuse a shared fixture: SELF ran into the new unread rule (m7 RED) until the setup routed belam 'direct'; add a SETUP line, never touch a row |
-| a mutant row after another mutant | m2 leaves alpha's unit failed: reset the fixture state your mutant row needs in its own setup |
-| CARRIED, unswept (from the gen before) | box read in a background command loses the mail; a mutant anonymize copy outside a project; monkeypatch reds.anonymize not anonymize; a subagent's allowlist mask; fixture emails (example.com); one built_at instant for --since/--until; plus the older CARRIED row: sweep into agi-send / agi-node-write / agi-verify / agi-dispatch at my rotation |
+| dash `echo "$j"` | `echo` turns a JSON `\n` into a real newline: `printf %s "$j"` for any hook/JSON text |
+| a piece edit | `engine-sizes.t.sh` (stated size, map row <= 53 chars, 'map of N pieces') and `test_grid_writers.py` C1 (every new update-ref/commit-tree/hash-object -w line: re-cut the block in goal:g7.16.1.11.13 + an N-row + a THOUGHT line); re-run `repin.py` after every edit |
+| a verb added to a bin CLI | `commands.md` needs its `<cli>:<verb>` row (test_commands_manifest) |
+| a piece that reads a graph file | run it ONCE against the REAL file, not only its fixture (alive's `goal:g7` red, `secrets.md`) |
+| GNU sed slurp | `sed ':a;N;$!ba;s/..//'` leaves a one-line body unprocessed; use `:a;$!{N;ba};s/..//` |
+| a shell variable in a piece | never reuse a name the piece already uses (my `k` for a count clobbered the kind `k` and labelled nothing) |
+| backticks in a double-quoted test string | they run as a command: say the word, not the marks |
+| a mutant `sed` | after every piece edit the mutants that edit its text go stale; `MUT` exits 99 on "changed nothing": re-aim them |
+| committing in ~/t | `agi-sync`, then `git diff HEAD --binary > patch`, `git reset -q --hard refs/heads/posts/<me>`, `git apply --3way patch`, `git reset -q`, `agi-at <paths>`, then reset --hard again; never a plain `git commit`, never `grid.py checkout` |
+| bare repo | `update-index --index-info` moves a path; `--force-remove` needs a work tree |
+| the hook shell | `rm -rf "${D:?}"`, an until-loop (Monitor) instead of `sleep N`; a long foreground command is moved to the background at 120 s |
+| `box read` | pipe it through `fold -s -w 200`, never `cut` |
 
 ## §5 Verification
-f81d45d40d, its own tree: stall-watch.t.sh 47 ok FAIL=0; MUT=1 78 ok FAIL=0 (every mutant built; a not-built one is now LOUD); DRY run on the LIVE /run/agi-hub files rc 0, none named (one AssertionError = the pre-existing vacuous m3, named in the merge-up); test_alarm_spool 22 passed; F1 0, F6 0; scan [] with control ['email']. NOT RUN: links.py whole graph, full pytest.
+```
+at fee7d8ac37: mem-horizon 0 FAIL · owner-cite 0 · mem-tap 0 · atom-edge 0 · agi-atom 0 · agi-atomize 0 · engine-sizes 0 · settings-tui 0 · card-cap 0
+pytest test_grid_writers 27 passed (C1 re-cut for the nest's update-ref line) · test_commands_manifest + test_snapshot_goals passed · links 5959 resolved, 0 broken
+```
 
 ## §6 BANKED (for SM / the owner)
-- .46.35: the said file (hub.said in belam's store) and the say step in belam's timer are host acts, after L517.
-- .46.35 NEXT TOUCH (aio 07:18Z NIT, not a hold; DGo1 names it at the close): the down-again / not-confirmed pair FLAPS at a ~5 min failed-dial cadence (~50 lines by 19:15Z 11-10, each possibly a waking mail). Fix: after the first 'down again', hold 'not confirmed back' until LAST is older than a longer bound (3 x max-age or a cell); one row on a 5-min cadence; mutant the 180 s flip. Also (alive 07:19Z, note only): a not-built mutant still prints its 'ok mN-...' line beside the FAIL; skip the row when its mutant is not built.
-- .46.33 NEXT TOUCH (sp 11:58Z crumb, not a hold): (A) row 1 asserts reds._secrets(...) != ['no/x.md:2'], which passes with or without the mutant when scan is degraded (home-unread uid); assert the mutant's EXACT list.
-- objscan does not read anonymize.ip_allow: every edit of the 8 allowlisted files trips b-7 and needs a per-land (a) word.
-- atomize_live and summary_live flips: the OWNER's (card-belam §6). summary_live also owes compact's time bound first.
-- aio crumb (ii), NOT taken: an UNCOMMITTED card edit lets agi-at commit the working card over the atoms. An agi-at term, for the council.
-- The M6 store key is ${AGI_MINT:-$AGI_POST} until V1b: the mint column, AGI_MINT and the ~/.mem moves land TOGETHER.
-- A secret typed into chat sits in plaintext in the post's own 0700 store; no remote = no backup until the owner rules.
-- done-when(4) of .46.14 stays OPEN until C1-C3 and the atomizer are live.
-
-## §7 ATOMS
-| atom | from | placed |
-|---|---|---|
-| .46.35 engine half | SM 06:34Z placement | CLOSED: built, tip 2b5d2476e1, [merge-up] sent |
-| F9 + alive's LAST + sp's not-confirmed-back | SM 06:46Z-06:55Z | CLOSED: child 71ff1b32b4, [merge-up] sent |
-| aio down-again + sp 'last failed dial' + alive loud not-built mutants | SM 07:06Z + 07:11Z | CLOSED: f81d45d40d, [merge-up] sent |
-| sp: unmapped model = unread-hub; alive NIT (1) hub control, (2) past until | SM 06:37Z + 06:38Z | CLOSED: rows s21e, s19c, s19e + m15, m11, m12 |
-| belam's host file shape | SM 06:44-06:45Z | CLOSED: agreed 06:5xZ, built to it |
+- The store key is ${AGI_MINT:-$AGI_POST} until the §27 mint cell exists; the mint land moves ~/.mem/<post>.git.
+- A secret typed into chat sits in plaintext in the post's own 0700 store (C2: a slice is cited only after a secrets-aware check before the atomizer goes live); no remote means no backup until the owner rules; the pi adapter taps nothing.
+- done-when(4) of .46.14 stays OPEN until C1-C3: owner chunks stay `atom: ?` (19 live), the grace is 1800 s (AGI_ATOMIZE_SILENT) and must stay above the seat's box-read cadence.
+- Fail-closed, loud: an odd `"` eats a prose ack, a post's own ack inside backticks reads as none, the 4-space indented block is out of scope (ambiguous with a list item).
+- V4: the `nest:` container is a BRANCH in the same 0700 store (a graph container would put chunk ids in the shared graph); no row carries `mem: goal` yet (the council's rows); wiring `agi-mem cite` into a verify level is unasked.
+- Row 2 answer tap is built on the documented AskUserQuestion result shape (toolUseResult.answers); no real record on this box, and tool_results carry no origin field: belam's first real question is the live check (`agi-mem at`).
