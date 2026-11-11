@@ -337,4 +337,11 @@ orl $BASE_rg orA rg
 ok "or1-a-land-adding-an-owner-ruling-node-is-RULES: landed plain it HOLDS wrap-missing rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*wrap-missing"'
 orl $BASE_rgm orB rgm
 ok "or2-mutant-the-glob-dropped-reads-plain: the same land on a base without the glob is NOT RULES (rc $rc, no wrap-missing), so the glob alone makes a ruling a RULES land" '! v|grep -q "wrap-missing"'
+# --- goal:g7.16.1.11.46.33 F2 (all-is-one's crafted diff, 15:56:34Z 11-09): in a NON-test file, an added line reading '++ b/extensions/agi/tests/<x>'
+# then an added line with a PINNED fixture home: the pre-pass walks anonymize.diff_lines, so the path never moves; the home HOLDs, no WARN.
+# MUTANT: the reader's hunk flag dropped (the SAME mroot copy as m-hunk-flag-dropped above): the home is masked and WARNed = this row RED.
+gate fw 'printf "++ b/extensions/agi/tests/x.t.sh\nsee %s/fxuser/a\n" "$FH" >$R/docs/w';LD_fw=$LD;GT_fw=$GT;run fw $LD $BASE $GT
+ok "f15-a-crafted-tests-header-in-a-NON-test-file-HOLDS-no-WARN rc $rc, $(v)" '[ $rc = 1 ]&&v|grep -q "HOLD (.*anon-diff"&&! grep -q "^anon-diff WARN" $T/o&&g show $GT_fw:docs/w|grep -q "^++ b/extensions/agi/tests/x.t.sh$"'
+XANON=$T/mroot/extensions/agi/bin/anonymize.py;run fw $LD_fw $BASE $GT_fw;XANON=
+ok "m-reader-hunk-flag-dropped-f15-reads-GREEN the crafted header moves the fixture class: the home is masked + WARNed (rc $rc, $(grep -E '^anon-diff' $T/o|tr '\n' ' '|cut -c1-120))" 'grep -q "^anon-diff WARN" $T/o&&grep -qx "anon-diff=0" $T/o'
 echo "verify-land: $f FAIL";exit $f

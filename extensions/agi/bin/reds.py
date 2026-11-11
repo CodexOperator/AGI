@@ -74,19 +74,11 @@ def _extract(repo, rev, dest, payloads=True):
     return graph
 
 def _added(repo, old, new):
-    """[(path, line, text)] — one entry per ADDED line, never joined (row 36)."""
-    out, path, lineno, hunk = [], None, 0, False
-    for l in _git(repo, "diff", "--unified=0", "--no-color", old, new).splitlines():
-        if l.startswith("diff --git "):
-            path, hunk = None, False
-        elif l.startswith("@@"):
-            hunk = True
-            m = re.search(r"\+(\d+)", l); lineno = int(m.group(1)) - 1 if m else 0
-        elif not hunk and l.startswith("+++ "):   # a path only in a file's HEADER: an added
-            path = l[6:] if l.startswith("+++ b/") else None   # line reading '++ b/<path>' is content, scanned
-        elif hunk and l.startswith("+"):
-            lineno += 1; out.append((path, lineno, l[1:]))
-    return out
+    """[(path, line, text)] — one entry per ADDED line, never joined (row 36). The walk is
+    anonymize.diff_lines (goal:g7.16.1.11.46.33): a path only in a file's header, so an added
+    line reading '++ b/<path>' is content, scanned; a quoted header's path is None."""
+    diff = "\n".join(_git(repo, "diff", "--unified=0", "--no-color", old, new).splitlines())
+    return [(p, n, l[1:]) for p, n, added, l in anonymize.diff_lines(diff) if added]
 
 
 def _secrets(repo, old, new, root):
