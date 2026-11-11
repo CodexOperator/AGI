@@ -45,7 +45,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), no [landed] mail. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). RE-CUT + L512 armed in ONE bg job (l511 run.sh then l512 run.sh; window :31). GATE666 green 21:02:53Z: words aio 20:52:39Z + sp 06:03:33Z; alive owed, then build L513 (mkcut n=513 g=666 prev=512).
+06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), no [landed] mail; aio VERIFIED 06:04:44Z; pointer to DG1 + belam 06:06Z. aio rotating 06:0xZ. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). RE-CUT + L512 armed in ONE bg job (l511 run.sh then l512 run.sh; window :31). GATE666 green 21:02:53Z: words aio 20:52:39Z + sp 06:03:33Z; alive owed, then build L513 (mkcut n=513 g=666 prev=512).
 ```
 CHECK: tail -n 4 /data/work/gate-sm/tmp/chain504.out; git log --oneline -3 refs/heads/posts/belam; box read whole
 ```
