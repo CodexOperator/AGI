@@ -12,74 +12,62 @@ tags: []
 title: Card director general 1
 town: core
 ---
-# doc:card-director-general-1 — director-general-1's card (the ONE scratch; replaced whole). Written whole 11-10 11:5xZ (fresh generation, woke 11:48Z).
+# doc:card-director-general-1 — director-general-1's card (the ONE scratch; replaced whole). Written whole 11-11 06:2xZ at the line (474k/1M): rotating.
 
-Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979), builder, council loop: SM gates and lands, belam wraps RULES lands, the council (alive, all-is-one, self-perpetuating) rules. Skills: agi-node-write, agi-goal, agi-send, agi-rotate, agi-verify.
+Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979), builder, council loop: SM gates and lands, belam wraps RULES lands, the council (alive, all-is-one, self-perpetuating; back on opus/high since 11-10 19:33Z) rules. Skills: agi-node-write, agi-goal, agi-send, agi-rotate, agi-verify, agi-research-then-design.
 
-## §0 State (11-10 11:5xZ, trunk posts/belam 938b22b31e; L499 landed)
-- IN SM's HANDS (mine), three tips, each PLAIN, gate order GATE652 -> 653 -> 654:
-  (1) F1 v2.2 LANDED L510. RUNS 4-5 (belam 06:03-06:06Z 11-11): run 4 cred-find race in R; run 5 trust + 0b PASSED, seat prompt NOT dropped, then the JOIN wall (row pid = pane bash, session_id empty). F1 v2.3 dg1-f1-v23 0ef323105c -> child 804f8150ce (count line) -> grandchild d232f7fdd0 (readable-first, grep -c alone) (~/w41/f6); one land of the grandchild. v2.3 alone stops at the same wall.
-  (1b) JOIN LEAF goal:g7.31.1.4: MINT edf79957a1 (GATE668) + child 52ffbae61f (aio (a): miss keeps the minted -s uuid, NOT read back; alive's miss row). ENGINE TIP in ~/w41/jl, UNCOMMITTED on 52ffbae61f: heal.py FRESH_JOIN_S + fresh-path join in _recover_seat + _launch_line_session + _retry_empty_pid_joins (target 4) wired before the pid scan; tests/test_fresh_pane_join.py (11 rows). Waits on: the related-files run (background) + the rows re-run after (a). Whole suite = its gate.
-  (2) goal:g7.31.1.3: HEAL pair LANDED L504 085845b280 (alive verified). No heal watch runs on this box (belam): 0 live lines, no dedupe tip needed now. CLOSE dg1-g73113-close 39df47e0b2 (~/w41/cl) = GATE664 3/3 (sp, aio, alive 20:06:14Z), runs after 662 -> 663. Carried: sp wording NIT, aio direct-caller floor.
-  (3) skill chain + companion LANDED L503 778ddd3c4f (RULES, belam WRAP 16c6934758; alive verify 14:09:39Z). alive's finding: the example had no build node -> dg1-rtd-example 71c48c9d7c (~/w41/ex1), the node only, LANDED L507 a5c9b4a205 (alive verified 20:36:07Z); was GATE660 3/3 (sp, aio, alive 14:17:19Z), queued after 657-659; GATE661 (DGo1 CLOSE) after it. DGo1's g4.18.2.2 CLOSE cites it once landed.
-- UNSENT: dg1-heal-wip 00194126ca (child of 08b1f71154): the heal tip DRAFT for goal:g7.31.1.3 (heal.py + tests/test_heal_silent_reads.py 12/12). Mutant scripts ~/w40/mutants.py (6 source mutants, RED) + ~/w40/mutants2.py (9 floor spellings of the kept skip, the 3 guard rows RED).
-- Landed this generation: L490 (seat-action fix), L493 (F1 script), L496 (F1_MODEL + model read-back + grok models check).
-- F1 RUN 1 FAILED (belam 10:15Z, grok-4.7): my design error (killed inside heal's 600 s respawned window, heal :4309) + row pid = pane bash (grok quit 10:18:20.378 before the after-join join) + grok's first-run screen dropped the prompt. v2 = (1).
-- L418: build in lane worktrees (~/w38-w41), never in ~/t. Season 3 end: goal:g5.4.4.
+## §0 State (11-11 06:2xZ, trunk posts/belam 4bc515b6cb; last land L510)
+- IN SM's HANDS, mine:
+  (1) goal:g7.31.1.4 MINT (the join leaf): edf79957a1 -> child 52ffbae61f (aio (a): a miss keeps the minted -s uuid, NOT read back; alive's miss row). GATE668 re-pointed to the child; a read of the child is enough.
+  (2) F1 v2.3 on goal:g7.31.1.2: 0ef323105c -> 804f8150ce -> GRANDCHILD d232f7fdd0 (~/w41/f6): the cred find prunes R; an EXIT trap removes R's trust table; the count line reads the file first, grep -c alone. GATE669 re-pointed to the grandchild. v2.3 ALONE stops at the same join wall (said up front).
+  (3) goal:g7.31.1.3 CLOSE 39df47e0b2 = L511 (GATE664 green, 3/3), not yet landed.
+  (4) brief LANES line 7725aa312b -> child e4da8dbdb4 = GATE666 green (aio, sp APPROVE; alive owed), lands as L513.
+  (5) goal:g7.31.1.4 ENGINE TIP dg1-g73114-tip 9aa2e7ece0 (~/w41/jl, child of 52ffbae61f), SENT 06:2xZ: fresh-path pane join in _recover_seat (FRESH_JOIN_S 30; hit -> harness pid + -s; miss -> pid 0 + line, -s kept NOT read back) + _retry_empty_pid_joins before the pid>0 loop; tests/test_fresh_pane_join.py 11 passed; the 13 related files 390 passed + 1 (my stale mutant anchor, fixed). Whole-suite gate after the mint lands. Correction sent: my earlier 'rows pass' preceded the (a) re-run.
+- LANDED this generation: L504 heal pair (g7.31.1.3), L507 example node, L509 design-stage exception, L510 F1 v2.2 + child (and earlier: L502 F1 v2.1, L503 skill chain + companion).
+- OWNER (11-10 ~19:2xZ + ~20:2xZ): grok stays OPT OUT; the design-stage Fable exception CONFIRMED; 'hits rough' = quota. SPIRIT: less process, more real talk, honesty to self and one another.
 
 ## §1 Plan
-- NEXT on each gate: answer any red; on a RETURN, re-cut in that lane. GATE654: guard rows/mutants rerun via /tmp/dg1-run.sh (recreate: extract guard() + section 7 fences; strip comments on '  # [A-Z(]', never at the first '#').
-- DONE 12:5xZ (heal tip sent): after (2) LANDS: rebase nothing; cut the heal tip as a child of the LANDED leaf line: cherry-pick dg1-heal-wip's two files onto a lane at the trunk, ALSO touch goal:g7.31.1.3 (aio NIT 11:07:13Z: Target 1 names the non-object JSON record, its row exists; one line 'F2 and F3 are floors; F1's rows are the proof'). Re-run: the 12 rows; ~/w40/mutants.py (6 RED); ~/w40/mutants2.py (9 spellings incl. log-then-continue and pass, 3 rows RED each) and NAME them in the merge-up and the CLOSE. Engine bin/ = the WHOLE-suite gate. Its CLOSE later.
-- After (1) LANDS: belam's host act: the 0b probe; if it FAILS, belam dismisses grok's first-run screen by hand as agi-plan-master (any consent = the owner's), then the run (F1_SILENT=1 default; typing NOT MEASURED). Readings -> goal:g7.31.1.2 (MY act), then the CLOSE on F1 as written, then the plan-master leaf (T7).
-- OWNER CONFIRMED ~20:2xZ 11-10: grok stays OPT OUT; the design-stage Fable exception CONFIRMED; 'hits rough' = quota, not quality. OWNER ANSWERED ~19:2xZ 11-10 ('And yea' = yes, belam's reading (2)): the design-stage exception tip dg1-design-exception 84c0cb6f73 (~/w41/fx: brief :76 EXCEPT clause + skill section 1), SENT 19:4xZ (send26), GATE662; sp APPROVE 19:40Z. LANES line fix dg1-lanes-line 7725aa312b + child e4da8dbdb4 (list dropped, points at SUBAGENTS only; SM 20:51Z) SENT 20:5xZ. Later, optional: SUBAGENTS names the council ORACLE in one line after alive's agi-review clause lands. GATE657-661 all GREEN while the box was dark; landings follow. Council back on opus/high; belam to fable/medium. OWNER SPIRIT: less process, more real talk, honesty to self and one another.
-- NEXT TOUCH of skills/agi-research-then-design (not a re-cut): alive FLOOR 12:09:53Z: a fenced code line opening with hashes + space inside an owner block ends the block early (0 such blocks on the trunk) -> skip fences in sel()'s awk, or name it; plus 'too rigid or too novel' only if meme-master says owner.
-- f1.sh: the council's carried next-touch list is IN v2.2 (drops READ NOTHING + any case/key; BAN word-edge). Still named only: one-button / y/n / numbered banners pass 0b (seat-log read + join fail closed); alive NIT 19:5xZ: the opt-in check before the trust y reads words, not the two-bracketed-choices shape: set it from run 4's printed trust screen.
-- FINDINGS banked for leaves of their own if placed: heal _rotation_in_flight's silent skip (trunk :3078; a torn record reads 'no rotation in flight'); config.json harnesses.grok-bot models (grok-4 / grok-4-fast) match nothing on this box's grok (4.7 only once logged in): dispatch.py :2286 would refuse a plan-master unit (RULES, belam); a typed after-join into a non-claude pane (plan-master leaf).
-- PLAN-MASTER LEAF (T7, after F1's readings): parent goal:g7.31 or g7.31.3; T4 owner route in (no Claude process), T5 the six hooks, T6 cite c:175d1f09df76 + c:266bbc9653e4, T7 failed -r rule into agi-run + a row, T8 relay out; NITs (redundant vs the provider; a grok row in box-wake.t.sh / boxwake-unit.t.sh); (b) --allow set PROVISIONAL. engine-wrap.md = RULES, belam wraps.
-- NEXT TOUCH of heal resume-failed (alive NIT): an UNREAD rotations dir -> one line + exit 2. WAITING: grid-lock ACT 2 (N = 5 holder lines). CRUMBS + LATER ROWS as before (git log -p of this card).
+- FIRST: box read; answer any red on (1)-(5). On the engine tip's gate: a red is mine to fix in ~/w41/jl.
+- After L512/L513/L511 land: g7.31.1.3's leaf gets one line at the join tip's touch: the live summary line was SEEN (belam run 5 heal.log, 5 passes); the five other lines need F1 section 4 (the kill), NOT RUN.
+- After the join tip lands: belam's F1 run 6 (F1_TRUST_R=1). It is the first run that can pass the join; its cleanup line shows grok's real trust-file spelling (sp floor).
+- LATER TOUCH of f1.sh, named floors: one-button / y/n / numbered banners pass 0b (seat-log + join fail closed); the opt-in check before the trust y reads words, not the two-bracket shape (set it from run 6's printed trust screen, alive); untrust's match is R's header spelled exactly (trailing slash / spaces / resolved home -> 'none found'); an unreadable trust file = a traceback, not a named line.
+- LATER TOUCH of heal (g7.31.1.3 floors): the pane-unknown / chain-empty line should read 'not shown to be another seat's' (sp); a direct caller with no pass map prints 'unknown' (aio).
+- OPTIONAL later: SUBAGENTS names the council ORACLE in one line, after alive's agi-review clause lands (SM 20:51Z).
+- FINDINGS banked (no leaf yet): heal _rotation_in_flight's silent skip (a torn record reads 'no rotation in flight'); config.json harnesses.grok-bot models list vs this box's grok; no heal watch runs on this box (alive banked: the wake leaf + crons.md say so).
 
 ## §2 Landed (this generation)
-- L490 827803e126 heal resume-failed --seat/--post via SeatAction. L493 969357f112 the F1 script. L496 867177a7f1 F1_MODEL + the row's model read back + the grok models check.
+- L504 085845b280 heal pair (g7.31.1.3). L507 a5c9b4a205 the example's build node. L509 9785088a3e the design-stage exception. L510 a20cb5f806 F1 v2.2 + child. (L502, L503 earlier in this generation.)
 
 ## 🔴 Where it stops
-11-11 06:1xZ: the join leaf g7.31.1.4 edf79957a1 and F1 v2.3 0ef323105c (GATE667) sent; L511 (g7.31.1.3 CLOSE) and L513 (LANES pair) to land. g7.31.1.3's NOT MEASURED shrinks to 5 lines (summary line seen live): note it on that leaf when the join tip lands. DISK bank (§6) awaits a person's OK.
-Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -3 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c: it consumes the whole read).
-Homes: ~/w40/f3 (F1 v2), ~/w40/h1 (g7.31.1.3 + the heal WIP), ~/w40/s1 (the skill), ~/w40/send* + msg* (sent texts), ~/w41/draft (skill drafts), ~/w38-w39 (older lanes, branches not droppable by this uid: packed-refs is not writable).
+At the line, 11-11 06:2xZ. Five items at SM's gates (§0 1-5). Mint child + v2.3 grandchild: aio APPROVE 06:22:32Z, sp owed.
+Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
+Homes: ~/w41/jl (join leaf + engine tip 9aa2e7ece0), ~/w41/f6 (F1 v2.3), ~/w41/cl (g7.31.1.3 close), ~/w41/ln (LANES), ~/w41/h2 (heal pair), ~/w41/f4 f5 fx ex1 (landed lanes), ~/w40/send* (sent texts). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ (grok-bot, run.sh, blk*.sh).
 
 ## §4 Traps (this generation's)
-- Writing a scratch copy to a FIXED /tmp name: another uid's file of that name blocks the cp, and the restore then copies THEIR file over yours (heal.py -50 lines, caught on the diff stat) -> mktemp only, and restore from git, never from /tmp.
-- An approve of an except clause needs the read RUN on each way a file can be bad (bytes, type, kind of file), not only respellings of the handler (alive, aio 13:0xZ).
-- A guard() extracted by its first 'fi; }' line stops at a helper that ends the same way -> extract to the function's own last line ('return 1; fi; }').
-- A read and a send in ONE command sends before you see the read -> box read, look, THEN send (7ae8a2e9be crossed a fold ask).
-- A test runner that strips a trailing comment at the first `#` cut `'## OWNER'` mid-quote (rc 2, eval EOF) -> strip on the comment's own leading spaces, and print a row's output before trusting an unexpected rc.
-- This harness refuses an unchecked `rm -rf` inside a `bash -c` script (nothing runs) -> no removal in a tested shell snippet; name the leftover as a floor.
-- `box read | head -c N` consumes the whole read: never cap it; a missed message is recovered with `git log -6 --format=%B refs/box/<sender>/director-general-1`.
-- A tip sent without a box read right before it missed NITs already in the box -> box read right before every [merge-up].
-- A throwaway root cut from the trunk's bytes carries committed sessions/rotations: heal acts on them there -> empty R's sessions/ before any heal pass.
-- geometry_config.load_rows wants the graph dir and silently returns [] without graph_core on the path -> rotate._load_seats(Path(R)/'.agi').
-- A python str.index end anchor on fence text matched INSIDE a sed line (the old RUN block survived, SM R2) -> anchor a block replace on a whole line, then count the fences.
-- Building a file from a `fold`-wrapped read inserts newlines mid-sentence -> rebuild from the box ref's raw bytes.
-- A kill-and-heal reading inside SEAT_DEAD_WINDOW_S of a respawned record reads '0 dead' by design (heal :4309) -> wait past it, read from heal.
-- `pkill -f <word>` matched my own shell command (exit 144) -> select by comm (`ps -o pid=,comm=`), never -f on a word in your own argv.
-- A grok-bot start on an uid with no login opens a device-login screen with a code -> never start grok on an unauthenticated uid; a probe runs on a private tmux socket and is killed at once.
-- An unscoped negative falsifier (`! grep` over a whole file) can never pass if the pattern lives elsewhere, and passes on a missing file -> scope to the function body, open with the repo-top guard + a file test.
-- CARRIED, owed to skill agi-verify (not moved this rotation; named): a new site of a pattern ONE test scans engine-wide is gated by that test -> `git grep -l '<pattern>' extensions/agi/tests` and run every hit. Prior-generation traps on 2c module objects / git-archive lanes / probing before a design reply: DROPPED (their work landed).
+- A cp to a FIXED /tmp name hit another uid's file; the restore then copied THEIR file over heal.py (-50 lines, caught on the diff stat) -> mktemp only; restore from git, never /tmp.
+- A box read and a send in ONE command sends before you see the read (7ae8a2e9be crossed a fold ask) -> read, look, then send.
+- A test runner that strips a comment at the first '#' cut "'## OWNER'" -> strip on the comment's own leading spaces.
+- `grep -c` prints 0 AND exits 1: `$(grep -c ... || echo 0)` prints two zeros -> test the file first, take grep -c alone (aio).
+- A pytest in a lane takes that lane's suite lock: a background run there refuses the next foreground one -> one run per lane at a time.
+- My 'rows pass' line went out before the rows were re-run after a change -> no claim of a run that did not follow the last edit.
+- CARRIED, owed to skill agi-verify: a new site of a pattern ONE test scans engine-wide is gated by that test -> `git grep -l '<pattern>' extensions/agi/tests` and run every hit.
 
 ## §5 Verification
-Per tip: the falsifier rows, each with a source-text mutant that reads RED, on the exact tip's bytes; merge-tree onto the live trunk; no mode change; %G? G; the WHOLE suite or every engine-wide scan touching the pattern; LOAD RULE (5-min > 8: own lanes only). SM's gate is the lap.
+Per tip: falsifier rows each with a source mutant that reads RED, on the exact tip's bytes; merge-tree onto the live trunk; %G? G; anonymize per file; the related test files (or the whole suite when bin/ is touched: the gate's); LOAD: 5-min > 8 -> own lanes only, per-node checks.
 
 ## §6 BANKED
-- DISK (belam 12:21Z): remove my old lane dirs dated <= 11-08 (~/w41/rm-candidates.txt: 30 dirs, ~7 GB; 22 clean ~4.7 GB, 8 with uncommitted edits from earlier generations: w5 w7 w8 w11 w12 w15 w17 w22). Recommend: remove the 22 clean now; the 8 dirty after a diff look (their work landed or was dropped). Needs a person's OK: removal is irreversible.
+- DISK (belam 11-10 12:21Z): my old lane dirs dated <= 11-08 (~/w41/rm-candidates.txt: 30 dirs ~7 GB; 22 clean ~4.7 GB; 8 with uncommitted edits: w5 w7 w8 w11 w12 w15 w17 w22). Recommend: remove the 22 clean; the 8 after a diff look. Asked the user several times; no answer yet. Irreversible: needs a person's OK.
 
 ## §7 ATOMS (inbound owner/parent asks; one row per atom; open > one lap = red)
 | atom | from | state |
 |---|---|---|
 | positive throwaway marker, then refuse a file-absent unmarked seat | self-perpetuating via alive | OPEN: a NAMED V8a row, after V1 (.46.19) lands |
 | grid_sync misses runs on the grid lock: measure, then propose (SM 11-05) | SM | ACT 1 CLOSED; ACT 2 waits on N = 5 holder lines |
-| "you are go for grok-bot check and integration pass I can log in as needed/when needed" (owner 11-10, c:175d1f09df76) | owner via belam/SM | IN PROGRESS: run 1 FAILED (readings in the leaf); F1 v2 c8392ec31d 3/3 at GATE652; run 2 = belam's host act after the land |
-| plan-master post beside thought-master (owner 11-10, c:266bbc9653e4) | owner via belam/SM | PLACED: the leaf is cut after F1's readings land (T7) |
-| research-then-design pattern as a graph skill (owner c:e780e4c65887, meme-master's store) | council via SM | IN SM's HANDS: the leaf landed L498; the skill chain to 43362c7158 sent for GATE654 |
-| heal's silent '0 dead' (council placement 4, SM 10:27Z) | council via SM | IN SM's HANDS: goal:g7.31.1.3 08b1f71154 3/3 at GATE653; the heal tip drafted (dg1-heal-wip) |
+| "you are go for grok-bot check and integration pass" (owner 11-10, c:175d1f09df76) | owner via belam/SM | IN PROGRESS: runs 1-5 read; the join wall -> goal:g7.31.1.4 (mint GATE668, engine tip 9aa2e7ece0 sent); v2.3 at GATE669 |
+| plan-master post beside thought-master (owner 11-10, c:266bbc9653e4) | owner via belam/SM | PLACED: the leaf after F1's readings |
+| research-then-design pattern as a graph skill (owner c:e780e4c65887) | council via SM | DONE: L503 + L507 + L509; g4.18.2.2 CLOSED L508 (DGo1) |
+| heal's silent '0 dead' (council placement 4) | council via SM | DONE: L504; CLOSE L511 pending land |
+| design-stage Fable exception (owner 'And yea', confirmed 20:2xZ) | owner via belam | DONE: L509; LANES line L513 pending |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 address doc:card-director-general-1 reused at G5: before the G3 4a land ba8faaad3a (10-21) it named card mint 241494f333 (goals-1), now doc:card-director-goals-1; from G5 it is this card, mint 960e181d30924fb3ba1a63ca4a6698f4, the card of the post that was director-general-3 (goal:g7.16.1.11.45).
