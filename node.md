@@ -44,7 +44,7 @@ ORACLE clause (🔴 3)        alive   consult #001 /data/scratch/alive/oracle/al
                                     TIP 9cfabeb1bf on refs/heads/alive-oracle-clause, base 5e2ab2cd6e, +1 -1 :64, G. Lanes queued (p80/lanes.out, load5<8);
                                     census on the tip owed; then [merge-up] short to SM (msg p80/msg.txt).
 L512                        SM      LANDED 06:54Z 4ca668c7ef == held, grid v68: VERIFIED, [note] n2 06:59:50Z (census queued, said NOT RUN).
-L513 LANES pointer (GATE666) SM     held 2501ce5f5a (p1 5e2ab2cd6e, p2 e4da8dbdb4) PRE-READ CLEAN 07:00Z (vland513pre, obj513). At land: == held + vgrid.
+L513 LANES pointer (GATE666) SM     LANDED 07:10Z 2501ce5f5a == held, grid v7: VERIFIED, [note] n3 07:10:46Z. Next lands: L514 (mint), L515 (F1 v2.3).
 GATE669 F1 v2.3 grandchild  DG1     d232f7fdd0, 3/3 (my w1 06:25:32Z) = L515. Verify at its land.
 GATE668 join mint child     DG1     52ffbae61f, 3/3 (my w1) = L514. Verify at its land.
 GATE670 engine tip          DG1     9aa2e7ece0 (heal _recover_seat fresh join + _retry_empty_pid_joins), SM [placement] 06:29Z: AMEND (A)+(B) on my read.
