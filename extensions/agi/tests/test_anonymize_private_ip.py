@@ -236,13 +236,12 @@ def test_mutant_hunk_flag_dropped_moves_the_mask(tmp_path):
 
 def test_mutant_reds_hunk_flag_dropped_skips_the_line(tmp_path, monkeypatch):
     repo, b, t, d = _real_diff(tmp_path)
-    src = (BIN / "reds.py").read_text()
+    src = (BIN / "anonymize.py").read_text()   # .46.33: reds._added walks anonymize.diff_lines, where this anchor now lives
     old = 'elif not hunk and l.startswith("+++ "):'
     assert src.count(old) == 1
-    import types
-    m = types.ModuleType("mut_reds"); m.__dict__["__file__"] = str(BIN / "reds.py")
-    exec(compile(src.replace(old, 'elif l.startswith("+++ "):'), "mut_reds", "exec"), m.__dict__)
-    assert m._secrets(repo, b, t, repo) != ["no/x.md:2"]
+    ns = _mut_scan(lambda s: s.replace(old, 'elif l.startswith("+++ "):'))
+    monkeypatch.setattr(reds.anonymize, "diff_lines", ns["diff_lines"])   # the reader reds CALLS (SM 11:47Z), never a copy
+    assert reds._secrets(repo, b, t, repo) != ["no/x.md:2"]
 
 
 # ---- row F (self-perpetuating 04:51:44Z 11-09, pre-existing in reds._added): an added line whose TEXT starts '++' is content, scanned
@@ -251,15 +250,14 @@ def test_reds_scans_an_added_line_starting_plus_plus(tmp_path):
     assert _secrets(repo, b, t) == ["no/f.md:1"]
 
 
-def test_mutant_reds_skips_lines_starting_plus_plus(tmp_path):
+def test_mutant_reds_skips_lines_starting_plus_plus(tmp_path, monkeypatch):
     repo, b, t = _repo(tmp_path, [], [], {"no/f.md": "++ host " + ".".join(["10", "1", "2", "3"])})
-    src = (BIN / "reds.py").read_text()
+    src = (BIN / "anonymize.py").read_text()   # .46.33: reds._added walks anonymize.diff_lines, where this anchor now lives
     old = 'elif hunk and l.startswith("+"):'
     assert src.count(old) == 1
-    import types
-    m = types.ModuleType("mut_reds_f"); m.__dict__["__file__"] = str(BIN / "reds.py")
-    exec(compile(src.replace(old, 'elif hunk and l.startswith("+") and not l.startswith("+++"):'), "mut_reds_f", "exec"), m.__dict__)
-    assert m._secrets(repo, b, t, repo) == []
+    ns = _mut_scan(lambda s: s.replace(old, 'elif hunk and l.startswith("+") and not l.startswith("+++"):'))
+    monkeypatch.setattr(reds.anonymize, "diff_lines", ns["diff_lines"])   # the reader reds CALLS (SM 11:47Z), never a copy
+    assert reds._secrets(repo, b, t, repo) == []
 
 
 # ---- the board-line fix (council 3/3, SM 05:02Z 11-09): reds' assignment rule skips (a) an all-caps placeholder
@@ -298,3 +296,88 @@ def test_mutant_placeholder_skip_dropped():
 def test_mutant_count_skip_by_value_alone():
     m = _mut_reds('if _METRIC.search(nm) and re.fullmatch(', 'if re.fullmatch(')
     assert not m._assign_secret("PASSWORD=12345678")
+
+
+# ---- goal:g7.16.1.11.46.33: ONE header-aware diff reader, anonymize.diff_lines, walked by mask_diff_ips, reds._added
+# and verify-land.sh's fixture-home pre-pass. CONTROLS for the two re-pointed reds rows (SM 11:47Z): the UNMUTATED reader
+# patched in the same way reads GREEN through reds, so each mutant row's RED is the mutant's, never the patch's.
+def test_control_unmutated_reader_patched_reds_reads_the_crafted_line(tmp_path, monkeypatch):
+    repo, b, t, d = _real_diff(tmp_path)
+    monkeypatch.setattr(reds.anonymize, "diff_lines", _mut_scan(lambda s: s)["diff_lines"])
+    assert reds._secrets(repo, b, t, repo) == ["no/x.md:2"]
+
+
+def test_control_unmutated_reader_patched_reds_scans_plus_plus(tmp_path, monkeypatch):
+    repo, b, t = _repo(tmp_path, [], [], {"no/f.md": "++ host " + ".".join(["10", "1", "2", "3"])})
+    monkeypatch.setattr(reds.anonymize, "diff_lines", _mut_scan(lambda s: s)["diff_lines"])
+    assert reds._secrets(repo, b, t, repo) == ["no/f.md:1"]
+
+
+def test_diff_lines_contract():
+    d = "\n".join(["diff --git a/x b/x", "--- a/x", "+++ b/x", "@@ -0,0 +1,3 @@", "+one", "+++ b/ok/f.txt", " ctx",
+                   "diff --git a/y b/y", "+++ /dev/null", "@@ -1 +0,0 @@", "-gone"])
+    rows = list(a.diff_lines(d))
+    assert [r[3] for r in rows] == d.split("\n")                      # every raw line, in order
+    added = [(p, n, l) for p, n, ad, l in rows if ad]
+    assert added == [("x", 1, "+one"), ("x", 2, "+++ b/ok/f.txt")]   # the '++ b/..' content line: added, path unmoved
+    assert rows[6][:2] == ("x", 3)                                    # a context line counts
+    assert all(p is None for p, *_ in rows[7:])                       # 'diff --git' resets; '/dev/null' = None
+
+
+# ---- F3: a git-quoted path header (a non-ASCII name) reads path None; None is never allowed and never raises
+QUOTED = "\n".join(["diff --git \"a/d\\303\\251/f.txt\" \"b/d\\303\\251/f.txt\"", "--- \"a/d\\303\\251/f.txt\"",
+                    "+++ \"b/d\\303\\251/f.txt\"", "@@ -0,0 +1 @@", "+host " + ".".join(["10", "1", "2", "3"])])
+
+
+def test_quoted_header_reads_path_none():
+    assert [p for p, n, ad, l in a.diff_lines(QUOTED) if ad] == [None]
+
+
+@pytest.mark.parametrize("allow", [["dir/"], ["d/"], ["\"b/d"], []])
+def test_path_allowed_none_is_false_never_raises(allow):
+    assert a.path_allowed(None, allow) is False
+
+
+def test_quoted_header_file_is_not_allowlisted_in_mask_diff_ips():
+    assert "ip" in a.scan(a.added_lines(a.mask_diff_ips(QUOTED, ["d/", "\"b/d"])), [])
+
+
+def test_quoted_header_file_is_not_allowlisted_in_reds(monkeypatch):
+    monkeypatch.setattr(reds, "_git", lambda repo, *args: QUOTED if args[0] == "diff" else "")
+    assert [(p, n) for p, n, _ in reds._added(None, "o", "n")] == [(None, 1)]
+    assert reds.anonymize.path_allowed(reds._added(None, "o", "n")[0][0], ["d/"]) is False
+
+
+def test_mutant_none_guard_removed_raises_or_allows():
+    ns = _mut_scan(lambda s: s.replace("    if not isinstance(path, str):\n        return False\n", ""))
+    try:
+        r = ns["path_allowed"](None, ["dir/"])
+    except Exception:
+        return                                                         # RED: it raises
+    assert r is not False                                              # RED: it reads allowed (never reached today)
+
+
+# ---- F4 POSITIVE: the reader's NAME is called inside each of the three callers' bodies (0 in one = RED)
+def _body(path, name):
+    import ast
+    src = path.read_text(); tree = ast.parse(src)
+    fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == name)
+    return ast.get_source_segment(src, fn)
+
+
+def _prepass(vl):
+    i = vl.index('python3 -I - "$S/$N.diff" "$S/$N.cfg" "$S/$N.anon.diff" "$A" <<\'P\'')
+    return vl[i:vl.index("\nP\n", i)]
+
+
+def test_reader_called_in_each_caller():
+    assert "diff_lines(" in _body(BIN / "anonymize.py", "mask_diff_ips")
+    assert "anonymize.diff_lines(" in _body(BIN / "reds.py", "_added")
+    assert "anonymize.diff_lines(" in _prepass(VL)
+    for body in (_body(BIN / "anonymize.py", "mask_diff_ips"), _body(BIN / "reds.py", "_added"), _prepass(VL)):
+        assert "'+++ " not in body and '"+++ ' not in body                # none keeps its own header test
+
+
+def test_mutant_prepass_own_walk_reads_red():
+    mut = _prepass(VL).replace("for cur,_,added,l in anonymize.diff_lines('\\n'.join(text)):", "for l in text:")
+    assert "anonymize.diff_lines(" not in mut                          # the positive half reads RED on it
