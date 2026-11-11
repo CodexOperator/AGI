@@ -70,6 +70,7 @@ f81d45d40d, its own tree: stall-watch.t.sh 47 ok FAIL=0; MUT=1 78 ok FAIL=0 (eve
 ## §6 BANKED (for SM / the owner)
 - .46.35: the said file (hub.said in belam's store) and the say step in belam's timer are host acts, after L517.
 - .46.35 NEXT TOUCH (aio 07:18Z NIT, not a hold; DGo1 names it at the close): the down-again / not-confirmed pair FLAPS at a ~5 min failed-dial cadence (~50 lines by 19:15Z 11-10, each possibly a waking mail). Fix: after the first 'down again', hold 'not confirmed back' until LAST is older than a longer bound (3 x max-age or a cell); one row on a 5-min cadence; mutant the 180 s flip. Also (alive 07:19Z, note only): a not-built mutant still prints its 'ok mN-...' line beside the FAIL; skip the row when its mutant is not built.
+- .46.33 NEXT TOUCH (sp 11:58Z crumb, not a hold): (A) row 1 asserts reds._secrets(...) != ['no/x.md:2'], which passes with or without the mutant when scan is degraded (home-unread uid); assert the mutant's EXACT list.
 - objscan does not read anonymize.ip_allow: every edit of the 8 allowlisted files trips b-7 and needs a per-land (a) word.
 - atomize_live and summary_live flips: the OWNER's (card-belam §6). summary_live also owes compact's time bound first.
 - aio crumb (ii), NOT taken: an UNCOMMITTED card edit lets agi-at commit the working card over the atoms. An agi-at term, for the council.
