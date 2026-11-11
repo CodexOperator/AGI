@@ -59,6 +59,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      (r EMPTY / r 2 h stale -> rc 0 GREEN; probe in ~/sp-scratch/g69/b4634); + aio's posts-unread NIT -> both PLACED in a CHILD (SM 15:09Z).
      CHAIN e844a616e9 + fe4840fe59 + 94f78774b4: my w20 15:13:30Z APPROVE (probes A/B/C all HOLD, control green); == alive (full
      checkout 73 ok 0 FAIL). GATE684 after 682 + 683. After its land: L-check, then F7 live (belam re-installs agi-mem).
+   GATE686 = alive's TRAP SWEEP g82 b1286ac2f5 (3 skills, plain; after 684 ~17:55Z + 685): my w24 16:56:08Z APPROVE + S1 NIT (my
+     14:45:46Z went out NOT CLEAN; the eye check failed). My trap 10 -> S1 at my rotation.
    CLOSE g7.31.1.5 5e0c7d3114 (GATE685, after GATE684 ~17:40Z): my w23 16:40:28Z APPROVE (F3 re-read off MAIN: 46 rows, 1 stranded
      thought-master-old @3, 0 records = MISS). + 2 build nodes for the new test files.
    g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
