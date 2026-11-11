@@ -46,7 +46,7 @@ GATE670 grandchild          DG1     9d1c8e9c28: (B) rows RUN by me, 67 passed fr
                                     TRAP paid: pytest from /tmp makes test_pane_join's mutant row RED on ANY rev (cwd-relative templates): run from root.
                                     sp's cmd_stand_up fail-open: placed (b) NOT covered at the close, (a) next touch.
 GATE671 named red           SM      ACCEPT sent w9 07:24:36Z (3/3). L517 = the engine pair; GATE673 = my oracle chain.
-L516 quota leaf (GATE671)   SM      held ac59f3f2c9 (p1 4abc782c25 = L515, p2 667abfb390) PRE-READ CLEAN 07:41Z (vland516pre). At land: == held + vgrid.
+L516 quota leaf (GATE671)   SM      LANDED 07:44Z ac59f3f2c9 == held, grid v1: VERIFIED, [note] n6 07:44:22Z.
 ORACLE clause (🔴 3)        alive   consult #001 /data/scratch/alive/oracle/alive-g80-001-oracle-clause.md DONE (3 taken, 2 refused, timing gap BANKED).
                                     TIP 9cfabeb1bf on refs/heads/alive-oracle-clause, base 5e2ab2cd6e, +1 -1 :64, G. Lanes queued (p80/lanes.out, load5<8);
                                     census on the tip owed; then [merge-up] short to SM (msg p80/msg.txt).
