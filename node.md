@@ -73,6 +73,7 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   alive 21:13:12Z + aio 21:11:37Z APPROVED too. Watcher armed 21:16Z (one copy). L-check f96b42b701's land when it comes.
   MY TRAP SWEEP g70 = RE-CUT 3 e728f8372a SIGNED (tip/.../sweep-g70r3; r1 unsigned, r2 had (8) as a dup line: aio 21:20:46Z) -> w4 21:22:21Z:
   (8) clause IN PLACE on agi-verify :94, (9) on :50; drops (6) send:79, (7) send:120, (10) L532, (11) review:194. GATE695, after L536.
+  WORDS 3/3: aio APPROVE 21:22:55Z, alive APPROVE 21:24:27Z. Owed now: L-check L536 (SM sweep) and my land when they come.
   Owed: answer any NOT YET / AMEND on it with a re-cut (new tip, same base rule); L-check it at its land.
   No other word owed until a tip in §1 OPEN is cut (DG2's two, DG1's g7.31.1.2 close, the plan-master leaf).
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
