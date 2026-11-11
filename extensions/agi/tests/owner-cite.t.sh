@@ -245,4 +245,57 @@ $OC
 ok "a4-at-says-unread-when-cite-cannot-read the store dir names a path with no store: the at line is 'mem: unread' and carries no cite verdict (got '$o')" 'echo "$o"|head -1|grep -qx "mem: unread"&&! echo "$o"|grep -q "violations"'
 rn;rm -f $GF;o=$(AT)
 ok "a5-at-says-unread-when-the-list-is-unreadable the store reads but the grandfather list does not: the at line is 'owner-cite: unread', never a count (got '$(echo "$o"|grep owner-cite)')" 'echo "$o"|grep -qx "owner-cite: unread"'
+# ---- x: goal:g7.16.1.11.46.34 (route R1, SM 15:01Z): cite resolves each id against its OWN store AND every OTHER config:posts mem row's
+# index <root>/<name>/mem.cite (ONLY 'c:<12 hex> owner|post' lines, written by `agi-mem index` in that post's uid); the root is the engine's
+# constant /var/lib/agi, AGI_MEM_ROOT the test seam. Each lane has its MUTANT (a piece edit the lane must notice).
+RT=$D/root;mkdir -p $RT/q $RT/r;QO=c:aaaaaaaaaaaa;QP=c:bbbbbbbbbbbb;NO=c:cccccccccccc;FU=$(( $(date +%s)+3600 ))
+cp $E/.agi/nodes/.geometry/posts.md $D/posts.p
+printf -- '---\nid: config:posts\nparents:\n  - goal:g7\nposts:\n  - {"name": "p", "mem": "full", "faces": "owner"}\n  - {"name": "q", "mem": "full"}\n  - {"name": "s", "mem": "none"}\n---\n'>$E/.agi/nodes/.geometry/posts.md
+(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm q)
+ix(){ printf '%s\n' "$2" "$3" "$4"|sed '/^$/d'>$RT/$1/mem.cite;chmod 644 $RT/$1/mem.cite;touch -d @${5:-$FU} $RT/$1/mem.cite;}   # ix <post> <line..> [mtime]: an index (default fresh)
+CQ(){ o=$(env AGI_MEM_ROOT=$RT HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} cite 2>&1);rc=$?;}
+cb(){ rn;nn n-x "## OWNER x, verbatim
+
+$1
+";}
+ix q "$QO owner" "$QP post";cb $QO;CQ
+ok "x1-another-posts-owner-chunk-passes (F2) a block citing q's owner chunk $QO, held only in q's index: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q " 0 violations$"'
+MUT 's/else awk -v n=\$n .{print \$1 "\\t" \$2 "\\t" n}. \$I>>\$D\/ox;/else :;/' agi-mem;CQ $D/mut_agi-mem
+ok "x1m-mutant-only-the-callers-store-RED cite reading only its own store reads q's owner chunk 'absent from the store': '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $QO, absent from the store"'
+cb $NO;CQ
+ok "x2-in-no-store-every-store-read-reads-RED (F3) $NO is in neither p's store nor q's fresh index: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store"'
+cb $QP;CQ
+ok "x2b-a-post-chunk-in-another-store-reads-RED q's POST chunk $QP: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $QP, a post chunk, not the owner.s words"'
+chmod 000 $RT/q/mem.cite;cb $NO;CQ
+ok "x3-an-unreadable-index-reads-unread (F4) q's index mode 000 and $NO in no readable store: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $NO: q index .* cannot be read"&&! echo "$o"|grep -q violations'
+MUT 's/echo "\$n index \$I cannot be read">>\$D\/ou/:/' agi-mem;CQ $D/mut_agi-mem
+ok "x3m-mutant-unreadable-skipped-RED skipping the unreadable index silently reads $NO RED or green, never unread: '$(echo "$o"|tail -1)' rc $rc" '! echo "$o"|grep -q "^owner-cite: unread"'
+rm -f $RT/q/mem.cite;CQ
+ok "x3b-a-missing-index-reads-unread q lists mem full and has no index: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (.*q index .* cannot be read"'
+ix q "$QO owner";printf -- '---\nid: config:posts\nparents:\n  - goal:g7\nposts:\n  - {"name": "p", "mem": "full", "faces": "owner"}\n  - {"name": "q", "mem": "full"}\n  - {"name": "r", "mem": "goal"}\n---\n'>$E/.agi/nodes/.geometry/posts.md
+(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm r);RO=c:dddddddddddd;ix r "$RO owner";cb $RO;CQ
+ok "x4-a-third-mem-row-is-read-with-no-code-edit (F5) r added to config:posts (mem goal) and its index holds $RO: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q " 0 violations$"'
+MUT 's/for n in \$(printf %s "\$px".*grep -vxF -- "\$P");do/for n in q;do/' agi-mem;CQ $D/mut_agi-mem
+ok "x4m-mutant-hardcoded-list-RED a list that names q only misses r: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $RO, absent from the store"'
+ix q "$QO owner";ix r "$QO post";cb $QO;CQ
+ok "x5-two-labels-read-RED-naming-both (F6) $QO is owner in q and post in r: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $QO, labelled differently: owner in q, post in r"'
+MUT 's/nl=\$(printf .%s\\n. "\$L"|awk -F.\\t. .NF{print \$1}.|sort -u|wc -l)/nl=1/' agi-mem;CQ $D/mut_agi-mem
+ok "x5m-mutant-first-store-decides-RED the first store that holds $QO decides (owner in q): '$(echo "$o"|tail -1)' rc $rc" '[ $rc = 0 ]'
+ix r "$RO owner";printf '%s owner\n%s owner said the widget by friday\n' $QO $NO>$RT/q/mem.cite;touch -d @$FU $RT/q/mem.cite;cb $QO;CQ
+ok "x6-a-line-outside-the-grammar-makes-that-store-unread (SM 15:01Z (2)) q's index holds a line with words after the label: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "q index has a line outside"'
+MUT "s/elif grep -qvxE '\^c:\[0-9a-f\]{12} (owner|post)\\$' \$I;then/elif false;then/" agi-mem;CQ $D/mut_agi-mem
+ok "x6m-mutant-grammar-not-checked-RED the reader that accepts the extra field reads $QO green: '$(echo "$o"|tail -1)' rc $rc" '[ $rc = 0 ]'
+ix q "$QO owner" "" "" $(( $(date +%s)-600 ));cb $NO;CQ
+ok "x7-a-stale-index-names-its-age (SM 15:01Z (4)) q's index is 600 s older than the cite and $NO is in no store: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qE "^owner-cite: unread \(.*q index [0-9]+s old"'
+MUT 's/\$2<r{printf/0{printf/' agi-mem;CQ $D/mut_agi-mem
+ok "x7m-mutant-age-ignored-RED a stale index read as searched reads $NO absent: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store"'
+: >$RT/q/mem.cite;touch -d @$FU $RT/q/mem.cite;cb $NO;CQ
+ok "x8-an-EMPTY-index-reads-unread (alive 15:00:47Z) q's index is present and empty: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "q index .* is empty"'
+MUT 's/if \[ ! -s \$I \];then echo "\$n index \$I is empty">>\$D\/ou;elif/if false;then :;elif/' agi-mem;CQ $D/mut_agi-mem
+ok "x8m-mutant-empty-index-searched-RED an empty index read as searched reads $NO absent: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store"'
+o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_MEM_INDEX=$D/pidx PATH=$D/bin:$PATH sh $D/bin/agi-mem index 2>&1);nm=$(EV sh $D/bin/agi-mem map|wc -l|tr -d ' ')
+ok "x9-the-index-verb-writes-only-the-grammar p's store ($nm chunks) -> $(wc -l <$D/pidx 2>/dev/null|tr -d ' ') lines, mode $(stat -c %a $D/pidx 2>/dev/null), each 'c:<12 hex> owner|post', $OC and $PC among them" '[ -s $D/pidx ]&&! grep -qvxE "^c:[0-9a-f]{12} (owner|post)$" $D/pidx&&[ "$(stat -c %a $D/pidx)" = 644 ]&&grep -qx "$OC owner" $D/pidx&&grep -qx "$PC post" $D/pidx&&[ "$(wc -l <$D/pidx|tr -d " ")" = "$nm" ]'
+MUT 's/{print "c:" substr(\$1,RSTART+3,12) " " \$2}/{print "c:" substr($1,RSTART+3,12) " " $2 " " $3}/' agi-mem;env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_MEM_INDEX=$D/pidx2 PATH=$D/bin:$PATH sh $D/mut_agi-mem index >/dev/null 2>&1
+ok "x9m-mutant-the-index-carries-the-session-RED a writer that adds the session field writes lines outside the grammar ($(head -1 $D/pidx2 2>/dev/null|wc -w|tr -d ' ') fields)" 'grep -qvxE "^c:[0-9a-f]{12} (owner|post)$" $D/pidx2'
+cp $D/posts.p $E/.agi/nodes/.geometry/posts.md;(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm back)
 echo "owner-cite: $f FAIL";exit $f

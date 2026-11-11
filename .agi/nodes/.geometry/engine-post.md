@@ -219,7 +219,7 @@ tap)j=$(cat);exec 2>/dev/null;f=$(printf %s "$j"|jq -r '.transcript_path//empty'
   { printf -- '---\nid: c:%s\nspeaker: %s\ns: %s\nu: %s\nt: %s\nkind: %s\natom: ?\n%bredacted: %s\n---\n' $id $sp $s $u $t "$kd" "$pfl" $(jq .n $D/o);cat $D/b;}>$D/c
   b=$(git -C $S hash-object -w $D/c)&&git -C $S update-index --add --cacheinfo 100644,$b,mem/${t%%T*}/c-$id.md||{ w "store $S not writable";exit 0;};new=$((new+1));done<$D/r
  if [ $new -gt 0 ];then cm "tap $s"||{ w "store $S not writable";exit 0;};fi
- [ $(wc -l <$D/r) -lt ${AGI_MEM_BATCH:-60} ]&&last=$tot;echo $last>$S/cursor-$s||w "cursor not writable";agi-mem label;agi-atom derive;agi-mem walk;(agi-mem compact </dev/null >/dev/null 2>&1 &);exit 0;;
+ [ $(wc -l <$D/r) -lt ${AGI_MEM_BATCH:-60} ]&&last=$tot;echo $last>$S/cursor-$s||w "cursor not writable";agi-mem index;agi-mem label;agi-atom derive;agi-mem walk;(agi-mem compact </dev/null >/dev/null 2>&1 &);exit 0;;
 at)s=$(cat ~/.session 2>/dev/null);f=$(ls ~/.claude/projects/*/$s.jsonl 2>/dev/null|head -1);m=$(jq -c --argjson aq "$(AQ $f)" "$Q" $f 2>/dev/null|jq -s '[.[]|select(.sp=="owner")]|length' 2>/dev/null)
  [ "$m" ]&&git -C $S rev-parse -q --git-dir>/dev/null 2>&1&&{ [ -r $S/cursor-$s ]||[ "$m" = 0 ];}||{ echo "mem: unread";exit 0;}
  k=$(hg "$(ar)"|awk -F'\t' -v s=$s '$2=="owner"&&$3==s'|wc -l);echo "mem: tapped $k/$m$([ $k -lt $m ]&&echo ' RED')$([ $k -gt $m ]&&echo " RED ($((k-m)) owner chunk not owner by the current filter)")"
@@ -245,19 +245,31 @@ walk)exec 2>/dev/null;agi-mem label;C=${AGI_ATOM_CARD:-$E/.agi/sessions/quorum/$
  if [ "$2" = ls ];then for i in $(awk -F'|' '/^## /{s=/^## §7/}s{y=$2;gsub(/ /,"",y)}s&&$5~/^ target:/&&y~/^(a[0-9]+|[0-9]+\.[0-9]+)$/{print y}' $C);do echo "$M"|awk -F'	' -v i=$i '$2=="post"{n=split($5,z," ");for(j=1;j<=n;j++)if(z[j]==i)f=1}END{exit !f}'||echo "[walk] $i: no ack chunk yet";done;exit 0;fi
  echo "$M"|awk -F'	' '$4=="ask"{q[++n]=$1;next}$2=="post"&&n{for(i=1;i<=n;i++)print ($5=="none"||$5=="?"?"RED":"OK"),q[i],$1;n=0}'|while read -r v q r;do h=$(echo ${q#c:}|cut -c1-8)
   case $v in RED)agi-atom red $q $h "$(agi-mem show $q|sed '1,/^---$/d'|head -1|cut -c1-80)";agi-notice add "[unnamed-reply] $h $q was answered by $r naming no atom id: name the row id (a<n>) in your next reply";;OK)grep -q "^| r$h |" $C&&agi-atom close r$h out:named;; esac;done;exit 0;;
+index)exec 2>/dev/null;rs=$(ar);[ "$rs" ]||exit 0;I=${AGI_MEM_INDEX:-$HOME/mem.cite}   # goal:g7.16.1.11.46.34 R1: ONLY 'c:<12 hex> owner|post', 0644, replaced whole: no body, session or date leaves the 700 store
+ hg "$rs"|awk -F'\t' 'match($1,/\/c-[0-9a-f]+\.md$/)&&RLENGTH==18&&($2=="owner"||$2=="post"){print "c:" substr($1,RSTART+3,12) " " $2}'|sort -u>$I.$$&&chmod 644 $I.$$&&mv -f $I.$$ $I||rm -f $I.$$;exit 0;;
 nest)exec 2>/dev/null;if [ "$2" = ls ];then for r in $(git -C $S for-each-ref --format='%(refname)' refs/heads/nest);do printf '%s\t%s\t%s\n' ${r#refs/heads/nest/} $(git -C $S rev-parse --short=12 $r) $(git -C $S ls-tree -r --name-only $r -- mem|grep -vc retired);done;exit 0;fi
  git -C $S rev-parse -q --verify refs/heads/nest/$2>/dev/null||{ echo "nest: no horizon ${2:-?}";exit 1;};case $3 in map|show|find)r=$2;shift 2;AGI_MEM_REF=refs/heads/nest/$r exec agi-mem "$@";;*)echo "nest: map|show|find";exit 1;;esac;;
 cite)exec 3>&2 2>/dev/null;N=$E/.agi/nodes;GF=$N/.geometry/owner-cite-grandfather.txt;D=$(mktemp -d);trap 'rm -rf "${D:?}"' 0;: >$D/b
  [ -d $N ]&&[ -r $GF ]||{ echo "owner-cite: unread (no nodes dir or grandfather list under $N)";exit 1;}
  awk '!/^[a-z]+:[A-Za-z0-9._-]+$/{print "owner-cite: unread (grandfather line " NR " is not a node id)";b=1;exit}END{exit b}' $GF||exit 1
- for x in $(grep -rlE '^## OWNER' $N);do i=$(awk '/^---$/{n++}n==1&&/^id: /{print substr($0,5);exit}' $x);[ "$i" ]||i=$x;grep -qxF -- "$i" $GF&&continue
+ for x in $(grep -rlE '^## OWNER' $N);do i=$(awk '/^---$/{n++}n==1&&/^id: /{print substr($0,5);exit}' $x);[ "$i" ]||i=$x;grep -qxF -- "$i" $GF&&continue;printf '%s\t%s\n' "$i" "$x">>$D/p
   awk -v m=s "$FZ" $x|awk -v id="$i" 'function e(){print id "\t" substr(h,4,60) "\t" t}/^## /{if(h!="")e();h=/^## OWNER/?$0:"";t=""}h!=""{s=$0;while(match(s,/c:[0-9a-f]+/)){if(RLENGTH==14)t=t substr(s,RSTART,RLENGTH) " ";s=substr(s,RSTART+RLENGTH)}}END{if(h!="")e()}'>>$D/b;done
  nb=$(wc -l <$D/b 2>/dev/null|tr -d ' ');nb=${nb:-0};ng=$(wc -l <$GF|tr -d ' ');red=0;un=0
- if awk -F'\t' '$3!=""' $D/b 2>/dev/null|grep -q .;then rs=$(ar);[ "$rs" ]&&hg "$rs">$D/hg||{ un=1;: >$D/hg;};fi
+ : >$D/ox;: >$D/ou;: >$D/oa;uu=
+ if awk -F'\t' '$3!=""' $D/b 2>/dev/null|grep -q .;then rs=$(ar);[ "$rs" ]&&hg "$rs">$D/hg||{ un=1;: >$D/hg;}
+  for n in $(printf %s "$px"|sed -n 's/^  - {/{/p'|jq -rR 'fromjson?|select(.mem=="full" or .mem=="goal" or .mem=="season")|.name' 2>/dev/null|grep -vxF -- "$P");do I=${AGI_MEM_ROOT:-/var/lib/agi}/$n/mem.cite   # goal:g7.16.1.11.46.34 R1: every OTHER mem row's index
+   if [ -f $I ]&&[ -r $I ];then if [ ! -s $I ];then echo "$n index $I is empty">>$D/ou;elif grep -qvxE '^c:[0-9a-f]{12} (owner|post)$' $I;then echo "$n index has a line outside 'c:<12 hex> owner|post'">>$D/ou
+    else awk -v n=$n '{print $1 "\t" $2 "\t" n}' $I>>$D/ox;echo "$n $(stat -c %Y $I)">>$D/oa;fi;else echo "$n index $I cannot be read">>$D/ou;fi;done;fi
  while IFS=$(printf '\t') read -r i h t;do if [ -z "$t" ];then echo "owner-cite: RED $i: '$h' cites no chunk id";red=$((red+1));continue;fi
-  for c in $t;do w=$(awk -F'\t' -v c="${c#c:}" 'index($1,"/c-" c ".md")>0{print $2;exit}' $D/hg);[ "$un" = 1 ]&&continue
-   [ "$w" = owner ]||{ echo "owner-cite: RED $i: '$h' cites $c, $([ "$w" ]&&echo "a $w chunk, not the owner's words"||echo "absent from the store")";red=$((red+1));};done;done <$D/b
- [ $un = 1 ]&&{ echo "owner-cite: unread (the store $S cannot be read and a block cites a chunk id)";exit 1;}
+  for c in $t;do w=$(awk -F'\t' -v c="${c#c:}" 'index($1,"/c-" c ".md")>0{print $2;exit}' $D/hg)
+   L=$({ [ "$w" ]&&printf '%s\t%s\n' "$w" "$P";awk -F'\t' -v c="$c" '$1==c{print $2 "\t" $3}' $D/ox;});nl=$(printf '%s\n' "$L"|awk -F'\t' 'NF{print $1}'|sort -u|wc -l)
+   if [ $nl -gt 1 ];then echo "owner-cite: RED $i: '$h' cites $c, labelled differently: $(printf '%s\n' "$L"|awk -F'\t' 'NF{printf "%s%s in %s",(k++?", ":""),$1,$2}')";red=$((red+1))
+   else w=$(printf '%s\n' "$L"|awk -F'\t' 'NF{print $1;exit}')
+    if [ -z "$w" ];then tr=$(git -C $E log -1 --format=%ct -- "$(awk -F'\t' -v i="$i" '$1==i{print $2;exit}' $D/p)" 2>/dev/null);tr=${tr:-$(date +%s)};st=$(awk -v r=$tr -v z=$(date +%s) '$2<r{printf "%s%s index %ds old",(k++?", ":""),$1,z-$2}' $D/oa)
+     [ "$un" = 1 ]||[ -s $D/ou ]||[ "$st" ]&&{ uu="${uu:+$uu; }$c: $(tr '\n' ';' <$D/ou)$st";continue;};fi
+   [ "$w" = owner ]||{ echo "owner-cite: RED $i: '$h' cites $c, $([ "$w" ]&&echo "a $w chunk, not the owner's words"||echo "absent from the store")";red=$((red+1));};fi;done;done <$D/b
+ [ $un = 1 ]&&[ "$uu" ]&&{ echo "owner-cite: unread (the store $S cannot be read and a block cites a chunk id)";exit 1;}
+ [ $un != 1 ]&&[ "$uu" ]&&{ echo "owner-cite: unread (a cited chunk is in no readable, fresh store: $uu)";exit 1;}
  echo "owner-cite: $nb new OWNER blocks ($ng grandfathered nodes), $red violations$([ $red -gt 0 ]&&echo ' RED')";[ $red = 0 ]&&[ $un = 0 ];exit;;
 view)V=${AGI_MEM_VIEW:-4000};git -C $S rev-parse -q --verify refs/heads/mem>/dev/null 2>&1||{ echo "mem view: unread";exit 1;};echo "## mem view (newest summaries, then newest chunks; <= $V B)"
  for r in refs/heads/summary refs/heads/mem;do git -C $S rev-parse -q --verify $r>/dev/null||continue;git -C $S log --format= --name-only --diff-filter=A $r -- sum mem ':!mem/retired' 2>/dev/null|awk -v r=$r 'NF{print r ":" $0 " " $0}'|git -C $S cat-file --batch='### %(rest)' 2>/dev/null;done|head -c $V;echo;;
