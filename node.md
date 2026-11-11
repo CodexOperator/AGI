@@ -20,7 +20,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - IN SM's HANDS, mine:
   (1) L514 = goal:g7.31.1.4 MINT child 52ffbae61f (GATE668 3/3), armed.
   (2) L515 = F1 v2.3 grandchild d232f7fdd0 (GATE669 3/3), armed.
-  (3) GATE670 engine tip: was AMEND 3/3 on 9aa2e7ece0 -> CHILD f197c51188 SENT 07:11Z (send29), dg1-g73114-tip fast-forwarded: (A) a retry hit with no -s keeps the row's session_id; (B) empty-pid registry-none row with a CLOSED window named every pass + recovered via _watch_one_seat(empty_pid_dead=True); F3 the scan's 'absent' reason names argv0/comm (depth 0-1, cap 4), a hit's note argv0+comm. 2487 passed on the 52 related files; the whole suite is the gate's.
+  (3) GATE670 engine tip -> child f197c51188 (A, B, F3; F3 MET by sp 07:16Z) -> GRANDCHILD 9d1c8e9c28 SENT 07:24Z (send30), dg1-g73114-tip moved: (B) fails CLOSED on a failed tmux read (WindowsUnread, aio AMEND) + the summary counts empty-pid closed-window rows (alive nit). 795 passed on the 14 window-list files; the whole suite is the gate's.
 - LANDED this generation: L511 ff8dd450a3 (g7.31.1.3 CLOSE), L513 2501ce5f5a (brief LANES line).
 - OWNER (11-10): grok stays OPT OUT; design-stage Fable exception CONFIRMED; 'hits rough' = quota. SPIRIT: less process, more real talk, honesty.
 
@@ -37,13 +37,13 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-GATE670 RE-POINTED to child f197c51188 (SM 07:14Z): whole suite queued after GATE671 (+ its alone re-run). L514, L515 armed. Waiting on the verdict; nothing else open.
+GATE670 grandchild 9d1c8e9c28 at SM's gate (re-point asked 07:24Z). L514, L515 armed. Waiting on the verdict.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
-Homes: ~/w41/jl (join leaf + engine tip, now f197c51188), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send29 (last sent). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
+Homes: ~/w41/jl (join leaf + engine tip, now 9d1c8e9c28), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send30 (last sent). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
 ## §4 Traps (this generation's)
 - A cp to a FIXED /tmp name hit another uid's file; the restore then copied THEIR file over heal.py (-50 lines, caught on the diff stat) -> mktemp only; restore from git, never /tmp.
-- A box read and a send in ONE command sends before you see the read (7ae8a2e9be crossed a fold ask) -> read, look, then send.
+- (broken again 07:24Z: empty box, no harm) A box read and a send in ONE command sends before you see the read (7ae8a2e9be crossed a fold ask) -> read, look, then send.
 - A test runner that strips a comment at the first '#' cut "'## OWNER'" -> strip on the comment's own leading spaces.
 - `grep -c` prints 0 AND exits 1: `$(grep -c ... || echo 0)` prints two zeros -> test the file first, take grep -c alone (aio).
 - A pytest in a lane takes that lane's suite lock: a background run there refuses the next foreground one -> one run per lane at a time.
@@ -64,7 +64,7 @@ Per tip: falsifier rows each with a source mutant that reads RED, on the exact t
 | positive throwaway marker, then refuse a file-absent unmarked seat | self-perpetuating via alive | OPEN: a NAMED V8a row, after V1 (.46.19) lands |
 | grid_sync misses runs on the grid lock: measure, then propose (SM 11-05) | SM | ACT 1 CLOSED; ACT 2 waits on N = 5 holder lines |
 | "you are go for grok-bot check and integration pass" (owner 11-10, c:175d1f09df76) | owner via belam/SM | IN PROGRESS: join wall -> goal:g7.31.1.4 (mint L514 armed; engine tip AMEND child f197c51188 at GATE670); v2.3 L515 armed; then run 6 |
-| sp F3 + aio/alive (A)(B) on GATE670 (SM 06:25-06:32Z) | council via SM | DONE: child f197c51188 sent 07:11Z |
+| sp F3 + aio/alive (A)(B) on GATE670 (SM 06:25-06:32Z) | council via SM | DONE: child f197c51188 07:11Z; aio guard + alive nit: grandchild 9d1c8e9c28 07:24Z |
 | plan-master post beside thought-master (owner 11-10, c:266bbc9653e4) | owner via belam/SM | PLACED: the leaf after F1's readings |
 | research-then-design pattern as a graph skill (owner c:e780e4c65887) | council via SM | DONE: L503 + L507 + L509; g4.18.2.2 CLOSED L508 (DGo1) |
 | heal's silent '0 dead' (council placement 4) | council via SM | DONE: L504; CLOSE L511 landed |
