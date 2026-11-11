@@ -267,9 +267,12 @@ cite)exec 3>&2 2>/dev/null;N=$E/.agi/nodes;GF=$N/.geometry/owner-cite-grandfathe
    else w=$(printf '%s\n' "$L"|awk -F'\t' 'NF{print $1;exit}')
     if [ -z "$w" ];then tr=$(git -C $E log -1 --format=%ct -- "$(awk -F'\t' -v i="$i" '$1==i{print $2;exit}' $D/p)" 2>/dev/null);tr=${tr:-$(date +%s)};st=$(awk -v r=$tr -v z=$(date +%s) '$2<r{printf "%s%s index %ds old",(k++?", ":""),$1,z-$2}' $D/oa)
      [ "$un" = 1 ]||[ -s $D/ou ]||[ "$st" ]&&{ uu="${uu:+$uu; }$c: $(tr '\n' ';' <$D/ou)$st";continue;};fi
+    if [ "$w" = owner ]&&! printf '%s\n' "$L"|awk -F'\t' -v p="$P" '$2==p{f=1}END{exit !f}';then lb=$(printf '%s\n' "$L"|awk -F'\t' 'NF{printf "%s%s",(k++?",":""),$2}')   # alive 15:07Z: a label from ANOTHER post's index alone is green only when every other listed store is read and fresh
+     tr=$(git -C $E log -1 --format=%ct -- "$(awk -F'\t' -v i="$i" '$1==i{print $2;exit}' $D/p)" 2>/dev/null);tr=${tr:-$(date +%s)};st=$(awk -v r=$tr -v z=$(date +%s) -v l=",$lb," 'index(l,","$1",")==0&&$2<r{printf "%s%s index %ds old",(k++?", ":""),$1,z-$2}' $D/oa)
+     { [ "$un" = 1 ]&&[ "$mm" ];}||[ -s $D/ou ]||[ "$st" ]&&{ uu="${uu:+$uu; }$c: label from $lb only; $([ "$un" = 1 ]&&echo "own store $S unread;")$(tr '\n' ';' <$D/ou)$st";continue;};fi
    [ "$w" = owner ]||{ echo "owner-cite: RED $i: '$h' cites $c, $([ "$w" ]&&echo "a $w chunk, not the owner's words"||echo "absent from the store")";red=$((red+1));};fi;done;done <$D/b
  [ $un = 1 ]&&[ "$uu" ]&&{ echo "owner-cite: unread (the store $S cannot be read and a block cites a chunk id)";exit 1;}
- [ $un != 1 ]&&[ "$uu" ]&&{ echo "owner-cite: unread (a cited chunk is in no readable, fresh store: $uu)";exit 1;}
+ { [ $un != 1 ]||[ "$mm" ];}&&[ "$uu" ]&&{ echo "owner-cite: unread (a cited chunk is in no readable, fresh store: $uu)";exit 1;}
  echo "owner-cite: $nb new OWNER blocks ($ng grandfathered nodes), $red violations$([ $red -gt 0 ]&&echo ' RED')";[ $red = 0 ]&&[ $un = 0 ];exit;;
 view)V=${AGI_MEM_VIEW:-4000};git -C $S rev-parse -q --verify refs/heads/mem>/dev/null 2>&1||{ echo "mem view: unread";exit 1;};echo "## mem view (newest summaries, then newest chunks; <= $V B)"
  for r in refs/heads/summary refs/heads/mem;do git -C $S rev-parse -q --verify $r>/dev/null||continue;git -C $S log --format= --name-only --diff-filter=A $r -- sum mem ':!mem/retired' 2>/dev/null|awk -v r=$r 'NF{print r ":" $0 " " $0}'|git -C $S cat-file --batch='### %(rest)' 2>/dev/null;done|head -c $V;echo;;

@@ -297,5 +297,14 @@ o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_MEM_INDEX=$
 ok "x9-the-index-verb-writes-only-the-grammar p's store ($nm chunks) -> $(wc -l <$D/pidx 2>/dev/null|tr -d ' ') lines, mode $(stat -c %a $D/pidx 2>/dev/null), each 'c:<12 hex> owner|post', $OC and $PC among them" '[ -s $D/pidx ]&&! grep -qvxE "^c:[0-9a-f]{12} (owner|post)$" $D/pidx&&[ "$(stat -c %a $D/pidx)" = 644 ]&&grep -qx "$OC owner" $D/pidx&&grep -qx "$PC post" $D/pidx&&[ "$(wc -l <$D/pidx|tr -d " ")" = "$nm" ]'
 MUT 's/{print "c:" substr(\$1,RSTART+3,12) " " \$2}/{print "c:" substr($1,RSTART+3,12) " " $2 " " $3}/' agi-mem;env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_MEM_INDEX=$D/pidx2 PATH=$D/bin:$PATH sh $D/mut_agi-mem index >/dev/null 2>&1
 ok "x9m-mutant-the-index-carries-the-session-RED a writer that adds the session field writes lines outside the grammar ($(head -1 $D/pidx2 2>/dev/null|wc -w|tr -d ' ') fields)" 'grep -qvxE "^c:[0-9a-f]{12} (owner|post)$" $D/pidx2'
+# x10 (alive 15:07Z, SM 15:08Z): a label from ANOTHER post's index ALONE is green only when every other listed store is read and fresh
+ix q "$QO owner";: >$RT/r/mem.cite;touch -d @$FU $RT/r/mem.cite;cb $QO;CQ
+ok "x10a-a-sibling-EMPTY-holds-another-posts-owner-label q's index says $QO owner, r's index is empty: '$o' rc $rc (a HOLD, never green)" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (.*$QO: label from q only; r index .* is empty"'
+ix r "$RO owner" "" "" $(( $(date +%s)-600 ));CQ
+ok "x10b-a-sibling-STALE-holds-another-posts-owner-label r's index is 600 s older than the cite: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qE "^owner-cite: unread \(.*$QO: label from q only; r index [0-9]+s old"'
+ix r "$RO owner";CQ
+ok "x10c-every-sibling-read-and-fresh-is-green the same label with r read and fresh: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q " 0 violations$"'
+: >$RT/r/mem.cite;touch -d @$FU $RT/r/mem.cite;MUT 's/{ \[ "\$un" = 1 \]&&\[ "\$mm" \];}||\[ -s \$D\/ou \]||\[ "\$st" \]&&{ uu="\${uu:+\$uu; }\$c: label from/false\&\&{ uu="${uu:+$uu; }$c: label from/' agi-mem;CQ $D/mut_agi-mem
+ok "x10m-mutant-label-taken-while-a-sibling-is-unread-RED the reader that takes q's label with r empty reads green: '$(echo "$o"|tail -1)' rc $rc" '[ $rc = 0 ]'
 cp $D/posts.p $E/.agi/nodes/.geometry/posts.md;(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm back)
 echo "owner-cite: $f FAIL";exit $f
