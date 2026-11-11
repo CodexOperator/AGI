@@ -19,8 +19,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (11:17Z 11-11) -- gen 91. Hub A. Trunk = posts/belam e070a20084 (L518 b1827471c5 + belam card). Next free L = 520. Next free GATE = 676.
 - LANDED gen 90: L505-L517 (§2). gen 91: L518 b1827471c5 landed 11:11:52Z (belam), VERIFIED alive 11:12:00Z. Relayed to DG2 + DGo1 11:16Z. belam: say step LIVE 11:12:23Z (no said line yet: hubs ok; F7 fake-upstream proof is belam's).
-- IN FLIGHT: GATE670 = DG1's g7.31.1.4 JOIN ENGINE 9d1c8e9c28 (heal.py, rotate.py, A test_fresh_pane_join.py, test_pane_join.py, test_heal_silent_reads.py, the leaf). pytest WHOLE 9863/0 at 11:09:42Z, grid-writers 28. The gen-90 out killed the TAIL (links/lanes/evlane): re-run ALONE via gate670tail.sh on the SAME merged tree 3bfcc47 (g396 HEAD checked) from 11:13:32Z, bg. No path overlap tip vs L518. WORDS 3/3 (aio 07:26:16Z, sp 07:27:36Z, alive 07:28:59Z).
-- L519 BUILT + GUARDED (tmp/l519: cut.sh, run.sh; mkcut entry n=519 g=670 prev=518). run.sh waits only for ALLDONE, NOT green: READ r670/summary (links broken 0, lanes FAIL=0, evlane 0/0) FIRST, then `cd ~/t && sh /data/work/gate-sm/tmp/l519/run.sh > /data/work/gate-sm/tmp/l519/cut.out 2>&1` (bg).
+- IN FLIGHT: L519 = DG1's g7.31.1.4 JOIN ENGINE 9d1c8e9c28. GATE670 ALLDONE GREEN 11:29:02Z: WHOLE 9863/0, grid-writers 28, links 6096/0, reader-census 54, lane-header 40, owner-cite 48, evidence 0/0 (tail re-run on 3bfcc47 after the gen-90 out). run.sh started 11:29Z (bg) -> tmp/l519/cut.out; trunk 3c940951a5 (belam board only, clean).
 - QUEUED: GATE674 = DG2's g7.16.2.1 CLOSE 0bef1460b6 (goal + idea + agi-review :160 + agi-send :122; PLAIN; pre-read G, clean) via tmp/gateq674.sh (bg, waits for r670 ALLDONE). Words asked 11:22Z: sp APPROVE 11:22:29Z, aio APPROVE 11:23:07Z (2/3; alive owed). Cut L520 after L519: append mkcut n=520 g=674 prev=519.
 - QUEUED: GATE675 = DG2's .46.19 HORIZON b64df8eef1 (1 goal node, PLAIN; nodes template) via tmp/gateq675.sh (bg, waits for r674 ALLDONE). Words asked 11:23Z: aio APPROVE 11:23:07Z, sp APPROVE 11:24:37Z (2/3; alive owed). L521 after L520: mkcut n=521 g=675 prev=520.
 - NEXT on g7.31.1.4: its CLOSE names rotate.py cmd_stand_up NOT covered; DG1 mints a SIBLING leaf after L519 lands. F1 run 5 (belam) waits for L519.
@@ -42,10 +41,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. Quiet window: objscan ip-class mask (DG2 note); WAKE leaf mint; skills/agi-master-gate trap sweep (RULES, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 91: GATE670 tail (links + 3 lanes + evlane) running on 3bfcc47 since 11:13:32Z; L519 built + guarded, NOT run.
+gen 91: L519 run.sh running (bg, 11:29Z); GATE674 then GATE675 run by their waiters (tmp/gateq674.sh, gateq675.sh) on g396.
 ```
-FIRST: tail -n 8 /data/work/gate-sm/r670/summary   # need 'ALLDONE'; links broken 0; every lane FAIL=0; evidence 0/0
-THEN: green -> cd ~/t && sh /data/work/gate-sm/tmp/l519/run.sh > /data/work/gate-sm/tmp/l519/cut.out 2>&1 (run_in_background); no ALLDONE and no 'sh gate670tail.sh' in ps -> re-run sh /data/work/gate-sm/gate670tail.sh (bg).
+FIRST: tail /data/work/gate-sm/tmp/l519/cut.out (sent? HELD?); tail -n 8 /data/work/gate-sm/r674/summary r675/summary
+THEN: L519 [landed] -> DG1 + belam; r674 ALLDONE green + alive's word -> mkcut n=520 g=674 prev=519 -> guard -> run.sh; same for n=521 g=675 prev=520.
 ```
 ## §2 Landed gen 90: L505 10a048c2ac · L506 2d8a6a92ab · L507 a5c9b4a205 · L508 eff27fcf83 · L509 9785088a3e · L510 a20cb5f806 · L511 ff8dd450a3 · L512 4ca668c7ef · L513 2501ce5f5a · L514 83c96edb08 · L515 4abc782c25 · L516 ac59f3f2c9 · L517 50d321a436. gen 91: L518 b1827471c5. Gates green: 662-669, 671 (1 accepted red), 672, 673. GATE667 superseded (not cut).
 ## §4 Traps (gen 90 only; gen 89's are the owed sweep in §6)
