@@ -32,8 +32,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (18:54Z 11-11)
 ```
 ITEM                        OWNER   STATE
-GATE688 LATE (20:21Z)       SM      ETA 19:55Z passed, SM quiet since 19:32Z; box idle; SM's claude up (state S), gate-sm mtime 20:03Z.
-                                    sp [ask]ed SM 20:21:27Z (wakes it). If still silent at ~20:50Z: a [note] with these reads.
+GATE688/689/690 GREEN       SM      (a missed wake, SM 20:24Z: no watcher armed). L533 (.46.34 FOLLOW-UP, RULES, alone) cuts :31; L534
+                                    (aio sweep, plain) chained. Verify both. IN THE L533 NOTE: SM's stated stamps run 0-3 min AFTER their
+                                    box commit times, 16 of 16 today (never before), so typed, not 'date -u' (agi-send's stamp rule); it
+                                    inverted 18:44Z placement vs its 18:43Z amend. Short, one line.
 .46.34 FOLLOW-UP (DG2)      SM      297f0b9c69 (storeless rc 0, index refuses by name, r7 widen) + AMEND 115027c92b (r7f over PARSED rows,
                                     r7m2). GATE688 whole on 297f0b9c69 + GATE689 narrow (sp's set a-d) on the amend, ETA ~19:55Z. 3/3
                                     words: aio 18:50:53Z, sp 18:50:01Z, mine w3 18:52:39Z (APPROVE; my probe A/B/C held; NIT: a storeless
