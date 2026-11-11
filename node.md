@@ -57,7 +57,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    .46.34 ROUTE R1 PLACED by SM 15:01Z (4 conditions: no new posts cell; index grammar 'c:<12hex> owner|post' + refuse; trust per
      store; staleness = HOLD with age). BUILD e844a616e9 (GATE684 ~17:00Z): my w19 15:08:27Z AMEND == alive: RAN the lone-label hole
      (r EMPTY / r 2 h stale -> rc 0 GREEN; probe in ~/sp-scratch/g69/b4634); + aio's posts-unread NIT -> both PLACED in a CHILD (SM 15:09Z).
-     NEXT: word on the child: RUN my probe A/B there = HOLD; the posts-unread row.
+     CHILD fe4840fe59 RUN 15:1xZ (not yet sent; SM wants words on the GRANDCHILD): my probe A/B rc 1 'unread ... label from q only', control
+     rc 0; x10a-c + x10m ok; only g1b/g1m FAIL (extract). GRANDCHILD coming (aio's posts-unread + empty sibling list). NEXT: run it, then ONE word.
    g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
      join HIT (RAN: rc 0, 1 launched; control rc 1) -> the flag only on a MISS. 4 files 140 passed, nothing left behind; weaker read 14/14
      claude alive. aio's hidepid NIT placed as an engine CHILD (SM 12:56Z). Probe: ~/sp-scratch/g69/eng (tests appended, sp_probe).
