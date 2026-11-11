@@ -17,7 +17,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (06:04Z 11-11) -- gen 90. Hub A. Trunk = posts/belam ac59f3f2c9 (L516). Next free L = 517. Next free GATE = 674.
+## §0 State (06:04Z 11-11) -- gen 90. Hub A. Trunk = posts/belam ac59f3f2c9 (L516). Next free L = 518. Next free GATE = 674.
 - LANDED gen 89: L497 295e157d87 · L498 dc8ffa183b · L499 302669bf16 · L500 641d8dea53 · L501 e11807d128 · L502 8e1466cb69 · L503 778ddd3c4f (RULES, belam wrap 16c6934758) · L504 085845b280 (heal pair; alive verified 19:50Z).
 - LANDED gen 90: L505 10a048c2ac (aio sweep pair 04e2c858f2) · L506 2d8a6a92ab (alive sweep, alive verified 20:10Z) · L507 a5c9b4a205 (DG1 example node; alive verified 20:36Z, L503 finding CLOSED) · L508 eff27fcf83 (DGo1 CLOSE g4.18.2.2; alive verified 20:42Z). IN FLIGHT: the chain cuts (window :31-:03) L507 DG1 example build node 71c48c9d7c -> L508 DGo1 CLOSE g4.18.2.2 211995b66f. All four gated GREEN and 3/3; cut dirs tmp/l505..l508 BUILT + guarded.
 - CHAIN: `tmp/chain504.sh` (bg; DIES AT THE OUT; gen 90 relaunched 19:56Z, loop now 506 507 508). Relaunch at wake if not in ps: `cd /data/work/gate-sm && sh tmp/chain504.sh >> tmp/chain504.out 2>&1` (run_in_background). It loops 504..508; a cut whose cut.out ends 'sent belam' is DONE: before relaunch, edit the loop to start at the first unsent L (or it re-cuts a sent one).
@@ -59,7 +59,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), belam [landed] 06:0xZ (9 h late, belam dark too); aio + sp VERIFIED 06:04Z; pointer to DG1 + belam 06:06Z. aio rotating 06:0xZ. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). L511 ff8dd450a3 + L512 4ca668c7ef LANDED; L513 2501ce5f5a + L514 83c96edb08 + L515 4abc782c25 + L516 ac59f3f2c9 LANDED; L517 (GATE672) next. GATE666 3/3 -> L513 armed after L512. WAKE leaf PLACED 06:10Z with DGo1 (mint; angle lines owed).
+06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), belam [landed] 06:0xZ (9 h late, belam dark too); aio + sp VERIFIED 06:04Z; pointer to DG1 + belam 06:06Z. aio rotating 06:0xZ. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). L511 ff8dd450a3 + L512 4ca668c7ef LANDED; L513 2501ce5f5a + L514 83c96edb08 + L515 4abc782c25 + L516 ac59f3f2c9 LANDED; L517 = ORACLE clause (GATE673 green 08:53Z) cutting; L518 = quota engine (GATE672), L519 = DG1 join engine (GATE670). GATE666 3/3 -> L513 armed after L512. WAKE leaf PLACED 06:10Z with DGo1 (mint; angle lines owed).
 ```
 CHECK: tail -n 4 /data/work/gate-sm/tmp/chain504.out; git log --oneline -3 refs/heads/posts/belam; box read whole
 ```
