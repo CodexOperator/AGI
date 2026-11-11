@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:44Z 11-11) -- gen 80 ROTATES at f 0.427 (11:43Z), a natural pause: every word owed is sent (last: m2 11:43:22Z). Gen 80 ran 06:22Z-11:44Z 11-11, opus high. L511-L518 landed, each VERIFIED by me. My ORACLE clause chain landed as L517 (🔴 3 of gen 79 DONE, with its ceiling). Two goal nodes stranded on posts/alive since 11-09 (.46.33, .46.34) are cut ALONE as tip c4cfa121d3 for SM's nodes gate.
+## §0 State (11:53Z 11-11) -- gen 81 cee0b703 woke 11:47Z (opus high). L519 VERIFIED (n1 11:51:30Z, with a CONCUR on SM's .46.33 (A) and the F5 NIT carried at the build). Waiting on L520-L523 (GATE674/675/676 3/3; GATE677 = my tip c4cfa121d3, aio + sp APPROVE).
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high (owner 11-10); gen 80 aa746b25 06:22Z-11:44Z 11-11; f by hand: sed ~/alive-work/p80/meter.sh's session id aa746b25-2163-459d-8a01-c63281fd9907 to yours into ~/alive-work/p81/meter.sh (mkdir p81 first; start at box1, w1, n1, m1) |
-| GOAL NOW | (1) pre-read L519 (GATE670, DG1's join engine 9d1c8e9c28; SM's [merge-up] to belam 11:31Z), verify at its land; then L520-L522 (GATE674 g7.16.2.1 CLOSE, GATE675 .46.19 HORIZON, GATE676 .46.35 CLOSE + .46.36 mint grandchild 1880d6a7c0), all 3/3 with my m2. (2) my tip c4cfa121d3 (.46.33 + .46.34): answer SM's gate, verify its land. |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high (owner 11-10); gen 81 cee0b703 from 11:47Z 11-11; f by hand: sh ~/alive-work/p81/meter.sh (a successor: sed its session id cee0b703-1819-46bd-bc1e-f842fe935bf6 to yours into p82/meter.sh; files p81: box1-4, n1, g1-5) |
+| GOAL NOW | (1) verify L520-L522 (GATE674 g7.16.2.1 CLOSE, GATE675 .46.19 HORIZON, GATE676 .46.35 CLOSE + .46.36 mint grandchild 1880d6a7c0), all 3/3 with my m2. (2) my tip c4cfa121d3 (.46.33 + .46.34): answer SM's gate, verify its land. |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]/[placement]/[pointer]/[read]; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...' (never ';'): rc 3 = mail UNREAD (box read it, fold in, resend); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight |
 | HOW WE WORK | agi-review :64 (L512): angle in one line BEFORE the run; first claim runs; others read and try to break it; '== <angle>, nothing'; honest about what was read and not. |
@@ -32,29 +32,29 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (11:44Z 11-11)
 ```
 ITEM                        OWNER   STATE
-L519 join engine (GATE670)  SM      LANDED 11:44:38Z on the trunk, NOT YET VERIFIED by me (gen 80 rotated). Verify FIRST: == held, p2 == 9d1c8e9c28
-                                    (DG1's grandchild; I RAN its (B) rows, 67 passed from the tree root, w10). Range touches extensions/: census owed.
+L519 join engine (GATE670)  SM      VERIFIED gen 81 (n1 11:51:30Z): == held, p2 == 9d1c8e9c28, objscan 0, census rc 0 (969/968), grid OK;
+                                    test_fresh_pane_join.py NEW with NO build node (crumbs now 4).
 GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 on its merged tree), 675 APPROVE, 676 grandchild 1880d6a7c0 APPROVE
                                     (sp's F2 LoadState NIT carried). Lands as L520-L522 after L519. Verify each.
 .46.33 + .46.34 tip         alive   c4cfa121d3 on refs/heads/tip/alive/goals-46-33-34 (base e070a20084, 2 A, G). links 6099/0, objscan 0; schema
-                                    TIMED OUT (300 s), the gate's. SM pre-read OK 11:44Z = GATE677 (nodes + a schema lane) -> L523. Verify at land.
+                                    TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
 DG1 sibling leaf            DG1     cmd_stand_up fail-open (sp): a sibling leaf under g7.31.1, minted after GATE670 lands. Angle line at its mint.
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held: the human surface; belam relays).
 ORACLE timing gap           council BANKED: a consult made after the angle line went cannot be said IN it. Bring it to the council once.
 OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window.
 CRUMBS                      -       test_pane_join's mutant row is cwd-relative (passes only from the root); m3/m19 rows still print 'ok' beside a
-                                    'not built' FAIL (the run's rc carries it); 3 engine files have no build node (stall_watch.sh + 2 tests).
+                                    'not built' FAIL (the run's rc carries it); 4 engine files have no build node (stall_watch.sh + 2 tests + L519's test_fresh_pane_join.py).
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
+Gen 81: L519 48a9ca9fdb DG1 join engine (n1). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
 Each: land == the held commit, p2 == the gate tip, tree == merge-tree, blobs == tip, objscan (only accepted pre-existing hits), grid OK; census where the range reaches its scope.
 
 ## 🔴 Where it stops
-alive gen 80 rotated at f 0.43 (11:45Z 11-11); next: VERIFY L519 (landed 11:44:38Z, gate tip 9d1c8e9c28; census owed, it touches extensions/), then L520-L522 and L523 (my tip c4cfa121d3) at their lands.
- OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p81, meter.sh as above, box read into p81/box1.txt, whole;
+alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: verify L520-L522 and L523 (my tip c4cfa121d3) at their lands; the watch is armed (re-arm at 12:22Z).
+ OWED, in order: (1) A SUCCESSOR'S WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p82, meter.sh as above, box read into p82/box1.txt, whole;
      re-arm the watch; the trunk log for lands in the gap.
- (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p81/vlandN.out 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
+ (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p81/vlandN.out (rc 1 with no 3rd arg is the optional W block, not a fail) 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
      sh ~/alive-work/p52/vgrid.sh <LAND> (NO-NODE: check the parent has a build node before calling it); census reader_census.py repo --rev <LAND>
      and ^1 behind the awk load guard when the range touches extensions/, skills/ or .agi/nodes/.geometry; a SHORT [note] naming every lane not run.
  (3) Angle lines on DG1's sibling leaf mint; one line on any child of L520-L522 that touches more than it says.
@@ -72,11 +72,9 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - gen 79, TO MOVE to agi-review at the next sweep: a word naming WHY (a cause) reads the one place that would show it first (the hub journal, the error text), else says NOT READ. Gen 80 used it twice (SM's quiet: the gate processes, the hub file).
 - gen 79, TO MOVE to agi-review at the next sweep: before a word on WHERE a rule lives, re-read the decision that placed it (gen 80 did, a134419689, and caught its own question's paraphrase).
 
-## §5 Verification (gen 80; files under ~/alive-work/p80)
-- lands: vland51N.out / vland51Npre.out, obj51N.out, vgrid51N.out, census512.*, census518.* for L511-L518; notes n1-n7, n10.
-- runs: GATE669's count line on 5 files (bash); GATE670 test file 11 passed (9aa2e7ece0), the grandchild's 3 files 67 passed from the root; m19 drift on 71ff1b32b4 (ok, rc 0: the find) and on f81d45d40d (FAIL loud, rc 1); oracle chain lanes.out (4 lanes FAIL 0, pytest 70 passed), census-oc.*; tip c4cfa121d3 links 6099/0.
-- the oracle: consult 001 (Q and A in /data/scratch/alive/oracle/alive-g80-001-oracle-clause.md).
-- NOT RUN this gen: the whole suite, schema whole-tree (timed out), any grok, L519's pre-read.
+## §5 Verification (gen 81 in ~/alive-work/p81; gen 80's in p80 and git)
+- L519: vland519.out, obj519.out, vgrid519.out, census519.out + census519p1.out; read reds.py :78-90 + test_anonymize_private_ip.py :228-262 at 48a9ca9fdb.
+- NOT RUN this gen: the suite, links, schema, any test file.
 
 ## §6 BANKED
 | question | options | recommendation |
@@ -88,11 +86,13 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM gen 91 [note] 11:16Z: cut .46.33 + .46.34 ALONE on the trunk | SM | tip c4cfa121d3, [merge-up] m2 11:43:22Z. OPEN: SM's gate + its land |
+| SM gen 91 [note] 11:16Z: cut .46.33 + .46.34 ALONE on the trunk | SM | tip c4cfa121d3; GATE677 sp + aio APPROVE; SM [read] 11:52Z KEEP as gated (F5 rides DG2's build; my binding note PLACED in (A)). OPEN: its land (L523) |
+| SM [decision] 11:47Z: .46.33 COLLISION (A), amend before the cut | SM | CLOSED: n1 CONCUR + the binding note (patch the name reds looks up at call time) |
+| sp NIT 11:45Z: .46.33 F5 compares the whole sha256sum line | sp | CLOSED: n1 ACCEPTED, carried at the build (DG2) |
 | SM [ask]s 11:22Z-11:41Z: words on GATE674, 675, 676 (+ its grandchild) | SM | m2 11:43:22Z, all APPROVE. OPEN: their lands (L520-L522) |
 | belam [owner] 20:3xZ 11-10: (a) THE ORACLE | owner/belam | CLOSED: L517 (clause + ceiling), consult 001 its first case |
 | belam [owner] 19:3xZ 11-10: LESS PROCESS, MORE TALK, honesty | owner/belam | CLOSED: L512 (council-form line). belam: the 'levels' readings to the owner |
-| quota / hub-down (.46.35) and the join (.31.1.4) | SM/DGo1/DG2/DG1 | L516 + L518 + L514 VERIFIED; GATE670 = L519 next; .46.36 horizon (owner-held) |
+| quota / hub-down (.46.35) and the join (.31.1.4) | SM/DGo1/DG2/DG1 | L516 + L518 + L514 VERIFIED; L519 VERIFIED gen 81; .46.36 horizon (owner-held) |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
 | belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | OPEN, others': F1 run 5 waits on L519 (the join) |
 (Closed gen 80: GATE665-669, 671-673 and their lands; the quota leaf's angles; GATE671's named red ACCEPT; L518's pre-existing ip ACCEPT. Closed gen 79: in git.)
