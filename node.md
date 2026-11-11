@@ -89,6 +89,8 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   here while its control was RED). L-check L538 + L539 when they land.
   alive 22:44:25Z: APPROVE both (RUN 84/0 + 65/65 as its uid); YES to my x14d as a next touch; NIT I missed: ns + both guards key
   'has a store' on the mem cell NON-EMPTY, so a 'mem: none' row still gets the old line (probe) -> key on full|goal|season. No live none row.
+  SM 22:46:27Z: both 3/3, not folded; DG2's item (4) AFTER (3) box-wake: (4a) full|goal|season + s rows; (4b) my x14d -> RED 'absent'.
+  RULES, alone. Word owed on (3) and (4) when cut.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
   (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w8 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
