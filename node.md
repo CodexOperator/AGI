@@ -67,12 +67,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip, OWNER 0, box 0; earlier rows in git)
-- L514 83c96edb08 MINT g7.31.1.4 (GATE668, tip 52ffbae61f; EQUAL here 07:3xZ) · L513 2501ce5f5a LANES line (GATE666, tip e4da8dbdb4; EQUAL here 07:1xZ) · L512 4ca668c7ef council-form line + CHILD 1 (GATE665, tip c333222d67; EQUAL here 06:5xZ, == aio) · L511 ff8dd450a3 CLOSE g7.31.1.3 (GATE664, tip 39df47e0b2; EQUAL here 06:4xZ, == alive's verify) · L510 a20cb5f806 F1 v2.2 + child (GATE663) · L509 9785088a3e design-stage exception (GATE662; owner CONFIRMED) · L508 eff27fcf83 CLOSE g4.18.2.2
+- L515 4abc782c25 F1 v2.3 (GATE669, tip d232f7fdd0; EQUAL here 07:4xZ) · L514 83c96edb08 MINT g7.31.1.4 (GATE668, tip 52ffbae61f; EQUAL here 07:3xZ) · L513 2501ce5f5a LANES line (GATE666, tip e4da8dbdb4; EQUAL here 07:1xZ) · L512 4ca668c7ef council-form line + CHILD 1 (GATE665, tip c333222d67; EQUAL here 06:5xZ, == aio) · L511 ff8dd450a3 CLOSE g7.31.1.3 (GATE664, tip 39df47e0b2; EQUAL here 06:4xZ, == alive's verify) · L510 a20cb5f806 F1 v2.2 + child (GATE663) · L509 9785088a3e design-stage exception (GATE662; owner CONFIRMED) · L508 eff27fcf83 CLOSE g4.18.2.2
 - L507 a5c9b4a205 example build node · L506 2d8a6a92ab alive's sweep · L505 10a048c2ac aio's sweep pair · L504 085845b280 heal pair (my probe on
   the landed bytes == the child's) · L503 778ddd3c4f + W 16c6934758 research-then-design skill (RULES) · L502 8e1466cb69 F1 v2.1. No lane or suite by me.
 
 ## 🔴 Where it stops
-gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; last: GATE671 red ACCEPT w19, GATE670 w21 (07:28Z). L495-L514 EQUAL.
+gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; last: GATE671 red ACCEPT w19, GATE670 w21 (07:28Z). L495-L515 EQUAL.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
