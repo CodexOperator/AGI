@@ -19,7 +19,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 ## §0 State (11-11 12:1xZ, trunk posts/belam 0045e4597e; last land of mine L519)
 - IN SM's HANDS, mine:
   (1) goal:g7.31.1.5 MINT chain -> SIXTH child 77892ce9d0 SENT 12:24Z (GATE679; +target 5: heal._pid_alive EPERM = ALIVE, callers :2441 :395 :401 :444 named): launch record carries tmux_socket + tmux_server_start (#{start_time}); join = the seat's LATEST record, window_id == row window, else MISS; on a hit always the seat socket; different start_time = 'server restarted' = no-server; unstatable = read-failed naming 'run it as <owner>' (errno, never exists()); empty-pid MISS refused naming 'stand-up --window-closed' (the way out); heal (B) takes the same join (MISS -> SKIP named); CLOSE counts pre-build empty-pid rows off the live board.
-  (1b) ENGINE TIP g7.31.1.5 3a6c11fc29 (dg1-g73115-tip, ~/w41/sl, parent mint 77892ce9d0) SENT 12:35Z (send34): 7 files +973 -58, plain. 83 related files 3436 passed 0 failed; stand_up_unread_windows 28 (real scratch tmux), fresh_pane_join 29, /tmp pane_join 28. Waits on its gate after GATE679 (mint).
+  (1b) ENGINE TIP g7.31.1.5 3a6c11fc29 (dg1-g73115-tip, ~/w41/sl, parent mint 77892ce9d0) SENT 12:35Z (send34): 7 files +973 -58, plain. 83 related files 3436 passed 0 failed; stand_up_unread_windows 28 (real scratch tmux), fresh_pane_join 29, /tmp pane_join 28. GATE682, after GATE678 (~2 h out at 12:52Z); the mint lands first (GATE679 running).
   (2) goal:g7.31.1.4 CLOSE ad382c7722 -> child 4d3bc2ab26 ((B) NOT COVERED off the caller server) SENT 12:18Z (dg1-g73114-close, ~/w41/c4): complete, F1-F3 MET (F1 run 5 read the join); + g7.31.1.3 Agent Notes line (run 5's heal.log NOT READ by me).
 - LANDED this generation: L511 ff8dd450a3 (g7.31.1.3 CLOSE), L513 2501ce5f5a (brief LANES line), L514 83c96edb08 (g7.31.1.4 MINT), L515 4abc782c25 (F1 v2.3), L519 48a9ca9fdb (g7.31.1.4 join engine, GATE670 whole 9863/0).
 - OWNER (11-10): grok stays OPT OUT; design-stage Fable exception CONFIRMED; 'hits rough' = quota. SPIRIT: less process, more real talk, honesty.
@@ -37,7 +37,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. L514 83c96edb08 g7.31.1.4 MINT. L515 4abc782c25 F1 v2.3. L519 48a9ca9fdb g7.31.1.4 join engine. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-At SM: g7.31.1.5 mint 77892ce9d0 (GATE679, 3/3) + engine tip 3a6c11fc29 (sent 12:35Z) + g7.31.1.4 CLOSE 4d3bc2ab26 (GATE680, alive's word owed). Waiting on gates.
+At SM: g7.31.1.5 mint 77892ce9d0 (GATE679, 3/3) + engine tip 3a6c11fc29 = GATE682 (whole suite + grid-writers + links + reader-census, after GATE678, ~2 h; SM 12:52Z) + g7.31.1.4 CLOSE 4d3bc2ab26 (GATE680, alive's word owed). Waiting on gates.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
 Homes: ~/w41/sl (g7.31.1.5: mint 77892ce9d0; WIP on dg1-g73115-wip (rebase onto 77892ce9d0); wip ff09ac112a), ~/w41/c4 (g7.31.1.4 close), ~/w41/jl (g7.31.1.4, landed L519), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send34 (last sent 12:35Z). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
