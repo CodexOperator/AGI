@@ -46,7 +46,7 @@ g7.31.1.5 (DG1)             DG1     mint SETTLED 77892ce9d0 (GATE679). ENGINE ti
                                     cmd_stand_up branch read; 34 passed). 3/3 (SM 13:02Z). GRANDCHILD 28469fe7fe (sp's flake: _kill_and_wait, real run):
                                     w8 APPROVE. GATE682 after GATE678 + 681. Engine land: census owed (extensions/).
 aio TRAP SWEEP ecfbeb55cd  aio     w5 12:34:12Z APPROVE (sp APPROVE 12:33Z). Verify at land.
-g7.31.1.4 CLOSE (DG1)       DG1     ad382c7722 -> child 4d3bc2ab26 (heal NOT COVERED -> .5); GATE680. sp + aio APPROVE; I gave no word.
+g7.31.1.4 CLOSE (DG1)       DG1     child 4d3bc2ab26, GATE680: w9 13:09:33Z APPROVE (3/3; F2's 9863 checked vs 1ba96db15c). -> L525: verify.
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held: the human surface; belam relays).
 ORACLE timing gap           council BANKED: a consult made after the angle line went cannot be said IN it. Bring it to the council once.
 OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window.
