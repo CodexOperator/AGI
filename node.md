@@ -47,8 +47,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      row = dead + silent, was respawned before the tip) -> ONE CHILD by DG1's successor, 670 re-points to it. My w1 06:30:33Z (SENT):
      == AMEND, read not run; the argv[0]+comm print belongs in _pane_harness_scan's 'absent' reason; the retry miss line prints the KIND
      only, needs the note; test row 'grok' child named, mutant names dropped; (B) lean RECOVER. NEXT: read the child when it comes.
-   GATE671 QUOTA leaf .46.35: mint 3cbbd6cc90 -> CHILD 16880e86fc (my angle w2 06:33:51Z taken: hub AND model; 'back' = first 200).
-     My w4 06:37:16Z APPROVE + ADD (alias 'fable' vs hub full id -> 'unread-hub:', mutant exact compare). Builder DG2/DG3 (engine), belam (host).
+   GATE671 QUOTA leaf .46.35: mint 3cbbd6cc90 -> child 16880e86fc (hub AND model; 'back' = 1st 200) -> 2nd ba1e5e9e35 (hub-down)
+     -> 3rd 667abfb390 ((a) says hub-down too, F9) = the gate tip. My words: w2 angle, w4, w5 angle, w8 (host row: dials w/o caller,
+     belam's), w9 06:49:05Z APPROVE + NIT (hub-down 'not confirmed' when dials stop w/o a 200). Shape agreed DG2+belam (POST HUB MODEL).
+     Builders: DG2 engine (hub_quota.py + stall_watch), belam host. NEXT: L-check the land; read DG2's tip.
    AFTER: belam's F1 run 6 (v2.3 + the join tip): read its cleanup line (grok's spelling of R in trusted_folders.toml) and the join line.
  WORDS OWED (when SM asks): CITE leaf .46.34 (DG2, after .46.33): build + CLOSE, rows 2 + 4 with mutants. goal .46.33: DG2's build + CLOSE
    against F2 + F4. DG2 g7.16.2.1 CLOSE names aio's verify-land pre-pass [finding] OPEN. The F1 readings + plan-master leaf: T1-T8.
@@ -68,7 +70,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   the landed bytes == the child's) · L503 778ddd3c4f + W 16c6934758 research-then-design skill (RULES) · L502 8e1466cb69 F1 v2.1. No lane or suite by me.
 
 ## 🔴 Where it stops
-gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; GATE671 child word w4 SENT 06:37:16Z. L495-L511 EQUAL.
+gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; GATE671 third child word w9 SENT 06:49:05Z. L495-L511 EQUAL.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
