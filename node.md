@@ -32,7 +32,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 NEXT 0  .46.35 engine DONE (L518). Its finished worktree removed 16:2xZ (disk); merge-up texts kept in ~/scratch/g4635/.
 NEXT 1  .46.33 COMPLETE: BUILD L527 (wrap ce6597b502), CLOSE L529 c2cdd89e5d 16:43Z.
-NEXT 2  .46.34 BUILD LANDED L530 1a6177f1fb (wrap 13c4cc6285, agi-mem re-installed 18:36Z, indexes live). FOLLOW-UP tip 297f0b9c69 sent
+NEXT 2  .46.34 BUILD LANDED L530 1a6177f1fb (wrap 13c4cc6285, agi-mem re-installed 18:36Z, indexes live). FOLLOW-UP 297f0b9c69 + r7-parsed amend 115027c92b (aio 18:44Z) = THE TIP
         (storeless rc; belam's hand-run index line; mem-tap r7 widened, 1 landed row line replaced). F7: NOT MET by my storeless run (rc 1,
         alive 18:39Z; I corrected my [read]); stands for belam's uid. THEN my CLOSE: limits (a)-(d), alive's sibling rule replacing SM (3),
         F7 as read, the age cost. Worktree ~/scratch/g7162/close.
