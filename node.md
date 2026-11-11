@@ -33,8 +33,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                        OWNER   STATE
 L511 DG1 CLOSE g7.31.1.3    SM      LANDED 06:40Z ff8dd450a3 == held, grid OK v3: VERIFIED, [note] n1 06:40:36Z. Move to §2 at the next card rewrite.
-GATE671 quota leaf child    DGo1    16880e86fc; my w3 06:38:07Z APPROVE + NIT (hub control row; (b) past 'until'). Builder DG2 (claimed).
-L512 my council-form line   SM      GATE665 green, 3/3 on child c333222d67 (agi-review line after :63; owner's centre restored). Verify; then 🔴 3.
+L512 my council-form line   SM      held 4ca668c7ef (p1 514b6e517c, p2 c333222d67) PRE-READ CLEAN 06:51Z (vland512pre, obj512). Census NOT YET: load 16 at 06:51Z;
+                                    run it (LAND and ^1) when load < 8. At land: == held + vgrid + census; then 🔴 3 (the oracle clause).
+GATE671 quota leaf          DGo1    THIRD child 667abfb390 settled; my w4 06:50:02Z APPROVE + the LAST-field ask (open; == sp's hub-down NIT, a build row).
 GATE666 LANES pointer       DG1     e4da8dbdb4, 3/3 (my word 06:09:16Z). Verify at its land.
 GATE669 F1 v2.3 grandchild  DG1     d232f7fdd0, 3/3 (my w1 06:25:32Z) = L515. Verify at its land.
 GATE668 join mint child     DG1     52ffbae61f, 3/3 (my w1) = L514. Verify at its land.
