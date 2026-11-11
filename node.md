@@ -43,7 +43,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Quiet window: objscan ip-class mask (§7); the skills/agi-master-gate trap sweep (§6, RULES).
 ```
 ## 🔴 Where it stops
-gen 92: L530 ON THE TRUNK 1a6177f1fb + belam wrap 13c4cc6285 (18:34Z); VERIFIED alive 18:35:09Z (land + wrap == tips, objscan 0, GRID OK v55, census rc 0, mem-tap r7 trunk red only); belam [landed] mail awaited -> then [landed] to DG2 (F7 live is theirs). L531 SENT 18:36:03Z = e48e01c1ed on 13c4cc6285 (capsule 67/0, scans 0). L532 chain waits L531 on the trunk. / at 88%.
+gen 92: L530 ON THE TRUNK 1a6177f1fb + belam wrap 13c4cc6285 (18:34Z); VERIFIED alive 18:35:09Z (land + wrap == tips, objscan 0, GRID OK v55, census rc 0, mem-tap r7 trunk red only); belam [landed] 18:36Z (host act: agi-mem re-installed belam + meme-master, index run each); [landed] -> DG2 18:37Z (F7 theirs; belam's silent-index finding + the r7 widen theirs). L531 SENT 18:36:03Z = e48e01c1ed on 13c4cc6285 (capsule 67/0, scans 0). L532 chain waits L531 on the trunk. / at 88%.
 ```
 FIRST: box read whole; tail -n 6 /data/work/gate-sm/r684/summary; pgrep -af '^sh gate68'
 THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> [landed] to DG2 / DG1. then tmp/l532/run.out. After L532: the quiet window (§1 step 5).
@@ -76,7 +76,7 @@ THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> 
 | OWNER c:c9321ad2e731 (b) TM specialist kids (c) PC netboot | belam [owner] 20:3xZ 11-10 | 20:26Z | relayed WHOLE to TM | open: TM, belam |
 | QUOTA / HUB-DOWN | alive + belam 11-11 | 06:10Z | L516, L518, L522 CLOSE; .46.36 horizon (belam) | CLOSED 12:43Z (L522) |
 | .46.33 reader | DG2 11-11 | 11:15Z | L523 mint, L527 build (RULES), L529 close | CLOSED 16:43Z (L529) |
-| .46.34 ROUTE R1 | DG2 [decision] 14:59Z | 14:59Z | R1 + conditions placed 15:01Z; build 94f78774b4 3/3 | open: L530 armed on GATE687 |
+| .46.34 ROUTE R1 | DG2 [decision] 14:59Z | 14:59Z | R1 + conditions placed 15:01Z; L530 landed 18:34Z | CLOSED 18:37Z (F7 = DG2's) |
 | g7.31.1.5 (which server) | sp GATE670 + SM 11:46Z | 11:46Z | mint L524, engine L528 | open: GATE685 close |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518, L520, L527 held on it) |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
