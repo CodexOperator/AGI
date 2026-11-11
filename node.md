@@ -23,17 +23,17 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX to me: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name, m20/m21) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
-| in flight | f92d94432f (on 71ff1b32b4 on 2b5d2476e1) at SM's gate (WHOLE suite, bin/ touched). Nothing else |
+| leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name) + f81d45d40d (down again, 'last failed dial', loud not-built mutants, m3 re-pointed) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
+| in flight | f81d45d40d (chain 2b5d2476e1 -> 71ff1b32b4 -> f92d94432f -> f81d45d40d) for GATE672, which waits on GATE671 (WHOLE suite, bin/ touched). Nothing else |
 | order | .46.35 engine (SM 06:34Z, now), then .46.33 (RULES, ALONE) when on the trunk, then .46.34, then the g7.16.2.1 CLOSE |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
 ```
-NEXT 0  .46.35: answer SM / DGo1 on f92d94432f (a residue = a follow-up commit on the tip, never a rewrite of a landed row). The SHAPE is
+NEXT 0  .46.35: answer SM / DGo1 on f81d45d40d (a residue = a follow-up commit on the tip, never a rewrite of a landed row). The SHAPE is
         my [decision] 06:5xZ to SM (route 'POST HUB MODEL'|'POST direct'; state 'HUB MODEL ok|quota|hub-down T' + 'HUB - hub-down T';
         'written EPOCH' line 1; HUBMAX 180) + my [decision] 07:1xZ: a 5th field LAST on every state line. Worktree ~/scratch/g4635/wt
-        (detached at f92d94432f), merge-up texts ~/scratch/g4635/mu.txt + mu2.txt; host half LIVE (belam 06:49Z, /run/agi-hub).
+        (detached at f81d45d40d), merge-up texts ~/scratch/g4635/mu.txt + mu2.txt; host half LIVE (belam 06:49Z, /run/agi-hub).
 NEXT 1  goal:g7.16.1.11.46.33 BUILD once on the trunk: `git ls-tree -r --name-only core/season3/main -- .agi/nodes/goal | grep 46.33`,
         then read it WHOLE. ONE header-aware diff reader exported by anonymize, walked by mask_diff_ips, reds._added and
         verify-land.sh's fixture-home pre-pass; F2 aio's crafted row + ONE mutant RED in all three; F4 as written; RULES: lands ALONE,
@@ -48,12 +48,12 @@ NEXT 4  goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsi
 
 ## §2 Landed (this generation)
 ```
-none yet (f92d94432f at the gate). Earlier generation: L453 · L457 · L458 · L480.
+none yet (f81d45d40d queued as GATE672; L516 = the leaf, L517 = the engine). Earlier generation: L453 · L457 · L458 · L480.
 ```
 
 ## 🔴 Where it stops
 ```
-.46.35 engine tip f92d94432f sent to SM 07:3xZ; waiting on the gate / DGo1's re-run.
+.46.35 engine tip f81d45d40d sent to SM 07:2xZ (after the 07:11Z asks); waiting on the gate / DGo1's re-run.
 Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
@@ -65,10 +65,10 @@ Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 
 | CARRIED, unswept (from the gen before) | box read in a background command loses the mail; a mutant anonymize copy outside a project; monkeypatch reds.anonymize not anonymize; a subagent's allowlist mask; fixture emails (example.com); one built_at instant for --since/--until; plus the older CARRIED row: sweep into agi-send / agi-node-write / agi-verify / agi-dispatch at my rotation |
 
 ## §5 Verification
-f92d94432f, its own tree 07:3xZ: stall-watch.t.sh 46 ok FAIL=0; MUT=1 75 ok FAIL=0 (every mutant built); DRY run on the LIVE /run/agi-hub files rc 0, none named (one AssertionError = the pre-existing vacuous m3, named in the merge-up); test_alarm_spool 22 passed; F1 0, F6 0; scan [] with control ['email']. NOT RUN: links.py whole graph, full pytest.
+f81d45d40d, its own tree: stall-watch.t.sh 47 ok FAIL=0; MUT=1 78 ok FAIL=0 (every mutant built; a not-built one is now LOUD); DRY run on the LIVE /run/agi-hub files rc 0, none named (one AssertionError = the pre-existing vacuous m3, named in the merge-up); test_alarm_spool 22 passed; F1 0, F6 0; scan [] with control ['email']. NOT RUN: links.py whole graph, full pytest.
 
 ## §6 BANKED (for SM / the owner)
-- .46.35: the said file's place and the hub_quota say cadence are belam's host act (a crons row is a RULES path). m3 in stall-watch.t.sh is vacuous (pre-existing), a next touch re-points it.
+- .46.35: the said file (hub.said in belam's store) and the say step in belam's timer are host acts, after L517.
 - objscan does not read anonymize.ip_allow: every edit of the 8 allowlisted files trips b-7 and needs a per-land (a) word.
 - atomize_live and summary_live flips: the OWNER's (card-belam §6). summary_live also owes compact's time bound first.
 - aio crumb (ii), NOT taken: an UNCOMMITTED card edit lets agi-at commit the working card over the atoms. An agi-at term, for the council.
@@ -81,5 +81,6 @@ f92d94432f, its own tree 07:3xZ: stall-watch.t.sh 46 ok FAIL=0; MUT=1 75 ok FAIL
 |---|---|---|
 | .46.35 engine half | SM 06:34Z placement | CLOSED: built, tip 2b5d2476e1, [merge-up] sent |
 | F9 + alive's LAST + sp's not-confirmed-back | SM 06:46Z-06:55Z | CLOSED: child 71ff1b32b4, [merge-up] sent |
+| aio down-again + sp 'last failed dial' + alive loud not-built mutants | SM 07:06Z + 07:11Z | CLOSED: f81d45d40d, [merge-up] sent |
 | sp: unmapped model = unread-hub; alive NIT (1) hub control, (2) past until | SM 06:37Z + 06:38Z | CLOSED: rows s21e, s19c, s19e + m15, m11, m12 |
 | belam's host file shape | SM 06:44-06:45Z | CLOSED: agreed 06:5xZ, built to it |
