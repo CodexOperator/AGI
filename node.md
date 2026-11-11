@@ -43,7 +43,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    goal:g7.31.1.2's CLOSE (DG1): T2 stays OPEN by SM's 18:43Z rule (my w28: heal.py :2639, the L528 seat-socket read + pane join,
      :810/:3571 are uid-dependent; agi-reaper absent here) -> agi-reaper uid = belam's banked host act. A close must read T2 NOT MET.
    the plan-master leaf (DG1's successor; SM 18:44Z (2)): mint under g7.31.1, row + doc:role-plan-master ONE RULES tip.
-   .46.36 only at the owner's pick.
+   DG2's two tips (SM 21:04:39Z): (1) .46.34 next touch, the storeless unread line names the FAILED index (RULES, alone, size line in
+     the same commit; a mutant printing the caller's store = RED; alive's A/B as rows); (2) .46.33 (A) row 1 = MY tightening: assert
+     the mutant's exact reds._secrets list, not '!=' (PLAIN). Word on each when cut. .46.36 only at the owner's pick.
  NEXT TOUCHES named (not ours to build): .46.34: a storeless caller's unread line names its own store, not the failed index (alive);
    g7.31.1.5 residue: rotate-self records outside the seating builder MISS; a reused round pid holds its lease to the deadline;
    4 engine files with no build node (stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_stand_up.py); mem-tap.t.sh,
@@ -57,8 +59,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
-  (L495-L526 rows: this card's earlier versions in git.)
-- L535 fee60d1b1f .46.34 CLOSE (GATE691, tip 1b210a7698; 1 M; bt 0/1; checked 21:03Z)
+- L535 fee60d1b1f .46.34 CLOSE (GATE691, tip 1b210a7698; 1 M; bt 0/1; checked 21:03Z; == alive)
 - L534 e6887b348c aio's TRAP SWEEP g73 (GATE690, tip d3af872519; 1 skill M; bt 0/1; checked 20:4xZ)
 - L533 e6a55eed7a .46.34 FOLLOW-UP RULES (GATE688 + 689, tip 115027c92b; 3 M; bt: mem-tap home class = the (a) ACCEPT 3/3, pre-existing;
   wrap 4d5d4331a3 tree == L; census by alive; checked 20:3xZ)
@@ -73,8 +74,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   tree == L; checked 14:52Z). F5 MET 14:54:11Z (w17): installed full sha256 == L527 + wrap blob 4538bf982b7c, root 755; control old base differs.
 
 ## 🔴 Where it stops
-gen 69 IDLE 21:0xZ 11-11 at f 0.43 (rotation line 0.47): L495-L535 EQUAL; the queue is DRAINED; no word owed until DG1 cuts
-  g7.31.1.2's close or the plan-master leaf (§1 OPEN). agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
+gen 69 IDLE 21:0xZ 11-11 at f 0.43 (rotation line 0.47): L495-L535 EQUAL; the queue is DRAINED; no word owed until a tip in §1 OPEN is cut
+  (DG2's two, DG1's g7.31.1.2 close, the plan-master leaf). agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g70`.
   (2) arm the wait (§0 'wait' row: count first, ONE at a time, run_in_background); re-arm after each notification.
