@@ -98,6 +98,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L534 e6887b348c aio's TRAP SWEEP g73 (GATE690, tip d3af872519; 1 skill M; bt 0/1; checked 20:4xZ)
 - L533 e6a55eed7a .46.34 FOLLOW-UP RULES (GATE688 + 689, tip 115027c92b; 3 M; bt: mem-tap home class = the (a) ACCEPT 3/3, pre-existing;
   wrap 4d5d4331a3 tree == L; census by alive; checked 20:3xZ)
 - L532 1bb1e1ab37 alive's TRAP SWEEP re-cut (GATE686, tip 916c120604; 3 skills M; bt 0/3; census by alive; checked 18:5xZ)
@@ -122,7 +123,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 69 WORKING 20:2xZ 11-11 (GATE688/689/690 all GREEN, read late (SM missed its wake, 20:24Z); L533 = DG2 follow-up RULES in the :31 window, L534 = aio's g73 sweep behind it) prior 16:2xZ (/data went FULL ~16:00Z from SM's gate basetemps; GATE682 census + GATE683 + GATE684 RE-RUN one at a time
-  from 16:17Z, ~1 h; L528 cuts when GATE682's census reads green; my scratch trimmed to 46M, kept b4634 + g4634 (the probe rows)): L495-L533 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
+  from 16:17Z, ~1 h; L528 cuts when GATE682's census reads green; my scratch trimmed to 46M, kept b4634 + g4634 (the probe rows)): L495-L534 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g69`.
