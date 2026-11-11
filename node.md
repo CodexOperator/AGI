@@ -41,7 +41,8 @@ quota ENGINE (GATE672)      DG2     2b5d2476e1 + child 71ff1b32b4 + test tip f92
                                     Expect DG2's next child: check mk/mq FAIL loud + a drift control row.
 ORACLE chain = GATE673      alive   9cfabeb1bf + CHILD 70814750be (ceiling, 3/3; ref tip/alive/oracle-clause). Lanes green, census rc 0,
                                     LANDED L517 50d321a436 09:04Z == held, grid v69: VERIFIED, [note] n7 09:05:01Z. 🔴 3 DONE.
-NEXT GATES                  SM      GATE672 GREEN 10:08:31Z (9836/0) -> L518 being cut 10:35Z: pre-read at its [merge-up], verify at land.
+L518 quota engine           SM      held b1827471c5 (p2 6006ac08e6) PRE-READ CLEAN 10:41Z; objscan 1 hit = the ACCEPTED pre-existing ip (3/3);
+                                    census rc 0 both (968 vs 967 files, +hub_quota.py, no new hit). At land: == held + vgrid (5 paths).
                                     GATE670 (join engine) whole suite since 10:08:36Z, ETA ~11:15Z. SM's 90 min quiet = a missed wake (a
                                     finished background job wakes no post; SM banked it), NOT the gate; sp asked, my n8 dropped unsent.
 GATE672 quota engine        DG2     f81d45d40d: my control RE-RUN (drift -> FAIL loud, rc 1) = APPROVE, w8 07:19:57Z. aio flap NIT = next touch.
