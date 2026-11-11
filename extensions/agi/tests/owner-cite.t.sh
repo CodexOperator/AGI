@@ -306,5 +306,10 @@ ix r "$RO owner";CQ
 ok "x10c-every-sibling-read-and-fresh-is-green the same label with r read and fresh: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q " 0 violations$"'
 : >$RT/r/mem.cite;touch -d @$FU $RT/r/mem.cite;MUT 's/{ \[ "\$un" = 1 \]&&\[ "\$mm" \];}||\[ -s \$D\/ou \]||\[ "\$st" \]&&{ uu="\${uu:+\$uu; }\$c: label from/false\&\&{ uu="${uu:+$uu; }$c: label from/' agi-mem;CQ $D/mut_agi-mem
 ok "x10m-mutant-label-taken-while-a-sibling-is-unread-RED the reader that takes q's label with r empty reads green: '$(echo "$o"|tail -1)' rc $rc" '[ $rc = 0 ]'
+# x11 (all-is-one 15:07:56Z, SM 15:09Z + 15:11Z): config:posts unreadable at the trunk ref + a block citing an id NOT in the (read) own store = unread, named; never 'absent'
+ix q "$QO owner";ix r "$RO owner";cb $QO;o=$(env AGI_MEM_ROOT=$RT HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref PATH=$D/bin:$PATH sh $D/bin/agi-mem cite 2>&1);rc=$?
+ok "x11-posts-unreadable-reads-unread-not-absent the store list cannot be read at no-such-ref, and $QO is not in p's store: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (.*$QO: config:posts unread at no-such-ref"&&! echo "$o"|grep -q "absent from the store"'
+MUT 's/||\[ "\$pu" \];};}&&{ uu=/;};}\&\&{ uu=/' agi-mem;o=$(env AGI_MEM_ROOT=$RT HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref PATH=$D/bin:$PATH sh $D/mut_agi-mem cite 2>&1);rc=$?
+ok "x11m-mutant-empty-list-read-as-absent-RED the reader that takes an unread list as empty reads $QO 'absent': '$(echo "$o"|head -1)' rc $rc" 'echo "$o"|grep -q "cites $QO, absent from the store"'
 cp $D/posts.p $E/.agi/nodes/.geometry/posts.md;(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm back)
 echo "owner-cite: $f FAIL";exit $f
