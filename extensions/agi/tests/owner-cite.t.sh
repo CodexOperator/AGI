@@ -311,5 +311,19 @@ ix q "$QO owner";ix r "$RO owner";cb $QO;o=$(env AGI_MEM_ROOT=$RT HOME=$H AGI_PO
 ok "x11-posts-unreadable-reads-unread-not-absent the store list cannot be read at no-such-ref, and $QO is not in p's store: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (.*$QO: config:posts unread at no-such-ref"&&! echo "$o"|grep -q "absent from the store"'
 MUT 's/||\[ "\$pu" \];};}&&{ uu=/;};}\&\&{ uu=/' agi-mem;o=$(env AGI_MEM_ROOT=$RT HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref PATH=$D/bin:$PATH sh $D/mut_agi-mem cite 2>&1);rc=$?
 ok "x11m-mutant-empty-list-read-as-absent-RED the reader that takes an unread list as empty reads $QO 'absent': '$(echo "$o"|head -1)' rc $rc" 'echo "$o"|grep -q "cites $QO, absent from the store"'
+# x12 (DG2's F7 finding, 18:4xZ): a caller with NO store (no mem row) whose every cited id resolves through the indexes exits rc 0, not 1 under '0 violations'
+mkdir -p $RT/p;ix p "$OC owner";ix q "$QO owner";ix r "$RO owner";cb $QO;o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/bin/agi-mem cite 2>&1);rc=$?
+ok "x12-a-storeless-caller-resolved-is-rc-0 post z (no row, no store) cites q's owner chunk, every index read and fresh: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q " 0 violations$"'
+MUT 's/\[ \$red = 0 \]&&{ \[ \$un = 0 \]||\[ -z "\$uu" \];};exit;;/[ $red = 0 ]\&\&[ $un = 0 ];exit;;/' agi-mem;o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/mut_agi-mem cite 2>&1);rc=$?
+ok "x12m-mutant-the-storeless-rc-1-RED the old closing test exits rc 1 under the same '0 violations': '$(echo "$o"|tail -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q " 0 violations$"'
+cb $NO;o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/bin/agi-mem cite 2>&1);rc=$?
+ok "x12c-control-a-storeless-caller-unresolved-stays-unread the same caller citing $NO (in no index): '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread"'
+# x13 (belam 18:36Z): agi-mem index run by hand never a silent no-op: posts.md unread, or no mem row = ONE named line, rc 1, nothing written
+o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref AGI_MEM_INDEX=$D/xidx PATH=$D/bin:$PATH sh $D/bin/agi-mem index 2>&1);rc=$?
+ok "x13a-index-posts-unread-says-so: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qx "\[mem\] index: posts.md unreadable at no-such-ref: nothing written"&&[ ! -e $D/xidx ]'
+o=$(env HOME=$H AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_MEM_INDEX=$D/xidx PATH=$D/bin:$PATH sh $D/bin/agi-mem index 2>&1);rc=$?
+ok "x13b-index-no-mem-row-says-so: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qx "\[mem\] index: z has no mem row at HEAD: nothing written"&&[ ! -e $D/xidx ]'
+MUT 's/index)echo "\[mem\] index: posts.md unreadable at \${AGI_TRUNK:-trunk}: nothing written";exit 1;;//' agi-mem;o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref AGI_MEM_INDEX=$D/xidx PATH=$D/bin:$PATH sh $D/mut_agi-mem index 2>&1);rc=$?
+ok "x13m-mutant-the-silent-no-op-RED without the line a hand run exits rc $rc saying nothing ('$o')" '[ $rc = 0 ]&&[ -z "$o" ]'
 cp $D/posts.p $E/.agi/nodes/.geometry/posts.md;(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm back)
 echo "owner-cite: $f FAIL";exit $f
