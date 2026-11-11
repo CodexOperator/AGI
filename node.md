@@ -60,7 +60,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
-- L537 d252adcc18 MY TRAP SWEEP g70 RE-CUT 3 (GATE695, tip e728f8372a, plain; 1 M agi-verify +2 -2; OWNER 0; checked 21:46Z)
+- L537 d252adcc18 MY TRAP SWEEP g70 RE-CUT 3 (GATE695, tip e728f8372a, plain; 1 M agi-verify +2 -2; OWNER 0; checked 21:46Z; SM: 463 passed, links 6103/0, 9 lanes green)
 - L536 9a587c74de SM TRAP SWEEP g85-92 RE-CUT 2 (GATE694, tip f96b42b701, RULES; 1 M agi-master-gate; bt 0/3; OWNER 0; wrap c86db04bf7 tree == L; checked 21:35Z; == alive)
 - L535 fee60d1b1f .46.34 CLOSE (GATE691, tip 1b210a7698; 1 M; bt 0/1; checked 21:03Z; == alive)
 - L534 e6887b348c aio's TRAP SWEEP g73 (GATE690, tip d3af872519; 1 skill M; bt 0/1; checked 20:4xZ)
