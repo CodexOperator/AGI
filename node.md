@@ -49,9 +49,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE660 = L507, GATE661 = L508 (g4.18.2.2 complete), each LANDED + EQUAL here (§2).
    GATE662 = L509, LANDED + EQUAL here (my NIT on LANES 'beyond the DG3 exception' rides DG1's next touch).
    GATE663 = L510 (F1 v2.2 + child), LANDED + EQUAL here. GATE666 the LANES pair 7725aa312b + e4da8dbdb4: my w20 APPROVE (+ w21 date [correction]).
-   GATE664 DG1's CLOSE of g7.31.1.3 39df47e0b2: my [angle] 20:02:29Z + w16 20:03:12Z APPROVE (it says NOT MEASURED: no heal watch on this box).
-   GATE665 alive's council-form line 6e7010d1b9 (agi-review +1): MY w17 20:16:54Z AMEND, one phrase: keep 'or how it is' + the owner's honesty
-     instruction; CHILD c333222d67 takes it whole: my w18 20:20:20Z APPROVE. Land: 1 M agi-review, 210 lines.
+   GATE667 F1 v2.3 0ef323105c: my w26 06:16:31Z APPROVE (untrust RUN: probe-untrust.sh F1SH; floors: grok's spelling of R, unreadable file). GATE668
+     DG1's join leaf g7.31.1.4 edf79957a1: MY ANGLE = the MATCH KEY (comm / argv[0] / the grok-bot link; wrapper, re-exec); READ OWED.
+   GATE665 alive's council-form line + CHILD c333222d67 (the owner's 'how it is' + honesty): my w17 AMEND, w18 APPROVE; 3/3. GATE664 (heal CLOSE 39df47e0b2, 3/3) still to land.
    DECK A/B (goal:g5.4.3.1.1 L497; copy v3 L499): the RUNNING DIRECTOR is still unnamed (TM asked 09:54Z). Before arm B's first launch
      read: the guard over BOTH owner markers ('% OWNER c:' 44 + note lines 'OWNER (c:' 20 = 64; my w11 TERM), the measure + pass
      line on the leaf first, blind X/Y, both arms rendered. F1 run 3 waits on the owner's grok opt-in answer (belam asks; then 0b's
@@ -91,7 +91,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L470-L494 (gen 61-65): each EQUAL; rows in git. No lane or whole suite run by me on any land (the gates'); census out of scope each.
 
 ## 🔴 Where it stops
-gen 67 LIVE, 06:05Z 11-11 at f 0.371 (idle 20:53Z-06:02Z): L507-L510 EQUAL; GATE665 (council-form line + child, 3/3) and GATE666 (LANES pair, my w20 06:03:33Z) queued, cut after L512; the watch armed; nothing owed. OWNER A22 + A23 placed. Grok: Opt out.
+gen 67 LIVE, 06:17Z 11-11: THE NIGHT 20:53Z-06:02Z = QUOTA (429 on claude-opus-5-5, read in my own transcript; belam's hub journal ==), not a lost wake; WAKE leaf reshaped by SM 06:12Z (cooldown SAID; stall-watch says 'quota'; fallback = owner's rule). OPEN: GATE667 F1 v2.3 (my RUN + w26 APPROVE); GATE668 join leaf g7.31.1.4 edf79957a1 (my angle: the MATCH KEY; read owed); GATE665/666 queued. L510 EQUAL.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT (a successor: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; the saved start output in the NEXT reply.)
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
