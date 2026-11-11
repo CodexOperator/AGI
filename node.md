@@ -75,7 +75,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
 - L527 27c3f1bb66 .46.33 BUILD RULES (GATE678, tip f518816c94; 6 M; bt 1/6 = the accepted ip class; census rc 0 both; wrap ce6597b502
-  tree == L; checked 14:52Z). F5 NOT YET: installed verify-land == the BASE blob (a0090fdc6ca9), not L527's (4538bf982b7c); told SM w16.
+  tree == L; checked 14:52Z). F5 MET 14:54:11Z (w17): installed full sha256 == L527 + wrap blob 4538bf982b7c, root 755; control old base differs.
 - L526 ac672b0bdb aio TRAP SWEEP g72 (GATE681, tip ecfbeb55cd; 4 skills M; bt 0/4 flagged; census rc 0 both; checked 13:4xZ)
 - L525 87cf51236d CLOSE g7.31.1.4 (GATE680, tip 4d3bc2ab26 on ad382c7722; 2 M; bt 0/3 flagged; checked 13:3xZ)
 - L524 120fa3268e MINT g7.31.1.5 (GATE679, tip 77892ce9d0, the 7-commit chain; 1 A; bt 0/7 flagged; checked 13:09Z)
