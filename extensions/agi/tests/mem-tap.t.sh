@@ -164,7 +164,10 @@ row '  - {"name": "f", "mem": "always"}
 sed 's/elif faces == "owner" and mem != "full":/elif False:/' $GC>$D/gc_mut.py;cmp -s $GC $D/gc_mut.py&&{ echo "FAIL inputs: r7 mutant changed nothing";exit 99;};mkdir -p $D/m/agi/bin;ln -s $R0/extensions/agi/src $D/m/agi/src;cp $D/gc_mut.py $D/m/agi/bin/geometry_config.py
 row '  - {"name": "d", "mem": "season", "faces": "owner"}
 ';ok "r7-mutant-reader-without-the-check-RED a reader without the faces/mem check accepts faces: owner + mem: season (rc 0), the lane r7 wants rc != 0" 'python3 $D/m/agi/bin/geometry_config.py --root $G7 --cells >/dev/null 2>&1'
-ok "r7-belam-only the trunk's posts.md carries mem: full + faces: owner on belam and no other row carries either" '[ "$(python3 $GC --root $R0/.agi --cells|head -1)" != "" ]&&[ "$(grep -c "\"mem\": " $R0/.agi/nodes/.geometry/posts.md)" = 1 ]&&grep -q "\"name\": \"belam\", \"mem\": \"full\", \"faces\": \"owner\"" $R0/.agi/nodes/.geometry/posts.md&&python3 $GC --root $R0/.agi --cells >/dev/null'
+r7f(){ [ "$(python3 $GC --root $R0/.agi --cells|head -1)" != "" ]&&[ "$(grep -c "\"faces\": \"owner\"" $1)" = 1 ]&&grep -q "\"name\": \"belam\", \"mem\": \"full\", \"faces\": \"owner\"" $1&&python3 $GC --root $R0/.agi --cells >/dev/null;}   # belam 18:04Z: mem cells are not pinned to one (meme-master mem: full, 11-09); faces: owner stays belam's alone
+ok "r7-faces-owner-belam-only the trunk's posts.md carries faces: owner on belam's mem: full row and on no other row ($(grep -c '"mem": ' $R0/.agi/nodes/.geometry/posts.md) mem cells, not pinned)" 'r7f $R0/.agi/nodes/.geometry/posts.md'
+sed 's/^\(  - {"name": "meme-master", \)/\1"faces": "owner", /' $R0/.agi/nodes/.geometry/posts.md>$D/posts.f2;cmp -s $R0/.agi/nodes/.geometry/posts.md $D/posts.f2&&{ echo "FAIL inputs: r7 second-owner edit changed nothing";exit 99;}
+ok "r7m-a-second-faces-owner-row-RED a copy with faces: owner on a second row fails the same check" '! r7f $D/posts.f2'
 
 # ---- falsifier 2: no refs/mem in the shared repo, no engine push spelling that covers the store
 PG='push.*(refs/\*|--mirror)'
