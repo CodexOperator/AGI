@@ -162,8 +162,8 @@ ok s26b-hub-back-said-once-then-quiet '[ "$(grep -c "hub A back $BH" $T/said)" =
 # s27 (sp 06:49Z): still down but no hub log line for HUBMAX (LAST old) -> ONE `no failed dial since HH:MMZ, not confirmed back`, never back
 rm -f $T/hqmem $T/said;hstate "A - hub-down $D0";hq >/dev/null;HW=$B2 HL=$D0 hstate "A - hub-down $D0";HNOW=$B2 hq >/dev/null;HNOW=$((B2+30)) HW=$B2 HL=$D0 hq >/dev/null
 ok s27-no-failed-dial-not-confirmed-once-never-back '[ "$(grep -c "hub A no failed dial since $DH, not confirmed back" $T/said)" = 1 ] && ! grep -q "hub A back" $T/said'
-hstate "A - hub-down $D0" "A claude-opus-5-5 quota $RS";rm -rf $T/st/*;HL=$D0 hstate "A - hub-down $D0";o=$(HUBMAX=180 run)
-ok s23c-hub-down-stale-last-seen 'echo "$o" | grep -q "alpha: hub-down: hub A (no upstream) since $DH, last seen $DH"'
+L3=$((NOW-300));L3H=$(date -u -d @$L3 +%H:%MZ);rm -rf $T/st/*;HL=$L3 hstate "A - hub-down $D0";o=$(HUBMAX=180 run)
+ok s23c-hub-down-stale-last-seen 'echo "$o" | grep -q "alpha: hub-down: hub A (no upstream) since $DH, last seen $L3H"'
 hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
 if [ -n "$MUT" ];then
  mk(){ python3 -c "import sys;s=open(sys.argv[1]).read();a=sys.argv[2];assert a in s;open(sys.argv[3],'w').write(s.replace(a,sys.argv[4],1))" $SW "$1" $T/$2 "$3";}
@@ -227,6 +227,10 @@ if [ -n "$MUT" ];then
  o=$(mr m18);ok m18-mutant-last-unchecked-reads-quota-RED 'echo "$o" | grep -q "alpha: quota"';hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
  mk 'ls1(){ [ $((now-$1)) -ge "$HUBMAX" ]&&echo' m19 'ls1(){ false&&echo';HL=$((NOW-600)) hstate "A claude-opus-5-5 quota $RS";rm -rf $T/st/*
  o=$(HUBMAX=180 mr m19);ok m19-mutant-stale-last-unsaid-RED '! echo "$o" | grep -q "last seen"';hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
+ mk '$2=="-"&&$3=="hub-down"{print $4,$5,"x";exit}' m20 '$2=="-"&&$3=="hub-down"{print $4,$4,"x";exit}';rm -rf $T/st/*;HL=$L3 hstate "A - hub-down $D0"   # sp 06:56Z: LAST by NAME
+ o=$(HUBMAX=180 mr m20);ok m20-mutant-T-read-as-LAST-RED '! echo "$o" | grep -q "last seen $L3H"'
+ mk '$2==md&&$3=="quota"{print $4,$5,"x";exit}' m21 '$2==md&&$3=="quota"{print $4,$4,"x";exit}';rm -rf $T/st/*;HL=$((NOW-600)) hstate "A claude-opus-5-5 quota $RS"
+ o=$(HUBMAX=180 mr m21);ok m21-mutant-reset-read-as-LAST-RED '! echo "$o" | grep -q "last seen $LH"';hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
  mq 'say.append(f"hub {hub} down (no upstream) since {hhmm(t)}")' q6 'pass';rm -f $T/hqmem $T/said;hstate "A - hub-down $D0";HQF=$T/q6/hub_quota.py hq >/dev/null
  ok q6-mutant-hub-down-not-said-RED '! grep -q "hub A down" $T/said 2>/dev/null'
  mq '                mem[key] = {"since": t, "said": "down"}
