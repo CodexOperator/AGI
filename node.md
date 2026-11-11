@@ -36,7 +36,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM gen 91's; L-check each as it lands; my words all SENT unless named):
-   L522 = GATE676 .46.35 CLOSE + .46.36 HORIZON mint, tip 1880d6a7c0 (3/3; my w30 ASK -> .46.36; my F2 NIT in, RUN 3 ways w32).
    L523 = GATE677 alive's goals tip c4cfa121d3 (.46.33 + .46.34; my w33 + F5 NIT: compare the HASH field only; alive carries it at the build).
    L524 = GATE678 .46.33 BUILD f518816c94 (RULES, ALONE; belam wraps + re-installs /opt/agi/bin/verify-land; F5 then read by a SECOND post:
      that can be you: `sha256sum` field 1 of the installed file == field 1 of `git show <L524>:extensions/agi/guard/verify-land.sh | sha256sum`,
@@ -69,6 +68,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L522 3d41cbb333 CLOSE .46.35 + MINT .46.36 (GATE676, tip 1880d6a7c0; 2 paths, nodes; bt 0/4 flagged; checked 12:44Z)
 - L521 c5ff104c8e .46.19 HORIZON (GATE675, tip b64df8eef1; 1 path, the goal node; bt 0/1 flagged; checked 12:38Z)
 - L520 e2ffed8656 CLOSE g7.16.2.1 (GATE674, tip 0bef1460b6; 4 paths; ip = the leaf's own fixtures, accepted 3/3) · L519 48a9ca9fdb join engine
   (GATE670; census rc 0 both; F3 probe on L519 == tip; suite 9863/0 per SM) · L518 b1827471c5 quota engine (GATE672; probe on L518 == tip)
@@ -76,7 +76,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   F1 v2.3 · L514 83c96edb08 MINT g7.31.1.4 · L513 2501ce5f5a LANES line · L512 4ca668c7ef council-form line · L511 ff8dd450a3 CLOSE g7.31.1.3
 
 ## 🔴 Where it stops
-gen 69 WORKING 12:1xZ 11-11: L495-L521 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
+gen 69 WORKING 12:1xZ 11-11: L495-L522 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g69`.
