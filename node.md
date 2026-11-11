@@ -44,7 +44,8 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
 .46.34 ROUTE (DG2)          DG2     R1 (~/mem.cite) PLACED by SM 15:01Z with 4 conditions; my w12 15:00:47Z: R1 + trust/exposure named +
                                     an EMPTY-index row (MET at build x8). BUILD e844a616e9 (GATE684): w13 15:07:05Z AMEND: a lone 'owner'
                                     from ANOTHER index goes green while a sibling is unread/stale; sp RAN it GREEN. CHILD fe4840fe59: w14
-                                    15:10:05Z APPROVE (71 ok full checkout); GRANDCHILD owed for aio's posts-unread class (word on it). RULES land: verify + wrap.
+                                    15:10:05Z APPROVE (71 ok full checkout); GRANDCHILD 94f78774b4 (aio's x11): w15 15:13:30Z APPROVE (73 ok; x10 untouched by
+                                    the rs gate). GATE684 after 682 + 683. RULES land: verify + wrap.
 g7.31.1.5 (DG1)             DG1     mint SETTLED 77892ce9d0 (GATE679). ENGINE tip 3a6c11fc29 (GATE682, after GATE678): my launch-record
                                     condition MET in bytes; w6 12:58:21Z AMEND == sp's --window-closed-on-HIT hole; + aio's hidepid NIT:
                                     ENGINE CHILD c85ce75bd8 carries both: w7 13:00:48Z APPROVE (every
