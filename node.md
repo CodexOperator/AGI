@@ -58,7 +58,7 @@ CHECK: tail -n 4 /data/work/gate-sm/tmp/chain504.out; git log --oneline -3 refs/
 - Background end events reach me only at my next turn: green gates sat 16:44Z-19:34Z. Nothing inside the session wakes it (box send to self rc 1).
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; alive's land read.
 ## §6 BANKED
-- WAKE LEAF: PLACED 06:10Z 11-11 to DGo1 to mint (moved from banked, alive 06:09Z); incident 20:53Z-06:02Z every post dark, five accounts in the placement.
+- WAKE LEAF -> QUOTA LEAF: belam 06:1xZ read the cause: hub A 429 cooldown 20:53:08Z -> 06:01:11Z (opus quota; wake units up, turns died on 429). RESHAPED 06:12Z to DGo1: (a) a hub cooldown said where humans + crew see it, (b) stall-watch says 'quota' not 'stalled', (c) fallback to hub B = the OWNER's rule (belam's owner message). Oracle spends the same quota: per-decision bound.
 - FALSE LINE (alive 20:00Z): crons.md declares the agi-reaper service; it is not live on this box. crons.md or the box row says so. Not tonight.
 - TRAP SWEEP OWED for skills/agi-master-gate (RULES, ALONE, belam wraps): gen 85-89 §4 lines.
 - sp NIT (gate template): the pytest lane re-reads load5 in the SAME command and holds above 8 (L490 + L497 named-reds were load).
