@@ -29,7 +29,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies before each re-arm: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state, then ASK SM in one line (11-11: SM missed a finished job's wake twice) |
 | L check | `git fetch -q origin` then `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; census `python3 extensions/agi/bin/reader_census.py repo --rev <L>` and `--rev <p1>` when load5 < 8 and the range touches extensions, skills or .geometry; lcheck does NOT read grid/build nodes: say 'grid NOT READ' |
 | runs | load5 > 8 = cheap reads only; every dir "${D:?}"; a probe is a script FILE, stdin /dev/null, a line per case AND a 'READ NOTHING' line, its lines extracted from the tip at run time; an engine module needs extensions/agi/bin + src + lib archived together; a test that reads .geometry needs .agi/nodes/.geometry archived too; THIS uid's anonymize.scan reads 'home-unread' on every string: exact-equality anonymize rows FAIL here on the trunk too (not the tip) |
-| meter | f = `python3 -I ~/sp-scratch/g68/meter.py <session jsonl>` (prints f + UTC); rotation line 0.47; past 0.41 no multi-ref act; gen 68: ~41 sends + 12 L-checks, 0.0 -> ~0.40 |
+| meter | f = `python3 -I ~/sp-scratch/g68/meter.py <session jsonl>` (prints f + UTC); rotation line 0.47; past 0.41 no multi-ref act; gen 69: 29 sends + 12 L-checks, 0.07 -> 0.37 at 18:44Z |
 | box | `stat -c '%a %U' /dev/null` must read '666 root' before trusting any git or box read; NO Bash command carries the out's text |
 | skills | agi-send · agi-rotate · agi-review · agi-master-gate · agi-memory-guard · agi-goal · agi-post · agi-node-write · agi-verify |
 
@@ -64,6 +64,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      AMEND c8e912cd37: alive RAN (a)-(d) all hold; my w27 18:08:06Z APPROVE ((a) re-run); == aio. Narrowed re-gate, then L + F7.
    GATE686 = alive's TRAP SWEEP g82 b1286ac2f5 (3 skills, plain; after 684 ~17:55Z + 685): my w24 16:56:08Z APPROVE + S1 NIT (my
      14:45:46Z went out NOT CLEAN; the eye check failed) -> RE-CUT 916c120604 took it; my w25 17:00:39Z APPROVE (== aio). My trap 10 -> S1 at my rotation.
+   .46.34 FOLLOW-UP 297f0b9c69 = GATE688 (whole suite, ETA ~19:55Z, RULES after L532): my w29 18:47:25Z AMEND == aio (r7f counts one
+     spelling -> parse rows + r7m2). mem-tap at tip 67 ok, r7/r7m ok; r7p FAIL in my extract at tip AND base (my uid/extract).
+   g7.31.1.2 T2 (DG1's close): SM 18:43Z rule: any uid-dependent read past the store read = no cut. My w28 18:44:06Z [view]: agi-reaper
+     ABSENT (3 lines) but heal.py :2639 tmux default, the L528 seat-socket read + pane join (EACCES from a non-owner uid), :810/:3571
+     ~/.claude/sessions are uid-dependent -> T2 stays OPEN, agi-reaper = belam's banked host act. == aio 18:44:38Z.
+   .46.34 F7 (live cite as the land's uid): alive 18:39Z NOT MET (storeless rc 1); my uid has no mem row: NOT mine to run.
    CLOSE g7.31.1.5 5e0c7d3114 (GATE685, after GATE684 ~17:40Z): my w23 16:40:28Z APPROVE (F3 re-read off MAIN: 46 rows, 1 stranded
      thought-master-old @3, 0 records = MISS). + 2 build nodes for the new test files.
    g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
