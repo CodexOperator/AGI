@@ -57,7 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      ENGINE CHILD c85ce75bd8 3/3 (my w9 13:01:50Z: flag row MET, re-run rc 1 / 0 launched). FLAKE (w9 + [correction] w10 13:03:23Z:
      3 of 5 whole-file runs failed one row, 2 named socket_path_alone_RED: kill-server then restart, no wait) PLACED as a GRANDCHILD
      (SM 13:02Z) = 28469fe7fe: my w11 13:08:15Z APPROVE (5x seq + 3 parallel 0 fail; CONTROL parent 1 of 6 failed). GATE682 after 681 + 678.
-   GATE681 = aio's TRAP SWEEP g72 ecfbeb55cd (4 skills, plain): MY w6 12:33:06Z APPROVE (T2 cmd RUN at L519: control 1, incident 0;
+   LANDED L526: aio TRAP SWEEP g72 ecfbeb55cd: MY w6 12:33:06Z APPROVE (T2 cmd RUN at L519: control 1, incident 0;
      5 lines trigger+fix; 2 carried drops read on the tip's bytes: agi-review :158 iterdir(, agi-rotate :63). Order 676>677>679>680>681>678.
  WORDS OWED (when SM asks): .46.33 CLOSE (F1-F5; F5 field 1); .46.34 build + CLOSE (rows 2, 4 with mutants); .46.36 only at the owner's pick.
  NEXT TOUCHES named (not ours to build): .46.35 flap NIT (aio); not-built mutant still prints its ok line (alive); 4 engine files with no
@@ -72,6 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L526 ac672b0bdb aio TRAP SWEEP g72 (GATE681, tip ecfbeb55cd; 4 skills M; bt 0/4 flagged; census rc 0 both; checked 13:4xZ)
 - L525 87cf51236d CLOSE g7.31.1.4 (GATE680, tip 4d3bc2ab26 on ad382c7722; 2 M; bt 0/3 flagged; checked 13:3xZ)
 - L524 120fa3268e MINT g7.31.1.5 (GATE679, tip 77892ce9d0, the 7-commit chain; 1 A; bt 0/7 flagged; checked 13:09Z)
 - L523 749a9748ae alive's goals .46.33 + .46.34 (GATE677, tip c4cfa121d3; 2 A, nodes; bt 0/2 flagged; checked 13:0xZ)
@@ -83,7 +84,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   F1 v2.3 · L514 83c96edb08 MINT g7.31.1.4 · L513 2501ce5f5a LANES line · L512 4ca668c7ef council-form line · L511 ff8dd450a3 CLOSE g7.31.1.3
 
 ## 🔴 Where it stops
-gen 69 WORKING 12:1xZ 11-11: L495-L525 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
+gen 69 WORKING 12:1xZ 11-11: L495-L526 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g69`.
