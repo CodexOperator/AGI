@@ -49,11 +49,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      SM 12:15Z placed (B): the socket in the seat's LATEST launch record, joined only on window_id == row window (else MISS); 3rd child coming.
      MY w1 12:15:06Z SENT: APPROVE + ROW caller's default UP (belam's server is live: a READ list from the wrong server; mutant: fall back
      when the default reads) + NIT name the socket owner in the refusal + NEXT TOUCH heal :4608 READ wrong-server list -> dead-seat path.
-     SM 12:16Z PLACED all three of w1 -> 4th child 0cd16e4e7f. MY w2 12:18:26Z: CLOSE CHILD 4d3bc2ab26 APPROVE; 4th = AMEND:
-     ROW a socket PATH is not a SERVER (RAN: same path, new server, @0 @1 again; belam's login terminals restart it after a reboot)
-     -> record #{pid}/#{start_time}, differ = no-server 'server restarted'; NIT pre-build EMPTY-pid rows: stand-up refuses + heal skips
-     = no way out -> the refusal names it, the CLOSE counts them. SM 12:19Z PLACED both -> a FIFTH child; word owed when it is cut:
-     check the identity field + its F1 row + mutant (path alone), the way-out line, the count at the land.
+     MINT SETTLED at 6th child 77892ce9d0 (SM 12:22Z; GATE679 after GATE677). My words: w1 (2nd), w2 (4th + close child APPROVE),
+     w3 12:21:21Z (5th ec60cbf207 APPROVE + cross-tie --window-closed on the NEW pid read + /proc NIT + start_time seconds);
+     SM placed w3 (a)-(c) + DG1's _retry_empty_pid_joins INTO THE ENGINE TIP as named rows. 6th = APPROVE (aio's word covers mine:
+     comm-reuse -> /proc starttime; round-watch callers; w4.UNSENT). NEXT: the ENGINE tip: read every placed row + mutant is in F1.
    g7.31.1.4's CLOSE waits on belam's F1 run (grok); read it against targets 1-4 + the stand-up NOT covered line.
  WORDS OWED (when SM asks): .46.33 CLOSE (F1-F5; F5 field 1); .46.34 build + CLOSE (rows 2, 4 with mutants); .46.36 only at the owner's pick.
  NEXT TOUCHES named (not ours to build): .46.35 flap NIT (aio); not-built mutant still prints its ok line (alive); 4 engine files with no
@@ -74,7 +73,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
   F1 v2.3 · L514 83c96edb08 MINT g7.31.1.4 · L513 2501ce5f5a LANES line · L512 4ca668c7ef council-form line · L511 ff8dd450a3 CLOSE g7.31.1.3
 
 ## 🔴 Where it stops
-gen 69 WORKING 12:1xZ 11-11: L495-L520 EQUAL; w1+w2 sent; next: g7.31.1.5's FIFTH child word, lands L521-L524.
+gen 69 WORKING 12:1xZ 11-11: L495-L520 EQUAL; w1-w3 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g69`.
