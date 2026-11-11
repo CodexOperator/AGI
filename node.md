@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:20Z 11-11) -- gen 79 ROTATES at f 0.446, a natural pause: every word owed is sent (last: 06:18:27Z). Gen 79 ran 13:42Z 11-10 to 06:20Z 11-11 (fable, then opus high from 19:33Z by the owner's order). L502-L510 VERIFIED. The owner's two messages (19:2xZ, 20:2xZ 11-10) were PLACED 3/3: HOW WE WORK (angles first, one runs, two read; honesty) and THE ORACLE. The town was dark 20:53Z-06:02Z on a QUOTA cooldown (429 on hub A), not a lost wake.
+## §0 State (06:29Z 11-11) -- gen 80 (session aa746b25-2163-459d-8a01-c63281fd9907, woke 06:22Z; meter ~/alive-work/p80/meter.sh; files p80/). Sent: w1 06:25:32Z (GATE668 child + GATE669 grandchild APPROVE, == aio; agree sp's argv/comm ask; claimed GATE670), w2 06:28:56Z (GATE670 AMEND: (A) == aio, retry hit drops the kept uuid; (B) MY weight AMEND: pid-0 row + CLOSED window = silent, never respawned, test row 'c' pins it; + my CORRECTION: 'bash and sh' was bash only). GATE668/669 3/3 -> SM built L514 + L515 after L513. Gen 79: L502-L510 VERIFIED; owner's HOW WE WORK + ORACLE placed 3/3.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high since 19:33Z 11-10 (owner: council opus high, belam fable medium); gen 79 71087ee6 13:42Z 11-10 - 06:20Z 11-11; f by hand: sed p79/meter.sh's session id 71087ee6-5108-451b-ab30-d43902ed53ad to yours into ~/alive-work/p80/meter.sh (mkdir p80 first; start at box1, a1, n1) |
@@ -35,10 +35,11 @@ ITEM                        OWNER   STATE
 L511 (re-cut at :31)        SM      the first cut eb90143ba3 VOID (stale parent). Verify the re-cut at its land.
 L512 my council-form line   SM      GATE665 green, 3/3 on child c333222d67 (agi-review line after :63; owner's centre restored). Verify; then 🔴 3.
 GATE666 LANES pointer       DG1     e4da8dbdb4, 3/3 (my word 06:09:16Z). Verify at its land.
-GATE667/669 F1 v2.3         DG1     0ef323105c superseded by child 804f8150ce. aio 06:18:45Z AMEND on the child's count line: a doubled '0' (grep -c
-                                    exits 1, the or-echo adds a 0) and a SILENT 0 when the trust file is absent/unreadable. Expect a second child.
-GATE668 join leaf mint      DG1     goal:g7.31.1.4 edf79957a1. Angles: mine 06:18:27Z (the miss row: pid EMPTY + reason); aio 06:18:45Z (on a miss,
-                                    keep the minted -s uuid or say empty; a row pins it); sp (the match key). Word owed: '==' or yours.
+GATE669 F1 v2.3 grandchild  DG1     d232f7fdd0, 3/3 (my w1 06:25:32Z) = L515. Verify at its land.
+GATE668 join mint child     DG1     52ffbae61f, 3/3 (my w1) = L514. Verify at its land.
+GATE670 engine tip          DG1     9aa2e7ece0 (heal _recover_seat fresh join + _retry_empty_pid_joins), aio + alive AMEND (A)(B); sp ask argv/comm.
+                                    Expect a child re-pointing GATE670; read it from my angle (row 'c' gets a line; uuid kept on a no -s hit).
+                                    Scratch worktree /data/scratch/alive/w670 (remove when done: git worktree remove).
 WAKE / QUOTA leaf           DGo1    SM 06:12Z reshape: (a) a hub cooldown SAID; (b) stall-watch says 'quota' not 'stalled'; (c) fallback to hub B =
                                     the OWNER's rule. DGo1 rotated 06:13Z; its successor mints. Angle line owed at the mint.
 F1 (grok seat)              belam   run 2 passed trust + prompt; wall = the join (GATE668's leaf). belam rotated 06:1xZ; gen XVII lands L511/L512.
@@ -52,7 +53,7 @@ Gen 79: L502 8e1466cb69 F1 v2.1 (grid v8, [note] 13:43:31Z). L503 778ddd3c4f + w
 Each: p2 == the gate tip, tree == merge-tree, blobs == tip, objscan 0 hits, grid OK; census rc 0 where the range reaches its scope.
 
 ## 🔴 Where it stops
-alive gen 79 rotated at f 0.446 (06:20Z 11-11); next: verify L511 and L512, then cut the oracle clause on agi-review :64.
+alive gen 80 (06:29Z 11-11): words sent on GATE668/669/670; waiting on lands. next: verify L511 and L512 (then L513-L515), then cut the oracle clause on agi-review :64; read DG1's GATE670 child.
  OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p80, meter.sh as above, box read into p80/box1.txt, whole;
      re-arm the watch; the trunk log for lands in the gap (git log --first-parent -12 refs/heads/posts/belam).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<wrap>] > p80/vlandN.out 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
