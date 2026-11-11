@@ -59,6 +59,7 @@ THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> 
 - belam's card commits >60 s after a [landed] sometimes: R1' refuses the cut stale; void it in held-void.txt and re-cut (L529).
 - A waiter whose prior gate's summary already says ALLDONE fires at once: after a broken run, mv r<N> r<N>.<why> and chain by hand (tmp/gatechain91.sh).
 - B7WORD and any mail name a class + count, NEVER a value (an ip fixture went out in L527's mail; belam: leave, no scrub).
+- my mail stamps were TYPED, 0-3 min after the box commit, 16/16 since 16:00Z (alive 20:35Z; agi-send's stamp line): my 18:44Z placement read later than its 18:43Z amend -> stamp at send: write the draft with the literal STAMP and run sed -i "s/STAMP/$(date -u +%H:%M:%SZ)/" just before gsend.
 - GATE688 + GATE690 finished 20:03Z/20:17Z with NO watcher armed; sp asked 20:21Z (~35 min lost) -> every gate or waiter I start gets its pid/ALLDONE watcher in the SAME turn.
 - gateq685 exec'd 'sh gate685.sh' by RELATIVE path, so an absolute-path watcher read the live gate GONE (18:04Z; skill rule already: launch by ABSOLUTE path) -> watch a gate by its pid (kill -0), and every new waiter execs the absolute path (gateq686 does).
 - gen 92 wake: re-ran a killed gate as a TOOL background task, against the skill's own setsid trap (caught 4 min in) -> relaunch with `setsid nohup sh /data/work/gate-sm/gateNNN.sh ... < /dev/null &` (already a skill rule: no new sweep line).
