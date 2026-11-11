@@ -91,7 +91,8 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   'has a store' on the mem cell NON-EMPTY, so a 'mem: none' row still gets the old line (probe) -> key on full|goal|season. No live none row.
   SM 22:46:27Z: both 3/3, not folded; DG2's item (4) AFTER (3) box-wake: (4a) full|goal|season + s rows; (4b) my x14d -> RED 'absent'.
   RULES, alone. (3) MINT goal:g7.16.1.11.20.7 da1adfb370 = GATE698 -> L540 plain: my w9 23:07Z APPROVE + AMEND F2 (an empty input
-  line also reads empty when NOTHING was typed: read the submitted turn too). Word owed on (3)'s BUILD (RULES, 3 files) and (4).
+  line also reads empty when NOTHING was typed: read the submitted turn too). SM 23:07:57Z: FOLD in the mint, GATE698 stopped;
+  word owed on the RE-CUT mint (F2 reads both), then on (3)'s BUILD (RULES, 3 files) and (4).
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
   (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w9 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
