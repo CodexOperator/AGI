@@ -2610,10 +2610,91 @@ class WindowsUnread(list):
     0, timeout, any exception), as opposed to a read that listed none. Every
     caller still sees `[]`; a caller for which the window list is the ONLY
     proof of death (the empty-pid closed-window path) tells the two apart by
-    type and never acts on an unread list (fail closed)."""
+    type and never acts on an unread list (fail closed).
+
+    goal:g7.31.1.5: it carries WHY, read from the tmux SOCKET's state and
+    never from tmux's wording (self-perpetuating 12:07:35Z: after a reboot
+    /tmp is cleared and tmux says 'error connecting ... (No such file or
+    directory)', not 'no server running'). `reason` is 'no-server' when the
+    socket is ABSENT or STALE (present, refusing a connect), or tmux itself
+    is not installed: nothing can hold a window. It is 'read-failed' when the
+    socket accepts or cannot be probed (Permission denied), a timeout, any
+    other failure: a window may be open. `detail` names the socket state and
+    what tmux or the exception said."""
+
+    def __init__(self, reason: str = "read-failed", detail: str = ""):
+        super().__init__()
+        self.reason = reason
+        self.detail = detail
 
 
-def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
+def _tmux_socket_path() -> str:
+    """goal:g7.31.1.5: the socket a bare `tmux list-windows` talks to: the
+    first field of $TMUX inside a tmux client, else
+    ${TMUX_TMPDIR:-/tmp}/tmux-<uid>/default (tmux's own default)."""
+    t = os.environ.get("TMUX", "")
+    if t:
+        return t.split(",")[0]
+    return os.path.join(os.environ.get("TMUX_TMPDIR") or "/tmp",
+                        f"tmux-{os.getuid()}", "default")
+
+
+def _socket_owner(path: str) -> str:
+    """goal:g7.31.1.5: the user who owns the socket's directory
+    (/tmp/tmux-<uid>, stat-able from any uid even when 0700), or ''."""
+    try:
+        import pwd  # noqa: PLC0415
+        return pwd.getpwuid(os.stat(os.path.dirname(path)).st_uid).pw_name
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _tmux_socket_state(path: str) -> str:
+    """goal:g7.31.1.5: 'absent' | 'stale' (present, a connect is refused) |
+    'live' (a connect is accepted) | 'unstatable' (a stat error other than
+    FileNotFoundError: EACCES from another uid's 0700 dir) | 'unprobed' (a
+    connect error other than refused). Classified on the ERRNO: os.path.exists
+    is False for EACCES and ENOENT alike (sp RAN it), so it is never asked.
+    Never raises."""
+    import socket as _socket  # noqa: PLC0415
+    try:
+        os.lstat(path)
+    except FileNotFoundError:
+        return "absent"
+    except OSError:
+        return "unstatable"
+    sk = _socket.socket(_socket.AF_UNIX, _socket.SOCK_STREAM)
+    sk.settimeout(1.0)
+    try:
+        sk.connect(path)
+        return "live"
+    except ConnectionRefusedError:
+        return "stale"
+    except FileNotFoundError:
+        return "absent"
+    except Exception:  # noqa: BLE001
+        return "unprobed"
+    finally:
+        sk.close()
+
+
+def _windows_unread(said: str, socket_path: str = "") -> "WindowsUnread":
+    """goal:g7.31.1.5: a failed read, classified by the state of the socket
+    that was read (the seat's, when the caller named it; else the default)."""
+    path = socket_path or _tmux_socket_path()
+    state = _tmux_socket_state(path)
+    detail = f"socket {state}: {path}; tmux said: {said or '-'}"
+    if state == "unstatable":
+        owner = _socket_owner(path)
+        if owner:
+            detail += f"; run it as {owner}"
+    if state in ("absent", "stale"):
+        return WindowsUnread("no-server", detail)
+    return WindowsUnread("read-failed", detail)
+
+
+def _all_windows(window_path: str | None = None,
+                 socket: str | None = None) -> list[tuple[str, str]]:
     """`[(window_id, window_name), ...]` across EVERY tmux session, or from
     the window-path test seam (`AGI_WINDOW_PATH` / explicit `window_path`):
     one `@<N> <name>` or bare `<name>` line per window. `-a` lists windows in
@@ -2636,8 +2717,11 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
                 out.append(("", ln))
         return out
     try:
+        # goal:g7.31.1.5: `socket` = the SEAT's own server (its launch
+        # record's tmux_socket); absent = this process's default server
         res = subprocess.run(
-            ["tmux", "list-windows", "-a", "-F", "#{window_id} #{window_name}"],
+            ["tmux"] + (["-S", socket] if socket else [])
+            + ["list-windows", "-a", "-F", "#{window_id} #{window_name}"],
             capture_output=True, text=True, timeout=5)
         if res.returncode == 0:
             out = []
@@ -2648,10 +2732,220 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
                 wid, _, name = ln.partition(" ")
                 out.append((wid.strip(), name.strip()))
             return out
-    except Exception:  # noqa: BLE001 — tmux absent/down: [] (pid gate is primary)
-        pass
-    # goal:g7.31.1.4: an empty list that SAYS the read failed (still == [])
-    return WindowsUnread()
+        # goal:g7.31.1.5: say WHY the read failed, from the socket's state
+        said = ((res.stderr or "").strip().splitlines() or [f"rc {res.returncode}"])[0]
+        return _windows_unread(said, socket or "")
+    except FileNotFoundError as exc:  # tmux not installed: no server can run
+        return WindowsUnread("no-server", f"tmux not installed: {exc}")
+    except Exception as exc:  # noqa: BLE001 — a timeout or any other failure
+        # goal:g7.31.1.4: an empty list that SAYS the read failed (still == [])
+        return _windows_unread(f"{type(exc).__name__}: {exc}", socket or "")
+
+
+
+def _window_server(window_id: str) -> dict:
+    """goal:g7.31.1.5: the server holding `window_id` on this process's
+    default server (the one a launch just used), read from THAT server:
+    {tmux_socket, tmux_server_start, tmux_server_pid}; {} when unread.
+    `#{start_time}` is whole seconds, so the server pid rides with it (sp
+    12:22Z: two servers 1 s apart, or a restart inside one second)."""
+    if not window_id:
+        return {}
+    try:
+        res = subprocess.run(["tmux", "display-message", "-p", "-t", window_id,
+                              "#{socket_path}\t#{start_time}\t#{pid}"],
+                             capture_output=True, text=True, timeout=5)
+        parts = (res.stdout or "").strip().split("\t")
+        if res.returncode != 0 or len(parts) != 3 or not all(parts):
+            return {}
+        return {"tmux_socket": parts[0], "tmux_server_start": parts[1],
+                "tmux_server_pid": parts[2]}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _server_identity(sock: str) -> tuple[str, str] | None:
+    """goal:g7.31.1.5: (start_time, pid) of the LIVE server on `sock`, or
+    None when unread (list-sessions needs no client, unlike display-message)."""
+    try:
+        res = subprocess.run(["tmux", "-S", sock, "list-sessions", "-F",
+                              "#{start_time}\t#{pid}"],
+                             capture_output=True, text=True, timeout=5)
+        line = ((res.stdout or "").strip().splitlines() or [""])[0]
+        parts = line.split("\t")
+        if res.returncode != 0 or len(parts) != 2 or not all(parts):
+            return None
+        return parts[0], parts[1]
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _proc_starttime(pid: int) -> str:
+    """goal:g7.31.1.5 (all-is-one 12:22:23Z): /proc/<pid>/stat field 22, the
+    process start time in clock ticks since boot ('' when unread); readable
+    across uids here (no hidepid). Parsed after the LAST ')' (comm may hold
+    spaces or parens)."""
+    try:
+        raw = Path(f"/proc/{int(pid)}/stat").read_text(encoding="utf-8", errors="replace")
+        return raw[raw.rindex(")") + 2:].split()[19]
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _is_launch_record(rec: dict) -> bool:
+    """goal:g7.31.1.5 (alive 12:24:10Z): a record that RECORDS a launch:
+    heal's crash-recovery with `result: respawned`, or any other record
+    (rotate's seating builder) that carries a window. Never a `detected` or
+    refusal record: those name no launch, and a newer one must not hide the
+    launch behind it."""
+    if rec.get("rotation") == "crash-recovery":
+        return rec.get("result") == "respawned"
+    return bool(rec.get("window_id") or rec.get("window"))
+
+
+def _launch_record_pid(rec: dict) -> int:
+    """The harness pid a launch record launched: respawn_outcome.pid on
+    heal's record, top-level pid on rotate's; 0 when none."""
+    try:
+        return int((rec.get("respawn_outcome") or {}).get("pid")
+                   or rec.get("pid") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _latest_seat_record(root: Path, seat: str, _rotate) -> tuple[dict | None, str]:
+    """goal:g7.31.1.5: the seat's LATEST LAUNCH record by recorded_at
+    (`_is_launch_record`), or (None, why). An unreadable record or stamp is a
+    miss, named: the latest cannot be known past it."""
+    try:
+        rot = _rotate._rotations_dir(root)
+    except Exception as exc:  # noqa: BLE001
+        return None, f"rotations dir unresolved: {exc}"
+    if _sweep_is_dir(rot) is not True:
+        return None, f"rotations dir {rot} unread"
+    best, best_ts = None, None
+    for path in rot.glob(f"{seat}.*.json"):
+        try:
+            rec = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            return None, f"record {path.name} unreadable ({type(exc).__name__})"
+        if (not isinstance(rec, dict) or (rec.get("seat") or seat) != seat
+                or not _is_launch_record(rec)):
+            continue
+        ts = _parse_record_ts(str(rec.get("recorded_at") or ""))
+        if ts is None:
+            return None, f"record {path.name} has no readable recorded_at"
+        if best_ts is None or ts > best_ts:
+            best, best_ts = dict(rec, _name=path.name), ts
+    if best is None:
+        return None, "no launch record"
+    return best, ""
+
+
+def _seat_socket_join(root: Path, seat: str, row: dict, _rotate) -> tuple[dict, str]:
+    """goal:g7.31.1.5 (SM [decision] 12:15Z): the seat's OWN tmux server, from
+    its LATEST launch record, used only when that record's window
+    (`window_id`, or `window` on a rotate-self record) == the row's `window`.
+    ({tmux_socket, tmux_server_start, tmux_server_pid}, '') on a hit; ({},
+    why) on a MISS. A window @id means something only on its own server, so
+    this is NEVER a scan across records for a matching @id."""
+    rec, why = _latest_seat_record(root, seat, _rotate)
+    if rec is None:
+        return {}, why
+    win = str(row.get("window") or "").strip()
+    rwin = str(rec.get("window_id") or rec.get("window") or "").strip()
+    if not win or rwin != win:
+        return {}, (f"latest record {rec['_name']} names window {rwin or '-'}, "
+                    f"the row {win or '-'}")
+    srv = {k: str(rec.get(k) or "").strip() for k in
+           ("tmux_socket", "tmux_server_start", "tmux_server_pid")}
+    if not all(srv.values()):
+        return {}, f"latest record {rec['_name']} names no tmux server"
+    return srv, ""
+
+
+def _seat_windows(root: Path, seat: str, row: dict, _rotate,
+                  window_path: str | None = None):
+    """goal:g7.31.1.5: the seat's windows read on its OWN server ->
+    (windows | None, how, socket). None = a MISS (the server is not known;
+    `how` says why). A live server on the socket with another start time or
+    pid is a RESTART: WindowsUnread('no-server', 'server restarted ...'),
+    because its @N is some other window."""
+    srv, why = _seat_socket_join(root, seat, row, _rotate)
+    if not srv:
+        return None, why, ""
+    sock = srv["tmux_socket"]
+    live = _server_identity(sock)
+    if live is not None and live != (srv["tmux_server_start"], srv["tmux_server_pid"]):
+        return (WindowsUnread("no-server",
+                              f"server restarted: {sock} now started {live[0]} "
+                              f"pid {live[1]}, the launch's started "
+                              f"{srv['tmux_server_start']} pid {srv['tmux_server_pid']}"),
+                f"socket {sock}", sock)
+    return (_all_windows(window_path, socket=sock),
+            f"socket {sock} (its latest launch record)", sock)
+
+
+def _seat_pid_read(pid: int, harness: str, recorded_start: str = "") -> tuple[str, str]:
+    """goal:g7.31.1.5 target 5 + sp (b) + all-is-one 12:22:23Z: a seat pid
+    read through /proc -> ('alive' | 'dead' | 'reused', why). The exact proof
+    is the process start time (/proc/<pid>/stat field 22) against the one the
+    launch recorded: equal = alive; another = REUSED = dead, named with comm
+    + uid. With no recorded start time (a pre-build row) the weaker read:
+    comm or argv[0] basename == the harness bin = alive, else reused, said
+    as the weaker read. /proc unreadable -> _pid_alive (EPERM = alive)."""
+    if pid <= 0:
+        return "dead", "no pid"
+    proc = Path(f"/proc/{pid}")
+    try:
+        st = proc.stat()
+    except FileNotFoundError:
+        # all-is-one 12:55:08Z: under hidepid=2 another uid's live pid has no
+        # /proc entry; kill(0) confirms before 'gone' (EPERM = alive)
+        if _pid_alive(pid):
+            return "alive", f"pid {pid} hidden by /proc (kill(0) reads it alive)"
+        return "dead", f"pid {pid} gone"
+    except OSError as exc:
+        return (("alive" if _pid_alive(pid) else "dead"),
+                f"pid {pid}: /proc unreadable ({type(exc).__name__}), kill(0) read")
+    try:
+        comm = (proc / "comm").read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        comm = ""
+    try:
+        import pwd  # noqa: PLC0415
+        uname = pwd.getpwuid(st.st_uid).pw_name
+    except Exception:  # noqa: BLE001
+        uname = str(st.st_uid)
+    who = f"{comm or '?'} (uid {uname})"
+    start = _proc_starttime(pid)
+    if recorded_start and not start:
+        # all-is-one 12:55:08Z: hidepid=1 shows the dir, not its files: an
+        # UNREAD start time cannot prove a reuse; kill(0) decides, named
+        return (("alive" if _pid_alive(pid) else "dead"),
+                f"pid {pid} {who}: start time unread, kill(0) read")
+    if recorded_start:
+        if start and start == recorded_start:
+            return "alive", f"pid {pid} is {who}, its start time the launch's"
+        return "reused", (f"pid {pid} reused by {who}: start time {start or '?'}, "
+                          f"the launch's {recorded_start}")
+    try:
+        import harness_template  # noqa: PLC0415
+        want = harness_template.bin_name(harness)
+    except Exception:  # noqa: BLE001
+        want = harness
+    try:
+        raw = (proc / "cmdline").read_bytes().split(b"\0")[0].decode("utf-8", "replace")
+        argv0 = os.path.basename(raw)
+    except OSError:
+        argv0 = ""
+    if not comm and not argv0:
+        # nothing readable to compare (hidepid=1): cannot prove a reuse
+        return (("alive" if _pid_alive(pid) else "dead"),
+                f"pid {pid} {who}: comm unread, kill(0) read")
+    if want and (comm == want[:15] or argv0 == want):
+        return "alive", f"pid {pid} is {who} (the weaker read: no recorded start time)"
+    return "reused", f"pid {pid} reused by {who} (the weaker read: no recorded start time; want {want})"
 
 
 def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
@@ -4266,6 +4560,13 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
         "pin_ref": "",
         "tmux_session": _rotate.DEFAULT_TMUX_SESSION,
         "window_id": (outcome.get("window") if outcome else None) or "",
+        # goal:g7.31.1.5: the server the launch used (socket + identity, read
+        # from that server) and the harness pid's start time (the reuse proof)
+        **({k: "" for k in ("tmux_socket", "tmux_server_start", "tmux_server_pid")}
+           | (_window_server(outcome.get("window") or "") if res == "respawned" else {})),
+        "pid_starttime": (_proc_starttime(int(outcome.get("pid") or 0))
+                          if res == "respawned" and int((outcome or {}).get("pid") or 0) > 0
+                          else ""),
         "pred_pids": pred_pids,
         "row": {k: cells.get(k) for k in (
             "name", "role", "model", "pid", "window", "session_id",
@@ -4559,19 +4860,25 @@ def _retry_empty_pid_joins(root: Path, rows: list, windows, _rotate) -> list[str
     value to the row; a miss names the row, every pass, until it joins or its
     window closes (a CLOSED window: `_empty_pid_closed_window_rows`, the
     dead-seat path). Returns the names it joined."""
-    present = {w for w, _n in windows}
     joined: list[str] = []
     for r in rows:
         name = (r.get("name") or "").strip()
         hid = str(r.get("harness") or "").strip()
         win = (r.get("window") or "").strip()
         if (not name or not hid or int(r.get("pid", 0) or 0) > 0
-                or not win or win not in present
+                or not win
                 or not boxes.row_is_local(root, r)
                 or _rotate._harness_session_registry(hid) != "none"):
             continue
+        # goal:g7.31.1.5 (DG1 12:24Z, PLACED by SM): the window AND the pane
+        # are read on the seat's OWN server, never this process's default
+        # (another server's @N is another window, its pane another process)
+        sw, how, sock = _seat_windows(root, name, r, _rotate)
+        if (sw is None or isinstance(sw, WindowsUnread)
+                or win not in {w for w, _n in sw}):
+            continue  # not open on its own server: named by the (B) pass
         j = _rotate._join_by_pane(seat=name, window_id=win, harness=hid,
-                                  poll_secs=0)
+                                  poll_secs=0, socket=sock)
         if j.get("found"):
             # goal:g7.31.1.4 (A) (aio 06:26:04Z, alive): a join that reads NO
             # -s (a re-exec whose argv dropped it) KEEPS the session_id the
@@ -4606,44 +4913,52 @@ def _retry_empty_pid_joins(root: Path, rows: list, windows, _rotate) -> list[str
 
 
 def _empty_pid_closed_window_rows(root: Path, rows: list, windows) -> list:
-    """goal:g7.31.1.4 (B) (placed AMEND, SM 06:29Z 11-11): a LOCAL
-    registry-none row with an EMPTY pid whose window has CLOSED is a dead
-    seat. Before the tip such a row held the pane shell's pid, so a closed
-    window read as a dead pid and was RESPAWNED; with pid EMPTY the pid > 0
-    scan never sees it and the retry stops at the open-window test: dead and
-    silent. Each pass NAMES every such row and returns it, for the caller to
-    hand to the dead-seat path (`_watch_one_seat(..., empty_pid_dead=True)`):
-    recovered like a dead pid, under the same once-guard, admission and
-    recover cell (sp's lean, self-perpetuating 06:30:33Z: what the row did
-    before the tip). A row with no window at all was never stood up here:
-    not touched. With no pid gate the window list is these rows' ONLY proof
-    of death, so an UNREAD list (`WindowsUnread`, a failed tmux read) hands
-    on NOTHING: each such row is named 'window list unread: not recovered'
-    and left (all-is-one 07:13:58Z: a tmux hiccup must never start a second
-    harness on a live seat)."""
+    """goal:g7.31.1.4 (B) + goal:g7.31.1.5 target 3: a LOCAL registry-none
+    row with an EMPTY pid whose window has CLOSED is a dead seat, handed to
+    the dead-seat path (`_watch_one_seat(..., empty_pid_dead=True)`). Its
+    window is read on the seat's OWN server (`_seat_windows`), never this
+    process's default: a READ list from another server would show @N closed
+    and start a second harness (sp 12:15:06Z). A MISS (the server not known)
+    -> SKIP, named; a restarted server (another start time or pid on the
+    socket) -> dead, its @N is another window; any other unread list ->
+    named, not recovered (L519: a hiccup never starts a second harness). A
+    row with no window at all was never stood up here: not touched.
+    `windows` (the caller's own list) is no longer read for these rows."""
     try:
         import rotate as _rotate  # noqa: PLC0415
     except Exception:  # noqa: BLE001
         return []
-    unread = isinstance(windows, WindowsUnread)
-    present = {w for w, _n in windows}
     dead: list = []
     for r in rows:
         name = (r.get("name") or "").strip()
         hid = str(r.get("harness") or "").strip()
         win = (r.get("window") or "").strip()
         if (not name or not hid or int(r.get("pid", 0) or 0) > 0
-                or not win or win in present
+                or not win
                 or not boxes.row_is_local(root, r)
                 or _rotate._harness_session_registry(hid) != "none"):
             continue
-        if unread:
+        sw, how, _sock = _seat_windows(root, name, r, _rotate)
+        if sw is None:
+            _watch_log(f"watch: seat {name} has no pid ({hid}); its tmux server "
+                       f"is not known ({how}): not recovered")
+            continue
+        if isinstance(sw, WindowsUnread):
+            if sw.detail.startswith("server restarted"):
+                _watch_log(f"watch: seat {name} has no pid ({hid}); its "
+                           f"{sw.detail}: a dead seat, handed to the dead-seat "
+                           f"path")
+                dead.append(r)
+                continue
             _watch_log(f"watch: seat {name} has no pid ({hid}); window list "
-                       f"unread (the tmux read failed): not recovered")
+                       f"unread on its own server ({sw.reason}: {sw.detail}): "
+                       f"not recovered")
+            continue
+        if win in {w for w, _n in sw}:
             continue
         _watch_log(f"watch: seat {name} has no pid ({hid}) and its window "
-                   f"{win} is CLOSED: a dead seat, handed to the dead-seat "
-                   f"path")
+                   f"{win} is CLOSED on its own server ({how}): a dead seat, "
+                   f"handed to the dead-seat path")
         dead.append(r)
     return dead
 
@@ -4798,10 +5113,15 @@ def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path,
 
 
 def _pid_alive(pid: int) -> bool:
+    """goal:g7.31.1.5 target 5 (all-is-one 12:19:38Z): only ESRCH is dead.
+    EPERM means the process EXISTS (another uid's), and any other error can't
+    prove it gone: both read alive, never dead."""
     try:
         os.kill(pid, 0)
-    except OSError:
+    except ProcessLookupError:
         return False
+    except OSError:
+        return True
     return True
 
 
