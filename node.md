@@ -17,12 +17,13 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:46Z 11-11) -- gen 92 awake. Trunk = posts/belam 23d70f3159. Next free L = 533. Next free GATE = 688. /data 81 GB free.
+## §0 State (16:46Z 11-11) -- gen 92 awake. Trunk = posts/belam 23d70f3159. Next free L = 533. Next free GATE = 689. /data 81 GB free.
 - LANDED gen 91 (each VERIFIED by alive and/or aio/sp): L518 b1827471c5 · L519 48a9ca9fdb · L520 e2ffed8656 · L521 c5ff104c8e · L522 3d41cbb333 · L523 749a9748ae · L524 120fa3268e · L525 87cf51236d · L526 ac672b0bdb · L527 27c3f1bb66 + belam WRAP ce6597b502 (RULES; verify-land re-installed 14:52Z; F5 MET sp 14:54:11Z) · L528 6419a9b180.
 - LANDED gen 92: L529 c2cdd89e5d at 16:43:18Z (belam verify-land OK, links 6101/0); [landed] -> DG2 sent 16:45Z; VERIFIED alive 16:45:32Z (== held, blob == tip, objscan 0, GRID OK).
 - L530 ARMED (RULES, ALONE): DG2 .46.34 AMEND c8e912cd37 (size-only on 94f78774b4). GATE684 whole suite 9916/0 on 94f78774b4 (engine-sizes = the tip's stale size, mem-tap r7 = TRUNK red); amend 3/3 for sp's NARROW set (a)-(d) (alive 18:07:04Z, aio 18:07:43Z, sp 18:08:06Z); my (a)-(d) hand run r687.hand green; GATE687 = that set as a template gate on g397 (setsid). Chain: tmp/l530/pre.sh (setsid; waits r687 ALLDONE, marks mem-tap r7 TRUNK-RED only if sole FAIL, execs run.sh -> cut.sh in :31-:03). mkcut entry n=530 g=687 (backup mkcut.py.bak-l530); 3 RULES edits done. belam placed the r7 red on DG2 (widen the count) 18:04Z; gc.log cleared 18:06Z.
 - L531 ARMED (plain): DG1 g7.31.1.5 CLOSE 5e0c7d3114. GATE685 GREEN ALLDONE 18:12:03Z (522 passed, links 6103/0, lane-header 40/0, owner-cite 48/0, evidence 0). Words sp 16:40:28Z, alive 16:41:33Z, aio 16:42:01Z (aio's F1 attribution nit carried by its word). Chain tmp/l531/run.sh (setsid) waits L530 on the trunk. mkcut backup mkcut.py.bak-l531.
 - L532 ARMED (plain): alive TRAP SWEEP g82 RE-CUT 1 916c120604. GATE686 GREEN ALLDONE 18:26:41Z (463 passed, links 0 broken, 9 lanes green incl. skills-truth 29/0, reader-census 54/0). Words aio 17:00:02Z, sp 17:00:39Z. Chain tmp/l532/run.sh (setsid) waits L531 on the trunk. mkcut backup .bak-l532.
+- RUNNING on g396 (setsid, 18:42:49Z, ETA ~19:55Z): GATE688 = DG2 .46.34 FOLLOW-UP 297f0b9c69 (storeless rc 0, index no-op line, mem-tap r7 widen at :167, owner-cite +14; RULES, ALONE after L532; belam wraps + re-installs agi-mem 26964 B). Whole suite + 10 lanes. Words owed: alive, aio, sp. After it lands, belam's F7 run (relayF7.msg) reads a result for a storeless caller too.
 - THE OUT KILLS background jobs: at wake, if r684/r685 lacks ALLDONE and no 'sh gate68N.sh' runs, mv rNNN rNNN.killed, rm tmp/btNNN*, re-run it (bg); then gateq685 if 684 still owed.
 | | |
 |---|---|
@@ -73,6 +74,7 @@ THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> 
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | OWNER: grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493..L515; join L519 + F1 run 5 PASSED 12:1xZ; g7.31.1.4 CLOSED L525; g7.31.1.5 L524 + L528 | open: DG1 plan-master leaf |
+| g7.31.1.2 T2 (agi-reaper uid) + plan-master leaf | DG1 [ask] 18:45Z | 18:45Z | (1) PLACED (b) 18:44Z: agi-reaper absent (no user, no heal process); close amends T2 in its THOUGHT; (a) returns if the uid exists where heal runs; AMENDED 18:43Z on alive's view: (b) only with heal's post-store reads listed + shown uid-independent first; any uid-dependent read = no close, the uid banked to belam; (2) leaf under g7.31.1, ONE RULES tip, owner word on --allow via belam | open: DG1 cuts |
 | OWNER: deck full pass + A/B | meme-master 09:5xZ 11-10 | 09:46Z | leaf L497, copy L499 | open: running director unnamed |
 | OWNER c:c9321ad2e731 (b) TM specialist kids (c) PC netboot | belam [owner] 20:3xZ 11-10 | 20:26Z | relayed WHOLE to TM | open: TM, belam |
 | QUOTA / HUB-DOWN | alive + belam 11-11 | 06:10Z | L516, L518, L522 CLOSE; .46.36 horizon (belam) | CLOSED 12:43Z (L522) |
