@@ -113,6 +113,16 @@ def test_hand_restart_is_a_stand_up(graph, calls, capsys):
 def test_hand_restart_refuses_a_live_post(graph, calls, capsys):
     p = graph / "nodes" / ".geometry" / "seats.md"
     p.write_text(p.read_text().replace(str(DEAD_PID), str(os.getpid())))
+    # goal:g7.31.1.5: liveness is PROVEN by the pid's start time against the
+    # launch record's (a pid with a foreign comm and no record reads reused):
+    # the launch record names this live pid and its real start time
+    rot = graph / "sessions" / "rotations"
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / "seat-a.20261111T000000Z.json").write_text(json.dumps({
+        "rotation": "crash-recovery", "seat": "seat-a", "result": "respawned",
+        "recorded_at": "2026-11-11T00:00:00Z", "window_id": "@50",
+        "respawn_outcome": {"pid": os.getpid(), "window": "@50"},
+        "pid_starttime": heal._proc_starttime(os.getpid())}))
     launched: list = []
     rc = rotate.cmd_stand_up(
         NS(post="seat-a", window_path=str(graph / "windows.txt")), graph,
@@ -191,7 +201,10 @@ def test_cli_stand_up_passes_the_root(graph, monkeypatch, capsys, no_live):
     assert _cli(graph, monkeypatch, launched) == 0, capsys.readouterr()
     assert len(launched) == 1
     assert "stood up seat-a (fresh)" in capsys.readouterr().out
-    assert (no_live["sends"], no_live["nudges"], no_live["tmux"]) == ([], [], [])
+    # goal:g7.31.1.5: the launch record reads its server back with ONE read-only
+    # `tmux display-message -p` (socket, start time, pid); no other tmux call
+    tmux_writes = [c for c in no_live["tmux"] if list(c[1:3]) != ["display-message", "-p"]]
+    assert (no_live["sends"], no_live["nudges"], tmux_writes) == ([], [], [])
     assert len(no_live["dms"]) == 1  # the dm was faked, never sent
 
 

@@ -262,12 +262,15 @@ def test_claude_code_argv_is_byte_identical_no_session_minted():
     assert not any(UUID_RE.match(t) for t in got)
 
 
-def test_session_and_resume_together_are_refused_by_name_and_its_mutant(tmp_path):
+def test_session_and_resume_together_are_refused_by_name_and_its_mutant(tmp_path, monkeypatch):
     with pytest.raises(harness_template.HarnessTemplateError,
                        match=f"refusing to render session {UUID} AND resume {UUID} together"):
         harness_template.render("grok-bot", bin_path="/x/g", session=UUID, resume=UUID)
     m = _mutant(tmp_path, BIN / "harness_template.py", "    if session and resume:\n",
                 "    if False:\n", "ht_mut")
+    # goal:g7.31.1.5 target 4 (alive 07:28Z): the copy lives in tmp_path, so from a cwd outside the repo its
+    # module-relative fallback names tmp_path; the mutant reads the REAL templates, whatever the cwd
+    monkeypatch.setattr(m, "template_dir", harness_template.template_dir)
     argv = m.render("grok-bot", bin_path="/x/g", session=UUID, resume=UUID)
     assert "-s" in argv and "-r" in argv                              # both rendered: RED
 
