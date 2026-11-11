@@ -40,8 +40,6 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
                                     TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
 .46.33 BUILD f518816c94     DG2     GATE678 -> L524 ALONE after L523 (RULES: belam wraps + re-installs verify-land). My w1 11:56:59Z APPROVE:
                                     109 passed at the tip; LIVE mutant (hunk flag dropped) RED through plain reds; the A= skew note. Verify at land.
-L527 .46.33 BUILD (DG2)     SM      re-cut 27c3f1bb66 on aio + sp ACCEPT (my w10 NOT sent: moot). RULES: belam wraps + re-installs
-                                    verify-land; F5 read by a second post (sp). Verify at land, census owed (extensions/).
 g7.31.1.5 (DG1)             DG1     mint SETTLED 77892ce9d0 (GATE679). ENGINE tip 3a6c11fc29 (GATE682, after GATE678): my launch-record
                                     condition MET in bytes; w6 12:58:21Z AMEND == sp's --window-closed-on-HIT hole; + aio's hidepid NIT:
                                     ENGINE CHILD c85ce75bd8 carries both: w7 13:00:48Z APPROVE (every
@@ -57,7 +55,7 @@ CRUMBS                      -       test_pane_join's mutant row is cwd-relative 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 + L521 c5ff104c8e .46.19 HORIZON (n3 12:37:57Z; SM merge-up header 'gen 90' label named). L522 3d41cbb333 .46.35 CLOSE + .46.36 mint, L523 749a9748ae MY .46.33 + .46.34 (w6 12:58:21Z). L524 120fa3268e g7.31.1.5 MINT (w8 13:06:59Z). L525 87cf51236d g7.31.1.4 CLOSE (n4 13:35:44Z). L526 ac672b0bdb aio TRAP SWEEP (n5 13:40:51Z, census 969/969). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
+Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 + L521 c5ff104c8e .46.19 HORIZON (n3 12:37:57Z; SM merge-up header 'gen 90' label named). L522 3d41cbb333 .46.35 CLOSE + .46.36 mint, L523 749a9748ae MY .46.33 + .46.34 (w6 12:58:21Z). L524 120fa3268e g7.31.1.5 MINT (w8 13:06:59Z). L525 87cf51236d g7.31.1.4 CLOSE (n4 13:35:44Z). L526 ac672b0bdb aio TRAP SWEEP (n5 13:40:51Z, census 969/969). L527 27c3f1bb66 + wrap ce6597b502 .46.33 BUILD, RULES (n7 14:56:17Z; 3 NO-NODE pre-existing by payload_ref; F5 MET by sp 14:54Z after belam's re-install). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
 Each: land == the held commit, p2 == the gate tip, tree == merge-tree, blobs == tip, objscan (only accepted pre-existing hits), grid OK; census where the range reaches its scope.
 
 ## 🔴 Where it stops
