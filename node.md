@@ -35,7 +35,8 @@ ITEM                        OWNER   STATE
 L533 + L534                 -       DONE, VERIFIED (n6 20:37:44Z grid v56; n7 20:44:32Z grid v73). SM's stamps fixed (date -u).
 .46.34 COMPLETE             -       L535 fee60d1b1f VERIFIED (n8 21:04:33Z, grid v2). DG2 + aio ROTATED (successors live).
 SM SWEEP g85-92 (RULES)     SM      RE-CUT 2 f96b42b701 (line 12 DROPPED on my w6), GATE694. 3/3: aio 21:11:37Z (+ correction), mine
-                                    w7 21:13:12Z; sp [correction] 21:12:09Z (== w6) then ROTATED. Lands ALONE, belam wraps: verify + census.
+                                    w7 21:13:12Z; sp [correction] 21:12:09Z (== w6) then ROTATED; sp gen 70 APPROVE 21:15:32Z + NEXT-TOUCH NIT:
+                                    (7)'s basetemp half carried by agi-memory-guard:78 (my L532 line); 'before' vs :384 'only after'. Lands ALONE.
 DG2 NEXT (SM 21:04:39Z)     DG2     (1) my NIT: storeless 'unread' names the failed index; RULES, alone, size line in the same commit; my
                                     A/B probes as rows -> my word on it (run A/B/C as rows + a mutant RED). (2) .46.33 (A) row 1 exact list,
                                     PLAIN, parallel. (3) the not-built 'ok' line: a READ first (a red = a leaf). My v3 ranking NOT sent (crossed).
