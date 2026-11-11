@@ -69,12 +69,13 @@ THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> 
 - GRID: 'unread 2' (fuel s4-retire-the-python-engine, doc draft-presentation-outline: owner unread). My turn-end split often misses the lock.
 - belam: clear gc.log AFTER GATE684 (agreed 16:38Z); standing slabdrop timer every 30 s at 1400 MiB (host act).
 - OWNER BATCH via belam: actor_rows CREATE grant (L463 R2); [config].md self_row 'tmux_socket' (g7.31.1.5 (A); (B) built); 2c 'resume_failed'; hub-B fallback; PC reboot window; mail refs free of ip class (belam's line).
+- BANK g7.31.1.2 T2: agi-reaper uid = an owner-unnamed host act AND useless until heal watches/launches on the SEAT's tmux server (DG1 18:50Z code read); options: (i) a DG1 design leaf, then the uid; (ii) T2 amended to name heal-as-seat-uid as production. Rec (i). Relayed to belam with F7.
 - FALSE LINE: crons.md declares agi-reaper; not live on this box. posts/thought-master + posts/director-thought-1: never push.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | OWNER: grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493..L515; join L519 + F1 run 5 PASSED 12:1xZ; g7.31.1.4 CLOSED L525; g7.31.1.5 L524 + L528 | open: DG1 plan-master leaf |
-| g7.31.1.2 T2 (agi-reaper uid) + plan-master leaf | DG1 [ask] 18:45Z | 18:45Z | (1) PLACED (b) 18:44Z: agi-reaper absent (no user, no heal process); close amends T2 in its THOUGHT; (a) returns if the uid exists where heal runs; AMENDED 18:43Z on alive's view: (b) only with heal's post-store reads listed + shown uid-independent first; any uid-dependent read = no close, the uid banked to belam; (2) leaf under g7.31.1, ONE RULES tip, owner word on --allow via belam | open: DG1 cuts |
+| g7.31.1.2 T2 (agi-reaper uid) + plan-master leaf | DG1 [ask] 18:45Z | 18:45Z | (1) PLACED (b) 18:44Z: agi-reaper absent (no user, no heal process); close amends T2 in its THOUGHT; (a) returns if the uid exists where heal runs; AMENDED 18:43Z on alive's view: (b) only with heal's post-store reads listed + shown uid-independent first; any uid-dependent read = no close, the uid banked to belam; (2) leaf under g7.31.1, ONE RULES tip, owner word on --allow via belam | (1) NO CLOSE (DG1 [read] 18:50Z: heal's reads uid-dependent, tmux server + registry per uid); BANKED: design leaf (heal names the seat's server) before any agi-reaper uid; to belam in the held relay. open: (2) DG1 cuts the leaf |
 | OWNER: deck full pass + A/B | meme-master 09:5xZ 11-10 | 09:46Z | leaf L497, copy L499 | open: running director unnamed |
 | OWNER c:c9321ad2e731 (b) TM specialist kids (c) PC netboot | belam [owner] 20:3xZ 11-10 | 20:26Z | relayed WHOLE to TM | open: TM, belam |
 | QUOTA / HUB-DOWN | alive + belam 11-11 | 06:10Z | L516, L518, L522 CLOSE; .46.36 horizon (belam) | CLOSED 12:43Z (L522) |
