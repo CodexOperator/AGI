@@ -5,9 +5,11 @@
 nothing a human or the crew reads said 'quota'. The HOST half (a root timer: the hub's journal and the post routes are
 root-only) writes <HUBDIR>/state, the shape agreed DG2 + belam 06:5xZ 11-11:
 
-  written EPOCH                     line 1; older than --max-age = unread, nothing said, rc 1
-  HUB MODEL ok|quota|hub-down T     quota: T = the reset from the hub's own reset header, 0 = none given; ok: T = the last 200
-  HUB - hub-down T                  the hub-wide down line (not said here: target (a) is quota only)
+  written EPOCH                          line 1; older than --max-age = unread, nothing said, rc 1
+  HUB MODEL ok|quota|hub-down T LAST     quota: T = the reset from the hub's own reset header, 0 = none given; ok: T = the last 200
+  HUB - hub-down T LAST                  the hub-wide down line: T = the first failed upstream dial after the last 200
+  LAST = the newest hub log line for that hub (and model), any status (alive 06:50Z, taken 07:1xZ); a body line not in
+  this shape = unread, nothing said, rc 1
 
   say --state FILE --memory FILE [--said FILE] [--spool FILE --to POST] [--now N] [--max-age S]
 
@@ -18,6 +20,9 @@ spool (job hub-quota) so the first post back reads it in its mail:
   a quota line appears                       `hub A (M) out of quota until HH:MMZ`   (`until unknown` for T 0, never a guess)
   it turns ok, its T after the cooldown      `hub A (M) back HH:MMZ`                 (a recorded 200: a fact, never a prediction)
   still quota, the reset T has passed        `hub A (M) reset HH:MMZ passed, not confirmed: no call since`   (never `back`)
+  the hub-wide `-` hub-down line appears    `hub A down (no upstream) since HH:MMZ`  (third child 667abfb390, F9)
+  it is gone, a 200 recorded after it        `hub A back HH:MMZ`
+  still down, its LAST older than --max-age  `hub A no failed dial since HH:MMZ, not confirmed back`   (sp 06:49Z; never `back`)
   anything else                              nothing
 
 It carries the hub, the model and a time only, and moves no post between hubs (the fallback is the owner's rule, banked).
@@ -40,8 +45,8 @@ def hhmm(epoch: int) -> str:
     return datetime.fromtimestamp(epoch, timezone.utc).strftime("%H:%MZ")
 
 
-def read_state(path: Path, now: int, max_age: int) -> dict[tuple[str, str], tuple[str, int]] | str:
-    """{(hub, model): (state, T)} from the host file, or WHY it cannot be read (then nothing is said)."""
+def read_state(path: Path, now: int, max_age: int) -> dict[tuple[str, str], tuple[str, int, int]] | str:
+    """{(hub, model): (state, T, LAST)} from the host file (model `-` = the hub-wide down line), or WHY it cannot be read."""
     try:
         lines = path.read_text().splitlines()
     except OSError as exc:
@@ -51,18 +56,40 @@ def read_state(path: Path, now: int, max_age: int) -> dict[tuple[str, str], tupl
         return f"{path}: no `written EPOCH` line 1"
     if now - int(head[1]) >= max_age:
         return f"{path}: written {now - int(head[1])}s ago (>= {max_age}s)"
-    out: dict[tuple[str, str], tuple[str, int]] = {}
-    for ln in lines[1:]:
+    out: dict[tuple[str, str], tuple[str, int, int]] = {}
+    for n, ln in enumerate(lines[1:], 2):
         w = ln.split()
-        if len(w) == 4 and w[1] != "-" and w[2] in ("ok", "quota", "hub-down") and w[3].isdigit():
-            out[(w[0], w[1])] = (w[2], int(w[3]))
+        if not w:
+            continue
+        if (len(w) != 5 or w[2] not in ("ok", "quota", "hub-down") or (w[1] == "-") != (w[2] == "hub-down")
+                or not w[3].isdigit() or not w[4].isdigit()):
+            return f"{path}: line {n} is not `HUB MODEL STATE T LAST`"
+        out[(w[0], w[1])] = (w[2], int(w[3]), int(w[4]))
     return out
 
 
-def step(state: dict[tuple[str, str], tuple[str, int]], mem: dict, now: int) -> list[str]:
-    """Advance the memory one run; return the lines to say. mem: {"HUB MODEL": {"since", "reset", "said"}}."""
+def step(state: dict[tuple[str, str], tuple[str, int, int]], mem: dict, now: int, max_age: int = 180) -> list[str]:
+    """Advance the memory one run; return the lines to say. mem: {"HUB MODEL": {"since", "reset", "said"}}; model `-` = hub-wide."""
     say: list[str] = []
-    for (hub, model), (st, t) in sorted(state.items()):
+    for hub in sorted({h for h, _ in state} | {k.split()[0] for k in mem if k.endswith(" -")}):
+        key, down = f"{hub} -", state.get((hub, "-"))
+        m = mem.get(key)
+        if down is not None:
+            _, t, last = down
+            if m is None:
+                mem[key] = {"since": t, "said": "down"}
+                say.append(f"hub {hub} down (no upstream) since {hhmm(t)}")
+            elif m["said"] == "down" and now - last >= max_age:
+                m["said"] = "unconfirmed"
+                say.append(f"hub {hub} no failed dial since {hhmm(last)}, not confirmed back")
+        elif m is not None:
+            oks = [t for (h, md), (st, t, _) in state.items() if h == hub and md != "-" and st == "ok" and t > m["since"]]
+            if oks:                                      # the host clears the line only on a 200; `back` names that 200
+                del mem[key]
+                say.append(f"hub {hub} back {hhmm(min(oks))}")
+    for (hub, model), (st, t, _) in sorted(state.items()):
+        if model == "-":
+            continue
         key, who = f"{hub} {model}", f"hub {hub} ({model})"
         m = mem.get(key)
         if st == "quota":
@@ -117,7 +144,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError) as exc:
         print(f"hub_quota: unread: memory {a.memory}: {exc}; nothing said", file=sys.stderr)
         return 1
-    lines = step(state, mem, now)
+    lines = step(state, mem, now, a.max_age)
     rc = 0
     stamp = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     for line in lines:
