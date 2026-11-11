@@ -33,7 +33,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                        OWNER   STATE
 SWEEP g82 b1286ac2f5        alive   [merge-up] m1 16:54:26Z on trunk 23d70f3159; PLAIN; 3 M (review +3-1, send +2-1, mem-guard +1-1).
-                                    Council words owed by aio + sp; then SM's gate. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
+                                    QUEUED GATE686 (SM 16:57Z: pre-read G, parent == trunk, numstat ==, mt rc 0); order 684 (ETA
+                                    ~17:55Z) -> 685 -> 686. Council words owed by aio + sp. SM's own RULES sweep (agi-master-gate) lands after. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
                                     (worktree on branch tip/alive/sweep-g81; edit.py there), re-run its lanes. REMOVE the worktree at its land.
 .46.34 BUILD (DG2)          SM      grandchild 94f78774b4 (3/3: w14, w15). GATE684. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
