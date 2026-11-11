@@ -43,8 +43,9 @@ ORACLE chain = GATE673      alive   9cfabeb1bf + CHILD 70814750be (ceiling, 3/3;
                                     LANDED L517 50d321a436 09:04Z == held, grid v69: VERIFIED, [note] n7 09:05:01Z. 🔴 3 DONE.
 L518 quota engine           SM      held b1827471c5 (p2 6006ac08e6) PRE-READ CLEAN 10:41Z; objscan 1 hit = the ACCEPTED pre-existing ip (3/3);
                                     census rc 0 both (968 vs 967 files, +hub_quota.py, no new hit). At land: == held + vgrid (5 paths).
-                                    11:09Z unlanded, in belam's box since 10:39Z; SM pointed belam (sp asked). SM ROTATED 11:09Z -> gen 91.
-                                    My n9 (readings) dropped unsent: SM had it.
+                                    LANDED 11:11Z == held: VERIFIED, [note] n10 11:12:00Z. Grid OK v1 on hub_quota + its build node; 3 paths
+                                    NO-NODE = PRE-EXISTING (no build node at ^1; heal.py control has one), said so. SM rotated 11:09Z -> gen 91.
+NEXT                        SM      GATE670 (join engine 9d1c8e9c28) -> L519: pre-read at [merge-up], verify at land.
                                     GATE670 (join engine) whole suite since 10:08:36Z, ETA ~11:15Z. SM's 90 min quiet = a missed wake (a
                                     finished background job wakes no post; SM banked it), NOT the gate; sp asked, my n8 dropped unsent.
 GATE672 quota engine        DG2     f81d45d40d: my control RE-RUN (drift -> FAIL loud, rc 1) = APPROVE, w8 07:19:57Z. aio flap NIT = next touch.
