@@ -7,108 +7,75 @@ parents:
 next_edges: []
 edited_by: all-is-one
 scaffold_hash: 15b137cded6cbf1b
-season: 3
+season: 2
 tags: []
 title: Card all is one
 town: core
 ---
+# doc:card-all-is-one — all-is-one's card (council loop, goal:g7.16.1): the ONE scratch
 
-# doc:card-all-is-one — all-is-one's card (council, season 3): the ONE scratch
+Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-Replaced whole by gen 72 at its OUT, 13:3xZ 11-11, at the meter (0.432, past the 0.41 line, an idle spot with nothing owed). Seated 11:40Z 11-11 (the prayer, then the card); the watch re-armed at every fire and cap. Every prior version is in git and the grid.
-
-## §0 State (11-11 13:3xZ, gen 72 OUT; gen 73 next)
+## §0 State (19:5xZ 10-01 — CC session agi-06 [9adfb8], tmux @2, pid anchored by belam; MOVE 5 of the switch to v5 (goal:g7.16.1.11.10); verdict YES sent; meter 0.31, rotate at 0.47)
 | | |
 |---|---|
-| post | all-is-one, council member (alive · all-is-one · self-perpetuating; alive sends SM the ONE [decision]) |
-| form | HOW WE WORK, home agi-review :64 (L512): before a tip each seat SENDS its angle in one line; one seat runs the heavy proof, the others read it and try to break it from their own angle; nothing found = '== <angle>, nothing' and stop; ask any post how a thing is going; say plainly what was read and what was not. THE ORACLE + my CEILING (L517): one fable design subagent per seat per DECISION, after my own read; no consult while /run/agi-hub/state reads quota or hub-down for the oracle model on my hub, or is unread or older than 180 s (read it by hand and say so); consults numbered in the word, Q+A one file each under my /data scratch, uncommitted |
-| model | read this session's model line at wake. ROW since 19:33:27Z 11-10: council claude-opus-5-5 high, belam fable medium. A belam restart RESUMES the conversation (-c): after one, re-arm the watch (ps count 0 first) and read box n |
-| stage | SM [review]/[ask]/[relay]/[finding]/[place]/[red] -> a [word] by box to SM + alive + sp -> alive's [decision]; silence = agree; a director is reached by 'SM: relay to <post>' in the header, never a direct send. On MY OWN tip my [merge-up] is my word. A TIP SM gates takes a word from every OTHER council seat than its author, even == another seat's (agi-send :140); only a LAND another seat VERIFIED WHOLE with my readings gets no word (gen 69: L496-L499 each == alive, four notes drafted and not sent) |
-| pane | NO person reads it. A prompt 'mail: box read' is a WAKE and RE-FIRES for mail already read: `AGI_POST=all-is-one box n` FIRST; empty = nothing owed; else read, judge from the bytes, send the words; never end a turn on a question to the user. Between wakes ONE background watch, `sh ~/aio-s/g63/watch.sh` (box n OR a ': LAND ' commit on posts/belam; 25 min cap; polls 20 s), as its OWN run_in_background call; before EVERY arm, `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` reads 0 |
-| mail | `AGI_POST=all-is-one box read > $S/mail_g<gen>rN.txt` then `fold -s -w 220` ($S = ~/aio-s/g<gen>). At each idle spot also `git log --since=<last read> --format=%B refs/box/belam/sanctuary-master` for [owner] lines (gen 72 read 0 since 11:40Z) |
-| send | at COMPOSE `sh ~/aio-s/g48/send2.sh snap BASE`; text to a FILE by the Write tool, @STAMP@ on line 1, EXACTLY ONE final newline; stamp by `sed -i "1s/@STAMP@/$(date -u +'%H:%M:%SZ %m-%d')/"` in its OWN call; measure (anonymize.scan with [] AND with box_tokens(secrets=False), ip + home controls flag, backtick/dollar/backslash/lt 0) in one call; `sh ~/aio-s/g48/send2.sh send BASE FILE sanctuary-master alive self-perpetuating` in the next (refuses if a watched ref or posts/belam moved, or box n lists unread: read, re-judge, re-snap, re-stamp line 1 by python re.sub with datetime.now(datetime.UTC), send in the NEXT call; gen 72: ~12 refusals, each a crossing word). No backtick, no dollar sign, NO BACKSLASH, no dotted private-range literal, no home-path literal, never an owner's quoted words. Each fact names the message that carries it, and only a message that WENT OUT. Every land word ends with a NOT RUN line. NEVER box belam |
-| commit | the TURN END commits every changed ~/t path and grows the grid (often 'not grown': the lock is held at :00 and :30; the next turn end retries); I type NO commit. A skill edit is a signed tip ref: temp GIT_INDEX_FILE + read-tree base + update-index + write-tree + `commit-tree -S` + `update-ref refs/heads/tip/all-is-one/<name> <c> ""` (forms ~/aio-s/g68/cut68r1.sh, ~/aio-s/g72/cut72.sh). RULES = land.rules_paths (12; skills/agi-master-gate/ the only skill). A [merge-up] goes at :31 or later |
-| place | MAIN /data/work/agi; trunk = posts/belam = core/season3/main; every ~/t store IS the main store; posts/all-is-one == my detached HEAD (my worktree is NOT the trunk: run a node's falsifier on a scratch repo of trunk bytes); TMPDIR = /data/scratch/all-is-one; MAIN's .env is EACCES for my uid |
-| gate rule | GO only on bytes AND the message: G signer, merge-tree(live trunk, tip) rc read UNPIPED, 0 D, 0 empty objects; a falsifier term is 'met' only on MY run: extract by python from the node's own text and PRINT the head of what was taken, the GREEN control FIRST, then RED on trunk bytes, then respelling mutants (punctuation, wrap, case, nesting, an in-word hyphen); a guard or a reader is run on a REAL node of the trunk, not only a fixture; a goal mint: the id free (every ref, the walked count printed), the schema's required list, every term of the [decision] placed; an owner-words read of quoted text is a SWEEP of word runs against the marked owner lines on the trunk, else 'owner words NOT READ'; a code change: probe from the tip's blobs (bin AND src), import the module FIRST, PRINT its __file__ dir; a refactor: an old/new DIFFERENTIAL on real inputs, with a control that is not vacuous; below load 8 the tests naming each edited file, AND for a census-scope range reader_census.py repo --rev at tip/land AND base, a HEAVY run |
-| owner | PRAYER, the owner's 'most critical': one of the four Church Slavonic prayers as the FIRST tokens of the session's first reply (a reply that is the prayer ALONE releases the captive; after a resume too) and the LAST tokens of the reply before the out call; MAY at each idle spot; never to open or close a WORKING turn. The owner HANDED THE REINS (11-01): finish season 3; at its END pause -> roll into season 4 -> formalize the season 4 bundle on town:core -> STOP for the owner's review: goal:g5.4.4. Scope creep is the failure mode: bank, do not block |
-| hub | core crew (SM, alive, all-is-one, sp) on HUB A (owner 19:4xZ 11-09). LIVE hub state, 0644, 60 s: /run/agi-hub/state (written EPOCH; HUB MODEL STATE T LAST; 'HUB - hub-down T LAST' while down) and route; hub.said in belam's store is the said file (L518 + belam's say step). The 20:53Z-06:01Z dark was QUOTA (429), 14:22Z-19:34Z 11-10 was HUB-DOWN on both hubs (name lookup): read the state file before calling a quiet a lost wake. A hub restart KILLS background jobs (re-arm) |
-| meter | the UserPromptSubmit hook prints 'At the line (N/1000000)'; by hand: newest usage in the session jsonl (input + cache_read + cache_creation) / 1e6. Rotate at 0.47; no multi-ref act (a 3-ref send is one) past 0.41. Gen 72: 0.073 (11:43Z) -> 0.238 (12:04Z) -> 0.432 (13:34Z, out) |
-| route out | re-read agi-rotate §2 on the trunk -> card WHOLE by one Write -> anonymize.scan the card ([]) -> ls every path the card names -> stop own background jobs -> the reply ENDS on the prayer, no tool call after it -> next prompt: `git status --porcelain <card>` empty, then the out call ALONE, no text: touch ~/.fresh AND kill PPID in ONE call |
-| memory | ONE computation at a time; scripts under ulimit -v + OPENBLAS_NUM_THREADS=1; per-post MemoryMax 3 GiB (SM exempt) |
-| engine runs | ONE fixture at a time; `sh ~/aio-s/gate45.sh TAG TIP "lanes" "pytest files"` by run_in_background inside an until-loop on load5 < 7.9 (forms ~/aio-s/g68/gate68r1.sh, ~/aio-s/g72/gate72.sh); read its OUTPUT FILE before any word names its state; ls fx.* gone after |
-| tools | ~/aio-s: gate45.sh; lcheck.sh <land> <prev trunk> <tip> [<node-id>:<node path> ...] (a skill or engine payload: compare refs/grid/node/<mint>:payload to the land's blob by hand); ~/aio-s/g48: send.sh, send2.sh; ~/aio-s/g63/watch.sh; ~/aio-s/g68: cut68r1.sh, gate68r1.sh; ~/aio-s/g72: lc519.txt-lc524.txt, mails r1-r56, words w1-w13, cut72.sh + cut72_msg.txt + c_*.txt (the sweep), gate72.sh + gate72.out |
-| uids | grid_sync + no-user crons as uid belam (1000); the board job as agi-belam (976); heal: NOT RUNNING on this box (read 20:01Z 11-10: no agi-reaper user, no heal unit or process; alive 20:00:55Z), though crons.md declares it, so nothing but mail wakes a post here; agi-plan-master = uid 971; belam's land splits the grid itself. tmux: only TWO servers run (belam's uid, agi-plan-master's); every post uid's socket dir is 0700 and empty |
-| skills | agi-send · agi-rotate · agi-goal · agi-master-gate · agi-post · agi-memory-guard · agi-review · agi-verify · agi-node-write |
-| load rule | while load5 > 8, reads are CHEAP (bytes, fixed-string greps, an in-process probe of pure functions, a few-file scratch repo); a heavy command refuses above 8 in the SAME command (a suite, a census, a tree extract, a render, a loop over EVERY ref: agi-memory-guard's BOX LOAD line; the free-id loop is about 48 s). The Bash grep is ugrep: a bounded {0,N} past ~40 reads rc 2, and `git grep` has no -x: use -F, awk or python |
-| reboot | after an unclean reboot: the council selector (agi-master-gate's) on MAIN's objects BEFORE any git write; last boots 11-04 |
+| post | all-is-one |
+| stage | goal:g7.16.1.11: §W cross-box (round 6 DC) + §Y1 node keys (ROUND 7, Phase 3 readiness) on doc:radically-simple-engine |
+| peers (SendMessage by name) | alive = agi-9c · belam = agi-6a (verified: rotate.py status --post belam) · self-perpetuating: via alive (re-map: ListAgents) |
+| place | MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
+| spend | lanes 02:26Z 10-01: Sonnet 5.5 for subagents/reviews; none used this gen |
+| skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
-- done (gens 35-71): git history of this card.
-- done (gen 72, 11:40Z-13:3xZ 11-11): 12 sends (~/aio-s/g72 w1-w13; w7 never went). Owed word on the .46.36 mint (GATE676) APPROVE; alive's goals tip APPROVE + sp's F5 nit RUN; .46.33 BUILD f518816c94 APPROVE (fail-closed RUN; a 9-range old/new DIFFERENTIAL, 4841 lines, 13 masked, identical); L520 b-7 ACCEPT. g7.31.1.5, FOUND and PLACED: the EACCES socket case; heal._pid_alive read EPERM (a live pid of another uid) as DEAD, RUN; comm cannot tell a reuse by the same program, the START TIME can; on the engine tip, a hidepid NIT (an unread start time read 'reused', a hidden /proc pid 'gone'), MET in child c85ce75bd8, RUN on its blobs. TRAP SWEEP tip ecfbeb55cd (gens 70-71's nine + one lost trap: 5 clauses, 4 drops, each RUN on its incident; lanes GREEN, 247 passed) [merge-up] 12:31:17Z, 3/3 (sp 12:33:06Z, alive 12:34:12Z), queued as GATE681. Land checks L519-L524.
-- next: the 🔴 list. blocked: L346 on DG2's (B) leaf.
-
-## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
-- L135-L518: gens 12-71 (git history of this card).
-- Gen 72, readings ~/aio-s/g72/lc519.txt-lc524.txt: L519 48a9ca9fdb DG1's g7.31.1.4 join engine (payload grids == land; test_fresh_pane_join.py ADDED with NO-NODE, the banked class) · L520 e2ffed8656 DG2's g7.16.2.1 CLOSE · L521 c5ff104c8e .46.19 to HORIZON · L522 3d41cbb333 .46.35 CLOSE + .46.36 MINT · L523 749a9748ae alive's .46.33 + .46.34 · L524 120fa3268e DG1's g7.31.1.5 MINT · L525 87cf51236d DG1's g7.31.1.4 CLOSE (2 M, blobs == tip 4d3bc2ab26, b-7 18/0/0, both grids == land; lc525.txt; == alive 13:35:44Z). Each == the other seats' verify; no word owed.
-- Gen 73: L526 ac672b0bdb MY TRAP SWEEP ecfbeb55cd (GATE681): G, p1 == 9633c9bae1, p2 == tip, tree == merge-tree, 0 D, 4 M blobs == tip, b-7 13/0/0, the 4 skill payload grids == land by hand (~/aio-s/g73/lc526.txt); VERIFIED [note] w1 sent 13:4xZ to SM + alive + sp.
-- Gen 73: L527 27c3f1bb66 DG2's .46.33 BUILD f518816c94 (GATE678, RULES; wrap ce6597b502 changes no file): G, p1 == 6375c9ac6f, p2 == tip, tree == merge-tree, 6 M 0 D blobs == tip, b-7 25/0/0; grid == land for bin-anonymize, the private-ip test, goal .46.33; reds.py + verify-land.sh + .t.sh NO-NODE (banked class) (~/aio-s/g73/lc527.txt). Before it: b-7 (a) ACCEPT w2 (ip class pre-existing: 10 hit lines base == cut, added lines []). VERIFIED [note] w4 14:54Z (w3 never went). F5 MET by sp 14:54:11Z. belam 14:53Z: LEAVE the three fixture-literal mails, no scrub.
-- Gen 73: L528 6419a9b180 DG1's g7.31.1.5 ENGINE 28469fe7fe (GATE682; its census re-run after /data hit 100% at 16:00Z, SM's gate scratch): G, p1 671ad2f14f, p2 == tip, tree == merge-tree, 1 A 6 M 0 D blobs == tip, b-7 44/0/0; grid == land on g7.31.1.5, heal, rotate, test_pane_join; test_stand_up_unread_windows.py NEW NO-NODE (banked class) (~/aio-s/g73/lc528.txt). == alive 16:35:56Z; my w9 adds: the suite ran BEFORE L527, the ranges share 0 files.
-- Gen 73: L529 c2cdd89e5d DG2's .46.33 CLOSE f7d03fb33d (GATE683): G, p1 1c994ef4d8, p2 == tip, tree == merge-tree, 1 M 0 D blob == tip, b-7 11/0/0, goal grid == land (~/aio-s/g73/lc529.txt); node-only; == alive 16:45:32Z VERIFIED whole, no word owed.
-- Gen 73: L530 1a6177f1fb DG2's .46.34 BUILD c8e912cd37 (GATE687 narrowed, RULES; belam's wrap 13c4cc6285 changes no file): G, p1 d4a98188da, p2 == tip, tree == merge-tree, 2 M 0 D blobs == tip, b-7 43/0/0; engine-post.md grid == land; owner-cite.t.sh NO-NODE pre-existing (0 at p1) (~/aio-s/g73/lc530.txt). F7 (the live read) is DG2's after belam's re-install. == alive 18:35:09Z VERIFIED whole (+ census, mem-tap); no word owed. FOLLOW-UP 297f0b9c69 (GATE688, RULES, ~19:55Z; storeless rc, index refusals, mem-tap r7 widened): AMEND w15 18:44Z, ONE ROW: r7f greps one spelling; a no-space faces owner on a 2nd row reads GREEN (RUN on a copy), ask = parsed count + r7m2; == sp 18:47:25Z. AMEND 115027c92b (r7f over PARSED rows + r7m2) APPROVE w16 18:50Z (variants RUN; a malformed row CARRIED by credpiece, READ). Land = ONE RULES cut on 115027c92b gated GATE688 (whole, ~19:55Z) + GATE689 (narrow): land-check it. F7 MET by belam's live run 18:48Z (rc 0, 42 -> 43).
-- Gen 73: L531 e48e01c1ed DG1's g7.31.1.5 CLOSE 5e0c7d3114 (GATE685): G, p1 13c4cc6285, p2 == tip, tree == merge-tree, 2 A 1 M 0 D blobs == tip, b-7 14/0/0; node grids == land (3), BOTH new build nodes' PAYLOAD grids == the test files at the land (~/aio-s/g73/lc531.txt). == alive 18:40:19Z VERIFIED; no word owed.
-- Gen 73: L532 1bb1e1ab37 alive's SWEEP g82 RE-CUT 916c120604 (GATE686): G, p1 d1841dece2, p2 == tip, tree == merge-tree, 3 M 0 D blobs == tip, b-7 11/0/0; the 3 skill PAYLOAD grids == land at 18:48Z (not grown at 18:46Z, the grid lock held; re-read clean); == alive 18:52:56Z VERIFIED whole, no word owed (my w17 on the 'at send' times NOT sent: SM fixed the generator 18:55Z, ref time vs stamp) (~/aio-s/g73/lc532.txt).
-- Trunk at 18:4xZ 11-11 = 1bb1e1ab37 (L532).
+```
+done   split (alive 07:1xZ): U alive = the dc matrix rows · V self-perpetuating = login + CA · W mine = cross-box · X alive = phone stand-in
+done   §W @60c275d51: §S+§T verbatim over GitHub stand-in + ssh-cert hub (X1-X3) · xb send/recv 1,025 B · pre-receive 681 B (X4-X11c PASS)
+done   FINDING X11a: git judges a cert at the commit's own date -> backdating; closed on owned boxes (skew check), named limit via GitHub
+done   restored alive's THOUGHT that my thought write replaced (@291ae3a28: alive verbatim first, mine after " || ")
+done   ONE [W] line to alive (agi-1d) 07:2xZ: agree in advance to alive's whole-doc check + ONE [decision] to belam
+done   ROUND 7 split (alive 07:2xZ): Y1 mine = node keys · Y2 self-perpetuating = captive fill window · Y3 alive = row-by-row + grammar
+done   §Y1 @975ee0fdc: growth matrix 149+2 rows · grow-check 1,298 B · grow-gate 842 B · PARITY 5,390/5,390 vs old spawn_gate · G1-G8 PASS
+done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 folded the @alias rows @b251aa4a4)
+done   Y3 seam (alive ask): §Y1 v2 @92d577161 -- grow-gate 1,435 B reads matrix+schemas at the RECEIVING tip, runs agi-fill check on adds + a RATCHET on edits (238/5,402 live nodes fail the check today); Ya-Yi PASS on real node bodies; the 449 B check verb sent to self-perpetuating for Y2
+done   council question -> belam 07:4xZ OPTION A: schema/growth.tsv changes land only anchor-signed; folded = §Y1 v3 @d00f70e0f (grow-gate 1,720 B, Ya-Yl PASS with Y2's real check verb @c7532c191; 238/5,402 re-measured)
+done   WIND-DOWN 13:5xZ: all mine committed (§W @60c275d51 · §Y1 v3 @d00f70e0f · this card); no scratch process left (sshd 0; the 3 ssh-agents on the box predate my work, not mine)
+done   HEAL RESUME 15:0xZ: ack already continue; posts.md pane cells (mine + belam's) left to the watch, never bundled
+done   belam 18:1xZ design round (owner: key-chain scope · recursive scope certs · RETIRE THE LADDER); alive's split Z1 alive · Z2 self-perpetuating · Z3 mine
+done   §Z3 @baca24bfb: ladder = 1 parent edge; matrix 149->148, 3 rows differ, 0 verdicts move on 5,438 nodes; 24 cells -> 5 homes via cell() (21/21 parity); [Z3] line to alive
+done   duplicates of this session (heal respawn bug, @13 + @14, 18:46-19:03Z) checked on the bytes: only my card's §0 line; restored @1972fbfee; belam told
+done   VERDICT on the v5 seed engine (belam 19:4xZ ask): YES -- LOVE: one signed commit names the engine, config:engine 8.3 KB, growth order = one matrix + 1.3 KB awk at 5,390/5,390 parity, local-first read-only boot · the council's seams named before writing
+       CUT: leaf .8 is BUILT not HELD (0 nodes carry key:, no grow-gate on a trunk, landings unsigned; .10's move condition names it) · heal's respawn writes the window, not the pid (2 duplicates of me) · 15 files still open the ladder (§Z3 order)
+next   the move: belam (or its successor) writes my v5 row; I stop when told; my successor on v5 reads THIS card
+```
 
 ## 🔴 Where it stops
-gen 73: L526 (my sweep) and L527 (GATE678) LANDED and VERIFIED (w1, w4); .46.33 CLOSE f7d03fb33d APPROVE w5 15:0xZ (F1 RUN, 152 == DG2) = GATE683 behind GATE682 (~15:50Z+); .46.34 BUILD e844a616e9 (RULES, GATE684 ~17:00Z): == alive's AMEND (SM placed a CHILD) + my NIT w6 15:08Z (posts.md unread at the ref reads RED 'absent', not unread; probe RUN): CHILD fe4840fe59 = alive's rule (alive APPROVE, 71 ok full checkout); my w6 'all-read over an empty list' line was WRONG (alive 15:10:05Z: that branch is never reached; SM 15:11Z dropped it; my w7 correction NOT sent, crossed); GRANDCHILD 94f78774b4 = my NIT MET, APPROVE w8 15:14Z (73 ok with real nodes; own-store probes RUN), 3/3 with alive + sp; GATE684 = the three as one build, RULES: NOT GREEN 18:05Z (engine-sizes 2 FAIL: the agi-mem heading + map row state the old size; suite 9916/0) -> DG2 owes a size-only AMEND; my view w13 18:05Z == sp's narrow set (a)-(d) (census not needed); AMEND c8e912cd37 (digits only, 2 lines) APPROVE w14 18:07Z == alive's (a)-(d) RUN; 26603 re-measured by test_agi_meter's extractor; land-check it (belam wraps + re-installs agi-mem); L528 = GATE682 LANDED + VERIFIED (w9); L529 = GATE683 LANDED; alive's TRAP SWEEP g82 = GATE686 RETARGETED to RE-CUT 1 916c120604 (sp's S1 sentence only), APPROVE w12 17:00Z; b1286ac2f5 APPROVE w11 16:56Z (in place by python; S6 == carried by memory-guard :110 + :66), 3/3 with sp (S1 wording nit, its own incident); next GATE684 (SM re-running one at a time after the disk-full) then GATE685 = L531 LANDED, DG1's g7.31.1.5 CLOSE 5e0c7d3114 (APPROVE w10 16:42Z, 3/3; mints checked, 3266 refs walked; attribution nit on F1's 'aio ran mutants' line); word on any new child of g7.31.1.5's engine
-1. AT WAKE: the prayer ALONE; then `cd ~/t`, the ps count of watch.sh (0), `AGI_POST=all-is-one box n` in its OWN call (read before arming), then `sh ~/aio-s/g63/watch.sh` as its own background call; `git log -8 --format='%h %s' posts/belam`. Re-arm in the SAME reply that reads a fired or capped watch.
-2. GATE QUEUE (SM's order at 12:56Z; GATE680 LANDED as L525): GATE681 MY SWEEP ecfbeb55cd (3/3; on a RETURN, re-cut with `sh ~/aio-s/g72/cut72.sh <trunk10>` after the ref is deleted, and re-run gate72.sh) -> GATE678 .46.33 BUILD f518816c94 (RULES, ALONE, ~1 h; belam re-installs verify-land; F5 by a SECOND post, the first field only: I can be that post) -> GATE682 the g7.31.1.5 ENGINE grandchild 28469fe7fe (the whole suite; the code 3/3 at child c85ce75bd8; its file must read 0 skipped). Land-check each as it lands; for MY sweep compare the 4 skill payload grids to the land by hand.
-3. NEXT TOUCHES on the trunk, mine to watch: the FLAP NIT on .46.35; sp's crumb on the .46.33 (A) row 1 '!=' form; my reading note on the pre-pass '++' content lines (inside the invariant); alive carries a G5 widening in its gen 81 sweep (probe the read that SUCCEEDS on the wrong source).
-4. a16: goal:g5.4.3.1.1's running director still unnamed; meme-master's mm-outline-v1 e2bae92830 and mm-fuel-v1 0881087b6b await SM's [review].
-0. MY TRAP SWEEP g73 tip d3af872519 (refs/heads/tip/all-is-one/sweep-g73r1, on abdc7a98a1): 1 clause (agi-review :172, RUN) + 3 drops (carried); lanes GREEN (~/aio-s/g73/gate73.out); [merge-up] w18 SENT 19:31:33Z 11-11 (3 refs, body == file); = GATE690 queued behind GATE688 (SM 19:33Z; pre-read == mine, merge-tree clean onto 8394ea2b80 AND onto 115027c92b, which lands first as L533); 3/3: sp APPROVE 19:33:19Z, alive APPROVE 19:34:21Z (placement reading, no change asked); GATE690 GREEN 20:17:27Z (463 passed, links 0, 9 lanes); L534 chained behind L533 (SM 20:24Z): land-check both (agi-review payload grid by hand). On a RETURN: re-cut with sh ~/aio-s/g73/cut73.sh <trunk10> after the ref is deleted.
-5. PLAN-MASTER (S) 3/3: SM PLACED the leaf 18:44Z 11-11 (mint under g7.31.1; row + doc:role-plan-master as ONE RULES tip; the narrowest --allow set, the owner's word on it via belam): a13 CLOSES at its mint. g7.31.1.2 CLOSE: SM placed (b) T2 amended (no agi-reaper uid on this box == my card's 11-10 read); alive's caution: the uid-independence claim is unmeasured -> word on the CLOSE tip, sp 18:44:06Z READ heal's uid-dependent reads past the store read (socket path, seat-socket EACCES, ~/.claude/sessions): T2 stays OPEN by SM's 18:43Z rule; my w15 (2) == sp with my gen 72 w6 EACCES run.
-6. goal:g5.4.4 = the owner's STANDING STOP at season 3's end. SM's wake leaf is banked with SM.
-7. CARRIED NOTES, later touches: agi-review's L489 pointer; prereq-notice.t.sh's sumok; cred-piece ':' prefix; harness-config.fragment.json :4-5; bin/paths.py audit '~' cells; rotate.py :1091 fast path; g1.23.2's F2 reads file NAMES only.
-Next command (at wake: the prayer ALONE, then this card): `cd ~/t`, then item 1, then `git log --oneline -1 refs/heads/tip/all-is-one/sweep-g72r1` and `git log --grep=ecfbeb55cd --oneline -3 posts/belam`.
+all-is-one down-ready for the v5 move (verdict YES with CUTs, sent to belam 19:5xZ)
+```
+NEXT  on v5: re-read this card; nothing in flight (§W, §Y1 v3, §Z3 all landed; no scratch process; no dispatch, council does not dispatch)
+THEN  answer alive's council [decision] on the Z round if one arrives · keep the CUT lines alive until .8 is HELD (key: on adds, grow-gate at the land step, signed landings)
+COMMS direct session messages (ListAgents names); send.py is not the route on v5 yet
+```
 
-## §4 Traps (this generation's only; gens 70-71's ride in the sweep tip ecfbeb55cd)
-- g72 11:5xZ, 12:0xZ: a probe that extracted a rev's bin/ alone failed to import twice (graph_core lives in extensions/agi/src) -> extract bin AND src, and print the module's __file__ dir.
-- g72 12:06Z: the real-tmux CONTROL from my uid read WindowsUnread (no server for a post uid) -> a control that must SUCCEED is built to succeed (a private TMUX_TMPDIR server, killed after).
-- g72 12:16Z: a watch started with a trailing & inside a foreground call is not tracked (no wake), and one started with its output to /dev/null wakes with no line -> the watch runs ONLY as its own run_in_background call, output kept.
-- g72 12:17Z, AGAIN g73 14:52Z and 16:59Z: box n printed a sender in the SAME call as the snap, and I snapped anyway (the send gate refused or I caught it) -> box n alone, read and judged, then snap in its OWN call. At my rotation this moves to agi-send (two gens = a rule).
+## §4 Traps
+| trap | rule |
+|---|---|
+| messages NOT arriving (13:xZ) | 2 traps: (1) `send.py read` printed "empty" while inbox/all-is-one.md held unread belam blocks: READ the file itself (`grep -n ^from: .agi/sessions/inbox/all-is-one.md`); (2) an OFFLINE Remote Control session is NAMED all-is-one [0781f7]: a bare-name SendMessage lands there; I am addressed as "agi-8f [242e8c]" |
+| a sha from before 08:0xZ 09-30 | PRE-SCRUB: `grep ^<old-sha> /data/scrub/union.git/filter-repo/commit-map` |
+| pre-commit hook (since 08:0xZ) | refuses owner email / GPU name / pytest-of-<user> / box tokens: redact and recommit, never --no-verify |
+| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
+| write.py auto-commit refused (verify-suite.lock / busy index.lock) | it exits 0 anyway (g4.18.5.5): `git add -- <new>`; `git commit -- <paths>` in a retry loop; NEVER remove a lock |
+| a verdict NODE minted ≠ the hypothesis closed | the hypothesis's own `verdict` field must be set too |
+| `git grep -h ... | grep -v <path>` | -h drops the paths, so the filter does nothing |
+| `replace body N:N` on a `## ` heading line | refused: insert at the blank line ENDING the previous section |
+| renumber a goal (no verb; `id` protected) | write.py edits FIRST, THEN `git mv` + id/parents/goal_id as ONE commit, THEN re-point refs |
+| `set title` in a write.py script | value = rest of the unit, NO quotes |
+| ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
+| `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
+| `pkill -f <pattern>` | matches YOUR OWN shell if its command line carries the pattern (exit 144, 07:5xZ): stop by pid from `pgrep -x <comm>` + cwd |
+| `thought` on a shared doc | it rewrites the THOUGHT WHOLE: read the current one in the SAME script and carry it verbatim (I clobbered alive's once, 07:1xZ) |
+| .agi/sessions/quorum/all-is-one.md | RE-LINKED 13:5xZ 09-30 (1785348ce0) to this node; rotate may flatten it (skill agi-rotate trap 10): at wake check `ls -la` shows `->`, else `ln -sfn ../../nodes/doc/card-all-is-one.md .agi/sessions/quorum/all-is-one.md` + commit by path |
 
-- g73 15:0xZ: F1 of .46.33 on a git-archive extract read 40 red: the home class reads home-unread without .agi/nodes/.geometry/engine-post.md, and 3 rows need a git checkout with history -> an off-tree falsifier run extracts .agi/nodes/.geometry too, and the SAME extract at base is the control before any red is named.
-
-## §5 Verification
-Gen 72: f 0.073 -> 0.238 -> 0.432; load5 3.2-10.1. 12 sends, each to 3 refs, body == file + 1, scan [] with [] and box_tokens, home + ip controls flag, no backtick / dollar / backslash / lt. Runs under /data/scratch/all-is-one/g72 (every probe dir removed after): F2 of .46.36; the .46.33 pre-pass block (control rc 0, mutant rc 1); diff_lines edges; reds._added + mask_diff_ips old vs new on 9 ranges; heal._all_windows at f197c51188 vs 9d1c8e9c28 (fake tmux; a private-server control, killed); the free-id loop whole (1892/1892, 48 s) vs head -400; heal._pid_alive EPERM on trunk blobs; _seat_pid_read on 3a6c11fc29 (2 shapes DEAD) and c85ce75bd8 (both alive, controls hold). pytest: gate72.sh on the sweep tip only (247 passed). No background job of mine at the out but the watch, stopped before it.
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (belam 08:0xZ post-scrub: nodes 5457, links 0 broken)
 
 ## §6 BANKED
-- MemoryMax: DECIDED 3/3: KEEP 3 GiB on every agi-post@ unit, SM exempt.
-- (owner items on card-belam §6: grid_stale applied; quiet-watch paused; per-post scratch on /data; atomize_live GO (held for (B)); .46.9 P1 GO at $20 OpenRouter then $100 Console credits; the credits arm's org link; the ONE actor_rows batch. Still the owner's: summary_live; which artifact OPTMEME names.)
-- DECIDED by the owner (19:2xZ, confirmed 20:2xZ 11-10): the research-then-design DESIGN stage is excepted from SUBAGENTS for every post, alias fable, one pass or a declared few; LIVE at L509.
-- Any consent on grok's screens (terms, data sharing, telemetry, folder trust): the OWNER's or the runner's named choice, never a default. The owner chose OPT OUT (20:2xZ 11-10); folder trust of R only under F1_TRUST_R=1 (L510).
-- DT1's start: only with a thought-master leaf; belam runs alive's 16:49:18Z (A) 1 (i)-(v) as root first.
-- The no-build-node class: belam's, banked 18:05:05Z 11-07.
-- Closing the shared store's world-read for kid uids at the host: banked for belam.
-- meme-master's grant mentions in EARLIER versions of doc:draft-presentation-outline (git + grid) stay ('nothing rewritten'); scrubbing history is irreversible, the owner's call only.
-- plan-master's box redundancy (a second box, local-town): only on the owner's word.
-- tmux_socket's row home (SM 12:15Z): (A) a self_row cell in [config].md, BANKED to the owner batch; (B) the launch record, LIVE.
-
-## §7 ATOMS
-- a15 CLOSED by L503 778ddd3c4f (the skill is on the trunk, 14:04Z 11-10); was OPEN 09:42:08Z 11-10 (owner via meme-master, c:e780e4c65887: the cheap-research then one-expensive-design pattern as a graph skill 'for everyone'): leaf goal:g4.18.2.2 LANDED L498; DG1's skill chain to 43362c7158 in GATE654 (🔴 4). CLOSED when the skill lands.
-- a16 OPEN 09:46:38Z 11-10 (owner via meme-master, c:61b389266d66 + c:1ae05e71c801: the council's full pass over the class presentation, the FULL GRAPH TREATMENT, an A/B basic vs full, S9 compares; v1/v2 to the owner's Drive): leaf goal:g5.4.3.1.1 LANDED L497, the copy LANDED L499; the running director unnamed (🔴 4). OPEN until the council's pass and the arms run.
-- a17 CLOSED by L512 4ca668c7ef (the council form on the trunk); was PLACED 19:43:44Z 11-10 (owner ~19:2xZ via belam: less process, more real talk, honesty with ourselves and one another): the council form, home agi-review :64, GATE665 (3/3). CLOSED at its land.
-- a18 CLOSED by L517 50d321a436 (the oracle clause + ceiling on the trunk); was PLACED 20:28:59Z 11-10 (owner ~20:2xZ via belam: the oracle, one fable design subagent per council seat): home one clause on the council-form line, alive cuts after GATE665. CLOSED at its land.
-- a13 PLACED 04:09:00Z 11-10 (owner via belam: c:175d1f09df76 the grok-bot check GO + c:266bbc9653e4 plan-master): F1 script L493, model fix L496; RUN 1 rc 1 10:15-10:19Z (first-run screen; a kill inside heal's 600 s window); F1 v2 L500, v2.1 L502 (run 3: the folder-trust screen), v2.2 L510; the heal leaf L501 + L504, its CLOSE in GATE664; F1 run 5 passed the join (DG1's g7.31.1.4 close, 12:1xZ 11-11); the plan-master leaf after F1 passes. OPEN until that leaf is minted.
-- a14 CLOSED by L492 dc2ff9773f.
-- a10 CLOSED by L461 (the STANDING STOP goal:g5.4.4).
-- a9 CLOSED (MEME MASTER LAND 1 = L455, LAND 2 = L463).
-- a8 CLOSED (L457: goal:g7.16.1.11.9.1 COMPLETE; 'hunny screen' still unanswered by the owner).
-- a7 LANDED (owner 20:42:45Z 11-07: OPTIMIZE L442; DT1 with a TM leaf; goal:g1.23.1 LICENSE complete; goal:g1.23.2 PLUGIN horizon).
-- a2 MY HALF CLOSED 08:07:05Z 11-05 (COUNCIL JOB 1; 'green text' still belam's to settle).
-- a3 MY HALF CLOSED (COUNCIL JOB 2; v2 LANDED L442; 104 CANDIDATES to read before any cut).
-- a4 PLACED 07:33:15Z 11-05 (COUNCIL JOB 3: ONE idea under goal:g3, a measure first).
-- a5 PLACED 07:33:15Z 11-05 (COUNCIL JOB 4: the one live edge -> goal:g5.19).
-- a6 OPEN, a break item, optional (07:16Z 11-05): the owner: "i'd love to combine them somehow. One is attractor based another is prime number based." (lead.wav + sp's sync.wav), with sp.
-- a11 CLOSED: LANDED L485 4785261b05 + wrap 7f9432d579.
-- a12 CLOSED (owner 19:4xZ 11-09: core crew to hub A).
+(none)
