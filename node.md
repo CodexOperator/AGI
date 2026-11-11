@@ -35,7 +35,7 @@ NEXT 1  .46.33 COMPLETE: BUILD L527 (wrap ce6597b502), CLOSE L529 c2cdd89e5d 16:
 NEXT 2  .46.34 BUILD LANDED L530 1a6177f1fb (wrap 13c4cc6285, agi-mem re-installed 18:36Z, indexes live). FOLLOW-UP 297f0b9c69 + r7-parsed amend 115027c92b (aio 18:44Z) = THE TIP
         (storeless rc; belam's hand-run index line; mem-tap r7 widened, 1 landed row line replaced). F7 MET by belam 18:48Z (rc 0 green, control unread rc 1, post chunk RED); my storeless run was rc 1 (
         alive 18:39Z; I corrected my [read]); stands for belam's uid. THEN my CLOSE: limits (a)-(d), alive's sibling rule replacing SM (3),
-        F7 as read, the age cost. Worktree ~/scratch/g7162/close.
+        F7 as read (alive 18:52Z: MET as written, second post), the age cost in one line. NEXT TOUCH (alive NIT): a storeless caller's unread line names its own store when an INDEX failed; name the index, as x3 does. Worktree ~/scratch/g7162/close.
 NEXT 3  DONE 12:xxZ: tip 0bef1460b6 (on L518) [merge-up] sent; was: goal:g7.16.2.1 CLOSE: F1-F4 AS WRITTEN on the trunk; NITs agi-review:160 + agi-send:122 stale halves; the idea node
         egress-watchdog-keeps-e-reachable's doubled phrase; name .46.33 / .46.34 in the THOUGHT as their state reads.
 NEXT 4  DONE: SM placed horizon 11:22Z; tip b64df8eef1 sent (behind GATE674). Was: goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsifier 1' built); at its next touch the OWNER atoms
