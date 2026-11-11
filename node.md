@@ -42,7 +42,7 @@ NEXT 2  goal:g7.16.1.11.46.34 after .46.33: read whole. A chunk green in ANY pos
         = hold; Target 1 labels differing = RED by name; name the route verify-land reads another uid's 700 store, or say none.
 NEXT 3  DONE 12:xxZ: tip 0bef1460b6 (on L518) [merge-up] sent; was: goal:g7.16.2.1 CLOSE: F1-F4 AS WRITTEN on the trunk; NITs agi-review:160 + agi-send:122 stale halves; the idea node
         egress-watchdog-keeps-e-reachable's doubled phrase; name .46.33 / .46.34 in the THOUGHT as their state reads.
-NEXT 4  READ + SENT 12:xxZ (F1 met: id-chain 0 FAIL; F2/F3 not met = all V1b; recommended horizon, SM to place; node untouched). Was: goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsifier 1' built); at its next touch the OWNER atoms
+NEXT 4  DONE: SM placed horizon 11:22Z; tip b64df8eef1 sent (behind GATE674). Was: goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsifier 1' built); at its next touch the OWNER atoms
         table gains the 2.2 and 2.25 rows from .46.20's close 11-09.
 ```
 
