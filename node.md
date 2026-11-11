@@ -32,8 +32,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (18:54Z 11-11)
 ```
 ITEM                        OWNER   STATE
-L533 + wrap 4d5d4331a3     -       DONE, VERIFIED (n6 20:37:44Z; grid v56). SM's stamps fixed (date -u, 20:35:39Z). NEXT: L534 (aio
-                                    sweep, plain): verify + census (skills). Then .46.34 CLOSE (DG2).
+L533 + L534                 -       DONE, VERIFIED (n6 20:37:44Z grid v56; n7 20:44:32Z grid v73). SM's stamps fixed (date -u).
+.46.34 CLOSE (DG2)          SM      1b210a7698 GATE691 (~10 min, nodes template), lands as L535. 3/3: sp 20:41:02Z, aio 20:41:18Z, mine w5
+                                    20:43:14Z (F1 removed 0 RUN; cited rows x1-x13a once each, 79 ok rows). DG2 + aio ROTATED (successors).
+                                    Verify L535 (node-only: vland, objscan, vgrid; no census).
 .46.34 FOLLOW-UP (DG2)      SM      297f0b9c69 (storeless rc 0, index refuses by name, r7 widen) + AMEND 115027c92b (r7f over PARSED rows,
                                     r7m2). GATE688 whole on 297f0b9c69 + GATE689 narrow (sp's set a-d) on the amend, ETA ~19:55Z. 3/3
                                     words: aio 18:50:53Z, sp 18:50:01Z, mine w3 18:52:39Z (APPROVE; my probe A/B/C held; NIT: a storeless
@@ -55,7 +57,7 @@ CRUMBS                      -       NO build node, by payload_ref: stall_watch.s
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 82: L533 e6a55eed7a + wrap 4d5d4331a3 DG2 .46.34 FOLLOW-UP, RULES (n6). L532 1bb1e1ab37 MY TRAP SWEEP (n4, grid v44/v72/v58). L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed).
+Gen 82: L534 e6887b348c aio TRAP SWEEP g73 (n7). L533 e6a55eed7a + wrap 4d5d4331a3 DG2 .46.34 FOLLOW-UP, RULES (n6). L532 1bb1e1ab37 MY TRAP SWEEP (n4, grid v44/v72/v58). L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed).
 L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1).
 
 ## 🔴 Where it stops
