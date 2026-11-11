@@ -168,8 +168,7 @@ def test_an_empty_pid_row_that_still_misses_is_named_every_pass(tmp_path, monkey
 
 def test_mutant_the_pid_filter_alone_drops_the_row_silently_RED(tmp_path, monkeypatch):
     """Without the retry the seat-dead scan's pid > 0 filter is all there is: the row is neither joined nor named."""
-    m = _mut(tmp_path, "    for r in rows:\n        name = (r.get(\"name\") or \"\").strip()\n        hid = str(r.get(\"harness\") or \"\").strip()",
-             "    for r in []:\n        name = (r.get(\"name\") or \"\").strip()\n        hid = str(r.get(\"harness\") or \"\").strip()")
+    m = _mut(tmp_path, "    joined: list[str] = []\n    for r in rows:\n", "    joined: list[str] = []\n    for r in []:\n")
     joined, writes, lines = _retry(tmp_path, monkeypatch, join={"found": False, "miss": "absent"}, heal_mod=m)
     assert joined == [] and writes == [] and not any("has no pid" in x for x in lines)
 
@@ -180,13 +179,101 @@ def test_the_watch_pass_calls_the_retry_before_its_pid_scan():
     body = src[src.index("def _watch_seats("):]
     body = body[:body.index("\ndef ", 1)]
     assert "_retry_empty_pid_joins(root, rows, windows, _rotate)" in body
-    assert body.index("_retry_empty_pid_joins(") < body.index("for row in pid_rows:")
+    assert body.index("_retry_empty_pid_joins(") < body.index("for row in scan:")
 
 
-def test_retry_skips_rows_it_must_not_touch(tmp_path, monkeypatch):
-    """A row with a pid, a claude row, a closed window: none is joined or named."""
-    rows_in = [{"name": "a", "harness": "grok-bot", "pid": 7, "window": "@9"},
-               {"name": "b", "pid": "", "window": "@9"},
-               {"name": "c", "harness": "grok-bot", "pid": "", "window": "@8"}]
-    joined, writes, lines = _retry(tmp_path, monkeypatch, join={"found": True, "pid": 1}, rows_in=rows_in)
+ROWS_ABC = [{"name": "a", "harness": "grok-bot", "pid": 7, "window": "@9"},
+            {"name": "b", "pid": "", "window": "@9"},
+            {"name": "c", "harness": "grok-bot", "pid": "", "window": "@8"}]
+
+
+def test_retry_skips_rows_it_must_not_touch_and_a_closed_window_is_a_dead_seat(tmp_path, monkeypatch):
+    """A row with a pid and a claude row: the retry and the dead-seat hand-off both leave them. Row 'c' (grok-bot, pid
+    EMPTY, window @8 CLOSED): the retry does not join it, and (B) names it a dead seat and hands it on, every pass."""
+    joined, writes, lines = _retry(tmp_path, monkeypatch, join={"found": True, "pid": 1},
+                                   rows_in=[dict(r) for r in ROWS_ABC])
     assert joined == [] and writes == [] and lines == []
+    for _ in range(2):
+        lines.clear()
+        dead = heal._empty_pid_closed_window_rows(tmp_path, [dict(r) for r in ROWS_ABC], [("@9", "a")])
+        assert [r["name"] for r in dead] == ["c"]
+        assert lines == ["watch: seat c has no pid (grok-bot) and its window @8 is CLOSED: a dead seat, "
+                         "handed to the dead-seat path"]
+
+
+def test_mutant_a_closed_window_empty_pid_row_is_skipped_silently_RED(tmp_path, monkeypatch):
+    """The tip's silent skip: the row is neither named nor handed on -- dead and never respawned."""
+    m = _mut(tmp_path, "                or not win or win in present\n", "                or True\n")
+    lines: list = []
+    monkeypatch.setattr(m, "_watch_log", lambda x: lines.append(x))
+    monkeypatch.setattr(m.boxes, "row_is_local", lambda root, r: True)
+    assert m._empty_pid_closed_window_rows(tmp_path, [dict(r) for r in ROWS_ABC], [("@9", "a")]) == []
+    assert lines == []
+
+
+# --- (B): the hand-off reaches the DEAD path, never pid_alive(0) (os.kill(0, 0) reads the process GROUP alive) -------
+
+def _one(tmp_path, monkeypatch, *, empty_pid_dead, heal_mod=heal):
+    gdir = tmp_path / "main" / ".agi"
+    gdir.mkdir(parents=True, exist_ok=True)
+    _seed(gdir)
+    lines: list = []
+    monkeypatch.setattr(heal_mod, "_watch_log", lambda m: lines.append(m))
+    rotate = _load("rotate")
+    row = {"name": "c", "harness": "grok-bot", "pid": "", "window": "@8", "role": "director", "generation": 2,
+           "recover": False, "model": "grok-4"}
+    out = heal_mod._watch_one_seat(gdir, row, [("@9", "a")], rotate, now=0.0, pid_alive=lambda p: True,
+                                   pin_table={}, seat_sessions=[], rows=[row], pane_pids={},
+                                   empty_pid_dead=empty_pid_dead)
+    return out, lines
+
+
+def test_a_handed_on_empty_pid_row_is_named_DEAD_like_a_dead_pid(tmp_path, monkeypatch):
+    out, lines = _one(tmp_path, monkeypatch, empty_pid_dead=True)
+    assert out.get("seat") == "c", (out, lines)
+    assert any(m.startswith("watch: DEAD seat c ") for m in lines), lines
+    assert any("c is recover:false; named only" in m for m in lines), lines
+
+
+def test_control_an_empty_pid_row_not_handed_on_is_not_a_candidate(tmp_path, monkeypatch):
+    out, lines = _one(tmp_path, monkeypatch, empty_pid_dead=False)
+    assert out == {} and not any("DEAD" in m for m in lines)
+
+
+def test_mutant_the_hand_off_asks_pid_alive_of_pid_0_RED(tmp_path, monkeypatch):
+    m = _mut(tmp_path, "    _gone = (lambda: True) if _empty_dead else (lambda: not pid_alive(pid))\n",
+             "    _gone = (lambda: not pid_alive(pid))\n")
+    out, lines = _one(tmp_path, monkeypatch, empty_pid_dead=True, heal_mod=m)
+    assert out == {} and not any("DEAD" in x for x in lines)
+
+
+def test_the_watch_pass_hands_closed_window_rows_to_the_dead_path():
+    src = (BIN / "heal.py").read_text()
+    body = src[src.index("def _watch_seats("):]
+    body = body[:body.index("\ndef ", 1)]
+    assert "dead_empty = _empty_pid_closed_window_rows(root, rows, windows)" in body
+    assert "scan = pid_rows + dead_empty" in body and "empty_pid_dead=id(row) in dead_ids" in body
+
+
+# --- (A): a retry hit with no -s KEEPS the row's session_id ---------------------------------------------------------
+
+def test_a_retry_hit_with_no_s_keeps_the_rows_session_id_and_says_so(tmp_path, monkeypatch):
+    rows_in = [{"name": "gseat", "harness": "grok-bot", "pid": "", "window": "@9", "session_id": SID}]
+    joined, writes, lines = _retry(tmp_path, monkeypatch, join={"found": True, "pid": 4244, "session_id": ""},
+                                   rows_in=rows_in)
+    assert joined == ["gseat"] and writes[-1]["session_id"] == SID
+    assert any(f"the join read no -s; session_id {SID} KEPT from the row, NOT read back" in m for m in lines), lines
+
+
+def test_mutant_a_retry_hit_with_no_s_writes_EMPTY_RED(tmp_path, monkeypatch):
+    m = _mut(tmp_path, "            sid = read_sid or row_sid\n", "            sid = read_sid\n")
+    rows_in = [{"name": "gseat", "harness": "grok-bot", "pid": "", "window": "@9", "session_id": SID}]
+    _joined, writes, _lines = _retry(tmp_path, monkeypatch, join={"found": True, "pid": 4244, "session_id": ""},
+                                     rows_in=rows_in, heal_mod=m)
+    assert writes[-1]["session_id"] == ""
+
+
+def test_a_retry_miss_line_carries_the_joins_note(tmp_path, monkeypatch):
+    _joined, _writes, lines = _retry(tmp_path, monkeypatch, join={"found": False, "miss": "absent",
+                                                                 "note": "pane join for @9 missed: x; saw: bash/bash, grok/grok"})
+    assert any("the pane join read absent (pane join for @9 missed: x; saw: bash/bash, grok/grok)" in m for m in lines)

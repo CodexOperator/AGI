@@ -12750,7 +12750,10 @@ def _pane_harness_scan(pane_pid: int, want: str,
     for pid, ppid in sorted(parent_of.items()):
         children.setdefault(ppid, []).append(pid)
     level, seen, depth = [pane_pid], {pane_pid}, 0
+    shallow: list[int] = []  # goal:g7.31.1.4 F3: depth 0 and 1, named on 'absent'
     while level:
+        if depth <= 1:
+            shallow.extend(level)
         hits = [p for p in level if _argv0_is(p, want)]
         if len(hits) == 1:
             return hits[0], f"depth {depth}", ""
@@ -12765,8 +12768,29 @@ def _pane_harness_scan(pane_pid: int, want: str,
                     seen.add(c)
                     nxt.append(c)
         level, depth = nxt, depth + 1
-    return (None, f"no process launched as {want!r} under pane pid {pane_pid}",
-            "absent")
+    return (None, f"no process launched as {want!r} under pane pid {pane_pid}"
+                  f"{_pane_saw(shallow)}", "absent")
+
+
+#: goal:g7.31.1.4 F3: at most this many processes named in an 'absent' reason
+PANE_SAW_MAX = 4
+
+
+def _pane_saw(pids: list[int]) -> str:
+    """goal:g7.31.1.4 F3 (sp, shaped by self-perpetuating 06:30:33Z 11-11):
+    `'; saw: <argv[0] basename>/<comm>, ...'` for the processes at depth 0
+    and 1 under a pane, capped at PANE_SAW_MAX, so an 'absent' miss MEASURES
+    the key it failed: /usr/local/bin/grok-bot is a symlink to 'grok', and a
+    re-exec or a direct 'grok' launch reads absent with 'grok/grok' named.
+    argv[0] only, never the rest of a process's argv. '' for no pids."""
+    if not pids:
+        return ""
+    names = []
+    for p in pids[:PANE_SAW_MAX]:
+        argv, comm = _proc_argv(p)
+        names.append(f"{os.path.basename(argv[0]) if argv else '?'}/{comm or '?'}")
+    more = len(pids) - PANE_SAW_MAX
+    return f"; saw: {', '.join(names)}" + (f" (+{more} more)" if more > 0 else "")
 
 
 def _session_from_argv(argv: list[str], hid: str) -> str:
@@ -12806,11 +12830,14 @@ def _join_by_pane(*, seat: str, window_id: str, harness: str,
             pid, why, kind = _pane_harness_scan(pane, want)
             if pid is not None:
                 argv, _comm = _proc_argv(pid)
+                # goal:g7.31.1.4 F3: on a hit, argv[0] (as launched) and comm
+                # beside the depth -- the key the join matched, MEASURED.
                 return {"found": True, "window_id": window_id, "pid": pid,
                         "session_id": _session_from_argv(argv, harness),
                         "transcript": "", "name": seat, "path": "",
                         "note": f"joined by pane of @{window_id.lstrip('@')}"
-                                f": {want} pid {pid} at {why}"}
+                                f": {want} pid {pid} at {why} (argv0 "
+                                f"{argv[0] if argv else '?'}, comm {_comm or '?'})"}
         if time.time() >= deadline:
             break
         time.sleep(REGISTRY_JOIN_POLL_S)
