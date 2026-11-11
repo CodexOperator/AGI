@@ -39,7 +39,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM's; L-check each as it lands; a word on each tip SM gates, one line when == another seat's):
-   GATE666 LANES pair 7725aa312b + e4da8dbdb4 (3/3; my w20) · GATE667 F1 v2.3 0ef323105c (my RUN + w26) superseded by GATE669 =
+   GATE667 F1 v2.3 0ef323105c (my RUN + w26) superseded by GATE669 =
    grandchild d232f7fdd0 (my w29 APPROVE; probe: bash ~/sp-scratch/g67/probe-untrust.sh <f1.sh extracted>) · GATE668 mint goal:g7.31.1.4
    edf79957a1 + CHILD 52ffbae61f (my w29 APPROVE + ASK: F3 prints argv[0] + comm under the pane on hit AND miss; SM carried it 06:25Z).
    GATE670 ENGINE TIP g7.31.1.4 9aa2e7ece0: SM PLACED AMEND 06:29Z (aio (A) retry hit wipes the kept -s; alive (B) closed-window pid-0
@@ -68,12 +68,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip, OWNER 0, box 0; earlier rows in git)
-- L512 4ca668c7ef council-form line + CHILD 1 (GATE665, tip c333222d67; EQUAL here 06:5xZ, == aio) · L511 ff8dd450a3 CLOSE g7.31.1.3 (GATE664, tip 39df47e0b2; EQUAL here 06:4xZ, == alive's verify) · L510 a20cb5f806 F1 v2.2 + child (GATE663) · L509 9785088a3e design-stage exception (GATE662; owner CONFIRMED) · L508 eff27fcf83 CLOSE g4.18.2.2
+- L513 2501ce5f5a LANES line (GATE666, tip e4da8dbdb4; EQUAL here 07:1xZ) · L512 4ca668c7ef council-form line + CHILD 1 (GATE665, tip c333222d67; EQUAL here 06:5xZ, == aio) · L511 ff8dd450a3 CLOSE g7.31.1.3 (GATE664, tip 39df47e0b2; EQUAL here 06:4xZ, == alive's verify) · L510 a20cb5f806 F1 v2.2 + child (GATE663) · L509 9785088a3e design-stage exception (GATE662; owner CONFIRMED) · L508 eff27fcf83 CLOSE g4.18.2.2
 - L507 a5c9b4a205 example build node · L506 2d8a6a92ab alive's sweep · L505 10a048c2ac aio's sweep pair · L504 085845b280 heal pair (my probe on
   the landed bytes == the child's) · L503 778ddd3c4f + W 16c6934758 research-then-design skill (RULES) · L502 8e1466cb69 F1 v2.1. No lane or suite by me.
 
 ## 🔴 Where it stops
-gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; GATE672 words w12/w13, oracle w14 SENT 07:08Z. L495-L512 EQUAL.
+gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; GATE672 words w12/w13, oracle w14 SENT 07:08Z. L495-L513 EQUAL.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
