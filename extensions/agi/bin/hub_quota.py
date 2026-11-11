@@ -23,6 +23,7 @@ spool (job hub-quota) so the first post back reads it in its mail:
   the hub-wide `-` hub-down line appears    `hub A down (no upstream) since HH:MMZ`  (third child 667abfb390, F9)
   it is gone, a 200 recorded after it        `hub A back HH:MMZ`
   still down, its LAST older than --max-age  `hub A no failed dial since HH:MMZ, not confirmed back`   (sp 06:49Z; never `back`)
+  after that, a newer failed dial (LAST)     `hub A down again (failed dial HH:MMZ)`, back to down      (all-is-one 07:04Z)
   anything else                              nothing
 
 It carries the hub, the model and a time only, and moves no post between hubs (the fallback is the owner's rule, banked).
@@ -80,8 +81,11 @@ def step(state: dict[tuple[str, str], tuple[str, int, int]], mem: dict, now: int
                 mem[key] = {"since": t, "said": "down"}
                 say.append(f"hub {hub} down (no upstream) since {hhmm(t)}")
             elif m["said"] == "down" and now - last >= max_age:
-                m["said"] = "unconfirmed"
+                m["said"], m["last"] = "unconfirmed", last
                 say.append(f"hub {hub} no failed dial since {hhmm(last)}, not confirmed back")
+            elif m["said"] == "unconfirmed" and last > m.get("last", last):
+                m["said"] = "down"                       # all-is-one 07:04Z: a dial failing again is said, never a silent stay
+                say.append(f"hub {hub} down again (failed dial {hhmm(last)})")
         elif m is not None:
             oks = [t for (h, md), (st, t, _) in state.items() if h == hub and md != "-" and st == "ok" and t > m["since"]]
             if oks:                                      # the host clears the line only on a 200; `back` names that 200

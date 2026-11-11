@@ -54,7 +54,7 @@ hub(){   # $1 post, $2 its symptom line -> prints the line to say
  [ -n "$4" ]||{ echo "unread-hub: $1 on hub $3 with no model id ($2)";return;}
  set -- "$1" "$2" "$3" "$4" $(awk -v h="$3" 'NR>1&&$1==h&&$2=="-"&&$3=="hub-down"{print $4,$5,"x";exit}' "$HUBDIR/state")
  if [ -n "$5" ];then num "$5"&&num "$6"||{ echo "unread-hub: hub $3 hub-down line not \`T LAST\` ($2)";return;}
-  echo "hub-down: hub $3 (no upstream) since $(hz "$5")$(ls1 "$6")";return;fi
+  echo "hub-down: hub $3 (no upstream) since $(hz "$5")$(ls1 "$6"|sed 's/last seen/last failed dial/')";return;fi   # sp 07:05Z: LAST there is the newest FAILED dial
  set -- "$1" "$2" "$3" "$4" $(awk -v h="$3" -v md="$4" 'NR>1&&$1==h&&$2==md&&$3=="quota"{print $4,$5,"x";exit}' "$HUBDIR/state")
  [ -z "$5" ]||{ num "$5"&&num "$6";}||{ echo "unread-hub: hub $3 ($4) quota line not \`T LAST\` ($2)";return;}
  if [ -z "$5" ];then echo "$2"
