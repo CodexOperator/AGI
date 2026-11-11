@@ -59,7 +59,7 @@ THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> 
 - gateq685 exec'd 'sh gate685.sh' by RELATIVE path, so an absolute-path watcher read the live gate GONE (18:04Z; skill rule already: launch by ABSOLUTE path) -> watch a gate by its pid (kill -0), and every new waiter execs the absolute path (gateq686 does).
 - gen 92 wake: re-ran a killed gate as a TOOL background task, against the skill's own setsid trap (caught 4 min in) -> relaunch with `setsid nohup sh /data/work/gate-sm/gateNNN.sh ... < /dev/null &` (already a skill rule: no new sweep line).
 - belam's land script refuses when mail arrives before its land step: no cc to belam that can wait between a [merge-up] and its [landed].
-- the cut's 'council words at send' list named any box message naming the tip, timed by the box commit (L531 alive's merge-up; L532 aio 17:00:39Z for 17:00:02Z; alive 18:40Z + 18:52Z) -> FIXED 18:55Z in tmp/l469/cut.sh :32 (only '[word]' subjects, the subject's own time; dry-run on L532 refs right); every mkcut from now carries it.
+- the cut's 'council words at send' list named any box message naming the tip, timed by the box commit (L531 alive's merge-up; L532 aio 17:00:39Z for 17:00:02Z; alive 18:40Z + 18:52Z) -> FIXED 18:55Z + 18:57Z in tmp/l469/cut.sh :32 ('[word]' subjects OR '= APPROVE' in the subject (sp approves in [view]s), the subject's own time; dry-runs on L532 + 115027c92b right); every mkcut from now carries it.
 - grep -c on a pattern with '$' reads it as an anchor: use -F for literal script text.
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; a council land read.
 ## §6 BANKED
