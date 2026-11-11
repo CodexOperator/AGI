@@ -32,6 +32,10 @@ mail(){ c=$(GIT_COMMITTER_DATE="@$3 +0000" GIT_AUTHOR_DATE="@$3 +0000" $G commit
 scr(){ touch -d @$2 $T/s/$1/o;}
 for p in alpha beta gamma belam;do scr $p $NOW;done
 mail alpha belam $NOW >/dev/null   # a box ref exists (row 3); mail to SELF is never read
+# (.46.35) the host's two hub files, every post on a SERVING hub B and never stale, so s1-s18 and m1-m8 read as landed
+HUBDIR=$T/hub;HUBMAX=1000000000;export HUBDIR HUBMAX;mkdir -p $T/hub
+hroute(){ { echo "written ${HW:-$NOW}";printf '%s\n' "$@";} >$T/hub/route;};hstate(){ { echo "written ${HW:-$NOW}";printf '%s\n' "$@";} >$T/hub/state;}
+hroute 'alpha B claude-opus-5-5' 'beta B claude-opus-5-5' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct';hstate "B claude-opus-5-5 ok $NOW"
 run(){ AS=$R0/extensions/agi/bin/alarm_spool.py STORES=$T/s WANTS=$T/w STATE=$T/st SPOOL=$T/spool SELF=belam TO=sanctuary-master U=1200 W=600 G=300 GAP=3600 sh $SW --repo $T/r 2>$T/err;}
 # s1 (delta has no ~/o at all; it has no mail yet, so it is not named)
 o=$(run);ok s1-no-unread-is-silent '[ -z "$o" ] && [ ! -e $T/spool ]'
@@ -88,6 +92,57 @@ ok s17-boot-set-only-self-unread-rc1 '[ $rc = 1 ] && grep -q "boot set empty bes
 # s18 (N2): delta flagged unread-screen, then inside GAP its ~/o reads again but its start time garbles -> named again
 rm -rf $T/st/*;run >/dev/null;scr delta $((NOW-900));echo 0 >$T/sv/delta.claude;echo empty>$T/sv/delta.since
 o=$(NOW=$((NOW+60)) run);ok s18-cause-change-inside-gap-realerts 'echo "$o" | grep -q "delta: unread-start"';echo 1 >$T/sv/delta.claude;rm -f $T/sv/delta.since $T/s/delta/o
+# .46.35 HUB rows (goal:g7.16.1.11.46.35 at ba1e5e9e35: F2-F5, F8; the file shape agreed DG2 + belam 06:5xZ 11-11): fixture
+# route/state files stand in for the host's; hub_quota.py (HQ=<file>, a mutant) says target (a)'s lines. No hub, 0 USD.
+HQ=${HQ:-$R0/extensions/agi/bin/hub_quota.py};RS=$((NOW+3600));RH=$(date -u -d @$RS +%H:%MZ)
+hq(){ python3 ${HQF:-$HQ} say --state $T/hub/state --memory $T/hqmem --said $T/said --spool $T/hspool --to sanctuary-master --now ${HNOW:-$NOW} "$@";}
+for p in alpha beta gamma delta;do echo active>$T/sv/$p;echo 1 >$T/sv/$p.claude;done
+mail delta alpha $((NOW-1800)) >/dev/null;mail delta gamma $((NOW-1800)) >/dev/null;for p in alpha beta gamma;do scr $p $((NOW-900));done
+# s19 (F2 + sp/alive): hub A cools claude-opus-5-5. alpha (A, opus) = quota; beta (A, fable) and gamma (B, opus) keep mail:
+hroute 'alpha A claude-opus-5-5' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct'
+hstate "A claude-opus-5-5 quota $RS" "A claude-fable-5-2 ok $NOW" "B claude-opus-5-5 ok $NOW";rm -rf $T/st/*;o=$(run)
+ok s19a-quota-named-not-mail 'echo "$o" | grep -q "alpha: quota: hub A (claude-opus-5-5) until $RH" && ! echo "$o" | grep -q "alpha: mail:"'
+ok s19b-other-model-same-hub-not-quota 'echo "$o" | grep -q "beta: mail:" && ! echo "$o" | grep -q "beta: quota"'
+ok s19c-same-model-other-hub-not-quota 'echo "$o" | grep -q "gamma: mail:" && ! echo "$o" | grep -q "gamma: quota"'
+hstate "A claude-opus-5-5 quota 0";rm -rf $T/st/*;o=$(run)
+ok s19d-no-reset-until-unknown 'echo "$o" | grep -q "alpha: quota: hub A (claude-opus-5-5) until unknown"'
+hstate "A claude-opus-5-5 quota $((NOW-60))";rm -rf $T/st/*;o=$(run);PH=$(date -u -d @$((NOW-60)) +%H:%MZ)
+ok s19e-past-reset-not-confirmed 'echo "$o" | grep -q "alpha: quota: hub A (claude-opus-5-5) reset $PH passed, not confirmed" && ! echo "$o" | grep -q "until $PH"'
+# s20 (F3): a cooldown in the state -> ONE line (hub, model, reset) in the said file AND the spool; seen again = no 2nd line;
+# reset 0 -> `until unknown`, never a guessed time
+rm -f $T/hqmem $T/said $T/hspool;hstate "A claude-opus-5-5 quota $RS" "D claude-opus-5-5 quota 0";hq >/dev/null;hq >/dev/null
+L="hub A (claude-opus-5-5) out of quota until $RH"
+ok s20a-cooldown-said-once-human-and-spool '[ "$(grep -c "$L" $T/said)" = 1 ] && [ "$(grep -c "$L" $T/hspool)" = 1 ] && grep -q "\"job\":\"hub-quota\"" $T/hspool'
+ok s20b-no-reset-until-unknown '[ "$(grep -c "hub D (claude-opus-5-5) out of quota until unknown" $T/said)" = 1 ]'
+# s21 (F4): a host file unreadable / stale, no route row, or a hub route with no model id -> NAMED unread-hub:, rc 1, never quota
+hstate "A claude-opus-5-5 quota $RS";rm -rf $T/st/*;mv $T/hub/state $T/hub/state.x;o=$(run);rc=$?;mv $T/hub/state.x $T/hub/state
+ok s21a-state-missing-unread-hub-rc1 'echo "$o" | grep -q "alpha: unread-hub: $T/hub/state not readable" && [ $rc = 1 ] && ! echo "$o" | grep -q "alpha: quota"'
+rm -rf $T/st/*;chmod 000 $T/hub/route;o=$(run);rc=$?;chmod 644 $T/hub/route
+if [ "$(id -u)" = 0 ];then echo "ok s21b-route-mode-000-unread-hub-rc1 # SKIP root reads mode 000";else
+ok s21b-route-mode-000-unread-hub-rc1 'echo "$o" | grep -q "alpha: unread-hub: $T/hub/route" && [ $rc = 1 ]';fi
+HW=$((NOW-600)) hstate "A claude-opus-5-5 quota $RS";rm -rf $T/st/*;o=$(HUBMAX=180 run);rc=$?;hstate "A claude-opus-5-5 quota $RS"
+ok s21c-stale-state-unread-hub-rc1 'echo "$o" | grep -q "alpha: unread-hub: $T/hub/state" && [ $rc = 1 ] && ! echo "$o" | grep -q "alpha: quota"'
+hroute 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct';rm -rf $T/st/*;o=$(run);rc=$?
+ok s21d-no-route-row-unread-hub-rc1 'echo "$o" | grep -q "alpha: unread-hub: no route row for alpha" && [ $rc = 1 ]'
+hroute 'alpha A' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct';rm -rf $T/st/*;o=$(run);rc=$?
+ok s21e-unmapped-model-unread-hub-rc1 'echo "$o" | grep -q "alpha: unread-hub: alpha on hub A with no model id" && [ $rc = 1 ]'
+hroute 'alpha A claude-opus-5-5' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct'
+HW=$((NOW-600)) hstate "A claude-opus-5-5 ok $NOW";n0=$(wc -l <$T/said);hq >/dev/null 2>&1;rc=$?;hstate "A claude-opus-5-5 quota $RS"
+ok s21f-say-on-stale-state-unread-rc1 '[ $rc = 1 ] && [ "$(wc -l <$T/said)" = "$n0" ]'
+# s22 (F5): a recorded 200 after the cooldown -> ONE back line, then quiet; a reset passing with no 200 -> ONE not-confirmed, never back
+B2=$((NOW+120));BH=$(date -u -d @$B2 +%H:%MZ);HW=$B2 hstate "A claude-opus-5-5 ok $B2";HNOW=$B2 hq >/dev/null;HNOW=$((B2+60)) HW=$B2 hq >/dev/null
+ok s22a-back-said-once-then-quiet '[ "$(grep -c "hub A (claude-opus-5-5) back $BH" $T/said)" = 1 ] && [ "$(grep -c "hub A (claude-opus-5-5) back" $T/hspool)" = 1 ]'
+rm -f $T/hqmem $T/said;E1=$((NOW+60));EH=$(date -u -d @$E1 +%H:%MZ);hstate "E claude-opus-5-5 quota $E1";hq >/dev/null
+HW=$B2 hstate "E claude-opus-5-5 quota $E1";HNOW=$B2 hq >/dev/null;HNOW=$((B2+30)) hq >/dev/null
+ok s22b-reset-passed-not-confirmed-once-no-back '[ "$(grep -c "hub E (claude-opus-5-5) reset $EH passed, not confirmed: no call since" $T/said)" = 1 ] && ! grep -q "hub E (claude-opus-5-5) back" $T/said'
+# s23 (F8): hub A down (no upstream; the hub-wide `-` line, read FIRST) -> alpha (opus, a quota line too) and beta (fable, no line) read hub-down
+hstate "A - hub-down $((NOW-600))" "A claude-opus-5-5 quota $RS";rm -rf $T/st/*;o=$(run);DH=$(date -u -d @$((NOW-600)) +%H:%MZ)
+ok s23a-hub-down-named-not-quota-not-mail 'echo "$o" | grep -q "alpha: hub-down: hub A (no upstream) since $DH" && ! echo "$o" | grep -q -E "alpha: (quota|mail)"'
+ok s23b-hub-down-any-model-on-the-hub 'echo "$o" | grep -q "beta: hub-down: hub A (no upstream) since $DH"'
+# s24: a post routed `direct` keeps its symptom (mail:)
+hroute 'alpha direct' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct';rm -rf $T/st/*;o=$(run)
+ok s24-direct-route-keeps-mail 'echo "$o" | grep -q "alpha: mail: 1 unread"'
+hroute 'alpha A claude-opus-5-5' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct';hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
 if [ -n "$MUT" ];then
  mk(){ python3 -c "import sys;s=open(sys.argv[1]).read();a=sys.argv[2];assert a in s;open(sys.argv[3],'w').write(s.replace(a,sys.argv[4],1))" $SW "$1" $T/$2 "$3";}
  mr(){ AS=$R0/extensions/agi/bin/alarm_spool.py STORES=$T/s WANTS=${MW:-$T/w} STATE=$T/st SPOOL=$T/spool SELF=belam U=1200 W=600 G=300 GAP=3600 sh $T/$1 --repo ${MR:-$T/r} 2>$T/err;}
@@ -109,5 +164,42 @@ if [ -n "$MUT" ];then
  ok m7-mutant-N1-dropped-only-self-rc0-RED '[ $rc = 0 ]'
  sed 's/c="unread-start:/c="unread-screen:/' $SW >$T/m8;rm -rf $T/st/*;mr m8 >/dev/null;scr delta $((NOW-900));echo 0 >$T/sv/delta.claude;echo empty>$T/sv/delta.since
  o=$(NOW=$((NOW+60)) mr m8);ok m8-mutant-N2-one-kind-quiet-RED '! echo "$o" | grep -q "delta:"';echo 1 >$T/sv/delta.claude;rm -f $T/sv/delta.since $T/s/delta/o
+ # .46.35 mutants: each one a reader rule dropped; the row it names must read the wrong thing (= RED caught)
+ echo active>$T/sv/alpha;rm -rf $T/st/*
+ mk 'case ${c%%:*} in mail|unread-screen|no-claude)c=$(hub "$p" "$c");;esac' m9 ':'
+ o=$(mr m9);ok m9-mutant-hub-read-dropped-reads-mail-RED 'echo "$o" | grep -q "alpha: mail:"'
+ mk '$1==h&&$2==md&&$3=="quota"' m10 '$1==h&&$3=="quota"';rm -rf $T/st/*;hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
+ o=$(mr m10);ok m10-mutant-model-ignored-beta-quota-RED 'echo "$o" | grep -q "beta: quota"'
+ mk '$1==h&&$2==md&&$3=="quota"' m11 '$2==md&&$3=="quota"';rm -rf $T/st/*
+ o=$(mr m11);ok m11-mutant-hub-ignored-gamma-quota-RED 'echo "$o" | grep -q "gamma: quota"'
+ mk 'else echo "quota: hub $3 ($4) reset $(hz "$t") passed, not confirmed";fi' m12 'else echo "quota: hub $3 ($4) until $(hz "$t")";fi';hstate "A claude-opus-5-5 quota $((NOW-60))";rm -rf $T/st/*
+ o=$(mr m12);ok m12-mutant-past-until-kept-RED 'echo "$o" | grep -q "alpha: quota: hub A (claude-opus-5-5) until $PH"'
+ mk 'echo "unread-hub: $HUBDIR/$x not readable, unwritten or older than ${HUBMAX}s ($2)";return;' m13 'echo "$2";return;';hstate "A claude-opus-5-5 quota $RS";mv $T/hub/state $T/hub/state.x;rm -rf $T/st/*
+ o=$(mr m13);rc=$?;mv $T/hub/state.x $T/hub/state;ok m13-mutant-unreadable-state-skipped-RED '! echo "$o" | grep -q "alpha: unread-hub" && [ $rc = 0 ]'
+ mk '&&[ $((now-w2)) -lt "$HUBMAX" ];}' m14 ';}';HW=$((NOW-600)) hstate "A claude-opus-5-5 quota $RS";rm -rf $T/st/*
+ o=$(HUBMAX=180 mr m14);hstate "A claude-opus-5-5 quota $RS";ok m14-mutant-stale-state-trusted-RED 'echo "$o" | grep -q "alpha: quota"'
+ mk '[ -n "$4" ]||{ echo "unread-hub: $1 on hub $3 with no model id ($2)";return;}' m15 ':';hroute 'alpha A' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct';rm -rf $T/st/*
+ o=$(mr m15);rc=$?;ok m15-mutant-unmapped-model-silent-RED '! echo "$o" | grep -q "alpha: unread-hub"'
+ hroute 'alpha A claude-opus-5-5' 'beta A claude-fable-5-2' 'gamma B claude-opus-5-5' 'delta B claude-opus-5-5' 'belam direct'
+ mk '$2=="-"&&$3=="hub-down"' m16 '$2=="-"&&$3=="never"';hstate "A - hub-down $((NOW-600))";rm -rf $T/st/*
+ o=$(mr m16);ok m16-mutant-hub-down-ignored-reads-mail-RED 'echo "$o" | grep -q "alpha: mail:"'
+ mk 'echo "hub-down: hub $3 (no upstream) since $(hz "$t")"' m17 'echo "quota: hub $3 ($4) until unknown"';rm -rf $T/st/*
+ o=$(mr m17);ok m17-mutant-500-read-as-quota-RED 'echo "$o" | grep -q "alpha: quota"'
+ hstate "A claude-opus-5-5 quota $RS" "B claude-opus-5-5 ok $NOW"
+ mq(){ mkdir -p $T/$2;cp $R0/extensions/agi/bin/alarm_spool.py $T/$2/;python3 -c "import sys;s=open(sys.argv[1]).read();a=sys.argv[2];assert a in s;open(sys.argv[3],'w').write(s.replace(a,sys.argv[4],1))" $HQ "$1" $T/$2/hub_quota.py "$3";}
+ mq 'say.append(f"{who} out of quota until' q1 'None and say.append(f"';rm -f $T/hqmem $T/said;HQF=$T/q1/hub_quota.py hq >/dev/null
+ ok q1-mutant-cooldown-line-dropped-RED '! grep -q "hub A" $T/said 2>/dev/null'
+ mq "hhmm(t) if t else 'unknown'" q2 'hhmm(t or now + 3600)';rm -f $T/hqmem $T/said;hstate "D claude-opus-5-5 quota 0";HQF=$T/q2/hub_quota.py hq >/dev/null
+ ok q2-mutant-reset-invented-RED '! grep -q "hub D (claude-opus-5-5) out of quota until unknown" $T/said'
+ mq 'say.append(f"{who} back {hhmm(t)}")' q3 'pass';rm -f $T/hqmem $T/said;hstate "A claude-opus-5-5 quota $RS";hq >/dev/null
+ HW=$B2 hstate "A claude-opus-5-5 ok $B2";HNOW=$B2 HQF=$T/q3/hub_quota.py hq >/dev/null
+ ok q3-mutant-back-never-sent-RED '! grep -q "hub A (claude-opus-5-5) back" $T/said'
+ mq '            del mem[key]
+' q4 '';rm -f $T/hqmem $T/said;hstate "A claude-opus-5-5 quota $RS";hq >/dev/null
+ HW=$B2 hstate "A claude-opus-5-5 ok $B2";HNOW=$B2 HQF=$T/q4/hub_quota.py hq >/dev/null;HNOW=$((B2+60)) HW=$B2 HQF=$T/q4/hub_quota.py hq >/dev/null
+ ok q4-mutant-back-repeats-RED '[ "$(grep -c "hub A (claude-opus-5-5) back" $T/said)" -gt 1 ]'
+ mq 'say.append(f"{who} reset {hhmm(t)} passed, not confirmed: no call since")' q5 'say.append(f"{who} back {hhmm(t)}")';rm -f $T/hqmem $T/said
+ hstate "E claude-opus-5-5 quota $E1";hq >/dev/null;HW=$B2 hstate "E claude-opus-5-5 quota $E1";HNOW=$B2 HQF=$T/q5/hub_quota.py hq >/dev/null
+ ok q5-mutant-back-on-reset-passing-RED 'grep -q "hub E (claude-opus-5-5) back" $T/said'
 fi
 echo "stall-watch: FAIL=$f";[ $f = 0 ]

@@ -15,19 +15,51 @@
 # A check that cannot read its input says `unread`, never "nobody stalled" (council 3/3 01:4xZ 10-25, rows 1-4): no refs/box or an
 # empty boot set (besides SELF) = rc 1; a post whose ~/o or unit start time cannot be read is NAMED `unread-screen:` /
 # `unread-start:`. The GAP key is the CAUSE (council 02:0xZ 10-25, N2), so a changed cause re-alerts inside GAP.
-# Cells (a test points them at fixtures): --repo (MAIN) STORES WANTS STATE SELF TO AS SPOOL U W G GAP NOW DRY=1 (print, no spool).
+# HUB CAUSE (goal:g7.16.1.11.46.35; 14:22Z-19:34Z 11-10 hub A could not reach upstream, 20:53Z-06:01Z it sat in a 429
+# cooldown, and this watch said `mail`, a symptom): a post that looks stalled (mail / unread-screen / no-claude) is read
+# against two host-written files in HUBDIR (a root timer reads the hub's journal and the post's route; shape agreed
+# DG2 + belam 06:5xZ 11-11), each with line 1 `written EPOCH`:
+#   route  `POST HUB MODEL` (MODEL = the id the hub logs for that post) or `POST direct`
+#   state  `HUB MODEL ok|quota|hub-down T` and, while a hub is down, `HUB - hub-down T` (T: quota = reset, 0 = none given;
+#          hub-down = since; ok = the last 200)
+# In order: a file unreadable / without `written` / older than HUBMAX, no route row, or a hub route with no MODEL
+# = `unread-hub:` (named, run rc 1, never quiet, never quota); `direct` = the symptom stands; the hub's `-` hub-down line
+# FIRST = `hub-down: hub A (no upstream) since HH:MMZ`; then that HUB+MODEL's quota line = `quota: hub A (M) until
+# HH:MMZ` (`until unknown` for T 0; `reset HH:MMZ passed, not confirmed` once T is past); ok or no line = the symptom.
+# Cells (a test points them at fixtures): --repo (MAIN) STORES WANTS STATE SELF TO AS SPOOL U W G GAP NOW DRY=1 (print, no spool)
+# HUBDIR HUBMAX.
 R=;while [ $# -gt 0 ];do case $1 in --repo)R=$2;shift 2;;*)echo "stall_watch: unknown arg $1">&2;exit 2;;esac;done
 R=${R:-/data/work/agi};STORES=${STORES:-/var/lib/agi};WANTS=${WANTS:-/run/systemd/system/multi-user.target.wants}
 STATE=${STATE:-$HOME/.stall-watch};SELF=${SELF:-belam};TO=${TO:-sanctuary-master}
 AS=${AS:-$R/extensions/agi/bin/alarm_spool.py};SPOOL=${SPOOL:-$STORES/$SELF/alarm.spool}
 U=${U:-1200};W=${W:-600};G=${G:-300};GAP=${GAP:-3600};now=${NOW:-$(date +%s)}
+HUBDIR=${HUBDIR:-/run/agi-hub};HUBMAX=${HUBMAX:-180}
 mkdir -p "$STATE"||{ echo "stall_watch: STATE $STATE not writable">&2;exit 1;}
 [ -d "$WANTS" ]||{ echo "stall_watch: unread: no wants dir $WANTS (the boot set)">&2;exit 1;}
 git -C "$R" rev-parse -q --git-dir >/dev/null 2>&1||{ echo "stall_watch: unread: $R is not a git repo (mail refs)">&2;exit 1;}
 [ -n "$(git -C "$R" for-each-ref --count=1 refs/box)" ]||{ echo "stall_watch: unread: no refs/box in $R">&2;exit 1;}   # (3) sp: no mail refs would read every post k = 0
 PS=$(ls "$WANTS"|sed -n 's/^agi-post@\([a-z0-9-]*\)\.service$/\1/p'|grep -vx "$SELF");[ -n "$PS" ]||{ echo "stall_watch: unread: boot set empty besides $SELF ($WANTS)">&2;exit 1;}   # (4) sp; (N1) SELF dropped first
 m(){ echo $(($1/60))m;}
-out=;n=0
+hz(){ date -u -d @"$1" +%H:%MZ 2>/dev/null||echo "?";}
+fresh(){ [ -f "$1" ]&&[ -r "$1" ]||return 1;read -r w1 w2 <"$1" 2>/dev/null||return 1   # $1 a host file: readable, `written` line 1, young
+ [ "$w1" = written ]&&[ "$w2" -eq "$w2" ] 2>/dev/null&&[ $((now-w2)) -lt "$HUBMAX" ];}
+hub(){   # $1 post, $2 its symptom line -> prints the line to say
+ for x in route state;do fresh "$HUBDIR/$x"||{ echo "unread-hub: $HUBDIR/$x not readable, unwritten or older than ${HUBMAX}s ($2)";return;};done
+ set -- "$1" "$2" $(awk -v p="$1" 'NR>1&&$1==p{print $2,$3;exit}' "$HUBDIR/route")
+ [ -n "$3" ]||{ echo "unread-hub: no route row for $1 ($2)";return;}
+ [ "$3" = direct ]&&{ echo "$2";return;}
+ [ -n "$4" ]||{ echo "unread-hub: $1 on hub $3 with no model id ($2)";return;}
+ t=$(awk -v h="$3" 'NR>1&&$1==h&&$2=="-"&&$3=="hub-down"{print $4;exit}' "$HUBDIR/state")
+ [ -z "$t" ]||[ "$t" -eq "$t" ] 2>/dev/null||{ echo "unread-hub: hub $3 hub-down time '$t' not a number ($2)";return;}
+ [ -n "$t" ]&&{ echo "hub-down: hub $3 (no upstream) since $(hz "$t")";return;}
+ t=$(awk -v h="$3" -v md="$4" 'NR>1&&$1==h&&$2==md&&$3=="quota"{print $4;exit}' "$HUBDIR/state")
+ [ -z "$t" ]||[ "$t" -eq "$t" ] 2>/dev/null||{ echo "unread-hub: hub $3 ($4) reset '$t' not a number ($2)";return;}
+ if [ -z "$t" ];then echo "$2"
+ elif [ "$t" = 0 ];then echo "quota: hub $3 ($4) until unknown"
+ elif [ "$t" -gt "$now" ];then echo "quota: hub $3 ($4) until $(hz "$t")"
+ else echo "quota: hub $3 ($4) reset $(hz "$t") passed, not confirmed";fi
+}
+out=;n=0;uh=0
 for x in $PS;do
  p=$x;c=
  st=$(systemctl show "agi-post@$p.service" -p ActiveState --value 2>/dev/null)
@@ -50,12 +82,16 @@ for x in $PS;do
   fi
  fi
  if [ -z "$c" ];then rm -f "$STATE/$p";continue;fi
+ case ${c%%:*} in mail|unread-screen|no-claude)c=$(hub "$p" "$c");;esac
+ [ "${c%%:*}" = unread-hub ]&&uh=$((uh+1))
  kind=${c%%:*};read -r lk lt 2>/dev/null <"$STATE/$p"||{ lk=;lt=0;}
  [ "$kind" = "$lk" ]&&[ $((now-lt)) -lt "$GAP" ]&&continue
  echo "$kind $now">"$STATE/$p";out="$out${out:+ · }$p: $c";n=$((n+1))
 done
-[ "$n" -gt 0 ]||exit 0
+rc=0;[ "$uh" -gt 0 ]&&rc=1
+[ "$n" -gt 0 ]||exit $rc
 msg="[stall] stall-watch $(date -u -d @"$now" +%H:%MZ) -> $TO: $n post(s) look stalled: $out. Read the screen (sudo tail -c 4000 /var/lib/agi/<post>/o), then wake it, answer its dialog or restart it; this watch acts on nothing. Stop it: cadences.stall_watch enabled: false in config:crons + crons.py apply --sudo."
 echo "$msg"
-[ -n "$DRY" ]&&exit 0
+[ -n "$DRY" ]&&exit $rc
 python3 "$AS" append --job stall-watch --to "$TO" --text "$msg" --max-lines 500 --spool "$SPOOL"||{ echo "stall_watch: spool append FAILED: $msg">&2;for x in $(ls "$STATE");do rm -f "$STATE/$x";done;exit 1;}
+exit $rc
