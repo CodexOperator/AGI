@@ -14,7 +14,7 @@ role: director
 scaffold_hash: b6f43562f4294818
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - subgoal
@@ -81,6 +81,16 @@ town: core
 3. THE CLOSE COUNTS, read off the live board at the land (SM 12:19Z): the EMPTY-pid rows launched before the build (no `tmux_socket` in their latest record), each named; each is one `--window-closed` away from a restart.
 4. THE WHOLE SUITE (bin/ is the whole-suite gate): `python3 -m pytest extensions/agi/tests/ -q` 0 failed at the land.
 
+CLOSE (11-11 16:4xZ, every falsifier as written):
+- F1 MET: the rows passed at GATE682 (test_stand_up_unread_windows.py 34 passed 0 SKIPPED on real scratch tmux, test_fresh_pane_join.py green; every placed row's mutant RED, run by sp, alive and aio on the tip's own blobs).
+- F2 MET: test_pane_join.py from /tmp 28 passed (DG1 on the tip's bytes; the mutant's template_dir points at the real templates).
+- F3 MET, read off the live board at the land (MAIN, 16:4xZ, the landed helpers): 46 rows; ONE empty-pid row with a window and no engine, `thought-master-old` (claude-code, window @3): a MISS (no launch record), so `rotate.py stand-up --post thought-master-old --window-closed` is the one act that restarts it, after a person looks at @3 on its own server. No other row is stranded (alive at GATE682: 283 launch records, all stamped).
+- F4 MET: GATE682's whole suite 9903 passed, 0 failed; the census lane re-run 54/0 after the /data ENOSPC (SM's gate scratch); L528 6419a9b180 landed plain, alive verified.
+- NOT RUN, named: a live stand-up of a real seat by hand after the land. It is not one of the four falsifiers as written, and it would launch a real harness; nothing on the board needs one (F3's one row is a closed seat's, owner's or belam's call). The rows exercise the same code on real tmux servers.
+- RESIDUE, named, not covered: a rotate-self record written outside rotate's seating builder carries no server identity, so a seat whose latest launch is one MISSES and falls to the pre-build rule (pid > 0: the caller's default, named; EMPTY pid: refused with its way out). The round watch's EPERM-alive has no recorded start time, so a round pid reused by another uid holds its lease until the round's own deadline.
+- sp's flake note: the restart rows' wait removed the race in 8 stress runs (0 of 8; its control failed 1 of 6) and 10 runs at load 8; that is not proof at every load. A gate red on a restart row reads as that race first.
+- Build nodes for the two new test files minted with this close (alive's crumb): build:tests-test-fresh-pane-join (goal:g7.31.1.4's file, new at L519) and build:tests-test-stand-up-unread-windows.
+
 ## Out of scope
 `goal:g7.31.1.4` (the join, landed L519) · `goal:g7.31.1.2` (the F1 script) · a seat's ack.
 
@@ -88,5 +98,6 @@ town: core
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 11-11 16:4xZ, CLOSE: four falsifiers as written, all MET; nothing amended. The live stand-up SM named isn't one of them and would launch a real harness, so it's named NOT RUN, not rounded up. The leaf took six mint children and three engine children because each council read found a real way a second harness could start (wrong uid, wrong server, a restarted server, a reused pid, a hidden /proc, a flag over a proven read); every one became a row with a mutant.
 director-general-1 11-11 11:5xZ, mint: SM's ask 11:46Z after L519, from sp's GATE670 finding 07:27:36Z and SM's placement 07:28Z. Why a sibling and not a line on g7.31.1.4's close: a separate rotate.py change with its own falsifier; a named item on a closed leaf is a floor nobody picks up. Why refuse only `read-failed`: sp's lean. A blind refusal on any unread list would refuse the after-reboot hand restart, which is the one case where the read is unread and the seat is certainly dead. Near miss: refusing only empty-pid rows. A claude row with a dead pid and an unread list has the same hole (the window is the proof there too), so target 2 covers every row. Child (12:1xZ, self-perpetuating 12:07:35Z, placed NOW by SM 12:08Z): no-server is classified from the socket's state, not tmux's words. After a reboot /tmp is cleared and tmux says 'error connecting ... (No such file or directory)', not 'no server running', so a phrase key would refuse the very restart invariant 2 protects. The falsifier runs both states on real tmux. Second child (12:1xZ, alive 12:08:58Z AMEND, placed by SM 12:10Z): 'the socket's state' named no socket, and the code reads the caller's. Measured: per-uid servers, /tmp/tmux-979/default ABSENT for this post, so a stand-up from here reads no-server for any seat. So the row learns its server at the launch, and stand-up asks that server. The pid > 0 fallback for old rows is safe because the pid gate is primary there: a dead harness pid is the proof, the window only a second check; an empty-pid row has no other proof, so it fails closed. Third case (all-is-one 12:10:55Z, folded into the same child before it was sent): a socket that cannot be stat'ed is read-failed, never absent. Third child (12:2xZ, SM [decision] 12:15Z): the socket lives in the seat's launch record, not the row (the row is a RULES path, banked to the owner), and the join is the LATEST record only, matched on window_id, because a stale record with the same @id names another server. Fourth child (12:2xZ, SM [decision] 12:16Z on self-perpetuating 12:15:06Z, meant for the third child, which had already gone out at 12:15Z): the seat socket ALWAYS on a hit, because the caller's server is often up and its @N is another window; the refusal names the owner, classified by errno; and heal's (B) path takes the same join, because it had the same caller-socket hole. Fifth child (12:2xZ, sp via SM 12:19Z): a socket path is not a server, so the record carries the server's start time too, and a different start time reads 'server restarted' = no-server; an empty-pid MISS gets a named way out (`--window-closed`) instead of a dead end. Sixth child (12:2xZ, all-is-one 12:19:38Z via SM 12:20Z): `_pid_alive` reads EPERM as dead, so from another uid every pid gate fails open. The fix goes in `_pid_alive` rather than a stand-up-local check, because every caller has the same blind spot, and alive is the safe side for all of them. Target 4 (alive's cwd crumb) rides along because it's the same owner's test file and one line.
 <!-- THOUGHT:END -->
