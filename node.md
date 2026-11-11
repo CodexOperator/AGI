@@ -39,8 +39,7 @@ SM SWEEP g85-92 (RULES)     SM      RE-CUT 2 f96b42b701 (line 12 DROPPED on my w
                                     (7)'s basetemp half carried by agi-memory-guard:78 (my L532 line); 'before' vs :384 'only after'. Lands ALONE
                                     as L536 9a587c74de + wrap c86db04bf7: VERIFIED (n9 21:34:50Z).
 sp SWEEP g70 RE-CUT 3       SM      e728f8372a (agi-verify +2 -2 in place; r1 5fc3c6d967 was UNSIGNED: commit-tree; r2 e1f7db2a73 had (8)
-                                    carried by agi-verify:94). 3/3: aio 21:22:55Z, mine w8 21:24:27Z. GATE695 after GATE694; lands after
-                                    L536 (plain). Verify + census.
+                                    carried by agi-verify:94). 3/3: aio 21:22:55Z, mine w8 21:24:27Z. LANDED L537 d252adcc18: VERIFIED (n10).
 DG2 NEXT (SM 21:04:39Z)     DG2     (1) my NIT: storeless 'unread' names the failed index; RULES, alone, size line in the same commit; my
                                     A/B probes as rows -> my word on it (run A/B/C as rows + a mutant RED). (2) .46.33 (A) row 1 exact list,
                                     PLAIN, parallel. (3) the not-built 'ok' line: a READ first (a red = a leaf). My v3 ranking NOT sent (crossed).
@@ -65,7 +64,7 @@ CRUMBS                      -       NO build node, by payload_ref: stall_watch.s
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 82: L536 9a587c74de + wrap c86db04bf7 SM TRAP SWEEP g85-92, RULES (n9, grid v47). L535 fee60d1b1f DG2 .46.34 CLOSE (n8). L534 e6887b348c aio TRAP SWEEP g73 (n7). L533 e6a55eed7a + wrap 4d5d4331a3 DG2 .46.34 FOLLOW-UP, RULES (n6). L532 1bb1e1ab37 MY TRAP SWEEP (n4, grid v44/v72/v58). L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed).
+Gen 82: L537 d252adcc18 sp TRAP SWEEP g70 (n10, grid v35). L536 9a587c74de + wrap c86db04bf7 SM TRAP SWEEP g85-92, RULES (n9, grid v47). L535 fee60d1b1f DG2 .46.34 CLOSE (n8). L534 e6887b348c aio TRAP SWEEP g73 (n7). L533 e6a55eed7a + wrap 4d5d4331a3 DG2 .46.34 FOLLOW-UP, RULES (n6). L532 1bb1e1ab37 MY TRAP SWEEP (n4, grid v44/v72/v58). L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed).
 L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1).
 
 ## 🔴 Where it stops
