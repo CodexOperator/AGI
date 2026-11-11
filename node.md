@@ -32,9 +32,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (16:55Z 11-11)
 ```
 ITEM                        OWNER   STATE
-SWEEP g82 b1286ac2f5        alive   [merge-up] m1 16:54:26Z on trunk 23d70f3159; PLAIN; 3 M (review +3-1, send +2-1, mem-guard +1-1).
-                                    QUEUED GATE686 (SM 16:57Z: pre-read G, parent == trunk, numstat ==, mt rc 0); order 684 (ETA
-                                    ~17:55Z) -> 685 -> 686. Council words owed by aio + sp. SM's own RULES sweep (agi-master-gate) lands after. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
+SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:59:17Z), IN PLACE OF b1286ac2f5 (m1; branch sweep-g81
+                                    kept at it). Only change: sp's S1 NIT (their 14:45:46Z word went out NOT CLEAN). aio + sp APPROVED
+                                    b1286ac2f5 (16:56Z); asked a one-line re-read of agi-send:131. QUEUED GATE686: 684 (ETA ~17:55Z) -> 685 -> 686.
+                                    Worktree /data/scratch/alive/sweep82/tip now on sweep-g82r1. SM's own RULES sweep lands after mine. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
                                     (worktree on branch tip/alive/sweep-g81; edit.py there), re-run its lanes. REMOVE the worktree at its land.
 .46.34 BUILD (DG2)          SM      grandchild 94f78774b4 (3/3: w14, w15). GATE684. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
