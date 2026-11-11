@@ -220,19 +220,44 @@ def ip_allow(cfg):
     except (AttributeError, TypeError):
         return []
 def path_allowed(path, allow):
+    """A path None (no header read, '/dev/null', a git-quoted header) is never allowed and never raises."""
+    if not isinstance(path, str):
+        return False
     return any(path == a or (a.endswith("/") and path.startswith(a)) for a in allow)
-def mask_diff_ips(diff, allow, keep=()):
-    """A unified diff with private-range tokens masked on the ADDED lines of every
-    allowlisted '+++ b/' path (anon-diff's added_lines keeps text, not path)."""
-    cur, hunk, out = None, False, []
+def diff_lines(diff):
+    """THE ONE header-aware unified-diff reader (goal:g7.16.1.11.46.33): for every line of `diff`,
+    in order, yields (path, lineno, added, line).
+      path    the post-image path of the file the line belongs to. A '+++ ' line sets it ONLY in a
+              file's HEADER, before its first '@@'; 'diff --git' resets path and hunk flag. So an
+              added line reading '++ b/<path>' (it shows as '+++ b/<path>' inside a hunk) is content,
+              never a header. None before any header, for '+++ /dev/null', and for a git-quoted
+              header ('+++ "b/...', a non-ASCII name): callers treat None as not allowlisted.
+      lineno  the post-image line number of an added or context line inside a hunk, else 0.
+      added   True only for a '+' line INSIDE a hunk.
+      line    the raw line, unchanged ('+' kept: the added text is line[1:]).
+    Callers: mask_diff_ips, reds._added, verify-land.sh's fixture-home pre-pass."""
+    path, hunk, n = None, False, 0
     for l in diff.split("\n"):
+        added, at = False, 0
         if l.startswith("diff --git "):
-            cur, hunk = None, False
+            path, hunk, n = None, False, 0
         elif l.startswith("@@"):
             hunk = True
-        elif not hunk and l.startswith("+++ "):   # a path only in a file's HEADER: an added
-            cur = l[6:] if l.startswith("+++ b/") else None   # line reading '++ b/<path>' is content
-        elif hunk and cur and l.startswith("+") and path_allowed(cur, allow):
+            m = re.search(r"\+(\d+)", l)
+            n = int(m.group(1)) - 1 if m else 0
+        elif not hunk and l.startswith("+++ "):   # a path only in a file's HEADER
+            path = l[6:] if l.startswith("+++ b/") else None
+        elif hunk and l.startswith("+"):
+            n += 1; added, at = True, n
+        elif hunk and l.startswith(" "):
+            n += 1; at = n
+        yield path, at, added, l
+def mask_diff_ips(diff, allow, keep=()):
+    """A unified diff with private-range tokens masked on the ADDED lines of every
+    allowlisted post-image path, read by diff_lines (anon-diff's added_lines keeps text, not path)."""
+    out = []
+    for path, _, added, l in diff_lines(diff):
+        if added and path_allowed(path, allow):
             l = "+" + mask_private_ips(l[1:], keep)
         out.append(l)
     return "\n".join(out)

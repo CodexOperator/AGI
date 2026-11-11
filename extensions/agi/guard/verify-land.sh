@@ -132,13 +132,11 @@ def fixture(m):     # one paths.HOME_RE token (also ~/, $HOME, expanduser: those
     t=m.group(0)
     if t[:6]!='/home/' or t[6:] not in names or re.match(r'\w',m.string[m.end():]): return t
     hits[cur]=hits.get(cur,0)+1;return '<fixture-home>'
-for l in text:
-    if l.startswith('diff --git '): cur=None
-    elif l.startswith('+++ '): cur=l[6:] if l.startswith('+++ b/') else None
-    elif names and cur and cur.startswith('extensions/agi/tests/') and l.startswith('+') and not l.startswith('+++'):
+import anonymize    # the ONE diff reader (anonymize.diff_lines, goal:g7.16.1.11.46.33) + the private-range allowlist (goal:g7.16.2.1); unimportable = the step fails = unread
+for cur,_,added,l in anonymize.diff_lines('\n'.join(text)):    # a path only in a file's header: an added '++ b/<tests path>' line never moves it
+    if added and names and cur and cur.startswith('extensions/agi/tests/') and l.startswith('+'):
         l=paths.HOME_RE.sub(fixture,l)
     res.append(l)
-import anonymize    # the private-range allowlist (anonymize.ip_allow, goal:g7.16.2.1): BASE's config, applied by the '+++ b/' path on the same COPY
 try: ipa=anonymize.ip_allow(json.load(open(cfg)))
 except Exception: ipa=[]
 res=anonymize.mask_diff_ips('\n'.join(res),ipa,anonymize.own_ips(anonymize.box_tokens(None,secrets=False))).split('\n')   # this box's own address is never masked
