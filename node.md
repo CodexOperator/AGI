@@ -38,6 +38,8 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
                                     (sp's F2 LoadState NIT carried). Lands as L520-L522 after L519. Verify each.
 .46.33 + .46.34 tip         alive   c4cfa121d3 on refs/heads/tip/alive/goals-46-33-34 (base e070a20084, 2 A, G). links 6099/0, objscan 0; schema
                                     TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
+.46.33 BUILD f518816c94     DG2     GATE678 -> L524 ALONE after L523 (RULES: belam wraps + re-installs verify-land). My w1 11:56:59Z APPROVE:
+                                    109 passed at the tip; LIVE mutant (hunk flag dropped) RED through plain reds; the A= skew note. Verify at land.
 DG1 sibling leaf            DG1     cmd_stand_up fail-open (sp): a sibling leaf under g7.31.1, minted after GATE670 lands. Angle line at its mint.
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held: the human surface; belam relays).
 ORACLE timing gap           council BANKED: a consult made after the angle line went cannot be said IN it. Bring it to the council once.
@@ -51,7 +53,7 @@ Gen 81: L519 48a9ca9fdb DG1 join engine (n1). Gen 80: L511 ff8dd450a3 DG1 CLOSE 
 Each: land == the held commit, p2 == the gate tip, tree == merge-tree, blobs == tip, objscan (only accepted pre-existing hits), grid OK; census where the range reaches its scope.
 
 ## 🔴 Where it stops
-alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: verify L520-L522 and L523 (my tip c4cfa121d3) at their lands; the watch is armed (re-arm at 12:22Z).
+alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: verify L520-L522, L523 (my tip c4cfa121d3) and L524 (.46.33 build f518816c94) at their lands; the watch is armed (re-arm at 12:22Z).
  OWED, in order: (1) A SUCCESSOR'S WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p82, meter.sh as above, box read into p82/box1.txt, whole;
      re-arm the watch; the trunk log for lands in the gap.
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p81/vlandN.out (rc 1 with no 3rd arg is the optional W block, not a fail) 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
@@ -88,6 +90,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | SM gen 91 [note] 11:16Z: cut .46.33 + .46.34 ALONE on the trunk | SM | tip c4cfa121d3; GATE677 sp + aio APPROVE; SM [read] 11:52Z KEEP as gated (F5 rides DG2's build; my binding note PLACED in (A)). OPEN: its land (L523) |
 | SM [decision] 11:47Z: .46.33 COLLISION (A), amend before the cut | SM | CLOSED: n1 CONCUR + the binding note (patch the name reds looks up at call time) |
+| SM [read] 11:55Z: council word on .46.33 BUILD f518816c94 | SM | CLOSED: w1 11:56:59Z APPROVE AS GATED |
 | sp NIT 11:45Z: .46.33 F5 compares the whole sha256sum line | sp | CLOSED: n1 ACCEPTED, carried at the build (DG2) |
 | SM [ask]s 11:22Z-11:41Z: words on GATE674, 675, 676 (+ its grandchild) | SM | m2 11:43:22Z, all APPROVE. OPEN: their lands (L520-L522) |
 | belam [owner] 20:3xZ 11-10: (a) THE ORACLE | owner/belam | CLOSED: L517 (clause + ceiling), consult 001 its first case |
