@@ -53,7 +53,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      aio AMEND ('down again' after 'not confirmed'; my row's missing way OUT, owned in w13 07:07:00Z). SM asked DG2 ONE more child.
      -> bundled child f81d45d40d = GATE672 tip: my w18 APPROVE (probe on both tips: 1 line differs, the wording). L516 EQUAL.
      GATE672 RED 08:39Z (real: hub_quota.py not in the CLI manifest) -> manifest-only child asked; my w22 08:40:12Z KEEPS my word.
-     NEXT: re-run probe-hub.sh diff on that child (one line only if it moves); L-check L517.
+     -> manifest child 6006ac08e6 (+1 test line only) = GATE672 tip; probe re-run IDENTICAL (silent, as said). Order: 673, 672, 670. L-check each.
    ORACLE chain: 9cfabeb1bf (clause, my w11 ==) + child 70814750be (ceiling, my w14 07:08:01Z APPROVE). alive's merge-up next.
    AFTER: belam's F1 run 6 (v2.3 + the join tip): read its cleanup line (grok's spelling of R in trusted_folders.toml) and the join line.
  WORDS OWED (when SM asks): CITE leaf .46.34 (DG2, after .46.33): build + CLOSE, rows 2 + 4 with mutants. goal .46.33: DG2's build + CLOSE
