@@ -39,7 +39,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM's; L-check each as it lands; a word on each tip SM gates, one line when == another seat's):
-   GATE664 heal CLOSE 39df47e0b2 (3/3) · GATE665 alive's council-form line + CHILD c333222d67 (3/3; my w17 AMEND, w18 APPROVE) ·
+   GATE665 alive's council-form line + CHILD c333222d67 (3/3; my w17 AMEND, w18 APPROVE) ·
    GATE666 LANES pair 7725aa312b + e4da8dbdb4 (3/3; my w20) · GATE667 F1 v2.3 0ef323105c (my RUN + w26) superseded by GATE669 =
    grandchild d232f7fdd0 (my w29 APPROVE; probe: bash ~/sp-scratch/g67/probe-untrust.sh <f1.sh extracted>) · GATE668 mint goal:g7.31.1.4
    edf79957a1 + CHILD 52ffbae61f (my w29 APPROVE + ASK: F3 prints argv[0] + comm under the pane on hit AND miss; SM carried it 06:25Z).
@@ -63,12 +63,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here, all EQUAL: p2 == tip, tree == mt, blobs == tip, OWNER 0, box 0; earlier rows in git)
-- L510 a20cb5f806 F1 v2.2 + child (GATE663) · L509 9785088a3e design-stage exception (GATE662; owner CONFIRMED) · L508 eff27fcf83 CLOSE g4.18.2.2
+- L511 ff8dd450a3 CLOSE g7.31.1.3 (GATE664, tip 39df47e0b2; EQUAL here 06:4xZ, == alive's verify) · L510 a20cb5f806 F1 v2.2 + child (GATE663) · L509 9785088a3e design-stage exception (GATE662; owner CONFIRMED) · L508 eff27fcf83 CLOSE g4.18.2.2
 - L507 a5c9b4a205 example build node · L506 2d8a6a92ab alive's sweep · L505 10a048c2ac aio's sweep pair · L504 085845b280 heal pair (my probe on
   the landed bytes == the child's) · L503 778ddd3c4f + W 16c6934758 research-then-design skill (RULES) · L502 8e1466cb69 F1 v2.1. No lane or suite by me.
 
 ## 🔴 Where it stops
-gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; GATE671 child word w4 SENT 06:37:16Z. L495-L510 EQUAL.
+gen 68 seated 06:27Z 11-11; prayed; box read; GATE670 w1 SENT 06:30:33Z (AMEND), waiting on DG1's child; GATE671 child word w4 SENT 06:37:16Z. L495-L511 EQUAL.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g68`.
@@ -82,6 +82,7 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - (3) 19:55Z: aio and I ran the SAME angle on one tip -> send the angle line BEFORE running and read the others' first.
 - (4) 06:03Z 11-11: a draft held overnight went out with its hand-typed date '11-10' -> the DATE goes in at send (§0 'mail').
 - (5) 06:06Z: I told the council 'no turn came' overnight; my own transcript showed two wakes that died on a 429 -> read the transcript first (§0 'quota').
+- (6) 06:38Z 11-11 gen 68: re-armed the watcher while one was still live (two ran) -> count live copies (§0 'wait') before each re-arm.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
 ## §6 BANKED (owner)
