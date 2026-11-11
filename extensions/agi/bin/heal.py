@@ -2900,6 +2900,10 @@ def _seat_pid_read(pid: int, harness: str, recorded_start: str = "") -> tuple[st
     try:
         st = proc.stat()
     except FileNotFoundError:
+        # all-is-one 12:55:08Z: under hidepid=2 another uid's live pid has no
+        # /proc entry; kill(0) confirms before 'gone' (EPERM = alive)
+        if _pid_alive(pid):
+            return "alive", f"pid {pid} hidden by /proc (kill(0) reads it alive)"
         return "dead", f"pid {pid} gone"
     except OSError as exc:
         return (("alive" if _pid_alive(pid) else "dead"),
@@ -2915,6 +2919,11 @@ def _seat_pid_read(pid: int, harness: str, recorded_start: str = "") -> tuple[st
         uname = str(st.st_uid)
     who = f"{comm or '?'} (uid {uname})"
     start = _proc_starttime(pid)
+    if recorded_start and not start:
+        # all-is-one 12:55:08Z: hidepid=1 shows the dir, not its files: an
+        # UNREAD start time cannot prove a reuse; kill(0) decides, named
+        return (("alive" if _pid_alive(pid) else "dead"),
+                f"pid {pid} {who}: start time unread, kill(0) read")
     if recorded_start:
         if start and start == recorded_start:
             return "alive", f"pid {pid} is {who}, its start time the launch's"
@@ -2930,6 +2939,10 @@ def _seat_pid_read(pid: int, harness: str, recorded_start: str = "") -> tuple[st
         argv0 = os.path.basename(raw)
     except OSError:
         argv0 = ""
+    if not comm and not argv0:
+        # nothing readable to compare (hidepid=1): cannot prove a reuse
+        return (("alive" if _pid_alive(pid) else "dead"),
+                f"pid {pid} {who}: comm unread, kill(0) read")
     if want and (comm == want[:15] or argv0 == want):
         return "alive", f"pid {pid} is {who} (the weaker read: no recorded start time)"
     return "reused", f"pid {pid} reused by {who} (the weaker read: no recorded start time; want {want})"

@@ -441,3 +441,68 @@ def test_without_a_recorded_start_the_weaker_comm_read_is_named(monkeypatch):
     finally:
         p.kill()
         p.wait()
+
+
+
+# --- all-is-one 12:55:08Z: an UNREAD /proc value cannot prove a reuse (hidepid) --------------------------------------
+
+def test_an_unread_start_time_on_a_live_pid_reads_alive(monkeypatch):
+    """hidepid=1: the dir stats, its files don't -> the start time reads '' -> kill(0) decides: alive, named."""
+    monkeypatch.setattr(heal, "_proc_starttime", lambda pid: "")
+    state, why = heal._seat_pid_read(os.getpid(), "claude-code", "12345")
+    assert state == "alive" and "start time unread, kill(0) read" in why, why
+
+
+def test_mutant_an_unread_start_time_reads_reused_RED(tmp_path, monkeypatch):
+    m = _mut(tmp_path, "heal_mut_unread", BIN / "heal.py", "    if recorded_start and not start:\n",
+             "    if False:\n")
+    monkeypatch.setattr(m, "_proc_starttime", lambda pid: "")
+    assert m._seat_pid_read(os.getpid(), "claude-code", "12345")[0] == "reused"
+
+
+def test_a_pid_hidden_by_proc_but_alive_to_kill_reads_alive(monkeypatch):
+    """hidepid=2: /proc/<pid> not found while kill(0) gives EPERM -> alive, named 'hidden by /proc'."""
+    real_stat = Path.stat
+    monkeypatch.setattr(Path, "stat", lambda self, *a, **k: (_ for _ in ()).throw(FileNotFoundError(str(self)))
+                        if str(self) == "/proc/4242" else real_stat(self, *a, **k))
+
+    def kill(pid, sig):
+        raise PermissionError(1, "Operation not permitted")
+    monkeypatch.setattr(heal.os, "kill", kill)
+    state, why = heal._seat_pid_read(4242, "grok-bot", "1")
+    assert state == "alive" and "hidden by /proc" in why, why
+
+
+def test_mutant_proc_not_found_alone_reads_dead_RED(tmp_path, monkeypatch):
+    m = _mut(tmp_path, "heal_mut_hidden", BIN / "heal.py",
+             "        if _pid_alive(pid):\n            return \"alive\", f\"pid {pid} hidden by /proc",
+             "        if False:\n            return \"alive\", f\"pid {pid} hidden by /proc")
+    real_stat = Path.stat
+    monkeypatch.setattr(Path, "stat", lambda self, *a, **k: (_ for _ in ()).throw(FileNotFoundError(str(self)))
+                        if str(self) == "/proc/4242" else real_stat(self, *a, **k))
+    monkeypatch.setattr(m.os, "kill", lambda pid, sig: (_ for _ in ()).throw(PermissionError(1, "x")))
+    assert m._seat_pid_read(4242, "grok-bot", "1")[0] == "dead"
+
+
+
+# --- sp 12:56:53Z: --window-closed counts ONLY on a MISS; on a HIT the seat's own read decides ----------------------
+
+def test_the_flag_on_a_hit_is_refused_and_launches_nothing(graph, calls, scratch, capsys):
+    sock = scratch / "seat"
+    (w,) = _server(sock)
+    _row(graph, window=w)
+    _record(graph, window_id=w, **_identity(sock))
+    rc, launched = _stand_up(graph, window_closed=True)
+    err = capsys.readouterr().err
+    assert rc == 1 and launched == [] and "its server is known" in err, err
+
+
+def test_mutant_the_flag_skips_the_check_on_a_hit_RED(graph, calls, scratch, tmp_path):
+    m = _mut(tmp_path, "rotate_mut_hitflag", BIN / "rotate.py",
+             "    else:\n        if window_closed:\n", "    else:\n        if False:\n")
+    sock = scratch / "seat"
+    (w,) = _server(sock)
+    _row(graph, window=w)
+    _record(graph, window_id=w, **_identity(sock))
+    rc, launched = _stand_up(graph, rot=m, window_closed=True)
+    assert rc == 0 and len(launched) == 1                             # the open window overridden: a second harness

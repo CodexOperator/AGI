@@ -2480,6 +2480,13 @@ def cmd_stand_up(args: argparse.Namespace, root: Path | None,
                   file=sys.stderr)
             windows = _heal._all_windows(window_path)
     else:
+        if window_closed:
+            # sp 12:56:53Z: the flag stands for a read that CAN'T be made; on a
+            # HIT the seat's own server is read, and its answer decides
+            print(f"ERR: stand-up refused: {post}: --window-closed is for a "
+                  f"seat whose server is not known; its server is known "
+                  f"({how}), and its read decides", file=sys.stderr)
+            return 1
         print(f"stand-up: {post}: reading its windows on {how}",
               file=sys.stderr)
     # goal:g7.31.1.5 (sp 07:27:36Z 11-11): a window list that could not be
