@@ -2604,6 +2604,15 @@ def _classify_death(tail: str) -> str:
     return "unknown"
 
 
+class WindowsUnread(list):
+    """goal:g7.31.1.4 (all-is-one 07:13:58Z 11-11, AMEND on GATE670): the
+    EMPTY window list `_all_windows` returns when the tmux read FAILED (rc !=
+    0, timeout, any exception), as opposed to a read that listed none. Every
+    caller still sees `[]`; a caller for which the window list is the ONLY
+    proof of death (the empty-pid closed-window path) tells the two apart by
+    type and never acts on an unread list (fail closed)."""
+
+
 def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
     """`[(window_id, window_name), ...]` across EVERY tmux session, or from
     the window-path test seam (`AGI_WINDOW_PATH` / explicit `window_path`):
@@ -2641,7 +2650,8 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
             return out
     except Exception:  # noqa: BLE001 — tmux absent/down: [] (pid gate is primary)
         pass
-    return []
+    # goal:g7.31.1.4: an empty list that SAYS the read failed (still == [])
+    return WindowsUnread()
 
 
 def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
@@ -4087,11 +4097,37 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                     # refusal, so it keeps its @id: fail-closed (a silent stall),
                     # never fail-open (a second window).
                     row_window = ""
+    # goal:g7.31.1.4: a FRESH launch of a registry-none harness (grok-bot) has
+    # no ack to resolve its pid later, so the pane pid above would be the final
+    # answer: a shell that reads alive after the harness exits. Join the pane
+    # here (bounded; the first hit returns) and write the HARNESS pid and the
+    # -s value read back from its own argv; a miss writes pid EMPTY (0), named.
+    fresh_sid = ""
+    if (not resume and not failed and window_id and _hid
+            and _rotate._harness_session_registry(_hid) == "none"):
+        _fj = _rotate._join_by_pane(seat=seat, window_id=window_id,
+                                    harness=_hid, poll_secs=FRESH_JOIN_S)
+        if _fj.get("found"):
+            row_pid = _fj.get("pid") or 0
+            fresh_sid = str(_fj.get("session_id") or "")
+            _watch_log(f"watch: seat {seat} fresh launch joined: {_hid} pid "
+                       f"{row_pid}, session_id {fresh_sid or 'EMPTY (no -s in its argv)'}")
+        else:
+            row_pid = 0
+            # aio 06:18:45Z, (a): the -s uuid was minted before the launch, so
+            # keep it (from the launch line), marked NOT read back: an empty
+            # id would leave the seat unresumable even after a later pass
+            # finds its pid; a wrong one fails closed in the resume branch.
+            fresh_sid = _launch_line_session(shell_cmd, _hid, _rotate)
+            _watch_log(f"watch: seat {seat} fresh launch: the pane join read "
+                       f"{_fj.get('miss') or 'absent'} ({_fj.get('note') or ''}); "
+                       f"pid EMPTY, never the pane shell's; session_id "
+                       f"{fresh_sid or 'EMPTY'} kept from the launch line, NOT read back")
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
             generation=gen, window=row_window,
-            pid=row_pid, session_id=resume or "")
+            pid=row_pid, session_id=resume or fresh_sid)
     except Exception as exc:  # noqa: BLE001
         row_text = f"row write FAILED: {exc}"
     _dm_crash_recovery(root, row, old_pid, cause, spawn_name, window_id, gen)
@@ -4108,6 +4144,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
 #: goal:g7.31.1.2 ACT 2c-2: a session_id-proof resume is read at the END of
 #: this window (sp T1): a failed -r may start, print its error and exit.
 RESUME_WINDOW_S = 30
+#: goal:g7.31.1.4: the bounded pane join after a FRESH launch of a registry-none harness (it returns at the first hit)
+FRESH_JOIN_S = 30
 RESUME_FIRST_JOIN_S = 5
 
 
@@ -4302,7 +4340,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     launcher=None, pin_table=None, seat_sessions=None,
                     rows=None, registry_dir: str | None = None,
                     pane_pids: dict | None = None,
-                    admission: dict | None = None) -> dict:
+                    admission: dict | None = None,
+                    empty_pid_dead: bool = False) -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -4322,8 +4361,13 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         row = _live_seat_row(gdir, seat, _rotate) or row
 
     pid = int(row.get("pid", 0) or 0)
-    if pid <= 0:
+    # goal:g7.31.1.4 (B): an EMPTY-pid registry-none row whose window closed
+    # is dead by that fact (never pid_alive(0): os.kill(0, 0) signals the
+    # process GROUP and reads alive).
+    _empty_dead = empty_pid_dead and pid <= 0
+    if pid <= 0 and not _empty_dead:
         return {}  # only rows carrying a pid are candidate seats
+    _gone = (lambda: True) if _empty_dead else (lambda: not pid_alive(pid))
     # once-guard keyed on a RESPAWN OUTCOME: an earlier `respawned` record
     # means this death is already healed — never re-name, never re-record,
     # never re-spawn on a later pass. A `detected`-only record does NOT stop
@@ -4333,13 +4377,13 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         # goal:g7.31.1.3: named when the pid is gone (a live seat inside the
         # window is the successor waking, not news); an unread record names
         # itself inside the guard.
-        if _held and not pid_alive(pid):
+        if _held and _gone():
             _watch_log(f"watch: seat {seat} pid {pid} gone; held by a respawned "
                        f"record {_held[0]} (SEAT_DEAD_WINDOW_S "
                        f"{SEAT_DEAD_WINDOW_S}): not respawned")
         return {}
     # (1a) the row pid is gone from the process table.
-    if pid_alive(pid):
+    if not _gone():
         return {}
     # (1b) the LIVE-FIRST row's window @id is gone from tmux. (1c), the
     # window-name lineage, is DELETED (prime XI ruling 19:38Z: a name is not
@@ -4488,6 +4532,122 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
             "respawned": bool(outcome.get("respawned")), "outcome": outcome}
 
 
+def _launch_line_session(shell_cmd: str, hid: str, _rotate) -> str:
+    """goal:g7.31.1.4: the session id a launch line hands its harness (the
+    template's `session` flag, else `resume`), read from the line itself:
+    the harness argv after the launch wrapper's ` -- `. '' when the line does
+    not parse or carries no such flag."""
+    import shlex  # noqa: PLC0415
+    try:
+        argv = shlex.split(shell_cmd or "")
+    except ValueError:
+        return ""
+    if "--" in argv:
+        argv = argv[argv.index("--") + 1:]
+    try:
+        return str(_rotate._session_from_argv(argv, hid) or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _retry_empty_pid_joins(root: Path, rows: list, windows, _rotate) -> list[str]:
+    """goal:g7.31.1.4 target 4 (aio 06:11:59Z 11-11): the seat-dead scan keeps
+    only rows with pid > 0, so a registry-none seat whose fresh join MISSED
+    (pid EMPTY) would drop out of the watch with no line. Each pass re-tries
+    the pane join (one read, no wait) for every LOCAL registry-none row with
+    an EMPTY pid whose window is open: a hit writes the harness pid and its -s
+    value to the row; a miss names the row, every pass, until it joins or its
+    window closes (a CLOSED window: `_empty_pid_closed_window_rows`, the
+    dead-seat path). Returns the names it joined."""
+    present = {w for w, _n in windows}
+    joined: list[str] = []
+    for r in rows:
+        name = (r.get("name") or "").strip()
+        hid = str(r.get("harness") or "").strip()
+        win = (r.get("window") or "").strip()
+        if (not name or not hid or int(r.get("pid", 0) or 0) > 0
+                or not win or win not in present
+                or not boxes.row_is_local(root, r)
+                or _rotate._harness_session_registry(hid) != "none"):
+            continue
+        j = _rotate._join_by_pane(seat=name, window_id=win, harness=hid,
+                                  poll_secs=0)
+        if j.get("found"):
+            # goal:g7.31.1.4 (A) (aio 06:26:04Z, alive): a join that reads NO
+            # -s (a re-exec whose argv dropped it) KEEPS the session_id the
+            # row already holds (the uuid the fresh miss kept), never an empty
+            # write over it: the seat would join and then could not resume.
+            read_sid = str(j.get("session_id") or "")
+            row_sid = str(r.get("session_id") or "").strip()
+            sid = read_sid or row_sid
+            sid_said = (f"session_id {read_sid} read back" if read_sid else
+                        f"the join read no -s; session_id {row_sid} KEPT from "
+                        f"the row, NOT read back" if row_sid else
+                        "the join read no -s and the row held none: session_id EMPTY")
+            try:
+                _rotate._successor_row_write(
+                    root, actor=name, seat=name, role=r.get("role") or "",
+                    session_ref=r.get("session_ref") or "",
+                    generation=r.get("generation") or 0, window=win,
+                    pid=j.get("pid"), session_id=sid)
+                _watch_log(f"watch: seat {name} had no pid; the pane join "
+                           f"found {hid} pid {j.get('pid')}: row written; "
+                           f"{sid_said}")
+                joined.append(name)
+            except Exception as exc:  # noqa: BLE001
+                _watch_log(f"watch: seat {name} had no pid; the pane join "
+                           f"found pid {j.get('pid')} but the row write "
+                           f"FAILED: {exc}")
+        else:
+            _watch_log(f"watch: seat {name} has no pid ({hid}, window {win} "
+                       f"open): the pane join read {j.get('miss') or 'absent'} "
+                       f"({j.get('note') or ''}); not watched until it joins")
+    return joined
+
+
+def _empty_pid_closed_window_rows(root: Path, rows: list, windows) -> list:
+    """goal:g7.31.1.4 (B) (placed AMEND, SM 06:29Z 11-11): a LOCAL
+    registry-none row with an EMPTY pid whose window has CLOSED is a dead
+    seat. Before the tip such a row held the pane shell's pid, so a closed
+    window read as a dead pid and was RESPAWNED; with pid EMPTY the pid > 0
+    scan never sees it and the retry stops at the open-window test: dead and
+    silent. Each pass NAMES every such row and returns it, for the caller to
+    hand to the dead-seat path (`_watch_one_seat(..., empty_pid_dead=True)`):
+    recovered like a dead pid, under the same once-guard, admission and
+    recover cell (sp's lean, self-perpetuating 06:30:33Z: what the row did
+    before the tip). A row with no window at all was never stood up here:
+    not touched. With no pid gate the window list is these rows' ONLY proof
+    of death, so an UNREAD list (`WindowsUnread`, a failed tmux read) hands
+    on NOTHING: each such row is named 'window list unread: not recovered'
+    and left (all-is-one 07:13:58Z: a tmux hiccup must never start a second
+    harness on a live seat)."""
+    try:
+        import rotate as _rotate  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        return []
+    unread = isinstance(windows, WindowsUnread)
+    present = {w for w, _n in windows}
+    dead: list = []
+    for r in rows:
+        name = (r.get("name") or "").strip()
+        hid = str(r.get("harness") or "").strip()
+        win = (r.get("window") or "").strip()
+        if (not name or not hid or int(r.get("pid", 0) or 0) > 0
+                or not win or win in present
+                or not boxes.row_is_local(root, r)
+                or _rotate._harness_session_registry(hid) != "none"):
+            continue
+        if unread:
+            _watch_log(f"watch: seat {name} has no pid ({hid}); window list "
+                       f"unread (the tmux read failed): not recovered")
+            continue
+        _watch_log(f"watch: seat {name} has no pid ({hid}) and its window "
+                   f"{win} is CLOSED: a dead seat, handed to the dead-seat "
+                   f"path")
+        dead.append(r)
+    return dead
+
+
 def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
                  window_path: str | None = None, launcher=None,
                  registry_dir: str | None = None) -> list[dict]:
@@ -4530,25 +4690,33 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     if foreign:
         _watch_log("watch: skipped foreign-box seat(s) by name: "
                    + ", ".join(foreign))
+    _retry_empty_pid_joins(root, rows, windows, _rotate)
+    dead_empty = _empty_pid_closed_window_rows(root, rows, windows)
+    dead_ids = {id(r) for r in dead_empty}
     acted: list[dict] = []
     # goal:g6.41.1 P5: at most ONE recovery launch per pass, the Prime (the
     # `role: prime_director` row) first; the PSI read happens once, lazily.
     admission: dict = {"left": 1}
-    pid_rows.sort(key=lambda r: r.get("role") != "prime_director")
-    for row in pid_rows:
+    scan = pid_rows + dead_empty
+    scan.sort(key=lambda r: r.get("role") != "prime_director")
+    for row in scan:
         summary = _watch_one_seat(root, row, windows, _rotate,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
                                   pin_table=pins, seat_sessions=seat_sess,
                                   rows=rows, pane_pids=pane_pids,
-                                  admission=admission)
+                                  admission=admission,
+                                  empty_pid_dead=id(row) in dead_ids)
         if summary:
             acted.append(summary)
     # goal:g7.31.1.3: the count is the seats heal ACTED on (named a cause),
     # beside the rows whose pid is gone, so '0' never reads as 'no dead pid'.
     gone = sum(1 for r in pid_rows if not (pid_alive or _pid_alive)(int(r.get("pid", 0) or 0)))
+    # goal:g7.31.1.4 (alive 07:19:57Z): 'acted' counts the empty-pid dead
+    # rows too, so they are counted beside the gone pids, every pass.
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
-               f"row(s); {gone} pid(s) gone; {len(acted)} acted")
+               f"row(s); {gone} pid(s) gone + {len(dead_empty)} empty-pid "
+               f"closed-window row(s); {len(acted)} acted")
     _alert_deferred(root, acted, rows)
     return acted
 

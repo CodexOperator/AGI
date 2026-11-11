@@ -8,7 +8,7 @@ say why. Rows here, each RED on the trunk's heal.py before this leaf (the mutant
   CONTROL: a readable respawned record older than SEAT_DEAD_WINDOW_S does NOT hold, and writes no hold line
   in-window: the guard hands the caller '<file> <age> s old'; _watch_one_seat names it only when the pid is gone
   _watch_one_seat's window-present return names the @id and the pane pid (unknown when the pass map lacks it), never 'vouches'
-  _watch_seats' summary reads '<n> pid(s) gone; <m> acted', never 'dead'
+  _watch_seats' summary reads '<n> pid(s) gone + <e> empty-pid closed-window row(s); <m> acted', never 'dead'
 """
 from __future__ import annotations
 
@@ -202,5 +202,5 @@ def test_summary_counts_gone_pids_and_acted(tmp_path, monkeypatch):
     monkeypatch.setattr(heal, "_alert_deferred", lambda *a, **k: None)
     heal._watch_seats(tmp_path, now=NOW, pid_alive=lambda p: p == 11)
     log = _log(tmp_path)
-    assert "seat-dead scan over 2 configured pid row(s); 1 pid(s) gone; 0 acted" in log
+    assert "seat-dead scan over 2 configured pid row(s); 1 pid(s) gone + 0 empty-pid closed-window row(s); 0 acted" in log
     assert " dead\n" not in log

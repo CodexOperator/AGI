@@ -142,7 +142,9 @@ def test_no_match_is_EMPTY_and_names_what_it_looked_for(tree):
     pane = tree("sleep 60; :")
     time.sleep(0.2)
     pid, why = rotate._pane_harness_pid(pane, "grok-bot")
-    assert pid is None and why == f"no process launched as 'grok-bot' under pane pid {pane}"
+    # goal:g7.31.1.4 F3: the miss names what it SAW at depth 0 and 1 (argv[0] basename/comm)
+    assert pid is None and why == (f"no process launched as 'grok-bot' under pane pid {pane}"
+                                   "; saw: bash/bash, sleep/sleep"), why
 
 
 def test_argv0_is_read_as_launched_not_the_exe(tree):
@@ -328,8 +330,9 @@ def test_a_cyclic_parent_table_reads_EMPTY_and_its_mutant_spins(tmp_path, monkey
     forever; the deadline in _join_by_pane is checked only between walks."""
     cyc = {11: 10, 12: 11, 10: 12}
     monkeypatch.setattr(rotate, "_argv0_is", lambda pid, want: False)
+    monkeypatch.setattr(rotate, "_proc_argv", lambda pid: ([f"/x/p{pid}", "--secret"], f"c{pid}"))
     assert rotate._pane_harness_pid(10, "x", parent_of=dict(cyc)) == (
-        None, "no process launched as 'x' under pane pid 10")
+        None, "no process launched as 'x' under pane pid 10; saw: p10/c10, p11/c11")
     monkeypatch.setattr(rotate, "_argv0_is", lambda pid, want: pid == 12)
     assert rotate._pane_harness_pid(10, "x", parent_of=dict(cyc)) == (12, "depth 2")
     m = _mutant(tmp_path, BIN / "rotate.py",
@@ -360,3 +363,40 @@ def test_resume_proof_is_template_declared_and_closed(tmp_path, monkeypatch):
     with pytest.raises(harness_template.HarnessTemplateError,
                        match="unknown session.resume_proof 'maybe'"):
         harness_template.load("x")
+
+
+# --- goal:g7.31.1.4 F3 (sp, shaped by self-perpetuating 06:30:33Z 11-11): a miss NAMES what it saw; a hit names argv[0] --
+
+def test_a_harness_launched_as_grok_reads_absent_and_its_line_names_grok(tree, monkeypatch, capsys):
+    """/usr/local/bin/grok-bot is a symlink to 'grok': launched as 'grok' (a re-exec, a direct launch) the basename key
+    'grok-bot' misses. The miss is still a miss (never a guess), and its reason names 'grok' so a live run MEASURES it."""
+    pane = tree(f"({FAKE.replace('exec -a grok-bot', 'exec -a grok')}); sleep 60")
+    time.sleep(0.3)
+    j = _grok_join(monkeypatch, pane)
+    assert not j["found"] and j["miss"] == "absent", j
+    assert "; saw: bash/bash, grok/python3" in j["note"], j["note"]
+    assert "--model" not in j["note"] and UUID not in j["note"]          # argv[0] only
+
+
+def test_mutant_the_absent_reason_drops_the_names_RED(tree, monkeypatch, tmp_path):
+    m = _mutant(tmp_path, BIN / "rotate.py", '                  f"{_pane_saw(shallow)}", "absent")\n',
+                '                  "", "absent")\n', "rot_mutSaw")
+    pane = tree(f"({FAKE.replace('exec -a grok-bot', 'exec -a grok')}); sleep 60")
+    time.sleep(0.3)
+    _pid, why, kind = m._pane_harness_scan(pane, "grok-bot")
+    assert kind == "absent" and "grok" not in why.replace("'grok-bot'", "")
+
+
+def test_the_saw_list_is_capped_at_four(monkeypatch):
+    table = {10: 1, **{20 + i: 10 for i in range(6)}}
+    monkeypatch.setattr(rotate, "_argv0_is", lambda pid, want: False)
+    monkeypatch.setattr(rotate, "_proc_argv", lambda pid: ([] if pid == 21 else [f"p{pid}"], "" if pid == 21 else "c"))
+    _pid, why = rotate._pane_harness_pid(10, "x", parent_of=table)
+    assert why.endswith("; saw: p10/c, p20/c, ?/?, p22/c (+3 more)"), why
+
+
+def test_a_hit_names_argv0_and_comm_beside_the_depth(tree, monkeypatch):
+    pane = tree(FAKE)
+    _settle(pane)
+    j = _grok_join(monkeypatch, pane)
+    assert j["found"] and j["note"].endswith("at depth 0 (argv0 grok-bot, comm python3)"), j["note"]
