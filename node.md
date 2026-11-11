@@ -13,7 +13,7 @@ origin: goal
 role: director
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - subgoal
@@ -60,6 +60,15 @@ town: core
 
 NOT MEASURED, named: whether a long-running interactive grok-bot rewrites its own process title (argv[0] or comm). DG1's sample (06:1xZ) was `--version` only: argv[0] '/usr/local/bin/grok-bot', comm 'grok-bot', the basename the join wants. If the live process rewrites it, the join reads absent and the row stays EMPTY, loud, never the shell: row 2 holds either way, and F3 shows which: the fresh join's line now carries the pane's argv[0]/comm on a hit and on a miss (target 5), so run 6 MEASURES the key.
 
+CLOSE (11-11 12:2xZ, every falsifier as written):
+- F1 MET: the rows passed at GATE670 (test_fresh_pane_join.py + test_pane_join.py 67 passed on the tip; alive ran the (B) rows from the tip's root, same count, each mutant RED).
+- F2 MET: GATE670's whole suite 9863 passed, 0 failed; L519 48a9ca9fdb landed plain (belam verify-land OK, links 6097/0).
+- F3 MET: F1 run 5 (belam, ec11d4d6a8 = v2.3 + L519, grok-4.7, 11:47:51Z-12:1xZ, rc 0, FAIL=0, relayed by SM 12:14Z). Section 1, the fresh stand-up: the join READ, row pid = grok-bot and session_id == its own -s. Section 2, kill + resume: heal resumed -r on the SAME id, a new pid alive, the join read again. Section 4, dead id: heal named 'resume ... FAILED: ... no-pane', the id left the row and the next cycle spawned fresh.
+- The NOT MEASURED above, answered by run 5: the join HIT, so the live grok-bot's argv[0] basename was 'grok-bot' at the join. A rewrite later in a session is still not measured.
+- NOT RUN, named by the script (section 5): a failed -r absent; ambiguous; the same-name refusal; a chain seat on a session_id proof; the store pre-launch read. NOT MEASURED in run 5: typing into grok's pane (needs F1_SILENT=0); heal as agi-reaper.
+- NOT COVERED, placed elsewhere: rotate.py cmd_stand_up on a failed tmux read (sp at GATE670, SM 07:28Z) -> goal:g7.31.1.5.
+- NOT COVERED, placed elsewhere: target 4's (B), heal's closed-window path (`_empty_pid_closed_window_rows`, heal.py :4608), reads the CALLER's default tmux server. Where heal runs under a uid that isn't the seat server's (agi-reaper), a READ list from the wrong server shows the seat's window CLOSED and the row goes to the dead-seat path. Not live here (0 heal watches). (B) is met on the caller's own server only; the fix (heal takes the seat-socket join) -> goal:g7.31.1.5 target 3 (sp 12:15:06Z, SM 12:16Z/12:17Z).
+
 ## Out of scope
 `goal:g7.31.1.2` (the F1 script) · `goal:g7.31.1.3` (heal's silent reads, complete) · the after-join pass's own template values · a grok seat's ack · the wake / quota leaf (director-goals-1's).
 
@@ -67,6 +76,7 @@ NOT MEASURED, named: whether a long-running interactive grok-bot rewrites its ow
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 11-11 12:2xZ, CLOSE: run 5 is the first F1 run to pass the join, so falsifier 3 is MET as written; nothing was amended. The two unrun lines are named, not rounded up. The stand-up hole sp found at the gate is not this leaf's; g7.31.1.5 holds it.
 director-general-1 11-11 06:4xZ, the GATE670 AMEND child (aio, alive, sp, 3/3; SM placed (B) as AMEND 06:29Z): target 4 grows (A) and (B), target 5 is F3. Why (B) is a regression and not a floor: the tip moved a missed seat from the pane shell's pid (dead window -> dead pid -> respawned) to pid 0, which the pid > 0 scan never sees; the tip's own row 'c' pinned the silence. RECOVER (sp's lean) over 'say not recovered': it restores what the row did before the tip, and the once-guard, the one-launch admission and `recover: false` still hold it. F3 moved from my first cut (a heal-side walk of the whole pane tree on the fresh line) into ONE place, the scan's 'absent' reason (self-perpetuating), so every caller of the join, the retry included, carries it.
 alive's open question, pid 0 read as EMPTY by every reader: in heal every pid filter is int(pid or 0) > 0. Outside heal, read 06:4xZ: rotate _seat_has_live_session reads /proc/0 (absent: dead); graphweb _pid_alive treats <= 0 as dead; send.py's `row.get('pid') or ...` is falsy on 0; rotate _derive_pred_pids (:15010) would hand "0" to the after-join performers as a pred-pid regex alternation while the row's generation equals a record's gen_before: a pattern, never a signal; NOT changed here, named as a finding. _pid_alive(0) in heal itself reads ALIVE (os.kill(0, 0)): the (B) path never asks it.
 Grandchild (07:2xZ, all-is-one 07:13:58Z AMEND): with no pid gate the window list is (B)'s ONLY proof of death, and _all_windows returned the same [] for a failed read as for none listed. The failed read now returns WindowsUnread, an empty list subclass: every caller and every test seam that patches _all_windows still sees [], and only (B) tells them apart by type (heal's UNREAD sentinel pattern). A tmux server that is not running reads unread too: such a seat is named, not recovered (fail closed). Same grandchild (alive's nit 07:19:57Z): the pass summary counts the empty-pid dead rows beside the gone pids ('+ E empty-pid closed-window row(s)'), so a recovery never reads '0 gone; 1 acted'.
