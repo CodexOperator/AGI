@@ -2604,6 +2604,15 @@ def _classify_death(tail: str) -> str:
     return "unknown"
 
 
+class WindowsUnread(list):
+    """goal:g7.31.1.4 (all-is-one 07:13:58Z 11-11, AMEND on GATE670): the
+    EMPTY window list `_all_windows` returns when the tmux read FAILED (rc !=
+    0, timeout, any exception), as opposed to a read that listed none. Every
+    caller still sees `[]`; a caller for which the window list is the ONLY
+    proof of death (the empty-pid closed-window path) tells the two apart by
+    type and never acts on an unread list (fail closed)."""
+
+
 def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
     """`[(window_id, window_name), ...]` across EVERY tmux session, or from
     the window-path test seam (`AGI_WINDOW_PATH` / explicit `window_path`):
@@ -2641,7 +2650,8 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
             return out
     except Exception:  # noqa: BLE001 — tmux absent/down: [] (pid gate is primary)
         pass
-    return []
+    # goal:g7.31.1.4: an empty list that SAYS the read failed (still == [])
+    return WindowsUnread()
 
 
 def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
@@ -4606,11 +4616,16 @@ def _empty_pid_closed_window_rows(root: Path, rows: list, windows) -> list:
     recovered like a dead pid, under the same once-guard, admission and
     recover cell (sp's lean, self-perpetuating 06:30:33Z: what the row did
     before the tip). A row with no window at all was never stood up here:
-    not touched."""
+    not touched. With no pid gate the window list is these rows' ONLY proof
+    of death, so an UNREAD list (`WindowsUnread`, a failed tmux read) hands
+    on NOTHING: each such row is named 'window list unread: not recovered'
+    and left (all-is-one 07:13:58Z: a tmux hiccup must never start a second
+    harness on a live seat)."""
     try:
         import rotate as _rotate  # noqa: PLC0415
     except Exception:  # noqa: BLE001
         return []
+    unread = isinstance(windows, WindowsUnread)
     present = {w for w, _n in windows}
     dead: list = []
     for r in rows:
@@ -4621,6 +4636,10 @@ def _empty_pid_closed_window_rows(root: Path, rows: list, windows) -> list:
                 or not win or win in present
                 or not boxes.row_is_local(root, r)
                 or _rotate._harness_session_registry(hid) != "none"):
+            continue
+        if unread:
+            _watch_log(f"watch: seat {name} has no pid ({hid}); window list "
+                       f"unread (the tmux read failed): not recovered")
             continue
         _watch_log(f"watch: seat {name} has no pid ({hid}) and its window "
                    f"{win} is CLOSED: a dead seat, handed to the dead-seat "
@@ -4693,8 +4712,11 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     # goal:g7.31.1.3: the count is the seats heal ACTED on (named a cause),
     # beside the rows whose pid is gone, so '0' never reads as 'no dead pid'.
     gone = sum(1 for r in pid_rows if not (pid_alive or _pid_alive)(int(r.get("pid", 0) or 0)))
+    # goal:g7.31.1.4 (alive 07:19:57Z): 'acted' counts the empty-pid dead
+    # rows too, so they are counted beside the gone pids, every pass.
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
-               f"row(s); {gone} pid(s) gone; {len(acted)} acted")
+               f"row(s); {gone} pid(s) gone + {len(dead_empty)} empty-pid "
+               f"closed-window row(s); {len(acted)} acted")
     _alert_deferred(root, acted, rows)
     return acted
 

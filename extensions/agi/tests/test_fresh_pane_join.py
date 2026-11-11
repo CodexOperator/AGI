@@ -277,3 +277,74 @@ def test_a_retry_miss_line_carries_the_joins_note(tmp_path, monkeypatch):
     _joined, _writes, lines = _retry(tmp_path, monkeypatch, join={"found": False, "miss": "absent",
                                                                  "note": "pane join for @9 missed: x; saw: bash/bash, grok/grok"})
     assert any("the pane join read absent (pane join for @9 missed: x; saw: bash/bash, grok/grok)" in m for m in lines)
+
+
+# --- (B) fails CLOSED on an unread window list (all-is-one 07:13:58Z): a tmux hiccup never starts a second grok -------
+
+def _tmux_fails(monkeypatch, heal_mod):
+    monkeypatch.delenv("AGI_WINDOW_PATH", raising=False)
+
+    def boom(*a, **k):
+        raise OSError("tmux read failed")
+    monkeypatch.setattr(heal_mod.subprocess, "run", boom)
+
+
+def test_a_failed_tmux_read_is_unread_never_no_windows(monkeypatch):
+    _tmux_fails(monkeypatch, heal)
+    w = heal._all_windows()
+    assert w == [] and isinstance(w, heal.WindowsUnread)       # every old caller still sees []
+
+
+def test_an_unread_window_list_names_the_row_and_hands_on_nothing(tmp_path, monkeypatch):
+    _tmux_fails(monkeypatch, heal)
+    lines: list = []
+    monkeypatch.setattr(heal, "_watch_log", lambda x: lines.append(x))
+    monkeypatch.setattr(heal.boxes, "row_is_local", lambda root, r: True)
+    rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@7"}]
+    assert heal._empty_pid_closed_window_rows(tmp_path, rows, heal._all_windows()) == []
+    assert lines == ["watch: seat c has no pid (grok-bot); window list unread (the tmux read failed): not recovered"]
+
+
+def test_mutant_the_failed_read_taken_as_no_windows_RED(tmp_path, monkeypatch):
+    """The [] of a failed read taken as 'no windows': window @7 reads CLOSED and a live seat is handed on (fail-OPEN)."""
+    m = _mut(tmp_path, "    return WindowsUnread()\n", "    return []\n")
+    _tmux_fails(monkeypatch, m)
+    lines: list = []
+    monkeypatch.setattr(m, "_watch_log", lambda x: lines.append(x))
+    monkeypatch.setattr(m.boxes, "row_is_local", lambda root, r: True)
+    rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@7"}]
+    assert [r["name"] for r in m._empty_pid_closed_window_rows(tmp_path, rows, m._all_windows())] == ["c"]
+
+
+# --- the summary counts the empty-pid dead rows beside the gone pids (alive 07:19:57Z) ---------------------------
+
+def _summary(tmp_path, monkeypatch, heal_mod):
+    import rotate as live_rotate                                  # the module heal's `import rotate` binds
+    rows = [{"name": "c", "harness": "grok-bot", "pid": "", "window": "@8"}]
+    lines: list = []
+    monkeypatch.setattr(live_rotate, "_load_seats", lambda root: rows)
+    monkeypatch.setattr(heal_mod, "_watch_log", lambda x: lines.append(x))
+    monkeypatch.setattr(heal_mod, "_all_windows", lambda wp=None: [("@9", "a")])
+    monkeypatch.setattr(heal_mod, "_load_launcher", lambda l: None)
+    monkeypatch.setattr(heal_mod, "_pin_table", lambda root, rows: ({}, []))
+    monkeypatch.setattr(heal_mod, "_seat_sessions", lambda *a, **k: {})
+    monkeypatch.setattr(heal_mod.boxes, "row_is_local", lambda root, r: True)
+    monkeypatch.setattr(heal_mod, "_watch_one_seat",
+                        lambda *a, **k: {"seat": "c"} if k.get("empty_pid_dead") else {})
+    monkeypatch.setattr(heal_mod, "_alert_deferred", lambda *a, **k: None)
+    heal_mod._watch_seats(tmp_path, now=0.0, pid_alive=lambda p: True)
+    return lines
+
+
+def test_the_summary_counts_an_empty_pid_dead_row_it_acted_on(tmp_path, monkeypatch):
+    lines = _summary(tmp_path, monkeypatch, heal)
+    assert ("watch: seat-dead scan over 0 configured pid row(s); 0 pid(s) gone + 1 empty-pid closed-window "
+            "row(s); 1 acted") in lines, lines
+
+
+def test_mutant_the_old_summary_reads_0_gone_1_acted_RED(tmp_path, monkeypatch):
+    m = _mut(tmp_path, '               f"row(s); {gone} pid(s) gone + {len(dead_empty)} empty-pid "\n'
+                       '               f"closed-window row(s); {len(acted)} acted")\n',
+             '               f"row(s); {gone} pid(s) gone; {len(acted)} acted")\n')
+    lines = _summary(tmp_path, monkeypatch, m)
+    assert "watch: seat-dead scan over 0 configured pid row(s); 0 pid(s) gone; 1 acted" in lines
