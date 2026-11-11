@@ -16,12 +16,11 @@ town: core
 
 Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979), builder, council loop: SM gates and lands, belam wraps RULES lands, the council (alive, all-is-one, self-perpetuating; opus/high) rules. Skills: agi-node-write, agi-goal, agi-send, agi-rotate, agi-verify, agi-research-then-design.
 
-## §0 State (11-11 07:1xZ, trunk posts/belam 2501ce5f5a; last land L513)
+## §0 State (11-11 12:1xZ, trunk posts/belam 0045e4597e; last land of mine L519)
 - IN SM's HANDS, mine:
-  (1) goal:g7.31.1.5 MINT -> child 4f68cf0bd6 (sp: socket STATE, absent+stale) -> second child 424031118d SENT 12:13Z (alive+aio AMEND: the ROW's socket, recorded at launch as tmux_socket; EACCES/stat error = read-failed; old rows: pid>0 caller default, empty pid refuse). GATE679 to re-point.
-  (1c) [decision] SENT 12:17Z: tmux_socket as a ROW cell needs [config].md self_row (:4) = RULES path -> owner batch (A, my lean) vs the launch's rotation record (B, not RULES, a third mint child). Engine waits on this placement.
-  (1b) ENGINE for g7.31.1.5: NOT STARTED on the new design. A draft on the caller's socket is parked at dg1-g73115-wip ff09ac112a (reusable: WindowsUnread(reason, detail), the stand-up refusal, the /tmp cwd crumb fix (28 passed from /tmp), test file skeleton). TRAPS for the build: conftest _no_real_tmux answers EVERY tmux call rc 1 -> real-tmux rows need an opt-out that passes only 'tmux -S <scratch>'; os.path.lexists/exists read False on EACCES -> use os.lstat, FileNotFoundError only = absent; test_fresh_pane_join's mutant anchor on the WindowsUnread return line moves with the code. Write points: _successor_row_write's cell list (rotate.py ~:10208), the launch (rotate.py :2102 new-window) for #{socket_path}.
-  (2) goal:g7.31.1.4 CLOSE: WAITS on belam's F1 run (falsifier 3, the live read; grok available, so NOT RUN would be dishonest). Rows 1+2 met (gate rows; GATE670 whole 9863/0). The close also carries g7.31.1.3's NOT MEASURED line. belam is off-matrix for me: via SM.
+  (1) goal:g7.31.1.5 MINT -> 4f68cf0bd6 -> 424031118d -> FOURTH child 0cd16e4e7f SENT 12:18Z (seat socket ALWAYS on a hit; owner-named errno refusal; heal (B) takes the same join, target 3): SM PLACED (B) 12:15Z: tmux_socket in the seat's LATEST launch record (.agi/sessions/rotations/<seat>.*.json), used only when its window_id == the row's window, else a named MISS (pid>0 -> caller default named; EMPTY pid -> REFUSED). Row cell (A) BANKED by SM to the owner batch (a later leaf moves it).
+  (1b) ENGINE for g7.31.1.5: design PLACED, build NEXT on 0cd16e4e7f in ~/w41/sl (write tmux_socket into the launch record where heal/rotate write it: heal._write_crash_recovery ~:4234 + the rotation-record writers; join in cmd_stand_up). A draft on the caller's socket is parked at dg1-g73115-wip ff09ac112a (reusable: WindowsUnread(reason, detail), the stand-up refusal, the /tmp cwd crumb fix (28 passed from /tmp), test file skeleton). TRAPS for the build: conftest _no_real_tmux answers EVERY tmux call rc 1 -> real-tmux rows need an opt-out that passes only 'tmux -S <scratch>'; os.path.lexists/exists read False on EACCES -> use os.lstat, FileNotFoundError only = absent; test_fresh_pane_join's mutant anchor on the WindowsUnread return line moves with the code. Write points: _successor_row_write's cell list (rotate.py ~:10208), the launch (rotate.py :2102 new-window) for #{socket_path}.
+  (2) goal:g7.31.1.4 CLOSE ad382c7722 -> child 4d3bc2ab26 ((B) NOT COVERED off the caller server) SENT 12:18Z (dg1-g73114-close, ~/w41/c4): complete, F1-F3 MET (F1 run 5 read the join); + g7.31.1.3 Agent Notes line (run 5's heal.log NOT READ by me).
 - LANDED this generation: L511 ff8dd450a3 (g7.31.1.3 CLOSE), L513 2501ce5f5a (brief LANES line), L514 83c96edb08 (g7.31.1.4 MINT), L515 4abc782c25 (F1 v2.3), L519 48a9ca9fdb (g7.31.1.4 join engine, GATE670 whole 9863/0).
 - OWNER (11-10): grok stays OPT OUT; design-stage Fable exception CONFIRMED; 'hits rough' = quota. SPIRIT: less process, more real talk, honesty.
 
@@ -38,9 +37,9 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. L514 83c96edb08 g7.31.1.4 MINT. L515 4abc782c25 F1 v2.3. L519 48a9ca9fdb g7.31.1.4 join engine. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-Mint g7.31.1.5 second child 424031118d at SM (GATE679 re-point asked 12:13Z). Then build the engine in ~/w41/sl on 424031118d (see §0 1b). g7.31.1.4 CLOSE waits on belam's F1 run.
+Two tips at SM: g7.31.1.5 mint 0cd16e4e7f (GATE679) + g7.31.1.4 CLOSE 4d3bc2ab26 (GATE680). NEXT: build g7.31.1.5's engine (§0 1b).
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
-Homes: ~/w41/sl (g7.31.1.5: mint 424031118d checked out; wip ff09ac112a), ~/w41/jl (g7.31.1.4, landed L519), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), last send 12:13Z (box, inline). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
+Homes: ~/w41/sl (g7.31.1.5: mint 0cd16e4e7f checked out; wip ff09ac112a), ~/w41/c4 (g7.31.1.4 close), ~/w41/jl (g7.31.1.4, landed L519), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send33 (last sent 12:15Z). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
 ## §4 Traps (this generation's)
 - A cp to a FIXED /tmp name hit another uid's file; the restore then copied THEIR file over heal.py (-50 lines, caught on the diff stat) -> mktemp only; restore from git, never /tmp.
