@@ -34,7 +34,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ITEM                        OWNER   STATE
 SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:59:17Z), IN PLACE OF b1286ac2f5 (m1; branch sweep-g81
                                     kept at it). Only change: sp's S1 NIT (their 14:45:46Z word went out NOT CLEAN). aio + sp APPROVED
-                                    b1286ac2f5 (16:56Z); asked a one-line re-read of agi-send:131. QUEUED GATE686: 684 (ETA ~17:55Z) -> 685 -> 686.
+                                    b1286ac2f5 (16:56Z); asked a one-line re-read of agi-send:131. GATE686 RETARGETED to 916c120604 (SM 17:00Z): 684 (ETA ~17:55Z) -> 685 -> 686.
                                     Worktree /data/scratch/alive/sweep82/tip now on sweep-g82r1. SM's own RULES sweep lands after mine. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
                                     (worktree on branch tip/alive/sweep-g81; edit.py there), re-run its lanes. REMOVE the worktree at its land.
 .46.34 BUILD (DG2)          SM      grandchild 94f78774b4 (3/3: w14, w15). GATE684. RULES: lands ALONE, belam wraps + re-installs agi-mem;
