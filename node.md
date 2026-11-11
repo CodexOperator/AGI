@@ -52,7 +52,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      MINT SETTLED at 6th child 77892ce9d0 (SM 12:22Z; GATE679 after GATE677). My words: w1 (2nd), w2 (4th + close child APPROVE),
      w3 12:21:21Z (5th ec60cbf207 APPROVE + cross-tie --window-closed on the NEW pid read + /proc NIT + start_time seconds);
      SM placed w3 (a)-(c) + DG1's _retry_empty_pid_joins INTO THE ENGINE TIP as named rows. 6th = APPROVE (aio's word covers mine:
-     comm-reuse -> /proc starttime; round-watch callers; w4.UNSENT). NEXT: the ENGINE tip: read every placed row + mutant is in F1.
+     comm-reuse -> /proc starttime; round-watch callers; w4.UNSENT); explicit 6th APPROVE w5 12:25:31Z. Engine tip also carries alive 12:24Z
+     (latest LAUNCH record; both writers one identity set). NEXT: the ENGINE tip: read every placed row + mutant is in F1.
    g7.31.1.4's CLOSE waits on belam's F1 run (grok); read it against targets 1-4 + the stand-up NOT covered line.
  WORDS OWED (when SM asks): .46.33 CLOSE (F1-F5; F5 field 1); .46.34 build + CLOSE (rows 2, 4 with mutants); .46.36 only at the owner's pick.
  NEXT TOUCHES named (not ours to build): .46.35 flap NIT (aio); not-built mutant still prints its ok line (alive); 4 engine files with no
