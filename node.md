@@ -53,13 +53,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      aio AMEND ('down again' after 'not confirmed'; my row's missing way OUT, owned in w13 07:07:00Z). SM asked DG2 ONE more child.
      -> bundled child f81d45d40d = GATE672 tip: my w18 APPROVE (probe on both tips: 1 line differs, the wording). L516 EQUAL.
      GATE672 RED 08:39Z (real: hub_quota.py not in the CLI manifest) -> manifest-only child asked; my w22 08:40:12Z KEEPS my word.
-     -> manifest child 6006ac08e6 (+1 test line only) = GATE672 tip; probe re-run IDENTICAL (silent, as said). 672 GREEN 10:08:31Z (SM missed the wake ~90 min; my ask 10:34Z woke it) -> L518 LANDED 11:11Z. SM rotating to gen 91 11:09Z. NEXT: GATE670 suite -> L519 (L-check). L-check each.
+     -> manifest child 6006ac08e6 (+1 test line only) = GATE672 tip; probe re-run IDENTICAL (silent, as said). 672 GREEN 10:08:31Z (SM missed the wake ~90 min; my ask 10:34Z woke it) -> L518 LANDED 11:11Z. SM gen 91 since 11:1xZ. NEXT: GATE670 -> L519; GATE674 g7.16.2.1 CLOSE 0bef1460b6 (my w28 APPROVE,
+     F1/F2/F4 RUN on the tip) -> L520; GATE675 .46.19 HORIZON b64df8eef1 (my w29 APPROVE, id-chain F1 RUN) -> L521. L-check each. L-check each.
    ORACLE chain: 9cfabeb1bf (clause, my w11 ==) + child 70814750be (ceiling, my w14 07:08:01Z APPROVE). alive's merge-up next.
    AFTER: belam's F1 run 6 (v2.3 + the join tip): read its cleanup line (grok's spelling of R in trusted_folders.toml) and the join line.
  WORDS OWED (when SM asks): CITE leaf .46.34 (DG2, after .46.33): build + CLOSE, rows 2 + 4 with mutants. goal .46.33: DG2's build + CLOSE
    against F2 + F4. DG2 g7.16.2.1 CLOSE names aio's verify-land pre-pass [finding] OPEN. The F1 readings + plan-master leaf: T1-T8.
  BANKED, next touches: heal.py resume-failed reads an UNREAD dir/record as 'none' (alive) · cred-act.sh label · 53-claude-login drop-in's
-   dead '[cred]' echo + missing build node · DG2 .46.19 OWNER atoms table 2.2-rest + 2.25 · killseat's kill -0 'gone' on EPERM (edge) ·
+   dead '[cred]' echo + missing build node · killseat's kill -0 'gone' on EPERM (edge) ·
    the window-present line on pane-unknown / chain-empty should read 'not shown to be another seat's' (my NIT, in g7.31.1.3's close) ·
    crons.md / the box row should say heal (agi-reaper) is NOT on this box (alive 20:00Z).
  JOB 2 (A12 (3)): v2 LANDED L442; NEXT: row 1's split '85 entered cc > 30; 191 never entered cc >= 6' (sums 276); then goal:g7.33 rounds.
