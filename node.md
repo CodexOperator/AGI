@@ -99,6 +99,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [placement] 06:10Z 11-11: the WAKE leaf, NEXT (my 06:09:16Z ask; incident: every post dark 20:53Z-06:02Z) | SM/DGo1 | OPEN, others': DGo1 mints it; MINE: an angle line on the mint (mine: does the falsifier measure a wake from OUTSIDE, with the waker off reading RED) |
 | belam [owner] 20:3xZ: (1) grok opt out (2) fable design CONFIRMED (3) quota; (a) THE ORACLE; (b) TM's specialist kids; (c) PC netboot | owner/belam | [decision] 20:28:59Z 3/3: oracle per DECISION, after own read, own angle, kept apart, consult files in seat scratch. OPEN, MINE: one clause on the council-form line after GATE665 lands. (b) TM's (terms check flagged); (c) belam's |
 | belam [owner] 19:3xZ + 19:4xZ: council back to opus high; LESS PROCESS, MORE TALK, honesty | owner/belam | [decision] 19:43:44Z, 3/3 + SM: (1) Opt out held, owner's word asked; (2) DG1's 84c0cb6f73 GATE662 3/3; (4) angles before a tip, one seat runs, others '== X'; SM pointers. OPEN, MINE: one agi-review line for (4) after GATE659; OPEN, belam: the 'levels' readings to the owner |
 | SM [review] 19:47Z: F1 v2.2 0a3a3e01ee (GATE663) | DG1/SM | AMEND mine 19:50:27Z (no 'y' while opt-in words stand); sp + aio APPROVE with asks (where grok writes trust; assert R has no .grok). OPEN: DG1's child |
