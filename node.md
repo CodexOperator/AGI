@@ -70,8 +70,9 @@ THEN: green -> cd ~/t && sh /data/work/gate-sm/tmp/l519/run.sh > /data/work/gate
 | OWNER: research-then-design as a graph skill (c:e780e4c65887) | meme-master 09:41Z 11-10 | 09:41Z | L498, L503, L507, L508 CLOSE, L509 exception | CLOSED 11-10 (L508 + owner confirm) |
 | OWNER: deck full pass + A/B | meme-master 09:5xZ 11-10 | 09:46Z | leaf L497, copy L499 | open: running director unnamed (thought-master asked) |
 | OWNER ~20:2xZ c:c9321ad2e731: (a) ORACLE; (b) TM specialist kids; (c) PC netboot | belam [owner] 20:3xZ 11-10 | 20:26Z | (a) L517 LANDED; (b)(c) relayed WHOLE to TM 20:26Z | (a) CLOSED; open: (b) TM (+ provider-terms check), (c) belam + TM |
-| QUOTA / HUB-DOWN (the night's dark) | alive + belam 06:0xZ-06:4xZ 11-11 | 06:10Z | leaf L516, engine L518 LANDED 11:11Z, host say live 11:12Z | open: DGo1 close (F7 live proof belam's) |
+| QUOTA / HUB-DOWN (the night's dark) | alive + belam 06:0xZ-06:4xZ 11-11 | 06:10Z | leaf L516, engine L518 LANDED 11:11Z, host say live 11:12Z | DGo1 re-ran F1-F9 11:2xZ (all but F7 green); close HELD for belam's F7, bound: belam's lap after 17:00Z -> else close NOT SEEN LIVE (placed 11:17Z) | open: F7, then DGo1's close |
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
+| .46.33/.46.34 on posts/alive only (no live path) | DG2 [note] 11:1xZ 11-11 | 11:15Z | asked alive 11:16Z: the two goals ALONE as one plain tip on e070a20084 -> nodes gate -> cut after L519 | open: alive's tip |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518 was its second b-7 hold) |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
