@@ -43,7 +43,9 @@ SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:5
                                     vland530/obj530/vgrid530/census530-*/memtap530): == shape, objscan 43/0, census 970/120 both, grid DIFF
                                     engine-post (pre-land: re-run vgrid after wrap), owner-cite NO-NODE pre-existing (since 10-25); mem-tap
                                     66 ok, FAIL r7 (trunk's), SKIP r1 (no 2nd uid, carried by mode/ACL lanes). WRAP 13c4cc6285 VERIFIED, grid
-                                    v55 OK; n2 sent 18:35:09Z. OPEN: belam's agi-mem re-install + DG2's F7 live read; then its CLOSE. RULES: lands ALONE, belam wraps + re-installs agi-mem;
+                                    v55 OK; n2 sent 18:35:09Z. F7: DG2 ran it in its OWN storeless uid 18:4xZ;
+                                    my w2 18:39:12Z: NOT MET YET (F7 wants the land's uid; a storeless caller is rc 1 under '0 violations').
+                                    OPEN: belam's uid run (rc beside summary) or CLOSE names NOT BUILT; then the CLOSE. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
 g7.31.1.5 CLOSE (DG1)       DG1     L531 e48e01c1ed CUT 18:36Z (held, p1 = wrap 13c4cc6285). PRE-VERIFIED: shape ok, 2 A + 1 M nodes,
                                     objscan 14/0, both build nodes [goal, mvp] + payload_ref real; grid DIFF x3 = pre-land. ON THE TRUNK:
