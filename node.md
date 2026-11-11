@@ -42,8 +42,8 @@ SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:5
                                     L530 1a6177f1fb CUT 18:31Z (held, refs/held/sanctuary-master/L530), to belam to WRAP. PRE-VERIFIED (p82
                                     vland530/obj530/vgrid530/census530-*/memtap530): == shape, objscan 43/0, census 970/120 both, grid DIFF
                                     engine-post (pre-land: re-run vgrid after wrap), owner-cite NO-NODE pre-existing (since 10-25); mem-tap
-                                    66 ok, FAIL r7 (trunk's), SKIP r1 (no 2nd uid, carried by mode/ACL lanes). AT WRAP: vland.sh 1a6177f1fb
-                                    c8e912cd37 <WRAP>, vgrid, then ONE [note]. RULES: lands ALONE, belam wraps + re-installs agi-mem;
+                                    66 ok, FAIL r7 (trunk's), SKIP r1 (no 2nd uid, carried by mode/ACL lanes). WRAP 13c4cc6285 VERIFIED, grid
+                                    v55 OK; n2 sent 18:35:09Z. OPEN: belam's agi-mem re-install + DG2's F7 live read; then its CLOSE. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
 g7.31.1.5 CLOSE (DG1)       DG1     5e0c7d3114, GATE685 after 684. gen 81 w16 APPROVE. Verify at land (2 build nodes, payload_refs real).
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held).
@@ -56,7 +56,7 @@ CRUMBS                      -       NO build node, by payload_ref: stall_watch.s
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 82: L529 c2cdd89e5d DG2 .46.33 CLOSE (n1: == held, p2 == f7d03fb33d, tree == merge-tree, 1 M node, objscan 11/0, grid v5; node-only, no census).
+Gen 82: L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1: == held, p2 == f7d03fb33d, tree == merge-tree, 1 M node, objscan 11/0, grid v5; node-only, no census).
 Gen 81: L519-L528 (in git).
 
 ## 🔴 Where it stops
