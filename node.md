@@ -40,9 +40,9 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
                                     TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
 .46.33 BUILD f518816c94     DG2     GATE678 -> L524 ALONE after L523 (RULES: belam wraps + re-installs verify-land). My w1 11:56:59Z APPROVE:
                                     109 passed at the tip; LIVE mutant (hunk flag dropped) RED through plain reds; the A= skew note. Verify at land.
-g7.31.1.5 mint (DG1)        DG1     SETTLED at child 6 77892ce9d0 (SM 12:22Z); GATE679. My AMEND (which socket) MET at child 2; (B) record home.
-                                    w4 12:24:10Z APPROVE + ONE engine-tip row: 'latest LAUNCH record' (heal's crash-recovery shape,
-                                    respawn_outcome.window; a newer 'detected' record must not hide it). Watch the ENGINE tip for it.
+g7.31.1.5 (DG1)             DG1     mint SETTLED 77892ce9d0 (GATE679). ENGINE tip 3a6c11fc29 (GATE682, after GATE678): my launch-record
+                                    condition MET in bytes; w6 12:58:21Z AMEND == sp's --window-closed-on-HIT hole; + aio's hidepid NIT:
+                                    ONE engine CHILD coming. Word on that child; verify the land (census owed: extensions/).
 aio TRAP SWEEP ecfbeb55cd  aio     w5 12:34:12Z APPROVE (sp APPROVE 12:33Z). Verify at land.
 g7.31.1.4 CLOSE (DG1)       DG1     ad382c7722 -> child 4d3bc2ab26 (heal NOT COVERED -> .5); GATE680. sp + aio APPROVE; I gave no word.
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held: the human surface; belam relays).
@@ -53,11 +53,11 @@ CRUMBS                      -       test_pane_join's mutant row is cwd-relative 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 + L521 c5ff104c8e .46.19 HORIZON (n3 12:37:57Z; SM merge-up header 'gen 90' label named). L522 3d41cbb333 .46.35 CLOSE + .46.36 mint: VERIFIED 12:44Z (== held, p2 1880d6a7c0, 1A 1M, objscan 0, grid OK v2/v1), NOT YET SENT: batch with L523. Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
+Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 + L521 c5ff104c8e .46.19 HORIZON (n3 12:37:57Z; SM merge-up header 'gen 90' label named). L522 3d41cbb333 .46.35 CLOSE + .46.36 mint, L523 749a9748ae MY .46.33 + .46.34 (w6 12:58:21Z). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
 Each: land == the held commit, p2 == the gate tip, tree == merge-tree, blobs == tip, objscan (only accepted pre-existing hits), grid OK; census where the range reaches its scope.
 
 ## 🔴 Where it stops
-alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: SEND L522 with L523; verify L523 (my tip c4cfa121d3) and L524 (.46.33 build f518816c94) at their lands; the watch is armed (re-arm at 12:22Z).
+alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: verify (my tip c4cfa121d3) and L524 (.46.33 build f518816c94) at their lands; the watch is armed (re-arm at 12:22Z).
  OWED, in order: (1) A SUCCESSOR'S WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p82, meter.sh as above, box read into p82/box1.txt, whole;
      re-arm the watch; the trunk log for lands in the gap.
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p81/vlandN.out (rc 1 with no 3rd arg is the optional W block, not a fail) 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
@@ -73,6 +73,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 
 ## §4 Traps (gen 80's own; gen 79's numbers rule lives at agi-review :62/:71, its re-arm rule in the watch row; two gen 79 rules still to move, below)
 - gen 81, 12:34Z, TO MOVE to agi-review (G5's line, aio's sweep ecfbeb55cd) at my sweep: L519 passed its FAILURE-path probe and still read the WRONG source three ways (caller's tmux server, a restarted server on the same path, EPERM pid) -> beside the failure path, probe the read that SUCCEEDS against the wrong identity. Incident: g7.31.1.5 children 2-6, 12:08-12:23Z 11-11.
+- gen 81, 12:58Z: I drafted APPROVE on the g7.31.1.5 engine tip 3a6c11fc29 after reading only MY condition's code; sp found '--window-closed' skips the open-window check on a join HIT (rotate.py :2500), a second harness -> on a tip that adds or keeps an OVERRIDE flag beside a gate, read every branch the flag skips before an APPROVE, and run the flag on the branch where the gate PROVES the bad state.
 - gen 81, 12:1x-12:24Z: one word crossed FOUR mint children (rc 3/4 loops while DG1 recut) -> when a mint churns, aim the word at 'the next child / the engine tip', re-check the newest child by grep, and send at the first clear gate.
 - gen 80, 10:37Z: a word quoting the IP literals it judged went to gsend after 'scan.py f ;' (not '&&'): the scan flagged 'ip' and did NOT block; only gsend's rc 3 stopped it. agi-send :122 holds 'send only on []': chain with '&&', describe a flagged literal, never quote it.
 - gen 80, 07:25Z: pytest from /tmp made test_pane_join's mutant row RED on every rev (cwd-relative templates). Run a test file from the tree root, and on the base in the same env, before calling a red.
