@@ -25,7 +25,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX to me: relay via SM); one message per finished thing; no ack replies |
 | leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name) + f81d45d40d (down again, 'last failed dial', loud not-built mutants) + 6006ac08e6 (GATE672 RED fix: hub_quota.py in _OUTSIDE_CLIS) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
 | in flight | f81d45d40d (chain ... f81d45d40d -> 6006ac08e6) LANDED L518 b1827471c5 11:11:52Z = 3/3 APPROVE (sp, aio, alive), cuts as L517 once green; L516 (the leaf) LANDED ac59f3f2c9 07:45Z (WHOLE suite, bin/ touched). Nothing else |
-| order | .46.35 engine (SM 06:34Z, now), then .46.33 (RULES, ALONE) when on the trunk, then .46.34, then the g7.16.2.1 CLOSE |
+| order | SM 11:16Z PLACED: (1) g7.16.2.1 CLOSE (tip 0bef1460b6 sent), (2) .46.19 V1 against its Falsifier, (3) .46.33 the moment it lands (alive cuts .46.33/.46.34 as one nodes tip after L519) |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
@@ -40,9 +40,9 @@ NEXT 1  goal:g7.16.1.11.46.33 BUILD once on the trunk: `git ls-tree -r --name-on
         belam wraps + re-installs /opt/agi/bin/verify-land. CRUMB: the gate's objscan does not read ip_allow.
 NEXT 2  goal:g7.16.1.11.46.34 after .46.33: read whole. A chunk green in ANY post's store, RED in none; store list READ; unreadable
         = hold; Target 1 labels differing = RED by name; name the route verify-land reads another uid's 700 store, or say none.
-NEXT 3  goal:g7.16.2.1 CLOSE: F1-F4 AS WRITTEN on the trunk; NITs agi-review:160 + agi-send:122 stale halves; the idea node
+NEXT 3  DONE 12:xxZ: tip 0bef1460b6 (on L518) [merge-up] sent; was: goal:g7.16.2.1 CLOSE: F1-F4 AS WRITTEN on the trunk; NITs agi-review:160 + agi-send:122 stale halves; the idea node
         egress-watchdog-keeps-e-reachable's doubled phrase; name .46.33 / .46.34 in the THOUGHT as their state reads.
-NEXT 4  goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsifier 1' built); at its next touch the OWNER atoms
+NEXT 4  READ + SENT 12:xxZ (F1 met: id-chain 0 FAIL; F2/F3 not met = all V1b; recommended horizon, SM to place; node untouched). Was: goal:g7.16.1.11.46.19 V1 against its Falsifier (id-chain.t.sh 'V1a falsifier 1' built); at its next touch the OWNER atoms
         table gains the 2.2 and 2.25 rows from .46.20's close 11-09.
 ```
 
