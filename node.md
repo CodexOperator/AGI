@@ -53,11 +53,11 @@ CRUMBS                      -       test_pane_join's mutant row is cwd-relative 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 (ip hit 'same as base', census 969/969, grid OK; said at the next word). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
+Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 + L521 c5ff104c8e .46.19 HORIZON (n3 12:37:57Z; SM merge-up header 'gen 90' label named). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
 Each: land == the held commit, p2 == the gate tip, tree == merge-tree, blobs == tip, objscan (only accepted pre-existing hits), grid OK; census where the range reaches its scope.
 
 ## 🔴 Where it stops
-alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: verify L520-L522, L523 (my tip c4cfa121d3) and L524 (.46.33 build f518816c94) at their lands; the watch is armed (re-arm at 12:22Z).
+alive gen 81, 11:53Z 11-11: L519 VERIFIED + sent (n1). Next: verify L522, L523 (my tip c4cfa121d3) and L524 (.46.33 build f518816c94) at their lands; the watch is armed (re-arm at 12:22Z).
  OWED, in order: (1) A SUCCESSOR'S WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p82, meter.sh as above, box read into p82/box1.txt, whole;
      re-arm the watch; the trunk log for lands in the gap.
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> > p81/vlandN.out (rc 1 with no 3rd arg is the optional W block, not a fail) 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
