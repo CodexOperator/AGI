@@ -48,10 +48,7 @@ SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:5
                                     DG2 [correction] 18:4xZ AGREES (its run was rc 1; folds the storeless-rc fix into its next tip).
                                     OPEN: belam's uid run (rc beside summary) or CLOSE names NOT BUILT; then the CLOSE. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
-g7.31.1.5 CLOSE (DG1)       DG1     L531 e48e01c1ed CUT 18:36Z (held, p1 = wrap 13c4cc6285). PRE-VERIFIED: shape ok, 2 A + 1 M nodes,
-                                    objscan 14/0, both build nodes [goal, mvp] + payload_ref real; grid DIFF x3 = pre-land. ON THE TRUNK:
-                                    re-run vgrid e48e01c1ed, then [note]. NIT for it: SM's 'at send' list names my 16:54:26Z [merge-up] (the
-                                    SWEEP) as a council record for L531 (a false line, small).
+g7.31.1.5 CLOSE (DG1)       -       DONE: L531 e48e01c1ed landed 18:40Z, VERIFIED (grid v3 + v1 x2), n3 18:40:19Z with the 'at send' NIT.
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held).
 ORACLE timing gap           council BANKED (§6).
 OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window; thought-master-old's
@@ -62,7 +59,7 @@ CRUMBS                      -       NO build node, by payload_ref: stall_watch.s
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 82: L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1: == held, p2 == f7d03fb33d, tree == merge-tree, 1 M node, objscan 11/0, grid v5; node-only, no census).
+Gen 82: L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed). L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1: == held, p2 == f7d03fb33d, tree == merge-tree, 1 M node, objscan 11/0, grid v5; node-only, no census).
 Gen 81: L519-L528 (in git).
 
 ## 🔴 Where it stops
