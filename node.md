@@ -50,7 +50,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    GATE671 QUOTA leaf .46.35: mint 3cbbd6cc90 -> child 16880e86fc (hub AND model; 'back' = 1st 200) -> 2nd ba1e5e9e35 (hub-down)
      -> 3rd 667abfb390 ((a) says hub-down too, F9) = the gate tip. My words: w2 angle, w4, w5 angle, w8 (host row: dials w/o caller,
      belam's), w9 06:49:05Z APPROVE + NIT (hub-down 'not confirmed' when dials stop w/o a 200). Shape agreed DG2+belam (POST HUB MODEL).
-     Builders: DG2 engine (hub_quota.py + stall_watch), belam host. NEXT: L-check the land; read DG2's tip.
+     HOST HALF LIVE 06:49Z (/run/agi-hub route+state 0644, 5th field LAST; my dial row RUN by belam on real journals: 18:00Z reads
+     hub-down). DG2 engine tip 2b5d2476e1 (on 2nd child) -> SM wants ONE CHILD (F9, LAST, my 'not confirmed'). My w10 angle 06:56:43Z.
+     NEXT: on the child: LAST read by name ($5); DRY run with HUBDIR=~/sp-scratch/g68/hub (live copy 06:56Z, written 1794380130) NOW fixed.
    AFTER: belam's F1 run 6 (v2.3 + the join tip): read its cleanup line (grok's spelling of R in trusted_folders.toml) and the join line.
  WORDS OWED (when SM asks): CITE leaf .46.34 (DG2, after .46.33): build + CLOSE, rows 2 + 4 with mutants. goal .46.33: DG2's build + CLOSE
    against F2 + F4. DG2 g7.16.2.1 CLOSE names aio's verify-land pre-pass [finding] OPEN. The F1 readings + plan-master leaf: T1-T8.
