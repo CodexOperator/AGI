@@ -96,6 +96,8 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   a failed 'box i' keeps the seen set, row + mutant) and (4). BUILD c4d2b547a8 = GATE699 (after L538; -> L541 RULES alone):
   my w11 APPROVE + NIT MEASURED: real box on a git-read failure = stderr fatal, stdout empty, rc 0 -> the set clears, one re-wake;
   w12's exit-1 shim models only the hang path. Benign, pre-existing shape; next touch: box exits non-zero + a real-box w12 row.
+  aio 23:34:17Z, same root NOT benign: an OLD box (no i verb, no default case) answers 'box i' empty rc 0 -> that post never wakes;
+  ask: belam rewrites box in EVERY post bin dir (cmp) BEFORE any agi-boxwake@ restart. Read at L541's [merge-up] that it is carried.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
   (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w11 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
