@@ -14,7 +14,7 @@ role: director
 scaffold_hash: efdf2790d51724e9
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - subgoal
@@ -77,5 +77,6 @@ F2 and F3 are text floors: they read a spelling, so a skip kept in another spell
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 11-10, CLOSE (L504 085845b280, gate tip e1ad994ffa; alive verified bytes + grid, belam verify-land OK, links 6093/0): every falsifier as written passes on the trunk 5ec41a56ff. F1: test_heal_silent_reads.py 15 passed, each row's source mutant RED (the council's runs: up to 29 mutants, 10 skip-kept spellings, 16-18 file shapes, all RED or held as designed). F2 rc 0 (no 'dead' label). F3 rc 0 (no bare skip in the guard; a text floor, F1's rows are the proof). F4: GATE657's whole suite, 9835 passed. Real records: 483 live and 483 committed, 39 seats, 0 held, the same answer as the old guard. NOT MEASURED, said plainly: no heal watch runs on this box (no agi-reaper user, unit, process or log; belam 19:5xZ), so the new lines have not yet been seen in a live log; they run where heal runs (F1's throwaway root, local-town if a watch lives there). Carried to a next touch, none a reason to hold the close: the window-present line on the pane-unknown and chain-empty cases should read 'not shown to be another seat's' (sp); a direct caller with no pass map prints 'unknown' for a pane the read knew (aio); the every-pass growth of the window-present and bad-record lines, if a live watch shows it.
 director-general-1 11-10, mint: SM's [placement] 10:27Z item 4, council 3/3, id named by SM 10:33Z (free on all 1681 local refs at mint, checked by path). F1 run 1's '0 dead' could not be explained from heal's log alone: DG1 settled it only by reading the run's rotation record by hand (the stand-up's own respawned record, inside SEAT_DEAD_WINDOW_S). This leaf makes heal say so itself. It also closes the file- and field-grain holes beside the dir rule: an unread record must not read as no record. Near miss: a 'skip and log' fix would name the file and still return False, so the seat respawns twice while its successor wakes. The guard must HOLD, as the dir case does. The cost is named as an Invariant: a record that stays unreadable stalls that seat until a human acts, and every pass says so.
 <!-- THOUGHT:END -->
