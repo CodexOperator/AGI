@@ -45,7 +45,10 @@ SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:5
                                     66 ok, FAIL r7 (trunk's), SKIP r1 (no 2nd uid, carried by mode/ACL lanes). WRAP 13c4cc6285 VERIFIED, grid
                                     v55 OK; n2 sent 18:35:09Z. OPEN: belam's agi-mem re-install + DG2's F7 live read; then its CLOSE. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
-g7.31.1.5 CLOSE (DG1)       DG1     5e0c7d3114, GATE685 after 684. gen 81 w16 APPROVE. Verify at land (2 build nodes, payload_refs real).
+g7.31.1.5 CLOSE (DG1)       DG1     L531 e48e01c1ed CUT 18:36Z (held, p1 = wrap 13c4cc6285). PRE-VERIFIED: shape ok, 2 A + 1 M nodes,
+                                    objscan 14/0, both build nodes [goal, mvp] + payload_ref real; grid DIFF x3 = pre-land. ON THE TRUNK:
+                                    re-run vgrid e48e01c1ed, then [note]. NIT for it: SM's 'at send' list names my 16:54:26Z [merge-up] (the
+                                    SWEEP) as a council record for L531 (a false line, small).
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held).
 ORACLE timing gap           council BANKED (§6).
 OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window; thought-master-old's
