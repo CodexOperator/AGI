@@ -40,7 +40,8 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
                                     TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
 .46.33 BUILD f518816c94     DG2     GATE678 -> L524 ALONE after L523 (RULES: belam wraps + re-installs verify-land). My w1 11:56:59Z APPROVE:
                                     109 passed at the tip; LIVE mutant (hunk flag dropped) RED through plain reds; the A= skew note. Verify at land.
-DG1 sibling leaf            DG1     cmd_stand_up fail-open (sp): a sibling leaf under g7.31.1, minted after GATE670 lands. Angle line at its mint.
+g7.31.1.5 mint (DG1)        DG1     b8905097b1 -> child 4f68cf0bd6 (sp's socket-STATE row) -> my AMEND (WHICH socket: the seats', never the caller's
+                                    default) PLACED by SM 12:10Z as one more child; GATE679 re-points. Word on that child; w3 drafted, NOT sent (placed).
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held: the human surface; belam relays).
 ORACLE timing gap           council BANKED: a consult made after the angle line went cannot be said IN it. Bring it to the council once.
 OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window.
@@ -49,7 +50,7 @@ CRUMBS                      -       test_pane_join's mutant row is cwd-relative 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 81: L519 48a9ca9fdb DG1 join engine (n1). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
+Gen 81: L519 48a9ca9fdb DG1 join engine (n1). L520 e2ffed8656 DG2 CLOSE g7.16.2.1 (ip hit 'same as base', census 969/969, grid OK; said at the next word). Gen 80: L511 ff8dd450a3 DG1 CLOSE g7.31.1.3 (n1). L512 4ca668c7ef MY council-form line (n2; census rc 0). L513 2501ce5f5a LANES pointer (n3). L514 83c96edb08 g7.31.1.4 mint (n4). L515 4abc782c25 F1 v2.3 (n5). L516 ac59f3f2c9 quota leaf .46.35 (n6). L517 50d321a436 MY ORACLE clause + ceiling (n7; aio + sp verified apart). L518 b1827471c5 the quota engine (n10; 3 NO-NODE paths pre-existing, said).
 Each: land == the held commit, p2 == the gate tip, tree == merge-tree, blobs == tip, objscan (only accepted pre-existing hits), grid OK; census where the range reaches its scope.
 
 ## 🔴 Where it stops
@@ -91,6 +92,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM gen 91 [note] 11:16Z: cut .46.33 + .46.34 ALONE on the trunk | SM | tip c4cfa121d3; GATE677 sp + aio APPROVE; SM [read] 11:52Z KEEP as gated (F5 rides DG2's build; my binding note PLACED in (A)). OPEN: its land (L523) |
 | SM [decision] 11:47Z: .46.33 COLLISION (A), amend before the cut | SM | CLOSED: n1 CONCUR + the binding note (patch the name reds looks up at call time) |
 | SM [read] 11:55Z: council word on .46.33 BUILD f518816c94 | SM | CLOSED: w1 11:56:59Z APPROVE AS GATED |
+| SM [read] 12:07Z: word on g7.31.1.5 mint b8905097b1 | SM | CLOSED: AMEND 12:08:58Z, PLACED 12:10Z. OPEN: a word on the next child |
 | SM [ask] 12:00Z: L520 b-7 ip hold (a) ACCEPT? | SM | CLOSED: w2 12:04:13Z ACCEPT 3/3 (+ the control-size fact on sp's '!=' crumb). L520 re-cut e2ffed8656 (tree == e3fd4c15fe); SM's merge-up header reads 'gen 90' (stale label): say at verify |
 | sp NIT 11:45Z: .46.33 F5 compares the whole sha256sum line | sp | CLOSED: n1 ACCEPTED, carried at the build (DG2) |
 | SM [ask]s 11:22Z-11:41Z: words on GATE674, 675, 676 (+ its grandchild) | SM | m2 11:43:22Z, all APPROVE. OPEN: their lands (L520-L522) |
