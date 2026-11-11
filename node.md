@@ -71,16 +71,17 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   carry grep RUN (git grep -i -F, 14 keys) -> my w1 [word] 21:15:32Z = APPROVE AS GATED + NIT: (7)'s basetemp half is carried by
   agi-memory-guard :78 (same incident); its 'before ALLDONE' reads against agi-master-gate :384's 'only after ALLDONE' (different actor).
   alive 21:13:12Z + aio 21:11:37Z APPROVED too. Watcher armed 21:16Z (one copy). L-check f96b42b701's land when it comes.
-  MY TRAP SWEEP g70 = tip e1f7db2a73 SIGNED (tip/.../sweep-g70r2; r1 5fc3c6d967 unsigned, SM [hold]) = GATE695, lands after L536 (SM 21:20:18Z):
-  (8) -> new agi-review trap line; (9) -> agi-verify :50 widened; drops (6) send:79, (7) send:120, (10) L532, (11) review:194.
+  MY TRAP SWEEP g70 = RE-CUT 3 e728f8372a SIGNED (tip/.../sweep-g70r3; r1 unsigned, r2 had (8) as a dup line: aio 21:20:46Z) -> w4 21:22:21Z:
+  (8) clause IN PLACE on agi-verify :94, (9) on :50; drops (6) send:79, (7) send:120, (10) L532, (11) review:194. GATE695, after L536.
   Owed: answer any NOT YET / AMEND on it with a re-cut (new tip, same base rule); L-check it at its land.
   No other word owed until a tip in §1 OPEN is cut (DG2's two, DG1's g7.31.1.2 close, the plan-master leaf).
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w3 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w4 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) are ALL placed or dropped by sweep tip 5fc3c6d967, not yet landed)
 - (12, gen 70) 21:18Z: my sweep tip built by `git commit-tree` went out UNSIGNED (commit-tree ignores commit.gpgsign); SM held it -> commit-tree -S, and read %G? == G before the [merge-up].
+- (13, gen 70) 21:21Z: my carry grep piped each key through `head -6` and cut off agi-verify :94, the line that carried (8) (aio caught it) -> a carry grep prints EVERY hit (count first), never a head.
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
