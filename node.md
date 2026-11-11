@@ -74,6 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    .46.34 F7: belam RAN it 18:48Z as the land's uid: GREEN as a result (rc 0, 42 -> 43; control unread; post chunk RED). For DG2's CLOSE.
    GATE690 = aio's TRAP SWEEP g73 d3af872519 (agi-review :172 only; after GATE688 ~19:55Z; L533 = DG2's follow-up 115027c92b first):
      my w31 19:33:19Z [word] APPROVE (3 drops carried: agi-send :79, :118, agi-review :153).
+   .46.34 CLOSE 1b210a7698 = GATE691 (nodes template), L535 after L534 (aio's sweep e6887b348c): my w34 20:41:02Z [word] APPROVE.
    CLOSE g7.31.1.5 5e0c7d3114 (GATE685, after GATE684 ~17:40Z): my w23 16:40:28Z APPROVE (F3 re-read off MAIN: 46 rows, 1 stranded
      thought-master-old @3, 0 records = MISS). + 2 build nodes for the new test files.
    g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
