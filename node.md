@@ -18,8 +18,8 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 
 ## §0 State (11-11 12:1xZ, trunk posts/belam 0045e4597e; last land of mine L519)
 - IN SM's HANDS, mine:
-  (1) goal:g7.31.1.5 MINT -> 4f68cf0bd6 -> 424031118d -> FOURTH child 0cd16e4e7f SENT 12:18Z (seat socket ALWAYS on a hit; owner-named errno refusal; heal (B) takes the same join, target 3): SM PLACED (B) 12:15Z: tmux_socket in the seat's LATEST launch record (.agi/sessions/rotations/<seat>.*.json), used only when its window_id == the row's window, else a named MISS (pid>0 -> caller default named; EMPTY pid -> REFUSED). Row cell (A) BANKED by SM to the owner batch (a later leaf moves it).
-  (1b) ENGINE for g7.31.1.5: design PLACED, build NEXT on 0cd16e4e7f in ~/w41/sl (write tmux_socket into the launch record where heal/rotate write it: heal._write_crash_recovery ~:4234 + the rotation-record writers; join in cmd_stand_up). A draft on the caller's socket is parked at dg1-g73115-wip ff09ac112a (reusable: WindowsUnread(reason, detail), the stand-up refusal, the /tmp cwd crumb fix (28 passed from /tmp), test file skeleton). TRAPS for the build: conftest _no_real_tmux answers EVERY tmux call rc 1 -> real-tmux rows need an opt-out that passes only 'tmux -S <scratch>'; os.path.lexists/exists read False on EACCES -> use os.lstat, FileNotFoundError only = absent; test_fresh_pane_join's mutant anchor on the WindowsUnread return line moves with the code. Write points: _successor_row_write's cell list (rotate.py ~:10208), the launch (rotate.py :2102 new-window) for #{socket_path}.
+  (1) goal:g7.31.1.5 MINT chain -> FIFTH child ec60cbf207 SENT 12:22Z (GATE679): launch record carries tmux_socket + tmux_server_start (#{start_time}); join = the seat's LATEST record, window_id == row window, else MISS; on a hit always the seat socket; different start_time = 'server restarted' = no-server; unstatable = read-failed naming 'run it as <owner>' (errno, never exists()); empty-pid MISS refused naming 'stand-up --window-closed' (the way out); heal (B) takes the same join (MISS -> SKIP named); CLOSE counts pre-build empty-pid rows off the live board.
+  (1b) ENGINE for g7.31.1.5 IN PROGRESS: WIP on dg1-g73115-wip (on ec60cbf207's parent chain; rebase onto ec60cbf207 before cutting). DONE in WIP: errno socket state + owner, _all_windows(socket=), _seat_socket_join (latest record), _window_socket + record tmux_socket. TODO: record tmux_server_start + its check; cmd_stand_up uses the join (+ --window-closed flag in the argparser); heal _empty_pid_closed_window_rows per-row join; the test rows (conftest _no_real_tmux: an opt-out passing only 'tmux -S <scratch>'); rotate.py :6996 rotate-self record. Finding to name: _retry_empty_pid_joins also joins on the caller's server.
   (2) goal:g7.31.1.4 CLOSE ad382c7722 -> child 4d3bc2ab26 ((B) NOT COVERED off the caller server) SENT 12:18Z (dg1-g73114-close, ~/w41/c4): complete, F1-F3 MET (F1 run 5 read the join); + g7.31.1.3 Agent Notes line (run 5's heal.log NOT READ by me).
 - LANDED this generation: L511 ff8dd450a3 (g7.31.1.3 CLOSE), L513 2501ce5f5a (brief LANES line), L514 83c96edb08 (g7.31.1.4 MINT), L515 4abc782c25 (F1 v2.3), L519 48a9ca9fdb (g7.31.1.4 join engine, GATE670 whole 9863/0).
 - OWNER (11-10): grok stays OPT OUT; design-stage Fable exception CONFIRMED; 'hits rough' = quota. SPIRIT: less process, more real talk, honesty.
@@ -37,9 +37,9 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. L514 83c96edb08 g7.31.1.4 MINT. L515 4abc782c25 F1 v2.3. L519 48a9ca9fdb g7.31.1.4 join engine. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-Two tips at SM: g7.31.1.5 mint 0cd16e4e7f (GATE679) + g7.31.1.4 CLOSE 4d3bc2ab26 (GATE680). NEXT: build g7.31.1.5's engine (§0 1b).
+Two tips at SM: g7.31.1.5 mint ec60cbf207 (GATE679) + g7.31.1.4 CLOSE 4d3bc2ab26 (GATE680). NEXT: build g7.31.1.5's engine (§0 1b).
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
-Homes: ~/w41/sl (g7.31.1.5: mint 0cd16e4e7f checked out; wip ff09ac112a), ~/w41/c4 (g7.31.1.4 close), ~/w41/jl (g7.31.1.4, landed L519), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send33 (last sent 12:15Z). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
+Homes: ~/w41/sl (g7.31.1.5: mint ec60cbf207; WIP on dg1-g73115-wip; wip ff09ac112a), ~/w41/c4 (g7.31.1.4 close), ~/w41/jl (g7.31.1.4, landed L519), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send33 (last sent 12:15Z). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
 ## §4 Traps (this generation's)
 - A cp to a FIXED /tmp name hit another uid's file; the restore then copied THEIR file over heal.py (-50 lines, caught on the diff stat) -> mktemp only; restore from git, never /tmp.
@@ -50,6 +50,7 @@ Homes: ~/w41/sl (g7.31.1.5: mint 0cd16e4e7f checked out; wip ff09ac112a), ~/w41/
 - My 'rows pass' line went out before the rows were re-run after a change -> no claim of a run that did not follow the last edit.
 - A test file of a tip pins exact source anchors: a new function that copies a loop head breaks the old mutant's count==1 -> re-anchor on a line only the target owns.
 - The whole-tree links pair at load > 8 runs past 600 s -> the per-node form, whole-tree named NOT RUN (skill agi-node-write).
+- `git cherry-pick -n` STAGES the picked files; a later `git add <node> && git commit` sweeps them in (12:22Z: a 6-file 'leaf-only' child, caught on --stat, reset) -> after any -n pick, `git restore --staged` before a node-only commit, and read `git show --stat` before sending.
 - CARRIED, owed to skill agi-verify: a new site of a pattern ONE test scans engine-wide is gated by that test -> `git grep -l '<pattern>' extensions/agi/tests` and run every hit.
 
 ## §5 Verification
