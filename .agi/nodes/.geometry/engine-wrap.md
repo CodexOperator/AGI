@@ -19,7 +19,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 ~~~
 agi-run           2303 B  pane cmd: fresh=new id, else --resume ~/.session
 settings.json      460 B  the ONE hook wiring: brief, meter, turn commit
-cccc.ts           1913 B  pi events -> the CC hooks; mail -> a turn
+cccc.ts           1959 B  pi events -> the CC hooks; mail -> a turn
 agi-in            3476 B  kid spawn: capsule pull = graph|director|none
 agi-infer          1332 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-lane           1403 B  a Console lane's pi / claude -p / header config
@@ -46,7 +46,7 @@ strace -qqf -b execve -e%file -o'|agi-track' $H $c go;r=$?;kill $L1 $L2 2>/dev/n
 {"skipDangerousModePermissionPrompt":true,"tui":"default","hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn","timeout":180},{"type":"command","command":"agi-mem tap"},{"type":"command","command":"agi-pray stop"}]}]}}
 ~~~
 
-### cccc.ts (1913 B)
+### cccc.ts (1959 B)
 ~~~ts
 import{execSync as x}from"node:child_process";import{readFileSync as R,watchFile as W,unwatchFile as U}from"node:fs"
 const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b="",v
@@ -54,7 +54,7 @@ const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
 const f=`${E.O}/.agi/sessions/inbox/${E.AGI_POST}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_POST,{deliverAs:"followUp"}))
-let s=0;clearInterval(v);v=setInterval(()=>{try{const n=+x("box n 2>/dev/null|grep -vc '^\\['||:",{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).trim();n>s&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3).unref()})
+let s=new Set;clearInterval(v);v=setInterval(()=>{try{const n=new Set(x("box i 2>/dev/null",{encoding:"utf8",stdio:["ignore","pipe","ignore"]}).split("\n").filter(l=>l&&l[0]!="["));[...n].some(l=>!s.has(l))&&p.sendUserMessage("mail: box read",{deliverAs:"followUp"});s=n}catch{}},5e3).unref()})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
 on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r.o}});on("tool_result",e=>{h("PostToolUse",t(e))})
