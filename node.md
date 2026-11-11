@@ -98,8 +98,11 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   w12's exit-1 shim models only the hang path. Benign, pre-existing shape; next touch: box exits non-zero + a real-box w12 row.
   aio 23:34:17Z, same root NOT benign: an OLD box (no i verb, no default case) answers 'box i' empty rc 0 -> that post never wakes;
   ask: belam rewrites box in EVERY post bin dir (cmp) BEFORE any agi-boxwake@ restart. Read at L541's [merge-up] that it is carried.
+  alive 23:40Z: the post unit's ExecStartPre rebuilds bin from the trunk at each post start -> a rotation after L541 also rewrites box.
+  (4) fda6241d05 = GATE700 (after L541 -> L542, RULES alone): my w12 APPROVE + NIT: no storeless row for the stale-index (st) term;
+  mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). ORDER: 696->L538, L539, L540, 699->L541, 700->L542.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w11 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w12 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
