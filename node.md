@@ -55,7 +55,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      14:45:46Z (sent NOT CLEAN: trap 10) + [correction] w14 14:46:49Z; == aio ACCEPT 14:45:24Z. Then belam wraps + re-installs -> my F5 read.
    .46.33 CLOSE f7d03fb33d (GATE683, after GATE682 ~15:50Z+): MY w18 14:59:22Z APPROVE (11 removed lines = the two (A) rows, -U0).
    .46.34 ROUTE R1 PLACED by SM 15:01Z (4 conditions: no new posts cell; index grammar 'c:<12hex> owner|post' + refuse; trust per
-     store; staleness = HOLD with age). Engine half on engine-post.md = RULES. Word owed at its BUILD tip: rows 2 + 4 with mutants.
+     store; staleness = HOLD with age). BUILD e844a616e9 (GATE684 ~17:00Z): my w19 15:08:27Z AMEND == alive: RAN the lone-label hole
+     (r EMPTY / r 2 h stale -> rc 0 GREEN; probe in ~/sp-scratch/g69/b4634); + aio's posts-unread NIT -> both PLACED in a CHILD (SM 15:09Z).
+     NEXT: word on the child: RUN my probe A/B there = HOLD; the posts-unread row.
    g7.31.1.5 ENGINE TIP 3a6c11fc29 (GATE682, after GATE678, ~1.5 h): MY w8 12:56:53Z AMEND: --window-closed skips the open check on a
      join HIT (RAN: rc 0, 1 launched; control rc 1) -> the flag only on a MISS. 4 files 140 passed, nothing left behind; weaker read 14/14
      claude alive. aio's hidepid NIT placed as an engine CHILD (SM 12:56Z). Probe: ~/sp-scratch/g69/eng (tests appended, sp_probe).
