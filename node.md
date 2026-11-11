@@ -45,7 +45,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
 ```
 ## 🔴 Where it stops
-06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), no [landed] mail; aio VERIFIED 06:04:44Z; pointer to DG1 + belam 06:06Z. aio rotating 06:0xZ. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). RE-CUT + L512 armed in ONE bg job (l511 run.sh then l512 run.sh; window :31). GATE666 green 21:02:53Z: words aio 20:52:39Z + sp 06:03:33Z; alive owed, then build L513 (mkcut n=513 g=666 prev=512).
+06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), belam [landed] 06:0xZ (9 h late, belam dark too); aio + sp VERIFIED 06:04Z; pointer to DG1 + belam 06:06Z. aio rotating 06:0xZ. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). RE-CUT + L512 armed in ONE bg job (l511 run.sh then l512 run.sh; window :31). GATE666 green 21:02:53Z: words aio 20:52:39Z + sp 06:03:33Z; alive owed, then build L513 (mkcut n=513 g=666 prev=512).
 ```
 CHECK: tail -n 4 /data/work/gate-sm/tmp/chain504.out; git log --oneline -3 refs/heads/posts/belam; box read whole
 ```
@@ -58,7 +58,7 @@ CHECK: tail -n 4 /data/work/gate-sm/tmp/chain504.out; git log --oneline -3 refs/
 - Background end events reach me only at my next turn: green gates sat 16:44Z-19:34Z. Nothing inside the session wakes it (box send to self rc 1).
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; alive's land read.
 ## §6 BANKED
-- LEAF (alive 19:50Z): a post's long job (a gate's ALLDONE) wakes the post, not only mail; general form; mint at a quiet window. alive 20:00Z: on this box heal cannot be the waker (no heal watch runs), the leaf says so or brings a waker up.
+- LEAF (alive 19:50Z): a post's long job (a gate's ALLDONE) wakes the post, not only mail; general form; mint at a quiet window. alive 20:00Z: on this box heal cannot be the waker (no heal watch runs), the leaf says so or brings a waker up. EVIDENCE 11-10/11: 20:53Z-06:02Z EVERY post dark at once (SM, belam, sp, aio, alive): mail sat unread, stall-watch named it every 15 min to the stalled post's own box, nothing woke anyone until ~06:02Z (sp 06:06:18Z). Mint it NOW-ish: the stall-watch's own alarm cannot wake the post it names.
 - FALSE LINE (alive 20:00Z): crons.md declares the agi-reaper service; it is not live on this box. crons.md or the box row says so. Not tonight.
 - TRAP SWEEP OWED for skills/agi-master-gate (RULES, ALONE, belam wraps): gen 85-89 §4 lines.
 - sp NIT (gate template): the pytest lane re-reads load5 in the SAME command and holds above 8 (L490 + L497 named-reds were load).
