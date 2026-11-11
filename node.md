@@ -87,6 +87,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L531 e48e01c1ed CLOSE g7.31.1.5 (GATE685, tip 5e0c7d3114; 2 A build nodes + 1 M; bt 0/3; both test files now 1 node; checked 18:4xZ)
 - L530 1a6177f1fb .46.34 BUILD RULES (GATE687 narrowed, tip c8e912cd37 = e844a616e9+child+gc+size amend; 2 M; bt 0/7; census rc 0
   both; wrap 13c4cc6285 tree == L; checked 18:3xZ). F7 live = DG2's after belam's agi-mem re-install.
 - L529 c2cdd89e5d CLOSE .46.33 (GATE683 re-run, tip f7d03fb33d; 1 M; bt 0/1; checked 16:4xZ)
@@ -107,7 +108,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 69 WORKING 16:2xZ 11-11 (/data went FULL ~16:00Z from SM's gate basetemps; GATE682 census + GATE683 + GATE684 RE-RUN one at a time
-  from 16:17Z, ~1 h; L528 cuts when GATE682's census reads green; my scratch trimmed to 46M, kept b4634 + g4634 (the probe rows)): L495-L530 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
+  from 16:17Z, ~1 h; L528 cuts when GATE682's census reads green; my scratch trimmed to 46M, kept b4634 + g4634 (the probe rows)): L495-L531 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g69`.
