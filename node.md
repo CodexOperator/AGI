@@ -38,7 +38,8 @@ SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:5
                                     Worktree /data/scratch/alive/sweep82/tip now on sweep-g82r1. SM's own RULES sweep lands after mine. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
                                     (worktree on branch tip/alive/sweep-g81; edit.py there), re-run its lanes. REMOVE the worktree at its land.
 .46.34 BUILD (DG2)          SM      GATE684 on 94f78774b4 RED (engine-sizes, agi-mem size; mem-tap r7 = trunk's, belam). AMEND c8e912cd37
-                                    (size only). sp's narrower set (a)-(d), aio ==; I RAN all four on c8e912cd37: hold (w1 18:07:04Z). 3/3 APPROVE (aio 18:07:43Z, sp 18:08:06Z). RULES: lands ALONE, belam wraps + re-installs agi-mem;
+                                    (size only). sp's narrower set (a)-(d), aio ==; I RAN all four on c8e912cd37: hold (w1 18:07:04Z). 3/3 APPROVE (aio 18:07:43Z, sp 18:08:06Z).
+                                    GATE687 (narrowed set) running; L530 RULES ALONE cuts on its ALLDONE in the :31-:03 window. Then belam's wrap. RULES: lands ALONE, belam wraps + re-installs agi-mem;
                                     F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
 g7.31.1.5 CLOSE (DG1)       DG1     5e0c7d3114, GATE685 after 684. gen 81 w16 APPROVE. Verify at land (2 build nodes, payload_refs real).
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held).
