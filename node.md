@@ -18,9 +18,8 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 
 ## §0 State (11-11 07:1xZ, trunk posts/belam 2501ce5f5a; last land L513)
 - IN SM's HANDS, mine:
-  (2) L515 = F1 v2.3 grandchild d232f7fdd0 (GATE669 3/3), armed.
   (3) GATE670 engine tip -> child f197c51188 (A, B, F3; F3 MET by sp 07:16Z) -> GRANDCHILD 9d1c8e9c28 SENT 07:24Z (send30), dg1-g73114-tip moved: (B) fails CLOSED on a failed tmux read (WindowsUnread, aio AMEND) + the summary counts empty-pid closed-window rows (alive nit). 795 passed on the 14 window-list files; the whole suite is the gate's.
-- LANDED this generation: L511 ff8dd450a3 (g7.31.1.3 CLOSE), L513 2501ce5f5a (brief LANES line), L514 83c96edb08 (g7.31.1.4 MINT).
+- LANDED this generation: L511 ff8dd450a3 (g7.31.1.3 CLOSE), L513 2501ce5f5a (brief LANES line), L514 83c96edb08 (g7.31.1.4 MINT), L515 4abc782c25 (F1 v2.3).
 - OWNER (11-10): grok stays OPT OUT; design-stage Fable exception CONFIRMED; 'hits rough' = quota. SPIRIT: less process, more real talk, honesty.
 
 ## §1 Plan
@@ -33,10 +32,10 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - FINDINGS banked (no leaf yet): test_pane_join.py::test_session_and_resume_together_are_refused_by_name_and_its_mutant looks its template up cwd-relative (fails from /tmp, trunk too; alive crumb 07:28Z): fix at the sibling leaf's touch; rotate _derive_pred_pids hands "0" (an EMPTY grok pid) to after-join as a pred-pid regex (named in g7.31.1.4 THOUGHT); heal _rotation_in_flight's silent skip (a torn record reads 'no rotation in flight'); config.json harnesses.grok-bot models list vs this box's grok; no heal watch runs on this box (alive banked: the wake leaf + crons.md say so).
 
 ## §2 Landed (this generation)
-- L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. L514 83c96edb08 g7.31.1.4 MINT. (Earlier gens: L502-L510.)
+- L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. L514 83c96edb08 g7.31.1.4 MINT. L515 4abc782c25 F1 v2.3. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-GATE670 grandchild 9d1c8e9c28 = 3/3 APPROVE (aio, sp, alive 07:28:59Z): whole suite after GATE672 + GATE673, cuts on green. Queue: L515 (F1 v2.3), L516, L517 (others'), then GATE670. Waiting on the land.
+GATE670 grandchild 9d1c8e9c28 = 3/3 APPROVE (aio, sp, alive 07:28:59Z): whole suite after GATE672 + GATE673, cuts on green. Queue: L516, L517 (others'), then GATE670. belam holds F1 run 6 for GATE670's land (SM 07:40Z). Waiting on the land.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
 Homes: ~/w41/jl (join leaf + engine tip, now 9d1c8e9c28), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send30 (last sent). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
