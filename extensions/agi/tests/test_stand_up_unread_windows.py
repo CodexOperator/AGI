@@ -80,6 +80,19 @@ def _server(sock: Path, windows: int = 1) -> list[str]:
     return out
 
 
+def _kill_and_wait(sock: Path, cap: float = 15.0) -> None:
+    """kill-server returns before the old server lets go of its socket (sp 13:02Z: under load a restart on the
+    SAME path lost that race, 2 of 5 runs). Poll until the old server no longer answers; fail LOUD at the cap."""
+    import time
+    _REAL_RUN(["tmux", "-S", str(sock), "kill-server"], capture_output=True, timeout=10)
+    end = time.monotonic() + cap
+    while time.monotonic() < end:
+        if _REAL_RUN(["tmux", "-S", str(sock), "list-sessions"], capture_output=True, timeout=10).returncode != 0:
+            return
+        time.sleep(0.05)
+    raise AssertionError(f"the old tmux server on {sock} still answered {cap} s after kill-server")
+
+
 def _identity(sock: Path) -> dict:
     o = _REAL_RUN(["tmux", "-S", str(sock), "list-sessions", "-F", "#{start_time}\t#{pid}"],
                   capture_output=True, text=True, timeout=10, check=True).stdout.split()
@@ -280,10 +293,9 @@ def test_a_restarted_seat_server_reads_no_server_and_stands_up(graph, calls, scr
     sock = scratch / "seat"
     (w,) = _server(sock)
     ident = _identity(sock)
-    _REAL_RUN(["tmux", "-S", str(sock), "kill-server"], capture_output=True, timeout=10)
-    import time
-    time.sleep(1.1)                                                   # start_time is whole seconds
+    _kill_and_wait(sock)                       # the start time may repeat inside one second; the server pid won't
     assert _server(sock) == [w]                                       # the same @id, another window
+    assert _identity(sock) != ident
     _row(graph, window=w)
     _record(graph, window_id=w, **ident)
     rc, launched = _stand_up(graph)
@@ -298,7 +310,7 @@ def test_mutant_the_join_keys_on_the_socket_path_alone_RED(graph, calls, scratch
     sock = scratch / "seat"
     (w,) = _server(sock)
     ident = _identity(sock)
-    _REAL_RUN(["tmux", "-S", str(sock), "kill-server"], capture_output=True, timeout=10)
+    _kill_and_wait(sock)
     _server(sock)
     _record(graph, window_id=w, **ident)
     win, how, _s = m._seat_windows(graph, "seat-a", {"window": w}, rotate)
