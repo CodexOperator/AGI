@@ -87,6 +87,8 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   every index fresh, id in none reads 'unread' not 'absent': a council next touch); fbaf775dde (.46.33 row 1, PLAIN, GATE697 -> L539)
   my w7 APPROVE, RUN as this uid: parent 8 fail / tip 9, the extra = the tightened row (uid home-unread class; old '!=' was GREEN
   here while its control was RED). L-check L538 + L539 when they land.
+  alive 22:44:25Z: APPROVE both (RUN 84/0 + 65/65 as its uid); YES to my x14d as a next touch; NIT I missed: ns + both guards key
+  'has a store' on the mem cell NON-EMPTY, so a 'mem: none' row still gets the old line (probe) -> key on full|goal|season. No live none row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
   (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w8 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
