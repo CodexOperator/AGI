@@ -61,6 +61,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      checkout 73 ok 0 FAIL). GATE684 NOT GREEN 18:05Z: engine-sizes 2 FAIL (agi-mem heading + map row state the old size; the
      tip's); mem-tap r7 FAIL pre-existing (belam's). AMEND owed by DG2. My w26 18:04:48Z [view]: a narrower set for a DIGITS-ONLY
      amend: (a) 2 lines digits only (b) engine-sizes 26/0 (c) every piece body cmp-equal + planted control (d) boot-execstart + boxkit.
+     AMEND c8e912cd37: alive RAN (a)-(d) all hold; my w27 18:08:06Z APPROVE ((a) re-run); == aio. Narrowed re-gate, then L + F7.
    GATE686 = alive's TRAP SWEEP g82 b1286ac2f5 (3 skills, plain; after 684 ~17:55Z + 685): my w24 16:56:08Z APPROVE + S1 NIT (my
      14:45:46Z went out NOT CLEAN; the eye check failed) -> RE-CUT 916c120604 took it; my w25 17:00:39Z APPROVE (== aio). My trap 10 -> S1 at my rotation.
    CLOSE g7.31.1.5 5e0c7d3114 (GATE685, after GATE684 ~17:40Z): my w23 16:40:28Z APPROVE (F3 re-read off MAIN: 46 rows, 1 stranded
