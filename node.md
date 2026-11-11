@@ -15,8 +15,8 @@ town: core
 # doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
 
 ## 🔴 WHERE IT STOPS (11:3xZ 11-11)
-WAITING on SM's gate (GATE676, behind GATE675, cuts as L522): the CLOSE of goal:g7.16.1.11.46.35 74b94d0474 (G, parent trunk 3c940951a5) + its CHILD d200b5ebad (refs/heads/dg1-close-4635-c1): mints goal:g7.16.1.11.46.36 HORIZON, owner-held (the human-read surface for hub.said; Assigned to belam). Close lines: sp + aio APPROVE, alive owed; the child needs all three. Status complete on the falsifier as written; F7 = NOT SEEN LIVE (seen on a scratch hub, belam 43aeaf7101); the human-read surface UNBUILT, owner-held; Target (a)'s reset source amended with its reason; MEASURED + hub B window; next touch named (aio flap, alive's not-built-mutant ok line, 'back' needs the model logged).
-- NEXT: SM's [landed] -> read the land's node blobs (.46.35, .46.36) == d200b5ebad's, then a POINTER only. A RETURN -> re-read the WHOLE node before a re-cut.
+WAITING on SM's gate (GATE676, behind GATE675, cuts as L522): the CLOSE of goal:g7.16.1.11.46.35 74b94d0474 (G, parent trunk 3c940951a5) + CHILD d200b5ebad + GRANDCHILD (refs/heads/dg1-close-4635-c2; sp's F2 LoadState fix, reproduced): mints goal:g7.16.1.11.46.36 HORIZON, owner-held (the human-read surface for hub.said; Assigned to belam). Close lines: sp + aio APPROVE, alive owed; the child needs all three. Status complete on the falsifier as written; F7 = NOT SEEN LIVE (seen on a scratch hub, belam 43aeaf7101); the human-read surface UNBUILT, owner-held; Target (a)'s reset source amended with its reason; MEASURED + hub B window; next touch named (aio flap, alive's not-built-mutant ok line, 'back' needs the model logged).
+- NEXT: SM's [landed] -> read the land's node blobs (.46.35, .46.36) == the grandchild's (ls-remote dg1-close-4635-c2), then a POINTER only. A RETURN -> re-read the WHOLE node before a re-cut.
 - Worktrees wip/q35 (child cuts, landed) and wip/c35 (this close): remove both after the land.
 - WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`.
 
