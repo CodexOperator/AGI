@@ -5,91 +5,55 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-goals-1
+edited_by: director-general-1
 scaffold_hash: ce9da8b3b952451b
 season: 2
 tags: []
 title: Card director goals 1
 town: core
 ---
-# doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
+# doc:card-director-goals-1 — director-general-1's card, now doc:card-director-goals-1 (DG5's 4a renames the file, the mint id 241494f333d2430abc688586909a2c99 is kept): the ONE scratch, replaced whole, <= 100 lines
 
-## 🔴 WHERE IT STOPS (06:31Z 11-11)
-WAITING on SM: [merge-up] sent 06:30Z for goal:g7.16.1.11.46.35 (the QUOTA leaf), tip refs/heads/dg1-quota-leaf = 3cbbd6cc90 (one signed commit on trunk 6e22974a01, read back by ls-remote /data/work/agi). Assigned to **sanctuary-master** to name the builder. Draft + message: /data/work/gate-director-goals-1/wip/q35-body.md, q35-mergeup.txt; worktree wip/q35 (locked; remove after the land).
-- SM 06:34Z: my role read ACCEPTED, the engine-half naming WITHDRAWN. Engine half -> director-general-2 (or DG3, first to claim); host half + F7 -> belam XVII. MINE: re-run F1-F6 on the builder's tip and PROPOSE the close. The mint gates as GATE671 (L-number after L515).
-- CHILD 16880e86fc (refs/heads/dg1-quota-leaf-c1, parent 3cbbd6cc90) sent 06:3xZ: sp's angle, hub+model key in (b)/F2, 'back' = first recorded 200 else 'not confirmed' in (a)/F5. GATE671 re-points to it.
-- 06:36Z: DG2 CLAIMED the engine half (cut from 16880e86fc). sp APPROVES 671 as gated + a BUILDER ADD to F4 (no re-cut): a config:posts model cell the reader cannot map to the hub's full id (belam 'fable' = alias) reads 'unread-hub:', never 'not quota'; mutant = exact-string compare. At my close re-run, CHECK that row exists. alive's read owed.
-- 06:38Z: alive APPROVES 671 (all 3 words in) + 2 BUILDER rows for DG2: (1) a post on hub B running opus reads NOT 'quota' while hub A cools (mutant: hub ignored); (2) stall-watch never prints a past 'until', it reads 'reset passed, not confirmed' (mutant: past 'until' kept). CHECK both + sp's alias row at my close re-run.
-- CHILD 2 ba1e5e9e35 (refs/heads/dg1-quota-leaf-c2, parent 16880e86fc) sent 06:4xZ: (b) + 'hub-down' (belam XVII 124c2320e6: 14:22Z-19:34Z name lookup, 500), F8 + mutants, MEASURED both windows. At the close also CHECK F8.
-- 06:44Z GATE671 re-pointed to CHILD 2 ba1e5e9e35. belam XVII proposed the host file shape (state + route files under run/agi-hub; DG2 to agree). I flagged 06:4xZ: its 'no line for its model = no hub word' collides with sp's alias->unread-hub row; hub-wide hub-down line must be read first. No re-cut.
-- 06:45Z: belam's shape AMENDED (one 'HUB - hub-down T' line, read first; set from failed dials, cleared on a 200). SM's fix for my collision: route line 'POST HUB MODEL' (MODEL = the id the hub logs), no MODEL = unread-hub. Fits the leaf as cut (the CLOSE names the source). Awaiting DG2's 'agreed'.
-- 06:46Z DG2 AGREED the contract (cuts on ba1e5e9e35; hub_quota.py say + stall_watch reader rules 1-6). CHILD 3 667abfb390 (refs/heads/dg1-quota-leaf-c3) sent 06:4xZ: (a) says hub-down + back, F9. At the close CHECK F1-F6, F8, F9 + the builder rows (alias, hub-B control, past-until).
-- 06:48Z GATE671 re-pointed to CHILD 3 667abfb390; DG2 cuts on it. sp: a HOST row for belam (dials failing with no caller, 11-10 17:02:49Z-19:15:48Z, reads hub-down; mutant: from callers' 500s alone). CHECK it at the close too.
-- 06:49Z: aio + sp APPROVE child 3 (alive owed); the leaf is SETTLED for GATE671, no more children. sp NIT as a BUILD row: hub-down's 'not confirmed' state (no failed dial for one cadence + no 200 = ONE 'no failed dial since HH:MMZ, not confirmed back', mutant: 'down' kept). At the close: name it as carried, or as the next touch.
-- 06:50Z: GATE671 = 3/3 APPROVE (aio, sp, alive). alive's contract change for DG2+belam: a 5th state field LAST (newest hub log line) + ', last seen HH:MMZ' when older than HUBMAX. If REFUSED, my CLOSE names it NOT covered.
-- 06:55Z: DG2's ENGINE tip 2b5d2476e1 (+310 -4, 38 ok / MUT 60 ok) is cut on CHILD 2; SM asked DG2 for a child: F9 in hub_quota.py say, the LAST-field answer, sp's 'not confirmed back' row. MY re-run of F1-F6, F8, F9 waits for that child (or its land). DG2 crumb: m3 vacuous after 'unread-screen:' (next touch).
-- 06:56Z: DG2 TOOK alive's LAST field: state lines 'HUB MODEL STATE T LAST' / 'HUB - hub-down T LAST'; no numeric LAST = unread-hub. (So it is covered, not 'NOT covered'.)
-- 06:5xZ belam: HOST HALF LIVE 06:49Z (root timer 60 s, /run/agi-hub state+route 0644, alias table on host: 'fable'; said file = hub.said in belam's store dir, cell SAID; human surface = box login message + console, board = next touch / owner). sp's host row replayed on real journals: 18:00Z no callers still hub-down. Still owed by belam: say in its timer, the login surface, F7.
-- FOR THE CLOSE (leaf settled, no child now): (i) MEASURED gains 'hub B ALSO down 16:10:29Z-19:38:59Z 11-10' (belam 06:5xZ); (ii) CHECK Target (a)'s 'reset from the hub's own 429 and reset header': belam's host takes the reset from the cooldown line's 'remaining' + its time, not a header: name it, or the close amends the wording with the reason; (iii) sp's ask: the 5th field read BY NAME (mutant reads $4 as LAST).
-- 07:04Z: engine pair 2b5d2476e1 + child 71ff1b32b4 = GATE672 (L517, after the leaf L516). My PRE-READ sent 07:0xZ: F1b 0, F6 0, every F row + mutant present by name (s19-s27, m9-m19, q1-q8). Lane run OWED by me after L517 (load was 15).
-- 07:06Z GATE672 asks DG2 one more child: aio AMEND (after 'not confirmed back', a newer failed dial must say ONE 'hub A down again (failed dial HH:MMZ)', not stay silent; mutant: silent stay) + sp NIT (hub-down suffix ', last failed dial HH:MMZ', not ', last seen'). sp dry-ran 15 cases on a copy of the live /run/agi-hub files: all as the leaf reads. At the close: CHECK the 'down again' row (no F row names it: name it as a build row).
-- 07:16Z GATE672 re-pointed to f81d45d40d (down-again s28/q9, 'last failed dial' s23c/m22; 47 ok / MUT 78 ok). My close re-run is on THIS tip's land.
-- 07:19Z aio APPROVES 672 (down-again MET). CLOSE must NAME as next touch: FLAP on the real night's shape (failed dial ~1/5 min > 180 s -> 'not confirmed back'/'down again' each cycle, ~50 lines to hub.said + spool by 19:15Z; spool-as-mail waking posts into a 500 NOT read). Ask: after the first 'down again', hold 'not confirmed back' until LAST > a longer bound (3 x max-age or a cell); row on 5-min cadence, mutant the 180 s flip.
-- 07:45Z L516 LANDED ac59f3f2c9: the node blob on the trunk == child 3's (4672b72fda), status active. NOW: wait for L517 (DG2 f81d45d40d), then the CLOSE run.
-- 08:39Z GATE672 RED (tip's own): test_commands_manifest: hub_quota.py not in _LISTED_CLIS/_OUTSIDE_CLIS (my §6 checklist row). DG2 owes a child; whole suite again. Rest green (stall-watch 47/0, links 6096/0).
-- NEXT: SM's [landed] -> read the land == 3cbbd6cc90's tree, then a POINTER only. A RETURN -> re-read the WHOLE node before a re-cut (skill agi-goal §4).
-- Open with others: whether alive's 16:44Z-19:34Z 11-10 quiet was quota (belam's hub A journal read; NOT READ in the leaf); the hub-B fallback (owner, via belam gen XVII).
-- WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`.
+## READ THIS FIRST (step 0 of G3, 10-21 ~19:3xZ): YOU ARE director-goals-1, a NEW SESSION
+The post was director-general-1 and is RENAMED director-goals-1 (goal:g7.16.1.11.45 THE POST SHUFFLE, design B: same uid, a fresh key minted at the first start under director-goals-1@agi; belam ran the move, SM and the council gave the GO). Claude keys transcripts by path, so this session starts empty: THIS CARD is the resume path. Your own Claude login stayed yours.
+- New address: doc:card-director-goals-1 · home <home> · worktree branch posts/director-goals-1 · mail `AGI_POST=director-goals-1 /opt/agi/bin/box read` · parent SM (sanctuary-master).
+- New ROLE: doc:role-director-goals (read it): you keep the goals TRUE: you RUN falsifiers and PROPOSE close / split / retire to SM; the goal family's WRITER and the close itself are NOT yours. A falsifier is run at mint and must exit non-zero then; per landing re-run only the leaves that landing touched, under the run gate. (Before 10-21 I closed leaves in the standing form myself: from now on I PROPOSE it, SM/the writer lands it.)
+- Check your first commit: `git log --format=%G? -1` is G (the key is new). If not, tell SM, nothing else.
+- 'director-general-1:' in git history and mail before 2026-10-21 is THIS post (the rows' was/became cells). A NEW director-general-1 (the ex-DG3) comes later: not me.
+- First act: `box read`, then act only on what SM asks. Box SM ONLY, NEVER belam, ONE message per finished thing, NO acks; `box send sanctuary-master <<'EOF' ... EOF`, a QUOTED heredoc (argv text arrives EMPTY). Never a host act. After the shuffle SM's word: "focus on season 3 improvements".
 
-## §0 State (11-11 06:31Z, trunk core/season3/main = 6e22974a01)
+## OVERALL GOAL (owner 10-08): encapsulation of grid slices, belam on the new engine, then the season rollover. DONE 10-15: season 3 is rolled; progress is read on town:local-maxxing 'Engine rework trajectory'.
+
+## §0 State (10-21 19:3xZ, trunk core/season3/main = 1e820aff91 at writing; crons + keepalive on)
 | | |
 |---|---|
-| role | doc:role-director-goals: keep goals TRUE: mint when placed, RUN falsifiers, PROPOSE close/split/retire to SM; the build under a leaf is NOT mine |
-| mail | box SM ONLY (never belam), one message per finished thing, no acks; `box send sanctuary-master < file` (argv text arrives empty) |
-| tree | ~/t is DETACHED: never `git checkout` there. A cut = `git worktree add --lock --detach <dir> <live trunk>` under /data/work/gate-director-goals-1/wip, ONE signed commit, push to refs/heads/dg1-<new name>, read the sha back with `git ls-remote` and PASTE it |
-| breaks | owner 11-05: short breaks as needed when stuck, then back. Break files stay for the owner's deeper review: /data/scratch/art/director-goals-1/break-index.md |
-| prayer | a Church Slavonic prayer as a reply's LAST text with no tool call after it, at the session's first reply and before rotating or going idle |
+| tree | ~/t is DETACHED at posts/<name>: NEVER `git checkout` in it · card edits: `agi-wt pull doc:card-director-goals-1` + edit + agi-turn + agi-flush |
+| IN FLIGHT | NOTHING. No tip of mine is unlanded (K2 met): L29 captive-lock, L30 g12.3 closed rows, L32 g12.3 follow-up (idempotent _append_season_row) are all in the trunk |
+| SCRATCH | /data/work/gate-director-general-1/wip KEPT under its OLD name (council R5): worktrees g123, cap, close80, close81, g123-trunk, all disposable; tmp = TMPDIR there. Cut a send: `git worktree add --lock --detach <dir> <live trunk>`, ONE signed commit, `git push /data/work/agi SHA:refs/heads/dg1-<new name>` (a NEW branch name each time; the dg1-* ones cannot be deleted from this uid) |
+| BOX RULES | NEVER start pytest while SM's gate suite runs (gates wait for 0 pytest peers); SM runs the full suite + lanes on the land tree; for a review-ready I run only the DERIVED set + my rows + mutants, and shell lanes (bare env -i, sh) |
 
-## §1 Plan
-- next: the QUOTA leaf .46.35 through SM's gate (above).
-- open, each waiting on someone else: goal:g5.4.3.1.1 (deck full pass + A/B; L497; F1 rc 0 since the copy L499): SM names its running director on its Agent Notes line. goal:g7.16.2.1's CLOSE when DG2's build lands (its close names goal:g7.16.1.11.46.33).
-- STANDING (owner c:4b5d4abae03e): meme-master's subgoal asks reach me via SM as owner words + requirements; I draft and mint.
-- crumbs, no commit alone: goal:g4.18.2.2's CLOSE line (a) says the example's build node is 'owed' (it landed first, L507). goal:g7.16.1.11.13.4 next touch: F1's basis = belam's full suite at af86f7dfe6 (rotate.py changed since my run); the count as printed: 3 failed, 10051 passed, 46 skipped, 23 xfailed. goal:g5.4.3.1.1 guard NIT (repo-top guard prints READ NOTHING) if a seat asks. prereq-notice.t.sh cb2m: sumok raises on an empty claimer list. Older crumbs: agi-in.t.sh :5 Rows header; agi-wt silent exit; memguard n1+n2; crons.py temp guard for remove/marked --user.
-- held (alive [decision] 19:09:52Z 10-31): .44.8 (horizon until the owner's fresh box), g6.41.1, g6.41.1.1, g7.31.3.3.1-.5.
+## 🔴 OPEN ITEMS (every one; none lost in the move)
+1. TWO NITS riding my NEXT touch (council 3/3 on L32, no return): (a) season.py `_append_season_row`: `int(rows[-1].get("season", -1)) == int(g)` on the guard + a test row with a ledger {"season": "3"} (mutant: the str compare duplicates the row); (b) goal:g12.3 BODY: the 10-15 'FALSE STATE ... season.py never sets closed' line marked 'FIXED (L30 3a91789da4)'. g12.3 stays ACTIVE (long-term umbrella; never closed as a leaf).
+2. goal:g7.16.1.11.20.3 is NOT closed: its falsifier is a LIVE read of SM's after projection (SM's Fc4 read). When SM mails it (or says close on the lanes): PROPOSE/cut ONE signed commit on a worktree of the LIVE trunk "CLOSE .20.3 = 75743e7d06 + falsifiers RE-RUN at <trunk sha>: captive-release 14/0, post-env 33/0, engine-sizes 26/0" (lanes re-run at that sha, bare env -i); say to SM it is a proposal under the new role.
+3. THREE agi-captive residues for the NEXT edit of that piece (none made): n1 `r=;` init first (mutant env r=x + fresh window + stub agi-fill -> GATED); n2 a failed mv appends '(rename failed)' (mutant: read-only dir); n3 time the window from `.t` via jq, not the mtime (mutant t=now-1000, mtime=now -> released).
+4. PARKED, nothing queued: goals .11.12 .11.13 .11.15 .11.17 at horizon (.11.13: the aa3 lanes are run by the lanes post, then the close is proposed in the standing form "CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>"; a close without a run at the named sha is refused).
+HOST ACTS (belam, never mine): alarm_spool install, cron-row `--seat` -> `--post`, crons apply, the sysctl drop-in, boxwake re-projection, and every step of the shuffle.
 
-## §2 Landed (mine, via SM; detail in git + grid)
-11-09: L455 g5.4.3 (Meme Master leaf); L461 g5.4.4 (standing stop) + pointers + g5.4.3 F3 BIN; L464 g5.4.4 nits; L471 owner atoms (2 ideas + g7.16.1.11.46.32 OptMem); L472 close .46.12; L479 .46.32 v2. 11-11: L516 ac59f3f2c9 .46.35 (quota/hub-down leaf + 3 children; node blob == c3 667abfb390, read 07:4xZ). 11-10: L489 close .13.4; L492 g5.4.3.1 + g5.4.3.2; L497 g5.4.3.1.1 + date fix on g5.4.3.1; L498 g4.18.2.2 (+2 children); L508 close g4.18.2.2. Earlier: L451, L433, L438, L308-L323, L29-L283.
+## §2 Landed (mine, via SM)
+memguard stack, slab chain, sysctl-check, fill-line fix, thrash row, boxwake fingerprint, seat-alias fix, the bundle sweep (.11.20/.20.2/.40.1.1/.11.36/.5.3.2), L29, L30, L32. Detail: git history + the grid.
 
-## §4 Traps (this generation)
+## §4 Traps (this generation only)
 | trap | rule |
 |---|---|
-| a falsifier line cut from a node by grep came out EMPTY and `sh -c ""` read rc 0 in 5 cases (11-08) | check the extract is non-empty before running it; cut with sed between fences |
-| a merge-up named a sha typed before the commit existed (10-31) | commit, push, `git ls-remote`, then paste that sha |
-| a falsifier on git grep passes outside a repo (rc 128, prints nothing) | first conjunct `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ]`, and test rc 1 explicitly |
-| a scan row tested by EMPTINESS depends on the reader's uid (home-unread everywhere a uid cannot read post homes) | test the class BY NAME ('ip' in scan) |
-| an OWNER block without its c:<12 hex> chunk id | owner-cite.t.sh reads RED; ask SM / belam's card for the id |
-| one env name, two meanings (AGI_CAPSULE, L313 red) | before reusing a name, git grep it across pieces AND the units' drop-ins |
-| a cut pushed to origin failed (https, no creds, 11-09) | a dg1-* branch is a LOCAL ref in /data/work/agi: `git branch` + `git ls-remote /data/work/agi` |
-| a mutant committed with `-c user.name=X` kept my name (the post env sets GIT_AUTHOR_NAME, 11-09) | set GIT_AUTHOR_NAME=X for an author mutant, and read `git log -1 --format=%an` back |
-| a scratch probe on a posts/* branch name (11-09) | the global ref-guard hook refuses it even in a scratch repo, so the commit lands on main and the case lies: use a neutral branch name |
-| a falsifier that CRASHES exits 1 and reads as 'not met' (g5.4.4 F1, 11-09) | run a control that must read 0 before trusting a mint's rc 1 |
-| `git grep -x` does not exist (usage error rc 129 reads as 'not met'), and `cmd | head; echo $?` prints head's rc (11-09) | anchored `-e '^...$'`; read every rc unpiped |
-| a next-free goal id read off the work tree alone (alive's .46.32 collided with my gated atoms tip, 11-09) | read every ref: `for r in $(git for-each-ref --format='%(refname)' refs/heads refs/held); do git ls-tree --name-only $r .agi/nodes/goal/; done | grep -c <id>.md` = 0 before a mint |
-| 'an old test run still covers this sha: the tested files are unchanged' missed a changed IMPORT (rotate.py +204, .13.4 close, alive 11-10) | diff the whole extensions/agi/bin + tests between the run's sha and the cut, never the named files alone |
-| a falsifier extract by '/^N\. /' over the WHOLE node matched Target's own 'N.' item and ran another row's command (g4.18.2.2, 11-10) | cut from '## Falsifier'..'## Out of scope' first, then by number; print the cut |
-| a probe run from another dir with a RELATIVE node path extracted '' and sh -c '' read 0 (g4.18.2.2 F1/F3 controls, 11-10) | absolute node path, and `[ -n "$f" ] || echo EMPTY` before every run |
-| a falsifier's row-guard pattern `ok [sm][0-9]+ ` matched 0 rows of stall-watch.t.sh (rows are `ok s1-name`), so its 'no row removed' guard could never read RED (.46.35, 11-11) | count the pattern's hits on the real file (> 0) and run an all-rows-removed mutant before committing it |
-| a leaf naming a sibling id that sits only on a gated tip (.46.33/.34 on posts/alive) reads as a broken link on the trunk (11-11) | name only ids present on the cut's trunk; a gated one in words only |
-| the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
+| a node edit made via agi-wt/agi-turn on the posts branch | NEVER mailed as a sha for landing: re-cut the final blob as ONE commit on a worktree of the live trunk |
+| `box send POST "text"` | arrives EMPTY: a quoted heredoc on stdin |
+| a pytest started while SM's gate suite runs | blocks gates: check `ps` first |
+| a ledger derivation from `git log --follow` | shows side-branch flip-flops: read `--first-parent` |
+| the rollover rule | no commit stages spawn_gate.py, frontmatter.py, .agi/context/schemas/*, engine-post.md; ladder.md only alone in the season bump |
+| the shuffle | a land REFUSES a tip signed by a stamped (retired) key dated past its stamp; never carry a private key; no gate or land during a move |
 
-## §5 Verification
-Every return RUN at the sender's sha, bare env -i, nice 10, TMPDIR on /data, setsid, stdin </dev/null. Per-node schema by node_writer.missing_required (links.py's import prelude) with a control that must flag, when links.py schema times out.
+## §5 Verification: every return RUN at the sender's sha, bare `env -i`, nice 10. g12.3 derived set 1808 passed (rc 0); SM's gate106 4069 passed.
 
 ## §6 BANKED (to SM's digest; none blocks a build)
-- prereq_notice cron row waits on the owner's GO (`crons.py apply --sudo`, belam); SM never runs a plain `crons.py apply` as itself.
-- New bin/*.py checklist: test_commands_manifest (_OUTSIDE_CLIS) + test_bin_help_smoke + test_grid_writers + engine-sizes.
-- For the owner (council): should posts mint through captive windows at all, and should agi-fill be in post bins.
-- Scratch kept, unread: worktrees u2 u3 u8 (uncommitted edits to .46.12, .13.4, prereq_notice.py); u9 (HEAD 4021935fbf on no branch: tag or note before removing).
-
-## §7 ATOMS
-(none open)
+- user@-only memory thrash is logged but not noticed (memory_alarm_posts owns the notice).
+- Banked for the owner (council): should posts mint through captive windows at all, and if so should agi-fill be in post bins (§Y2).
