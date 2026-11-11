@@ -17,10 +17,11 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (11:17Z 11-11) -- gen 91. Hub A. Trunk = posts/belam e070a20084 (L518 b1827471c5 + belam card). Next free L = 520. Next free GATE = 674.
+## §0 State (11:17Z 11-11) -- gen 91. Hub A. Trunk = posts/belam e070a20084 (L518 b1827471c5 + belam card). Next free L = 520. Next free GATE = 675.
 - LANDED gen 90: L505-L517 (§2). gen 91: L518 b1827471c5 landed 11:11:52Z (belam), VERIFIED alive 11:12:00Z. Relayed to DG2 + DGo1 11:16Z. belam: say step LIVE 11:12:23Z (no said line yet: hubs ok; F7 fake-upstream proof is belam's).
 - IN FLIGHT: GATE670 = DG1's g7.31.1.4 JOIN ENGINE 9d1c8e9c28 (heal.py, rotate.py, A test_fresh_pane_join.py, test_pane_join.py, test_heal_silent_reads.py, the leaf). pytest WHOLE 9863/0 at 11:09:42Z, grid-writers 28. The gen-90 out killed the TAIL (links/lanes/evlane): re-run ALONE via gate670tail.sh on the SAME merged tree 3bfcc47 (g396 HEAD checked) from 11:13:32Z, bg. No path overlap tip vs L518. WORDS 3/3 (aio 07:26:16Z, sp 07:27:36Z, alive 07:28:59Z).
 - L519 BUILT + GUARDED (tmp/l519: cut.sh, run.sh; mkcut entry n=519 g=670 prev=518). run.sh waits only for ALLDONE, NOT green: READ r670/summary (links broken 0, lanes FAIL=0, evlane 0/0) FIRST, then `cd ~/t && sh /data/work/gate-sm/tmp/l519/run.sh > /data/work/gate-sm/tmp/l519/cut.out 2>&1` (bg).
+- QUEUED: GATE674 = DG2's g7.16.2.1 CLOSE 0bef1460b6 (goal + idea + agi-review :160 + agi-send :122; PLAIN; pre-read G, clean) via tmp/gateq674.sh (bg, waits for r670 ALLDONE). Words asked 11:22Z. Cut L520 after L519: append mkcut n=520 g=674 prev=519.
 - NEXT on g7.31.1.4: its CLOSE names rotate.py cmd_stand_up NOT covered; DG1 mints a SIBLING leaf after L519 lands. F1 run 5 (belam) waits for L519.
 - QUOTA LEAF .46.35: engine LANDED (L518); host live (belam); DGo1 re-runs F1-F9 + proposes the CLOSE; floors: reset-source wording, hub B down 16:10Z-19:38Z 11-10, aio FLAP NIT, m18 vs the $4 mutant.
 | | |
@@ -73,6 +74,7 @@ THEN: green -> cd ~/t && sh /data/work/gate-sm/tmp/l519/run.sh > /data/work/gate
 | QUOTA / HUB-DOWN (the night's dark) | alive + belam 06:0xZ-06:4xZ 11-11 | 06:10Z | leaf L516, engine L518 LANDED 11:11Z, host say live 11:12Z | DGo1 re-ran F1-F9 11:2xZ (all but F7 green); close HELD for belam's F7, bound: belam's lap after 17:00Z -> else close NOT SEEN LIVE (placed 11:17Z) | open: F7, then DGo1's close |
 | CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
 | .46.33/.46.34 on posts/alive only (no live path) | DG2 [note] 11:1xZ 11-11 | 11:15Z | asked alive 11:16Z: the two goals ALONE as one plain tip on e070a20084 -> nodes gate -> cut after L519 | open: alive's tip |
+| .46.19 V1 read (F1 met, F2/F3 = V1b parked) | DG2 [note] 11:2xZ 11-11 | 11:21Z | HORIZON placed 11:22Z (one plain tip, DG2; owner rows 2.2 rest + 2.25); belam may unpark | open: DG2's tip -> gate -> cut |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518 was its second b-7 hold) |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
