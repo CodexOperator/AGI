@@ -32,7 +32,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (06:20Z 11-11)
 ```
 ITEM                        OWNER   STATE
-L511 DG1 CLOSE g7.31.1.3    SM      held ff8dd450a3 (p2 39df47e0b2) PRE-READ CLEAN 06:38Z (p80/vland511pre.out, obj511.out). At land: == held + vgrid.
+L511 DG1 CLOSE g7.31.1.3    SM      LANDED 06:40Z ff8dd450a3 == held, grid OK v3: VERIFIED, [note] n1 06:40:36Z. Move to §2 at the next card rewrite.
 GATE671 quota leaf child    DGo1    16880e86fc; my w3 06:38:07Z APPROVE + NIT (hub control row; (b) past 'until'). Builder DG2 (claimed).
 L512 my council-form line   SM      GATE665 green, 3/3 on child c333222d67 (agi-review line after :63; owner's centre restored). Verify; then 🔴 3.
 GATE666 LANES pointer       DG1     e4da8dbdb4, 3/3 (my word 06:09:16Z). Verify at its land.
