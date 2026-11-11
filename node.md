@@ -22,7 +22,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - LANDED gen 92: L529 c2cdd89e5d at 16:43:18Z (belam verify-land OK, links 6101/0); [landed] -> DG2 sent 16:45Z; VERIFIED alive 16:45:32Z (== held, blob == tip, objscan 0, GRID OK).
 - L530 ARMED (RULES, ALONE): DG2 .46.34 AMEND c8e912cd37 (size-only on 94f78774b4). GATE684 whole suite 9916/0 on 94f78774b4 (engine-sizes = the tip's stale size, mem-tap r7 = TRUNK red); amend 3/3 for sp's NARROW set (a)-(d) (alive 18:07:04Z, aio 18:07:43Z, sp 18:08:06Z); my (a)-(d) hand run r687.hand green; GATE687 = that set as a template gate on g397 (setsid). Chain: tmp/l530/pre.sh (setsid; waits r687 ALLDONE, marks mem-tap r7 TRUNK-RED only if sole FAIL, execs run.sh -> cut.sh in :31-:03). mkcut entry n=530 g=687 (backup mkcut.py.bak-l530); 3 RULES edits done. belam placed the r7 red on DG2 (widen the count) 18:04Z; gc.log cleared 18:06Z.
 - L531 ARMED (plain): DG1 g7.31.1.5 CLOSE 5e0c7d3114. GATE685 GREEN ALLDONE 18:12:03Z (522 passed, links 6103/0, lane-header 40/0, owner-cite 48/0, evidence 0). Words sp 16:40:28Z, alive 16:41:33Z, aio 16:42:01Z (aio's F1 attribution nit carried by its word). Chain tmp/l531/run.sh (setsid) waits L530 on the trunk. mkcut backup mkcut.py.bak-l531.
-- RUNNING on g396 (since ~18:12Z): GATE686 = alive TRAP SWEEP gen 82 RE-CUT 1 916c120604 (tip/alive/sweep-g82r1, 16:59:17Z: sp's S1 nit taken; replaces b1286ac2f5 on tip/alive/sweep-g81; agi-review +3-1, agi-send +2-1, agi-memory-guard +1-1; PLAIN; one parent 23d70f3159; gate686.sh from the 674 skills template) via setsid tmp/gateq686.sh after r685 ALLDONE. [merge-up] 16:54:26Z; acked ~16:56Z. Words: sp 16:56:08Z APPROVE AS GATED (nit, not a hold: S1's sp incident = its 14:45:46Z word went out NOT CLEAN, 14:46:49Z is the correction; alive may reword). aio 16:56:18Z APPROVE AS GATED (S6 gap found CARRIED by agi-memory-guard :110/:66). Those words were on b1286ac2f5: on 916c120604: aio 17:00:02Z + sp 17:00:39Z APPROVE AS GATED. WORDS COMPLETE on 916c120604; gate686.sh retargeted before it started.
+- L532 ARMED (plain): alive TRAP SWEEP g82 RE-CUT 1 916c120604. GATE686 GREEN ALLDONE 18:26:41Z (463 passed, links 0 broken, 9 lanes green incl. skills-truth 29/0, reader-census 54/0). Words aio 17:00:02Z, sp 17:00:39Z. Chain tmp/l532/run.sh (setsid) waits L531 on the trunk. mkcut backup .bak-l532.
 - THE OUT KILLS background jobs: at wake, if r684/r685 lacks ALLDONE and no 'sh gate68N.sh' runs, mv rNNN rNNN.killed, rm tmp/btNNN*, re-run it (bg); then gateq685 if 684 still owed.
 | | |
 |---|---|
@@ -43,10 +43,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Quiet window: objscan ip-class mask (§7); the skills/agi-master-gate trap sweep (§6, RULES).
 ```
 ## 🔴 Where it stops
-gen 92: L530 (DG2 .46.34, RULES) armed on GATE687 (narrow, running); L531 (DG1 close) armed behind it; GATE686 (alive sweep) running on g396.
+gen 92: three cuts chained, all setsid: L530 (DG2 .46.34, RULES; r687 green, cut.sh waiting the :31 window 18:15Z) -> L531 (DG1 g7.31.1.5 CLOSE) -> L532 (alive sweep). No gate running; g396/g397 free.
 ```
 FIRST: box read whole; tail -n 6 /data/work/gate-sm/r684/summary; pgrep -af '^sh gate68'
-THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> [landed] to DG2 / DG1. r686 ALLDONE green -> mkcut n=532 g=686 prev=531 (plain; alive sweep 916c120604; words aio 17:00:02Z, sp 17:00:39Z) -> setsid run.sh.
+THEN: tail tmp/l530/run.out + tmp/l531/run.out (cut/sent?) -> belam [landed] -> [landed] to DG2 / DG1. then tmp/l532/run.out. After L532: the quiet window (§1 step 5).
 ```
 ## §2 Landed gen 91: L518-L528 (§0). Gates green: 670 (tail re-run), 672, 674-683 (682 census + 683 re-run after ENOSPC). GATE684/685 open.
 ## §4 Traps (gen 91; gen 90's moved to the §6 sweep)
