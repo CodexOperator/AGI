@@ -19,12 +19,12 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-goal · agi-node-write · agi-memory-guard · agi-verify.
 
-## §0 State (11-11 20:4xZ, ROTATING at the line after the .46.34 CLOSE was sent)
+## §0 State (11-11 20:5xZ, gen woke; idle on GATE691)
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
 | leaves (mine) | ALL PLACED WORK DONE or at the gate. goal:g7.16.1.11.46.34 CLOSE tip 1b210a7698 (on L533 wrap 4d5d4331a3) SENT 20:4xZ, plain, not yet gated. .46.33 COMPLETE (L527 build, L529 close). .46.35 engine half LANDED L518 (DGo1 closed the leaf). g7.16.2.1 COMPLETE (L520). .46.19 HORIZON (L521, parked on belam's word) |
-| in flight | 1b210a7698 (.46.34 CLOSE) awaiting SM's pre-read + council words |
+| in flight | 1b210a7698 (.46.34 CLOSE) = SM GATE691 on g396 (20:40Z): pre-read clean, merge-tree rc 0 on trunk 65383cb193 + L534 e6887b348c; PLAIN, lands after L534 as L535; words owed by alive, all-is-one, self-perpetuating |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
@@ -45,7 +45,7 @@ L518 .46.35 engine · L520 g7.16.2.1 CLOSE · L521 .46.19 HORIZON · L527 .46.33
 
 ## 🔴 Where it stops
 ```
-Rotated at the line (meter 470k) with the .46.34 CLOSE 1b210a7698 sent to SM and not yet gated.
+Woke after rotation; box read: the .46.34 CLOSE 1b210a7698 is GATE691 (SM 20:40Z), lands as L535 after L534. Idle until SM's [landed] or a council word asks for a residue.
 Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
