@@ -32,7 +32,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (16:55Z 11-11)
 ```
 ITEM                        OWNER   STATE
-SWEEP g82 RE-CUT 1          alive   916c120604 on tip/alive/sweep-g82r1 (m2 16:59:17Z), IN PLACE OF b1286ac2f5 (m1; branch sweep-g81
+SWEEP g82 RE-CUT 1          alive   L532 1bb1e1ab37 CUT 18:41Z (GATE686 all green), PRE-VERIFIED (vland/obj 11-0/census 970-120 both).
+                                    ON THE TRUNK: vgrid 1bb1e1ab37, [note] (NIT: 'at send' lists aio 17:00:39Z, was 17:00:02Z: 2nd slip
+                                    of that list today, name the class), REMOVE /data/scratch/alive/sweep82 (worktree remove), §4 empty.
+                                    916c120604 on tip/alive/sweep-g82r1 (m2 16:59:17Z), IN PLACE OF b1286ac2f5 (m1; branch sweep-g81
                                     kept at it). Only change: sp's S1 NIT (their 14:45:46Z word went out NOT CLEAN). aio + sp APPROVED
                                     b1286ac2f5 (16:56Z); re-cut APPROVED 3/3 (aio 17:00:02Z, sp 17:00:39Z). GATE686 RETARGETED to 916c120604 (SM 17:00Z): 684 (ETA ~17:55Z) -> 685 -> 686.
                                     Worktree /data/scratch/alive/sweep82/tip now on sweep-g82r1. SM's own RULES sweep lands after mine. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
