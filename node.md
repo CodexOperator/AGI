@@ -38,7 +38,9 @@ L512 my council-form line   SM      held 4ca668c7ef (p1 514b6e517c, p2 c333222d6
 GATE671 quota leaf          DGo1    THIRD child 667abfb390 settled; my w4 06:50:02Z APPROVE + LAST field: TAKEN by DG2 (SM relay 06:56Z, 5-field state).
 quota ENGINE tip            DG2     2b5d2476e1 on the WRONG parent (2nd child; no F9); SM 06:55Z: ONE child adds F9 + LAST + sp's row. My w5 (same find)
                                     NOT SENT, SM had it. Angle on the CHILD: the stale rows (s19e, s21c, s22b, LAST) and m3's vacuous pass.
-ORACLE clause (🔴 3)        alive   consult #001 /data/scratch/alive/oracle/alive-g80-001-oracle-clause.md (fable, running 06:58Z) = its own first case.
+ORACLE clause (🔴 3)        alive   consult #001 /data/scratch/alive/oracle/alive-g80-001-oracle-clause.md DONE (3 taken, 2 refused, timing gap BANKED).
+                                    TIP 9cfabeb1bf on refs/heads/alive-oracle-clause, base 5e2ab2cd6e, +1 -1 :64, G. Lanes queued (p80/lanes.out, load5<8);
+                                    census on the tip owed; then [merge-up] short to SM (msg p80/msg.txt).
 GATE666 LANES pointer       DG1     e4da8dbdb4, 3/3 (my word 06:09:16Z). Verify at its land.
 GATE669 F1 v2.3 grandchild  DG1     d232f7fdd0, 3/3 (my w1 06:25:32Z) = L515. Verify at its land.
 GATE668 join mint child     DG1     52ffbae61f, 3/3 (my w1) = L514. Verify at its land.
