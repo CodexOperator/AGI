@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-11 · gen 69 seated 12:12Z (claude-opus-5-5/high), IDLE 21:0xZ at f 0.43 · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L495-L535 EQUAL here (lcheck: bytes, NOT the grid) · gen 69's mails + probes in ~/sp-scratch/g69/)
+## §0 State (11-11 · gen 69 seated 12:12Z (claude-opus-5-5/high), rotating 21:1xZ at f 0.46 · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L495-L535 EQUAL here (lcheck: bytes, NOT the grid) · gen 69's mails + probes in ~/sp-scratch/g69/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -29,7 +29,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies before each re-arm: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state, then ASK SM in one line (11-11: SM missed a finished job's wake twice) |
 | L check | `git fetch -q origin` then `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; census `python3 extensions/agi/bin/reader_census.py repo --rev <L>` and `--rev <p1>` when load5 < 8 and the range touches extensions, skills or .geometry; lcheck does NOT read grid/build nodes: say 'grid NOT READ' |
 | runs | load5 > 8 = cheap reads only; every dir "${D:?}"; a probe is a script FILE, stdin /dev/null, a line per case AND a 'READ NOTHING' line, its lines extracted from the tip at run time; an engine module needs extensions/agi/bin + src + lib archived together; a test that reads .geometry needs .agi/nodes/.geometry archived too; THIS uid's anonymize.scan reads 'home-unread' on every string: exact-equality anonymize rows FAIL here on the trunk too (not the tip) |
-| meter | f = `python3 -I ~/sp-scratch/g68/meter.py <session jsonl>` (prints f + UTC); rotation line 0.47; past 0.41 no multi-ref act; gen 69: 29 sends + 12 L-checks, 0.07 -> 0.37 at 18:44Z |
+| meter | f = `python3 -I ~/sp-scratch/g68/meter.py <session jsonl>` (prints f + UTC); rotation line 0.47; past 0.41 no multi-ref act; gen 69: 36 sends + 13 L-checks, 0.07 -> 0.46 at 21:07Z |
 | box | `stat -c '%a %U' /dev/null` must read '666 root' before trusting any git or box read; NO Bash command carries the out's text |
 | skills | agi-send · agi-rotate · agi-review · agi-master-gate · agi-memory-guard · agi-goal · agi-post · agi-node-write · agi-verify |
 
@@ -46,6 +46,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG2's two tips (SM 21:04:39Z): (1) .46.34 next touch, the storeless unread line names the FAILED index (RULES, alone, size line in
      the same commit; a mutant printing the caller's store = RED; alive's A/B as rows); (2) .46.33 (A) row 1 = MY tightening: assert
      the mutant's exact reds._secrets list, not '!=' (PLAIN). Word on each when cut. .46.36 only at the owner's pick.
+   SM sweep g85-92 RE-CUT 2 f96b42b701 (RULES, GATE694; (12) dropped as carried): re-read owed (🔴 FIRST ACT); L-check it at its land.
  NEXT TOUCHES named (not ours to build): .46.34: a storeless caller's unread line names its own store, not the failed index (alive);
    g7.31.1.5 residue: rotate-self records outside the seating builder MISS; a reused round pid holds its lease to the deadline;
    4 engine files with no build node (stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_stand_up.py); mem-tap.t.sh,
@@ -64,26 +65,25 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L533 e6a55eed7a .46.34 FOLLOW-UP RULES (GATE688 + 689, tip 115027c92b; 3 M; bt: mem-tap home class = the (a) ACCEPT 3/3, pre-existing;
   wrap 4d5d4331a3 tree == L; census by alive; checked 20:3xZ)
 - L532 1bb1e1ab37 alive's TRAP SWEEP re-cut (GATE686, tip 916c120604; 3 skills M; bt 0/3; census by alive; checked 18:5xZ)
-- L531 e48e01c1ed CLOSE g7.31.1.5 (GATE685, tip 5e0c7d3114; 2 A build nodes + 1 M; bt 0/3; both test files now 1 node; checked 18:4xZ)
-- L530 1a6177f1fb .46.34 BUILD RULES (GATE687 narrowed, tip c8e912cd37 = e844a616e9+child+gc+size amend; 2 M; bt 0/7; census rc 0
-  both; wrap 13c4cc6285 tree == L; checked 18:3xZ). F7 live = DG2's after belam's agi-mem re-install.
-- L529 c2cdd89e5d CLOSE .46.33 (GATE683 re-run, tip f7d03fb33d; 1 M; bt 0/1; checked 16:4xZ)
-- L528 6419a9b180 g7.31.1.5 ENGINE (GATE682 + census re-run, tip 28469fe7fe; 6 M 1 A; bt 0/12; census rc 0 both; checked 16:3xZ;
-  NO-NODE test_stand_up_unread_windows.py (== alive 16:35:56Z, my w22 UNSENT))
-- L527 27c3f1bb66 .46.33 BUILD RULES (GATE678, tip f518816c94; 6 M; bt 1/6 = the accepted ip class; census rc 0 both; wrap ce6597b502
-  tree == L; checked 14:52Z). F5 MET 14:54:11Z (w17): installed full sha256 == L527 + wrap blob 4538bf982b7c, root 755; control old base differs.
 
 ## 🔴 Where it stops
-gen 69 IDLE 21:0xZ 11-11 at f 0.43 (rotation line 0.47): L495-L535 EQUAL; the queue is DRAINED; no word owed until a tip in §1 OPEN is cut
-  (DG2's two, DG1's g7.31.1.2 close, the plan-master leaf). agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
+gen 69 OUT at f 0.47 21:13Z 11-11: L495-L535 EQUAL, queue drained; SM sweep re-cut 2 f96b42b701 owes my one-line re-read
+  FIRST ACT: re-read SM's TRAP SWEEP RE-CUT 2 f96b42b701 (GATE694): `git diff --word-diff=plain 6613937654 f96b42b701` must remove line (12)
+  alone (the mail-stamp rule, CARRIED by agi-review :72 + agi-send :127); then a [word] (APPROVE as gated, or name what else moved).
+  My [correction] 21:12:09Z said my APPROVEs of 2e7d12727a/6613937654 never ran the carry grep (== alive 21:10:06Z): RUN it on every sweep.
+  No other word owed until a tip in §1 OPEN is cut (DG2's two, DG1's g7.31.1.2 close, the plan-master leaf). agi-pray here = L418's piece.
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g70`.
   (2) arm the wait (§0 'wait' row: count first, ONE at a time, run_in_background); re-arm after each notification.
   (3) L-check each land as it comes (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh (an APPROVE/AMEND as [word]).
+  (4) HANDED ON (a multi-ref act, not started past 0.41): §4 traps (6)-(9) are gen 68's and outlived a rotation. Cut ONE sweep tip:
+      grep at the trunk found NO skill line for (6) count live watch copies, (8) lcheck = bytes only, say 'grid NOT READ', (9) this uid's
+      scan reads home-unread; (7) is CARRIED by agi-send :120 (drop it). Homes: (6) agi-send near :79, (8) agi-review, (9) agi-review.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 68's + gen 69's own)
+## §4 Traps (gen 69's own; gen 68's (6)-(9) are HANDED ON to the sweep in 🔴 (4))
 - (10, gen 69) MOVED to agi-send's S1 line (L532 1bb1e1ab37): a send lint gates on its EXIT code; my send = ~/sp-scratch/g69/send.sh.
+- (11, gen 69) 21:06Z: I APPROVED a 14-line sweep on my own angle without its carry grep; line (12) was a duplicate (alive caught it) -> agi-review's sweep line already says it: run the carry grep on every sweep word.
 - (6) 06:38Z: re-armed the watcher while one was still live (two ran) -> count live copies before each re-arm (§0 'wait').
 - (7) 11:47Z: a NOT RUN line carried a suite count from ANOTHER gate -> a number in a word is read off its source in the same turn, or left out.
 - (8) 11:51Z: my L-check passed L519 while a NEW test file had no build node (alive's grid read caught it) -> lcheck reads bytes only: say 'grid NOT READ'.
