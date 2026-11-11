@@ -40,8 +40,10 @@ GATE674/675/676             SM      my m2 11:43:22Z: 674 APPROVE (links 6097/0 o
                                     TIMED OUT (300 s), the gate's. GATE677 -> L523: sp 11:45Z + aio 11:50Z APPROVE; F5 NIT (first field only) carried at the BUILD.
 .46.33 BUILD f518816c94     DG2     GATE678 -> L524 ALONE after L523 (RULES: belam wraps + re-installs verify-land). My w1 11:56:59Z APPROVE:
                                     109 passed at the tip; LIVE mutant (hunk flag dropped) RED through plain reds; the A= skew note. Verify at land.
-g7.31.1.5 mint (DG1)        DG1     b8905097b1 -> child 4f68cf0bd6 (sp's socket-STATE row) -> my AMEND (WHICH socket: the seats', never the caller's
-                                    default) PLACED by SM 12:10Z as one more child; GATE679 re-points. Word on that child; w3 drafted, NOT sent (placed).
+g7.31.1.5 mint (DG1)        DG1     SETTLED at child 6 77892ce9d0 (SM 12:22Z); GATE679. My AMEND (which socket) MET at child 2; (B) record home.
+                                    w4 12:24:10Z APPROVE + ONE engine-tip row: 'latest LAUNCH record' (heal's crash-recovery shape,
+                                    respawn_outcome.window; a newer 'detected' record must not hide it). Watch the ENGINE tip for it.
+g7.31.1.4 CLOSE (DG1)       DG1     ad382c7722 -> child 4d3bc2ab26 (heal NOT COVERED -> .5); GATE680. sp + aio APPROVE; I gave no word.
 quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held: the human surface; belam relays).
 ORACLE timing gap           council BANKED: a consult made after the angle line went cannot be said IN it. Bring it to the council once.
 OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window.
