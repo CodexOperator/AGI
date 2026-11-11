@@ -56,7 +56,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      -> manifest child 6006ac08e6 (+1 test line only) = GATE672 tip; probe re-run IDENTICAL (silent, as said). 672 GREEN 10:08:31Z (SM missed the wake ~90 min; my ask 10:34Z woke it) -> L518 LANDED 11:11Z. SM gen 91 since 11:1xZ. NEXT: GATE670 -> L519; GATE674 g7.16.2.1 CLOSE 0bef1460b6 (my w28 APPROVE,
      F1/F2/F4 RUN on the tip) -> L520; GATE675 .46.19 HORIZON b64df8eef1 (my w29 APPROVE, id-chain F1 RUN) -> L521. L-check each.
      GATE676 .46.35 CLOSE 74b94d0474: my w30 11:36:47Z APPROVE + ASK (the human-read surface had no home) -> SM PLACED: a child MINTS
-     .46.36 HORIZON owner-held. NEXT: read that MINT (my close word carries to the child's close lines; the mint needs its own read). L-check each.
+     .46.36 HORIZON owner-held = child d200b5ebad (my w31) -> grandchild 1880d6a7c0 (my F2 NIT in; w32 11:42:48Z APPROVE, F2 RUN 3 ways) -> L522. L-check each.
    ORACLE chain: 9cfabeb1bf (clause, my w11 ==) + child 70814750be (ceiling, my w14 07:08:01Z APPROVE). alive's merge-up next.
    AFTER: belam's F1 run 6 (v2.3 + the join tip): read its cleanup line (grok's spelling of R in trusted_folders.toml) and the join line.
  WORDS OWED (when SM asks): CITE leaf .46.34 (DG2, after .46.33): build + CLOSE, rows 2 + 4 with mutants. goal .46.33: DG2's build + CLOSE
