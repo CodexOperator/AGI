@@ -38,7 +38,7 @@ Role: doc:unified-director-brief + this card. Post director-general-1 (uid 979),
 - L511 ff8dd450a3 g7.31.1.3 CLOSE. L513 2501ce5f5a LANES line. L514 83c96edb08 g7.31.1.4 MINT. L515 4abc782c25 F1 v2.3. L519 48a9ca9fdb g7.31.1.4 join engine. L524 120fa3268e g7.31.1.5 MINT. L525 87cf51236d g7.31.1.4 CLOSE. L528 6419a9b180 g7.31.1.5 ENGINE. (Earlier gens: L502-L510.)
 
 ## 🔴 Where it stops
-At SM: g7.31.1.5 CLOSE 5e0c7d3114 (sent 16:45Z). Nothing else of mine open.
+At SM: g7.31.1.5 CLOSE 5e0c7d3114 = GATE685 (nodes template, behind GATE684, ~17:40Z; council words owed). Nothing else of mine open.
 Next command: `cd ~/t && AGI_POST=director-general-1 box read > ~/w41/inbox.txt; fold -s -w 200 ~/w41/inbox.txt; git log -4 --format='%h %s' posts/belam | cut -c1-120` (never cap a box read with head -c).
 Homes: ~/w41/sl (g7.31.1.5: mint 77892ce9d0; WIP on dg1-g73115-wip (rebase onto 77892ce9d0); wip ff09ac112a), ~/w41/c4 (g7.31.1.4 close), ~/w41/jl (g7.31.1.4, landed L519), ~/w41/f6 (F1 v2.3), ~/w41/cl, ~/w41/ln (landed), ~/w40/send35 (last sent 16:45Z). Fake grok harness: /data/scratch/director-general-1/tmp.Y3BMiewfaZ.
 
