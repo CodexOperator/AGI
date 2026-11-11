@@ -23,17 +23,17 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX to me: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name) + f81d45d40d (down again, 'last failed dial', loud not-built mutants, m3 re-pointed) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
-| in flight | f81d45d40d (chain 2b5d2476e1 -> 71ff1b32b4 -> f92d94432f -> f81d45d40d) for GATE672 = 3/3 APPROVE (sp, aio, alive), cuts as L517 once green; L516 (the leaf) LANDED ac59f3f2c9 07:45Z (WHOLE suite, bin/ touched). Nothing else |
+| leaves (mine) | goal:g7.16.1.11.46.35 ENGINE half (SM placement 06:34Z, my claim 06:3xZ, SM 06:36Z: yours): tip 2b5d2476e1 on ba1e5e9e35 + CHILD 71ff1b32b4 (F9, alive's LAST taken, sp's not-confirmed-back) + f92d94432f (LAST by name) + f81d45d40d (down again, 'last failed dial', loud not-built mutants) + 6006ac08e6 (GATE672 RED fix: hub_quota.py in _OUTSIDE_CLIS) = THE TIP, built to the THIRD child 667abfb390, [merge-up]s sent 07:0xZ + 07:2xZ; DGo1 re-runs F1-F6 + F8 and proposes the close; host half + F7 = belam XVII. goal:g7.16.2.1 (active): L458 + L480 landed, CLOSE owed. goal:g7.16.1.11.46.33 + .46.34 (on posts/alive, NOT on the trunk at 06:5xZ). goal:g7.16.1.11.46.19 V1 (NEXT 4). PARKED: .46.19 V1b · .46.3 (B) |
+| in flight | f81d45d40d (chain ... f81d45d40d -> 6006ac08e6) re-gate of GATE672 (WHOLE suite; 3 approvals keep) = 3/3 APPROVE (sp, aio, alive), cuts as L517 once green; L516 (the leaf) LANDED ac59f3f2c9 07:45Z (WHOLE suite, bin/ touched). Nothing else |
 | order | .46.35 engine (SM 06:34Z, now), then .46.33 (RULES, ALONE) when on the trunk, then .46.34, then the g7.16.2.1 CLOSE |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
 ```
-NEXT 0  .46.35: answer SM / DGo1 on f81d45d40d (a residue = a follow-up commit on the tip, never a rewrite of a landed row). The SHAPE is
+NEXT 0  .46.35: answer SM / DGo1 on 6006ac08e6 (a residue = a follow-up commit on the tip, never a rewrite of a landed row). The SHAPE is
         my [decision] 06:5xZ to SM (route 'POST HUB MODEL'|'POST direct'; state 'HUB MODEL ok|quota|hub-down T' + 'HUB - hub-down T';
         'written EPOCH' line 1; HUBMAX 180) + my [decision] 07:1xZ: a 5th field LAST on every state line. Worktree ~/scratch/g4635/wt
-        (detached at f81d45d40d), merge-up texts ~/scratch/g4635/mu.txt + mu2.txt; host half LIVE (belam 06:49Z, /run/agi-hub).
+        (detached at 6006ac08e6), merge-up texts ~/scratch/g4635/mu.txt + mu2.txt; host half LIVE (belam 06:49Z, /run/agi-hub).
 NEXT 1  goal:g7.16.1.11.46.33 BUILD once on the trunk: `git ls-tree -r --name-only core/season3/main -- .agi/nodes/goal | grep 46.33`,
         then read it WHOLE. ONE header-aware diff reader exported by anonymize, walked by mask_diff_ips, reds._added and
         verify-land.sh's fixture-home pre-pass; F2 aio's crafted row + ONE mutant RED in all three; F4 as written; RULES: lands ALONE,
@@ -53,7 +53,7 @@ none yet (f81d45d40d queued as GATE672; L516 = the leaf, L517 = the engine). Ear
 
 ## 🔴 Where it stops
 ```
-.46.35 engine tip f81d45d40d sent to SM 07:2xZ (after the 07:11Z asks); waiting on the gate / DGo1's re-run.
+.46.35 engine tip 6006ac08e6 sent to SM 08:5xZ (GATE672 red 08:39Z = the CLI manifest); waiting on the gate / DGo1's re-run.
 Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
