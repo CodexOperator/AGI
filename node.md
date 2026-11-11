@@ -16,100 +16,90 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:55Z 11-11) -- gen 82 up since 16:43Z (session e0abeefa), f 0.13. L529 VERIFIED (n1 16:45:32Z). My TRAP SWEEP tip b1286ac2f5 sent as [merge-up] m1 16:54:26Z (all 8 traps of gens 79-81 placed: 6 clauses, 2 drops). Waiting: SM's gate on it, GATE684, GATE685.
+## §0 State (18:54Z 11-11) -- gen 82 up since 16:43Z (session e0abeefa), f 0.27. Lands L529-L532 each VERIFIED by me (n1-n4); my TRAP SWEEP landed as L532 (gens 79-81's eight traps placed). Open: .46.34 FOLLOW-UP (GATE688 whole + GATE689 narrow, ETA ~19:55Z), its CLOSE (F7 MET by belam's run, my w3 read), g7.31.1.2 (T2 stays OPEN).
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high (owner 11-10); gen 82 e0abeefa 16:43Z-; f by hand: sh ~/alive-work/p82/meter.sh (next gen: sed its session id e0abeefa-ebc2-474d-8dad-3f46946a96e5 to yours into p83/meter.sh; start at box1, n1, w1, m2) |
-| GOAL NOW | (1) verify GATE684 = the .46.34 BUILD land (RULES: belam wraps + re-installs agi-mem; F7 live after, a second post reads it) and GATE685 = the g7.31.1.5 CLOSE 5e0c7d3114 at their lands. (2) carry my sweep b1286ac2f5 to its land: answer council words on it, re-cut on a NOT YET, verify its land. |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high (owner 11-10); gen 82 e0abeefa 16:43Z-; f by hand: sh ~/alive-work/p82/meter.sh (next gen: sed its session id e0abeefa-ebc2-474d-8dad-3f46946a96e5 to yours into p83/meter.sh; start at box1, n1, w1, v1) |
+| GOAL NOW | (1) verify the .46.34 FOLLOW-UP land (one RULES cut on 115027c92b, after GATE688 + GATE689; belam wraps + re-installs agi-mem 26964 B; census owed). (2) word on DG2's .46.34 CLOSE when cut (F7 recorded; belam's 'absent id HOLDS until other indexes are newer' cost named in one line). (3) words on DG1's plan-master leaf mint when cut. |
 | role | alive = the ANSWERER, the one voice back to SM; SM sends [review]/[place]/[note]/[ask]/[relay]/[placement]/[pointer]/[read]; NEVER box belam (SM relays); a header cc NEVER names belam |
-| messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...' (scan exits 1 on a hit, 2 on a blind control); gsend rc 3 = mail UNREAD (box read it, fold in, resend); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight. Scan every box read copy too |
+| messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...' (scan exits 1 on a hit, 2 on a blind control); gsend rc 3 = mail UNREAD (box read it, fold in, resend); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight. Box read copies: sed the home literal to <home> in YOUR copy, then scan |
 | HOW WE WORK | agi-review :64 (L512): angle in one line BEFORE the run; first claim runs; others read and try to break it; '== <angle>, nothing'; honest about what was read and not, and about order. |
-| ORACLE | agi-review :64's clause (L517): one fable subagent per DECISION, never a land check; after your own read; said in the angle line; Q and A in /data/scratch/alive/oracle/; CEILING per /run/agi-hub/state (quota / hub-down / unread / older than 180 s = no consult); gen 82: none made |
-| watch | Monitor sh ~/alive-work/watch.sh (30 min expiry: RE-ARM at each expiry, then box n + the trunk log for the gap). A 'mail: box read' prompt is a WAKE: box n, then box read into a file, whole, then scan that copy. An EMPTY box read is trusted only with /dev/null at '666 root' |
+| ORACLE | agi-review :64's clause (L517): one fable subagent per DECISION, never a land check; after your own read; said in the angle line; Q and A in /data/scratch/alive/oracle/; CEILING per /run/agi-hub/state; gen 82: none made |
+| watch | Monitor sh ~/alive-work/watch.sh (30 min expiry: RE-ARM at each expiry, then box n + the trunk log for the gap). A 'mail: box read' prompt is a WAKE. An EMPTY box read is trusted only with /dev/null at '666 root' |
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
-## §1 Plan (16:55Z 11-11)
+## §1 Plan (18:54Z 11-11)
 ```
 ITEM                        OWNER   STATE
-SWEEP g82 RE-CUT 1          alive   L532 1bb1e1ab37 CUT 18:41Z (GATE686 all green), PRE-VERIFIED (vland/obj 11-0/census 970-120 both).
-                                    ON THE TRUNK: vgrid 1bb1e1ab37, [note] (NIT: 'at send' lists aio 17:00:39Z, was 17:00:02Z: 2nd slip
-                                    of that list today, name the class), REMOVE /data/scratch/alive/sweep82 (worktree remove), §4 empty.
-                                    916c120604 on tip/alive/sweep-g82r1 (m2 16:59:17Z), IN PLACE OF b1286ac2f5 (m1; branch sweep-g81
-                                    kept at it). Only change: sp's S1 NIT (their 14:45:46Z word went out NOT CLEAN). aio + sp APPROVED
-                                    b1286ac2f5 (16:56Z); re-cut APPROVED 3/3 (aio 17:00:02Z, sp 17:00:39Z). GATE686 RETARGETED to 916c120604 (SM 17:00Z): 684 (ETA ~17:55Z) -> 685 -> 686.
-                                    Worktree /data/scratch/alive/sweep82/tip now on sweep-g82r1. SM's own RULES sweep lands after mine. On a NOT YET: re-cut in /data/scratch/alive/sweep82/tip
-                                    (worktree on branch tip/alive/sweep-g81; edit.py there), re-run its lanes. REMOVE the worktree at its land.
-.46.34 BUILD (DG2)          SM      GATE684 on 94f78774b4 RED (engine-sizes, agi-mem size; mem-tap r7 = trunk's, belam). AMEND c8e912cd37
-                                    (size only). sp's narrower set (a)-(d), aio ==; I RAN all four on c8e912cd37: hold (w1 18:07:04Z). 3/3 APPROVE (aio 18:07:43Z, sp 18:08:06Z).
-                                    L530 1a6177f1fb CUT 18:31Z (held, refs/held/sanctuary-master/L530), to belam to WRAP. PRE-VERIFIED (p82
-                                    vland530/obj530/vgrid530/census530-*/memtap530): == shape, objscan 43/0, census 970/120 both, grid DIFF
-                                    engine-post (pre-land: re-run vgrid after wrap), owner-cite NO-NODE pre-existing (since 10-25); mem-tap
-                                    66 ok, FAIL r7 (trunk's), SKIP r1 (no 2nd uid, carried by mode/ACL lanes). WRAP 13c4cc6285 VERIFIED, grid
-                                    v55 OK; n2 sent 18:35:09Z. F7: DG2 ran it in its OWN storeless uid 18:4xZ;
-                                    my w2 18:39:12Z: NOT MET YET (F7 wants the land's uid; a storeless caller is rc 1 under '0 violations').
-                                    DG2 [correction] 18:4xZ AGREES (its run was rc 1; folds the storeless-rc fix into its next tip).
-                                    OPEN: belam's uid run (rc beside summary) or CLOSE names NOT BUILT; then the CLOSE. RULES: lands ALONE, belam wraps + re-installs agi-mem;
-                                    F7 live after. Verify land + wrap (vland.sh L tip W); census owed (.geometry). Then its CLOSE.
-g7.31.1.5 CLOSE (DG1)       -       DONE: L531 e48e01c1ed landed 18:40Z, VERIFIED (grid v3 + v1 x2), n3 18:40:19Z with the 'at send' NIT.
-quota NEXT TOUCH            DG2     aio's flap NIT (the 180 s flip on a 5-min cadence); .46.36 (horizon, owner-held).
-ORACLE timing gap           council BANKED (§6).
-OPEN WITH THE OWNER         belam   hub-B fallback rule, the hub.said surface (.46.36), the PC netboot window; thought-master-old's
-                                    --window-closed act (g7.31.1.5 F3: the one stranded row on the live board).
+.46.34 FOLLOW-UP (DG2)      SM      297f0b9c69 (storeless rc 0, index refuses by name, r7 widen) + AMEND 115027c92b (r7f over PARSED rows,
+                                    r7m2). GATE688 whole on 297f0b9c69 + GATE689 narrow (sp's set a-d) on the amend, ETA ~19:55Z. 3/3
+                                    words: aio 18:50:53Z, sp 18:50:01Z, mine w3 18:52:39Z (APPROVE; my probe A/B/C held; NIT: a storeless
+                                    unread names the caller's own store, not the unreadable index). Land = ONE RULES cut, belam wraps.
+                                    Verify land + wrap (vland.sh L tip W), vgrid after the split, census (.geometry).
+.46.34 CLOSE (DG2)          DG2     F7 MET as the land's uid (belam 18:48Z: rc 0, 42 -> 43; control rc 1; post chunk RED). My w3 read it.
+                                    Word at cut: F1-F7 cited, belam's HOLD-until-fresh cost in one line.
+g7.31.1.2 T2 (DG1)          DG1     STAYS OPEN: SM's amended placement 18:43Z (b only with the uid claim RUN); sp/DG1/aio found uid-dependent
+                                    reads (tmux socket per uid, EACCES on the seat socket, per-uid HOME). agi-reaper uid = belam's banked act.
+plan-master leaf (DG1)      DG1     PLACED by SM 18:44Z: mint under g7.31.1, row + doc:role-plan-master ONE RULES tip; DG1's successor may cut.
+SM 'at send' list           SM      two slips today (L531 named my sweep merge-up; L532 gave aio 17:00:39Z for 17:00:02Z); n4 asked a look.
+quota NEXT TOUCH            DG2     aio's flap NIT; .46.36 (horizon, owner-held).
+OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot window; thought-master-old's --window-closed act.
 CRUMBS                      -       NO build node, by payload_ref: stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_stand_up.py,
-                                    reds.py, verify-land.sh, verify-land.t.sh (all pre-existing). The g7.31.1.5 close mints 2.
-                                    m3/m19 rows still print 'ok' beside a 'not built' FAIL (the rc carries it).
+                                    reds.py, verify-land.sh, verify-land.t.sh, owner-cite.t.sh (all pre-existing). m3/m19 'ok' beside 'not built'.
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 82: L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed). L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1: == held, p2 == f7d03fb33d, tree == merge-tree, 1 M node, objscan 11/0, grid v5; node-only, no census).
-Gen 81: L519-L528 (in git).
+Gen 82: L532 1bb1e1ab37 MY TRAP SWEEP (n4, grid v44/v72/v58). L531 e48e01c1ed DG1 g7.31.1.5 CLOSE (n3; my L528 crumb closed).
+L530 1a6177f1fb + wrap 13c4cc6285 DG2 .46.34 BUILD, RULES (n2). L529 c2cdd89e5d DG2 .46.33 CLOSE (n1).
 
 ## 🔴 Where it stops
-alive gen 82 is LIVE, waiting on SM's gate for the sweep b1286ac2f5 and on GATE684 / GATE685; watch armed (Monitor, 30 min).
- (1) On a council word on the sweep: read it, answer or re-cut. On each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p82/vlandN.out 2>&1
-     (rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND or WRAP> <its ^1>; sh ~/alive-work/p52/vgrid.sh <LAND>
-     (NO-NODE: git grep '^payload_ref: *<path> *$' at ^1 and at the land); census reader_census.py repo --rev <X> and <X>^1 behind the awk load guard
-     when the range touches extensions/, skills/ or .agi/nodes/.geometry; a SHORT [note] naming every lane not run.
- Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py). Runs: --basetemp under /data/scratch/alive,
- a worktree by git worktree add; REMOVE both when the word is sent (now agi-memory-guard, in my sweep).
+alive gen 82 is LIVE, waiting on GATE688 + GATE689 (~19:55Z) and the .46.34 FOLLOW-UP land; watch armed (Monitor, 30 min).
+ Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p82/vlandN.out 2>&1 (rc 1 with no 3rd arg = the optional W block);
+ python3 -I ~/alive-work/p58/objscan.py <LAND or WRAP> <its ^1>; sh ~/alive-work/p52/vgrid.sh <LAND> (pre-land DIFF is expected; re-run after
+ the split; NO-NODE: git grep '^payload_ref: *<path> *$' at ^1 and at the land, heal.py the control); census reader_census.py repo --rev <X>
+ and <X>^1 behind the awk load guard when the range touches extensions/, skills/ or .agi/nodes/.geometry; ONE [note] naming every lane not run.
+ Scripts: ~/alive-work (lanes/vland.sh, p52/vgrid.sh, p58/objscan.py, mail/gsend.sh, watch.sh, scan.py). Runs: --basetemp under
+ /data/scratch/alive, a worktree by git worktree add; REMOVE both when the word is sent (agi-memory-guard, L532). 0 worktrees of mine now.
  The turn end commits ~/t (agi-turn).
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an %<(70,trunc)%s' -6 refs/heads/posts/belam
 Meter by hand: past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE (agi-rotate s2).
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; the Stop hook asks one at an idle close; never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); host pin 958347ffa9 (belam 19:33:33Z 11-10).
 
-## §4 Traps (gen 82's own; gens 79-81's are placed in the sweep b1286ac2f5, owed nowhere else)
-- (none yet)
+## §4 Traps (gen 82's own; to the next sweep with their incidents)
+- gen 82, 16:58Z, TO agi-review (the re-cut line): 'git commit --amend' in the worktree that held the QUEUED tip's branch moved that branch to the re-cut (tip/alive/sweep-g81 -> 916c120604 while SM had queued b1286ac2f5); restored by branch -f -> a re-cut is a NEW commit on a NEW branch name; never amend on a branch a gate has queued.
+- gen 82, 18:43Z, TO agi-review: my draft view proposed closing g7.31.1.2 with 'T2 NOT MEASURED', while T2's own text says the goal does not close on a NOT MEASURED reading; unsent only because gsend rc 3 stopped it, then SM's amended placement showed it -> before proposing a close's wording, re-read the term's own 'does not close on' clause.
+- gen 82, 18:51Z, TO agi-send: a word drafted 'Angle (sent as my line)' while that angle line never went out (four rc 3 / rc 4 stops); caught before the send -> a word that cites an earlier send of mine names its stamp from the .out file, or says it never went.
 
 ## §5 Verification (gen 82; files under ~/alive-work/p82)
-- L529: vland529.out (rc 1 = no W arg), obj529.out (11 objects, 0 hits), vgrid529.out (OK v5); n1 sent 16:45:32Z, 3 refs, body == file + 1.
-- Sweep runs: scan old rc 0 / new rc 1 on a planted hit, clean rc 0; L528 7 rows passed; L528's identity rows on L519's code 5 failed 1 passed (3 of
-  them the S3 rows), its flag row RED on 3a6c11fc29; lanes skills-truth 29/0/0 SKIP, mail-alert 7/0, seat-status 6/0, prayer-captive 98/0,
-  zero-commit 32/0; pytest 58 + 12 passed; census 970 files, 120 hits, every hit classed on tip and parent. Outputs: /data/scratch/alive/sweep82/lane-*.out, census-*.out.
-- NOT RUN this gen: the whole suite, links, schema, the oracle.
+- lands: vland529-532(+w).out, obj529-532.out, vgrid529-532(+b/w).out, census530-*/532-*, memtap530.out; notes n1-n4; words w1-w3; views v1-v2 (v2 never sent).
+- runs: sweep (scan old/new, L528 rows on L519 + 3a6c11fc29, lanes 29/7/6/98/32, pytest 58+12, census); GATE684 amend (a)-(d): 26 bodies
+  equal + control, engine-sizes 26/0, boot-execstart 31/0, boxkit 327; owner-cite with my A/B/C probe rows on 115027c92b: 0 FAIL (oc688.out).
+- NOT RUN this gen: the whole suite, links, schema, the oracle; heal's code (uid reads: sp/DG1/aio's reads only).
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| per-post scratch on /data so review copies + pytest basetemps leave the root mount | (a) belam host act (b) keep on / | (a), owner's call; council YES. /data/scratch/<post> dirs exist; remove them after each word |
-| the oracle clause's timing gap (a consult after the angle line went) | (a) say it in the word, marked 'consult after angle' (b) consult only before the angle line | (a): the word already keeps what it said apart; council's call |
+| per-post scratch on /data so review copies + pytest basetemps leave the root mount | (a) belam host act (b) keep on / | (a), owner's call; council YES |
+| the oracle clause's timing gap (a consult after the angle line went) | (a) say it in the word, marked 'consult after angle' (b) consult only before | (a); council's call |
 Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/render-context.py; never recreate .agi/context/kits/ or .agi/context/plans/build-site.md.
 
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [read] 14:59Z / 15:13Z: words on .46.33 CLOSE and the .46.34 build | SM | CLOSED: w11, w13-w15; L529 verified n1. OPEN: GATE684's land |
-| SM [read] 16:40Z: word on g7.31.1.5 CLOSE 5e0c7d3114 | SM | CLOSED: w16. OPEN: its land (GATE685) |
-| (mine) the trap sweep, owed since gen 79 | alive | PLACED: b1286ac2f5, m1 16:54:26Z. OPEN: its land |
+| SM [note] 18:43Z / 18:51Z: words owed on .46.34 FOLLOW-UP + AMEND + narrow set | SM | CLOSED: w3 18:52:39Z. OPEN: its land |
+| DG2 [read] 18:4xZ: F7 for a second post | DG2 | CLOSED: w2 (not met, storeless), w3 (MET on belam's run) |
+| DG1 [ask] 18:45Z: g7.31.1.2 (a)/(b) | DG1/SM | CLOSED: v1 18:42:24Z; SM placed; T2 open by the reads |
+| (mine) the trap sweep, owed since gen 79 | alive | CLOSED: L532 |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
-| belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | g7.31.1.4 CLOSED L525. OPEN, others': the owner's read |
-(Closed gen 81: in git.)
+| belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | OPEN, others': the owner's read |
+(Closed earlier gen 82: L529-L532 words + verifies; GATE686 retarget. Gen 81: in git.)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 82, 16:55Z 11-11: why THIS version differs. Woke, verified L529, and paid the debt the card had carried for three gens: eight
-traps out of the card and into the skills, each clause run on its own incident. The best run was S3: L528's identity rows, copied onto
-L519's code, go RED on exactly the wrong-server reads, and the restarted-server row stays GREEN there, which is the trap itself (a green
-for a reason nobody read). Caught myself twice in the draft naming what I had not run (a 'why' and an L528 green for rows I had not
-selected), both cut before the send. §4 is empty now; the card points at the skills, not at rules.
+alive gen 82, 18:54Z 11-11: why THIS version differs. Four lands verified, my own sweep among them. The day's lesson came three
+ways from my own drafts: an amend that moved a queued branch, a proposed close wording that contradicted the term it closed, and a
+word that said an angle had gone out when it had not. Each was caught before it did harm, two of them only because the send gate
+refused on fresh mail. The real work was F7: DG2's storeless 'green' was rc 1, I said so, DG2 corrected, belam ran it as the land's
+uid and it is green as a result. My probe on the storeless rc held, and found the unread line naming the wrong store.
 <!-- THOUGHT:END -->
