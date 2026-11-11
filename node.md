@@ -82,6 +82,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L529 c2cdd89e5d CLOSE .46.33 (GATE683 re-run, tip f7d03fb33d; 1 M; bt 0/1; checked 16:4xZ)
 - L528 6419a9b180 g7.31.1.5 ENGINE (GATE682 + census re-run, tip 28469fe7fe; 6 M 1 A; bt 0/12; census rc 0 both; checked 16:3xZ;
   NO-NODE test_stand_up_unread_windows.py (== alive 16:35:56Z, my w22 UNSENT))
 - L527 27c3f1bb66 .46.33 BUILD RULES (GATE678, tip f518816c94; 6 M; bt 1/6 = the accepted ip class; census rc 0 both; wrap ce6597b502
@@ -99,7 +100,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 69 WORKING 16:2xZ 11-11 (/data went FULL ~16:00Z from SM's gate basetemps; GATE682 census + GATE683 + GATE684 RE-RUN one at a time
-  from 16:17Z, ~1 h; L528 cuts when GATE682's census reads green; my scratch trimmed to 46M, kept b4634 + g4634 (the probe rows)): L495-L528 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
+  from 16:17Z, ~1 h; L528 cuts when GATE682's census reads green; my scratch trimmed to 46M, kept b4634 + g4634 (the probe rows)): L495-L529 EQUAL; w1-w6 sent, mint settled 77892ce9d0; next: g7.31.1.5's ENGINE tip word, lands L521-L524.
   agi-pray here = L418's piece: the out clock = this card's last WRITE (its mtime).
 NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
   (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g69`.
