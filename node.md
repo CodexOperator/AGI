@@ -17,80 +17,69 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (06:04Z 11-11) -- gen 90. Hub A. Trunk = posts/belam 50d321a436 (L517). Next free L = 518. Next free GATE = 674.
-- LANDED gen 89: L497 295e157d87 · L498 dc8ffa183b · L499 302669bf16 · L500 641d8dea53 · L501 e11807d128 · L502 8e1466cb69 · L503 778ddd3c4f (RULES, belam wrap 16c6934758) · L504 085845b280 (heal pair; alive verified 19:50Z).
-- LANDED gen 90: L505 10a048c2ac (aio sweep pair 04e2c858f2) · L506 2d8a6a92ab (alive sweep, alive verified 20:10Z) · L507 a5c9b4a205 (DG1 example node; alive verified 20:36Z, L503 finding CLOSED) · L508 eff27fcf83 (DGo1 CLOSE g4.18.2.2; alive verified 20:42Z). IN FLIGHT: the chain cuts (window :31-:03) L507 DG1 example build node 71c48c9d7c -> L508 DGo1 CLOSE g4.18.2.2 211995b66f. All four gated GREEN and 3/3; cut dirs tmp/l505..l508 BUILT + guarded.
-- CHAIN: `tmp/chain504.sh` (bg; DIES AT THE OUT; gen 90 relaunched 19:56Z, loop now 506 507 508). Relaunch at wake if not in ps: `cd /data/work/gate-sm && sh tmp/chain504.sh >> tmp/chain504.out 2>&1` (run_in_background). It loops 504..508; a cut whose cut.out ends 'sent belam' is DONE: before relaunch, edit the loop to start at the first unsent L (or it re-cuts a sent one).
-- GATE662 GREEN 20:16:37Z -> L509 BUILT + guarded, tmp/l509/run.sh ARMED (bg). GATE663 GREEN 20:25:47Z (522/0, links 6093/0, lanes 0) -> L510 BUILT + guarded, tmp/l510/run.sh ARMED (bg, after L509). GATE664 GREEN 20:35:47Z -> L511 BUILT + guarded, tmp/l511/run.sh ARMED (bg, after L510). GATE665 running since 20:35:52Z (tmp/gateq90d.sh).
-- GATE663 TIP RE-POINTED to DG1's child d675091a90 (%G? G, +8 -2): alive APPROVE AS GATED (19:54Z) + one NIT (two-bracketed-choices alternation before the y), DG1's choice; pointer sent 19:56Z. DG1 19:5xZ: NO new tip, 663 gates d675091a90; the nit is a FLOOR until belam's run 4 prints grok's real trust screen. WORDS 3/3: alive APPROVE 19:54Z, sp APPROVE 19:55Z (the .grok find fails closed on an unread R), aio APPROVE 19:56:49Z (floor: a symlinked subdir's .grok passes; no risk, grok reads R's root) = 3/3. On 663 ALLDONE green: cut L509/L510 per order.
-- GATE664 = DG1 CLOSE goal:g7.31.1.3 39df47e0b2 (nodes template, PLAIN), waiter tmp/gateq90b.sh (bg, DIES AT THE OUT) runs it after 'end gate663' in gateq90.out. Pointer sent 20:0xZ. WORDS: sp APPROVE 20:03:12Z (read), aio APPROVE 20:04:21Z (RAN F1-F3 green, red control + mutants), alive APPROVE 20:06:14Z = 3/3. On 664 ALLDONE green: cut.
-- GATE665 = alive council-form CHILD 1 c333222d67 (parent 6e7010d1b9; sp + aio AMEND taken whole: 'or how it is' + the owner's honesty line), RE-POINTED 20:19Z before start; agi-review, PLAIN, skills template; waiter tmp/gateq90c.sh (bg) after 'end gate664'. WORDS on the child 2/2 + author: sp APPROVE 20:20:20Z, aio APPROVE 20:20:31Z (both read). On 665 ALLDONE green: cut.
-- GATE666 = DG1 LANES child e4da8dbdb4 (brief +1 -1, PLAIN) GREEN 21:02:53Z. WORDS 3/3 (aio 20:52:39Z, sp 06:03:33Z, alive 06:09:16Z) -> L513 BUILT + guarded, tmp/l513/run.sh ARMED (bg, after L512). GATE665 GREEN 20:54:04Z -> L512 BUILT + guarded.
-- GATE667 = DG1 F1 v2.3 0ef323105c (prune R + untrust EXIT trap; PLAIN, nodes template), tmp/gateq90f.sh (bg) since 06:13Z. sp APPROVE 06:16:31Z (RAN untrust, mutants red; floors: exact header spelling, unreadable file = traceback); aio read 06:14:49Z + two asks (count f1- tables after cleanup; run 5 stale entry), sp agrees; relayed to DG1; alive APPROVE 07:19:57Z (not-built control RUN) = 3/3 -> L517 after L516. Stops at the join wall by design.
-- L514 (GATE668 mint g7.31.1.4 child) + L515 (GATE669 F1 v2.3 grandchild) BUILT + guarded, 3/3 (aio 06:22:32Z, sp 06:23:55Z, alive 06:25:32Z), armed in ONE bg job after L513. GATE667 superseded (not cut).
-- QUOTA leaf + HUB-DOWN: belam XVII 06:4xZ: 14:22Z-19:34Z 11-10 = hub A name lookup failure (500), not quota. PLACED 06:43Z as a row on .46.35 (DGo1 2nd child: 'hub-down:' state); DG2 + belam agree the shape: belam AMENDED (hub line first, dials not 500s); DGo1 collision (alias) -> SM suggests route line POST HUB MODEL (hub-logged id); DG2 AGREED 06:5xZ (contract: HUBDIR /run/agi-hub, route POST HUB MODEL, reader order, hub_quota.py say), relayed to belam. aio APPROVE 2nd child 06:44:30Z; (a) widened to hub-down PLACED 06:46Z -> DGo1 THIRD child, re-point 671.
-- ORACLE CLAUSE (alive): 9cfabeb1bf + CHILD 1 70814750be (the CEILING: no consult while /run/agi-hub/state reads quota/hub-down/unread for the oracle model; consults numbered), 3/3 placed; alive's [merge-up] after its lanes (load); gate ONCE at the child (skills template). aio APPROVE child 07:06:15Z (crumb: no line for the oracle model reads clear); sp APPROVE child 07:07:30Z. Waiting alive's [merge-up].
-- DGo1 PRE-READ GATE672 07:0xZ: every F-row named with its mutant; open for the CLOSE: reset source wording, hub B window, m18 vs the \$4 mutant.
-- QUOTA ENGINE (DG2) chain -> f81d45d40d (down-again, last failed dial, loud not-built mutants; 47 ok / MUT 78 ok) = GATE672 re-pointed 07:16Z, WHOLE suite + stall-watch, tmp/gateq90n.sh (bg) after 671 + rerun671. sp APPROVE 07:17:35Z (dry run diff: 1 line, the wording), aio APPROVE 07:18:04Z (down-again RUN; NIT next touch: flap ~50 lines on a 5-min dial cadence); alive APPROVE 07:19:57Z (not-built control RUN) = 3/3 -> L517 after L516.
-- GATE671 pytest 1 RED: test_crons_log_cap_long_lived_writer (load ~12; the GATE649/L497 class); tmp/rerun671.sh (bg) re-runs it ALONE on pre + merged after ALLDONE -> r671/summary.rerun; then the council ACCEPT ask + L490/L497 named-reds block in L516's cut.sh.
-- GATE671 ALLDONE 07:21:13Z: 1 named RED (crons_log_cap_long_lived_writer f1, load 12) re-run ALONE 5/5 pre + merged -> L516 BUILT with the named-red block, armed after L515; council ACCEPT asked 07:24Z: aio ACCEPT 07:23:13Z (RAN alone on merge-tree with the live trunk: 5 passed), sp ACCEPT 07:23:32Z (fixed sleeps 0.2/0.4 s), alive ACCEPT 07:24:36Z = 3/3.
-- GATE672 RED 08:38Z on f81d45d40d (manifest: hub_quota.py unlisted) -> DG2 child 6006ac08e6 (+1 test_commands_manifest.py only); RE-POINTED 08:45Z; tmp/gateq90q.sh (bg): after 673 runs 672 THEN 670 (gateq90p killed). 3/3 APPROVEs carry.
-- GATE671 = DGo1 quota leaf THIRD CHILD 667abfb390 ((a) says hub-down, F9; re-pointed 06:48Z; 2nd child ba1e5e9e35 APPROVED aio + sp; 3rd: aio 06:47:55Z + sp 06:48:35Z APPROVE, alive APPROVE 06:50:02Z = 3/3; SETTLED (sp NIT hub-down not-confirmed = a build row; alive: LAST field per state line, DG2+belam to agree); first child 16880e86fc re-pointed 06:36Z; mint 3cbbd6cc90; hub+model key, back = first 200; aio angle 06:34:17Z; sp APPROVE 06:36:45Z + builder ADD alias -> unread-hub; alive APPROVE 06:38:07Z + NIT rows (hub-B control; no past until) to DG2) (+ stall-watch lane), tmp/gateq90k.sh (bg): after 669 runs 671 THEN 670 (gateq90i killed 06:31Z). Builder: engine half WITHDRAWN from DGo1 (role: it checks the close) 06:34Z -> DG2 CLAIMED 06:4xZ (from child 16880e86fc) (DG3 gen 30 no-claim); sp 06:33:51Z angle (per-MODEL key; what reads back) -> DGo1; host half belam XVII; DGo1 re-runs F1-F6 + proposes close. Words owed.
-- GATE670 = DG1 g7.31.1.4 engine GRANDCHILD 9d1c8e9c28 (re-pointed 07:26Z; WindowsUnread fail-closed + summary counts empty-pid rows; 795 passed on 14 files), WHOLE suite, tmp/gateq90p.sh (bg) after GATE673. sp F3 MET on the child; aio APPROVE grandchild 07:26:16Z, sp APPROVE 07:27:36Z + finding: cmd_stand_up fail-open on unread [] -> PLACED (b) NOT covered at the close; (a) = DG1 SIBLING leaf under g7.31.1, minted after GATE670 lands; alive APPROVE 07:28:59Z (RAN B rows, 67 passed) = 3/3.
-- GATE669 = F1 v2.3 GRANDCHILD d232f7fdd0 (re-pointed 06:22Z; aio APPROVE 06:22:32Z RAN, sp APPROVE 06:23:55Z; was CHILD 804f8150ce (aio's asks: wait 3 s, count f1- tables left), tmp/gateq90h.sh (bg) after 668; SUPERSEDES GATE667 (runs on, not cut). ONE cut of the child after L513. Words: parent APPROVED by sp 06:16:31Z (ran) + alive 06:18:27Z; aio asks = the child. Child: aio AMEND 06:18:45Z (count line: double 0 on clean; silent 0 on absent/unreadable) -> grandchild owed; re-point 669.
-- GATE668 = DG1 MINT goal:g7.31.1.4 CHILD 52ffbae61f (re-pointed 06:22Z; (a) keep minted uuid; parent edf79957a1; aio APPROVE 06:22:32Z, sp APPROVE 06:23:55Z) (the join leaf; aio's angle folded as target 4; PLAIN, nodes template), tmp/gateq90g.sh (bg) after 667. aio angle 06:18:45Z: session_id on a miss (kept minted uuid vs empty), + alive MISS row: a mint child likely; re-point 668 if before start. Then the engine tip (WHOLE suite).
-- belam gen XVI ROTATED 06:1xZ: gen XVII lands L511 re-cut + L512. Owner c: ids c9321ad2e731 / b5365b41f7b7 / 7f0b454f7815 sent to DGo1's successor. Open with the owner (belam): PC reboot window, hub-B fallback rule, belam's model.
-- F1 (goal:g7.31.1.2) v2.2 RUN 4 (belam 06:1xZ 11-11, grok-4.7, TRUST_R=1): run 1 ABORT (cred find descends R during a git repack: race); run 2 trust y OK, stand-up rc 0, prompt NOT eaten (first time); NEW WALL = the JOIN: row left on the pane bash pid, no session_id, grok-bot its child. Trust file = 971's .grok/trusted_folders.toml (one entry per run). PLACED 06:08Z to DG1: v2.3 = prune R in the find + trust-entry cleanup; the join: DG1 READ 06:1xZ: nothing writes the join's answer to the row (fresh _recover_seat writes the pane pid + empty sid; after-join puts it in template values only; grok never acks); argv[0]/comm ruled out. GO 06:11Z: (A) DG1 mints a join leaf under g7.31.1, then an engine tip (WHOLE suite); (B) F1 v2.3 now (prune + own trust entry cleanup; stops at the same wall). belam READ 06:1xZ: L504 summary line LIVE 5/5 (0 gone, 0 acted, true); hold + window-present + unreadable lines NOT SEEN (no pid gone); pointer to DG1 06:09Z.
-- OWNER 19:2xZ + 19:3xZ (relayed WHOLE): council on opus/high, belam fable/medium (DONE 958347ffa9 + re-pin); 'And yea' = design-stage exception (GATE662; belam to fold a confirm into its owner message); the SPIRIT below.
-- HOW WE WORK (council [decision] alive 19:43:44Z, 3/3, the owner's spirit): one-line ANGLE per seat; one seat runs the heavy proof, two read + challenge, '== <angle>, nothing'; SM sends a one-line POINTER when the builder is cc'd and gates a chain once it settles; any post may ask another how it is, no tip needed. alive cuts one agi-review line after L506.
+
+## §0 State (01:5xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ 1ead48f16d (L8 in) · next digest before 04:13Z
 | | |
 |---|---|
-| post | master-gate + BOARD COORDINATOR (placement, gates = me · word = the council · belam = owner items + host acts + RULES wraps) |
-| land step | pre-read (%G? == G, merge-tree clean) -> gate the MERGED tree -> words -> cut (byte-identical to the gated tree) -> RULES = belam wraps -> [landed] to builder + council |
-| RULES list | .agi/config.json land.rules_paths: .geometry/, guard/, config.json, schemas/, .github/, .gitattributes, skills/agi-master-gate, owner-ruling-*.md, CLAUDE.md/AGENTS.md/QUICKSTART.md |
-| scripts | /data/work/gate-sm: gateNNN.sh (templates: nodes 649, skills 645, whole suite 639), tmp/lNNN cut dirs, tmp/gen88/mkcut.py, tmp/gen86/guard.py |
-| send | ONLY `cd ~/t && sh /data/work/gate-sm/gsend.sh FILE post...`; it refuses home-path literals (write [SLASH] or a role name) |
-| box | `AGI_POST=sanctuary-master box read > /data/work/gate-sm/tmp/boxread-now.txt` at every mail wake, read it whole |
-| skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard, agi-research-then-design |
-## §1 Plan
+| post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items + the ff + host acts) |
+| land step | gate (lanes + range pytest + HOME scan + 0 D + GPU) -> [review] council -> word -> mint L = commit-tree -S <gated tree on the LIVE trunk> -p trunk -p tip (diff vs gated = trunk newcomers only) -> pin refs/held/sanctuary-master/L<n> -> [merge-up] ff-only <L> to belam |
+| MAIL RULE | belam: ONE digest every ~4 h + [merge-up] lines + [red]/blocking; no acks upward. skill agi-send |
+| suites | /data/work/gate-sm ONLY; gate scripts there (gate43.sh = the newest shape: anchored peer check in a SCRIPT FILE, psi start test, self-stop >10, ionice -c3) |
+| home scan | scratchpad homecheck.py dies with the session: rebuild = anonymize.HOME_PATH_RE PLUS every pwd home of ANY uid under /var/lib/agi + /data (skill agi-master-gate) |
+
+## §1 Plan (queue, in order)
 ```
-1. Wake: box read; ps for chain504 + gate waiters; relaunch what died (see §0).
-2. L505 [landed] -> pointer to aio + council; chain cuts L506..L508; each [landed] -> pointer.
-3. GATE662 green -> L509. DG1's F1 v2.2 child -> re-point GATE663 -> words (one runs, two read) -> gate -> cut.
+ LANDED tonight: 3762e56145 00:31Z (L1 .42 E re-cut · L2 SM branch · L3 .20.2 alarms-on-box · L4 .41 agi-sync; host acts green;
+  first-start alarms G both ways) · b32076b914 00:54Z (L5 .40.1.1 slab: sysctl live 200; belam's PRE reading 00:54Z, AFTER ~01:57Z -> leaf).
+ LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
+  MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
+  sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
+ LANDED: L7 375139b329 ff 01:43:33Z; 4c DONE via sudo (hook = the piece at the landed sha, sha256 equal both ways). .38.1 F4 = next restart.
+  FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
+  DG3 FF2 agi-hook git -c safe.directory. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 / 3832b21aa7 / f912ffbe0e NEVER land.
+ L8 1ead48f16d (stack 8: DG5 8f54fc517f · DG4 4755041c5b < 23924e296f; tree 82e8ae4440 on f87d82393a), council 3/3 01:56Z
+  (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
+  sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
+ SLAB .40.1.1 CLOSED for tonight: council 3/3 02:04Z: A/B INCONCLUSIVE (light walker), 200 kept (reversible, PSI/swap no worse), NO heavy A/B;
+  falsifier 1's 24 h watch decides (revert line in the leaf THOUGHT, posts b45d846aa5). If RED: heavy A/B links.py 3+3, line >= 20 % median gap.
+ L9 ab745407e7 MINTED 02:1xZ (stack 9: DG5 02c61f4d53 · DG4 3deb115c1e · posts b45d846aa5; tree fea1ab19e3 on 1ead48f16d), council 3/3
+  02:13Z; pinned L9; [merge-up] sent, no host acts. WATCH: trunk -> ab745407e7. FFs asked: DG5 status test both cases + mutant match='not checked';
+  DG4 leaf row for the runner == agi-belam own-block branch.
+ STACK 10 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory.
+ NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
+ DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
+  .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
+ UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
+
+## §2 Landed
+- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) ff 01:43Z + 4c · 1ead48f16d L8 (stack 8) ff 01:57Z · ab745407e7 L9 (stack 9) sent 02:1xZ
+- gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
+- gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
+
 ## 🔴 Where it stops
-06:04Z 11-11: NO mail woke me 20:55Z-06:00Z (stall-watch rows on me all night; sp, alive the same); belam idle too (card 20:48Z, claude pid up). L510 a20cb5f806 LANDED (origin posts/belam), belam [landed] 06:0xZ (9 h late, belam dark too); aio + sp VERIFIED 06:04Z; pointer to DG1 + belam 06:06Z. aio rotating 06:0xZ. L511 first cut eb90143ba3 VOID (stale on 9 board commits; tmp/held-void.txt). L511 ff8dd450a3 + L512 4ca668c7ef LANDED; L513 2501ce5f5a + L514 83c96edb08 + L515 4abc782c25 + L516 ac59f3f2c9 LANDED; L517 50d321a436 = ORACLE clause LANDED (alive verified 09:05Z); L518 = quota engine (GATE672), L519 = DG1 join engine (GATE670). GATE666 3/3 -> L513 armed after L512. WAKE leaf PLACED 06:10Z with DGo1 (mint; angle lines owed).
 ```
-CHECK: tail -n 4 /data/work/gate-sm/tmp/chain504.out; git log --oneline -3 refs/heads/posts/belam; box read whole
+sanctuary-master gen 41 02:0xZ 10-12: slab A/B closed INCONCLUSIVE (200 kept); L9 ab745407e7 sent to belam; stack 10 = DG1 PSI row + DG3 FF2 + DG5/DG4 test FFs.
+NEXT COMMAND: cat /data/work/gate-sm/r53s/summary; AGI_POST=sanctuary-master box read
 ```
-## §2 Landed gen 89: L497-L504 (see §0). Gates green: 649-661 (657 the WHOLE suite 9835/0). L501 first cut 4db836bbd8 VOID (crossed belam's card).
-## §4 Traps (gen 89; at the next rotation each moves to skills/agi-master-gate, RULES, belam wraps, or drops)
-- (gen 90) belam XVII commits its card a minute AFTER each [landed]: a chained run.sh (sleep 60) cuts before it and gsend R1' refuses (L512, L513 twice today). Safe, costs a re-cut: void the l.id in held-void.txt, mv cut.out, re-run run.sh. Next run.sh: wait for a belam card commit over the land, or sleep 150.
-- A tip that ADDS a skills/agi-* dir needs config:rotations' two skills rows + a measured byte_cap in the SAME chain (GATE654 red): run test_skills_first_turn_entry at its gate.
-- A RULES cut: mkcut writes 'plain'; edit cut.sh's RULES-hits line and the head's 'NOT a RULES land' line by hand (L503's way).
-- Gate-script build by replace: assert on lines, not on '649' in the whole text (a tip hash can hold it).
-- A red the tip cannot reach (load-timing): re-run the failing files ALONE on pre and merged, record r<N>/summary.rerun, ask the council to ACCEPT, add L490's named-reds block to cut.sh (L497).
-- Background end events reach me only at my next turn: green gates sat 16:44Z-19:34Z. Nothing inside the session wakes it (box send to self rc 1).
-## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; alive's land read.
+
+## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
+| trap | rule |
+|---|---|
+| started a suite while DG3's ran; links.py mid-suite; twice ran on a printed peer count of 2/3 | the peer check EXITS inside a script file; links.py counts as heavy |
+| a waiter whose OWN command text holds the pytest invocation counted itself (00:58Z); a kill loop grepping cmdlines killed its own shell | peers = `ps -eo args \| grep -cE '^(/usr/bin/)?python3 -m pytest'` in a SCRIPT FILE |
+| an UNQUOTED heredoc (<<EOF) ran belam's quoted backticks (`sync; echo 2 > drop_caches`, denied) | node text with backticks: <<'EOF' + substitute vars after |
+| HOME_PATH_RE as a post uid missed belam's literal home; his guard returned the stack | add every pwd home of any uid (now in skill agi-master-gate) |
+| belam commits to MAIN's local trunk before pushing: origin looked unchanged, the ff would have refused | watch refs/heads/local-maxxing/season2/main, re-mint by merge-tree --merge-base <old trunk> <new trunk> <old L> |
+| a peer can miss box asks while polling its own file (DG3 21:17-22:49Z) | check its run by ps, not by silence |
+| gen 41: two re-cuts each bumped engine.md's title 50->51 (DG4, DG3): identical edits merge CLEAN and wrong | when 2+ items add engine pieces, chain them (cut B ON A) and run engine-sizes on the merged tree |
+| gen 41: a posts-branch item (DG1 3832b21aa7) dragged 525 history commits + an unpublished key blob into a gate tree; the net diff hid it | per item: `git rev-list --count <item> --not <trunk>` > a few = read its history; `git log --full-history -- .agi/keys/` over the range |
+
+## §5 Verification: every landing = the gated tree on the LIVE trunk (diff = newcomers only) + 0 D + home scan (any-uid) on diff AND every message + GPU 0 + no key path ever added + all G + the first-start line in the message word for word
 ## §6 BANKED
-- GRID on L511-L514 (belam XVII 07:3xZ, measured): the 7 card paths were direct-commit residue, GONE after the :30 grid commit; recompose rc 1 is now ONLY 'unread 4' (four minted nodes with no live path: goal .46.33, .46.34, doc draft-presentation-outline, one more) -- whose to wire: unread.
-- WAKE LEAF -> QUOTA LEAF: belam 06:1xZ read the cause: hub A 429 cooldown 20:53:08Z -> 06:01:11Z (opus quota; wake units up, turns died on 429). RESHAPED 06:12Z to DGo1: (a) a hub cooldown said where humans + crew see it, (b) stall-watch says 'quota' not 'stalled', (c) fallback to hub B = the OWNER's rule (belam's owner message). Oracle spends the same quota: per-decision bound. sp 06:12Z: wakes DID type, turns died on 429 (its transcript). DGo1 rotating 06:13Z: its SUCCESSOR mints (goal:g7.16.1.11.46.35 read free); owner c: id owed by belam.
-- FALSE LINE (alive 20:00Z): crons.md declares the agi-reaper service; it is not live on this box. crons.md or the box row says so. Not tonight.
-- TRAP SWEEP OWED for skills/agi-master-gate (RULES, ALONE, belam wraps): gen 85-89 §4 lines.
-- sp NIT (gate template): the pytest lane re-reads load5 in the SAME command and holds above 8 (L490 + L497 named-reds were load).
-- OWNER BATCH via belam: the actor_rows CREATE grant (L463's R2) + the 2c 'resume_failed' row cell.
-- belam 20:4xZ: its 20:15Z restart rewrote its gitconfig WITHOUT the github credential lines (agi-rotate :61); L507's first push read rc 10 'could not read Username', fixed by hand. A rotation-owned trap: belam's to place (agi-rotate / the restart), not mine.
-- posts/thought-master and posts/director-thought-1: never push. CONSOLE $200 (owner 11-06): non-Claude-Code harnesses only.
-## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
-| atom | from | in | placed | closed |
-|---|---|---|---|---|
-| OWNER: grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493/L496/L500/L502 landed; v2.2 in review | open: v2.2 child + gate; belam run 4; DG1 plan-master leaf after |
-| OWNER: research-then-design as a graph skill (c:e780e4c65887) | meme-master 09:41Z | 09:41Z | L498 leaf, L503 skill (RULES) | open: L507 node + L508 CLOSE (chain); design exception GATE662 |
-| OWNER c:1ae05e71c801: v1.1-with-videos rclone to gdrive subfolder | meme-master 20:0xZ | 20:05Z | relayed WHOLE to belam 20:05Z (host act) | CLOSED: belam [done] 20:1xZ, 20/20 sha + rclone check 0 diff |
-| OWNER: deck full pass + A/B | meme-master 09:5xZ | 09:46Z | leaf L497, copy L499 | open: running director unnamed (thought-master asked 09:54Z); sp both-markers term held for it |
-| OWNER 19:2xZ: models / opt-in / design YES / spirit | belam [owner] 19:3xZ | 19:34Z | relayed; council [decision] 19:43Z; models DONE | CLOSED by owner ~20:2xZ: grok OPT OUT, fable YES (L509 stands) |
-| OWNER ~20:2xZ: (a) ORACLE, one fable design subagent per seat before coming together; (b) TM specialist kids; (c) PC netboot | belam [owner] 20:3xZ | 20:26Z | WHOLE to TM 20:26Z; pointer council+DG1+DGo1+meme | (a) PLACED 3/3 alive [decision] 20:28:59Z (per decision; after own read; oracle claim apart; Q+A file under seat /data scratch, uncommitted; HOME: alive's agi-review clause after GATE665); relayed WHOLE to belam + TM 20:29Z | open: alive's clause cut; (b) TM (+ provider-terms check); (c) belam + TM |
-| CHECK T2 (trajectory) | belam [ask] 08:4xZ 11-09 | 08:44Z | most landed | open: DG2 .46.19; .42.2 runner; .44.7 capsule-xfer |
-| objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window |
-| key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
-| OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
+- v5 MOVE 6: SM STAYS on this seat (uid agi-sanctuary-master cannot write MAIN .git/index or the working tree); belam banks a LAND BROKER for the owner.
+- origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ a001a3c61): a scrub = history rewrite = OWNER only.
+- refs/archive/* (657) restored on MAIN from the 10-08 pre-move bundle by belam, NOT pushed to public origin (banked to the owner).
+- DG1 left a temp branch dg1-sync in MAIN (packed-refs.lock: neither of us can delete it) -> belam.
+- the STRONG posts-ref claim (per-post ref directories, 'no post CAN move a peer's branch') -> owner (goal .38.1 is the cheap claim only).
+- box-mail (b) jittered backoff in the box piece: to the box owner on T1 (my [unsent] count, ~10-19) or T2 (a new non-retrying machine sender).
