@@ -46,6 +46,9 @@ DG2 tips (SM 21:04Z/22:30Z) DG2     (1) storeless 'unread' names the failed inde
                                     BUILD c4d2b547a8 = GATE699 -> L541; w4 23:40:03Z APPROVE (box-wake 58/0 tip; w11/w11s RED on trunk;
                                     the WRITER: agi@ ExecStartPre engine-root.md:41 rebuilds bin from AGI_TRUNK at each post start ->
                                     restart a post's agi-boxwake@ only once its bin/box cmp's the land's). (4) = fda6241d05 GATE700 -> L542;
+                                    LAND ORDER, FINAL (SM 01:24:24Z, renumbered): L541 = item (5) 0ee3727ce8 (RULES, crons apply);
+                                    L542 = DG1 mint g7.31.1.6 7072634823 (plain); L543 = box-wake BUILD c4d2b547a8 + AMEND a54df4d210
+                                    (RULES, host-act ORDER; GATE699 + 701); L544 = item (4) 83122bf176 (RULES, GATE700). Older numbers below are STALE.
                                     w5 23:42:48Z APPROVE + sp's st-term row; RE-CUT 83122bf176 (x14e/x14em, +5 test only) = GATE700
                                     retargeted; w6 23:48:33Z re-read APPROVE (91/0), 3/3.
                                     00:4xZ 11-12: L538 VERIFIED (n1). L539 ea406b6b25 cut 00:40Z after b-7 (a) ACCEPT (a1 00:39:24Z, sp);
