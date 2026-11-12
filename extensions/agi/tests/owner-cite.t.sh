@@ -325,5 +325,17 @@ o=$(env HOME=$H AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD AGI_MEM_INDEX=$
 ok "x13b-index-no-mem-row-says-so: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qx "\[mem\] index: z has no mem row at HEAD: nothing written"&&[ ! -e $D/xidx ]'
 MUT 's/index)echo "\[mem\] index: posts.md unreadable at \${AGI_TRUNK:-trunk}: nothing written";exit 1;;//' agi-mem;o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref AGI_MEM_INDEX=$D/xidx PATH=$D/bin:$PATH sh $D/mut_agi-mem index 2>&1);rc=$?
 ok "x13m-mutant-the-silent-no-op-RED without the line a hand run exits rc $rc saying nothing ('$o')" '[ $rc = 0 ]&&[ -z "$o" ]'
+# x14 (alive 18:52Z nit, SM 21:04:39Z placement): a STORELESS caller (posts.md read, no mem row) whose unread comes from ANOTHER post's index names that index, never its own store
+ZC(){ o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} cite 2>&1);rc=$?;}
+ix q "$QO owner";ix r "$RO owner";chmod 000 $RT/q/mem.cite;cb $QO;ZC
+ok "x14a-storeless-names-the-failed-index (alive A) z cites $QO, held only in q's index, q's index mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: z has no mem row: no store;q index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"&&! echo "$o"|grep -q violations'
+MUT 's/\[ \$un = 1 \]&&{ \[ "\$mm" \]||\[ "\$pu" \];}&&\[ "\$uu" \]/[ $un = 1 ]\&\&[ "$uu" ]/' agi-mem;ZC $D/mut_agi-mem
+ok "x14m-mutant-the-callers-store-named-RED the old guard names z's own store for q's failed read: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (the store .*/z.git cannot be read and a block cites a chunk id)$"'
+chmod 644 $RT/q/mem.cite;ix q "$QO owner";chmod 000 $RT/r/mem.cite;ZC
+ok "x14b-storeless-names-the-failed-sibling (alive B) z cites $QO from a readable q while r's index is mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: label from q only; z has no mem row: no store;r index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"'
+chmod 644 $RT/r/mem.cite;ix r "$RO owner";ZC
+ok "x14c-control-every-index-read-and-fresh-is-green (alive C) the same caller, q and r readable and fresh: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q "^owner-cite: 1 new OWNER blocks .* 0 violations$"'
+cb $NO;ZC
+ok "x14d-storeless-unresolved-names-its-cause $NO in no index, every index fresh: unread names z's missing row, not a store path: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $NO: z has no mem row: no store;)$"'
 cp $D/posts.p $E/.agi/nodes/.geometry/posts.md;(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm back)
 echo "owner-cite: $f FAIL";exit $f
