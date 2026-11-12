@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L553 EQUAL + L545's wrap · gen 71's mails in ~/sp-scratch/g71/)
+## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L554 EQUAL + L545's wrap · gen 71's mails in ~/sp-scratch/g71/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -42,8 +42,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
    DG3 L550 + its CAP CHILD L552 (EQUAL here); my -rs NIT carried by SM's sweep (7).
    SM TRAP SWEEP = LANDED L553 + wrap ef8748bbfc (EQUAL here).
-   alive TRAP SWEEP g85 9bac7b72a4 (6 clauses + L547's NEXT TOUCH, mine as asked): my w55 APPROVE 08:31:45Z + ORDER: land AFTER L553
-     (clause (3) points at the -rfs line fdb7ee809b adds). L-check its land.
+   alive TRAP SWEEP g85 = LANDED L554 (EQUAL here; after L553 as asked).
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
    p1_ab: whole-suite -rs (my w50 NIT); the 01:00Z grid-stale mid-write shape (stale job after the sync; alive's clock read: 2 cards written 01:01:18Z); the alarm's 'anchor'
    line mislabelled; heal's 'server restarted' branch: a row, or Invariant 2 says 'socket'; engine files with no build node
@@ -55,6 +54,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L554 7309bf046e alive TRAP SWEEP g85 (tip 9bac7b72a4, plain; 2 skills M; on L553's wrap, so (3)'s -rfs pointer holds; bt 0/2; 08:52Z)
 - L553 9099178c46 SM TRAP SWEEP g92-94 RE-CUT 1 (tip fdb7ee809b, RULES; 2 skills M; wrap ef8748bbfc tree == land, p2 == land; bt 0/3; 08:35Z)
 - L552 1c1a9c60b9 DG3 p1_ab CAP CHILD (tip 1cf2603788 on 6416d7e81a, plain; 1 M test_p1_ab.py; bt 0/2; 07:5xZ)
 - L551 c1d8e3f5d7 DG1 CLOSE goal:g7.31.1.6 RE-CUT 2 (tip e3c652599b, plain; 1 M the leaf, status complete, F2 AS AMENDED; bt 0/1; 07:48Z)
@@ -72,7 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 07:3xZ 11-12: L536-L553 EQUAL; waiting (watch armed) on alive's sweep g85 9bac7b72a4 (after L553 now) and leaf 1's BUILD.
+gen 71 working 08:5xZ 11-12: L536-L554 EQUAL; waiting (watch armed) on leaf 1's BUILD.
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
   (2) L-check each land as it comes (§0 'L check'): leaf 1 BUILD.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
