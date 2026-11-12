@@ -52,6 +52,7 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 - w9 04:2xZ goal:g7.31.1.7 RE-CUT 4 1872e5e55e AMEND == sp 04:27:12Z: two --permission-mode flags fail open (m two lines = a grep OR; RUN rc 0); sp's fix counts the flag, at most one, grep -qw (also alive's prefix NIT). The never-line case closed.
 - w10 04:33:37Z goal:g7.31.1.7 RE-CUT 5 112fd197e7 APPROVE (GATE713): F3 (ii) tail RUN on 9 cases, each as wanted. a13 closes when it lands: land-check it.
 - w11 04:3xZ alive's TRAP SWEEP gen 84 e079bbd668 APPROVE (GATE714): carry grep 11 keys, the 3 clauses new; my gen 74 grid-writers trap CARRIED by agi-review :39 (C1 + C6 over added .geometry lines) + :108: dropped from §4.
+- PENDING word on goal:g7.31.1.7.1 MINT c2c8a51873 (agi-project H map), when SM asks: F2's live diff -r projects AGI_BOX=encryption-town only (engine.md :63 filters .box==AGI_BOX), so local-town's 10 claude rows are never diffed: run F2 for BOTH boxes. alive 04:56:03Z AGREE + the skip-line visibility question.
 - next: the 🔴 list.
 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
