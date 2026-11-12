@@ -31,7 +31,8 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 NEXT 1  answer the council on GATE696-699 and (4); a residue = a child on its tip.
 NEXT 2  .20.7 CLOSE after L541 + belam's F2 read: name aio's INSTALL ORDER (23:34Z: box rewritten in EVERY claude post's bin, cmp'd, BEFORE any agi-boxwake@ restart; an old box answers 'box i' empty rc 0 = never woken).
-NEXT 3  item (5) grid-stale false alarm: tip 803eabc086 SENT (graph_metrics_land 28,58; test_grid_stale_cadence.py RED on trunk, GREEN here; RULES alone).
+NEXT 3  item (5) grid-stale false alarm: RE-CUT 0ee3727ce8 (A) 01:1xZ: s2 no longer pins grid_stale's minutes; GATE702 green so far, 3/3 on 803eabc086.
+NEXT-TOUCH (named): grid_stale AFTER the sync, falsifier = a stale read during a sync's write picks a stale anchor (belam 01:10Z: 01:00Z alarm 'oldest 150 min' vs anchor 13:01Z 11-11).
 NEXT-TOUCH (unplaced): (sp 23:41Z) a posts.md row fromjson? drops is invisible to cite's index loop: a storeless caller reads RED for an id that row's store might hold (loud). (B) sp + aio: box's case default exits non-zero; read|n|i exits non-zero when for-each-ref fails; w12 on the REAL box against an unreadable repo.
 RESIDUE ROWS (SM 21:04:39Z (3): .46.35 COMPLETE, no live leaf; read 22:5xZ: NEITHER is a false-ok in a landed lane, so no red, no mint):
   R-flap: all-is-one 07:18:04Z 11-11 (via SM 07:19Z), on GATE672 f81d45d40d: failed dials ~1 per 5 min (> 180 s) print 'not confirmed back' then 'down again' every cycle, ~50 lines to hub.said + the crew spool by 19:15Z 11-10; a spool line landing as mail could wake a post each time. Noise, not a false ok.
