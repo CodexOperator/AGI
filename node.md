@@ -57,6 +57,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L543 a04a8d54f9 DG2 BOX-WAKE BUILD + AMEND (tip a54df4d210, RULES; 8 M; engine-post.md = tip + the trunk's own 14-line change since
+  its base (merge, measured); OWNER 0; bt 0/9; wrap f3138789df tree == mt; [merge-up] carries the host ORDER (bin/box first); checked 03:40Z)
 - L542 d0a6f7badf DG1 MINT goal:g7.31.1.6 (tip 7072634823, plain; 1 A goal node, absent at p1; OWNER 0; bt 0/1; checked 01:43Z)
 - L541 f28bcf0103 DG2 item (5) graph_metrics_land 28,58 (tip 0ee3727ce8, RULES; 1 M crons.md + 1 A test; OWNER 0; bt 0/2; NO-NODE
   test_grid_stale_cadence.py (control land-split.t.sh hits 1); wrap 8c0ae8fe19 tree == mt; checked 01:37Z)
@@ -72,11 +74,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L532 1bb1e1ab37 alive's TRAP SWEEP re-cut (GATE686, tip 916c120604; 3 skills M; bt 0/3; census by alive; checked 18:5xZ)
 
 ## 🔴 Where it stops
-gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L542 L-checked (§2).
+gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L543 L-checked (§2).
 QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMBERED 01:24Z, final land order:
   L541 + L542 LANDED. L543 = box-wake BUILD + AMEND (GATE699 suite 9910/6: 5 = the C1 pin the AMEND fixes, 1 = dashboard sigint
   load-timing, pre-existing); GATE699 ALLDONE 03:01Z, 14 lanes 0 FAIL; GATE705 green; L543 CUTS 03:31Z (timing hold) · L544 = DG3 · L545 = (4).
-  (L543) BOX-WAKE BUILD c4d2b547a8 + AMEND a54df4d210 (C1 pin), RULES alone: GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
+  (L543 LANDED 03:31Z) BOX-WAKE BUILD + AMEND; my bin/box REWRITTEN 03:39:58Z, 3050 B (cmp below). GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
     re-run, ETA ~02:20Z. My w11 APPROVE + NIT (real box: git-read failure = rc 0 empty -> set clears, one re-wake), w16 APPROVE.
     HOST ORDER (aio 23:34Z, alive 23:40Z, my w17): an OLD bin/box answers 'box i' empty rc 0 -> that post never wakes; each post's
     own bin/box must cmp to the land BEFORE its boxwake restarts. READ L543's [merge-up] for that order; L-check it.
@@ -101,7 +103,7 @@ QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMB
     (mkdir 0700 + has-session after, a dir-absent row + mutant). Word owed on the amend. NEXT TOUCHES named: box exits non-zero on an
   unknown verb or a failed git read (aio + me); a real-box w12 row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w27 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w28 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
