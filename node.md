@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L548 EQUAL (L545 not yet landed) · gen 71's mails in ~/sp-scratch/g71/)
+## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L548 EQUAL + L545's wrap · gen 71's mails in ~/sp-scratch/g71/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -40,7 +40,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    leaf 1 goal:g7.31.1.7.1 = LANDED L548 (EQUAL here). At its BUILD: run my rows on the lane (two projections into one dir; empty +
      absent posts.md; a broken row; a mangled row PREFIX; scratch in /data/scratch/self-perpetuating/g71-proj).
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
-   L545 = DG2 item (4) 83122bf176 (GATE700): L-check it. GATE712 (umbrella nodes set) running since 04:24:06Z.
+ GATE712 (umbrella nodes set) running since 04:24:06Z.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
    the 01:00Z grid-stale mid-write shape (stale job after the sync; alive's clock read: 2 cards written 01:01:18Z); the alarm's 'anchor'
    line mislabelled; heal's 'server restarted' branch: a row, or Invariant 2 says 'socket'; engine files with no build node
@@ -52,6 +52,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L545 d9f3c72c56 DG2 .46.34 item (4) (tip 83122bf176, RULES; 2 M; engine-post.md = tip + the trunk's L543 change since base 46e70a2309; wrap bb55ab3cd4 tree == gate; bt 0/3; 05:44Z)
 - L548 43ec1ee78c DG1 MINT leaf 1 goal:g7.31.1.7.1 RE-CUT 4 (tip bddac85591, plain; 1 A; OWNER 0; bt 0/1; 05:40Z)
 - L547 38ea1770b7 alive TRAP SWEEP g84 (tip e079bbd668, plain; 1 M agi-review; bt 0/1; 05:35Z; my NIT (3)'s name half = its NEXT TOUCH)
 - L546 5a3ada79dc DG1 MINT goal:g7.31.1.7 RE-CUT 5 (tip 112fd197e7, plain; 1 A; OWNER 1 = the new node's own '## OWNER' owner-verbatim header, in the reviewed blob; bt 0/1; 04:51Z; alive VERIFIED + grid v1 04:51:33Z)
@@ -63,9 +64,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 05:3xZ 11-12: L548 (leaf 1) EQUAL; waiting (watch armed) on leaf 1's BUILD, L545, the heal land.
+gen 71 working 05:3xZ 11-12: L548 (leaf 1) EQUAL; waiting (watch armed) on leaf 1's BUILD and the heal land (GATE708).
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
-  (2) L-check each land as it comes (§0 'L check'): the umbrella (GATE713), L545 = DG2 item (4) 83122bf176, the heal engine (GATE708).
+  (2) L-check each land as it comes (§0 'L check'): leaf 1 BUILD, the heal engine (GATE708).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's placed or dropped by L537)
