@@ -23,7 +23,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L540 SENT 00:48:45Z (held 95796f8530; DG2 MINT goal:g7.16.1.11.20.7 RE-CUT 71dff1b564, plain). Awaits belam's land -> [landed] DG2.
   - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; ETA ~02:20Z). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
   - GATE701 RUNNING on g397 (narrow, AMEND a54df4d210): (a) vs c4d2b547a8 = goal:g7.16.1.11.13.md alone 2/1 OK; (b) grid-writers 28/0 OK; (c) links + (d) lane-header, owner-cite pending. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z: APPROVE + AGREE the set).
-  - GATE702 waiter tmp/gateq702.sh: r701 ALLDONE -> gate702.sh on g397 = DG2 item (5) 803eabc086 (crons.md 28 -> 28,58 + test_grid_stale_cadence.py; signed G, p1 28aa8b6fb5, merge-tree clean). RULES, ALONE, then belam's one crons.py apply. Words: none yet (ask at green).
+  - GATE702 waiter tmp/gateq702.sh: r701 ALLDONE -> gate702.sh on g397 = DG2 item (5) 803eabc086 (crons.md 28 -> 28,58 + test_grid_stale_cadence.py; signed G, p1 28aa8b6fb5, merge-tree clean). RULES, ALONE, then belam's one crons.py apply. Words 3/3 APPROVE AS GATED: alive 00:45:23Z, sp 00:46:26Z, aio 00:49:15Z (aio NO-NODE: test_grid_stale_cadence.py has no build node, banked class). Cut at green.
   - GATE700 waiter tmp/gateq700.sh: a54df4d210 on trunk + no 699/701 -> item (4) 83122bf176 -> L542.
 - L541 (BUILD a54df4d210, RULES, ALONE) cuts on GATE699 whole + GATE701 (name both). HOST ACT ORDER (sent belam + DG2 00:4xZ, tmp/host-l541.txt), in head + cut.sh + [merge-up]: (1) per running claude post rewrite ITS bin/box to the land's 3050 B, print cmp (/opt is not on a post's PATH first); (2) only then restart its agi-boxwake@, + pi extension; (3) F2 on a real rewritten seat. Also asked for L538: /opt has NO agi-mem; per-post bin/agi-mem cmp to 27171 B.
 | | |
@@ -65,7 +65,7 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 - NEXT TOUCH box (sp 23:32:53Z + aio 23:34:17Z): box's case default exits non-zero; read|n|i exit non-zero when for-each-ref fails; w12 on the REAL box against an unreadable repo. On DG2's card, unplaced: place after (5).
 - NEXT TOUCH .46.34 (sp 23:41:21Z side note): a posts.md row fromjson? drops is invisible to the index loop (a storeless caller reads RED for an id that row might hold). DG2's card.
 - WAKE LEAF (alive 19:50Z 11-10): a finished long job wakes its post. Mint at a quiet window.
-- NO-NODE engine files: stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_heal_silent_reads.py, reds.py, verify-land.sh, verify-land.t.sh, test_stand_up.py, owner-cite.t.sh, mem-tap.t.sh (pre-existing).
+- NO-NODE engine files: test_grid_stale_cadence.py (item (5)), stall_watch.sh, stall-watch.t.sh, test_commands_manifest.py, test_heal_silent_reads.py, reds.py, verify-land.sh, verify-land.t.sh, test_stand_up.py, owner-cite.t.sh, mem-tap.t.sh (pre-existing).
 - GRID: 'unread 2' (owner unread). My turn-end split often misses the lock (grid_sync versions it).
 - OWNER BATCH via belam: actor_rows CREATE grant (L463 R2); [config].md self_row 'tmux_socket'; 2c 'resume_failed'; hub-B fallback; PC reboot window; mail refs free of ip class.
 - BANK g7.31.1.2 T2: the agi-reaper uid is an owner-unnamed host act AND useless until heal watches/launches on the SEAT's tmux server; DG1's design leaf first (rec), then the uid. belam 18:48Z: no uid without the owner's word.
@@ -85,5 +85,7 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 | .46.34 ROUTE R1 | DG2 [decision] 14:59Z | 14:59Z | L530, L533, L535 CLOSE, L538 | CLOSED (L535); next touches L542 |
 | g7.31.1.5 (which server) | sp GATE670 + SM 11:46Z | 11:46Z | L524, L528, L531 | CLOSED 18:40Z (L531) |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518, L520, L527, L539 held on it) |
+| ROOT DISK 90%: DG1's 38 home clones (12.1 GB) | belam [read] 00:4xZ 11-12 | 00:47Z | relayed whole to DG1 00:50Z (remove pre-today, new under data scratch); belam asks me before touching DG1's files at 95% | open: DG1 |
+| agi-mem bins: 10 posts on old pieces | belam [read] 00:49Z | 00:49Z | my YES 00:50Z: rewrite to L538's bytes per uid + compare | open: belam's compare |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
