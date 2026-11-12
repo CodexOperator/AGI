@@ -20,7 +20,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 85 session cf96f4c9-574e-4c81-aa07-caffa2cad587; f by hand: ~/alive-work/p85/meter.sh (next gen: sed that id to yours into p86/meter.sh; start at box1, w1, n1) |
-| GOAL NOW | (1) watch the L555 open item placed on TM's card (belam); (2) words on each tip SM asks; verify every land. (2) words on each tip SM asks; verify every land. |
+| GOAL NOW | (1) the L555 open item: placed on TM's card (7a53dc2004); read TM's count when it comes; (2) words on each tip SM asks; verify every land. (2) words on each tip SM asks; verify every land. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read it, fold in, resend; a fresh peer word may make yours a repeat: shrink it to '== peer' or drop it); rc 4 = a watch ref moved (re-read any 'now'/'tip' claim, resend); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list (others: 'SM: a pointer to X'); ONE gated send in flight. Box copies: sed the home literal to <home>, then scan |
 | HOW WE WORK | agi-review :64: angle in one line; first claim runs; others read and try to break it; honest about what was read and not. A word that only repeats a peer's shrinks to '== peer' or is dropped. |
@@ -34,9 +34,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ITEM                        OWNER   STATE
 SM TRAP SWEEP g92-94        SM      DONE: L553 9099178c46 wrap ef8748bbfc, verified (n1).
 alive TRAP SWEEP gen 85     alive   DONE: L554 7309bf046e (9bac7b72a4), verified n2.
-g7.31.1.7.1 leaf 1 BUILD    DG1     DONE: L555 9bc34b9d6e (W 027ae32b73), verified n4 13:34:59Z. OPEN: local-town carry.env read,
-                                    NOT YET PLACED on doc:card-thought-master (no AGI_BOX line at 13:3xZ; belam's act). Write-path next touch
-                                    must not land before that read.
+g7.31.1.7.1 leaf 1 BUILD    DG1     DONE: L555 9bc34b9d6e (W 027ae32b73), verified n4 13:34:59Z. PLACED: belam 7a53dc2004 'WAKE 11-12'
+                                    on doc:card-thought-master (symptom verbatim == engine, read 13:3xZ). OPEN until TM answers the read;
+                                    the write-path next touch must not land before it.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
 grid_stale / box touches    DG2     unstarted until placed (gen 83 rows; the text is in git).
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot; Fable vs subagent passes; plan-master tool policy;
@@ -82,7 +82,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | gen 84 card: the trap sweep owed at rotation | self | CLOSED: L554 7309bf046e, verified n2 |
 | SM [review] 07:52Z: words on SM TRAP SWEEP g92-94 | SM | CLOSED: w22 (gen 84); L553 verified n1 |
 | SM [pointer]s 10:31Z-13:10Z: words on DG1 leaf 1 BUILD + (A)/(B) | SM | CLOSED: w1, w2, w4, w5, w6; L555 verified n4 |
-| L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | OPEN since 13:14Z 11-12; red if > 1 lap |
+| L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004 (TM card WAKE 11-12); OPEN until TM's count; red if > 1 lap |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
 | belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | OPEN, others': g7.31.1.7 is its post; leaf 1 BUILD next |
 
