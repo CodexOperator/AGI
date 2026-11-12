@@ -400,12 +400,14 @@ def _summary(tmp_path, monkeypatch, heal_mod):
 def test_the_summary_counts_an_empty_pid_dead_row_it_acted_on(tmp_path, monkeypatch):
     lines = _summary(tmp_path, monkeypatch, heal)
     assert ("watch: seat-dead scan over 0 configured pid row(s); 0 pid(s) gone + 1 empty-pid closed-window "
-            "row(s); 1 acted") in lines, lines
+            "row(s); 1 acted; 0 MISS judged as the seat's own uid + 0 skipped (no server this uid can read)"
+            ) in lines, lines
 
 
 def test_mutant_the_old_summary_reads_0_gone_1_acted_RED(tmp_path, monkeypatch):
     m = _mut(tmp_path, '               f"row(s); {gone} pid(s) gone + {len(dead_empty)} empty-pid "\n'
-                       '               f"closed-window row(s); {len(acted)} acted")\n',
-             '               f"row(s); {gone} pid(s) gone; {len(acted)} acted")\n')
+                       '               f"closed-window row(s); {len(acted)} acted; {miss_own} MISS "\n',
+             '               f"row(s); {gone} pid(s) gone; {len(acted)} acted; {miss_own} MISS "\n')
     lines = _summary(tmp_path, monkeypatch, m)
-    assert "watch: seat-dead scan over 0 configured pid row(s); 0 pid(s) gone; 1 acted" in lines
+    assert ("watch: seat-dead scan over 0 configured pid row(s); 0 pid(s) gone; 1 acted; 0 MISS judged as the "
+            "seat's own uid + 0 skipped (no server this uid can read)") in lines
