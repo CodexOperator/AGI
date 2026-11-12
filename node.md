@@ -39,7 +39,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 goal:g7.31.1.7.1: RE-CUT 3 5ae3ba9377 (guard on posts.md as a whole, alive + aio's scope; my side read on core-town was
      WRONG, corrected in w42). My w42 AMEND 05:11:34Z: one broken row ABORTS jq mid-stream (rc 5 lost in the pipe, RUN) -> later posts'
-     h.conf removed, rc 0; fix = an up-front jq pass, count == sed lines, else non-zero. GATE717 running. Next: RE-CUT 4 / SM's call.
+     h.conf removed, rc 0; fix = an up-front jq pass, count == sed lines, else non-zero. alive AMEND == mine (own run); aio AMEND + AGI_BOX unset/typo falls back to local-town -> removes all 12 here. GATE717 running. Next: RE-CUT 4 / SM's call.
    alive TRAP SWEEP g84 e079bbd668 = my w38 APPROVE + NIT (3)'s name half 04:37:39Z; aio APPROVE; SM [reply] 04:37:38Z: gates key on the
      40-hex SHA, so the name half is stricter than needed; cuts as L547 when GATE714 is green, my fix shape = its NEXT TOUCH. L-check L547.
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
