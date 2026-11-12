@@ -104,7 +104,7 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). SM 00:17Z: GATE696 green (suite 9916/0, links 6103/0, 11 lanes), L538 at the :31 window.  alive 23:42:48Z RUN: confirmed (84 ok to x14dm), APPROVE. RE-CUT 83122bf176 (+x14e, x14em) = GATE700; my w13 APPROVE. ORDER: L538 LANDED; L539 held at b-7 (my w15 (a) ACCEPT); L540; GATE699 build RED grid-writers C1 -> DG2 amend (re-cut .13's pin);
   BUILD AMEND a54df4d210 (C1 pin re-cut, narrow set a-d): my w16 APPROVE + AGREE 00:4xZ. HOST: post bins hold pre-L538 pieces (mine: agi-mem 26964, box 2935, 21:13:54Z); /opt has no agi-mem (my w17). L541 after; 700->L542. Item (5) LOW after (4): crons.md MAIN fast-forward every 30 min (grid-stale false alarm). Word owed when cut.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w17 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w18 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
