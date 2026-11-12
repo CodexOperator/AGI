@@ -57,6 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L542 d0a6f7badf DG1 MINT goal:g7.31.1.6 (tip 7072634823, plain; 1 A goal node, absent at p1; OWNER 0; bt 0/1; checked 01:43Z)
 - L541 f28bcf0103 DG2 item (5) graph_metrics_land 28,58 (tip 0ee3727ce8, RULES; 1 M crons.md + 1 A test; OWNER 0; bt 0/2; NO-NODE
   test_grid_stale_cadence.py (control land-split.t.sh hits 1); wrap 8c0ae8fe19 tree == mt; checked 01:37Z)
 - L540 95796f8530 DG2 MINT goal:g7.16.1.11.20.7 (box-wake; tip 71dff1b564, plain; 1 A goal node, absent at p1; OWNER 0; bt 0/1; checked 01:09Z)
@@ -71,7 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L532 1bb1e1ab37 alive's TRAP SWEEP re-cut (GATE686, tip 916c120604; 3 skills M; bt 0/3; census by alive; checked 18:5xZ)
 
 ## 🔴 Where it stops
-gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L541 L-checked (§2).
+gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L542 L-checked (§2).
 QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMBERED 01:24Z, final land order:
   L541 = item (5) 0ee3727ce8 (RULES, crons apply after) · L542 = DG1 mint g7.31.1.6 7072634823 (plain) ·
   L543 = box-wake BUILD c4d2b547a8 + AMEND a54df4d210 (RULES, host order) · L544 = item (4) 83122bf176 (RULES, GATE700).
