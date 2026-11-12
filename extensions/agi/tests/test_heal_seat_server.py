@@ -459,9 +459,10 @@ def _gone_dir(graph, scratch):
 
 
 def test_a_gone_server_whose_dir_is_gone_is_recreated_dir_and_all(graph, calls, scratch, log):
-    """MEASURED in this row: tmux makes its OWN ${TMUX_TMPDIR}/tmux-<uid> dir itself (and heal's own default read
-    already has by the registry read), so rotate's makedirs and _owner_registry's absent-own branch are guards no
-    live path reaches today: no mutant of either can read RED here, and none is claimed."""
+    """In THIS row heal's own BARE tmux read (its default socket, at the start of the pass) remakes this uid's
+    ${TMUX_TMPDIR}/tmux-<uid> dir (0700) before the relaunch: a bare tmux call makes it, `tmux -S` never does
+    (measured by alive, all-is-one and self-perpetuating 03:54Z: 'error creating', rc 0, has-session rc 1). The
+    path with no bare read first, a stand-up after a reset, is pinned by the direct ensure_tmux_session row below."""
     sock = _gone_dir(graph, scratch)
     seen: list = []
     _scan(heal, graph, seen, real=True)
@@ -537,3 +538,26 @@ def test_mutant_a_failed_recreate_not_named_RED(graph, calls, uncreatable, log, 
     with _with(m):
         _scan(m, graph, seen, real=True)
     assert not any("NOT recreated" in ln for ln in log)
+
+
+def test_ensure_tmux_session_makes_an_absent_socket_dir_itself(graph, scratch, capsys):
+    """aio's row (RAN 03:54Z): a private TMUX_TMPDIR whose tmux-<uid> is ABSENT and NO bare tmux call first ->
+    ensure_tmux_session(socket=<that dir>/named) makes the dir 0700 and a server answers on it."""
+    d = scratch / f"tmux-{os.getuid()}"
+    assert not d.exists()
+    rotate.ensure_tmux_session("agi-t", graph, socket=str(d / "named"))
+    assert oct(d.stat().st_mode & 0o777) == "0o700"
+    assert _REAL_RUN(["tmux", "-S", str(d / "named"), "has-session", "-t", "agi-t"],
+                     capture_output=True, timeout=10).returncode == 0
+    assert "not created" not in capsys.readouterr().err
+
+
+def test_mutant_the_makedirs_line_dropped_RED(graph, scratch, tmp_path, capsys):
+    m = _mut(tmp_path, "rotate_mut_mkd", BIN / "rotate.py",
+             "            os.makedirs(os.path.dirname(socket), mode=0o700, exist_ok=True)\n", "            pass\n")
+    d = scratch / f"tmux-{os.getuid()}"
+    m.ensure_tmux_session("agi-t", graph, socket=str(d / "named"))
+    assert not d.exists()
+    assert _REAL_RUN(["tmux", "-S", str(d / "named"), "has-session", "-t", "agi-t"],
+                     capture_output=True, timeout=10).returncode != 0
+    assert "not created (new-session rc 0, has-session none)" in capsys.readouterr().err
