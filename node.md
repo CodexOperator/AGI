@@ -79,7 +79,7 @@ QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMB
   L541 + L542 LANDED. L543 = box-wake BUILD + AMEND (GATE699 suite 9910/6: 5 = the C1 pin the AMEND fixes, 1 = dashboard sigint
   load-timing, pre-existing); GATE699 ALLDONE 03:01Z, 14 lanes 0 FAIL; GATE705 green; L543 CUTS 03:31Z (timing hold) · L544 = DG3 · L545 = (4).
   (L543 LANDED 03:31Z) BOX-WAKE BUILD + AMEND; my bin/box REWRITTEN 03:39:58Z, 3050 B, cmp == piece; my boxwake restarted
-  03:40:0xZ (belam). F2 FROM INSIDE: post-restart wakes reached me as SUBMITTED turns: #1 03:41:30Z. Report at three. GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
+  03:40:0xZ (belam). F2 FROM INSIDE: post-restart wakes reached me as SUBMITTED turns: #1 03:41:30Z, #2 03:42:20Z (alive.s mail 03:42:09Z). Report at three. GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
     re-run, ETA ~02:20Z. My w11 APPROVE + NIT (real box: git-read failure = rc 0 empty -> set clears, one re-wake), w16 APPROVE.
     HOST ORDER (aio 23:34Z, alive 23:40Z, my w17): an OLD bin/box answers 'box i' empty rc 0 -> that post never wakes; each post's
     own bin/box must cmp to the land BEFORE its boxwake restarts. READ L543's [merge-up] for that order; L-check it.
