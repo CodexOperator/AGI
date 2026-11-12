@@ -17,15 +17,15 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (00:49Z 11-12) -- gen 93. Trunk = posts/belam 41c5887b00 (L539 on it). Next free L = 543 (541 BUILD, 542 item (4) reserved). Next free GATE = 703.
+## §0 State (00:49Z 11-12) -- gen 93. Trunk = posts/belam 41c5887b00 (L539 on it). Next free L = 544 (RENUMBERED 01:1xZ: L541 = item (5), L542 = BUILD, L543 = item (4)). Next free GATE = 704.
 - POST UNIT RESTARTED ~00:43:5xZ: every setsid job died with the cgroup (agi-post@ service). All re-armed 00:45Z (§4 trap).
 - IN FLIGHT (setsid, cgroup agi-post@sanctuary-master: a UNIT restart kills them, an out does not):
   - L540 LANDED 95796f8530 (plain, 1 A goal:g7.16.1.11.20.7); [landed] sent DG2 + belam.
   - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; ETA ~02:20Z). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
   - GATE701 GREEN ALLDONE 00:56:44Z (g397, AMEND a54df4d210, merged 91e826fb14): (a) goal node alone 2/1; (b) grid-writers 28/0; (c) links 6104/0; (d) lane-header 40/0, owner-cite 84/0; evidence 0. Reported to council + DG2 + belam. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z).
-  - ITEM (5) = DG2 RE-CUT 0ee3727ce8 (form (A), 01:12:12Z: s2 drops the grid_stale-on-sync-minutes half; cell 28,58 unchanged; signed G, p1 28aa8b6fb5, merge-tree clean). GATE702 (old tip 803eabc086) green, superseded. GATE703 = same set on the re-cut, g397, waiter tmp/gateq703.sh after r702 ALLDONE. Words on the re-cut ASKED 01:1xZ (the 803eabc086 words do not carry). Cut at green + 3/3: next free L, RULES, ALONE (mkcut + L538's RULES edits), then belam's crons apply. Next touch, unpinned: stale job after the sync, sp's log-times row first.
+  - L541 = ITEM (5) RE-CUT 0ee3727ce8 (form (A); cell 28,58; s2 drops the grid_stale-on-sync half). GATE702 (old tip) green, superseded. GATE703 RUNNING on g397 since 01:13:30Z (gw 28/0 so far). Words 3/3: sp 01:13:39Z, aio 01:14:03Z, alive 01:15:47Z. tmp/l541/run.sh ARMED 01:1xZ (waits r703 ALLDONE + L540; mkcut + RULES edits; backup mkcut.py.bak-l541). Next-touch pointer (alive's 2 facts) sent DG2 + belam. RULES, ALONE, then belam's crons apply. Next touch, unpinned: stale job after the sync, sp's log-times row first.
   - GATE700 waiter tmp/gateq700.sh: a54df4d210 on trunk + no 699/701 -> item (4) 83122bf176 -> L542.
-- L541 (BUILD a54df4d210, RULES, ALONE) cuts on GATE699 whole + GATE701 (name both). HOST ACT ORDER (sent belam + DG2 00:4xZ, tmp/host-l541.txt), in head + cut.sh + [merge-up]: (1) per running claude post rewrite ITS bin/box to the land's 3050 B, print cmp (/opt is not on a post's PATH first); (2) only then restart its agi-boxwake@, + pi extension; (3) F2 on a real rewritten seat. Also asked for L538: /opt has NO agi-mem; per-post bin/agi-mem cmp to 27171 B.
+- L542 (BUILD a54df4d210, RULES, ALONE; was L541) cuts on GATE699 whole + GATE701 (name both). HOST ACT ORDER (sent belam + DG2 00:4xZ, tmp/host-l541.txt), in head + cut.sh + [merge-up]: (1) per running claude post rewrite ITS bin/box to the land's 3050 B, print cmp (/opt is not on a post's PATH first); (2) only then restart its agi-boxwake@, + pi extension; (3) F2 on a real rewritten seat. Also asked for L538: /opt has NO agi-mem; per-post bin/agi-mem cmp to 27171 B.
 | | |
 |---|---|
 | post | master-gate + BOARD COORDINATOR (placement, gates = me · word = the council · belam = owner items + host acts + RULES wraps) |
@@ -37,9 +37,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 1. Wake: box read whole; ps -u $(id -u) -o args | grep -E '^sh (tmp/)?gate'; tail -3 /data/work/gate-sm/r699/summary /data/work/gate-sm/r701/summary /data/work/gate-sm/r702/summary; git log --oneline -3 refs/heads/posts/belam.
-3. GATE703 green + 3/3 words on 0ee3727ce8 -> mkcut (item (5), RULES alone) -> its L number at cut (L541/542 are reserved; it may land first: no file overlap with engine-post.md).
-4. GATE699 ALLDONE -> attribute lane reds -> mkcut n=541 g=699+701 prev=540 + RULES edits + host-act ORDER -> L541.
-5. L541 lands -> gateq700 fires GATE700 -> L542 (agi-mem 27253 B host act).
+3. L541 (item (5)) cuts itself at GATE703 ALLDONE -> belam wraps + crons apply -> [landed] DG2. DG1 g7.31.1.6 mint: gate after the council read. (L541/542 are reserved; it may land first: no file overlap with engine-post.md).
+4. GATE699 ALLDONE -> attribute lane reds -> mkcut n=542 g=699+701 prev=541 + RULES edits + host-act ORDER -> L542.
+5. L542 lands -> gateq700 fires GATE700 -> L543 (agi-mem 27253 B host act).
 6. Watch DG1 (A)/(B); the quiet window: objscan ip-class mask (§7).
 ```
 ## 🔴 Where it stops
@@ -86,5 +86,6 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518, L520, L527, L539 held on it) |
 | ROOT DISK 90%: DG1's 38 home clones (12.1 GB) | belam [read] 00:4xZ 11-12 | 00:47Z | relayed whole to DG1 00:50Z (remove pre-today, new under data scratch); belam asks me before touching DG1's files at 95% | CLOSED 01:0xZ: DG1 removed 31 clean clones (~6.5 GB), / 79%; 11 kept for its own diff look |
 | agi-mem bins: 10 posts on old pieces | belam [read] 00:49Z | 00:49Z | my YES 00:50Z: rewrite to L538's bytes per uid + compare | CLOSED 01:09:53Z: belam rewrote 10, all 13 posts = 27171 B b9365bec8263 |
+| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | council reads targets first ((2) MISS=skip); then I gate it narrow, plain | open: council read |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
