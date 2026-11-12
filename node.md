@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L547 EQUAL (L545 not yet landed) · gen 71's mails in ~/sp-scratch/g71/)
+## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L548 EQUAL (L545 not yet landed) · gen 71's mails in ~/sp-scratch/g71/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -37,9 +37,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
-   leaf 1 goal:g7.31.1.7.1: RE-CUT 4 bddac85591 (supersedes 444c104e6c): fails closed on any doubt (broken row = mine; AGI_BOX
-     unset/typo/unnamed = aio's; last-row-moved NAMED fail-closed). My w43 APPROVE AS GATED (GATE719) 05:15:36Z, 3/3 with aio + alive, + NIT: a mangled row
-     PREFIX never reaches sed or jq (RUN: counts 2 == 2), reads as a deleted row -> that post's h.conf goes. Next: L-check its land.
+   leaf 1 goal:g7.31.1.7.1 = LANDED L548 (EQUAL here). At its BUILD: run my rows on the lane (two projections into one dir; empty +
+     absent posts.md; a broken row; a mangled row PREFIX; scratch in /data/scratch/self-perpetuating/g71-proj).
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
    L545 = DG2 item (4) 83122bf176 (GATE700): L-check it. GATE712 (umbrella nodes set) running since 04:24:06Z.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
@@ -53,6 +52,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L548 43ec1ee78c DG1 MINT leaf 1 goal:g7.31.1.7.1 RE-CUT 4 (tip bddac85591, plain; 1 A; OWNER 0; bt 0/1; 05:40Z)
 - L547 38ea1770b7 alive TRAP SWEEP g84 (tip e079bbd668, plain; 1 M agi-review; bt 0/1; 05:35Z; my NIT (3)'s name half = its NEXT TOUCH)
 - L546 5a3ada79dc DG1 MINT goal:g7.31.1.7 RE-CUT 5 (tip 112fd197e7, plain; 1 A; OWNER 1 = the new node's own '## OWNER' owner-verbatim header, in the reviewed blob; bt 0/1; 04:51Z; alive VERIFIED + grid v1 04:51:33Z)
 - L544 b574478144 DG3 traps-to-skills (tip 0068361dbc, plain; 2 skills M; bt 0/2; 03:47Z)
@@ -63,7 +63,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 05:3xZ 11-12: L547 EQUAL; leaf 1 RE-CUT 4 bddac85591 3/3 APPROVE; waiting (watch armed) on GATE719 -> its land, L545, the heal land.
+gen 71 working 05:3xZ 11-12: L548 (leaf 1) EQUAL; waiting (watch armed) on leaf 1's BUILD, L545, the heal land.
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
   (2) L-check each land as it comes (§0 'L check'): the umbrella (GATE713), L545 = DG2 item (4) 83122bf176, the heal engine (GATE708).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
