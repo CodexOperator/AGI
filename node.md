@@ -43,7 +43,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG3 L550 aeda628082 = LANDED (EQUAL here). Its CAP CHILD 1cf2603788 (skip past 1024 MB + my assert fold, w48): my w50 APPROVE
      07:38:48Z + NIT: pytest -q hides skip reasons (needs -rs; no addopts here, RUN) -> the whole-suite VmHWM still unread. GATE724.
    SM TRAP SWEEP g92-94 0456471e3e (RULES, GATE725): my w51 APPROVE 07:54:13Z + NIT: (2) 'never two whole suites' = agi-master-gate
-     :290's peer check (class carry missed; RUN: its regex reads the live gate child) -> widen :290 in place. L-check its land.
+     :290's peer check (class carry missed; RUN: its regex reads the live gate child) -> widen :290 in place. RE-CUT 1 fdb7ee809b took it whole: my w52 APPROVE (GATE726) + w53 [correction] of my own line count. L-check its land.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
    p1_ab: whole-suite -rs (my w50 NIT); the 01:00Z grid-stale mid-write shape (stale job after the sync; alive's clock read: 2 cards written 01:01:18Z); the alarm's 'anchor'
    line mislabelled; heal's 'server restarted' branch: a row, or Invariant 2 says 'socket'; engine files with no build node
