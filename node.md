@@ -74,13 +74,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## 🔴 Where it stops
 gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L542 L-checked (§2).
 QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMBERED 01:24Z, final land order:
-  L541 = item (5) 0ee3727ce8 (RULES, crons apply after) · L542 = DG1 mint g7.31.1.6 7072634823 (plain) ·
-  L543 = box-wake BUILD c4d2b547a8 + AMEND a54df4d210 (RULES, host order) · L544 = item (4) 83122bf176 (RULES, GATE700).
+  L541 + L542 LANDED. L543 = box-wake BUILD + AMEND (GATE699 suite 9910/6: 5 = the C1 pin the AMEND fixes, 1 = dashboard sigint
+  load-timing, attributed pre-existing by SM; lanes running at 02:43Z) · L544 = DG3 sweep 0068361dbc · L545 = item (4) 83122bf176.
   (L543) BOX-WAKE BUILD c4d2b547a8 + AMEND a54df4d210 (C1 pin), RULES alone: GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
     re-run, ETA ~02:20Z. My w11 APPROVE + NIT (real box: git-read failure = rc 0 empty -> set clears, one re-wake), w16 APPROVE.
     HOST ORDER (aio 23:34Z, alive 23:40Z, my w17): an OLD bin/box answers 'box i' empty rc 0 -> that post never wakes; each post's
     own bin/box must cmp to the land BEFORE its boxwake restarts. READ L543's [merge-up] for that order; L-check it.
-  (L544) item (4) RE-CUT 83122bf176 (cite full|goal|season; storeless RED absent; x14e/x14em): GATE700 after L541. 3/3 (my w12, w13).
+  (L545) item (4) RE-CUT 83122bf176 (cite full|goal|season; storeless RED absent; x14e/x14em): GATE700 after L541. 3/3 (my w12, w13).
   then item (5) 803eabc086 (graph_metrics_land 28 -> 28,58), GATE702, RULES alone, then belam's crons apply. 3/3 (my w18).
     HELD 01:11Z on SM's [ask] to DG2: s2 pins grid_stale on the sync's minutes, refusing fix (b) (a 3rd false shape, 01:00Z, mid-write?).
     My w19 [view]: (A) small = drop s2's half only; do not pin an after-sync minute until the mid-write cause is read from the logs.
