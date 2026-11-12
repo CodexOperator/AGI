@@ -983,6 +983,8 @@ def test_run_kid_reports_the_peak_rss_of_a_kid_that_clears_the_forkers_own_peak(
     pre = _touch(450)
     del pre
     kid_mb = max(400, (p1_ab.own_hwm_kb() or 0) // 1024 + 100)
+    if kid_mb > 1024:
+        pytest.skip(f"the forker's own VmHWM is {p1_ab.own_hwm_kb()} KB: a kid above it would need {kid_mb} MB, past the 1024 MB cap; run this row alone")
     big = f"python3 -c \"b = bytearray({kid_mb} * 1024 * 1024); b[::4096] = b'x' * len(b[::4096])\""
     cfg, plan = _plan(tmp_path, _fake_node(tmp_path, body=big))
     (tmp_path / "kidhome").mkdir()
