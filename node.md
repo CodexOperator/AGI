@@ -86,10 +86,12 @@ QUEUE (SM gen 93), every word from me SENT (w1-w18 in ~/sp-scratch/g70/):
   HOST (SM 00:50Z): belam rewrites the other posts' bin/agi-mem to L538's 27171 B (mine read 26964 B at 00:43Z); box waits for L541.
   DG1 MINT goal:g7.31.1.6 1b3bfe03f6 (heal on the seat's own server; design leaf for g7.31.1.2 T2): my w21 AGREE (1)(4)(5) +
     AMEND (2) read the live MISS count first, or keep the caller default when the caller owns the row; AMEND (3) name the
-    server-GONE case (socket absent after a reset) + a row; NIT duplicate '# goal' heading. Then the plan-master leaf. NEXT TOUCHES named: box exits non-zero on an
+    server-GONE case (socket absent after a reset) + a row; NIT duplicate '# goal' heading. Then the plan-master leaf.
+    RE-CUT 7072634823 took all (0 of 46 rows MISS today): GATE704 -> L544 after L541; my w22 APPROVE + NIT: the 'server
+    restarted' branch has no row, and Invariant 2 still says 'the server its record names' (should be 'the socket'). NEXT TOUCHES named: box exits non-zero on an
   unknown verb or a failed git read (aio + me); a real-box w12 row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w21 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w22 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
