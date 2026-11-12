@@ -2743,7 +2743,7 @@ def _all_windows(window_path: str | None = None,
 
 
 
-def _window_server(window_id: str) -> dict:
+def _window_server(window_id: str, socket: str | None = None) -> dict:
     """goal:g7.31.1.5: the server holding `window_id` on this process's
     default server (the one a launch just used), read from THAT server:
     {tmux_socket, tmux_server_start, tmux_server_pid}; {} when unread.
@@ -2752,8 +2752,10 @@ def _window_server(window_id: str) -> dict:
     if not window_id:
         return {}
     try:
-        res = subprocess.run(["tmux", "display-message", "-p", "-t", window_id,
-                              "#{socket_path}\t#{start_time}\t#{pid}"],
+        # goal:g7.31.1.6: read on the server the launch used (`socket`)
+        res = subprocess.run(["tmux"] + (["-S", socket] if socket else [])
+                             + ["display-message", "-p", "-t", window_id,
+                                "#{socket_path}\t#{start_time}\t#{pid}"],
                              capture_output=True, text=True, timeout=5)
         parts = (res.stdout or "").strip().split("\t")
         if res.returncode != 0 or len(parts) != 3 or not all(parts):
@@ -2886,6 +2888,131 @@ def _seat_windows(root: Path, seat: str, row: dict, _rotate,
             f"socket {sock} (its latest launch record)", sock)
 
 
+def _path_owner(path) -> tuple[int | None, str]:
+    """goal:g7.31.1.6: (uid, user name) owning `path`, by stat; (None, '')
+    when it cannot be stat'ed (never read as 'this uid')."""
+    try:
+        uid = os.stat(path).st_uid
+    except OSError:
+        return None, ""
+    try:
+        import pwd  # noqa: PLC0415
+        return uid, pwd.getpwuid(uid).pw_name
+    except Exception:  # noqa: BLE001
+        return uid, str(uid)
+
+
+def _own_tmux_dir() -> str:
+    """goal:g7.31.1.6 (B): this uid's OWN tmux dir, by full path:
+    ${TMUX_TMPDIR:-/tmp}/tmux-<uid> (where tmux makes its default socket)."""
+    return os.path.join(os.environ.get("TMUX_TMPDIR") or "/tmp", f"tmux-{os.getuid()}")
+
+
+def _is_default_socket(sock: str) -> bool:
+    """goal:g7.31.1.6: `sock` is the server a bare tmux call already reaches."""
+    try:
+        return os.path.realpath(sock) == os.path.realpath(_tmux_socket_path())
+    except Exception:  # noqa: BLE001
+        return False
+
+
+#: goal:g7.31.1.6 (alive 03:35:32Z NIT): the registry's owner could not be
+#: read. NOT a path: a missing registry dir reads [] ("no sessions"), so a
+#: made-up path would license the very launch an unread must hold.
+REG_OWNER_UNREAD = object()
+
+
+def _owner_registry(sock: str, registry_dir: str | None):
+    """goal:g7.31.1.6 target 4: the session registry of the uid that owns the
+    seat's server (its socket dir): that uid's harness wrote its session file
+    in ITS home. The caller's own -> `registry_dir` as given (the default,
+    byte-identical to before); another uid's -> <its home>/.claude/sessions.
+    An owner that cannot be read -> REG_OWNER_UNREAD (the caller reads UNREAD
+    and holds the respawn, named), never the caller's registry; except this
+    uid's OWN tmux dir gone after a reset (absent, named tmux-<uid>), which
+    heal recreates as itself."""
+    if not sock:
+        return registry_dir
+    d = os.path.dirname(sock)
+    uid, _name = _path_owner(d)
+    if uid is None:
+        try:
+            os.lstat(d)
+        except FileNotFoundError:
+            if os.path.abspath(d) == os.path.abspath(_own_tmux_dir()):
+                return registry_dir
+        except OSError:
+            pass
+        return REG_OWNER_UNREAD
+    if uid == os.getuid():
+        return registry_dir
+    try:
+        import pwd  # noqa: PLC0415
+        return os.path.join(pwd.getpwuid(uid).pw_dir, ".claude", "sessions")
+    except Exception:  # noqa: BLE001
+        return REG_OWNER_UNREAD
+
+
+def _row_server(root: Path, row: dict, windows, _rotate,
+                window_path: str | None = None) -> dict:
+    """goal:g7.31.1.6 targets 1-3: the server heal judges, and relaunches, a
+    pid row on. -> {kind, windows, socket, why}; `socket` '' = the caller's
+    default server.
+      hit       the latest launch record joins: the row's windows read on ITS
+                server (`_seat_windows`). A server GONE (socket absent or
+                stale) is recreated on that socket only when this uid owns
+                its dir; a server RESTARTED (live, another identity) is
+                launched on as it stands; both named.
+      miss-own  no join, and this uid owns the row (stat on the recorded
+                socket's dir when a record names one, else the seat's tree):
+                judged on the caller's default list, as before, named.
+      skip      no join and another (or an unreadable) owner; or the seat's
+                server cannot be read or recreated by this uid. Named, never
+                judged, never launched."""
+    seat = (row.get("name") or "").strip()
+    sw, how, sock = _seat_windows(root, seat, row, _rotate, window_path)
+    if sw is None:
+        rec, _why = _latest_seat_record(root, seat, _rotate)
+        rsock = str((rec or {}).get("tmux_socket") or "").strip()
+        # the first of: the recorded socket's dir, the seat's tree, the graph
+        # root, that can be stat'ed (a worktree seat whose tree is gone is
+        # refused by name later, in `_recover_seat`; its owner is MAIN's)
+        cands = ([os.path.dirname(rsock)] if rsock else []) + (
+            [str(_seat_tree_dir(root, row))] if (row.get("worktree") or "").strip() else []) + [str(root)]
+        probe = next((c for c in cands if _path_owner(c)[0] is not None), cands[-1])
+        uid, owner = _path_owner(probe)
+        if uid is not None and uid == os.getuid():
+            return {"kind": "miss-own", "windows": windows, "socket": "",
+                    "why": f"MISS ({how}), judged as the seat's own uid"}
+        return {"kind": "skip", "windows": None, "socket": "",
+                "why": (f"the row names no tmux server ({how}) and its owner "
+                        f"is {owner or 'unreadable (' + probe + ')'}, not this uid")}
+    if isinstance(sw, WindowsUnread):
+        d = os.path.dirname(sock)
+        uid, owner = _path_owner(d)
+        if sw.reason != "no-server":
+            return {"kind": "skip", "windows": None, "socket": sock,
+                    "why": (f"its server {sock} could not be read ({sw.detail})"
+                            + ("" if "run it as" in sw.detail or not owner
+                               else f"; run it as {owner}"))}
+        if _tmux_socket_state(sock) == "live":
+            how = f"{sw.detail}: launched on that live server"
+        else:
+            # an existing dir: this uid must own it; an ABSENT one (a reset
+            # cleared /tmp): only this uid's own tmux dir, by FULL path, which
+            # rotate.ensure_tmux_session makes 0700 before the -S new-session
+            mine = (uid == os.getuid() if uid is not None
+                    else os.path.abspath(d) == os.path.abspath(_own_tmux_dir()))
+            if not mine:
+                return {"kind": "skip", "windows": None, "socket": sock,
+                        "why": (f"server gone on {sock}, and its dir is "
+                                f"{owner or 'unreadable'}'s, not this uid's: "
+                                f"run it as {owner or 'its owner'}")}
+            how = f"server gone: recreating on {sock} ({sw.detail})"
+    return {"kind": "hit", "windows": sw,
+            "socket": "" if _is_default_socket(sock) else sock, "why": how}
+
+
 def _seat_pid_read(pid: int, harness: str, recorded_start: str = "") -> tuple[str, str]:
     """goal:g7.31.1.5 target 5 + sp (b) + all-is-one 12:22:23Z: a seat pid
     read through /proc -> ('alive' | 'dead' | 'reused', why). The exact proof
@@ -2948,7 +3075,8 @@ def _seat_pid_read(pid: int, harness: str, recorded_start: str = "") -> tuple[st
     return "reused", f"pid {pid} reused by {who} (the weaker read: no recorded start time; want {want})"
 
 
-def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
+def _pane_pid_of(win_id: str, window_path: str | None = None,
+                 socket: str | None = None) -> int:
     """Pane pid of `win_id`, or 0 = UNKNOWN (never "the pane is dead"). The
     `AGI_WINDOW_PATH` seam may carry a third field on its `@<N> <name>
     <pane_pid>` line; else `tmux display-message -p -t <id> #{pane_pid}`.
@@ -2967,7 +3095,8 @@ def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
         return 0
     try:
         res = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", win_id, "#{pane_pid}"],
+            ["tmux"] + (["-S", socket] if socket else [])
+            + ["display-message", "-p", "-t", win_id, "#{pane_pid}"],
             capture_output=True, text=True, timeout=5)
         if res.returncode == 0 and res.stdout.strip().isdigit():
             return int(res.stdout.strip())
@@ -2976,7 +3105,8 @@ def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
     return 0
 
 
-def _pane_pid_map(window_path: str | None = None) -> dict[str, int]:
+def _pane_pid_map(window_path: str | None = None,
+                  socket: str | None = None) -> dict[str, int]:
     """`{window_id: pane_pid}` for EVERY window in ONE call: the seam file's
     third `@<N> <name> <pane_pid>` field, else one `tmux list-panes -a -F
     '#{window_id} #{pane_pid}'`. Built ONCE per pass and read by
@@ -3001,7 +3131,8 @@ def _pane_pid_map(window_path: str | None = None) -> dict[str, int]:
         return out
     try:
         res = subprocess.run(
-            ["tmux", "list-panes", "-a", "-F", "#{window_id} #{pane_pid}"],
+            ["tmux"] + (["-S", socket] if socket else [])
+            + ["list-panes", "-a", "-F", "#{window_id} #{pane_pid}"],
             capture_output=True, text=True, timeout=5)
         if res.returncode == 0:
             out = {}
@@ -3575,6 +3706,13 @@ def _seat_sessions(registry_dir: str | None = None,
         return UNREAD
     if not reg_state:
         return []    # a MISSING registry dir is a legal "no sessions"
+    try:
+        # goal:g7.31.1.6 target 4: Path.glob SWALLOWS a PermissionError, so an
+        # unlistable registry (another uid's 0700 home) read as "no sessions"
+        os.listdir(reg)
+    except OSError:
+        _watch_log(f"watch: registry unreadable ({_errno_name(reg)}): liveness unknown")
+        return UNREAD
     win_by_id = {wid: name for (wid, name) in (windows or [])}
     _RE_ID = re.compile(r"@(\d+)")
     out: list[dict] = []
@@ -3990,7 +4128,8 @@ def _seat_tree_dir(root: Path, row: dict) -> Path:
 
 def _launch_recovered(root: Path, name: str, shell_cmd: str,
                       window_path: str | None = None,
-                      cwd: Path | str | None = None) -> tuple[int | None, str]:
+                      cwd: Path | str | None = None,
+                      socket: str | None = None) -> tuple[int | None, str]:
     """Real tmux new-window launch of a recovered successor (mirrors
     rotate._launch_window's shape; the PID is not derivable from tmux, so the
     successor ack resolves its own identity/ref). Returns `(pid, window @id)`:
@@ -4008,7 +4147,8 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     # never inline, a timeout is not a launch) -- heal builds no line here.
     return _rotate.stand_up_launch(
         root, name, shell_cmd, window_path,
-        cwd=Path(cwd) if cwd is not None else _seat_tree_dir(root, {}))
+        cwd=Path(cwd) if cwd is not None else _seat_tree_dir(root, {}),
+        socket=socket)  # goal:g7.31.1.6: the seat's own server, or None (the default)
 
 
 def _load_launcher(launcher) -> callable | None:
@@ -4100,7 +4240,7 @@ def _is_pre_cwd_seam(launcher, exc: BaseException) -> bool:
 
 def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                   windows: list[tuple[str, str]], window_path: str | None,
-                  launcher, now: float) -> dict:
+                  launcher, now: float, socket: str = "") -> dict:
     """RESPAWN a dead seat through its EXISTING spawn path and bind the
     successor's row. Builds the successor command with rotate.spawn_window
     (dry-run) using the ROW's own model/effort/settings, names the successor by
@@ -4297,9 +4437,12 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
 
     launcher = launcher if launcher is not None else _launch_recovered
     tree = _seat_tree_dir(root, row)
+    # goal:g7.31.1.6: a seat whose server is not the caller's default is
+    # launched THERE (`socket=`); a launcher that cannot take it refuses.
+    _sk = {"socket": socket} if socket else {}
     try:
         pid, window_id = launcher(root, spawn_name, shell_cmd, window_path,
-                                  cwd=tree)
+                                  cwd=tree, **_sk)
     except TypeError as exc:
         # THE ONE SIGNATURE THIS RETRY WAS WRITTEN FOR: a seam written against
         # the pre-cwd signature `launch(root, name, shell_cmd, window_path)`.
@@ -4307,7 +4450,10 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         # INSIDE a correct launcher — and the retry DROPPED `cwd`, so the
         # successor woke in MAIN (the same escape, second door). A WORKTREE
         # post refuses; any other TypeError is the launcher's own bug.
-        if (row.get("worktree") or "").strip():
+        if socket:
+            reason = (f"launcher takes no socket for seat {seat}; refusing a "
+                      f"launch on any server but {socket}: {exc}")
+        elif (row.get("worktree") or "").strip():
             reason = (f"launcher rejected cwd for worktree seat {seat}; "
                       f"refusing a no-cwd retry (would launch in MAIN): {exc}")
         elif not _is_pre_cwd_seam(launcher, exc):
@@ -4323,9 +4469,16 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if pid == 0:
         # spawn did not land -> the seat stays dead; record `detected` only so
         # the NEXT pass retries (the defect pin).
+        reason = "launcher reported no successor process"
+        if socket and _server_identity(socket) is None:
+            # goal:g7.31.1.6 (B): tmux -S new-session exits 0 with no server
+            # (an uncreatable socket), so the server is read AFTER, and a
+            # recreate that did not happen is named, never 'recreated'
+            reason = (f"server on {socket} NOT recreated: no server answers "
+                      f"after the launch; {reason}")
+            _watch_log(f"watch: seat {seat}: {reason}")
         return {"respawned": False, "name": spawn_name, "generation": gen,
-                "reason": "launcher reported no successor process",
-                "row": "skipped"}
+                "reason": reason, "row": "skipped"}
     # pid is None (launched, unknown) or a real int -> the recovery landed.
     # a launcher that cannot name the pid (the real one: `None`) -> the new
     # window's PANE pid, else the row keeps the DEAD pid and the next sweep
@@ -4334,7 +4487,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if row_pid is None and window_id:
         reason = f"pane pid unknown for {window_id}: row keeps its prior pid"
         try:
-            row_pid = _pane_pid_of(window_id, window_path) or None
+            row_pid = (_pane_pid_of(window_id, window_path, socket) if socket
+                       else _pane_pid_of(window_id, window_path)) or None
         except Exception as exc:  # noqa: BLE001 -- the row write below still runs
             reason = f"pane pid lookup raised: {exc}"
         if row_pid is None:
@@ -4353,7 +4507,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         # ordinary spawn IS the fresh launch (2b's new uuid, read back by the
         # after-join pass). ambiguous = the id kept, pid EMPTY, nothing
         # launched. Each line names what the join READ, never a cause.
-        _chk = _resume_check(_rotate, seat, _hid, window_id)
+        _chk = (_resume_check(_rotate, seat, _hid, window_id, socket=socket) if socket
+                else _resume_check(_rotate, seat, _hid, window_id))
         kind = "" if _chk.get("found") else (_chk.get("miss") or "absent")
         if not kind:
             row_pid = _chk.get("pid") or row_pid
@@ -4400,7 +4555,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if (not resume and not failed and window_id and _hid
             and _rotate._harness_session_registry(_hid) == "none"):
         _fj = _rotate._join_by_pane(seat=seat, window_id=window_id,
-                                    harness=_hid, poll_secs=FRESH_JOIN_S)
+                                    harness=_hid, poll_secs=FRESH_JOIN_S,
+                                    **({"socket": socket} if socket else {}))
         if _fj.get("found"):
             row_pid = _fj.get("pid") or 0
             fresh_sid = str(_fj.get("session_id") or "")
@@ -4448,7 +4604,8 @@ def _resume_sleep(secs: float) -> None:
     time.sleep(secs)
 
 
-def _resume_check(_rotate, seat: str, hid: str, window_id: str) -> dict:
+def _resume_check(_rotate, seat: str, hid: str, window_id: str,
+                  socket: str | None = None) -> dict:
     """(B)(2): join once at the launch, wait the bounded window, join again
     and read THAT. Found at the end, by the SAME pid the launch join saw (or
     the launch join saw none), = resumed. A different pid at the end reads
@@ -4456,9 +4613,11 @@ def _resume_check(_rotate, seat: str, hid: str, window_id: str) -> dict:
     harness in a pane holding one launch line). A miss carries its `miss`
     field (absent | ambiguous | no-pane) and `why`."""
     first = _rotate._join_by_pane(seat=seat, window_id=window_id,
-                                  harness=hid, poll_secs=RESUME_FIRST_JOIN_S)
+                                  harness=hid, poll_secs=RESUME_FIRST_JOIN_S,
+                                  **({"socket": socket} if socket else {}))
     _resume_sleep(RESUME_WINDOW_S)
     end = _rotate._join_by_pane(seat=seat, window_id=window_id, harness=hid,
+                                **({"socket": socket} if socket else {}),
                                 poll_secs=0)
     if end.get("found") and first.get("found") and \
             first.get("pid") != end.get("pid"):
@@ -4563,7 +4722,8 @@ def _write_crash_recovery(root: Path, seat: str, cause: str, cells: dict,
         # goal:g7.31.1.5: the server the launch used (socket + identity, read
         # from that server) and the harness pid's start time (the reuse proof)
         **({k: "" for k in ("tmux_socket", "tmux_server_start", "tmux_server_pid")}
-           | (_window_server(outcome.get("window") or "") if res == "respawned" else {})),
+           | (_window_server(outcome.get("window") or "", outcome.get("socket") or None)
+              if res == "respawned" else {})),
         "pid_starttime": (_proc_starttime(int(outcome.get("pid") or 0))
                           if res == "respawned" and int((outcome or {}).get("pid") or 0) > 0
                           else ""),
@@ -4642,7 +4802,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     rows=None, registry_dir: str | None = None,
                     pane_pids: dict | None = None,
                     admission: dict | None = None,
-                    empty_pid_dead: bool = False) -> dict:
+                    empty_pid_dead: bool = False,
+                    socket: str = "") -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -4817,8 +4978,11 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     held, outcome = _rotate.stand_up(
         root, seat, lambda: _recover_seat(
             root, row, cause, _rotate, windows=windows,
-            window_path=window_path, launcher=launcher, now=now),
+            window_path=window_path, launcher=launcher, now=now,
+            socket=socket),
         mode="recover")
+    if socket and outcome.get("respawned"):
+        outcome["socket"] = socket  # goal:g7.31.1.6: the record reads its server there
     if not held:
         outcome = {"respawned": False, "name": "", "generation": 0,
                    "row": "skipped", "reason": outcome}
@@ -4999,6 +5163,26 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     pid_rows = [r for r in rows
                 if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()
                 and boxes.row_is_local(root, r)]
+    # goal:g7.31.1.6: each pid row is judged, and relaunched, on its OWN
+    # server (the latest launch record's), never the caller's default list
+    # when that record joins; a MISS only when this uid owns the row.
+    srv: dict = {}
+    miss_own = skipped = 0
+    for r in pid_rows:
+        rs = _row_server(root, r, windows, _rotate, window_path)
+        nm = (r.get("name") or "").strip()
+        if rs["kind"] == "skip":
+            skipped += 1
+            _watch_log(f"watch: seat {nm} skipped: {rs['why']}")
+            continue
+        if rs["kind"] == "miss-own":
+            miss_own += 1
+            _watch_log(f"watch: seat {nm}: {rs['why']}")
+        elif rs["why"].startswith("server gone") or "launched on that live server" in rs["why"]:
+            _watch_log(f"watch: seat {nm}: {rs['why']}")
+        srv[id(r)] = rs
+    configured = pid_rows
+    pid_rows = [r for r in pid_rows if id(r) in srv]
     foreign = sorted((r.get("name") or "?").strip() for r in rows
                      if (r.get("name") or "").strip()
                      and not boxes.row_is_local(root, r))
@@ -5014,24 +5198,43 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     admission: dict = {"left": 1}
     scan = pid_rows + dead_empty
     scan.sort(key=lambda r: r.get("role") != "prime_director")
+    _pp_by_sock: dict = {}
     for row in scan:
-        summary = _watch_one_seat(root, row, windows, _rotate,
+        rs = srv.get(id(row)) or {}
+        sock = rs.get("socket") or ""
+        r_windows = windows if rs.get("windows") is None else rs["windows"]
+        r_pane, r_sess = pane_pids, seat_sess
+        if sock:
+            if sock not in _pp_by_sock:
+                _pp_by_sock[sock] = _pane_pid_map(window_path, socket=sock)
+            r_pane = _pp_by_sock[sock]
+            reg = _owner_registry(sock, registry_dir)
+            if reg is REG_OWNER_UNREAD:
+                _watch_log(f"watch: seat {(row.get('name') or '').strip()}: the owner of "
+                           f"{os.path.dirname(sock)} is unread: registry unreadable")
+                r_sess = UNREAD
+            else:
+                r_sess = _seat_sessions(reg, r_windows)
+        summary = _watch_one_seat(root, row, r_windows, _rotate,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
-                                  pin_table=pins, seat_sessions=seat_sess,
-                                  rows=rows, pane_pids=pane_pids,
+                                  pin_table=pins, seat_sessions=r_sess,
+                                  rows=rows, pane_pids=r_pane,
                                   admission=admission,
-                                  empty_pid_dead=id(row) in dead_ids)
+                                  empty_pid_dead=id(row) in dead_ids,
+                                  socket=sock)
         if summary:
             acted.append(summary)
     # goal:g7.31.1.3: the count is the seats heal ACTED on (named a cause),
     # beside the rows whose pid is gone, so '0' never reads as 'no dead pid'.
-    gone = sum(1 for r in pid_rows if not (pid_alive or _pid_alive)(int(r.get("pid", 0) or 0)))
+    gone = sum(1 for r in configured if not (pid_alive or _pid_alive)(int(r.get("pid", 0) or 0)))
     # goal:g7.31.1.4 (alive 07:19:57Z): 'acted' counts the empty-pid dead
     # rows too, so they are counted beside the gone pids, every pass.
-    _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
+    _watch_log(f"watch: seat-dead scan over {len(configured)} configured pid "
                f"row(s); {gone} pid(s) gone + {len(dead_empty)} empty-pid "
-               f"closed-window row(s); {len(acted)} acted")
+               f"closed-window row(s); {len(acted)} acted; {miss_own} MISS "
+               f"judged as the seat's own uid + {skipped} skipped (no server "
+               f"this uid can read)")
     _alert_deferred(root, acted, rows)
     return acted
 
