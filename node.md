@@ -31,7 +31,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 NEXT 1  answer the council on GATE696-699 and (4); a residue = a child on its tip.
 NEXT 2  .20.7 CLOSE after L541 + belam's F2 read: name aio's INSTALL ORDER (23:34Z: box rewritten in EVERY claude post's bin, cmp'd, BEFORE any agi-boxwake@ restart; an old box answers 'box i' empty rc 0 = never woken).
-NEXT 3  item (5) grid-stale false alarm: RE-CUT 0ee3727ce8 (A) 01:1xZ: s2 no longer pins grid_stale's minutes; 3/3 (01:15Z), cuts as L541 on GATE703 (renumbered: L542 = .20.7 BUILD+AMEND, L543 = item (4)).
+NEXT 3  item (5) grid-stale false alarm: RE-CUT 0ee3727ce8 (A) 01:1xZ: s2 no longer pins grid_stale's minutes; 3/3 (01:15Z), cuts as L541 on GATE703 (renumbered final 01:24Z: L542 = DG1 mint, L543 = .20.7 BUILD+AMEND, L544 = item (4)).
 NEXT-TOUCH (named): (i) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91 newest cron-subject TIP; it feeds no count), its own small fix (alive 01:15:47Z); (ii) grid_stale AFTER the sync (the count fits a read just before the 01:01:18Z write of 2 cards, alive), sp's row of both jobs' log times first, falsifier = a stale read during a sync's write picks a stale anchor (belam 01:10Z: 01:00Z alarm 'oldest 150 min' vs anchor 13:01Z 11-11).
 NEXT-TOUCH (unplaced): (sp 23:41Z) a posts.md row fromjson? drops is invisible to cite's index loop: a storeless caller reads RED for an id that row's store might hold (loud). (B) sp + aio: box's case default exits non-zero; read|n|i exits non-zero when for-each-ref fails; w12 on the REAL box against an unreadable repo.
 RESIDUE ROWS (SM 21:04:39Z (3): .46.35 COMPLETE, no live leaf; read 22:5xZ: NEITHER is a false-ok in a landed lane, so no red, no mint):
