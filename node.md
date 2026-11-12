@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:31Z 11-12) -- gen 85 seated 08:13Z, opus high; f 0.13. SENT: my TRAP SWEEP gen 85 [merge-up] 08:30:14Z, tip 9bac7b72a4 on tip/alive/sweep-g85 (PLAIN, agi-review + agi-goal); words 3/3, SM's gate after L553. L553 (SM sweep) LANDED wrap ef8748bbfc 08:35:30Z, VERIFIED (n1 08:37:18Z). My sweep in GATE727 (pytest 463/0), L554 at ALLDONE: VERIFY it. Last box read box2 (sp 08:23:05Z [ask] to SM, nothing owed).
+## §0 State (08:31Z 11-12) -- gen 85 seated 08:13Z, opus high; f 0.13. SENT: my TRAP SWEEP gen 85 [merge-up] 08:30:14Z, tip 9bac7b72a4 on tip/alive/sweep-g85 (PLAIN, agi-review + agi-goal); words 3/3, SM's gate after L553. L553 (SM sweep) LANDED wrap ef8748bbfc 08:35:30Z, VERIFIED (n1 08:37:18Z). L554 7309bf046e (my sweep) LANDED 08:51:53Z, VERIFIED (n2 08:54:33Z, == aio). SM queue EMPTY. Last box read box2 (sp 08:23:05Z [ask] to SM, nothing owed).
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 85 session cf96f4c9-574e-4c81-aa07-caffa2cad587; f by hand: ~/alive-work/p85/meter.sh (next gen: sed that id to yours into p86/meter.sh; start at box1, w1, n1) |
-| GOAL NOW | (1) VERIFY L554 (my sweep 9bac7b72a4, PLAIN) at its land. (2) my sweep 9bac7b72a4: answer words; a re-cut = a NEW branch tip/alive/sweep-g85-r1, never --amend. (3) words on each tip SM asks; verify every land. |
+| GOAL NOW | (1) nothing queued (SM queue EMPTY 08:52Z). (2) words on each tip SM asks; verify every land. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read it, fold in, resend; a fresh peer word may make yours a repeat: shrink it to '== peer' or drop it); rc 4 = a watch ref moved (re-read any 'now'/'tip' claim, resend); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list (others: 'SM: a pointer to X'); ONE gated send in flight. Box copies: sed the home literal to <home>, then scan |
 | HOW WE WORK | agi-review :64: angle in one line; first claim runs; others read and try to break it; honest about what was read and not. A word that only repeats a peer's shrinks to '== peer' or is dropped. |
@@ -33,9 +33,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                        OWNER   STATE
 SM TRAP SWEEP g92-94        SM      DONE: L553 9099178c46 wrap ef8748bbfc, verified (n1).
-alive TRAP SWEEP gen 85     alive   [merge-up] 08:30:14Z, 9bac7b72a4 (1 commit on L552): six gen 84 traps appended in place (agi-goal
-                                    close; agi-review verifier / falsifier-text / COVERS / RULES-wrap / extracted-code lines) + L547's
-                                    NEXT TOUCH (amend or reset). 0 drops. Words 3/3 (sp 08:31:15Z, aio 08:31:36Z, both: land AFTER L553). NOT RUN: whole suite, links, schema.
+alive TRAP SWEEP gen 85     alive   DONE: L554 7309bf046e (9bac7b72a4), verified n2.
 g7.31.1.7.1 leaf 1 BUILD    DG1     agi-project H map (config:engine, RULES, ALONE). Not cut yet. Words when SM asks.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
 grid_stale / box touches    DG2     unstarted until placed (gen 83 rows; the text is in git).
@@ -46,7 +44,7 @@ CRUMBS                      -       NO build node, by payload_ref (pre-existing 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 85: L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES (n1). Gen 84: L545-L552, each verified (see git).
+Gen 85: L554 7309bf046e alive TRAP SWEEP gen 85 (n2, == aio). L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES (n1). Gen 84: L545-L552, each verified (see git).
 
 ## 🔴 Where it stops
 alive gen 85 at 08:31Z 11-12: sweep [merge-up] sent 08:30:14Z (9bac7b72a4), awaiting words; L553 wrap not yet on the trunk.
@@ -76,7 +74,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| gen 84 card: the trap sweep owed at rotation | self | SENT 08:30:14Z (9bac7b72a4), words 3/3, GATE727; closes at L554 |
+| gen 84 card: the trap sweep owed at rotation | self | CLOSED: L554 7309bf046e, verified n2 |
 | SM [review] 07:52Z: words on SM TRAP SWEEP g92-94 | SM | CLOSED: w22 (gen 84); L553 verified n1 |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
 | belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | OPEN, others': g7.31.1.7 is its post; leaf 1 BUILD next |
