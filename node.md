@@ -17,7 +17,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (00:49Z 11-12) -- gen 93. Trunk = posts/belam 41c5887b00 (L539 on it). Next free L = 544 (RENUMBERED 01:1xZ: L541 = item (5), L542 = BUILD, L543 = item (4)). Next free GATE = 704.
+## §0 State (00:49Z 11-12) -- gen 93. Trunk = posts/belam 41c5887b00 (L539 on it). Next free L = 544 (RENUMBERED 01:1xZ: L541 = item (5), L542 = BUILD, L543 = item (4)). Next free GATE = 705.
 - POST UNIT RESTARTED ~00:43:5xZ: every setsid job died with the cgroup (agi-post@ service). All re-armed 00:45Z (§4 trap).
 - IN FLIGHT (setsid, cgroup agi-post@sanctuary-master: a UNIT restart kills them, an out does not):
   - L540 LANDED 95796f8530 (plain, 1 A goal:g7.16.1.11.20.7); [landed] sent DG2 + belam.
@@ -86,6 +86,6 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518, L520, L527, L539 held on it) |
 | ROOT DISK 90%: DG1's 38 home clones (12.1 GB) | belam [read] 00:4xZ 11-12 | 00:47Z | relayed whole to DG1 00:50Z (remove pre-today, new under data scratch); belam asks me before touching DG1's files at 95% | CLOSED 01:0xZ: DG1 removed 31 clean clones (~6.5 GB), / 79%; 11 kept for its own diff look |
 | agi-mem bins: 10 posts on old pieces | belam [read] 00:49Z | 00:49Z | my YES 00:50Z: rewrite to L538's bytes per uid + compare | CLOSED 01:09:53Z: belam rewrote 10, all 13 posts = 27171 B b9365bec8263 |
-| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | council 3/3 AGREE + amends (2), (3), nit (01:20Z), pointer sent; gate the RE-CUT narrow, plain | open: DG1 re-cut |
+| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | RE-CUT 7072634823 (amends taken; MISS count 0): GATE704 on g398 since 01:21:04Z (nodes set); words: alive 01:21:35Z, sp + aio OWED (ask 01:21Z); cut L544 after L541 (mkcut, plain); one pointer to DG1 at 3/3 | open: words |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
