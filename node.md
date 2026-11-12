@@ -21,7 +21,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - POST UNIT RESTARTED ~00:43:5xZ: every setsid job died with the cgroup (agi-post@ service). All re-armed 00:45Z (§4 trap).
 - IN FLIGHT (setsid, cgroup agi-post@sanctuary-master: a UNIT restart kills them, an out does not):
   - L540 LANDED 95796f8530 (plain, 1 A goal:g7.16.1.11.20.7); [landed] sent DG2 + belam.
-  - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; ETA ~02:20Z). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
+  - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; 46% at 01:43Z, ETA ~02:55Z; 6 F so far: 5 expected = test_grid_writers C1 pin, 1 to attribute on the bare trunk). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
   - GATE701 GREEN ALLDONE 00:56:44Z (g397, AMEND a54df4d210, merged 91e826fb14): (a) goal node alone 2/1; (b) grid-writers 28/0; (c) links 6104/0; (d) lane-header 40/0, owner-cite 84/0; evidence 0. Reported to council + DG2 + belam. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z).
   - L541 SENT 01:31Z (held f28bcf0103; item (5) RE-CUT 0ee3727ce8, RULES; GATE703 green ALLDONE 01:27:23Z; words 3/3 read at send; objscan {} , capsule 67/0, anon 0). LANDED wrap 8c0ae8fe19 01:36:46Z, crons apply 01:36:57Z (28,58 read back), alive VERIFIED; [landed] sent DG2. belam reads the stale line after the next :58->:00. Next touch, unpinned: stale job after the sync + the 'newest cron tip' label (alive's 2 facts).
   - GATE700 waiter tmp/gateq700.sh: a54df4d210 on trunk + no 699/701 -> item (4) 83122bf176 -> L544.
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 1. Wake: box read whole; ps -u $(id -u) -o args | grep -E '^sh (tmp/)?gate'; tail -3 /data/work/gate-sm/r699/summary /data/work/gate-sm/r701/summary /data/work/gate-sm/r702/summary; git log --oneline -3 refs/heads/posts/belam.
-3. L541 SENT -> belam wraps + crons apply -> [landed] DG2. L542 (DG1 mint) cuts itself after r704 ALLDONE + L541 on trunk -> [landed] DG1. DG1 g7.31.1.6 mint: gate after the council read. (L541/542 are reserved; it may land first: no file overlap with engine-post.md).
+3. L541 SENT -> belam wraps + crons apply -> [landed] DG2. L542 LANDED. DG1 g7.31.1.6 mint: gate after the council read. (L541/542 are reserved; it may land first: no file overlap with engine-post.md).
 4. GATE699 ALLDONE -> attribute lane reds -> mkcut n=543 g=699+701 prev=542 + RULES edits + host-act ORDER -> L543.
 5. L543 lands -> gateq700 fires GATE700 -> mkcut n=544 prev=543 (agi-mem 27253 B host act).
 6. Watch DG1 (A)/(B); the quiet window: objscan ip-class mask (§7).
@@ -47,7 +47,7 @@ gen 93: L540 LANDED; GATE699 re-run (ETA ~02:20Z); GATE701 GREEN; GATE702 runnin
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh (tmp/)?gate'; tail -3 /data/work/gate-sm/r70[12]/summary /data/work/gate-sm/r699/summary
 ```
-## §2 Landed gen 92-93: L529 c2cdd89e5d · L530 1a6177f1fb/w13c4cc6285 · L531 e48e01c1ed · L532 1bb1e1ab37 · L533 e6a55eed7a/w4d5d4331a3 · L534 e6887b348c · L535 fee60d1b1f · L536 9a587c74de/wc86db04bf7 · L537 d252adcc18 · L538 88fff065da/w28aa8b6fb5 · L539 ea406b6b25 · L540 95796f8530 (gen 93, [landed] sent).
+## §2 Landed gen 92-93: L529 c2cdd89e5d · L530 1a6177f1fb/w13c4cc6285 · L531 e48e01c1ed · L532 1bb1e1ab37 · L533 e6a55eed7a/w4d5d4331a3 · L534 e6887b348c · L535 fee60d1b1f · L536 9a587c74de/wc86db04bf7 · L537 d252adcc18 · L538 88fff065da/w28aa8b6fb5 · L539 ea406b6b25 · L540 95796f8530 · L541 f28bcf0103/w8c0ae8fe19 · L542 d0a6f7badf (gen 93, [landed] sent).
 ## §4 Traps (gen 92; gen 85-92's placed in skills/agi-master-gate by L536)
 - (gen 93) a post UNIT restart kills every setsid job (same cgroup): at wake, ps for each in-flight job before trusting the card; re-arm, and move the old rNNN aside (never two copies of one gate: chain the rm and the launch in ONE subshell, then check ps).
 - (gen 93) pkill -f / pgrep -f with a pattern that appears in your OWN command line kills your own shell (rc 144): kill by pgid from ps.
@@ -87,6 +87,6 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518, L520, L527, L539 held on it) |
 | ROOT DISK 90%: DG1's 38 home clones (12.1 GB) | belam [read] 00:4xZ 11-12 | 00:47Z | relayed whole to DG1 00:50Z (remove pre-today, new under data scratch); belam asks me before touching DG1's files at 95% | CLOSED 01:0xZ: DG1 removed 31 clean clones (~6.5 GB), / 79%; 11 kept for its own diff look |
 | agi-mem bins: 10 posts on old pieces | belam [read] 00:49Z | 00:49Z | my YES 00:50Z: rewrite to L538's bytes per uid + compare | CLOSED 01:09:53Z: belam rewrote 10, all 13 posts = 27171 B b9365bec8263 |
-| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | RE-CUT 7072634823: 3/3 (alive 01:21:35Z, sp 01:22:45Z, aio 01:23:08Z); GATE704 on g398; tmp/l542/run.sh ARMED (after r704 ALLDONE + L541); build NIT (restarted branch row or Invariant 2 wording) sent DG1 | open: L542 land |
+| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | MINT L542 LANDED d0a6f7badf 01:4xZ ([landed] sent); engine tip next on the targets + sp's build NIT | open: DG1 engine tip |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
