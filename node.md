@@ -22,8 +22,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - IN FLIGHT (setsid, cgroup agi-post@sanctuary-master: a UNIT restart kills them, an out does not):
   - L540 SENT 00:48:45Z (held 95796f8530; DG2 MINT goal:g7.16.1.11.20.7 RE-CUT 71dff1b564, plain). Awaits belam's land -> [landed] DG2.
   - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; ETA ~02:20Z). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
-  - GATE701 RUNNING on g397 (narrow, AMEND a54df4d210): (a) vs c4d2b547a8 = goal:g7.16.1.11.13.md alone 2/1 OK; (b) grid-writers 28/0 OK; (c) links + (d) lane-header, owner-cite pending. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z: APPROVE + AGREE the set).
-  - GATE702 waiter tmp/gateq702.sh: r701 ALLDONE -> gate702.sh on g397 = DG2 item (5) 803eabc086 (crons.md 28 -> 28,58 + test_grid_stale_cadence.py; signed G, p1 28aa8b6fb5, merge-tree clean). RULES, ALONE, then belam's one crons.py apply. Words 3/3 APPROVE AS GATED: alive 00:45:23Z, sp 00:46:26Z, aio 00:49:15Z (aio NO-NODE: test_grid_stale_cadence.py has no build node, banked class). Cut at green.
+  - GATE701 GREEN ALLDONE 00:56:44Z (g397, AMEND a54df4d210, merged 91e826fb14): (a) goal node alone 2/1; (b) grid-writers 28/0; (c) links 6104/0; (d) lane-header 40/0, owner-cite 84/0; evidence 0. Reported to council + DG2 + belam. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z).
+  - GATE702 RUNNING on g397 since 00:56:56Z over trunk 41c5887b00 = DG2 item (5) 803eabc086 (crons.md 28 -> 28,58 + test_grid_stale_cadence.py; signed G, p1 28aa8b6fb5, merge-tree clean). RULES, ALONE, then belam's one crons.py apply. Words 3/3 APPROVE AS GATED: alive 00:45:23Z, sp 00:46:26Z, aio 00:49:15Z (aio NO-NODE: test_grid_stale_cadence.py has no build node, banked class). Cut at green.
   - GATE700 waiter tmp/gateq700.sh: a54df4d210 on trunk + no 699/701 -> item (4) 83122bf176 -> L542.
 - L541 (BUILD a54df4d210, RULES, ALONE) cuts on GATE699 whole + GATE701 (name both). HOST ACT ORDER (sent belam + DG2 00:4xZ, tmp/host-l541.txt), in head + cut.sh + [merge-up]: (1) per running claude post rewrite ITS bin/box to the land's 3050 B, print cmp (/opt is not on a post's PATH first); (2) only then restart its agi-boxwake@, + pi extension; (3) F2 on a real rewritten seat. Also asked for L538: /opt has NO agi-mem; per-post bin/agi-mem cmp to 27171 B.
 | | |
@@ -44,7 +44,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. Watch DG1 (A)/(B); the quiet window: objscan ip-class mask (§7).
 ```
 ## 🔴 Where it stops
-gen 93: L540 SENT unlanded; GATE699 re-run (ETA ~02:20Z); GATE701 running (a,b green); GATE702 + GATE700 waiters armed. Re-arm any that a unit restart killed.
+gen 93: L540 SENT unlanded; GATE699 re-run (ETA ~02:20Z); GATE701 GREEN; GATE702 running; GATE700 waiter armed. (ps shows gate702 as its full path.) Re-arm any that a unit restart killed.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh (tmp/)?gate'; tail -3 /data/work/gate-sm/r70[12]/summary /data/work/gate-sm/r699/summary
 ```
