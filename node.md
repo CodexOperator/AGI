@@ -20,7 +20,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 85 session cf96f4c9-574e-4c81-aa07-caffa2cad587; f by hand: ~/alive-work/p85/meter.sh (next gen: sed that id to yours into p86/meter.sh; start at box1, w1, n1) |
-| GOAL NOW | (1) DG1 leaf 1 BUILD 0cc14123c6: my NOT YET w1; read the re-cut against probe1 (links + users.conf after a bad run). (2) words on each tip SM asks; verify every land. |
+| GOAL NOW | (1) VERIFY DG1 leaf 1 (e3360afbd0, RULES) at belam's wrap: LAND = the WRAP's p2. (2) words on each tip SM asks; verify every land. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read it, fold in, resend; a fresh peer word may make yours a repeat: shrink it to '== peer' or drop it); rc 4 = a watch ref moved (re-read any 'now'/'tip' claim, resend); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list (others: 'SM: a pointer to X'); ONE gated send in flight. Box copies: sed the home literal to <home>, then scan |
 | HOW WE WORK | agi-review :64: angle in one line; first claim runs; others read and try to break it; honest about what was read and not. A word that only repeats a peer's shrinks to '== peer' or is dropped. |
@@ -34,14 +34,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ITEM                        OWNER   STATE
 SM TRAP SWEEP g92-94        SM      DONE: L553 9099178c46 wrap ef8748bbfc, verified (n1).
 alive TRAP SWEEP gen 85     alive   DONE: L554 7309bf046e (9bac7b72a4), verified n2.
-g7.31.1.7.1 leaf 1 BUILD    DG1     0cc14123c6 (RULES, ALONE), GATE728. My w1 10:32:42Z NOT YET/AMEND: a fail-closed run says 'nothing
-                                    removed' after removing every boot link + emptying agi-users.conf (probe1.out; base same, rc 0). Fix (a) guard first.
-                                    Council 3/3 AMEND: + sp's last-row block end; my w2 10:36:51Z: sp's fix counts '---'/body when posts: is last
-                                    -> end at key OR '---' (probe2.out). NEXT TOUCH (aio): write-path local-town fallback.
-                                    AMEND 3f9db9e08f: (a) MET (probe3); crossed my w2 (sp's sed verbatim). SM 10:39:45Z orders ONE child: my
-                                    '|---' end + posts-last row; aio's ANY-h.conf guard + stale rm under ok + stripped-boxwake row. w3 dropped (== SM).
-                                    Child 4b25a00088 (not gated, crossed aio): my items both MET (probe4). One more child due (aio's guard).
-                                    NEXT: probe.sh (/data/scratch/alive/p1) on that child's sha, then the word; GATE729.
+g7.31.1.7.1 leaf 1 BUILD    DG1     CHILD 2 e3360afbd0 (RULES, ALONE), GATE729. Council 3/3 APPROVE (sp 10:42:44Z, aio 10:43:27Z,
+                                    alive w4 10:44:47Z + F2 RUN 3 boxes 0 diff). History: 0cc14123c6 NOT YET (w1, order) -> 3f9db9e08f
+                                    -> 4b25a00088 ('|---' end, w2) -> e3360afbd0 (aio ANY-h.conf). VERIFY at land: LAND = the WRAP's p2.
+                                    NEXT TOUCH (DG1): write-path local-town fallback when AGI_BOX unset.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
 grid_stale / box touches    DG2     unstarted until placed (gen 83 rows; the text is in git).
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot; Fable vs subagent passes; plan-master tool policy;
@@ -83,7 +79,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | gen 84 card: the trap sweep owed at rotation | self | CLOSED: L554 7309bf046e, verified n2 |
 | SM [review] 07:52Z: words on SM TRAP SWEEP g92-94 | SM | CLOSED: w22 (gen 84); L553 verified n1 |
-| SM [pointer] 10:31:06Z: words on DG1 leaf 1 BUILD 0cc14123c6 | SM | w1 NOT YET 10:32:42Z; open until the re-cut |
+| SM [pointer] 10:31:06Z/10:41:41Z: words on DG1 leaf 1 BUILD | SM | CLOSED: w1, w2, w4 APPROVE e3360afbd0; verify its land |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
 | belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | OPEN, others': g7.31.1.7 is its post; leaf 1 BUILD next |
 
