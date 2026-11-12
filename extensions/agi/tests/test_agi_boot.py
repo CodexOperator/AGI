@@ -190,6 +190,12 @@ def test_project_service_execstart_checks_dropin_not_wants_links(box):
         pin = subprocess.run(["git", "rev-parse", "HEAD"], cwd=run.repo, check=True, capture_output=True, text=True).stdout.strip()  # A1b: the baked unit reads the pin from carry.env at run time, not a baked sha
         return subprocess.run(["sh", "-c", frag], cwd=run.repo, env={**run.env, "AGI_TRUNK": pin}, capture_output=True, text=True, timeout=60).returncode
     assert execstart("o1") == 0  # boot rows present
+    # sp 12:01:51Z: the unit's ExecStart re-run with AGI_BOX UNSET into the dir holding the good projection fails closed (rc 1) and touches nothing (the live unit takes AGI_BOX from carry.env)
+    o1 = tp / "o1"; snap = lambda: sorted((str(f.relative_to(o1)), f.read_bytes()) for f in o1.rglob("*") if f.is_file() and f.name != "agi-project.service")
+    frag1 = re.search(r'^ExecStart=sh -c "(.*)"$', (o1 / "agi-project.service").read_text(), re.M).group(1); before = snap()
+    env_nobox = {k: v for k, v in run.env.items() if k != "AGI_BOX"}
+    r1 = subprocess.run(["sh", "-c", frag1], cwd=run.repo, env={**env_nobox, "AGI_TRUNK": subprocess.run(["git", "rev-parse", "HEAD"], cwd=run.repo, check=True, capture_output=True, text=True).stdout.strip()}, capture_output=True, text=True, timeout=60)
+    assert r1.returncode != 0 and "nothing touched" in r1.stderr and snap() == before and list((o1 / "multi-user.target.wants").iterdir()), r1.stderr
     pf.write_text(rows.replace('"boot": true, ', "")); ci()
     assert execstart("o2") == 0  # v4 rows, no boot row: no wants link, h.conf drop-ins exist
     pf.write_text(re.sub(r', "engine": \{.*?\}', "", rows)); ci()
