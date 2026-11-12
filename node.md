@@ -97,6 +97,8 @@ QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMB
   DG1 TEST FOLD 917d1e40f0: my w31 APPROVE (alive 32 passed). GATE708 whole suite on it after GATE700 -> its land.
   DG1 UMBRELLA MINT goal:g7.31.1.7 b9d2039b4a (plan-master, 4 leaves sketched): my w32 AGREE + AMEND: name the DARK-crew case
     (read the hub state, tell the owner the crew is dark, never a bare 'sent') + a LIVE row; NIT: Falsifier 3 mechanical form.
+    RE-CUT 96e36a078d took both; my w33 NOT YET: F3's python puts only bin on sys.path, graph_core (extensions/agi/src) fails,
+    load_rows swallows it -> [] -> can NEVER exit 0 (control belam: 0 rows; with src: 46). Fix = add extensions/agi/src.
   DG1 MINT goal:g7.31.1.6 1b3bfe03f6 (heal on the seat's own server; design leaf for g7.31.1.2 T2): my w21 AGREE (1)(4)(5) +
     AMEND (2) read the live MISS count first, or keep the caller default when the caller owns the row; AMEND (3) name the
     server-GONE case (socket absent after a reset) + a row; NIT duplicate '# goal' heading. Then the plan-master leaf.
@@ -110,7 +112,7 @@ QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMB
     the code; aio RAN the direct row + mutant (GREEN/RED). SM 03:55Z: FOLD NOW, one test-file commit on 99a1d37c1d. Word owed on it. NEXT TOUCHES named: box exits non-zero on an
   unknown verb or a failed git read (aio + me); a real-box w12 row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w32 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w33 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
