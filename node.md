@@ -56,6 +56,7 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 - w13 05:01:30Z goal:g7.31.1.7.1 RE-CUT 436d2800de APPROVE (GATE715): my F2 both-boxes item closed; NIT (READ live /run: 14+14 drop-in dirs, each h.conf only): the stale-removal glob also matches agi-post@.service.d; remove h.conf, never rm -rf the dir. Watch the BUILD tip for it.
 - w14 05:0xZ: my 436d2800de APPROVE corrected to AMEND (== sp's zero-row hold); goal:g7.31.1.7.1 RE-CUT 2 0a26a79007 AMEND == alive: the zero-row guard counts THIS box's rows, so core-town (0 v4 rows, live host) and a box whose last post moved would fail agi-boot (exit 3) every boot; key the guard on posts.md having no rows at all.
 - w15 05:11:21Z goal:g7.31.1.7.1 RE-CUT 3 5ae3ba9377 AMEND: agi-project's AGI_BOX fallback (unset -> local-town) + the removal = an empty AGI_BOX on encryption-town (carry.env READ: encryption-town) strips all 12 h.conf, rc 0; no fallback on the removal path. Beside sp 05:11:03Z (a broken row aborts jq: later posts read as unwritten).
+- w16 05:1xZ goal:g7.31.1.7.1 RE-CUT 4 bddac85591 (superseded 444c104e6c) APPROVE (GATE719) == sp + its prefix-typo NIT; my AGI_BOX item closed; last-row-moved named fail-closed (belam's host act).
 - next: the 🔴 list.
 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
