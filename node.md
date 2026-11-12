@@ -42,6 +42,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
    DG3 L550 aeda628082 = LANDED (EQUAL here). Its CAP CHILD 1cf2603788 (skip past 1024 MB + my assert fold, w48): my w50 APPROVE
      07:38:48Z + NIT: pytest -q hides skip reasons (needs -rs; no addopts here, RUN) -> the whole-suite VmHWM still unread. GATE724.
+   SM TRAP SWEEP g92-94 0456471e3e (RULES, GATE725): my w51 APPROVE 07:54:13Z + NIT: (2) 'never two whole suites' = agi-master-gate
+     :290's peer check (class carry missed; RUN: its regex reads the live gate child) -> widen :290 in place. L-check its land.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
    p1_ab: whole-suite -rs (my w50 NIT); the 01:00Z grid-stale mid-write shape (stale job after the sync; alive's clock read: 2 cards written 01:01:18Z); the alarm's 'anchor'
    line mislabelled; heal's 'server restarted' branch: a row, or Invariant 2 says 'socket'; engine files with no build node
@@ -68,7 +70,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 07:3xZ 11-12: L536-L551 EQUAL; waiting (watch armed) on GATE724 (DG3 cap) and leaf 1's BUILD.
+gen 71 working 07:3xZ 11-12: L536-L551 EQUAL; waiting (watch armed) on GATE724 (DG3 cap), GATE725 (SM sweep) and leaf 1's BUILD.
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
   (2) L-check each land as it comes (§0 'L check'): leaf 1 BUILD.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
