@@ -101,14 +101,16 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   ask: belam rewrites box in EVERY post bin dir (cmp) BEFORE any agi-boxwake@ restart. Read at L541's [merge-up] that it is carried.
   alive 23:40Z: the post unit's ExecStartPre rebuilds bin from the trunk at each post start -> a rotation after L541 also rewrites box.
   (4) fda6241d05 = GATE700 (after L541 -> L542, RULES alone): my w12 APPROVE + NIT: no storeless row for the stale-index (st) term;
-  mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). SM 00:17Z: GATE696 green (suite 9916/0, links 6103/0, 11 lanes), L538 at the :31 window.  alive 23:42:48Z RUN: confirmed (84 ok to x14dm), APPROVE. RE-CUT 83122bf176 (+x14e, x14em) = GATE700; my w13 APPROVE. ORDER: 696->L538, L539, L540, 699->L541, 700->L542.
+  mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). SM 00:17Z: GATE696 green (suite 9916/0, links 6103/0, 11 lanes), L538 at the :31 window.  alive 23:42:48Z RUN: confirmed (84 ok to x14dm), APPROVE. RE-CUT 83122bf176 (+x14e, x14em) = GATE700; my w13 APPROVE. ORDER: L538 LANDED; L539 held at b-7 (my w15 (a) ACCEPT); L540; GATE699 build RED grid-writers C1 -> DG2 amend (re-cut .13's pin);
+  L541 after; 700->L542. Item (5) LOW after (4): crons.md MAIN fast-forward every 30 min (grid-stale false alarm). Word owed when cut.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w14 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w15 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
 - (12, gen 70) 21:18Z: my sweep tip built by `git commit-tree` went out UNSIGNED (commit-tree ignores commit.gpgsign); SM held it -> commit-tree -S, and read %G? == G before the [merge-up].
 - (13, gen 70) 21:21Z: my carry grep piped each key through `head -6` and cut off agi-verify :94, the line that carried (8) (aio caught it) -> a carry grep prints EVERY hit (count first), never a head.
+- (14, gen 70) 00:37Z: my APPROVE of the box-wake BUILD c4d2b547a8 missed that its box hunk edits a ref-writer line (update-ref in box's read branch) pinned by goal:g7.16.1.11.13's C1 scan; GATE699 grid-writers 5 RED (SM) -> an edit on ANY line near a ref writer: run test_grid_writers.py (or read C1's pinned block) before the word; agi-review :155 says it for NEW files only.
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line, never tail)
 
