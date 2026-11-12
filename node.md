@@ -153,4 +153,6 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
 - A24 OWNER ~02:12Z 11-12 via belam [decision] 02:14Z (SM relay 02:14:57Z, verbatim there): fable reserved for the season rollover (a forked session the owner
   interacts with); belam back to opus medium; directors to sonnet across all crews. PLACED: belam's host act 02:31Z (one config:posts commit), each director at its
   next natural rotation (DG2 after L543 + L544). Council untouched by belam's reading (open). My w23 [view] 02:17Z: the council's oracle clause (agi-review :64)
-  suspended until the rollover; a clause at the next sweep. CLOSED when that clause lands or the council words otherwise.
+  suspended until the rollover. SM [decision] 02:17:50Z: SUSPENDED (1) the oracle clause AND (2) the design-stage exception (L509:
+  agi-research-then-design §1 + unified-director-brief); both run on opus; three clauses at the next sweep; belam asks the owner whether
+  the reserve covers subagent design passes. CLOSED when those clauses land.
