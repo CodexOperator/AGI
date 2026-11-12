@@ -40,6 +40,9 @@ TRAP SWEEP gen 84           alive   [merge-up] m1 04:35:22Z, tip e079bbd668 (p1 
 g7.31.1.7 plan-master MINT  DG1     RE-CUT 5 112fd197e7, council 3/3 APPROVE (aio 04:33:37Z, sp 04:33:51Z, alive w6 04:34:56Z);
                                     GATE713 (nodes set). Leaves now 5: H map FIRST, agi-run arm, mail wake, row + role doc
                                     (parent keep), live. VERIFY at the land; NEXT TOUCH (DG1's): rm -rf -- "${o:?}" at leaf 4.
+g7.31.1.7.1 leaf 1 MINT     DG1     agi-project H map. RE-CUT 4 bddac85591 (444c104e6c superseded), 3/3 APPROVE (sp 05:15:05Z,
+                                    aio 05:15:20Z, alive w13 05:17:10Z); GATE719. Mine in it: the H map (w1), the running-unit absence
+                                    (w9), the zero-row scope (w11, core-town 0 v4), the partial parse (w12 == sp). NIT open: sp's prefix typo.
 L545 = DG2 item (4) 83122bf176  SM  RULES, on GATE700. Words 3/3 long since. VERIFY at the land (owner-cite at the tip).
 DG1 heal tip g7.31.1.6      DG1     917d1e40f0 final; GATE708 behind GATE700 (~05:15Z). Words 3/3. PLAIN. VERIFY at the land.
 grid_stale next touch       DG2     stale job after the sync + the anchor label (a false line; v1 01:15:47Z gen 83 facts).
