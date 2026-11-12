@@ -54,7 +54,8 @@ CRUMBS                      -       NO build node, by payload_ref (pre-existing 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 84: L550 aeda628082 DG3 test_p1_ab peak-RSS row (00e7c36e57), plain (n6 07:34:32Z; NO-NODE test_p1_ab.py: crumb).
+Gen 84: L551 c1d8e3f5d7 DG1 CLOSE g7.31.1.6 (RE-CUT 2 e3c652599b; F2 AMENDED, cites L550), plain (n7 07:49:07Z).
+L550 aeda628082 DG3 test_p1_ab peak-RSS row (00e7c36e57), plain (n6 07:34:32Z; NO-NODE test_p1_ab.py: crumb).
 L549 af4b1c5035 DG1 heal ENGINE TIP g7.31.1.6 (917d1e40f0), plain, 7 files; named red test_p1_ab peak-rss ACCEPTED 3/3 (w14:
 mechanism RUN, the forker's VmHWM at 535 MB fails it; alone passes) (n5 07:11:22Z: vland549, obj549, vgrid549 x7, census549).
 L545 d9f3c72c56 + WRAP bb55ab3cd4 DG2 item (4), RULES; host act read here: my bin/agi-mem 27253 B == the land's piece,
