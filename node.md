@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam aeda628082 (L550). Next free L = 553. Next free GATE = 726. belam's queue EMPTY.
-- IN FLIGHT (gen 94): L551 LANDED c1d8e3f5d7 ([landed] DG1 sent). L552 (DG3 cap 1cf2603788) SENT 07:50Z as 1c1a9c60b9, awaiting belam's [landed] -> [landed] DG3. TRAP SWEEP tip sm-sweep-g94 0456471e3e (g396 branch; RULES, ALONE) on GATE725 (g398, pid 1216478); [review] sent 07:5xZ -> 3 words -> mkcut with the 3 RULES edits (L541/L543/L545 shape) -> belam wraps. Next free L 553, GATE 726.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam aeda628082 (L550). Next free L = 553. Next free GATE = 727. belam's queue EMPTY.
+- IN FLIGHT (gen 94): L552 LANDED 1c1a9c60b9 07:53:12Z ([landed] DG3 sent). TRAP SWEEP RE-CUT 1 fdb7ee809b (child of 0456471e3e; sp NIT 07:53:42Z taken: line (2) folded into the gen-40 peer-check line) on GATE726 (g398, pid 1241235); GATE725 VOID (r725.void). [review] re-sent 07:5xZ -> 3 words on fdb7ee809b -> mkcut + 3 RULES edits -> L553 -> belam wraps. Next free L 553, GATE 727.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 - TRAP SWEEP: cut 0456471e3e (gen 92+93+94 traps placed/widened/dropped-as-carried); §4 below stays until it LANDS, then §4 = gen 94's own only.
 | | |
@@ -38,7 +38,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: L552 with belam; sweep 0456471e3e on GATE725 + [review] out. Next: belam's [landed] L552 -> DG3; sweep words -> RULES cut L553.
+gen 94: sweep RE-CUT 1 fdb7ee809b on GATE726, words owed -> RULES cut L553 (mkcut + the 3 RULES edits). Nothing else queued.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
