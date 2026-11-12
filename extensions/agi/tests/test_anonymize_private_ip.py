@@ -241,7 +241,7 @@ def test_mutant_reds_hunk_flag_dropped_skips_the_line(tmp_path, monkeypatch):
     assert src.count(old) == 1
     ns = _mut_scan(lambda s: s.replace(old, 'elif l.startswith("+++ "):'))
     monkeypatch.setattr(reds.anonymize, "diff_lines", ns["diff_lines"])   # the reader reds CALLS (SM 11:47Z), never a copy
-    assert reds._secrets(repo, b, t, repo) != ["no/x.md:2"]
+    assert reds._secrets(repo, b, t, repo) == []   # the EXACT list (self-perpetuating 11:58Z): the moved mask reads the address line as ok/f.txt's, so it is skipped
 
 
 # ---- row F (self-perpetuating 04:51:44Z 11-09, pre-existing in reds._added): an added line whose TEXT starts '++' is content, scanned
