@@ -231,7 +231,7 @@ def test_a_gone_server_is_recreated_on_its_socket_and_the_seat_opens_there(graph
     _scan(heal, graph, seen, real=True)
     assert [s.get("socket") for s in seen] == [str(sock)], log
     assert "seat-a" in _windows_on(sock) and _windows_on(_default(scratch)) == []
-    assert any("server gone: recreated on" in ln for ln in log), log
+    assert any("server gone: recreating on" in ln for ln in log), log
 
 
 def test_mutant_a_gone_server_fails_closed_RED(graph, calls, scratch, tmp_path, log):
@@ -357,7 +357,7 @@ def test_the_owners_registry_holds_a_live_session_so_not_respawned(graph, calls,
 
 def test_mutant_the_callers_registry_reads_it_dead_RED(graph, calls, scratch, log, monkeypatch, tmp_path):
     m = _mut(tmp_path, "heal_mut_reg", BIN / "heal.py",
-             "    if uid is None or uid == os.getuid():\n        return registry_dir\n",
+             "    if uid == os.getuid():\n        return registry_dir\n",
              "    if True:\n        return registry_dir\n")
     sock, _reg = _registry_row(graph, scratch, tmp_path / "home-other")
     _owned_by_other(m, monkeypatch, tmp_path / "home-other", sock)
@@ -408,3 +408,132 @@ def test_the_seats_server_is_the_callers_default_verdicts_as_before_CONTROL(grap
     _scan(heal, graph, seen)
     assert len(seen) == (0 if open_ else 1), log
     assert all("socket" not in s for s in seen)             # the default server: the launch as before
+
+
+# --- AMEND (SM 03:35:57Z on alive 03:35:32Z NIT; and the reset that removes the socket's DIR) ---------------------
+
+def _hit_closed(graph, scratch):
+    sock = scratch / "seat"
+    _server(sock)
+    _row(graph, window="@7", pid=DEAD_PID)
+    _record(graph, window_id="@7", **_identity(sock))
+    return sock
+
+
+def test_an_unread_registry_owner_holds_the_respawn_never_the_callers(graph, calls, scratch, log, monkeypatch):
+    """alive's row: the socket dir's owner cannot be read -> UNREAD (held, named), never the caller's sessions."""
+    sock = _hit_closed(graph, scratch)
+    assert heal._owner_registry(str(sock), "/CALLERS/registry") == "/CALLERS/registry"      # ours: as before
+    monkeypatch.setattr(heal, "_path_owner", lambda p: (None, ""))
+    assert heal._owner_registry(str(sock), "/CALLERS/registry") is heal.REG_OWNER_UNREAD
+    seen: list = []
+    _scan(heal, graph, seen)
+    assert seen == [] and any("is unread: registry unreadable" in ln for ln in log), log
+    assert any("respawn held: registry unreadable" in ln for ln in log), log
+
+
+def test_mutant_an_unread_owner_reads_the_callers_registry_RED(graph, calls, scratch, log, monkeypatch, tmp_path):
+    m = _mut(tmp_path, "heal_mut_regnone", BIN / "heal.py",
+             "    if uid is None:\n        try:\n            os.lstat(d)\n",
+             "    if uid is None:\n        return registry_dir\n        try:\n            os.lstat(d)\n")
+    _hit_closed(graph, scratch)
+    monkeypatch.setattr(m, "_path_owner", lambda p: (None, ""))
+    seen: list = []
+    with _with(m):
+        _scan(m, graph, seen)
+    assert len(seen) == 1
+
+
+def _gone_dir(graph, scratch):
+    """A reset cleared /tmp: the record's socket AND its tmux-<uid> dir are gone (measured 03:36Z: tmux -S never
+    creates the parent: 'error creating ... (No such file or directory)', rc 0)."""
+    d = scratch / f"tmux-{os.getuid()}"                    # this uid's OWN tmux dir (TMUX_TMPDIR = scratch), by full path
+    sock = d / "seat"
+    _server(sock)
+    ident = _identity(sock)
+    _kill_and_wait(sock)
+    shutil.rmtree(d)
+    _row(graph, window="@0", pid=DEAD_PID)
+    _record(graph, window_id="@0", **ident)
+    return sock
+
+
+def test_a_gone_server_whose_dir_is_gone_is_recreated_dir_and_all(graph, calls, scratch, log):
+    """MEASURED in this row: tmux makes its OWN ${TMUX_TMPDIR}/tmux-<uid> dir itself (and heal's own default read
+    already has by the registry read), so rotate's makedirs and _owner_registry's absent-own branch are guards no
+    live path reaches today: no mutant of either can read RED here, and none is claimed."""
+    sock = _gone_dir(graph, scratch)
+    seen: list = []
+    _scan(heal, graph, seen, real=True)
+    assert [s.get("socket") for s in seen] == [str(sock)] and "seat-a" in _windows_on(sock), log
+    assert oct(sock.parent.stat().st_mode & 0o777) == "0o700"
+
+
+def test_an_absent_dir_named_tmux_uid_elsewhere_is_not_ours_skipped_named(graph, calls, scratch, log):
+    """(B), aio + sp: the own dir is read by FULL path, never the basename: tmux-<uid> under another root is skipped."""
+    d = scratch / "r" / f"tmux-{os.getuid()}"
+    sock = d / "seat"
+    _server(sock)
+    ident = _identity(sock)
+    _kill_and_wait(sock)
+    shutil.rmtree(d)
+    _row(graph, window="@0", pid=DEAD_PID)
+    _record(graph, window_id="@0", **ident)
+    seen: list = []
+    _scan(heal, graph, seen, real=True)
+    assert seen == [] and any("server gone on" in ln and "not this uid's" in ln for ln in log), log
+
+
+def test_mutant_the_own_dir_read_by_basename_RED(graph, calls, scratch, log, tmp_path):
+    m = _mut(tmp_path, "heal_mut_basename", BIN / "heal.py",
+             "                    else os.path.abspath(d) == os.path.abspath(_own_tmux_dir()))\n",
+             '                    else os.path.basename(d) == f"tmux-{os.getuid()}")\n')
+    d = scratch / "r" / f"tmux-{os.getuid()}"
+    sock = d / "seat"
+    _server(sock)
+    ident = _identity(sock)
+    _kill_and_wait(sock)
+    shutil.rmtree(d)
+    _row(graph, window="@0", pid=DEAD_PID)
+    _record(graph, window_id="@0", **ident)
+    seen: list = []
+    with _with(m):
+        _scan(m, graph, seen)
+    assert not any("not this uid's" in ln for ln in log)      # the lookalike dir read as ours
+
+
+@pytest.fixture
+def uncreatable(graph, scratch):
+    """A gone server whose dir is ours but not writable (0500): `tmux -S` new-session makes nothing and exits 0."""
+    d = scratch / "ro"
+    sock = d / "seat"
+    _server(sock)
+    ident = _identity(sock)
+    _kill_and_wait(sock)
+    if sock.exists():
+        sock.unlink()
+    d.chmod(0o500)
+    _row(graph, window="@0", pid=DEAD_PID)
+    _record(graph, window_id="@0", **ident)
+    yield sock
+    d.chmod(0o700)
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root writes a 0500 dir")
+def test_a_recreate_that_made_no_server_is_named_failed(graph, calls, uncreatable, log):
+    seen: list = []
+    _scan(heal, graph, seen, real=True)
+    assert len(seen) == 1 and _windows_on(uncreatable) == [], log
+    assert any(f"server on {uncreatable} NOT recreated" in ln for ln in log), log
+    assert not any("recreated on" in ln for ln in log), log
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root writes a 0500 dir")
+def test_mutant_a_failed_recreate_not_named_RED(graph, calls, uncreatable, log, tmp_path):
+    m = _mut(tmp_path, "heal_mut_unnamed", BIN / "heal.py",
+             "        if socket and _server_identity(socket) is None:\n",
+             "        if False:\n")
+    seen: list = []
+    with _with(m):
+        _scan(m, graph, seen, real=True)
+    assert not any("NOT recreated" in ln for ln in log)

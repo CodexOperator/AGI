@@ -1865,6 +1865,12 @@ def ensure_tmux_session(tmux_session: str, root: Path | None = None,
     None = this process's default server, byte-identical to before."""
     _S = ["-S", socket] if socket else []
     try:
+        if socket:
+            # goal:g7.31.1.6 (measured 03:36Z 11-12, tmux 3.4): `tmux -S` never
+            # creates its socket's parent dir ('error creating ... (No such
+            # file or directory)', rc 0), so a reset that cleared /tmp would
+            # fail every relaunch; made here, 0700, as tmux makes its own
+            os.makedirs(os.path.dirname(socket), mode=0o700, exist_ok=True)
         if subprocess.run(["tmux"] + _S + ["has-session", "-t", tmux_session],
                           capture_output=True, text=True, timeout=10).returncode == 0:
             return
@@ -1879,6 +1885,14 @@ def ensure_tmux_session(tmux_session: str, root: Path | None = None,
         r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
         if r.returncode != 0:
             print(f"warn: could not create tmux session {tmux_session!r}: "
+                  f"{(r.stderr or r.stdout).strip()}", file=sys.stderr)
+        elif socket and subprocess.run(["tmux"] + _S + ["has-session", "-t", tmux_session],
+                                       capture_output=True, text=True,
+                                       timeout=10).returncode != 0:
+            # goal:g7.31.1.6 (B): `tmux -S` new-session exits 0 when it could
+            # not create the socket; has-session AFTER it is the read
+            print(f"warn: tmux session {tmux_session!r} on {socket} not created "
+                  f"(new-session rc 0, has-session none): "
                   f"{(r.stderr or r.stdout).strip()}", file=sys.stderr)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"warn: tmux session ensure for {tmux_session!r} failed: {exc}",

@@ -2902,6 +2902,12 @@ def _path_owner(path) -> tuple[int | None, str]:
         return uid, str(uid)
 
 
+def _own_tmux_dir() -> str:
+    """goal:g7.31.1.6 (B): this uid's OWN tmux dir, by full path:
+    ${TMUX_TMPDIR:-/tmp}/tmux-<uid> (where tmux makes its default socket)."""
+    return os.path.join(os.environ.get("TMUX_TMPDIR") or "/tmp", f"tmux-{os.getuid()}")
+
+
 def _is_default_socket(sock: str) -> bool:
     """goal:g7.31.1.6: `sock` is the server a bare tmux call already reaches."""
     try:
@@ -2910,21 +2916,41 @@ def _is_default_socket(sock: str) -> bool:
         return False
 
 
-def _owner_registry(sock: str, registry_dir: str | None) -> str | None:
+#: goal:g7.31.1.6 (alive 03:35:32Z NIT): the registry's owner could not be
+#: read. NOT a path: a missing registry dir reads [] ("no sessions"), so a
+#: made-up path would license the very launch an unread must hold.
+REG_OWNER_UNREAD = object()
+
+
+def _owner_registry(sock: str, registry_dir: str | None):
     """goal:g7.31.1.6 target 4: the session registry of the uid that owns the
     seat's server (its socket dir): that uid's harness wrote its session file
     in ITS home. The caller's own -> `registry_dir` as given (the default,
-    byte-identical to before); another uid's -> <its home>/.claude/sessions."""
+    byte-identical to before); another uid's -> <its home>/.claude/sessions.
+    An owner that cannot be read -> REG_OWNER_UNREAD (the caller reads UNREAD
+    and holds the respawn, named), never the caller's registry; except this
+    uid's OWN tmux dir gone after a reset (absent, named tmux-<uid>), which
+    heal recreates as itself."""
     if not sock:
         return registry_dir
-    uid, _name = _path_owner(os.path.dirname(sock))
-    if uid is None or uid == os.getuid():
+    d = os.path.dirname(sock)
+    uid, _name = _path_owner(d)
+    if uid is None:
+        try:
+            os.lstat(d)
+        except FileNotFoundError:
+            if os.path.abspath(d) == os.path.abspath(_own_tmux_dir()):
+                return registry_dir
+        except OSError:
+            pass
+        return REG_OWNER_UNREAD
+    if uid == os.getuid():
         return registry_dir
     try:
         import pwd  # noqa: PLC0415
         return os.path.join(pwd.getpwuid(uid).pw_dir, ".claude", "sessions")
     except Exception:  # noqa: BLE001
-        return os.path.join(f"/nonexistent-home-of-uid-{uid}", ".claude", "sessions")
+        return REG_OWNER_UNREAD
 
 
 def _row_server(root: Path, row: dict, windows, _rotate,
@@ -2972,14 +2998,17 @@ def _row_server(root: Path, row: dict, windows, _rotate,
         if _tmux_socket_state(sock) == "live":
             how = f"{sw.detail}: launched on that live server"
         else:
+            # an existing dir: this uid must own it; an ABSENT one (a reset
+            # cleared /tmp): only this uid's own tmux dir, by FULL path, which
+            # rotate.ensure_tmux_session makes 0700 before the -S new-session
             mine = (uid == os.getuid() if uid is not None
-                    else os.path.basename(d) == f"tmux-{os.getuid()}")
+                    else os.path.abspath(d) == os.path.abspath(_own_tmux_dir()))
             if not mine:
                 return {"kind": "skip", "windows": None, "socket": sock,
                         "why": (f"server gone on {sock}, and its dir is "
                                 f"{owner or 'unreadable'}'s, not this uid's: "
                                 f"run it as {owner or 'its owner'}")}
-            how = f"server gone: recreated on {sock} ({sw.detail})"
+            how = f"server gone: recreating on {sock} ({sw.detail})"
     return {"kind": "hit", "windows": sw,
             "socket": "" if _is_default_socket(sock) else sock, "why": how}
 
@@ -4440,9 +4469,16 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if pid == 0:
         # spawn did not land -> the seat stays dead; record `detected` only so
         # the NEXT pass retries (the defect pin).
+        reason = "launcher reported no successor process"
+        if socket and _server_identity(socket) is None:
+            # goal:g7.31.1.6 (B): tmux -S new-session exits 0 with no server
+            # (an uncreatable socket), so the server is read AFTER, and a
+            # recreate that did not happen is named, never 'recreated'
+            reason = (f"server on {socket} NOT recreated: no server answers "
+                      f"after the launch; {reason}")
+            _watch_log(f"watch: seat {seat}: {reason}")
         return {"respawned": False, "name": spawn_name, "generation": gen,
-                "reason": "launcher reported no successor process",
-                "row": "skipped"}
+                "reason": reason, "row": "skipped"}
     # pid is None (launched, unknown) or a real int -> the recovery landed.
     # a launcher that cannot name the pid (the real one: `None`) -> the new
     # window's PANE pid, else the row keeps the DEAD pid and the next sweep
@@ -5172,7 +5208,13 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
             if sock not in _pp_by_sock:
                 _pp_by_sock[sock] = _pane_pid_map(window_path, socket=sock)
             r_pane = _pp_by_sock[sock]
-            r_sess = _seat_sessions(_owner_registry(sock, registry_dir), r_windows)
+            reg = _owner_registry(sock, registry_dir)
+            if reg is REG_OWNER_UNREAD:
+                _watch_log(f"watch: seat {(row.get('name') or '').strip()}: the owner of "
+                           f"{os.path.dirname(sock)} is unread: registry unreadable")
+                r_sess = UNREAD
+            else:
+                r_sess = _seat_sessions(reg, r_windows)
         summary = _watch_one_seat(root, row, r_windows, _rotate,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
