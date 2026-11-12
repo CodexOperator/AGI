@@ -18,7 +18,7 @@ row(){ printf '  - {"name":"%s","role":"parent","tier":3,"box":"%s","engine":{"v
 hdr(){ printf -- '---\nid: config:posts\nposts:\n';}
 # repo NAME: a scratch repo with the engine*.md under test (or $2 = a dir holding the base's) and the posts body on stdin
 repo(){ d=$T/$1;$G init -q $d;mkdir -p $d/$GD;cp ${2:-$T/cur}/engine*.md $d/$GD/;cat>$d/$GD/posts.md;$G -C $d add -A;$G -C $d -c user.name=x -c user.email=x@x commit -qm f;}
-FULL(){ hdr;row c1 claude-code bx m1;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row f1 foo bx;row n1 "" bx;row k1 copilot-cli bx;row o1 claude-code ox;row l1 claude-code local-town;printf -- 'end: 1\n---\n';}
+FULL(){ hdr;row c1 claude-code bx m1;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row f1 foo bx;row n1 "" bx;row k1 copilot-cli bx;row o1 claude-code ox;row l1 claude-code local-town;printf -- '---\n';}
 pj(){ s=$1;r=$2;o=$3;b=$4;mkdir -p $o;if [ "$b" = UNSET ];then (cd $r&&env -u AGI_BOX sh $s $o HEAD) 2>$o.err;else (cd $r&&AGI_BOX=$b sh $s $o HEAD) 2>$o.err;fi;rc=$?;}
 # the rows, against a section file ($1); each prints ok/FAIL lines; fails are counted in the caller
 rows(){ S=$1;L=$2;t=$T/run.$L;rm -rf $t;mkdir -p $t
@@ -53,23 +53,26 @@ rows(){ S=$1;L=$2;t=$T/run.$L;rm -rf $t;mkdir -p $t
  for v in tab noindent;do pj $S $T/lastok $t/z$v bx;pj $S $T/last$v $t/z$v bx;eval rz_$v=$rc;done
  ok "$L-doubt-last-row-with-a-tab-fails-and-removes-nothing" '[ $rz_tab != 0 ]&&[ -f $t/ztab/agi-post@p1.service.d/h.conf ]&&[ -f $t/ztab/agi-boxwake@p1.service.d/h.conf ]&&[ -f $t/ztab/agi-post@g2.service.d/h.conf ]'
  ok "$L-doubt-last-row-with-no-indent-fails-and-removes-nothing" '[ $rz_noindent != 0 ]&&[ -f $t/znoindent/agi-post@g2.service.d/h.conf ]&&[ -f $t/znoindent/agi-boxwake@g2.service.d/h.conf ]'
+ pj $S $T/s1 $t/k bx;pj $S $T/keyed $t/k bx
+ ok "$L-valid-posts-then-another-key-and-a-body-exits-0" '[ $rc = 0 ]&&[ -f $t/k/agi-post@c1.service.d/h.conf ]'
  # aio's rows: the template-wide dir survives; an extra file beside a stale h.conf survives and its dir stays
  pj $S $T/s1 $t/x bx;mkdir -p $t/x/agi-post@.service.d;echo T>$t/x/agi-post@.service.d/h.conf;echo keep>$t/x/agi-post@c1.service.d/50-host.conf;pj $S $T/s2 $t/x bx
  ok "$L-template-wide-dir-survives-a-projection" '[ -f $t/x/agi-post@.service.d/h.conf ]'
  ok "$L-extra-file-beside-a-stale-h-conf-survives" '[ ! -e $t/x/agi-post@c1.service.d/h.conf ]&&[ -f $t/x/agi-post@c1.service.d/50-host.conf ]&&[ ! -e $t/x/agi-boxwake@c1.service.d ]';}
 FULL|repo full
+FULL|sed 's/^---$/end: 1\n---/;1s/end: 1\n//'|awk '/^---$/{n++} n==2&&!d{print "end: 1\nbody text";d=1} {print}'|repo keyed
 FULL|sed 's/"name":"c1","role":"parent","tier":3,"box":"bx","engine":{"v":4,"harness":"claude-code"/"name":"c1","role":"parent","tier":3,"box":"bx","engine":{"v":4,"harness":"foo"/'|repo s2
 FULL|repo s1;cp -r $T/full $T/full2
-hdr|{ cat;printf -- 'end: 1\n---\n';}|repo empty
+hdr|{ cat;printf -- '---\n';}|repo empty
 { :; }|{ mkdir -p $T/absent;$G init -q $T/absent;mkdir -p $T/absent/$GD;cp $T/cur/engine*.md $T/absent/$GD/;$G -C $T/absent add -A;$G -C $T/absent -c user.name=x -c user.email=x@x commit -qm f; }
-{ hdr;row c1 claude-code bx;echo '  - {"name":"zz","box":"bx", broken';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- 'end: 1\n---\n'; }|repo broken
-{ hdr;row c1 claude-code bx|sed 's/^  - {/  -{/';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- 'end: 1\n---\n'; }|repo mangled
-{ hdr;row c1 claude-code ox;row o1 claude-code ox;row l1 claude-code local-town;printf -- 'end: 1\n---\n'; }|repo moved
+{ hdr;row c1 claude-code bx;echo '  - {"name":"zz","box":"bx", broken';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- '---\n'; }|repo broken
+{ hdr;row c1 claude-code bx|sed 's/^  - {/  -{/';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- '---\n'; }|repo mangled
+{ hdr;row c1 claude-code ox;row o1 claude-code ox;row l1 claude-code local-town;printf -- '---\n'; }|repo moved
 { hdr;row c1 claude-code bx;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row g2 grok-bot bx;printf 'end: 1\n---\n'; }|repo lastok
-{ hdr;row c1 claude-code bx;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row g2 grok-bot bx|sed 's/^  - {/\t- {/';printf -- 'end: 1\n---\n'; }|repo lasttab
-{ hdr;row c1 claude-code bx;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row g2 grok-bot bx|sed 's/^  - {/- {/';printf -- 'end: 1\n---\n'; }|repo lastnoindent
-{ hdr;row t1 claude-code ct;printf -- 'end: 1\n---\n'; }|repo c1
-{ hdr;printf '  - {"name":"t1","role":"parent","tier":3,"box":"ct"}\n';printf -- 'end: 1\n---\n'; }|repo c2
+{ hdr;row c1 claude-code bx;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row g2 grok-bot bx|sed 's/^  - {/\t- {/';printf -- '---\n'; }|repo lasttab
+{ hdr;row c1 claude-code bx;row p1 pi bx m2;row g1 grok-bot bx grok-4.7;row g2 grok-bot bx|sed 's/^  - {/- {/';printf -- '---\n'; }|repo lastnoindent
+{ hdr;row t1 claude-code ct;printf -- '---\n'; }|repo c1
+{ hdr;printf '  - {"name":"t1","role":"parent","tier":3,"box":"ct"}\n';printf -- '---\n'; }|repo c2
 # full2 (the misspell / unset / empty box rows reuse FULL: the section sees only AGI_BOX differ)
 ok "extract-the-repos-hold-the-rows" '[ $(grep -c "^  - {" $T/full/$GD/posts.md) = 8 ]&&[ ! -e $T/absent/$GD/posts.md ]'
 echo "== the section under test"
@@ -88,5 +91,5 @@ mut sed-lines-only doubt-mangled-row-prefix-fails-and-removes-nothing 's/\&\&\[ 
 mut rm-rf-the-dir extra-file-beside-a-stale-h-conf-survives 's/rm -f \$d\/h.conf;rmdir \$d 2>\/dev\/null/rm -rf $d/'
 mut guard-on-writes scope-box-with-no-v4-row-exits-0-and-cleans-its-own 's/ok(){ \[ "\$AGI_BOX" \]&&k=/ok(){ [ -s $o\/.w ]\&\&k=/'
 mut broken-row-unchecked doubt-broken-row-fails-and-removes-nothing 's/k=\$(printf .%s\\n. "\$n"|jq -r \.box)/k=$(printf "%s\\n" "$n"|jq -r .box 2>\/dev\/null||:)/;s/\&\&\[ \$(printf .%s\\n. "\$n"|grep -c \.) = \$(printf .%s\\n. "\$k"|grep -c \.) \]//'
-mut block-ends-at-any-unindented doubt-last-row-with-a-tab-fails-and-removes-nothing 's|sed -n ./^posts:/,/^\[A-Za-z_\]\[A-Za-z0-9_\]\*:/{[^}]*}.|sed -n "/^posts:/,/^[^ ]/{/^  /p}"|'
+mut key-only-block-end stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/|---)/)/g'
 echo "agi-project-harness: $f FAIL";[ $f = 0 ]
