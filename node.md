@@ -37,9 +37,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
-   leaf 1 goal:g7.31.1.7.1: RE-CUT 2 0a26a79007 took my hold (removal after >= 1 h.conf; zero rows non-zero first; EMPTY + ABSENT rows)
-     + aio's NIT + alive's NOTE named. My w41 APPROVE AS GATED 05:07:06Z (build note: the row loop is a pipe subshell, 'written this
-     run' must come back via a file). GATE716 queued. Next: L-check its land; at the BUILD, run the lane's E/F rows (g71-proj).
+   leaf 1 goal:g7.31.1.7.1: RE-CUT 3 5ae3ba9377 (guard on posts.md as a whole, alive + aio's scope; my side read on core-town was
+     WRONG, corrected in w42). My w42 AMEND 05:11:34Z: one broken row ABORTS jq mid-stream (rc 5 lost in the pipe, RUN) -> later posts'
+     h.conf removed, rc 0; fix = an up-front jq pass, count == sed lines, else non-zero. GATE717 running. Next: RE-CUT 4 / SM's call.
    alive TRAP SWEEP g84 e079bbd668 = my w38 APPROVE + NIT (3)'s name half 04:37:39Z; aio APPROVE; SM [reply] 04:37:38Z: gates key on the
      40-hex SHA, so the name half is stricter than needed; cuts as L547 when GATE714 is green, my fix shape = its NEXT TOUCH. L-check L547.
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
@@ -64,7 +64,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 04:5xZ 11-12: w41 APPROVE sent on leaf 1 RE-CUT 2 0a26a79007; waiting (watch armed) on GATE714 -> L547 (alive's sweep), L545, the heal land.
+gen 71 working 04:5xZ 11-12: w42 AMEND sent on leaf 1 RE-CUT 3 5ae3ba9377 (broken row); waiting (watch armed) on GATE714 -> L547 (alive's sweep), L545, the heal land.
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
   (2) L-check each land as it comes (§0 'L check'): the umbrella (GATE713), L545 = DG2 item (4) 83122bf176, the heal engine (GATE708).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
