@@ -35,6 +35,8 @@ rows(){ S=$1;L=$2;t=$T/run.$L;rm -rf $t;mkdir -p $t
  pj $S $T/full $t/e bx;nw=$(ls $t/e/multi-user.target.wants|wc -l);nu=$(grep -c . $t/e/agi-users.conf);for v in empty absent;do pj $S $T/$v $t/e bx;eval r_$v=$rc;done
  ok "$L-hold-empty-posts-md-fails-and-removes-nothing" '[ $r_empty != 0 ]&&[ -f $t/e/agi-post@c1.service.d/h.conf ]&&[ $(ls $t/e/multi-user.target.wants|wc -l) = $nw ]&&[ $(grep -c . $t/e/agi-users.conf) = $nu ]&&[ -f $t/e/agi-post@g1.service.d/h.conf ]&&[ -f $t/e/agi-boxwake@c1.service.d/h.conf ]'
  ok "$L-hold-absent-posts-md-fails-and-removes-nothing" '[ $r_absent != 0 ]&&[ $(ls $t/e/multi-user.target.wants|wc -l) = $nw ]&&[ $(grep -c . $t/e/agi-users.conf) = $nu ]&&[ -f $t/e/agi-post@c1.service.d/h.conf ]&&[ -f $t/e/agi-post@g1.service.d/h.conf ]'
+ pj $S $T/fullnb $t/nb bx;pj $S $T/emptynb $t/nb bx;rN=$rc
+ ok "$L-hold-without-the-boxwake-section-fails-and-keeps-everything" '[ $rN != 0 ]&&[ -f $t/nb/agi-post@c1.service.d/h.conf ]&&[ -f $t/nb/agi-post@g1.service.d/h.conf ]&&[ ! -e $t/nb/agi-boxwake@c1.service.d ]&&[ $(grep -c . $t/nb/agi-users.conf) -gt 0 ]'
  # SCOPE: a box named by rows of which none is v4 (core-town's shape): rc 0; its stale drop-in goes, nothing else
  pj $S $T/c1 $t/c ct;pj $S $T/c2 $t/c ct;rC=$rc
  ok "$L-scope-box-with-no-v4-row-exits-0-and-cleans-its-own" '[ $rC = 0 ]&&[ ! -e $t/c/agi-post@t1.service.d/h.conf ]'
@@ -64,6 +66,9 @@ FULL|sed 's/^---$/end: 1\n---/;1s/end: 1\n//'|awk '/^---$/{n++} n==2&&!d{print "
 FULL|sed 's/"name":"c1","role":"parent","tier":3,"box":"bx","engine":{"v":4,"harness":"claude-code"/"name":"c1","role":"parent","tier":3,"box":"bx","engine":{"v":4,"harness":"foo"/'|repo s2
 FULL|repo s1;cp -r $T/full $T/full2
 hdr|{ cat;printf -- '---\n';}|repo empty
+mkdir -p $T/nbe;cp $T/cur/engine*.md $T/nbe/;awk '/^### agi-boxwake@.service/{d=1;next} d&&/^### /{d=0} !d' $T/nbe/engine-root.md>$T/nbe/x&&mv $T/nbe/x $T/nbe/engine-root.md
+FULL|repo fullnb $T/nbe
+{ hdr;printf -- '---\n'; }|repo emptynb $T/nbe
 { :; }|{ mkdir -p $T/absent;$G init -q $T/absent;mkdir -p $T/absent/$GD;cp $T/cur/engine*.md $T/absent/$GD/;$G -C $T/absent add -A;$G -C $T/absent -c user.name=x -c user.email=x@x commit -qm f; }
 { hdr;row c1 claude-code bx;echo '  - {"name":"zz","box":"bx", broken';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- '---\n'; }|repo broken
 { hdr;row c1 claude-code bx|sed 's/^  - {/  -{/';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- '---\n'; }|repo mangled
@@ -84,12 +89,13 @@ mut(){ # mut NAME ROW SEDEXPR : the mutant of the section; its row must FAIL, an
 mut else-claude unknown-harness-makes-no-unit 's/elif \$h=="grok-bot" then "grok-bot --model \\(.model)" else/else/;s/select((\$h|test("^(pi|claude)")) or \$h=="grok-bot" or (/select(true or (/'
 mut silent-skip each-skip-is-one-named-line 's/(debug(@text "agi-project: skipped post \\(.name): harness \\(\$h) has no unit arm")|false)/false/'
 mut perm-mode grok-no-approval-flag 's/grok-bot --model \\(.model)"/grok-bot --model \\(.model) --permission-mode bypassPermissions"/'
-mut no-stale-removal stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/^\[ -s \$o\/\.s \]&&while/[ -s $o\/.none ]\&\&while/'
-mut no-hold-guard hold-empty-posts-md-fails-and-removes-nothing 's/^ok||{ ls/true||{ ls/'
+mut no-stale-removal stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/^\[ -s \$o\/\.s \]&&ok&&while/[ -s $o\/.none ]\&\&ok\&\&while/'
+mut no-hold-guard hold-empty-posts-md-fails-and-removes-nothing 's/^ok||for/true||for/'
 mut box-fallback doubt-box-unset-fails-and-removes-nothing 's/ok(){ \[ "\$AGI_BOX" \]&&k=/ok(){ AGI_BOX=${AGI_BOX:-local-town};k=/'
 mut sed-lines-only doubt-mangled-row-prefix-fails-and-removes-nothing 's/\&\&\[ \$(printf .%s\\n. "\$n"|grep -c \.) = \$(g posts.md|sed -n .*|grep -c \.) \]\&\&printf/\&\&printf/'
 mut rm-rf-the-dir extra-file-beside-a-stale-h-conf-survives 's/rm -f \$d\/h.conf;rmdir \$d 2>\/dev\/null/rm -rf $d/'
 mut guard-on-writes scope-box-with-no-v4-row-exits-0-and-cleans-its-own 's/ok(){ \[ "\$AGI_BOX" \]&&k=/ok(){ [ -s $o\/.w ]\&\&k=/'
 mut broken-row-unchecked doubt-broken-row-fails-and-removes-nothing 's/k=\$(printf .%s\\n. "\$n"|jq -r \.box)/k=$(printf "%s\\n" "$n"|jq -r .box 2>\/dev\/null||:)/;s/\&\&\[ \$(printf .%s\\n. "\$n"|grep -c \.) = \$(printf .%s\\n. "\$k"|grep -c \.) \]//'
 mut key-only-block-end stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/|---)/)/g'
+mut two-glob-ls hold-without-the-boxwake-section-fails-and-keeps-everything 's/^ok||for f in \(.*\);do \[ -f \$f \]&&{ \(.*\);exit 1;};done/ok||{ ls \1>\/dev\/null 2>\&1\&\&{ \2;exit 1;};}/'
 echo "agi-project-harness: $f FAIL";[ $f = 0 ]
