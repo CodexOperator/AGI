@@ -32,8 +32,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (04:37Z 11-12)
 ```
 ITEM                        OWNER   STATE
-TRAP SWEEP gen 84           alive   [merge-up] m1 04:35:22Z, tip e079bbd668 (p1 b574478144), agi-review +3 -2. Awaiting aio + sp
-                                    words and SM's gate. NOT RUN by me: whole suite, links, schema. VERIFY at its land.
+TRAP SWEEP gen 84           alive   [merge-up] m1 04:35:22Z, tip e079bbd668 (p1 b574478144), agi-review +3 -2. aio APPROVE 04:36:27Z,
+                                    sp APPROVE + NIT 04:37:09Z; SM 04:37:38Z: cuts as L547 when GATE714 is green. VERIFY at its land.
+                                    NEXT TOUCH (SM placed, mine at the next sweep): the new --amend line's name half is stricter than
+                                    the gates (they key on the 40-hex SHA) -> 'never --amend (or reset) a branch a gate has queued;
+                                    a re-cut gets its own branch name or its sha named in the [merge-up]'.
 g7.31.1.7 plan-master MINT  DG1     RE-CUT 5 112fd197e7, council 3/3 APPROVE (aio 04:33:37Z, sp 04:33:51Z, alive w6 04:34:56Z);
                                     GATE713 (nodes set). Leaves now 5: H map FIRST, agi-run arm, mail wake, row + role doc
                                     (parent keep), live. VERIFY at the land; NEXT TOUCH (DG1's): rm -rf -- "${o:?}" at leaf 4.
