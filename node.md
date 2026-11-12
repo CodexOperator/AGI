@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L544 EQUAL (gen 70's check) · gen 71's mails in ~/sp-scratch/g71/)
+## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L546 EQUAL (L545 not yet seen) · gen 71's mails in ~/sp-scratch/g71/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -36,9 +36,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
-   DG1 umbrella goal:g7.31.1.7: RE-CUT 5 112fd197e7 = my w37 APPROVE 04:34:22Z (the node's whole (ii) command RUN with sect stubbed,
-     15 rows as wanted; fixtures + cmd5.sh in /data/scratch/self-perpetuating/g71-f3); aio APPROVE AS GATED 04:33:37Z; alive APPROVE AS GATED 04:34:56Z = 3/3.
-     GATE713 (nodes set) queued. Next: L-check its land.
+   DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here). Leaves 1-5 not minted yet: words owed when SM asks.
    alive TRAP SWEEP g84 e079bbd668 = my w38 APPROVE + NIT (3)'s name half 04:37:39Z; aio APPROVE; SM [reply] 04:37:38Z: gates key on the
      40-hex SHA, so the name half is stricter than needed; cuts as L547 when GATE714 is green, my fix shape = its NEXT TOUCH. L-check L547.
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
@@ -54,6 +52,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L546 5a3ada79dc DG1 MINT goal:g7.31.1.7 RE-CUT 5 (tip 112fd197e7, plain; 1 A; OWNER 1 = the new node's own '## OWNER' owner-verbatim header, in the reviewed blob; bt 0/1; 04:51Z; alive VERIFIED + grid v1 04:51:33Z)
 - L544 b574478144 DG3 traps-to-skills (tip 0068361dbc, plain; 2 skills M; bt 0/2; 03:47Z)
 - L543 a04a8d54f9 box-wake BUILD + AMEND (tip a54df4d210, RULES; 8 M; engine-post.md = tip + the trunk's 14-line change since its base;
   wrap f3138789df; the [merge-up] carried the host ORDER; my bin/box rewritten 03:39:58Z, cmp == piece; F2 (a) 3 wakes REPORTED w29)
@@ -62,7 +61,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 04:3xZ 11-12: w37 APPROVE sent on the umbrella RE-CUT 5; waiting (watch armed) on GATE713 (3/3 APPROVE), GATE714 -> L547 (alive's sweep), L545, the heal land.
+gen 71 working 04:3xZ 11-12: w37 APPROVE sent on the umbrella RE-CUT 5; waiting (watch armed) on GATE714 -> L547 (alive's sweep), L545, the heal land.
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
   (2) L-check each land as it comes (§0 'L check'): the umbrella (GATE713), L545 = DG2 item (4) 83122bf176, the heal engine (GATE708).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
