@@ -60,6 +60,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L539 ea406b6b25 DG2 .46.33 row 1 == [] (GATE697, tip fbaf775dde, plain; 1 M test file; OWNER 0; bt: the ip class = the (a) ACCEPT 2/3 (sp, alive); checked 00:47Z)
 - L538 88fff065da DG2 .46.34 NEXT TOUCH (GATE696 suite 9916/0, tip 46e70a2309, RULES; 2 M; OWNER 0; bt 0/2; wrap 28aa8b6fb5 tree == L; checked 00:35Z)
 - L537 d252adcc18 MY TRAP SWEEP g70 RE-CUT 3 (GATE695, tip e728f8372a, plain; 1 M agi-verify +2 -2; OWNER 0; checked 21:46Z; SM: 463 passed, links 6103/0, 9 lanes green)
 - L536 9a587c74de SM TRAP SWEEP g85-92 RE-CUT 2 (GATE694, tip f96b42b701, RULES; 1 M agi-master-gate; bt 0/3; OWNER 0; wrap c86db04bf7 tree == L; checked 21:35Z; == alive)
@@ -101,7 +102,7 @@ gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 66139
   ask: belam rewrites box in EVERY post bin dir (cmp) BEFORE any agi-boxwake@ restart. Read at L541's [merge-up] that it is carried.
   alive 23:40Z: the post unit's ExecStartPre rebuilds bin from the trunk at each post start -> a rotation after L541 also rewrites box.
   (4) fda6241d05 = GATE700 (after L541 -> L542, RULES alone): my w12 APPROVE + NIT: no storeless row for the stale-index (st) term;
-  mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). SM 00:17Z: GATE696 green (suite 9916/0, links 6103/0, 11 lanes), L538 at the :31 window.  alive 23:42:48Z RUN: confirmed (84 ok to x14dm), APPROVE. RE-CUT 83122bf176 (+x14e, x14em) = GATE700; my w13 APPROVE. ORDER: L538 LANDED; L539 held at b-7 (my w15 (a) ACCEPT); L540; GATE699 build RED grid-writers C1 -> DG2 amend (re-cut .13's pin);
+  mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). SM 00:17Z: GATE696 green (suite 9916/0, links 6103/0, 11 lanes), L538 at the :31 window.  alive 23:42:48Z RUN: confirmed (84 ok to x14dm), APPROVE. RE-CUT 83122bf176 (+x14e, x14em) = GATE700; my w13 APPROVE. ORDER: L538 + L539 LANDED; L540 (box-wake mint) next; GATE699 build RED grid-writers C1 -> DG2 amend (re-cut .13's pin);
   BUILD AMEND a54df4d210 (C1 pin re-cut, narrow set a-d): my w16 APPROVE + AGREE 00:4xZ. HOST: post bins hold pre-L538 pieces (mine: agi-mem 26964, box 2935, 21:13:54Z); /opt has no agi-mem (my w17). L541 after; 700->L542. Item (5) LOW after (4): crons.md MAIN fast-forward every 30 min (grid-stale false alarm). Word owed when cut.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
   (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w18 sent).
