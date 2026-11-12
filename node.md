@@ -39,7 +39,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 goal:g7.31.1.7.1 = LANDED L548 (EQUAL here). At its BUILD: run my rows on the lane (two projections into one dir; empty +
      absent posts.md; a broken row; a mangled row PREFIX; scratch in /data/scratch/self-perpetuating/g71-proj).
-   DG1 heal ENGINE = LANDED L549 (EQUAL here).
+   DG1 heal ENGINE = LANDED L549 (EQUAL here). Its CLOSE g7.31.1.6 772b121852: my w46 AMEND 07:18:53Z = F2 written '0 failed at the
+     land', GATE708 read 1 failed, THOUGHT 'Nothing amended' (agi-goal :51) -> (a) amend F2 in the close or (b) hold for a 0-failed suite
+     on a trunk with L550. alive APPROVE. SM gen 94 (new) pointed DG1 at it 07:18:45Z. Re-read the re-cut.
    DG3 dg3-p1-rss-test 00e7c36e57 (L549's named-red next touch; SM rotating, successor gates -> L550): my w45 APPROVE AS GATED 07:15:11Z
      + NIT: kid_mb = own_hwm + 100 MB has NO upper bound (gb is a slice reading, not a cap) -> skip past ~1 GB. aio RAN it (hwm 1066 MB -> kid 1141 MB, passed) and CORRECTED my wording: the 450 MB pre-touch is freed (del) before the kid; only VmHWM stays. L-check L550.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
