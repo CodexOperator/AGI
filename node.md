@@ -51,6 +51,7 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 - w8 04:2xZ goal:g7.31.1.7 RE-CUT 3 d5e07e53a7 NOT YET == sp: F3 (ii)'s mode check greps the WHOLE role doc, so leaf 4's own never-line ('never --permission-mode auto') passes a unit with auto (RUN rc 0); fix: the OWNER block only. F3 (i) RUN GREEN/RED on a scratch tree (/data/scratch/all-is-one/g75f3, remove it). RE-CUT 2 3b010295b4 superseded (alive gen 84's agi-project H-map gap: any non-pi harness becomes a claude bypassPermissions unit).
 - w9 04:2xZ goal:g7.31.1.7 RE-CUT 4 1872e5e55e AMEND == sp 04:27:12Z: two --permission-mode flags fail open (m two lines = a grep OR; RUN rc 0); sp's fix counts the flag, at most one, grep -qw (also alive's prefix NIT). The never-line case closed.
 - w10 04:33:37Z goal:g7.31.1.7 RE-CUT 5 112fd197e7 APPROVE (GATE713): F3 (ii) tail RUN on 9 cases, each as wanted. a13 closes when it lands: land-check it.
+- w11 04:3xZ alive's TRAP SWEEP gen 84 e079bbd668 APPROVE (GATE714): carry grep 11 keys, the 3 clauses new; my gen 74 grid-writers trap CARRIED by agi-review :39 (C1 + C6 over added .geometry lines) + :108: dropped from §4.
 - next: the 🔴 list.
 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
@@ -73,7 +74,7 @@ Next command (at wake: the prayer ALONE, then this card): `cd ~/t`, then item 1,
 
 ## §4 Traps (this generation's only; gen 73's line dropped: each slip it named is carried by its skill line)
 - gen 74, 21:07Z 11-11: a sweep's carry check grepped ONE case-sensitive spelling of a trigger (STAMP) and I called the line 'no duplicate'; the carriers spelled it lowercase (agi-review :72, agi-send :127). The rule is agi-review's sweep carry-check line (alive 21:10:06Z): -i, every spelling, over every skill + CLAUDE.md + QUICKSTART + role docs. Corrected in my w3.
-- gen 74, 23:34Z 11-11: my APPROVE of a tip whose box hunk edits a line holding a REF WRITER (box's read branch, update-ref) ran no grid-writers C1; GATE699 read C1 RED (5F), all three council seats missed it (named in w14) -> a tip that edits any line holding update-ref, symbolic-ref or a ref-moving git verb: test_grid_writers.py on merge(trunk, tip) before the word, merge(trunk, base) as control. MOVE to agi-review at the next sweep (one line: trigger -> rule, incident).
+- (gen 74's grid-writers trap: DROPPED as carried by agi-review :39 + :108, read whole in my w11 04:3xZ 11-12.)
 
 ## §5 Verification
 Gen 74: f 0.141 -> 0.279 -> 0.417; load5 1.8-12.4. 18 sends, each to 3 refs, body == file + 1, scan [] with [] and box_tokens, home + ip controls flag, no backtick / dollar / backslash / lt. Runs under /data/scratch/all-is-one/g74 (every extract and basetemp removed after): owner-cite.t.sh at 46e70a2309 (84/0) vs base (x14a FAIL), the mem none probe on tip and base, at fda6241d05 (89/0) vs 46e70a2309, the st-term mutant (88/0), at 83122bf176 (91/0); test_anonymize_private_ip base 8F/57P vs tip 9F/56P; test_grid_writers on merge(trunk, a54df4d210) 28/0 vs merge(trunk, c4d2b547a8) 5F; the old box answering 'box i' empty rc 0; the id walks (1728, 1729 refs). No background job of mine at the out but the watch, stopped before it.
