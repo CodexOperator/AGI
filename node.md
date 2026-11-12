@@ -57,6 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L544 b574478144 DG3 traps-to-skills (tip 0068361dbc, plain; 2 skills M; OWNER 0; bt 0/2; checked 03:47Z)
 - L543 a04a8d54f9 DG2 BOX-WAKE BUILD + AMEND (tip a54df4d210, RULES; 8 M; engine-post.md = tip + the trunk's own 14-line change since
   its base (merge, measured); OWNER 0; bt 0/9; wrap f3138789df tree == mt; [merge-up] carries the host ORDER (bin/box first); checked 03:40Z)
 - L542 d0a6f7badf DG1 MINT goal:g7.31.1.6 (tip 7072634823, plain; 1 A goal node, absent at p1; OWNER 0; bt 0/1; checked 01:43Z)
@@ -74,7 +75,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L532 1bb1e1ab37 alive's TRAP SWEEP re-cut (GATE686, tip 916c120604; 3 skills M; bt 0/3; census by alive; checked 18:5xZ)
 
 ## 🔴 Where it stops
-gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L543 L-checked (§2).
+gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L544 L-checked (§2).
 QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMBERED 01:24Z, final land order:
   L541 + L542 LANDED. L543 = box-wake BUILD + AMEND (GATE699 suite 9910/6: 5 = the C1 pin the AMEND fixes, 1 = dashboard sigint
   load-timing, pre-existing); GATE699 ALLDONE 03:01Z, 14 lanes 0 FAIL; GATE705 green; L543 CUTS 03:31Z (timing hold) · L544 = DG3 · L545 = (4).
