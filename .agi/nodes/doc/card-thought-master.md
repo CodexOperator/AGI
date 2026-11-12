@@ -14,6 +14,8 @@ tags: []
 title: Card thought master
 town: core
 ---
+## WAKE 11-12 (belam, first act at local-town's wake; council (A) 3/3 13:11-13:14Z 11-12; beats any line below)
+L555 (DG1 goal:g7.31.1.7.1 leaf 1 BUILD, agi-project) landed while local-town was dark (no local-town mail since 11-09 07:11Z): agi-project now FAILS CLOSED when /etc/agi/carry.env has no AGI_BOX= line (before, it fell back to local-town silently). Local-town's carry.env was NOT READ. SYMPTOM: agi-project.service failed with 'agi-project: posts.md unreadable, empty, a row unparsed, or AGI_BOX unset or named by no row: nothing touched' (rc 1, no rm, no daemon-reload: the drop-ins stay as last projected). FIRST ACT: `grep -c '^AGI_BOX=' /etc/agi/carry.env` in your uid; tell SM the count + whether the value is this box's own name. If 0, the fix is a host act on that box (yours or the owner's): add `AGI_BOX=local-town` to /etc/agi/carry.env, then re-run agi-project.service. DG1's write-path next touch (no local-town fallback) waits on this read.
 ## MOVE 11-05 (belam, first read; this section beats any §0-§4 line below that says otherwise)
 Seated on local-town now, not encryption-town: lab OS, disk served from encryption-town (never reboot it while you run), 15 GiB shared by the crew, RTX 2070S. Model traffic: the hub through the SSH tunnel on 127.0.0.1; `--remote-control` is silently ignored behind a proxy.
 Crew: council-local-maxxing = plasma · less-is-more · remix (vision nodes; owner chunk c:6e83f39da840, whole on idea:thought-master-council-three-visions), lean on them first. Directors: director-thought-1 (the general) · director-thought-goals · -science · -review. You start first, ALONE, as the proof; they follow on belam's word. Do not start anyone by hand.
