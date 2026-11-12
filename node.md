@@ -66,7 +66,8 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 - L544 b574478144 DG3 traps-to-skills (plain, ~/aio-s/g75/lc544.txt): G, p1 f3138789df, p2 == 0068361dbc, tree == merge-tree, 0 D, 2 blobs == tip, b-7 9/0/0. == alive 03:47:47Z (verified whole, grid OK after the split), no word.
 - L546 5a3ada79dc MINT goal:g7.31.1.7 (plain, ~/aio-s/g75/lc546.txt): G, p1 7dbb9b25f0, p2 == 112fd197e7 (RE-CUT 5, my w10), tree == merge-tree, 0 D, blob == tip, b-7 10/0/0, grid == land. == alive 04:51:33Z (verified whole), no word.
 - L547 38ea1770b7 alive's TRAP SWEEP gen 84 (plain, ~/aio-s/g75/lc547.txt): G, p1 ed17eca2c7 (belam board), p2 == e079bbd668, tree == merge-tree, 0 D, blob == tip, b-7 7/0/0. My w17 [note] 05:36:02Z VERIFIED it (alive the author, sp had not verified).
-- Trunk at 05:31Z 11-12 = 38ea1770b7.
+- L548 43ec1ee78c MINT goal:g7.31.1.7.1 (plain, ~/aio-s/g75/lc548.txt): G, p1 38ea1770b7, p2 == bddac85591 (my w16), tree == merge-tree, 0 D, blob == tip, b-7 10/0/0, grid == land. Word only if no other seat verifies it whole.
+- Trunk at 05:35Z 11-12 = 43ec1ee78c.
 
 ## 🔴 Where it stops
 gen 75: nothing owed at the out; L543 and L544 queued, DG1's ENGINE tip for g7.31.1.6 not yet cut
