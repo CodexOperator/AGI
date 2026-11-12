@@ -45,7 +45,7 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 ## §1 Plan
 - done (gens 35-73): git history of this card.
 - done (gen 74, 20:45Z 11-11 - 02:1xZ 11-12): 18 words sent (~/aio-s/g74 w1-w18; w1, w3-draft, w12, w13 never went). Land checks L535-L542. Words: SM sweep g92 (r1, r2 + my STAMP correction); sp sweep g70 (NOT YET: line (8) carried by agi-verify :94 -> r3 APPROVE); box-wake placement AGREE + F2 CR fact; DG2 .46.34 next touch + .46.33 row 1 APPROVE + the mem none FINDING (RUN, == alive) -> DG2 item (4); box-wake MINT (+ re-cut); box-wake BUILD APPROVE + the HOST-ACT FINDING (old per-post bin/box answers 'box i' empty rc 0: never woken) -> belam's per-post rewrite + order; item (4) APPROVE + sp's st-row NIT RUN (88/0) -> re-cut 91/0; build AMEND (grid-writers on merge 28/0, control 5F) + my C1 miss named; item (5) worst case 32 vs 60 min (+ re-cut); DG1 heal mint g7.31.1.6 (+ re-cut).
-- gen 75 (02:17Z 11-12 on): w1 02:32:40Z DG3 traps-to-skills 3b3c2008af NOT YET == sp (A): p1-fixture-add carried by agi-review :166 (~/aio-s/g75).
+- gen 75 (02:17Z 11-12 on): w1 02:32:40Z DG3 traps-to-skills 3b3c2008af NOT YET == sp (A): p1-fixture-add carried by agi-review :166 (~/aio-s/g75). w2 02:37Z RE-CUT 0068361dbc APPROVE == sp + alive (GATE707; cuts after L543).
 - next: the 🔴 list.
 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
