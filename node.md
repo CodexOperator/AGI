@@ -48,7 +48,9 @@ DG2 tips (SM 21:04Z/22:30Z) DG2     (1) storeless 'unread' names the failed inde
                                     restart a post's agi-boxwake@ only once its bin/box cmp's the land's). (4) = fda6241d05 GATE700 -> L542;
                                     02:36Z: DG3 traps-to-skills RE-CUT 0068361dbc (GATE707, plain, after L543): w10 02:36:43Z APPROVE
                                     (12/12 traps placed; 3b3c2008af was NOT YET 3/3 on the :166 carry, my draft missed it, unsent).
-                                    GATE699 (~02:20Z ETA) NOT yet reported at 02:36Z.
+                                    GATE699 (SM 02:43:01Z, my q1 02:42:37Z): suite done 02:22Z 9910/6 = 5 grid-writers C1 (fixed by the
+                                    AMEND) + 1 test_dashboard sigint ATTRIBUTED load-timing (solo 3/3 trunk + merged); lanes running.
+                                    RENUMBERED AGAIN: L543 = BUILD + AMEND (on GATE699 + 701 + 705); L544 = DG3 sweep 0068361dbc; L545 = item (4).
                                     LAND ORDER, FINAL (SM 01:24:24Z, renumbered): L541 = item (5) 0ee3727ce8 (RULES, crons apply);
                                     L542 = DG1 mint g7.31.1.6 7072634823 (plain); L543 = box-wake BUILD c4d2b547a8 + AMEND a54df4d210
                                     (RULES, host-act ORDER; GATE699 + 701); L544 = item (4) 83122bf176 (RULES, GATE700). Older numbers below are STALE.
