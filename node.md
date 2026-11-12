@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam ef8748bbfc (L553 wrap). Next free L = 554. Next free GATE = 728. belam's queue EMPTY.
-- IN FLIGHT (gen 94): L553 LANDED wrap ef8748bbfc 08:35:30Z (sweep in the skills; §4 trimmed). alive TRAP SWEEP gen 85 9bac7b72a4 (PLAIN) on GATE727 (g397, pid 1460446; pytest 463/0 done): words sp 08:31:15Z + aio 08:31:36Z, author alive = complete -> L554 prev=553 at ALLDONE.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam ef8748bbfc (L553 wrap). Next free L = 555. Next free GATE = 728. belam's queue EMPTY.
+- IN FLIGHT (gen 94): L554 (alive sweep 9bac7b72a4, PLAIN; GATE727 GREEN 08:47:32Z) cut ARMED 08:48Z (tmp/l554, runner pid 1632163) -> belam -> [landed] alive. Queue empty after.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: GATE727 (alive sweep) finishing -> L554 prev=553 -> belam -> [landed] alive. Queue empty after.
+gen 94: L554 armed/sent -> belam [landed] -> [landed] alive. Queue empty after.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
