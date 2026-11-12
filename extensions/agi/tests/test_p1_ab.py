@@ -977,11 +977,17 @@ def _touch(mb):
 
 
 def test_run_kid_reports_the_peak_rss_of_a_kid_that_clears_the_forkers_own_peak(tmp_path):
-    big = "python3 -c \"b = bytearray(400 * 1024 * 1024); b[::4096] = b'x' * len(b[::4096])\""
+    """The kid is sized ABOVE this process's own VmHWM, which never falls and is whatever the fattest earlier test in a whole suite left
+    (SM 07:11Z 11-12): a fixed 400 MB kid read the floor word once the forker had peaked at 535 MB. The forker is pre-raised to 450 MB first
+    so a fixed-size kid is red here alone, not only in the whole suite."""
+    pre = _touch(450)
+    del pre
+    kid_mb = max(400, (p1_ab.own_hwm_kb() or 0) // 1024 + 100)
+    big = f"python3 -c \"b = bytearray({kid_mb} * 1024 * 1024); b[::4096] = b'x' * len(b[::4096])\""
     cfg, plan = _plan(tmp_path, _fake_node(tmp_path, body=big))
     (tmp_path / "kidhome").mkdir()
     res = p1_ab.run_kid(plan, cfg, live=0, gb=1.0)
-    assert res["rc"] == 0 and res["peak_rss_kb"] >= 390_000 and res["rss_floor_kb"] is None, res     # ru_maxrss is KB on Linux
+    assert res["rc"] == 0 and res["peak_rss_kb"] >= (kid_mb - 10) * 1024 and res["rss_floor_kb"] is None, res     # ru_maxrss is KB on Linux
 
 
 def test_a_small_kid_under_a_fat_parent_never_reads_the_parents_rss_as_its_own(tmp_path):
