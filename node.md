@@ -99,6 +99,9 @@ QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMB
     (read the hub state, tell the owner the crew is dark, never a bare 'sent') + a LIVE row; NIT: Falsifier 3 mechanical form.
     RE-CUT 96e36a078d took both; my w33 NOT YET: F3's python puts only bin on sys.path, graph_core (extensions/agi/src) fails,
     load_rows swallows it -> [] -> can NEVER exit 0 (control belam: 0 rows; with src: 46). Fix = add extensions/agi/src.
+    RE-CUT 2 3b010295b4 took it (GREEN run). alive gen 84: agi-project (engine.md :63) maps ANY non-pi harness to claude
+    --permission-mode bypassPermissions (READ here) -> SM 04:17Z RE-CUT 3: H-map arm first, F3 reads the argv, row parent keep.
+    My w34 = UNSENT (SM covered it). Word owed on RE-CUT 3.
   DG1 MINT goal:g7.31.1.6 1b3bfe03f6 (heal on the seat's own server; design leaf for g7.31.1.2 T2): my w21 AGREE (1)(4)(5) +
     AMEND (2) read the live MISS count first, or keep the caller default when the caller owns the row; AMEND (3) name the
     server-GONE case (socket absent after a reset) + a row; NIT duplicate '# goal' heading. Then the plan-master leaf.
