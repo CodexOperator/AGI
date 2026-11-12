@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 7309bf046e (L554). Next free L = 555. Next free GATE = 732. belam's queue EMPTY.
-- IN FLIGHT (gen 94): DG1 leaf 1 CHILD 4 b74a3ad0fa (sp's unit re-run row; engine == e3360afbd0) on GATE731 NARROW (g398, pid 3510259; sp's worded set); GATE730 VOID. Words owed on b74a3ad0fa (all 3). HOST READ: encryption-town 1; core-town 0 h.conf; local-town asked of THOUGHT-MASTER 12:0xZ -- the cut WAITS on TM's 1. Then L555 RULES (.geometry, belam WRAPS; no host act if TM reads 1).
+- IN FLIGHT (gen 94): L555 (DG1 leaf 1 BUILD CHILD 4 b74a3ad0fa, RULES .geometry) BUILT in tmp/l555, NOT ARMED: GATE731 GREEN 12:17:27Z, words 3/3 (sp 12:06:03Z, aio 12:06:22Z, alive 12:12:02Z). HOLD on thought-master's local-town carry.env read (asked 12:0xZ): on '1' -> sed the literal TMREAD in tmp/l555/mu.body + l555.head to '1 (thought-master HH:MMZ)', then setsid sh run.sh (no :20-:30 send; cut waits :03-:31 itself) -> belam WRAPS. On '0' -> host act on that box first (TM/owner), cut after.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: GATE730 narrow on CHILD 3; belam's carry.env read; words on the set -> L555 RULES.
+gen 94: L555 built, HELD on TM's local-town AGI_BOX read; then arm tmp/l555/run.sh.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
