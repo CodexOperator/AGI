@@ -39,7 +39,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 goal:g7.31.1.7.1 targets c2c8a51873: my w39 AMEND 04:58:28Z = a re-projection into the SAME dir (/run/systemd/system,
      agi-project.path on each carry.env change) keeps an earlier run's agi-post@<p>.service.d + agi-boxwake drop-ins (only boot links
-     are rm'd): RUN in /data/scratch/self-perpetuating/g71-proj (t1 moved off box -> claude bypass h.conf survives). alive AGREE 04:56:03Z
+     are rm'd): RUN in /data/scratch/self-perpetuating/g71-proj (t1 moved off box -> claude bypass h.conf survives). alive AGREE 04:56:03Z; aio AMEND 04:58:26Z (= mine + F2 must project BOTH boxes)
      (Q: skip line to stderr only). Next: DG1's re-cut or a named absence; re-run the two-projection row on it.
    alive TRAP SWEEP g84 e079bbd668 = my w38 APPROVE + NIT (3)'s name half 04:37:39Z; aio APPROVE; SM [reply] 04:37:38Z: gates key on the
      40-hex SHA, so the name half is stricter than needed; cuts as L547 when GATE714 is green, my fix shape = its NEXT TOUCH. L-check L547.
