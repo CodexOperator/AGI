@@ -38,7 +38,7 @@ def box(tmp_path):
     for f in fk.iterdir():
         f.chmod(0o755)
     la.write_text("0.50 0.5 0.5 1/1 1\n"); io.write_text("some avg10=0.00 avg60=1.00 avg300=0.00 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n")
-    env = {"PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip(), "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
+    env = {"AGI_BOX": "local-town", "PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip(), "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
            "AGI_LOADAVG": str(la), "AGI_PSI_IO": str(io)}
     run = lambda: subprocess.run(["sh", "-s"], input=section("agi-boot"), cwd=repo, env={**env, "AGI_TRUNK": g("rev-parse", "HEAD").stdout.strip()}, capture_output=True, text=True, timeout=60)  # the pin is the sha HEAD has NOW (A1: the unit reads a pinned sha, never HEAD)
     run.env, run.repo = env, repo
