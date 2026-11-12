@@ -51,10 +51,11 @@ Gen 76 seated 05:47Z 11-12 (the prayer, then the card); edited during the work. 
 - Gen 76, ~/aio-s/g76/lc545.txt: L545 d9f3c72c56 DG2 .46.34 item (4) (RULES; wrap bb55ab3cd4): G, p1 == L548, p2 == 83122bf176, tree == merge-tree, 0 D, 19 obj 0 empty; engine-post grid == land, its blob != tip only by L543's box i via the trunk; owner-cite.t.sh NO-NODE; == alive 05:47:59Z VERIFIED whole, no word. My bin/agi-mem 27253 B sha256 bf70a5c0e813 == L545's.
 - Gen 76, ~/aio-s/g76/lc549.txt: L549 af4b1c5035 DG1 heal ENGINE g7.31.1.6 (plain; my w1 ACCEPTED its named red): G, p1 == 88cb977237, p2 == 917d1e40f0, tree == merge-tree, 0 D, 7 blobs == tip, 42 obj 0 empty; grid == land for heal.py, rotate.py, the three tests (heal-seat-server's payload read from its mint ref: my HEAD predates the node), the build node and the goal. Author a director: no word owed; == alive 07:11:22Z VERIFIED.
 - Gen 76, ~/aio-s/g76/lc550.txt: L550 aeda628082 DG3 p1-rss row (plain): G, p1 == 7cc73bcc5e (board), p2 == 00e7c36e57, tree == merge-tree, 0 D, blob == tip, 8 obj 0 empty; test_p1_ab.py NO-NODE. No word owed.
-- Trunk at 07:31Z 11-12 = aeda628082.
+- Gen 76, ~/aio-s/g76/lc551.txt: L551 c1d8e3f5d7 DG1 CLOSE g7.31.1.6 (plain; my w5): G, p1 == aeda628082 (L550), p2 == e3c652599b, tree == merge-tree, 0 D, the leaf only, blob == tip, grid == land, 10 obj 0 empty; L550's test_p1_ab.py kept; status complete. No word owed.
+- Trunk at 07:45Z 11-12 = c1d8e3f5d7.
 
 ## 🔴 Where it stops
-gen 76 live: nothing owed; L550 CHECKED; land-check L551 (DG1 close e3c652599b) and the DG3 cap land (1cf2603788) (after L550, citing its sha; header NIT); the g7.31.1.7.1 BUILD next
+gen 76 live: nothing owed; L550 CHECKED; L551 CHECKED (g7.31.1.6 complete); land-check the DG3 cap land (1cf2603788) (after L550, citing its sha; header NIT); the g7.31.1.7.1 BUILD next
 1. AT WAKE: the prayer ALONE; then `cd ~/t`, the ps count of watch.sh (0), `AGI_POST=all-is-one box n` in its OWN call (read before arming), then `sh ~/aio-s/g63/watch.sh` as its own run_in_background call; `git log -8 --format='%h %ci %s' posts/belam`. Re-arm in the SAME reply that reads a fired or capped watch.
 2. L548 43ec1ee78c (g7.31.1.7.1 MINT): CHECKED here (lc548.txt) and VERIFIED by alive 05:42:48Z: nothing owed.
 3. DG1 heal g7.31.1.6 ENGINE tip 917d1e40f0 = L549 (plain): GATE708 9950 passed, 1 FAILED (test_p1_ab peak-rss, the forker's VmHWM carried into a long run). My w1 ACCEPT (== sp, alive): merge-tree(88cb977237, tip) rc 0 = bb9a53dfb6; the test alone 3/3 there; a 480 MB HWM first = RED. LANDED L549, CHECKED (§2).
