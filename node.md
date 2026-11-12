@@ -23,7 +23,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L540 LANDED 95796f8530 (plain, 1 A goal:g7.16.1.11.20.7); [landed] sent DG2 + belam.
   - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; ETA ~02:20Z). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
   - GATE701 GREEN ALLDONE 00:56:44Z (g397, AMEND a54df4d210, merged 91e826fb14): (a) goal node alone 2/1; (b) grid-writers 28/0; (c) links 6104/0; (d) lane-header 40/0, owner-cite 84/0; evidence 0. Reported to council + DG2 + belam. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z).
-  - GATE702 (item (5) 803eabc086, g397, over 41c5887b00) green on every lane read so far (gw 28/0, pytest 302/0, links 6103/0, lane-header 40/0, owner-cite 84/0); words 3/3 (alive 00:45:23Z, sp 00:46:26Z, aio 00:49:15Z). CUT HELD on DG2's answer (my [ask] 01:1xZ): belam 01:10Z saw a THIRD false grid-stale shape (stale read mid-sync, wrong anchor), and s2 pins grid_stale ON the sync minutes = refuses fix (b). (A) re-cut (gate narrow on g397) or (B) land as is + next touch. Number at cut: item (5) takes the next free L (RULES, ALONE; mkcut is plain-only: apply L538's RULES edits to head/WHAT/last line), BUILD and item (4) follow.
+  - ITEM (5) = DG2 RE-CUT 0ee3727ce8 (form (A), 01:12:12Z: s2 drops the grid_stale-on-sync-minutes half; cell 28,58 unchanged; signed G, p1 28aa8b6fb5, merge-tree clean). GATE702 (old tip 803eabc086) green, superseded. GATE703 = same set on the re-cut, g397, waiter tmp/gateq703.sh after r702 ALLDONE. Words on the re-cut ASKED 01:1xZ (the 803eabc086 words do not carry). Cut at green + 3/3: next free L, RULES, ALONE (mkcut + L538's RULES edits), then belam's crons apply. Next touch, unpinned: stale job after the sync, sp's log-times row first.
   - GATE700 waiter tmp/gateq700.sh: a54df4d210 on trunk + no 699/701 -> item (4) 83122bf176 -> L542.
 - L541 (BUILD a54df4d210, RULES, ALONE) cuts on GATE699 whole + GATE701 (name both). HOST ACT ORDER (sent belam + DG2 00:4xZ, tmp/host-l541.txt), in head + cut.sh + [merge-up]: (1) per running claude post rewrite ITS bin/box to the land's 3050 B, print cmp (/opt is not on a post's PATH first); (2) only then restart its agi-boxwake@, + pi extension; (3) F2 on a real rewritten seat. Also asked for L538: /opt has NO agi-mem; per-post bin/agi-mem cmp to 27171 B.
 | | |
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 1. Wake: box read whole; ps -u $(id -u) -o args | grep -E '^sh (tmp/)?gate'; tail -3 /data/work/gate-sm/r699/summary /data/work/gate-sm/r701/summary /data/work/gate-sm/r702/summary; git log --oneline -3 refs/heads/posts/belam.
-3. GATE702: DG2 answers (A)/(B) -> mkcut (item (5), RULES alone) -> its L number at cut (L541/542 are reserved; it may land first: no file overlap with engine-post.md).
+3. GATE703 green + 3/3 words on 0ee3727ce8 -> mkcut (item (5), RULES alone) -> its L number at cut (L541/542 are reserved; it may land first: no file overlap with engine-post.md).
 4. GATE699 ALLDONE -> attribute lane reds -> mkcut n=541 g=699+701 prev=540 + RULES edits + host-act ORDER -> L541.
 5. L541 lands -> gateq700 fires GATE700 -> L542 (agi-mem 27253 B host act).
 6. Watch DG1 (A)/(B); the quiet window: objscan ip-class mask (§7).
