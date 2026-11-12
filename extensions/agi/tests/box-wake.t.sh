@@ -19,7 +19,7 @@ mkdir -p $T/bin $T/c $T/k $T/run $T/hm/.claude
 [ -n "$AGIRUN" ]||{ sect agi-run>$T/agi-run;AGIRUN=$T/agi-run;}
 [ -n "$CCCC" ]||{ sect cccc.ts>$T/cccc.mjs;CCCC=$T/cccc.mjs;};case $CCCC in *.mjs);;*)cp $CCCC $T/cccc.mjs;CCCC=$T/cccc.mjs;;esac
 [ -s $BOX ]&&[ -s $AGIRUN ]&&[ -s $CCCC ]||{ echo "FAIL extract: box $(wc -c<$BOX) agi-run $(wc -c<$AGIRUN) cccc.ts $(wc -c<$CCCC)";exit 99;}
-mv $T/bin/box $T/bin/box.real;printf '#!/bin/sh\n[ "$1" = n ]&&{ [ -n "$BW_UNIT" ]&&echo >>%s/boxn||echo >>%s/polls;}\nexec sh %s/bin/box.real "$@"\n' $T $T $T >$T/bin/box
+mv $T/bin/box $T/bin/box.real;printf '#!/bin/sh\ncase $1 in n|i)[ -n "$BW_UNIT" ]&&echo >>%s/boxn||echo >>%s/polls;;esac\nexec sh %s/bin/box.real "$@"\n' $T $T $T >$T/bin/box   # n|i: the watchers poll `box i` since goal:g7.16.1.11.20.7
 # goal:g7.16.1.11.32 B (fingerprint): the unit's idle ticks no longer run `box n`, so the unit's POLL is its tick: a git shim logs the loop's one `git for-each-ref refs/box ...` per iteration (the fingerprint, $2 = refs/box; box's own call has --format as $2) into polls when the loop runs with BW_UNIT; its `box n` calls go to boxn
 printf '#!/bin/sh\n[ -n "$BW_UNIT" ]&&[ "$1" = for-each-ref ]&&[ "$2" = refs/box ]&&echo >>%s/polls\nexec /usr/bin/git "$@"\n' $T >$T/bin/git;chmod +x $T/bin/git   # the poll log: one line per `box n` the watchers (or anyone) run through $T/bin
 # goal:g7.16.1.11.32: the box-wake loop is the loop of agi-boxwake@.service (engine-root.md), not a background of agi-run: its body is the unit's ExecStart with %t/agi-%i -> the lane's run dir and %i -> alive; UGATE is its ExecCondition
@@ -99,6 +99,28 @@ ok "w4-$kd-wake-after-read send 2 (wakes $w4a, want 1), read both (count $u4, wa
 # ---- w4b: the simplest shape of the same bug: send 1, read, send 1
 reset;start ${N}5 $kd;arm;snd belam alive c1;wk ${N}5 1;rd alive;tick 3;snd belam alive c2;wk ${N}5 2;tick 4;w5=$(wakes ${N}5)
 ok "w4b-$kd-same-count-again send 1 (wake), read it, send 1 again (the count is back to 1, equal to the old maximum): the second mail wakes too, total $w5 (want 2)" '[ "$w5" = 2 ]'
+# ---- w11 (goal:g7.16.1.11.20.7 F1 unit / F3 cccc, SM 22:30Z, belam [read] 22:29Z): THE RACE. Woken by one mail, the watcher FROZEN, the mail read and ONE new mail landed, the watcher thawed: the count is back where it was at the last sampled tick (n == s), and a count key never wakes. w11 another sender, w11s the SAME sender (sp 22:31:06Z: a sender-name set misses it)
+reset;start ${N}r $kd;arm;snd belam alive r1;wk ${N}r 1;tick 3;frz;rd alive;snd dg9 alive r2;thw;wk ${N}r 2;tick 4;wr=$(wakes ${N}r);ur=$(unread alive)
+ok "w11-$kd-a-mail-landing-after-a-read-wakes (F1/F3, another sender) woken by belam's r1, frozen, r1 read and dg9's r2 landed, thawed: total $wr wake(s) (want 2), unread $ur (want 1)" '[ "$wr" = 2 ]&&[ "$ur" = 1 ]'
+reset;start ${N}q $kd;arm;snd belam alive q1;wk ${N}q 1;tick 3;frz;rd alive;snd belam alive q2;thw;wk ${N}q 2;tick 4;wq=$(wakes ${N}q);uq=$(unread alive)
+ok "w11s-$kd-a-same-sender-mail-after-a-read-wakes (F1/F3, the SAME sender) woken by belam's q1, frozen, q1 read and belam's q2 landed, thawed: total $wq wake(s) (want 2), unread $uq (want 1)" '[ "$wq" = 2 ]&&[ "$uq" = 1 ]'
+# w11m: the race rows' MUTANTS (F1/F3: a count key and a sender-name key each read RED in its row). A mutant reads no wake within 8 ticks (no deadline wait: it is not expected)
+race(){ reset;start $1 $kd;arm;snd belam alive ${1}a;wk $1 1;tick 3;frz;rd alive;snd $2 alive ${1}b;thw;tick 8;rw=$(wakes $1);}
+mutate(){ case $kd in unit)UB0=$UBODY;UBODY=$(printf %s "$UB0"|sed "$1");[ "$UBODY" != "$UB0" ];;*)C0=$CCCC;sed "$2" $C0>$T/mut.mjs;CCCC=$T/mut.mjs;! cmp -s $C0 $T/mut.mjs;;esac||{ echo "FAIL inputs: the $kd mutant edit changed nothing";exit 99;};}
+unmutate(){ case $kd in unit)UBODY=$UB0;;*)CCCC=$C0;;esac;}
+mutate 's/\[ "\$w" \]&&printf/[ $(printf %s "$n"|grep -c "^.") -gt $(printf %s "$s"|grep -c "^[^0]") ]\&\&printf/' 's/\[\.\.\.n\]\.some(l=>!s\.has(l))/n.size>s.size/'
+race ${N}mc dg9;mc1=$rw;race ${N}md belam;mc2=$rw;unmutate
+ok "w11m-$kd-count-key-mutant-RED the wake keyed on a count (the trunk's shape) misses both races: $mc1 and $mc2 wake(s) (want 1 and 1: the mail after the read never wakes)" '[ "$mc1" = 1 ]&&[ "$mc2" = 1 ]'
+mutate 's/cut -d" " -f2/cut -d" " -f1/' 's/\.filter(l=>l&&l\[0\]!="\["))/.filter(l=>l\&\&l[0]!="[").map(l=>l.split(" ")[0]))/'
+race ${N}ms belam;ms=$rw;race ${N}mo dg9;mo=$rw;unmutate
+ok "w11m2-$kd-sender-key-mutant-RED the wake keyed on sender names misses the SAME-sender race ($ms wake(s), want 1) and still catches another sender ($mo, want 2): sp 22:31:06Z" '[ "$ms" = 1 ]&&[ "$mo" = 2 ]'
+# ---- w12 (alive [word] 23:09:00Z, SM 23:09:25Z; goal:g7.16.1.11.20.7): with a SET key a failed `box i` must KEEP the last seen set: replacing it with the empty output makes the next good read call every unread mail new and wake AGAIN. Woken by A, then `box i` FAILS (exit 1, no output) at least once, then answers again with A still unread: NO second wake. Mutant: a failure that clears the set, RED
+mkdir -p $T/binF;printf '#!/bin/sh\ncase $1 in i)[ -e %s/fail ]&&{ echo>>%s/fails;exit 1;};;esac\nexec %s/bin/box "$@"\n' $T/hm $T $T >$T/binF/box;chmod +x $T/binF/box
+fails(){ wc -l <$T/fails 2>/dev/null|tr -d ' ';}
+keep(){ reset;rm -f $T/hm/fail;: >$T/fails;start $1 $kd PATH=$T/binF:$T/bin:/usr/bin:/bin;arm;snd belam alive ${1}a;wk $1 1;tick 3;k1=$(wakes $1);: >$T/hm/fail;until_ '[ "$(fails)" -ge 1 ]';kf=$(fails);rm -f $T/hm/fail;tick 16;k2=$(wakes $1);ku=$(unread alive);}
+keep ${N}k;ok "w12-$kd-a-failed-box-i-keeps-the-set woken by A ($k1, want 1), box i failed $kf time(s) (want >= 1), then answered with A still unread ($ku, want 1): $k2 wake(s) in all (want 1: no re-wake for mail already seen)" '[ "$k1" = 1 ]&&[ "$kf" -ge 1 ]&&[ "$ku" = 1 ]&&[ "$k2" = 1 ]'
+mutate 's/)||continue;p=\$f;/)||{ s=;continue;};p=$f;/' 's/"box i 2>\/dev\/null"/"box i 2>\/dev\/null||:"/';keep ${N}km;unmutate;rm -f $T/hm/fail
+ok "w12m-$kd-a-failure-that-clears-the-set-RED the mutant that empties the set on a failed box i re-wakes for A: $k2 wake(s) (want 2), box i failed $kf time(s)" '[ "$kf" -ge 1 ]&&[ "$k2" = 2 ]'
 # ---- w5: a successor wakes on mail its predecessor never read (s=0 at start)
 reset;snd belam alive pre1;snd belam alive pre2;start ${N}6 $kd;wk ${N}6 1;tick 6;w6=$(wakes ${N}6)
 ok "w5-$kd-successor-wakes-on-unread two messages unread BEFORE the watcher starts: it wakes at once, once ($w6, want 1)" '[ "$w6" = 1 ]'
@@ -135,7 +157,7 @@ reset;rm -f $ibf;start a51 agirun;wt 0.6;killsl;ib killed;swk a51 1;tick 3;i50=$
 ok "f2-agi-run-inbox-loop-survives-a-killed-sleep agi-run's send.py inbox loop (goal:g7.16.1.11.27 retires it later), its sleep SIGKILLed: an inbox append afterwards still types 'mail: send.py read alive' ONCE ($i50, want 1)" '[ "$i50" = 1 ]'
 reset;rm -f $ibf
 # ---- w9 (council remark 11:46Z): a HUNG `box n` (timeout 20, scaled by DIV) neither loses the wake nor repeats it: s is KEPT on a failed count. A hang that set n=0 and s=0 re-typed 'mail: box read' for mail already announced.
-mkdir -p $T/binH;printf '#!/bin/sh\n[ "$1" = n ]&&[ -e %s/hang ]&&exec /bin/sleep 60\nexec %s/bin/box "$@"\n' $T/hm $T >$T/binH/box;printf '#!/bin/sh\nt=$1;shift\nexec /usr/bin/timeout $(awk "BEGIN{print $t/%s}") "$@"\n' $DIV >$T/binH/timeout;chmod +x $T/binH/box $T/binH/timeout
+mkdir -p $T/binH;printf '#!/bin/sh\ncase $1 in n|i)[ -e %s/hang ]&&exec /bin/sleep 60;;esac\nexec %s/bin/box "$@"\n' $T/hm $T >$T/binH/box;printf '#!/bin/sh\nt=$1;shift\nexec /usr/bin/timeout $(awk "BEGIN{print $t/%s}") "$@"\n' $DIV >$T/binH/timeout;chmod +x $T/binH/box $T/binH/timeout
 reset;rm -f $T/hm/hang;start u70 unit PATH=$T/binH:$T/bin:/usr/bin:/bin;arm;snd belam alive h1;wk u70 1;tick 3;h1=$(wakes u70)
 : >$T/hm/hang;wt 5;h2=$(wakes u70);rm -f $T/hm/hang;wt 2;h3=$(wakes u70);snd belam alive h2;wk u70 2;tick 3;h4=$(wakes u70)
 ok "w9-unit-a-hung-box-n-neither-loses-nor-repeats-the-wake one send: $h1 wake (want 1); the box hung for 5 s (every count times out): still $h2 (want 1); the box back: still $h3 (want 1: the hang did not reset s, so the announced mail is not re-announced); a second send wakes ($h4, want 2: the loop lived through the hang)" '[ "$h1" = 1 ]&&[ "$h2" = 1 ]&&[ "$h3" = 1 ]&&[ "$h4" = 2 ]'
@@ -184,7 +206,7 @@ grep -v '^real(() => {}, 1e6);' $T/drv.mjs >$T/drv-nokeep.mjs
 ok "n10-cccc-timers-alone-do-not-keep-node-alive the fake pi driver WITHOUT its own keep-alive, after the last event: node exits by itself (rc $nkrc, want 0; 124 = still running at the 6 s limit: the poll interval keeps a drained pi alive)" '[ $nkrc = 0 ]'
 # ---- R9 (DG1 20:37Z, SM mur residue on f8c0ba9ef2): in a KID started BEFORE goal:g7.16.1.11.24 (a pre-cut agi-kid) the env carried AGI_POST=<parent> (inherited) AND the retired variable =<kid>; since that cut agi-kid sets AGI_POST=$k itself (the p44/p45 rows below take the kid env FROM agi-kid's own text), and these p40..p43 rows stay as the ORDER guard of cccc.ts (the kid variable first, never flipped). The cccc.ts poll had to ask `box n` as the KID (the kid variable before AGI_POST, ruled), not AGI_POST first, which asks as the parent and wakes the kid for the parent's mail. The stub box answers n>0 ONLY for the asker named in $T/who; in a post (POST=SEAT) and a pre-unit post (SEAT only) both orders agree
 mkdir -p $T/binK;cp $T/bin/strace $T/bin/stty $T/bin/claude-x $T/bin/sleep $T/binK/
-printf '#!/bin/sh\n[ "$1" = n ]&&[ "$AGI_POST" = "$(cat %s/who)" ]&&echo from-someone\nexit 0\n' $T >$T/binK/box;chmod +x $T/binK/box
+printf '#!/bin/sh\ncase $1 in n|i)[ "$AGI_POST" = "$(cat %s/who)" ]&&echo from-someone;;esac\nexit 0\n' $T >$T/binK/box;chmod +x $T/binK/box
 # r9 p40-p43 (RETIRED, goal:g7.16.1.11.32): they modelled a KID whose env carried AGI_POST=<parent> AND the retired variable =<kid>, with cccc.ts choosing it over AGI_POST. cccc.ts no longer reads it (it polls with the inherited env and the box piece needs AGI_POST) and goal:g7.16.1.11.37 retired it from the engine, so a row that sets it tests nothing that runs. The kid's env is taken FROM agi-kid's own text below (p44/p45), the one place it is built.
 # ---- goal:g7.16.1.11.24 (belam-s2-II 02:4xZ 10-10): the kid env is TAKEN FROM agi-kid's own text, never hand-written -- the words of its `exec pi` line that read AGI_*=$k, $k = kid9. The cccc.ts poll in that env asks `box n` as the KID: a box that answers ONLY for the parent 'alive' wakes it 0 times; one that answers for 'kid9' wakes it once
 [ -n "$AGIKID" ]||{ sect agi-in>$T/agi-kid;AGIKID=$T/agi-kid;}
