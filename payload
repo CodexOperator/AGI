@@ -224,7 +224,7 @@ def test_both_writers_record_the_whole_identity_set_from_one_helper(graph, scrat
     sock = scratch / "seat"
     (w,) = _server(sock)
     ident = _identity(sock)
-    monkeypatch.setattr(heal, "_window_server", lambda wid: dict(ident) if wid == w else {})
+    monkeypatch.setattr(heal, "_window_server", lambda wid, sock=None: dict(ident) if wid == w else {})
     heal._write_crash_recovery(graph, "seat-a", "x", {"pid": 0}, rotate, 0.0,
                                {"respawned": True, "window": w, "pid": os.getpid(), "name": "seat-a"})
     rec = json.loads(sorted((graph / "sessions" / "rotations").glob("seat-a.*.json"))[-1].read_text())
@@ -235,13 +235,14 @@ def test_both_writers_record_the_whole_identity_set_from_one_helper(graph, scrat
 
 def test_mutant_heal_records_the_socket_but_not_its_start_RED(graph, scratch, monkeypatch, tmp_path):
     m = _mut(tmp_path, "heal_mut_nostart", BIN / "heal.py",
-             '           | (_window_server(outcome.get("window") or "") if res == "respawned" else {})),\n',
-             '           | {k: v for k, v in (_window_server(outcome.get("window") or "") if res == "respawned" '
-             'else {}).items() if k != "tmux_server_start"}),\n')
+             '           | (_window_server(outcome.get("window") or "", outcome.get("socket") or None)\n'
+             '              if res == "respawned" else {})),\n',
+             '           | {k: v for k, v in (_window_server(outcome.get("window") or "", outcome.get("socket") or None)\n'
+             '              if res == "respawned" else {}).items() if k != "tmux_server_start"}),\n')
     sock = scratch / "seat"
     (w,) = _server(sock)
     ident = _identity(sock)
-    monkeypatch.setattr(m, "_window_server", lambda wid: dict(ident))
+    monkeypatch.setattr(m, "_window_server", lambda wid, sock=None: dict(ident))
     m._write_crash_recovery(graph, "seat-a", "x", {"pid": 0}, rotate, 0.0,
                             {"respawned": True, "window": w, "pid": 0, "name": "seat-a"})
     srv, why = heal._seat_socket_join(graph, "seat-a", {"window": w}, rotate)
