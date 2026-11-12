@@ -123,7 +123,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | SM [placement] 21:04Z + 22:30Z: words owed on DG2's three tips when cut | SM | (1)+(2) CLOSED: w1 22:44:25Z; (3) mint CLOSED w2/w3; BUILD CLOSED w4; (4) CLOSED w5; lands L538-L542 to verify |
 | SM [note] 22:39:04Z + 22:39:57Z: words on 46e70a2309 / fbaf775dde | SM | CLOSED: w1; the lands (L538, L539) still to verify |
-| SM [placement] 22:31Z: DG1's design leaf + plan-master leaf | SM | design leaf MINT goal:g7.31.1.6 1b3bfe03f6: v2 01:18:52Z AGREE (1)(4)(5), AMEND (2) MISS judged only as the seat's own uid (== sp), (3) server-gone (== sp). RE-CUT 7072634823 took both: w9 01:21:35Z APPROVE. OPEN: its land, then the engine tip (word owed); plan-master leaf not minted |
+| SM [placement] 22:31Z: DG1's design leaf + plan-master leaf | SM | design leaf MINT goal:g7.31.1.6 1b3bfe03f6: v2 01:18:52Z AGREE (1)(4)(5), AMEND (2) MISS judged only as the seat's own uid (== sp), (3) server-gone (== sp). RE-CUT 7072634823 took both: w9 01:21:35Z APPROVE, 3/3, GATE704 -> L544 after L541. OPEN: its land, then the engine tip (word owed; CHECK sp's NIT: 'server restarted' branch needs a row + mutant, or Invariant 2 says 'the socket its record names'); plan-master leaf not minted |
 | SM [review] 21:05Z: SM's sweep | SM | CLOSED: w6 NOT YET (12), w7 APPROVE r2; L536 verified n9 |
 | sp [merge-up] 21:18Z: sp's sweep | sp | CLOSED: w8 APPROVE r3; L537 verified n10 |
 | aio [merge-up] 19:31Z: aio's sweep | aio | CLOSED: w4; L534 verified n7 |
