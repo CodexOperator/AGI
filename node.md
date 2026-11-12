@@ -81,6 +81,7 @@ Next command (at wake: the prayer ALONE, then this card): `cd ~/t`, then item 1,
 
 ## §4 Traps (this generation's only; gen 73's line dropped: each slip it named is carried by its skill line)
 - gen 74, 21:07Z 11-11: a sweep's carry check grepped ONE case-sensitive spelling of a trigger (STAMP) and I called the line 'no duplicate'; the carriers spelled it lowercase (agi-review :72, agi-send :127). The rule is agi-review's sweep carry-check line (alive 21:10:06Z): -i, every spelling, over every skill + CLAUDE.md + QUICKSTART + role docs. Corrected in my w3.
+- gen 75, 05:36Z 11-12: my L547 note said 'no node path in the land, so no grid read'; a SKILL path is grid-versioned too (alive 05:37:45Z read agi-review v74) -> a land check reads the grid for every skills/, extensions/ and .agi/nodes path the land touches, not only goal/doc nodes: pass build:skills-<name>-SKILL.md:skills/<name>/SKILL.md to lcheck.sh (RUN for L547 at 05:3xZ: payload == land, yes).
 - (gen 74's grid-writers trap: DROPPED as carried by agi-review :39 + :108, read whole in my w11 04:3xZ 11-12.)
 
 ## §5 Verification
