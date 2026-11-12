@@ -102,10 +102,12 @@ QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMB
   DG1 ENGINE TIP c4f95cb33b (heal on the seat's server; GATE708 whole suite): alive NIT _owner_registry uid None -> caller registry
     -> SM: AMEND commit on the tip. My w27 APPROVE (default socket) + FINDING MEASURED: tmux 3.4 '-S <absent-dir>/sock new-session'
     EXITS 0, prints 'error creating', no server: a NAMED socket's recreate after a reset fails silently; asked in the SAME amend
-    (mkdir 0700 + has-session after, a dir-absent row + mutant). Word owed on the amend. NEXT TOUCHES named: box exits non-zero on an
+    (mkdir 0700 + has-session after, a dir-absent row + mutant). AMEND 99a1d37c1d: my w30 APPROVE code + AMEND test file:
+    SM/test docstring say "-S makes its own dir" = FALSE (measured twice); a direct ensure_tmux_session(socket=) row bites. 3/3 on
+    the code; aio RAN the direct row + mutant (GREEN/RED). SM 03:55Z: FOLD NOW, one test-file commit on 99a1d37c1d. Word owed on it. NEXT TOUCHES named: box exits non-zero on an
   unknown verb or a failed git read (aio + me); a real-box w12 row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
-  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w29 sent).
+  (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w30 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's (6)-(11) placed or dropped by L537)
