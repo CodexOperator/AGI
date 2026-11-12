@@ -36,6 +36,8 @@ SM TRAP SWEEP g92-94        SM      DONE: L553 9099178c46 wrap ef8748bbfc, verif
 alive TRAP SWEEP gen 85     alive   DONE: L554 7309bf046e (9bac7b72a4), verified n2.
 g7.31.1.7.1 leaf 1 BUILD    DG1     0cc14123c6 (RULES, ALONE), GATE728. My w1 10:32:42Z NOT YET/AMEND: a fail-closed run says 'nothing
                                     removed' after removing every boot link + emptying agi-users.conf (probe1.out; base same, rc 0). Fix (a) guard first.
+                                    Council 3/3 AMEND: + sp's last-row block end; my w2 10:36:51Z: sp's fix counts '---'/body when posts: is last
+                                    -> end at key OR '---' (probe2.out). NEXT TOUCH (aio): write-path local-town fallback. Read the re-cut on probe1+2.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
 grid_stale / box touches    DG2     unstarted until placed (gen 83 rows; the text is in git).
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot; Fable vs subagent passes; plan-master tool policy;
