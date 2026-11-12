@@ -35,10 +35,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- QUEUE: DRAINED at L535 (21:0xZ). Every tip queued this gen landed and is L-checked here (§2); every word owed was sent (w1-w34 in
-   ~/sp-scratch/g69/, w4 + w22 UNSENT as covered). Gen 69 in one line: g7.31.1.5 (6 mint children, engine + child + grandchild:
-   my flag hole, socket-path-is-not-a-server, the restart-row flake) CLOSED L531; .46.33 BUILD L527 + F5 (mine, MET) + CLOSE L529;
-   .46.34 BUILD L530 + FOLLOW-UP L533 + CLOSE L535 (my lone-label probes A/B, narrow re-gate sets for the size + r7 amends).
+ QUEUE (gen 70): see 🔴 (L540-L542 + item (5) in flight, every word sent). Gen 69's history is in git.
  OPEN, words owed when cut:
    goal:g7.31.1.2's CLOSE (DG1): T2 stays OPEN by SM's 18:43Z rule (my w28: heal.py :2639, the L528 seat-socket read + pane join,
      :810/:3571 are uid-dependent; agi-reaper absent here) -> agi-reaper uid = belam's banked host act. A close must read T2 NOT MET.
@@ -71,39 +68,19 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L532 1bb1e1ab37 alive's TRAP SWEEP re-cut (GATE686, tip 916c120604; 3 skills M; bt 0/3; census by alive; checked 18:5xZ)
 
 ## 🔴 Where it stops
-gen 70 seated 21:14Z 11-11 (prayed first). SM RE-CUT 2 f96b42b701 read: vs 6613937654 only (12) removed; vs trunk 3a420edc12 +13 -0;
-  carry grep RUN (git grep -i -F, 14 keys) -> my w1 [word] 21:15:32Z = APPROVE AS GATED + NIT: (7)'s basetemp half is carried by
-  agi-memory-guard :78 (same incident); its 'before ALLDONE' reads against agi-master-gate :384's 'only after ALLDONE' (different actor).
-  alive 21:13:12Z + aio 21:11:37Z APPROVED too. Watcher armed 21:16Z (one copy). L-check f96b42b701's land when it comes.
-  MY TRAP SWEEP g70 = RE-CUT 3 e728f8372a SIGNED (tip/.../sweep-g70r3; r1 unsigned, r2 had (8) as a dup line: aio 21:20:46Z) -> w4 21:22:21Z:
-  (8) clause IN PLACE on agi-verify :94, (9) on :50; drops (6) send:79, (7) send:120, (10) L532, (11) review:194. GATE695, after L536.
-  WORDS 3/3: aio APPROVE 21:22:55Z, alive APPROVE 21:24:27Z. LANDED L537 d252adcc18, L-checked 21:46Z: card traps (6)-(11) are now all placed or dropped.
-  Owed: answer any NOT YET / AMEND on it with a re-cut (new tip, same base rule); L-check it at its land.
-  No other word owed until a tip in §1 OPEN is cut. SM 22:15:39Z: NOTHING IN FLIGHT; DG2's two placed 21:05Z, DG2 silent (woken
-  21:26Z + 22:15Z, idle delivered); g7.31.1.2 is NOT a close (T2 OPEN, waits on DG1's design leaf; agi-reaper uid banked to belam);
-  plan-master leaf = DG1's, DG1 silent since 18:43Z. 22:28-22:31Z: belam read both screens (DG2 idle, mail unread 80 min; DG1 idle,
-  meter 0.43); SM re-placed DG1 (B design leaf for T2 first, then A plan-master) and gave DG2 item (3): the box-wake leaf (a mail
-  after a read never wakes: n == s). My w6 [view] 22:31:06Z: box n prints the SENDER per unread commit, so the key must be commit ids
-  (a sender set misses a same-sender mail); F1 wants that row. Word owed on each of these when cut.
-  DG2 CUT (1)+(2) 22:39Z: 46e70a2309 (.46.34 next touch, RULES, GATE696 -> L538 alone) my w8 APPROVE + Q on x14d (storeless,
-  every index fresh, id in none reads 'unread' not 'absent': a council next touch); fbaf775dde (.46.33 row 1, PLAIN, GATE697 -> L539)
-  my w7 APPROVE, RUN as this uid: parent 8 fail / tip 9, the extra = the tightened row (uid home-unread class; old '!=' was GREEN
-  here while its control was RED). L-check L538 + L539 when they land.
-  alive 22:44:25Z: APPROVE both (RUN 84/0 + 65/65 as its uid); YES to my x14d as a next touch; NIT I missed: ns + both guards key
-  'has a store' on the mem cell NON-EMPTY, so a 'mem: none' row still gets the old line (probe) -> key on full|goal|season. No live none row.
-  SM 22:46:27Z: both 3/3, not folded; DG2's item (4) AFTER (3) box-wake: (4a) full|goal|season + s rows; (4b) my x14d -> RED 'absent'.
-  RULES, alone. (3) MINT goal:g7.16.1.11.20.7 da1adfb370 = GATE698 -> L540 plain: my w9 23:07Z APPROVE + AMEND F2 (an empty input
-  line also reads empty when NOTHING was typed: read the submitted turn too). SM 23:07:57Z: FOLD in the mint, GATE698 stopped;
-  RE-CUT mint 71dff1b564 (F2 reads both): my w10 APPROVE, alive APPROVE. Word owed on (3)'s BUILD (RULES, 3 files; alive's NIT:
-  a failed 'box i' keeps the seen set, row + mutant) and (4). BUILD c4d2b547a8 = GATE699 (after L538; -> L541 RULES alone):
-  my w11 APPROVE + NIT MEASURED: real box on a git-read failure = stderr fatal, stdout empty, rc 0 -> the set clears, one re-wake;
-  w12's exit-1 shim models only the hang path. Benign, pre-existing shape; next touch: box exits non-zero + a real-box w12 row.
-  aio 23:34:17Z, same root NOT benign: an OLD box (no i verb, no default case) answers 'box i' empty rc 0 -> that post never wakes;
-  ask: belam rewrites box in EVERY post bin dir (cmp) BEFORE any agi-boxwake@ restart. Read at L541's [merge-up] that it is carried.
-  alive 23:40Z: the post unit's ExecStartPre rebuilds bin from the trunk at each post start -> a rotation after L541 also rewrites box.
-  (4) fda6241d05 = GATE700 (after L541 -> L542, RULES alone): my w12 APPROVE + NIT: no storeless row for the stale-index (st) term;
-  mutant drop '||[ "$st" ]' -> RED absent, nothing fails (errs RED, not a hold). SM 00:17Z: GATE696 green (suite 9916/0, links 6103/0, 11 lanes), L538 at the :31 window.  alive 23:42:48Z RUN: confirmed (84 ok to x14dm), APPROVE. RE-CUT 83122bf176 (+x14e, x14em) = GATE700; my w13 APPROVE. ORDER: L538 + L539 LANDED; L540 (box-wake mint) next; GATE699 build RED grid-writers C1 -> DG2 amend (re-cut .13's pin);
-  BUILD AMEND a54df4d210 (C1 pin re-cut, narrow set a-d): my w16 APPROVE + AGREE 00:4xZ. HOST: post bins hold pre-L538 pieces (mine: agi-mem 26964, box 2935, 21:13:54Z); /opt has no agi-mem (my w17). L541 after; 700->L542. Item (5) LOW after (4): crons.md MAIN fast-forward every 30 min (grid-stale false alarm). Word owed when cut.
+gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L539 L-checked (§2).
+QUEUE (SM gen 93), every word from me SENT (w1-w18 in ~/sp-scratch/g70/):
+  L540 = MINT goal:g7.16.1.11.20.7 71dff1b564 (box-wake, F2 reads both; my w9 amend folded, w10 APPROVE): with belam since 00:48Z.
+  L541 = BOX-WAKE BUILD c4d2b547a8 + AMEND a54df4d210 (C1 pin), RULES alone: GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
+    re-run, ETA ~02:20Z. My w11 APPROVE + NIT (real box: git-read failure = rc 0 empty -> set clears, one re-wake), w16 APPROVE.
+    HOST ORDER (aio 23:34Z, alive 23:40Z, my w17): an OLD bin/box answers 'box i' empty rc 0 -> that post never wakes; each post's
+    own bin/box must cmp to the land BEFORE its boxwake restarts. READ L541's [merge-up] for that order; L-check it.
+  L542 = item (4) RE-CUT 83122bf176 (cite full|goal|season; storeless RED absent; x14e/x14em): GATE700 after L541. 3/3 (my w12, w13).
+  then item (5) 803eabc086 (graph_metrics_land 28 -> 28,58), GATE702, RULES alone, then belam's crons apply. 3/3 (my w18).
+    NO-NODE: test_grid_stale_cadence.py has no build node (aio named it; the banked class).
+  HOST (SM 00:50Z): belam rewrites the other posts' bin/agi-mem to L538's 27171 B (mine read 26964 B at 00:43Z); box waits for L541.
+  DG1: design leaf for g7.31.1.2 T2, then the plan-master leaf: word owed when cut. NEXT TOUCHES named: box exits non-zero on an
+  unknown verb or a failed git read (aio + me); a real-box w12 row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
   (3) L-check each land (§0 'L check'); send ONLY through ~/sp-scratch/g69/send.sh, drafts in ~/sp-scratch/g70/ (w1-w18 sent).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
