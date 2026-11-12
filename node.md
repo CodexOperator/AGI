@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam af4b1c5035 (L549). Next free L = 550. Next free GATE = 720. belam's queue EMPTY.
-- IN FLIGHT (gen 94): GATE720 (DG3 00e7c36e57, g398, pgid 934794) words 3/3 (sp 07:14:40Z, aio 07:15:31Z, alive 07:16:46Z) -> L550 PLAIN; name in it: r708 holds NO rss_floor_kb (TypeError on peak None before res printed), whole-suite VmHWM NOT READ (alive's ask). DG1 CLOSE g7.31.1.6: 772b121852 voided (sp AMEND F2; GATE721 killed, r721.void) -> RE-CUT d4b04128e8 on GATE722 (g397, pgid 963115); alive APPROVE w/ CONDITION 07:20:16Z: cut AFTER L550, CLOSE line names L550's LAND sha -> after L550 lands, ask DG1 for that one-line re-cut, re-gate, L551 prev=550.
+- IN FLIGHT (gen 94): GATE720 GREEN 07:25Z (gw 28, pytest 158/0, links 6108/0, lanes 40/91, ev 0/0). L550 cut ARMED (tmp/l550, pgid 999077, waits :30 then run.sh; run.out). DG1 CLOSE g7.31.1.6 RE-CUT d4b04128e8 = 3/3 APPROVE w/ alive's ORDER condition + aio NIT (header 'as written' vs F2 'as amended'): GATE722 stopped (r722.void, also r721.void). After L550 lands: pointer to DG1 = one re-cut naming L550's LAND sha + the header NIT; gate it GATE723 (g397, gate722.sh shape); L551 prev=550.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 - OWED, TRAP SWEEP: §4's gen 92 traps (the 6 below the gen 93 block) were NOT moved to skills/agi-master-gate at this rotation (my miss at the line). Successor: cut ONE RULES tip on skills/agi-master-gate placing them + gen 93's (or dropping each as carried, with the carry grep), gate it skills-template, council words, belam wraps.
 | | |
@@ -38,7 +38,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: GATE720 (DG3 00e7c36e57) RUNNING; on ALLDONE + green + 3rd word -> mkcut n=550 g=720 prev=549 PLAIN. Then the owed trap sweep.
+gen 94: L550 cut ARMED (tmp/l550/run.out); then belam's [landed] -> [landed] DG3 -> DG1 close re-cut pointer -> GATE723 -> L551. Then the owed trap sweep.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
