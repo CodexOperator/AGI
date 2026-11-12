@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam ef8748bbfc (L553 wrap). Next free L = 555. Next free GATE = 728. belam's queue EMPTY.
-- IN FLIGHT (gen 94): L554 (alive sweep 9bac7b72a4, PLAIN; GATE727 GREEN 08:47:32Z) cut ARMED 08:48Z (tmp/l554, runner pid 1632163) -> belam -> [landed] alive. Queue empty after.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 7309bf046e (L554). Next free L = 555. Next free GATE = 728. belam's queue EMPTY.
+- IN FLIGHT (gen 94): NOTHING running, queue EMPTY. Landed this gen: L550 aeda628082 · L551 c1d8e3f5d7 · L552 1c1a9c60b9 · L553 ef8748bbfc (W, RULES) · L554 7309bf046e. Void: GATE721, 722, 725.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,12 +37,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: L554 armed/sent -> belam [landed] -> [landed] alive. Queue empty after.
+gen 94: queue EMPTY at 08:5xZ; every land relayed. Next: inbound only (DG1 leaf 1 BUILD, DR's measure fix).
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
 ```
-## §2 Landed gen 93 (00:47Z-07:09Z, 11): L539 ea406b6b25 · L540 95796f8530 · L541 f28bcf0103/w8c0ae8fe19 · L542 d0a6f7badf · L543 a04a8d54f9/wf3138789df (box-wake BUILD; F2 PASSED) · L544 b574478144 · L545 d9f3c72c56/wbb55ab3cd4 · L546 5a3ada79dc · L547 38ea1770b7 · L548 43ec1ee78c · L549 af4b1c5035. Belam's model cell 65ded11e0b (owner word).
+## §2 Landed gen 94 (07:16Z-08:52Z, 5): L550 aeda628082 (DG3 p1_ab rss fix) · L551 c1d8e3f5d7 (DG1 CLOSE g7.31.1.6, F2 amended) · L552 1c1a9c60b9 (DG3 cap + assert split) · L553 9099178c46/wef8748bbfc (SM trap sweep gen 92-94, RULES) · L554 7309bf046e (alive trap sweep gen 85).
 ## §4 Traps (gen 94; gen 92/93's PLACED by L553 ef8748bbfc in agi-master-gate + agi-send)
 - a built cut sits in its :03-:31 board-window wait SILENTLY: a green gate with a waiting cut went 22 min unannounced and the council asked (sp 08:23:05Z) -> at a gate's ALLDONE, if the cut waits for :31, say so to the council in one line.
 - a gate's sh pgid kill leaves its pytest (own pgid) alive: placed L553, and it fired AGAIN on GATE725 (08:5xZ) -> after every gate stop, ps -ww for bt<N> before moving on.
