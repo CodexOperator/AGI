@@ -59,7 +59,8 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 - Gen 74, readings ~/aio-s/g74/lc535.txt-lc542.txt (lc534 in g73): L535 fee60d1b1f .46.34 CLOSE · L536 9a587c74de SM sweep g92 (RULES, wrap c86db04bf7) · L537 d252adcc18 sp sweep g70 · L538 88fff065da .46.34 NEXT TOUCH (RULES, wrap 28aa8b6fb5) · L539 ea406b6b25 .46.33 row 1 (b-7 (a) ACCEPT by sp + alive) · L540 95796f8530 MINT g7.16.1.11.20.7 · L541 f28bcf0103 item (5) crons 28,58 (RULES, wrap 8c0ae8fe19) · L542 d0a6f7badf MINT g7.31.1.6. Each == alive's verify; no word owed. NO-NODE, banked class, added: test_grid_stale_cadence.py (new at L541), owner-cite.t.sh.
 - Gen 75, ~/aio-s/g75/lc543.txt: L543 a04a8d54f9 box-wake BUILD + AMEND (RULES, wrap f3138789df, tree == land): G, p1 bde17afdf0, p2 == a54df4d210, tree == merge-tree, 0 D, b-7 27/0/0, grid goal:g7.16.1.11.13 == land; engine-post.md DIFF from tip = L538's agi-mem hunk via p1. == alive 03:39:31Z, no word.
 - L544 b574478144 DG3 traps-to-skills (plain, ~/aio-s/g75/lc544.txt): G, p1 f3138789df, p2 == 0068361dbc, tree == merge-tree, 0 D, 2 blobs == tip, b-7 9/0/0. == alive 03:47:47Z (verified whole, grid OK after the split), no word.
-- Trunk at 03:4xZ 11-12 = b574478144.
+- L546 5a3ada79dc MINT goal:g7.31.1.7 (plain, ~/aio-s/g75/lc546.txt): G, p1 7dbb9b25f0, p2 == 112fd197e7 (RE-CUT 5, my w10), tree == merge-tree, 0 D, blob == tip, b-7 10/0/0, grid == land. == alive 04:51:33Z (verified whole), no word.
+- Trunk at 04:47Z 11-12 = 5a3ada79dc.
 
 ## 🔴 Where it stops
 gen 75: nothing owed at the out; L543 and L544 queued, DG1's ENGINE tip for g7.31.1.6 not yet cut
@@ -95,7 +96,7 @@ Gen 74: f 0.141 -> 0.279 -> 0.417; load5 1.8-12.4. 18 sends, each to 3 refs, bod
 
 ## §7 ATOMS
 - a16 OPEN 09:46:38Z 11-10 (owner via meme-master, c:61b389266d66 + c:1ae05e71c801: the council's full pass over the class presentation, the FULL GRAPH TREATMENT, an A/B basic vs full, S9 compares; v1/v2 to the owner's Drive): leaf goal:g5.4.3.1.1 LANDED L497, the copy LANDED L499; the running director unnamed (🔴 6). OPEN until the council's pass and the arms run.
-- a13 PLACED 04:09:00Z 11-10 (owner via belam: c:175d1f09df76 the grok-bot check GO + c:266bbc9653e4 plan-master): F1 script L493 ... v2.2 L510; the heal leaf L501 + L504; F1 run 5 passed the join (12:1xZ 11-11); the heal design leaf g7.31.1.6 MINTED L542 (its engine tip next); the plan-master leaf (A) PLACED by SM 18:44Z 11-11, DG1's after the heal tip (🔴 4). OPEN until that leaf is minted.
+- a13 CLOSED by L546 (goal:g7.31.1.7, the plan-master umbrella, 04:47Z 11-12; the heal leaf g7.31.1.6's engine tip c4f95cb33b + AMEND 99a1d37c1d + fold 917d1e40f0 awaits GATE708). Placed 04:09:00Z 11-10 (owner via belam: c:175d1f09df76 + c:266bbc9653e4).
 - a15 CLOSED by L503 · a17 CLOSED by L512 · a18 CLOSED by L517 · a14 CLOSED by L492 · a10 CLOSED by L461 · a9 CLOSED (L455, L463) · a11 CLOSED (L485) · a12 CLOSED (hub A).
 - a8 CLOSED (L457; 'hunny screen' still unanswered by the owner). a7 LANDED (owner 20:42:45Z 11-07). a2, a3 MY HALVES CLOSED (COUNCIL JOBS 1, 2). a4, a5 PLACED 07:33:15Z 11-05 (COUNCIL JOBS 3, 4).
 - a6 OPEN, a break item, optional (07:16Z 11-05): the owner: "i'd love to combine them somehow. One is attractor based another is prime number based." (lead.wav + sp's sync.wav), with sp.
