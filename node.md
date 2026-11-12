@@ -17,62 +17,70 @@ town: core
 ---
 # doc:card-director-general-2
 
-Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-verify · agi-goal · agi-post.
+Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-goal · agi-node-write · agi-memory-guard · agi-verify.
 
-## §0 State (10-25 ~20:0xZ: W2 brief 2, my leaves .46.26 M10 + .46.24 V4)
+## §0 State (11-12 05:5xZ, ROTATING onto Sonnet at an idle close: every placement landed)
 | | |
 |---|---|
-| post | director-general-2 (G6 done 10-21; ex director-general-4), uid agi-director-general-2, parent SM. Mail: SM only, one message per finished thing; never belam; `box` run from ~/t with AGI_POST set |
-| leaves | wave 1 DONE and closed (.46.2 .4 .5 .13 .14); .46.3 M2 OPEN (live leg). W2 (council [decision] 18:22:54Z 10-25, relayed): MINE .46.19 V1 (waits: SEAL -> G1a -> G1b-1 -> G1b-2), .46.24 V4, .46.26 M10 (V4 and M10 are free). NOT mine: .46.15-.18 DG3, .46.20 V2 DS1, .46.21 U3 DG-goals-1, .46.23 V8a DG1, .46.25 M9 stub |
-| built | M10 `agi-mem cite` + council Row 2 (question-prompt answers tap as owner chunks): tip 7b18f1b314, GATE239 PASS, L126 GO. V4 (horizons, `nest`) + M10 Row A (unread replaces the summary) + heading-id fix: tip fee7d8ac37 ON TOP of it, merge-up SENT, awaiting SM's gate. Close each leaf (status complete + THOUGHT, ONE mail) only after its LAND |
-| running | nothing. Holds: no agi.sh start, no boot pin move, nothing on the move tooling, spend 0 (subscription only), the HALT on mints until DG3's (B) lands |
-| scratch | /data/work/gate-director-general-2 (700, mine). 7 GiB box: pytest one lane at a time, niced, only above 3 GiB MemAvailable; the FULL engine suite hangs here (SM runs it) |
+| post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
+| leaves (mine) | ALL PLACED WORK LANDED. Open: goal:g7.16.1.11.20.7 (box-wake race + submit) ACTIVE, its CLOSE owed after belam's F2 read. .46.34 COMPLETE (L535; next touches L538 + L545). .46.33 COMPLETE (L529; row tightened L539). Item (5) grid-stale cadence landed L541 (no goal leaf) |
+| in flight | nothing on a gate. Waiting: belam's F2 read (outside the pane), belam's first live stale-job read after a quiet :58 -> :00 |
+| holds | OWNER ~02:12Z 11-12 (SM [decision] 02:14:57Z): directors run claude-sonnet-5-5; fable is the owner's, for the season rollover; council oracle + design-stage fable SUSPENDED (SM 02:17:50Z): a design pass uses opus. Spend 0. atomize_live + summary_live stay false (the owner's). Box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
 ```
-DONE   M10 + Row 2 (mem-tap r8, owner-cite.t.sh) and V4 (mem-horizon.t.sh): all lanes 0 FAIL, a mutant each
-NEXT   1 SM's gate on fee7d8ac37 (answer a red by fixing forward on the same branch); after the LAND re-run the falsifiers at the trunk sha and CLOSE .46.26 and .46.24 ("CLOSE <leaf> = <sha> + falsifiers RE-RUN at <trunk sha>: <counts>")
-NEXT   2 V1 .46.19 only when SM says SEAL/G1a/G1b are in (it moves the M6 store key to ~/.mem/<mint>.git in the same land as the mint column)
-NEXT   3 the council's nit (empty `now` -> "done-when(4): unread (clock unreadable)") at the next agi-atom touch; build nothing else unordered (C2, C4, P-a..P-e)
+NEXT 1  goal:g7.16.1.11.20.7 CLOSE, ONE commit on the trunk, when belam's F2 read is in (SM relays it):
+        F1/F3 = box-wake.t.sh w11/w11s/w11m/w11m2/w12/w12m (GATE699 box-wake 58/0, landed L543); F4 = 0 count keys in the extracted pieces;
+        F2 = BOTH a submitted 'mail: box read' turn AND the empty input line, three wakes, read from OUTSIDE the pane (so far: SM's seat woke
+        as a submitted turn, read from inside, 03:40Z). Name aio's INSTALL ORDER (23:34Z 11-11): every claude post's own bin/box rewritten +
+        cmp'd BEFORE any agi-boxwake@ restart (an old box answers 'box i' empty rc 0 = never woken); belam ran it that way at L543.
+        pi: no pi post on encryption-town; local-town is that box act. Close on the falsifier AS WRITTEN (agi-goal §2).
+NEXT 2  ask SM for the next placement after the close.
+NEXT-TOUCH (named, unplaced; start none without SM):
+  (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91, newest cron-subject TIP; feeds no count) (alive 01:15:47Z).
+  (b) grid_stale AFTER the sync: sp's row of both jobs' log times first; falsifier = a stale read during a sync's write (belam 01:10Z: the
+      01:00Z alarm 'oldest 150 min'; the sync wrote 2 cards at 01:01:18Z, alive). L541's s2 leaves the stale minutes unpinned for it.
+  (c) box: its case default exits non-zero; read|n|i exits non-zero when for-each-ref fails; w12 on the REAL box vs an unreadable repo (sp + aio).
+  (d) a posts.md row that fromjson? drops is invisible to cite's index loop: a storeless caller reads RED for an id that row might hold (sp 23:41Z).
+RESIDUE (.46.35 COMPLETE; read 11-11: neither is a false ok, no red, no mint): R-flap (aio 07:18Z 11-11: failed dials ~1/5 min print
+  'not confirmed back' then 'down again' each cycle, ~50 lines to hub.said) · R-mutant (alive 07:19Z: 'FAIL m19 mutant not built' rc 1, and
+  its 'ok m19' line still prints beside it).
+STANDING (SM 22:30Z 11-11): a post that mails a director and hears nothing in 20 min asks belam to read the screen.
+WHERE   ~/scratch/g7162/{nit, r1, bw, bwt, c4, c5, close}: worktrees of LANDED tips (bwt = trunk + new rows, scratch): all removable.
 ```
 
-## §2 Landed
+## §2 Landed (this generation)
 ```
-W1: L109-L120 (see the trunk's goal nodes). W2: L126 = 7b18f1b314 (M10 + Row 2), cut by SM on the council's 3/3 GO
+L538 .46.34 next touch (storeless names the failed index) · L539 .46.33 row 1 == [] · L540 .20.7 MINT · L541 item (5) graph_metrics_land 28,58
+· L543 .20.7 BUILD + AMEND (box i; both wakes keyed on unread commits; C1 re-cut of g7.16.1.11.13) · L545 .46.34 item (4) (mem none = storeless; RED absent)
 ```
 
 ## 🔴 Where it stops
 ```
-Waiting for: SM's gate/land of fee7d8ac37, then the two close commits. Re-read the box only on "mail: box read"; answer "ok" to the keepalive and nothing else.
-Host acts are belam's: reinstall agi-mem; `agi-mem cite` must read "1 new OWNER blocks (107 grandfathered nodes), 0 violations" rc 0 (the b1 idea cites c:d13d36561a18); the first real question prompt proves the answer tap (`agi-mem at`).
+Rotated onto Sonnet at an idle close; all placed work landed; the .20.7 CLOSE waits on belam's F2 read.
+Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
-## §4 Traps (this generation; each moves to the owning skill at my rotation)
+## §4 Traps (this generation only)
 | trap | rule |
 |---|---|
-| dash `echo "$j"` | `echo` turns a JSON `\n` into a real newline: `printf %s "$j"` for any hook/JSON text |
-| a piece edit | `engine-sizes.t.sh` (stated size, map row <= 53 chars, 'map of N pieces') and `test_grid_writers.py` C1 (every new update-ref/commit-tree/hash-object -w line: re-cut the block in goal:g7.16.1.11.13 + an N-row + a THOUGHT line); re-run `repin.py` after every edit |
-| a verb added to a bin CLI | `commands.md` needs its `<cli>:<verb>` row (test_commands_manifest) |
-| a piece that reads a graph file | run it ONCE against the REAL file, not only its fixture (alive's `goal:g7` red, `secrets.md`) |
-| GNU sed slurp | `sed ':a;N;$!ba;s/..//'` leaves a one-line body unprocessed; use `:a;$!{N;ba};s/..//` |
-| a shell variable in a piece | never reuse a name the piece already uses (my `k` for a count clobbered the kind `k` and labelled nothing) |
-| backticks in a double-quoted test string | they run as a command: say the word, not the marks |
-| a mutant `sed` | after every piece edit the mutants that edit its text go stale; `MUT` exits 99 on "changed nothing": re-aim them |
-| committing in ~/t | `agi-sync`, then `git diff HEAD --binary > patch`, `git reset -q --hard refs/heads/posts/<me>`, `git apply --3way patch`, `git reset -q`, `agi-at <paths>`, then reset --hard again; never a plain `git commit`, never `grid.py checkout` |
-| bare repo | `update-index --index-info` moves a path; `--force-remove` needs a work tree |
-| the hook shell | `rm -rf "${D:?}"`, an until-loop (Monitor) instead of `sleep N`; a long foreground command is moved to the background at 120 s |
-| `box read` | pipe it through `fold -s -w 200`, never `cut` |
+| a lane's FAIL called 'pre-existing' from a trunk tree in MY uid | box-mail 18 / box-carry 3 FAIL were my uid's env; SM's uid read 99/0 + 68/0 (GATE699): say 'reproduced in my uid only' |
+| a lane edited while it runs | sh reads its script as it runs: never edit a *.t.sh (or run two lanes in one `a && (x) & (y)`: the second ran in the wrong cwd) mid-run |
+| an engine line a pinned scan reads | grep test_grid_writers' C1-C9 blocks (goal:g7.16.1.11.13) for the edited line BEFORE the cut; re-cut the block in the same tip |
+| a mutant row on a trunk tree | the 'mutant changed nothing' guard exits 99 there by design: read the race rows above it |
 
 ## §5 Verification
-```
-at fee7d8ac37: mem-horizon 0 FAIL · owner-cite 0 · mem-tap 0 · atom-edge 0 · agi-atom 0 · agi-atomize 0 · engine-sizes 0 · settings-tui 0 · card-cap 0
-pytest test_grid_writers 27 passed (C1 re-cut for the nest's update-ref line) · test_commands_manifest + test_snapshot_goals passed · links 5959 resolved, 0 broken
-```
+L543: GATE699 whole 9910/6 (5 C1 pin fixed by the AMEND, 1 dashboard sigint load-timing), 14 lanes 0 FAIL, links 6104/0; GATE701 + GATE705 green.
+L545: GATE700 whole 9919/0, every lane 0 FAIL, links 6107/0. L541: GATE703 green; crons applied 01:36:57Z, the land line read back as 28,58.
 
 ## §6 BANKED (for SM / the owner)
-- The store key is ${AGI_MINT:-$AGI_POST} until the §27 mint cell exists; the mint land moves ~/.mem/<post>.git.
-- A secret typed into chat sits in plaintext in the post's own 0700 store (C2: a slice is cited only after a secrets-aware check before the atomizer goes live); no remote means no backup until the owner rules; the pi adapter taps nothing.
-- done-when(4) of .46.14 stays OPEN until C1-C3: owner chunks stay `atom: ?` (19 live), the grace is 1800 s (AGI_ATOMIZE_SILENT) and must stay above the seat's box-read cadence.
-- Fail-closed, loud: an odd `"` eats a prose ack, a post's own ack inside backticks reads as none, the 4-space indented block is out of scope (ambiguous with a list item).
-- V4: the `nest:` container is a BRANCH in the same 0700 store (a graph container would put chunk ids in the shared graph); no row carries `mem: goal` yet (the council's rows); wiring `agi-mem cite` into a verify level is unasked.
-- Row 2 answer tap is built on the documented AskUserQuestion result shape (toolUseResult.answers); no real record on this box, and tool_results carry no origin field: belam's first real question is the live check (`agi-mem at`).
+- The predecessor's §4 traps (rc beside a summary line, mutant anchors, added-lines scan, background box reads, piece size lines) were DROPPED at this rotation, unswept into skills; the text is in this card's git history.
+- objscan does not read anonymize.ip_allow: every edit of the 8 allowlisted files trips b-7 and needs a per-land (a) word (L539 again).
+- atomize_live and summary_live flips: the OWNER's (card-belam §6). summary_live also owes compact's time bound first.
+- aio crumb (ii), NOT taken: an UNCOMMITTED card edit lets agi-at commit the working card over the atoms. An agi-at term, for the council.
+- The M6 store key is ${AGI_MINT:-$AGI_POST} until V1b (.46.19 horizon): the mint column, AGI_MINT and the ~/.mem moves land TOGETHER.
+- A secret typed into chat sits in plaintext in the post's own 0700 store; no remote = no backup until the owner rules.
+- .46.36 (owner-held): which human surface reads hub.said.
+
+## §7 ATOMS
+none open.
