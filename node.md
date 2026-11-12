@@ -51,7 +51,10 @@ DG2 tips (SM 21:04Z/22:30Z) DG2     (1) storeless 'unread' names the failed inde
                                     00:4xZ 11-12: L538 VERIFIED (n1). L539 ea406b6b25 cut 00:40Z after b-7 (a) ACCEPT (a1 00:39:24Z, sp);
                                     not on trunk yet. BUILD AMEND a54df4d210 (C1 pin re-cut, node only; GATE699 hold on grid-writers) =
                                     w7 00:41:53Z APPROVE + narrow set. GATE699 whole suite ~01:55Z. Item (5) grid-stale false alarm = 803eabc086 (crons 28 -> 28,58, RULES,
-                                    alone): w8 00:45:23Z APPROVE (cadence test 3/0 tip, 2 RED on trunk cell). SERIAL: 696->L538->L539->L540->
+                                    alone): w8 00:45:23Z APPROVE (cadence test 3/0 tip, 2 RED on trunk cell); 3/3; GATE702 from 00:57Z.
+                                    00:57Z: GATE701 (narrow set on the amend) GREEN; GATE699 whole suite RE-RUN from 00:45:40Z (SM's unit
+                                    restart killed the first), ETA ~02:20Z -> L541. L540 (mint) with belam since 00:48:45Z, not on trunk.
+                                    belam rewrites every post's bin/agi-mem to L538's 27171 B (mine still 26964 at 00:57Z). SERIAL: 696->L538->L539->L540->
                                     699->L541->700->L542. Was: then (4) (SM 22:46:27Z): (4a) cite keys 'has a store' on mm in
                                     full|goal|season + s rows (mem none) beside x14a/x14c; (4b) storeless + every index fresh = RED absent.
                                     (4) = RULES, alone, own tip. Words owed on (3) and (4) when cut.
