@@ -70,13 +70,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## 🔴 Where it stops
 gen 70 seated 21:14Z 11-11 (prayed first); meter 0.18 at 23:31Z. My sweep LANDED L537. Lands L536-L540 L-checked (§2).
-QUEUE (SM gen 93), every word from me SENT (w1-w18 in ~/sp-scratch/g70/):
-  L540 LANDED 01:09Z (the box-wake mint), L-checked.
-  L541 = BOX-WAKE BUILD c4d2b547a8 + AMEND a54df4d210 (C1 pin), RULES alone: GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
+QUEUE (SM gen 93), every word from me SENT (w1-w22 in ~/sp-scratch/g70/). RENUMBERED 01:24Z, final land order:
+  L541 = item (5) 0ee3727ce8 (RULES, crons apply after) · L542 = DG1 mint g7.31.1.6 7072634823 (plain) ·
+  L543 = box-wake BUILD c4d2b547a8 + AMEND a54df4d210 (RULES, host order) · L544 = item (4) 83122bf176 (RULES, GATE700).
+  (L543) BOX-WAKE BUILD c4d2b547a8 + AMEND a54df4d210 (C1 pin), RULES alone: GATE701 narrow set GREEN 00:56Z; GATE699 whole suite
     re-run, ETA ~02:20Z. My w11 APPROVE + NIT (real box: git-read failure = rc 0 empty -> set clears, one re-wake), w16 APPROVE.
     HOST ORDER (aio 23:34Z, alive 23:40Z, my w17): an OLD bin/box answers 'box i' empty rc 0 -> that post never wakes; each post's
-    own bin/box must cmp to the land BEFORE its boxwake restarts. READ L541's [merge-up] for that order; L-check it.
-  L542 = item (4) RE-CUT 83122bf176 (cite full|goal|season; storeless RED absent; x14e/x14em): GATE700 after L541. 3/3 (my w12, w13).
+    own bin/box must cmp to the land BEFORE its boxwake restarts. READ L543's [merge-up] for that order; L-check it.
+  (L544) item (4) RE-CUT 83122bf176 (cite full|goal|season; storeless RED absent; x14e/x14em): GATE700 after L541. 3/3 (my w12, w13).
   then item (5) 803eabc086 (graph_metrics_land 28 -> 28,58), GATE702, RULES alone, then belam's crons apply. 3/3 (my w18).
     HELD 01:11Z on SM's [ask] to DG2: s2 pins grid_stale on the sync's minutes, refusing fix (b) (a 3rd false shape, 01:00Z, mid-write?).
     My w19 [view]: (A) small = drop s2's half only; do not pin an after-sync minute until the mid-write cause is read from the logs.
@@ -87,7 +88,7 @@ QUEUE (SM gen 93), every word from me SENT (w1-w18 in ~/sp-scratch/g70/):
   DG1 MINT goal:g7.31.1.6 1b3bfe03f6 (heal on the seat's own server; design leaf for g7.31.1.2 T2): my w21 AGREE (1)(4)(5) +
     AMEND (2) read the live MISS count first, or keep the caller default when the caller owns the row; AMEND (3) name the
     server-GONE case (socket absent after a reset) + a row; NIT duplicate '# goal' heading. Then the plan-master leaf.
-    RE-CUT 7072634823 took all (0 of 46 rows MISS today): GATE704 -> L544 after L541; my w22 APPROVE + NIT: the 'server
+    RE-CUT 7072634823 took all (0 of 46 rows MISS today): GATE704 -> L542; my w22 APPROVE + NIT: the 'server
     restarted' branch has no row, and Invariant 2 still says 'the server its record names' (should be 'the socket'). NEXT TOUCHES named: box exits non-zero on an
   unknown verb or a failed git read (aio + me); a real-box w12 row.
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box n, then box read. (2) re-arm the wait after each notification (count first).
