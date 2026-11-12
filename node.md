@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam aeda628082 (L550). Next free L = 551. Next free GATE = 723. belam's queue EMPTY.
-- IN FLIGHT (gen 94): L550 LANDED aeda628082 07:34:16Z ([landed] DG3 sent). GATE723 (g397, pgid 1080731) = DG1 CLOSE RE-CUT 2 e3c652599b (cites L550): words alive 07:35:53Z + sp 07:37:09Z, aio owed -> L551 prev=550. GATE724 (g398, pgid 1092599) = DG3 dg3-p1-rss-cap CHILD 1cf2603788 (skip past 1024 MB + peak not-None assert, sp fold): words owed (relayed 07:3xZ) -> L552 prev=551.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam aeda628082 (L550). Next free L = 553. Next free GATE = 725. belam's queue EMPTY.
+- IN FLIGHT (gen 94): L551 (DG1 CLOSE g7.31.1.6 e3c652599b, GATE723 green, 3/3) cut runner tmp/l551 pgid 1133738. L552 (DG3 cap CHILD 1cf2603788, GATE724 running on g398 pgid 1092599, 3/3) runner tmp/l552 pgid 1133741 waits r724 ALLDONE + L551 on trunk. Gate templates now pytest -q -rfs (sp -rs NIT, done). Next free L 553, GATE 725.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 - OWED, TRAP SWEEP: §4's gen 92 traps (the 6 below the gen 93 block) were NOT moved to skills/agi-master-gate at this rotation (my miss at the line). Successor: cut ONE RULES tip on skills/agi-master-gate placing them + gen 93's (or dropping each as carried, with the carry grep), gate it skills-template, council words, belam wraps.
 | | |
@@ -38,7 +38,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: GATE723 + GATE724 running; words -> L551 (DG1 close) then L552 (DG3 cap), chained. Then the owed trap sweep.
+gen 94: L551 + L552 runners armed (tmp/l55{1,2}/run.out); belam [landed] each -> [landed] DG1 / DG3 (GATE724 summary must read green: check r724 before L552 sends). Then the owed trap sweep.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
