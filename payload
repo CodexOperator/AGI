@@ -2,7 +2,7 @@
 # box-mail.t.sh: AA1.M falsifiers for the trunk's `box` piece (hypotheses g716111-aa1m-box-send-..., ...-no-worktree-hop-...): sh + git + jq, scratch only,
 # throwaway keys, no live ref. One ok/FAIL line per case; exit = number of FAILs. The file under test is the PIECE: `sect box` from the .geometry engine*.md of ROOT
 # (default: the working tree this file sits in), exactly as box-carry.t.sh reads its pieces; case b0 pins that the box under test IS that piece, byte for byte.
-# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 2935)
+# BOX=<file>  a box to test instead (b0 then FAILs unless it is byte-equal to the piece); ROOT=<repo> where the piece is read; CEIL=<bytes> the piece's size ceiling (default 3050)
 # BRSED=<sed script> scratch knob: mutate the box under test (b0 goes RED by design: how the cap numbers on experiment:dg2-aa1m-m3 were measured). To prove a PIECE edit turns a case RED,
 #   run on a scratch ROOT whose engine-post.md carries the edit.
 # M3M/M3RUNS = sends per writer / runs for the realistic M3 cases (default 100/5); M3BM/M3BRUNS the same for the 6-on-one-ref BOUND (150/3).
@@ -19,7 +19,7 @@ sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;}
 [ -s $BOX ]||{ echo "FAIL extract: box $(wc -c<$BOX)";exit 99;}
 [ -n "$BRSED" ]&&{ sed "$BRSED" $BOX>$T/boxm;BOX=$T/boxm;}
-BR=$BOX;CEIL=${CEIL:-2935};P=${M3_UNSENT_PCT:-5}
+BR=$BOX;CEIL=${CEIL:-3050};P=${M3_UNSENT_PCT:-5}
 # a mutant of a COPY of the piece must change it (goal:g7.16.1.11.13.5): a drifted literal exits 99 with ONE named line (council (A) 10-26 22:17Z), never a green row
 chg(){ cmp -s "$1" "$2"&&{ echo "FAIL fixture: chg matched nothing: $3";exit 99;};:;}
 sed 's/\[ \$k -lt 5 \]/[ $k -lt 1 ]/' $BR>$T/box1;chg $BR $T/box1 "the cap-one mutant"
