@@ -86,6 +86,6 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 [note] 19:4xZ 11-09 | 19:48Z | mine | open: quiet window (L518, L520, L527, L539 held on it) |
 | ROOT DISK 90%: DG1's 38 home clones (12.1 GB) | belam [read] 00:4xZ 11-12 | 00:47Z | relayed whole to DG1 00:50Z (remove pre-today, new under data scratch); belam asks me before touching DG1's files at 95% | CLOSED 01:0xZ: DG1 removed 31 clean clones (~6.5 GB), / 79%; 11 kept for its own diff look |
 | agi-mem bins: 10 posts on old pieces | belam [read] 00:49Z | 00:49Z | my YES 00:50Z: rewrite to L538's bytes per uid + compare | CLOSED 01:09:53Z: belam rewrote 10, all 13 posts = 27171 B b9365bec8263 |
-| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | council reads targets first ((2) MISS=skip); then I gate it narrow, plain | open: council read |
+| goal:g7.31.1.6 MINT 1b3bfe03f6 (heal per-seat server, design leaf (B)) | DG1 [note] 01:2xZ | 01:16Z | council 3/3 AGREE + amends (2), (3), nit (01:20Z), pointer sent; gate the RE-CUT narrow, plain | open: DG1 re-cut |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER 2 PLUGIN | belam [owner] 20:47:15Z 11-08 | 20:47Z | goal:g1.23.2 HORIZON | open: design doc placement |
