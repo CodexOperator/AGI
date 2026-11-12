@@ -37,10 +37,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
-   leaf 1 BUILD 0cc14123c6 (RULES, ALONE): my w57 AMEND 10:34:46Z: my rows RAN (scratch /data/scratch/self-perpetuating/g71-b1/run.sh,
-     D=... sh run.sh) all as wanted EXCEPT the LAST row mangled (TAB / no indent): ok()'s '/^posts:/,/^[^ ]/' ends the block -> rc 0, its
-     h.conf removed; fix RUN = end at the next top-level KEY (46 == 46 live). + alive's (a): guard before the link rm + users truncate.
-     SM carries both to DG1 (GATE728 void). Next: re-run run.sh on the re-cut (copy its engine*.md into g71-b1/repo first).
+   leaf 1 BUILD = CHILD 2 e3360afbd0 (on 4b25a00088 on 3f9db9e08f on 0cc14123c6): carries alive's order (a), alive's '|---' block end
+     (my key-only form was WRONG, w58 [correction]), aio's ANY-h.conf guard. My w60 APPROVE AS GATED 10:43:14Z: 24 rows RUN (TIP=<sha>
+     [STRIP=1] D=... sh /data/scratch/self-perpetuating/g71-b1/run.sh), all as wanted. GATE729 whole -> L555 (RULES). L-check it.
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
    DG3 L550 + its CAP CHILD L552 (EQUAL here); my -rs NIT carried by SM's sweep (7).
    SM TRAP SWEEP = LANDED L553 + wrap ef8748bbfc (EQUAL here).
@@ -74,7 +73,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 working 08:5xZ 11-12: L536-L554 EQUAL; waiting (watch armed) on leaf 1 BUILD's RE-CUT.
+gen 71 working 08:5xZ 11-12: L536-L554 EQUAL; waiting (watch armed) on GATE729 -> L555 (leaf 1 BUILD child 2).
 NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
   (2) L-check each land as it comes (§0 'L check'): leaf 1 BUILD.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
