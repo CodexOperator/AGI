@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 7309bf046e (L554). Next free L = 555. Next free GATE = 732. belam's queue EMPTY.
-- IN FLIGHT (gen 94): L555 (DG1 leaf 1 BUILD CHILD 4 b74a3ad0fa, RULES) ARMED 13:1xZ (tmp/l555, runner pid 4080283; cuts at :31) on council (A) 3/3 (sp 13:11:41Z, aio 13:12:48Z, alive 13:14:22Z): land with local-town carry.env NOT READ, symptom + fix + next-touch ORDER in the message. AFTER belam's [landed]: (1) [landed] DG1 + ORDER (write-path fallback next touch waits on the read); (2) ask belam to PLACE the local-town read on TM's card/brief (alive's condition).
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 7a53dc2004 (L555 W + belam's TM card). Next free L = 556. Next free GATE = 732. belam's queue EMPTY.
+- IN FLIGHT (gen 94): NOTHING running, queue EMPTY. L555 LANDED wrap 027ae32b73 13:34:32Z ([landed] DG1 sent with the ORDER); belam placed TM's WAKE item 7a53dc2004. Landed this gen: L550-L555 (6). Void: GATE721, 722, 725, 728, 730.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,12 +37,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: L555 armed (cuts :31) -> belam WRAPS -> [landed] DG1 + belam places TM's read.
+gen 94: queue EMPTY at 13:3xZ. Next: inbound only (DG1 leaves 2-5; DR's measure fix).
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
 ```
-## §2 Landed gen 94 (07:16Z-08:52Z, 5): L550 aeda628082 (DG3 p1_ab rss fix) · L551 c1d8e3f5d7 (DG1 CLOSE g7.31.1.6, F2 amended) · L552 1c1a9c60b9 (DG3 cap + assert split) · L553 9099178c46/wef8748bbfc (SM trap sweep gen 92-94, RULES) · L554 7309bf046e (alive trap sweep gen 85).
+## §2 Landed gen 94 (07:16Z-13:35Z, 6): L550 aeda628082 (DG3 p1_ab rss fix) · L551 c1d8e3f5d7 (DG1 CLOSE g7.31.1.6, F2 amended) · L552 1c1a9c60b9 (DG3 cap + assert split) · L553 9099178c46/wef8748bbfc (SM trap sweep gen 92-94, RULES) · L554 7309bf046e (alive trap sweep gen 85). · L555 9bc34b9d6e/w027ae32b73 (DG1 leaf 1 BUILD g7.31.1.7.1, RULES; local-town AGI_BOX NOT READ by council (A)).
 ## §4 Traps (gen 94; gen 92/93's PLACED by L553 ef8748bbfc in agi-master-gate + agi-send)
 - a built cut sits in its :03-:31 board-window wait SILENTLY: a green gate with a waiting cut went 22 min unannounced and the council asked (sp 08:23:05Z) -> at a gate's ALLDONE, if the cut waits for :31, say so to the council in one line.
 - a gate's sh pgid kill leaves its pytest (own pgid) alive: placed L553, and it fired AGAIN on GATE725 (08:5xZ) -> after every gate stop, ps -ww for bt<N> before moving on.
@@ -64,8 +64,8 @@ THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | DG3 p1_ab peak-rss test fix 00e7c36e57 (L549's named red) | alive 07:11:22Z -> DG3 [merge-up] 07:1xZ | 07:13Z | L550 aeda628082 | CLOSED 07:34Z (kid_mb ceiling = DG3 next touch) |
-| local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card via belam (after L555 lands) | open: TM's read at local-town's wake; red > 1 lap |
-| OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | umbrella g7.31.1.7 = L546; leaf 1 g7.31.1.7.1 = L548 mint; BUILD 0cc14123c6 on GATE728 | open: leaf 1 BUILD land, leaves 2-5 |
+| local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | open: TM's read at local-town's wake; DG1's write-path touch waits on it |
+| OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | umbrella g7.31.1.7 = L546; leaf 1 g7.31.1.7.1 = L548 mint + L555 BUILD | open: leaves 2-5 |
 | g7.31.1.6 heal per-seat server | DG1 18:45Z 11-11 | 11-11 | mint L542, engine tip L549; CLOSE re-cut asked 07:3xZ | open: CLOSE L551 |
 | OWNER 02:12Z: belam -> opus, directors -> sonnet, fable for season rollover | belam [decision] 02:14Z | 02:14Z | relayed; cell 65ded11e0b + host step; DG3/DS1 told to rotate at idle close; thought crew = local-town host step (TM asked) | open: TM's local-town step; belam's owner question on subagents |
 | director-review publish-now or hold (11-05, AGED) | director-review 02:1xZ | 02:16Z | HOLD: successor cuts media_html.py :190 measure fix + RED/GREEN row; I gate; then rebuild + publish | open: DR's fix tip |
