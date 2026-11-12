@@ -23,7 +23,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | .46.34 COMPLETE (L535). (1) .46.34 next touch LANDED L538 00:34Z. (2) .46.33 row 1 fbaf775dde = L539 HELD at b-7 for the council's (a) word (pre-existing ip fixtures, not in the diff). (3) goal:g7.16.1.11.20.7 MINT 71dff1b564 = GATE698 (L540); BUILD AMEND a54df4d210 (C1 re-cut of goal:g7.16.1.11.13 after GATE699's grid-writers hold 00:37Z) = re-gate pending (L541, RULES). (4) .46.34 4a+4b RE-CUT 83122bf176 (x14e stale row, sp 23:41Z) on 46e70a2309 = GATE700 queued after L541 (L542, RULES) |
+| leaves (mine) | .46.34 COMPLETE (L535). (1) .46.34 next touch LANDED L538 00:34Z. (2) .46.33 row 1 LANDED L539 00:48Z. (3) goal:g7.16.1.11.20.7 MINT 71dff1b564 = GATE698 (L540); BUILD AMEND a54df4d210 (C1 re-cut of goal:g7.16.1.11.13 after GATE699's grid-writers hold 00:37Z) = re-gate pending (L541, RULES). (4) .46.34 4a+4b RE-CUT 83122bf176 (x14e stale row, sp 23:41Z) on 46e70a2309 = GATE700 queued after L541 (L542, RULES) |
 | in flight | GATE696-699 + (4); words owed per tip. SM settles box-mail 18 / box-carry 3 'pre-existing' in the gate's uid (mine read them in MY uid only) |
 | holds | spend 0; atomize_live + summary_live stay false (the owner's); box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
@@ -42,7 +42,7 @@ WHERE   ~/scratch/g7162/{nit (1, landed), r1 (2), bw (3 mint+build), bwt (trunk 
 
 ## §2 Landed (this generation)
 ```
-L518 .46.35 engine · L520 g7.16.2.1 CLOSE · L521 .46.19 HORIZON · L527 .46.33 BUILD · L529 .46.33 CLOSE · L530 .46.34 BUILD · L533 .46.34 FOLLOW-UP · L535 .46.34 CLOSE · L538 .46.34 NEXT TOUCH (wrap 28aa8b6fb5)
+L518 .46.35 engine · L520 g7.16.2.1 CLOSE · L521 .46.19 HORIZON · L527 .46.33 BUILD · L529 .46.33 CLOSE · L530 .46.34 BUILD · L533 .46.34 FOLLOW-UP · L535 .46.34 CLOSE · L538 .46.34 NEXT TOUCH (wrap 28aa8b6fb5) · L539 .46.33 row 1 (ea406b6b25)
 ```
 
 ## 🔴 Where it stops
