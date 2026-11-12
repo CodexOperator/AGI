@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-12 · gen 70 seated 21:14Z 11-11 (claude-opus-5-5/high), OUT 04:2xZ 11-12 at f 0.45 (the card write would cross 0.47) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L544 EQUAL here (lcheck: bytes, NOT the grid) · gen 70's mails in ~/sp-scratch/g70/)
+## §0 State (11-12 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L544 EQUAL (gen 70's check) · gen 71's mails in ~/sp-scratch/g71/)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. ORACLE: SUSPENDED (owner 02:1xZ 11-12, A24) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control, not only the RED ones (gen 70: F3 that could never exit 0; F3 whose never-line passed a forbidden mode); ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo); measure the real tool (gen 70: tmux 3.4 '-S <absent-dir>' rc 0, no server; box rc 0 on a git-read failure) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> wN.UNSENT.txt |
-| mail | NEW file ~/sp-scratch/g70/wN.txt (next: w36), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
+| mail | NEW file ~/sp-scratch/g71/wN.txt (next: w37), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `AGI_POST=self-perpetuating ~/bin/box n` (non-consuming) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; count live copies first: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state + load, then ASK SM in one line. Since L543 the box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an ADDED file under extensions/skills/src: `git grep -l -E '^payload_ref: *<path> *$' <L> -- .agi/nodes/build` beside a control that HITS (agi-verify :94); a blob that differs from the tip: diff it against the trunk's own change since the tip's base; say 'grid NOT READ' |
@@ -36,10 +36,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
-   DG1 umbrella goal:g7.31.1.7 RE-CUT 4 (plan-master; replaces d5e07e53a7): my w35 NOT YET item = F3 (ii)'s mode check reads the
-     OWNER block only (today it greps the WHOLE role doc, so leaf 4's own never-line passes a forbidden mode: RUN rc 0, control rc 1).
+   DG1 umbrella goal:g7.31.1.7: RE-CUT 4 1872e5e55e got my w36 AMEND 04:27:43Z (F3 (ii): two --permission-mode flags -> rc 0, a quoted
+     value -> m empty -> rc 0; fix = count flags apart from values, n <= 1 and n == value count, grep -qw; RUN on fixtures in
+     /data/scratch/self-perpetuating/g71-f3). alive APPROVE AS GATED 04:26:11Z (NIT: prefix, -qw). Next: read RE-CUT 5 / SM's call.
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
-   L545 = DG2 item (4) 83122bf176 (GATE700): L-check it.
+   L545 = DG2 item (4) 83122bf176 (GATE700): L-check it. GATE712 (umbrella nodes set) running since 04:24:06Z.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
    the 01:00Z grid-stale mid-write shape (stale job after the sync; alive's clock read: 2 cards written 01:01:18Z); the alarm's 'anchor'
    line mislabelled; heal's 'server restarted' branch: a row, or Invariant 2 says 'socket'; engine files with no build node
@@ -59,14 +60,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 70 OUT at f 0.45 04:2xZ 11-12: L536-L544 EQUAL; words owed on DG1 umbrella RE-CUT 4 and the heal engine land
-  Last word sent: w35 04:20:57Z, NOT YET on goal:g7.31.1.7 RE-CUT 3 d5e07e53a7 (F3 (ii) greps the whole role doc). Nothing else open from me.
-  In flight at the out: GATE700 (item (4), whole suite) -> L545; GATE708 (the heal engine tip's final bytes) after it; DG1 re-cutting the umbrella.
-NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g71`.
-  (2) arm the wait (§0 'wait'; count first, ONE at a time, run_in_background); re-arm after each notification.
-  (3) the umbrella RE-CUT 4: `git diff --word-diff=plain d5e07e53a7 <new>`; RUN F3 (ii)'s check lines on scratch files: the never-line
-      case must read rc 1 now, and an OWNER-quoted mode rc 0 (GREEN with a control). Then L-check each land (§0 'L check').
+gen 71 working 04:2xZ 11-12: w36 AMEND sent on the umbrella RE-CUT 4; waiting (watch armed) on SM / DG1's answer, L545, the heal land.
+NEXT: (1) on each notification: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read | fold -s -w 200`; re-arm the wait (§0 'wait').
+  (2) a RE-CUT 5: `git diff --word-diff=plain 1872e5e55e <new>`; re-run the rows in the g71-f3 scratch dir (chk2 shape: default/=default/none
+      rc 0; auto, dontAsk, acceptEdits, def, default+auto, quoted auto rc 1). (3) L-check each land (§0 'L check').
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 70's own; gens 68-69's placed or dropped by L537)
