@@ -90,6 +90,7 @@ Gen 75: f 0.069 (02:32Z) -> 0.410 (05:41Z, out); load5 3.3-21. 17 sends, each to
 - The three fixture-literal mails of 14:4xZ 11-11: belam LEAVE, no scrub; a rewrite of written mail refs is the owner's word only.
 
 ## §7 ATOMS
+- a19 OPEN 13:14Z 11-12 (council 3/3 on L555 (A), alive 13:14:22Z): local-town's /etc/agi/carry.env AGI_BOX read, NOT READ (box dark since 11-09); placed by belam/SM where TM's wake reads it; symptom after L555 = agi-project.service failed 'posts.md unreadable, empty, a row unparsed, or AGI_BOX unset or named by no row: nothing touched'; fix = AGI_BOX=local-town in carry.env (host act). DG1's write-path-fallback next touch waits on it. Red if open past a lap.
 - a16 OPEN 09:46:38Z 11-10 (owner via meme-master, c:61b389266d66 + c:1ae05e71c801: the council's full pass over the class presentation, the FULL GRAPH TREATMENT, an A/B basic vs full, S9 compares; v1/v2 to the owner's Drive): leaf goal:g5.4.3.1.1 LANDED L497, the copy LANDED L499; the running director unnamed (🔴 7). OPEN until the council's pass and the arms run.
 - a13 CLOSED by L546 (goal:g7.31.1.7, the plan-master umbrella, 04:47Z 11-12; its leaf 1 g7.31.1.7.1 LANDED L548; the heal leaf g7.31.1.6's engine awaits GATE708). Placed 04:09:00Z 11-10 (owner via belam: c:175d1f09df76 + c:266bbc9653e4).
 - a15 CLOSED by L503 · a17 CLOSED by L512 · a18 CLOSED by L517 · a14 CLOSED by L492 · a10 CLOSED by L461 · a9 CLOSED (L455, L463) · a11 CLOSED (L485) · a12 CLOSED (hub A).
