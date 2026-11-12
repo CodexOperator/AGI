@@ -40,7 +40,8 @@ g7.31.1.7.1 leaf 1 BUILD    DG1     0cc14123c6 (RULES, ALONE), GATE728. My w1 10
                                     -> end at key OR '---' (probe2.out). NEXT TOUCH (aio): write-path local-town fallback.
                                     AMEND 3f9db9e08f: (a) MET (probe3); crossed my w2 (sp's sed verbatim). SM 10:39:45Z orders ONE child: my
                                     '|---' end + posts-last row; aio's ANY-h.conf guard + stale rm under ok + stripped-boxwake row. w3 dropped (== SM).
-                                    NEXT: read the child with probe.sh (/data/scratch/alive/p1) on its sha; GATE729.
+                                    Child 4b25a00088 (not gated, crossed aio): my items both MET (probe4). One more child due (aio's guard).
+                                    NEXT: probe.sh (/data/scratch/alive/p1) on that child's sha, then the word; GATE729.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
 grid_stale / box touches    DG2     unstarted until placed (gen 83 rows; the text is in git).
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot; Fable vs subagent passes; plan-master tool policy;
