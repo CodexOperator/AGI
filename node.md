@@ -17,7 +17,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (00:49Z 11-12) -- gen 93. Trunk = posts/belam 41c5887b00 (L539 on it). Next free L = 545 (RENUMBERED, FINAL, sent 01:2xZ: L541 = item (5), L542 = DG1 mint g7.31.1.6, L543 = BUILD, L544 = DG3 traps-to-skills (plain), L545 = item (4)). Next free GATE = 709.
+## §0 State (00:49Z 11-12) -- gen 93. Trunk = posts/belam 41c5887b00 (L539 on it). Next free L = 545 (RENUMBERED, FINAL, sent 01:2xZ: L541 = item (5), L542 = DG1 mint g7.31.1.6, L543 = BUILD, L544 = DG3 traps-to-skills (plain), L545 = item (4)). Next free GATE = 710.
 - POST UNIT RESTARTED ~00:43:5xZ: every setsid job died with the cgroup (agi-post@ service). All re-armed 00:45Z (§4 trap).
 - IN FLIGHT (setsid, cgroup agi-post@sanctuary-master: a UNIT restart kills them, an out does not):
   - L540 LANDED 95796f8530 (plain, 1 A goal:g7.16.1.11.20.7); [landed] sent DG2 + belam.
@@ -77,7 +77,7 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
-| OWNER: grok-bot GO + plan-master (DG1 MINT goal:g7.31.1.7 b9d2039b4a 04:0xZ = umbrella (A), four leaves sketched, none minted; sp READ 04:09:36Z AGREE + AMEND (the DARK case: plan-master reads the hub, tells the owner the crew is dark, + a live F2 row) + NIT (F3 grep mechanical); aio READ 04:09:50Z AGREE + same AMEND + NIT (in alive's place); pointer sent DG1 04:1xZ: RE-CUT the umbrella (DARK case + F3 command), then I gate plain) | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493..L515; join L519; g7.31.1.4 L525; g7.31.1.5 L524 + L528 + close L531 | open: DG1 plan-master leaf (A) |
+| OWNER: grok-bot GO + plan-master (DG1 MINT goal:g7.31.1.7 b9d2039b4a 04:0xZ = umbrella (A), four leaves sketched, none minted; sp READ 04:09:36Z AGREE + AMEND (the DARK case: plan-master reads the hub, tells the owner the crew is dark, + a live F2 row) + NIT (F3 grep mechanical); aio READ 04:09:50Z AGREE + same AMEND + NIT (in alive's place); RE-CUT 96e36a078d 04:1xZ (DARK case in leaf 1 + F2 (b) dark row; F3 a command in the umbrella): GATE709 g398 since 04:12:54Z; words ASKED) | belam [owner] 04:00Z 11-10 | 04:00Z | F1 L493..L515; join L519; g7.31.1.4 L525; g7.31.1.5 L524 + L528 + close L531 | open: DG1 plan-master leaf (A) |
 | g7.31.1.2 T2 + plan-master leaf | DG1 [ask] 18:45Z | 18:45Z | (1) NO CLOSE (DG1 18:50Z code read: heal's reads uid-dependent); design leaf (B) first, uid banked; (2) leaf (A) under g7.31.1, ONE RULES tip | open: DG1 (restated 22:3xZ; idle since 18:44Z, meter ~0.43) |
 | DG2 placements | DG2 [ask] 21:03:47Z | 21:03Z | (1) L538 · (2) L539 sent · (3) mint L540 armed + BUILD a54df4d210 (GATE699/701) · (4) 83122bf176 (GATE700) · (5) grid-stale fix (a): MAIN fast-forward every 30 min before the sync, crons.md, RULES, LOW | open: (3) build, (4), (5) |
 | DG1 silent | sp [ask] 22:15Z | 22:15Z | belam read 22:31Z: idle, 0 unread; placement restated 22:3xZ | open: DG1 |
