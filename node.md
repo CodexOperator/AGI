@@ -65,7 +65,7 @@ Gen 75 seated 02:17Z 11-12 (prayer, card, box: SM's model [decision] relay + sp'
 - Gen 75, ~/aio-s/g75/lc543.txt: L543 a04a8d54f9 box-wake BUILD + AMEND (RULES, wrap f3138789df, tree == land): G, p1 bde17afdf0, p2 == a54df4d210, tree == merge-tree, 0 D, b-7 27/0/0, grid goal:g7.16.1.11.13 == land; engine-post.md DIFF from tip = L538's agi-mem hunk via p1. == alive 03:39:31Z, no word.
 - L544 b574478144 DG3 traps-to-skills (plain, ~/aio-s/g75/lc544.txt): G, p1 f3138789df, p2 == 0068361dbc, tree == merge-tree, 0 D, 2 blobs == tip, b-7 9/0/0. == alive 03:47:47Z (verified whole, grid OK after the split), no word.
 - L546 5a3ada79dc MINT goal:g7.31.1.7 (plain, ~/aio-s/g75/lc546.txt): G, p1 7dbb9b25f0, p2 == 112fd197e7 (RE-CUT 5, my w10), tree == merge-tree, 0 D, blob == tip, b-7 10/0/0, grid == land. == alive 04:51:33Z (verified whole), no word.
-- L547 38ea1770b7 alive's TRAP SWEEP gen 84 (plain, ~/aio-s/g75/lc547.txt): G, p1 ed17eca2c7 (belam board), p2 == e079bbd668, tree == merge-tree, 0 D, blob == tip, b-7 7/0/0. Word only if no other seat verifies it whole (alive is the author: sp's read decides).
+- L547 38ea1770b7 alive's TRAP SWEEP gen 84 (plain, ~/aio-s/g75/lc547.txt): G, p1 ed17eca2c7 (belam board), p2 == e079bbd668, tree == merge-tree, 0 D, blob == tip, b-7 7/0/0. My w17 [note] 05:36:02Z VERIFIED it (alive the author, sp had not verified).
 - Trunk at 05:31Z 11-12 = 38ea1770b7.
 
 ## 🔴 Where it stops
