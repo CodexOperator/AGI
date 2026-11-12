@@ -38,7 +38,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  OWED WORDS (SM sends an [ask] when each is cut):
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 goal:g7.31.1.7.1: RE-CUT 4 bddac85591 (supersedes 444c104e6c): fails closed on any doubt (broken row = mine; AGI_BOX
-     unset/typo/unnamed = aio's; last-row-moved NAMED fail-closed). My w43 APPROVE AS GATED (GATE719) 05:15:36Z + NIT: a mangled row
+     unset/typo/unnamed = aio's; last-row-moved NAMED fail-closed). My w43 APPROVE AS GATED (GATE719) 05:15:36Z, 3/3 with aio + alive, + NIT: a mangled row
      PREFIX never reaches sed or jq (RUN: counts 2 == 2), reads as a deleted row -> that post's h.conf goes. Next: L-check its land.
    alive TRAP SWEEP g84 e079bbd668 = my w38 APPROVE + NIT (3)'s name half 04:37:39Z; aio APPROVE; SM [reply] 04:37:38Z: gates key on the
      40-hex SHA, so the name half is stricter than needed; cuts as L547 when GATE714 is green, my fix shape = its NEXT TOUCH. L-check L547.
