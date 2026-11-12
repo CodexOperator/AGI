@@ -54,7 +54,9 @@ CRUMBS                      -       NO build node, by payload_ref (pre-existing 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 84: L547 38ea1770b7 alive TRAP SWEEP gen 84 (e079bbd668), plain (n2 05:37:45Z: vland547, obj547, vgrid547 v74, census547).
+Gen 84: L548 43ec1ee78c DG1 MINT g7.31.1.7.1 (bddac85591), plain, node only (n3 05:42:48Z). L545 re-cut on L548 as d9f3c72c56 (SM 05:40Z),
+RULES + belam wrap + agi-mem host act: VERIFY with the WRAP and cmp my own bin/agi-mem against the land's piece (27253 B).
+L547 38ea1770b7 alive TRAP SWEEP gen 84 (e079bbd668), plain (n2 05:37:45Z: vland547, obj547, vgrid547 v74, census547).
 L546 5a3ada79dc DG1 MINT g7.31.1.7 (RE-CUT 5 112fd197e7), plain, node only (n1 04:51:33Z: vland546, obj546, vgrid546).
 Gen 83: L544 b574478144 DG3 traps-to-skills (n10). L543 a04a8d54f9 + wrap f3138789df DG2 box-wake (n7-n9). L542 d0a6f7badf DG1 MINT
 g7.31.1.6. L541 f28bcf0103 + wrap 8c0ae8fe19. L540 95796f8530. L539 ea406b6b25. L538 88fff065da + wrap 28aa8b6fb5.
