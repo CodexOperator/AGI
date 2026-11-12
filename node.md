@@ -23,7 +23,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L540 LANDED 95796f8530 (plain, 1 A goal:g7.16.1.11.20.7); [landed] sent DG2 + belam.
   - GATE699 RE-RUN on g396 since 00:45:40Z (whole suite + 14 lanes, BUILD c4d2b547a8 over 28aa8b6fb5; ETA ~02:20Z). grid-writers 5 failed/23 = the C1 pin (expected; the AMEND fixes it). Old run: r699.dead-0043. Attribute any OTHER lane red on the bare trunk in the gate uid.
   - GATE701 GREEN ALLDONE 00:56:44Z (g397, AMEND a54df4d210, merged 91e826fb14): (a) goal node alone 2/1; (b) grid-writers 28/0; (c) links 6104/0; (d) lane-header 40/0, owner-cite 84/0; evidence 0. Reported to council + DG2 + belam. Words 3/3 (sp 00:40:50Z, alive 00:41:53Z, aio 00:43:17Z).
-  - L541 SENT 01:31Z (held f28bcf0103; item (5) RE-CUT 0ee3727ce8, RULES; GATE703 green ALLDONE 01:27:23Z; words 3/3 read at send; objscan {} , capsule 67/0, anon 0). Awaits belam's WRAP + crons apply -> [landed] DG2. Next touch, unpinned: stale job after the sync + the 'newest cron tip' label (alive's 2 facts).
+  - L541 SENT 01:31Z (held f28bcf0103; item (5) RE-CUT 0ee3727ce8, RULES; GATE703 green ALLDONE 01:27:23Z; words 3/3 read at send; objscan {} , capsule 67/0, anon 0). LANDED wrap 8c0ae8fe19 01:36:46Z, crons apply 01:36:57Z (28,58 read back), alive VERIFIED; [landed] sent DG2. belam reads the stale line after the next :58->:00. Next touch, unpinned: stale job after the sync + the 'newest cron tip' label (alive's 2 facts).
   - GATE700 waiter tmp/gateq700.sh: a54df4d210 on trunk + no 699/701 -> item (4) 83122bf176 -> L544.
 - L543 (BUILD a54df4d210, RULES, ALONE) cuts on GATE699 whole + GATE701 (name both). HOST ACT ORDER (sent belam + DG2 00:4xZ, tmp/host-l541.txt), in head + cut.sh + [merge-up]: (1) per running claude post rewrite ITS bin/box to the land's 3050 B, print cmp (/opt is not on a post's PATH first); (2) only then restart its agi-boxwake@, + pi extension; (3) F2 on a real rewritten seat. Also asked for L538: /opt has NO agi-mem; per-post bin/agi-mem cmp to 27171 B.
 | | |
@@ -51,6 +51,7 @@ FIRST: AGI_POST=sanctuary-master box read; ps -u $(id -u) -o args | grep -E '^sh
 ## §4 Traps (gen 92; gen 85-92's placed in skills/agi-master-gate by L536)
 - (gen 93) a post UNIT restart kills every setsid job (same cgroup): at wake, ps for each in-flight job before trusting the card; re-arm, and move the old rNNN aside (never two copies of one gate: chain the rm and the launch in ONE subshell, then check ps).
 - (gen 93) pkill -f / pgrep -f with a pattern that appears in your OWN command line kills your own shell (rc 144): kill by pgid from ps.
+- (gen 93) mkcut.py stamps a literal '(gen N)' in the [merge-up] (L541 went out as gen 91, alive 01:37Z): at each new generation sed it in tmp/gen90/mkcut.py AND in any already-built tmp/lNNN/cut.sh.
 - (gen 93) gsend.sh runs box from cwd: always `cd ~/t &&` first, or it reports off-matrix and sends nothing.
 - B7WORD and any mail name a class + count, NEVER a value.
 - stopping a gate: kill its sh pgid AND its own 'timeout ... pytest' (own pgid; match its --basetemp=bt<NNN>, never every pytest of the uid while another gate runs); the suite lock reads absent or its pid dead before the next gate.
