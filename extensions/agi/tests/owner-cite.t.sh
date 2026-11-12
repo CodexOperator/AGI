@@ -317,7 +317,7 @@ ok "x12-a-storeless-caller-resolved-is-rc-0 post z (no row, no store) cites q's 
 MUT 's/\[ \$red = 0 \]&&{ \[ \$un = 0 \]||\[ -z "\$uu" \];};exit;;/[ $red = 0 ]\&\&[ $un = 0 ];exit;;/' agi-mem;o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/mut_agi-mem cite 2>&1);rc=$?
 ok "x12m-mutant-the-storeless-rc-1-RED the old closing test exits rc 1 under the same '0 violations': '$(echo "$o"|tail -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q " 0 violations$"'
 cb $NO;o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh $D/bin/agi-mem cite 2>&1);rc=$?
-ok "x12c-control-a-storeless-caller-unresolved-stays-unread the same caller citing $NO (in no index): '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread"'
+ok "x12c-a-storeless-caller-unresolved-reads-RED-absent (4b, alive + all-is-one 22:4xZ) the same caller citing $NO, in no index while every index is read and fresh: RED by name, not unread: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store$"&&! echo "$o"|grep -q "^owner-cite: unread"'
 # x13 (belam 18:36Z): agi-mem index run by hand never a silent no-op: posts.md unread, or no mem row = ONE named line, rc 1, nothing written
 o=$(env HOME=$H AGI_POST=p AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=no-such-ref AGI_MEM_INDEX=$D/xidx PATH=$D/bin:$PATH sh $D/bin/agi-mem index 2>&1);rc=$?
 ok "x13a-index-posts-unread-says-so: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qx "\[mem\] index: posts.md unreadable at no-such-ref: nothing written"&&[ ! -e $D/xidx ]'
@@ -328,14 +328,33 @@ ok "x13m-mutant-the-silent-no-op-RED without the line a hand run exits rc $rc sa
 # x14 (alive 18:52Z nit, SM 21:04:39Z placement): a STORELESS caller (posts.md read, no mem row) whose unread comes from ANOTHER post's index names that index, never its own store
 ZC(){ o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=z AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} cite 2>&1);rc=$?;}
 ix q "$QO owner";ix r "$RO owner";chmod 000 $RT/q/mem.cite;cb $QO;ZC
-ok "x14a-storeless-names-the-failed-index (alive A) z cites $QO, held only in q's index, q's index mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: z has no mem row: no store;q index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"&&! echo "$o"|grep -q violations'
+ok "x14a-storeless-names-the-failed-index (alive A) z cites $QO, held only in q's index, q's index mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: z has no mem store;q index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"&&! echo "$o"|grep -q violations'
 MUT 's/\[ \$un = 1 \]&&{ \[ "\$mm" \]||\[ "\$pu" \];}&&\[ "\$uu" \]/[ $un = 1 ]\&\&[ "$uu" ]/' agi-mem;ZC $D/mut_agi-mem
 ok "x14m-mutant-the-callers-store-named-RED the old guard names z's own store for q's failed read: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (the store .*/z.git cannot be read and a block cites a chunk id)$"'
 chmod 644 $RT/q/mem.cite;ix q "$QO owner";chmod 000 $RT/r/mem.cite;ZC
-ok "x14b-storeless-names-the-failed-sibling (alive B) z cites $QO from a readable q while r's index is mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: label from q only; z has no mem row: no store;r index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"'
+ok "x14b-storeless-names-the-failed-sibling (alive B) z cites $QO from a readable q while r's index is mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: label from q only; z has no mem store;r index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"'
 chmod 644 $RT/r/mem.cite;ix r "$RO owner";ZC
 ok "x14c-control-every-index-read-and-fresh-is-green (alive C) the same caller, q and r readable and fresh: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q "^owner-cite: 1 new OWNER blocks .* 0 violations$"'
 cb $NO;ZC
-ok "x14d-storeless-unresolved-names-its-cause $NO in no index, every index fresh: unread names z's missing row, not a store path: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $NO: z has no mem row: no store;)$"'
+ok "x14d-storeless-unresolved-reads-RED-absent (4b) $NO in no index, every index read and fresh, the caller known storeless: RED 'absent', never unread: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store$"&&! echo "$o"|grep -q unread'
+MUT 's/{ \[ "\$un" = 1 \]&&{ \[ "\$mm\$pu" \]||\[ -s \$D\/ou \]||\[ "\$st" \];};}||/[ "$un" = 1 ]||/' agi-mem;ZC $D/mut_agi-mem
+ok "x14dm-mutant-storeless-absent-held-unread-RED the reader that holds every storeless unresolved id as unread (the L533 shape) says unread for $NO: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread"'
+ix q "$QO owner" "" "" $(( $(date +%s)-600 ));cb $NO;ZC
+ok "x14e-storeless-a-stale-index-holds-unread (sp 23:41:21Z) z, every index readable, q's 600 s older than the node, $NO in none: unread naming the stale index, never RED absent: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -qE "^owner-cite: unread \(a cited chunk is in no readable, fresh store: $NO: z has no mem store;q index [0-9]+s old"&&! echo "$o"|grep -q "absent from the store"'
+MUT 's/{ \[ "\$un" = 1 \]&&{ \[ "\$mm\$pu" \]||\[ -s \$D\/ou \]||\[ "\$st" \];};}/{ [ "$un" = 1 ]\&\&{ [ "$mm$pu" ]||[ -s $D\/ou ];};}/' agi-mem;ZC $D/mut_agi-mem
+ok "x14em-mutant-storeless-stale-ignored-RED the clause without the stale term reads $NO RED absent beside a stale q index: '$(echo "$o"|head -1)' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store$"'
+ix q "$QO owner"
+# x15 (4a, SM 22:46:27Z; alive 22:44:25Z + all-is-one 22:45:59Z): a caller whose row reads 'mem: none' is storeless (cite reads the cell as tap and index do: full|goal|season), so it names the failed index, never its own store
+printf -- '---\nid: config:posts\nparents:\n  - goal:g7\nposts:\n  - {"name": "p", "mem": "full", "faces": "owner"}\n  - {"name": "q", "mem": "full"}\n  - {"name": "r", "mem": "goal"}\n  - {"name": "s", "mem": "none"}\n---\n'>$E/.agi/nodes/.geometry/posts.md
+(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm s)
+SC(){ o=$(env AGI_MEM_ROOT=$RT HOME=$D/nohome AGI_POST=s AGI_ENGINE=$E AGI_T=$E AGI_TRUNK=HEAD PATH=$D/bin:$PATH sh ${1:-$D/bin/agi-mem} cite 2>&1);rc=$?;}
+ix q "$QO owner";ix r "$RO owner";chmod 000 $RT/q/mem.cite;cb $QO;SC
+ok "x15a-a-mem-none-row-names-the-failed-index s (mem: none) cites $QO, held only in q's index, q's index mode 000: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (a cited chunk is in no readable, fresh store: $QO: s has no mem store;q index .* cannot be read"&&! echo "$o"|grep -q "the store .* cannot be read and"'
+MUT 's/case \$mm in full|goal|season);;\*)mm=;;esac;N=\$E/N=$E/' agi-mem;SC $D/mut_agi-mem
+ok "x15m-mutant-any-non-empty-cell-is-a-store-RED the reader that takes 'mem: none' as a store names s's own store for q's failed read (the old line): '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "^owner-cite: unread (the store .*/s.git cannot be read and a block cites a chunk id)$"'
+chmod 644 $RT/q/mem.cite;ix q "$QO owner";SC
+ok "x15c-a-mem-none-row-every-index-fresh-is-green the same caller s, q and r readable and fresh: '$o' rc $rc" '[ $rc = 0 ]&&echo "$o"|grep -q "^owner-cite: 1 new OWNER blocks .* 0 violations$"'
+cb $NO;SC
+ok "x15d-a-mem-none-row-unresolved-reads-RED-absent (4b for s) $NO in no index, every index fresh: '$o' rc $rc" '[ $rc = 1 ]&&echo "$o"|grep -q "cites $NO, absent from the store$"&&! echo "$o"|grep -q unread'
 cp $D/posts.p $E/.agi/nodes/.geometry/posts.md;(cd $E&&git add -A .agi/nodes/.geometry/posts.md&&git -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm back)
 echo "owner-cite: $f FAIL";exit $f
