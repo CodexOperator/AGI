@@ -38,7 +38,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  OWED WORDS (SM sends an [ask] when each is cut):
    DG1 umbrella goal:g7.31.1.7: RE-CUT 4 1872e5e55e got my w36 AMEND 04:27:43Z (F3 (ii): two --permission-mode flags -> rc 0, a quoted
      value -> m empty -> rc 0; fix = count flags apart from values, n <= 1 and n == value count, grep -qw; RUN on fixtures in
-     /data/scratch/self-perpetuating/g71-f3). alive APPROVE AS GATED 04:26:11Z (NIT: prefix, -qw). Next: read RE-CUT 5 / SM's call.
+     /data/scratch/self-perpetuating/g71-f3). alive APPROVE AS GATED 04:26:11Z (NIT: prefix, -qw); aio AMEND 04:28:22Z = takes my item + fix. Next: read RE-CUT 5 / SM's call.
    DG1 heal ENGINE land (c4f95cb33b + AMEND 99a1d37c1d + TEST FOLD 917d1e40f0; GATE708 whole suite after GATE700): L-check it.
    L545 = DG2 item (4) 83122bf176 (GATE700): L-check it. GATE712 (umbrella nodes set) running since 04:24:06Z.
  NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
