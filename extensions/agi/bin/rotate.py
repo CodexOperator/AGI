@@ -1850,7 +1850,8 @@ def cmd_launch_wrapper(args, root) -> int:
 _TMUX_ARG_SAFE = 8192
 
 
-def ensure_tmux_session(tmux_session: str, root: Path | None = None) -> None:
+def ensure_tmux_session(tmux_session: str, root: Path | None = None,
+                        socket: str | None = None) -> None:
     """goal:g6.41.1 P1: create `tmux_session` when absent, in its OWN scope
     (never inside the remote-control or reaper cgroup), so the next new-window
     has a server. The slice follows the `spawn.post_scope` cell of `root` (else
@@ -1858,22 +1859,40 @@ def ensure_tmux_session(tmux_session: str, root: Path | None = None) -> None:
     server never lands under a shared cap the owner has not chosen (residue 68).
     No usable systemd-run -> a plain `tmux new-session` (C3, one builder:
     mem_cap.scope_argv). Present = no-op; a failure is a warning (the
-    new-window names the error)."""
+    new-window names the error).
+
+    goal:g7.31.1.6: `socket` = the SEAT's own server (`tmux -S <socket>`);
+    None = this process's default server, byte-identical to before."""
+    _S = ["-S", socket] if socket else []
     try:
-        if subprocess.run(["tmux", "has-session", "-t", tmux_session],
+        if socket:
+            # goal:g7.31.1.6 (measured 03:36Z 11-12, tmux 3.4): `tmux -S` never
+            # creates its socket's parent dir ('error creating ... (No such
+            # file or directory)', rc 0), so a reset that cleared /tmp would
+            # fail every relaunch; made here, 0700, as tmux makes its own
+            os.makedirs(os.path.dirname(socket), mode=0o700, exist_ok=True)
+        if subprocess.run(["tmux"] + _S + ["has-session", "-t", tmux_session],
                           capture_output=True, text=True, timeout=10).returncode == 0:
             return
         root = root if root is not None else locations.find_project_root()
         cfg = _config_json(root) if root is not None else {}
         # C3 (goal:g7.16.1.7.1.1): the ONE scope builder; no usable systemd-run
         # on this box -> a plain `tmux new-session` rather than a failed scope
-        argv = mem_cap.scope_argv(["tmux", "new-session", "-d", "-s", tmux_session],
+        argv = mem_cap.scope_argv(["tmux"] + _S + ["new-session", "-d", "-s", tmux_session],
                                   mem_cap.resolve_post_scope(cfg),
                                   mem_cap.unit_name("agi-tmux", tmux_session),
                                   cfg, own_scope=True)
         r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
         if r.returncode != 0:
             print(f"warn: could not create tmux session {tmux_session!r}: "
+                  f"{(r.stderr or r.stdout).strip()}", file=sys.stderr)
+        elif socket and subprocess.run(["tmux"] + _S + ["has-session", "-t", tmux_session],
+                                       capture_output=True, text=True,
+                                       timeout=10).returncode != 0:
+            # goal:g7.31.1.6 (B): `tmux -S` new-session exits 0 when it could
+            # not create the socket; has-session AFTER it is the read
+            print(f"warn: tmux session {tmux_session!r} on {socket} not created "
+                  f"(new-session rc 0, has-session none): "
                   f"{(r.stderr or r.stdout).strip()}", file=sys.stderr)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"warn: tmux session ensure for {tmux_session!r} failed: {exc}",
@@ -2013,7 +2032,8 @@ def _stand_up_key_plan(root: Path, post: str) -> str:
 
 
 def stand_up_launch(root: Path, name: str, shell_cmd: str,
-                    window_path: str | None = None, cwd=None):
+                    window_path: str | None = None, cwd=None,
+                    socket: str | None = None):
     """The recover / restart launch of `stand_up`: `launch_in_window` in the
     seat tree (`cwd`, else MAIN's repo root -- never the graph dir). Returns
     `(pid, window @id)`: pid `None` = launched, pid unknown (the ack resolves
@@ -2024,7 +2044,7 @@ def stand_up_launch(root: Path, name: str, shell_cmd: str,
         locations.git_common_root(Path(root)) or root)
     rc, wid = launch_in_window(
         DEFAULT_TMUX_SESSION, name, shell_cmd, cwd=tree, root=root,
-        inline_max=0, timeout_ok=False)
+        inline_max=0, timeout_ok=False, socket=socket)
     return (None, wid) if rc == 0 else (0, "")
 
 
@@ -2064,7 +2084,8 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
 def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
                      cwd: str | Path | None = None, root: Path | None = None,
                      inline_max: int = _TMUX_ARG_SAFE,
-                     timeout_ok: bool = True) -> tuple[int, str]:
+                     timeout_ok: bool = True,
+                     socket: str | None = None) -> tuple[int, str]:
     """THE one tmux launch (goal:g7.16.1.7.1.1, B1): spawn, rotate, heal
     recover and a hand restart all hand their shell line HERE. Returns
     `(rc, window @id)`; rc 0 = handed to tmux. Never raises.
@@ -2078,7 +2099,9 @@ def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
     `timeout_ok` says whether a tmux timeout counts as handed off (rotate:
     the window may still appear; heal: not launched, the next pass retries).
     `root` reaches ensure_tmux_session, so the server scope follows the
-    project's spawn.post_scope cell, not the cwd's."""
+    project's spawn.post_scope cell, not the cwd's.
+    goal:g7.31.1.6: `socket` = the server the window opens on (`tmux -S`),
+    the seat's own; None = this process's default server, as before."""
     script: str | None = None
     handed_off = False
     try:
@@ -2094,13 +2117,14 @@ def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
             launch_cmd = cd + f"bash {shlex.quote(script)}"
         if root is None and cwd:  # SM rotate candidate: the launch tree's project, not the spawner's cwd
             root = locations.find_project_root(cwd)
-        ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1: a server first, in its own scope
+        ensure_tmux_session(tmux_session, root, socket=socket)  # goal:g6.41.1 P1: a server first, in its own scope
         # L4.114 (s3): `-P -F '#{window_id}'` makes tmux print the new
         # window's @id on stdout so the caller can JOIN the successor by its
         # WINDOW @id.
         proc = subprocess.run(
-            ["tmux", "new-window", "-t", tmux_session, "-n", name,
-             "-P", "-F", "#{window_id}", launch_cmd],
+            ["tmux"] + (["-S", socket] if socket else [])
+            + ["new-window", "-t", tmux_session, "-n", name,
+               "-P", "-F", "#{window_id}", launch_cmd],
             capture_output=True, text=True, timeout=10,
         )
         handed_off = proc.returncode == 0
