@@ -48,7 +48,7 @@ round_commit: false  — a round's `cli.py done` never sweeps a goal node
 | subgoal | build, goal | 1..3 | at least ONE goal parent (`min_parents_by_type`) |
 
 `retired` ≠ `complete`: complete = achieved (keeps scoring); retired = stopped making sense (leaves the score, stays in the graph).
-**Close on the falsifier AS WRITTEN** (council, goal:g7.16.1.11 loop end 10-11: .34, the .13 pair and .19 closed with theirs unmet): `complete` only when every falsifier as written passes, or the close commit amends the falsifier with its reason in the THOUGHT. Never complete with an unmet falsifier left standing, and never rewrite a falsifier afterwards to fit what was built.
+**Close on the falsifier AS WRITTEN** (council, goal:g7.16.1.11 loop end 10-11: .34, the .13 pair and .19 closed with theirs unmet): `complete` only when every falsifier as written passes, or the close commit amends the falsifier with its reason in the THOUGHT. Never complete with an unmet falsifier left standing, and never rewrite a falsifier afterwards to fit what was built. A word that APPROVEs a close quotes each falsifier's own words beside its reading, one line each, before the APPROVE (alive gen 84, 07:17Z 11-12: g7.31.1.6's F2 '0 failed at the land' approved on 'rests on L549's gate' while that gate read 1 failed; sp caught it; run gen 85: F2's words beside L549's reading show it unmet as written, the case the close's amend then named).
 
 ## 3 · The body — fixed order (owner 09-23, goal:g5; a merge-up reviewer checks it)
 ```
