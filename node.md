@@ -37,7 +37,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
    DR measure fix = LANDED L556 (checked here). NEXT TOUCH placed on DR by SM [landed] 06:54:50Z: the 60ch never-line reads selector text (w1 + aio).
-   DR WIDTH TOUCH 8f7204c633: my w8 (1) NOT YET 07:42:26Z == alive (case, comments, 2nd style block, style= attr); CHILD 40a74684e8: my w9 APPROVE 07:47:15Z (builder mutants RED; aio NITs: link/@import/script channels, style= false RED in excerpts); GATE739. alive SWEEP g86 FOLD ffdd75a714 (NITs 1-4 taken): my w10 APPROVE 07:57:56Z; GATE740 queued behind memory PSI. DR child = L558 (checked); DG3 child 92989e9405 next land: L-check it.
+   DR WIDTH TOUCH 8f7204c633: my w8 (1) NOT YET 07:42:26Z == alive (case, comments, 2nd style block, style= attr); CHILD 40a74684e8: my w9 APPROVE 07:47:15Z (builder mutants RED; aio NITs: link/@import/script channels, style= false RED in excerpts); GATE739. alive SWEEP g86 FOLD ffdd75a714 (NITs 1-4 taken): my w10 APPROVE 07:57:56Z; GATE740 queued behind memory PSI. DR child = L558 (checked); LAND ORDER (SM 08:19:48Z): L559 = alive sweep ffdd75a714 (:31), L560 = DR channels 1516f073cc, L561 = DG3 split-rewind 92989e9405: L-check each.
    DR CHANNELS 1516f073cc: my w11 APPROVE 08:17:05Z + NIT (script pin: \bstyle\b, inline-size) + VIEW: 4th string round, stop; only a rendered width closes it. GATE741.
    DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. = LANDED L557 (checked here).
    DG3 split-rewind (belam [red] 07:1xZ: DSci1's stale merge rewound town:local-maxxing v698): bee3270bc4 NOT YET (my w4 UNSENT, == alive);
