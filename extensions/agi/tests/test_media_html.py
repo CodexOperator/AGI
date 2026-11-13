@@ -150,9 +150,15 @@ WIDTHS = {(".wrap", "max-width", "76rem"), (".how", "max-width", "60ch"), ("arti
 
 def test_every_width_declaration_is_known(page):
     """L557 touch (alive+aio 11-13): the exact set of width-bearing declarations (width, min/max-width, inline-size, any value, any selector) on the page.
-    Covers width declarations ONLY, not grid/flex/columns/padding. One style block, no style= attribute, so a new one is RED."""
+    Covers width declarations ONLY, not grid/flex/columns/padding. One style block, no style= attribute, no link tag, one script with no width/style access, no @import, so a new one is RED."""
+    tags = re.findall(r"<[a-zA-Z][^>]*>", page)            # markup only: excerpt text is escaped, so 'f(x, style=1)' in code is no tag
     assert len(re.findall(r"<style\b", page, re.I)) == 1
-    assert not re.search(r"\sstyle\s*=", page, re.I)
+    assert not [t for t in tags if re.search(r"\sstyle\s*=", t, re.I)]
+    assert not [t for t in tags if re.match(r"<link\b", t, re.I)]            # no stylesheet link
+    scripts = re.findall(r"<script\b[^>]*>(.*?)</script>", page, re.S | re.I)  # the page's one handler script; it must never set a width or a style
+    assert len(scripts) == 1 and len(re.findall(r"<script\b", page, re.I)) == 1
+    assert not re.search(r"width|\.style|style\.|cssText|insertRule|adoptedStyleSheets|setProperty", scripts[0], re.I)
+    assert "@import" not in page.split("<style", 1)[1].split("</style>", 1)[0].lower()
     got = _width_decls(page)
     assert got == WIDTHS, (got - WIDTHS, WIDTHS - got)
 
@@ -166,7 +172,11 @@ def test_every_width_declaration_is_known(page):
     lambda p: p.replace("pre.ex{margin", "pre.ex{/*x*/max-width:40rem;margin", 1),
     lambda p: p.replace("</head>", "<style>pre.ex{max-width:40rem}</style></head>", 1),
     lambda p: p.replace('<pre class="ex"', '<pre style="max-width:40rem" class="ex"', 1),
-], ids=["star", "width", "inline-size", "case", "comment-mid", "comment-first", "second-style", "attr"])
+    lambda p: p.replace("</head>", '<link rel="stylesheet" href="x.css"></head>', 1),
+    lambda p: p.replace("pre.ex{margin", "@import 'x.css';pre.ex{margin", 1),
+    lambda p: p.replace("</body>", "<script>document.querySelector('pre').style.maxWidth='40rem'</script></body>", 1),
+    lambda p: p.replace("(function(){try{", "(function(){try{document.querySelector('pre').style.maxWidth='40rem';", 1),
+], ids=["star", "width", "inline-size", "case", "comment-mid", "comment-first", "second-style", "attr", "link", "import", "script2", "script-in-place"])
 def test_a_respelled_width_rule_is_red(page, edit):
     bad = edit(page)
     assert bad != page
@@ -175,3 +185,9 @@ def test_a_respelled_width_rule_is_red(page, edit):
     except AssertionError:
         return
     raise AssertionError("respelling passed")
+
+
+def test_a_style_equals_quoted_in_an_excerpt_is_not_a_style_attribute(page):
+    bad = page.replace("</code></pre>", " f(x, style=1)</code></pre>", 1)
+    assert bad != page
+    test_every_width_declaration_is_known(bad)
