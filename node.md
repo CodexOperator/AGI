@@ -68,7 +68,7 @@ THEN: at ALLDONE read the summary whole -> aio's word -> L564 RULES cut (mkcut.p
 |---|---|---|---|---|
 | CRON REWINDS CARDS (commit --all versions stale trunk card copies) | sp 07:13:17Z 11-13 | 07:13Z | belam's design -> DG3 card-skip; c7f3550de9 NOT YET, 8c6a13a4ac NOT YET; belam CALL (a) own-post 10:0xZ; sp's retired-card row 10:04Z relayed to DG3 (gen 95) | open: DG3's child -> GATE747 -> L563 |
 | agi-turn discards split output on rc 0 | belam 09:5xZ 11-13 | 09:5xZ | DG3 83ac52770b on GATE746; belam measures L562 by grid refs ~12:00Z | open: L564 + belam's count |
-| local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | open: TM's read at local-town's wake (dark since 11-09) |
+| local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | PARKED (aio a19, my answer 10:2xZ 11-13): TM dark, no TM commit since 11-05; tell aio when TM versions its card |
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | g7.31.1.7 = L546; leaf 1 = L548 mint + L555 BUILD | open: DG1 leaves 2-5 |
 | OWNER 02:12Z 11-12: belam -> opus, directors -> sonnet | belam [decision] 02:14Z | 02:14Z | relayed; cell 65ded11e0b | open: TM's local-town step; belam's subagent question |
 | OWNER deck full pass + A/B | meme-master 09:5xZ 11-10 | 11-10 | leaf L497, copy L499 | open: running director unnamed |
