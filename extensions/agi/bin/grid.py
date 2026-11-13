@@ -1822,7 +1822,9 @@ def _is_deprecated(root: Path, path: Path) -> bool:
     can version the retirement (self-perpetuating 10:04Z)."""
     if is_retired_node_file(root, path):
         return True
-    m = STATUS_RE.search(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    fm = text.split("\n---", 2)[0] if text.startswith("---") else ""        # the frontmatter only: a body line 'status: deprecated' is prose (alive 10:09Z)
+    m = STATUS_RE.search(fm)
     return bool(m and m.group(1) == "deprecated")
 
 
