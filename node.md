@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 6e4b616fe9 (L562). Next free L = 563. Next free GATE = 744. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): NOTHING running, queue EMPTY. L562 LANDED 6e4b616fe9 09:46:26Z ([landed] DG3 + card-skip leaf go). Landed 11-13: L556-L562 (7). Void 11-13: GATE732, 735, 737, 738, 742. NEXT inbound: DG3's card-skip leaf (gate WHOLE); belam reads the next two crons' rewind-skip lines.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 6e4b616fe9 (L562). Next free L = 563. Next free GATE = 745. belam's queue EMPTY.
+- IN FLIGHT (gen 94, 11-13): DG3 card-skip c7f3550de9 (grid.py commit --all skips doc:card-* but belam's; PLAIN) on GATE744 WHOLE (g397, pid 2307577, from 09:5xZ); words owed -> L563 prev=562. Then DG3's agi-turn skip-line touch (sp's one-line fix 09:50:14Z).
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: queue EMPTY 09:4xZ 11-13. Next: DG3's card-skip leaf (WHOLE gate).
+gen 94: GATE744 (DG3 card-skip) WHOLE running; words -> L563.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
@@ -67,6 +67,7 @@ THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build
 |---|---|---|---|---|
 | DG3 p1_ab peak-rss test fix 00e7c36e57 (L549's named red) | alive 07:11:22Z -> DG3 [merge-up] 07:1xZ | 07:13Z | L550 aeda628082 | CLOSED 07:34Z (kid_mb ceiling = DG3 next touch) |
 | local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | open: TM's read at local-town's wake; DG1's write-path touch waits on it |
+| agi-turn discards split output on rc 0 (L562's rewind-skip unseen) | belam 09:5xZ 11-13 | 09:5xZ | DG3 (after the card-skip leaf); belam measures L562 by grid refs ~12:00Z | open: DG3's touch; belam's count |
 | CRON REWINDS CARDS: the */30 commit --all versions the trunk's stale doc:card-* copies (361 A-B-A in 3 days) | sp 07:13:17Z 11-13 | 07:13Z | belam DECIDED 07:2xZ (commit --all skips doc:card-* but belam's; count line; 4 falsifiers) -> placed with DG3, AFTER L558 (same file) | open: DG3's tip |
 | GRID REWIND: DSci1's turn-end split versioned a stale own merge over town:local-maxxing v697 (v698) | belam [red] 07:1xZ 11-13 | 07:1xZ | L562 6e4b616fe9 (content rule, (a)); heal by cron v699 07:03Z (belam) | CLOSED 09:46Z (belam reads 2 crons' skip lines) |
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | umbrella g7.31.1.7 = L546; leaf 1 g7.31.1.7.1 = L548 mint + L555 BUILD | open: leaves 2-5 |
