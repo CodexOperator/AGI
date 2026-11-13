@@ -127,3 +127,20 @@ def test_the_reading_measure_is_capped_at_60ch_but_pre_ex_stays_wide(page):
     # the wide half, blind-spot closed (aio+sp 11-13): a rule that reaches pre.ex UNNAMED (e.g. details>*) stays out
     capped = {x.strip() for s_, d in rules if "max-width:60ch" in d.replace(" ", "") for x in s_.split(",")}
     assert capped == {"article>*", ".how", ".bytes p", "details>summary", "details>p"}, capped
+
+
+def test_every_width_declaration_is_known_so_nothing_reaches_pre_ex_at_any_width(page):
+    """L557 touch (alive+aio 11-13): the 60ch-only set missed 'details>*{max-width:40rem}' and '.ev pre{width:60ch}'. Close it over EVERY width-bearing
+    declaration (width, min/max-width, inline-size, any value): the set is exact, so a new one, at any width, on any selector, is RED."""
+    css = re.search(r"<style[^>]*>(.*?)</style>", page, re.S).group(1)
+    got = set()
+    for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+        for prop, val in re.findall(r"(?:^|;)\s*((?:min-|max-)?(?:width|inline-size))\s*:\s*([^;]+)", body):
+            for x in sel.split(","):
+                got.add((x.strip(), prop, val.strip()))
+    want = {(".wrap", "max-width", "76rem"), (".how", "max-width", "60ch"), ("article>*", "max-width", "60ch"),
+            ("article>.bytes", "max-width", "62rem"), ("article>details", "max-width", "62rem"),
+            (".bytes p", "max-width", "60ch"), ("details>summary", "max-width", "60ch"), ("details>p", "max-width", "60ch"),
+            ("audio", "width", "100%"), ("audio", "max-width", "34rem"),
+            ("h1", "max-width", "15ch"), ("h2", "max-width", "24ch"), (".lede", "max-width", "34ch")}
+    assert got == want, (got - want, want - got)
