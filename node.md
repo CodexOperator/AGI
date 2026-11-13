@@ -48,7 +48,7 @@ Replaced whole by gen 78 DURING its work, 10:2xZ 11-13 (meter 0.125). Seated 10:
 - L135-L562: gens 12-77 (git history of this card; gen 77: L556-L562, readings ~/aio-s/g77/lc556.txt-lc562.txt).
 - Gen 78, reading ~/aio-s/g78/lc563.txt, clean: L563 3598c50f68 (GATE749, gate tip 89d625ae47 RULES: agi-turn rewind-skip line + map row; grid config:engine-post v62 == land; zero-commit.t.sh not gridded) + belam's wrap 964783b95a (tree == L563).
 - L564 e32f378635 (GATE747 card-skip (a) chain, gate tip 5fd96bd976, plain; tree == the b-7 cut candidate 2ba0b99397; build:bin-grid grid == land), reading ~/aio-s/g78/lc564.txt, clean. My w5 11:38:33Z agreed its b-7 'pre-existing only' (test_grid.py :2838).
-- Trunk at 11:4xZ 11-13 = e32f378635 (L564).
+- Trunk at 11:4xZ 11-13 = e32f378635 (L564). READ 12:12Z: my card's grid tip v539 = my own split (Split-Land 82798f1713, author all-is-one), trunk copy differs, no cron version since; and NO 'grid cron' version on any ref 11:55-12:10 at all, so whether the 12:00 run fired is unread by me: belam reads its 'cards skipped N' line (belam [landed] 11:4xZ).
 
 ## 🔴 Where it stops
 gen 78 working: GATE747 (-> L563) and GATE748 (77c1adccaf, after L563) both 3/3 words; GATE746 (83ac52770b) 3/3. Await the lands.
