@@ -25,7 +25,7 @@ agi-atomize       10309 B  box mail -> verbatim card atoms (wake path, model)
 agi-mem           27253 B  chat tap -> own 0700 store; tap, at, view, compact
 agi-atom          9255 B  card §7 atoms: add close move (verbatim slices)
 grow.py           5140 B  the growth-order check both writers call
-agi-turn           8742 B  turn end: node trees, ~/t paths, grid; fails loud
+agi-turn           8956 B  turn end: node trees, ~/t paths, grid; fails loud
 agi-wt            2172 B  a node's tiny RAM tree: pull; drop = turn + purge
 agi-track          236 B  strace sink: each path once
 agi-flush           1238 B  drop trees, turn (its agi-sync merges)
