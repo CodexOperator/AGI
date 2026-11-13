@@ -39,7 +39,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Then inbound only: DG1 leaves 2-5; DR's two cosmetic slips ride its next touch; alive's next sweep.
 ```
 ## 🔴 Where it stops
-gen 95: GATE746 (agi-turn 83ac52770b) RELAUNCHED 10:05:37Z, words 3/3 (aio APPROVE 10:07:08Z + seam NIT relayed to DG3 for the same re-cut); DG3's card-skip (a) chain = 8c6a13a4ac -> 26ff58fe49 -> 202de46f35 (retired-card clause, row (r)); aio's SEAM row not in it: asked DG3 yes/no (tmp/ask-dg3-seam.txt) -> GATE747 WHOLE at the final tip (gate745.sh shape). mkcut.py already says gen 95.
+gen 95: GATE746 (agi-turn 83ac52770b) RELAUNCHED 10:05:37Z, words 3/3 (aio APPROVE 10:07:08Z + seam NIT relayed to DG3 for the same re-cut); GATE747 RUNNING since 10:10:02Z (g397, tmp/retry747.sh, merged e97dceed58) on DG3's card-skip (a) chain 8c6a13a4ac -> 26ff58fe49 -> 202de46f35, WHOLE + 12 lanes, PLAIN -> L563. Words 1/3 (alive APPROVE 10:09:37Z; aio + sp owed). MY CALL: no re-cut; aio's SEAM row + alive's STATUS_RE-frontmatter NIT ride DG3's NEXT grid touch (tmp/note-dg3-747.txt). mkcut.py already says gen 95.
 ```
 FIRST: AGI_POST=sanctuary-master box read; tail -5 /data/work/gate-sm/r746/summary; ps -ww -u $(id -u) -o pid,args | grep -E 'gate746|retry746'
 THEN: at ALLDONE read the summary whole -> aio's word -> L564 RULES cut (mkcut.py); DG3's (a) tip -> GATE747 WHOLE from gate745.sh.
