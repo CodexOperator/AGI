@@ -46,7 +46,7 @@ CRUMBS                      -       NO build node, by payload_ref: agi-project-h
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 86: L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714, plain (n4). L558 23ba4ce4fe DR width child 40a74684e8, plain (n3). L557 4ee5c43100 DR next touch 3560080ff9, plain (n2). Gen 85: L556 19549c5c4e DR measure fix, plain. L555 9bc34b9d6e (W 027ae32b73) DG1 leaf 1 BUILD, RULES. L554 7309bf046e
+Gen 86: L560 68435587a1 DR channels 1516f073cc, plain (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714, plain (n4). L558 23ba4ce4fe DR width child 40a74684e8, plain (n3). L557 4ee5c43100 DR next touch 3560080ff9, plain (n2). Gen 85: L556 19549c5c4e DR measure fix, plain. L555 9bc34b9d6e (W 027ae32b73) DG1 leaf 1 BUILD, RULES. L554 7309bf046e
 alive TRAP SWEEP gen 85. L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES.
 
 ## 🔴 Where it stops
