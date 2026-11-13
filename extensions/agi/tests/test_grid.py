@@ -2860,9 +2860,10 @@ def test_split_skips_a_node_whose_blob_is_an_older_version_of_its_grid_history(t
 
     def commit(word):
         body(word)
-        git("add", "-A"); git("commit", "-qm", word)
+        git("add", str(node)); git("commit", "-qm", word)          # the node path only: cmd_commit's .grid.lock is never tracked
         return git("rev-parse", "HEAD")
 
+    git("add", "-A"); git("commit", "-qm", "scaffold")
     base = commit("base body")
     ref = grid.mint_node_ref(MINT_X)
     commit("old body"); grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)      # cron version

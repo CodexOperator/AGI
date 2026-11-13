@@ -1857,7 +1857,7 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
                 # belam [red] 11-13: a post's stale merge carries an OLDER node over a newer grid tip (cron or land alike). Its blob is
                 # one the node's history already holds BEFORE the tip, so writing it would rewind: skipped, named, the rest still written.
                 rewound.append(f"  rewind-skip {it['mint']} {it['path']} (its blob {it['node'][:12]} is an older version in the history of "
-                               f"grid tip {read[ref][:12]}: this node not written; the grid cron re-versions the trunk file)")
+                               f"grid tip {read[ref][:12]}: this node not written; with crons_live true the */30 grid cron re-versions a trunk file, a doc:card-* only from its post's own turn end)")
                 continue
             lines = f"{GIT_MODE_REGULAR} blob {it['node']}\t{NODE_ENTRY}\n"
             if it["payload"]:
