@@ -1,7 +1,9 @@
 """goal:g5.4.2 M5: the HTML explainer's checks, each with its mutant (council 11:57Z: audio resolves against the Drive layout; the bare-number check covers prose only;
 excerpts and chips keep their digits). The page is built ONCE from the real script at the real sha, in the real repo; every mutant edits a copy of that page."""
+import hashlib
 import re
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -141,6 +143,7 @@ def _width_decls(html):
     return got
 
 
+JS_SHA256 = "21e8e544451f335c1c9b7e1ea030d68768145ed0022a5f49681a2f3d636ac9a4"
 WIDTHS = {(".wrap", "max-width", "76rem"), (".how", "max-width", "60ch"), ("article>*", "max-width", "60ch"),
           ("article>.bytes", "max-width", "62rem"), ("article>details", "max-width", "62rem"),
           (".bytes p", "max-width", "60ch"), ("details>summary", "max-width", "60ch"), ("details>p", "max-width", "60ch"),
@@ -150,17 +153,59 @@ WIDTHS = {(".wrap", "max-width", "76rem"), (".how", "max-width", "60ch"), ("arti
 
 def test_every_width_declaration_is_known(page):
     """L557 touch (alive+aio 11-13): the exact set of width-bearing declarations (width, min/max-width, inline-size, any value, any selector) on the page.
-    Covers width declarations ONLY, not grid/flex/columns/padding. One style block, no style= attribute, no link tag, one script with no width/style access, no @import, so a new one is RED."""
-    tags = re.findall(r"<[a-zA-Z][^>]*>", page)            # markup only: excerpt text is escaped, so 'f(x, style=1)' in code is no tag
+    NOT covered, named: a rendered-width check (the owner's call); grid/flex/columns/padding; anything but the page's own CSS/markup/script.
+    Covers width declarations ONLY, not grid/flex/columns/padding. One style block, no style= attribute, no link tag, one script byte-equal to media_html.JS, every pre exactly class="ex" in a known parent, no @import, so a new one is RED."""
+    tags = re.findall(r"<[a-zA-Z](?:[^>\"']|\"[^\"]*\"|'[^']*')*>", page)   # quote-aware: a '>' inside an attribute value does not end the tag            # markup only: excerpt text is escaped, so 'f(x, style=1)' in code is no tag
     assert len(re.findall(r"<style\b", page, re.I)) == 1
     assert not [t for t in tags if re.search(r"\sstyle\s*=", t, re.I)]
     assert not [t for t in tags if re.match(r"<link\b", t, re.I)]            # no stylesheet link
     scripts = re.findall(r"<script\b[^>]*>(.*?)</script>", page, re.S | re.I)  # the page's one handler script; it must never set a width or a style
     assert len(scripts) == 1 and len(re.findall(r"<script\b", page, re.I)) == 1
-    assert not re.search(r"width|\.style|style\.|cssText|insertRule|adoptedStyleSheets|setProperty", scripts[0], re.I)
+    assert scripts[0].strip() == mh.JS.strip()   # page == builder, and the builder's JS is pinned by digest below, so a width set IN THE BUILDER is RED too
+    assert hashlib.sha256(mh.JS.strip().encode()).hexdigest() == JS_SHA256, "media_html.JS changed: re-pin JS_SHA256 deliberately"
+    assert not re.search(r"width|\.style|style\.|cssText|insertRule|adoptedStyleSheets|setProperty", scripts[0], re.I)   # byte-exact: closes className/classList/style/inline-size/'sty'+'le' in the script, whatever the spelling
     assert "@import" not in page.split("<style", 1)[1].split("</style>", 1)[0].lower()
     got = _width_decls(page)
     assert got == WIDTHS, (got - WIDTHS, WIDTHS - got)
+
+
+class _Pre(HTMLParser):
+    def __init__(self):
+        super().__init__(); self.st = []; self.pres = []
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "pre":
+            self.pres.append((a.get("class"), tuple((t, c.get("class")) for t, c in self.st[-3:])))
+        if tag not in ("br", "img", "meta", "link", "input", "source", "hr"):
+            self.st.append((tag, a))
+    def handle_endtag(self, tag):
+        for i in range(len(self.st) - 1, -1, -1):
+            if self.st[i][0] == tag:
+                del self.st[i:]
+                break
+
+
+PRE_PARENTS = {(("article", None), ("section", "bytes"), ("details", "ev")), (("div", "wrap"), ("article", None), ("details", "ev")),
+               (("article", None), ("section", "bytes"), ("figure", None))}
+
+
+def test_every_pre_is_class_ex_in_a_known_parent(page):
+    """Pins the class/position routes: class="ex how" / "ex lede" or a pre.ex under any other parent (article>pre) would take a cap or a width the row does not see."""
+    h = _Pre(); h.feed(page)
+    assert h.pres and all(c == "ex" for c, _ in h.pres)
+    assert {path for _, path in h.pres} <= PRE_PARENTS
+
+
+@pytest.mark.parametrize("pre_edit", [
+    lambda p: p.replace('<pre class="ex"', '<pre class="ex how"', 1),
+    lambda p: p.replace('<pre class="ex"', '<pre class="ex lede"', 1),
+    lambda p: p.replace("</article>", '<pre class="ex">x</pre></article>', 1),
+], ids=["ex-how", "ex-lede", "pre-under-article"])
+def test_a_pre_class_or_position_change_is_red(page, pre_edit):
+    bad = pre_edit(page)
+    assert bad != page
+    with pytest.raises(AssertionError):
+        test_every_pre_is_class_ex_in_a_known_parent(bad)
 
 
 @pytest.mark.parametrize("edit", [
@@ -176,7 +221,10 @@ def test_every_width_declaration_is_known(page):
     lambda p: p.replace("pre.ex{margin", "@import 'x.css';pre.ex{margin", 1),
     lambda p: p.replace("</body>", "<script>document.querySelector('pre').style.maxWidth='40rem'</script></body>", 1),
     lambda p: p.replace("(function(){try{", "(function(){try{document.querySelector('pre').style.maxWidth='40rem';", 1),
-], ids=["star", "width", "inline-size", "case", "comment-mid", "comment-first", "second-style", "attr", "link", "import", "script2", "script-in-place"])
+    lambda p: p.replace("(function(){try{", "(function(){try{document.querySelector('pre').className='x';", 1),
+    lambda p: p.replace("(function(){try{", "(function(){try{document.querySelector('pre')['sty'+'le'].maxWidth='40rem';", 1),
+    lambda p: p.replace('<pre class="ex"', '<pre title="a>b" style="max-width:40rem" class="ex"', 1),
+], ids=["star", "width", "inline-size", "case", "comment-mid", "comment-first", "second-style", "attr", "link", "import", "script2", "script-in-place", "className", "concat", "quoted-gt"])
 def test_a_respelled_width_rule_is_red(page, edit):
     bad = edit(page)
     assert bad != page
@@ -191,3 +239,13 @@ def test_a_style_equals_quoted_in_an_excerpt_is_not_a_style_attribute(page):
     bad = page.replace("</code></pre>", " f(x, style=1)</code></pre>", 1)
     assert bad != page
     test_every_width_declaration_is_known(bad)
+
+
+def test_a_width_set_in_the_builder_js_is_red(page, monkeypatch):
+    """alive's builder mutant: the page and mh.JS change together, so page == JS holds; the digest pin and the word check must still be RED."""
+    evil = mh.JS.replace("(function(){try{", "(function(){try{document.querySelector('pre').style.maxWidth='40rem';", 1)
+    assert evil != mh.JS
+    monkeypatch.setattr(mh, "JS", evil)
+    bad = page.replace(page[page.index("<script>") + 8:page.index("</script>")], evil, 1)
+    with pytest.raises(AssertionError):
+        test_every_width_declaration_is_known(bad)
