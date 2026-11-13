@@ -25,7 +25,8 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 
 ## §1 Plan
 - done: v1.1 Drive upload (belam 20:1xZ).
-- next: (1) the two queued lanes (outline, fuel) still not on core/season3/main 11-13 15:2xZ (L566 newest): [merge-up] RE-SENT ONCE to SM 11-13 15:2xZ; do not re-send again, ask SM's card next; (2) arm B (goal:g5.4.3.1.1, the full graph treatment) waits on thought-master accepting as running director (SM asked 09:54Z, I nudged 11:5xZ; no answer); then rough-draft-v2 to Drive .../rough-draft-v2/ and S9 compares basic vs graph; (3) the owner's remaining small items below; (4) then the paper (goal:g5.4.3.2), one chunk at a time.
+- IN FLIGHT 11-13 (owner ask, chat ~15:2xZ: fix/review/optimize pass, consistency): v6 edits in /data/scratch/meme-master/deck-build/v2 (threshold ruler + band fix both HF files; mn_timelines uses C1's 18-block game source; all manim Liberation Sans; mn_harness 5 beats reset+handoff/compaction/rotation/fork/graph; NEW mn_triangle.py (C3t, C3t2); deck.tex: \vclip[w], \stepsfive, \onscreen owner lines promoted from notes (S2, S4 tools, S5b, S8), S8 split, S6/hook/bookend sizes; deck.pre-v6.tex = before). Render: run-v6.sh -> render-v6.log. THEN: compile, review pages, sync src + deck.tex back to ~/meme-photos/deck/v2, package rough-draft-v1.2, ask belam for Drive. TM: no deck data gathered (own card last 11-05; local-town dark since 11-09).
+- next: (1) the two queued lanes (outline, fuel) still not on core/season3/main 11-13 15:2xZ (L566 newest): [merge-up] RE-SENT ONCE to SM 11-13 15:2xZ; SM gen 95 15:15Z took both: GATE751 outline -> L567, GATE752 fuel -> L568, council 3/3 APPROVE 15:18Z; no re-cut; (2) arm B (goal:g5.4.3.1.1, the full graph treatment) waits on thought-master accepting as running director (SM asked 09:54Z, I nudged 11:5xZ; no answer); then rough-draft-v2 to Drive .../rough-draft-v2/ and S9 compares basic vs graph; (3) the owner's remaining small items below; (4) then the paper (goal:g5.4.3.2), one chunk at a time.
 - owner-side small items: S5a title (optional slide); the C3t/C3t2 triangle clips have NO source (placeholders); the C5 poster renders the made-up acronym, not the verified mantras (storyboard-v3 'C5 poster content, REAL examples' + Google former motto); the reveal clip is the v4 chain, not the v6 beats (storyboard-v4 'C6 v6').
 - blocked: nothing of mine.
 
@@ -51,6 +52,7 @@ Gen 2 at an idle spot: v1.1 is in Drive; waiting on TM (arm B) and SM (the two l
 
 ## §6 BANKED
 - doc:draft-presentation-deck-v1 next in-place edit: 'deck.tex line' beside 127/128/410/411 (aio); head line "'OWNER (c:' note lines: 20" (sp); arm B's guard reads BOTH markers.
+- fuel:s4-retire-the-python-engine next touch (alive NIT, SM relay 15:18Z 11-13): name the trunk its 'Measured' totals were taken on (base e289cd776b gives 120,584 total, rotate.py 23,590; stated 121,168 / 23.8k).
 - [fuel].md next touch: name goal:g7.16.1.11.46.34 by id once on the trunk (alive NIT 3); my plain owner headings return to OWNER blocks when .46.34 lands.
 - Owner answered (via belam 19:2xZ): the design stage may use Fable (exception to the Sonnet-only SUBAGENTS rule); the owner wants less ritual process, more real talk between posts.
 
