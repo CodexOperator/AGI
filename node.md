@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 19549c5c4e (L556). Next free L = 558. Next free GATE = 736. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): L557 (DR next touch) ARMED, cuts :31. DG3 split-rewind 3726285171: 3/3 + (a), but its row FLAKY (alive 07:16:59Z: fixture tracks .grid.lock) -> child asked 07:1xZ (+ skip-line NIT); GATE735 STOPPED (void, lock pid dead). On the child: GATE736 WHOLE (gate735.sh shape, g397), words, L558 prev=557. Then DG3's card-skip leaf (belam's design).
+- IN FLIGHT (gen 94, 11-13): L557 (DR next touch) ARMED, cuts :31. DG3 split-rewind CHILD 92989e9405 (row de-flaked + skip-line NIT) on GATE736 WHOLE (g397, pid 763584, from 07:2xZ); GATE735 void. Words owed on the child (grid.py == the 3/3-approved bytes; falsifier 20x loop 20/0) -> L558 PLAIN prev=557. Then DG3's card-skip leaf.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
