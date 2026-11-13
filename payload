@@ -2837,3 +2837,47 @@ def test_check_unrelated_all_readable_and_equal_is_green_and_an_added_literal_is
     assert grid._check_unrelated(tmp_path, "L", "N", None) is None
     _fake_check_git(monkeypatch, diff_out="+++ b/node.md\n+see /home/ubuntu/x\n")
     assert "home-path literal" in grid._check_unrelated(tmp_path, "L", "N", None)
+
+
+# --------------- belam [red] 11-13: a stale merge's split must not rewind a newer grid tip ----
+
+def test_split_skips_a_node_whose_blob_is_an_older_version_of_its_grid_history(tmp_path, capsys):
+    """The incident's shape: the tip is a CRON version (commit --all, no Split-Land trailer), then a post's turn-end split from a stale
+    tree writes the node's OLDER content over it. The blob is one the history held before the tip: skipped, named, tip unmoved. Controls:
+    new content still writes; the tip's own content is 'already on the grid'. Mutant (no history check): the stale body is written, RED."""
+    agi = _make_g11_project(tmp_path)
+    root = agi.parent
+    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+    node = agi / "nodes" / "idea" / "g.md"
+    graph = grid.find_project_root(agi)
+
+    def git(*argv):
+        return subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null", *argv], check=True, env=env,
+                              capture_output=True, text=True).stdout.strip()
+
+    def body(word):
+        node.write_text(f'---\nid: "idea:g"\nmint_id: {MINT_X}\ntype: idea\n---\n\n{word}\n')
+
+    def commit(word):
+        body(word)
+        git("add", str(node)); git("commit", "-qm", word)          # the node path only: cmd_commit's .grid.lock is never tracked
+        return git("rev-parse", "HEAD")
+
+    git("add", "-A"); git("commit", "-qm", "scaffold")
+    base = commit("base body")
+    ref = grid.mint_node_ref(MINT_X)
+    commit("old body"); grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)      # cron version
+    new = commit("new body"); grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)   # cron version: the tip
+    tip = git("rev-parse", ref)
+    git("checkout", "-q", "-b", "stale", base)
+    stale = commit("old body")                                # a stale tree: content an earlier version already held
+    capsys.readouterr()
+    assert grid.cmd_split(graph, base, stale, write=True, lock_wait=1) == 0
+    out = capsys.readouterr().out
+    assert "rewind-skip" in out and MINT_X in out, out
+    assert git("rev-parse", ref) == tip, "the stale split moved the grid tip"
+    assert grid.cmd_split(graph, base, new, write=True, lock_wait=1) == 0          # control: the tip's own content is already there
+    assert "rewind-skip" not in capsys.readouterr().out and git("rev-parse", ref) == tip
+    fresh = commit("newer body")
+    assert grid.cmd_split(graph, base, fresh, write=True, lock_wait=1) == 0       # control: genuinely new content writes
+    assert git("rev-parse", ref) != tip
