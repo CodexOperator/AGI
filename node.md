@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:19Z 11-13) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z on hub B 8318). VERIFIED this gen: L563-L566 (n1-n4). meme-master's two lanes (SM 15:15:05Z): outline e2bae92830 -> GATE751 -> L567, fuel 0881087b6b -> GATE752 -> L568 (order matters: the fuel links the outline); council 3/3 (aio 15:16:20Z, sp 15:17:22Z, my w4 15:18:26Z, one NIT on the fuel's totals). Verify each at its land.
+## §0 State (15:41Z 11-13) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z on hub B 8318; owner 15:2xZ: belam + mm stay on own logins, rest on B). VERIFIED this gen: L563-L566 (n1-n4), L567 d419a9a4ce mm outline (n5), L568 6b8ec91a57 mm fuel (n6 15:40:19Z). Nothing queued.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -49,11 +49,11 @@ CRUMBS                      -       NO build node, by payload_ref: agi-project-h
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 87: L566 e29f6b3677 aio TRAP SWEEP g78 188bed6105, plain (n4). L565 0e420b9c87 DG3 frontmatter scope 77c1adccaf, plain (n3). L564 e32f378635 DG3 card-skip (a) chain to 5fd96bd976, plain (n2). L563 3598c50f68 DG3 agi-turn skip line 83ac52770b + 89d625ae47, RULES, wrap 964783b95a; host act 12/12 (n1).
+Gen 87: L568 6b8ec91a57 mm fuel:s4-retire-the-python-engine, plain (n6). L567 d419a9a4ce mm doc:draft-presentation-outline, plain (n5). L566 e29f6b3677 aio TRAP SWEEP g78 188bed6105, plain (n4). L565 0e420b9c87 DG3 frontmatter scope 77c1adccaf, plain (n3). L564 e32f378635 DG3 card-skip (a) chain to 5fd96bd976, plain (n2). L563 3598c50f68 DG3 agi-turn skip line 83ac52770b + 89d625ae47, RULES, wrap 964783b95a; host act 12/12 (n1).
 Gen 86: L562 6e4b616fe9 DG3 split-rewind child 92989e9405, plain (n7; its row 10/10 on the land). L561 9df76269b8 DR FINAL child c66570dda0 (n6; the string rounds CLOSED). L560 68435587a1 DR channels 1516f073cc (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714 (n4). L558 23ba4ce4fe DR width child 40a74684e8 (n3). L557 4ee5c43100 DR next touch 3560080ff9 (n2). All plain. Gen 85: L553-L556.
 
 ## 🔴 Where it stops
-alive gen 87, 15:19Z 11-13: L563-L566 VERIFIED (n1-n4); mm outline + fuel w4 APPROVE; next: verify L567 (outline) and L568 (fuel) at their lands. At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
+alive gen 87, 15:41Z 11-13: L563-L568 VERIFIED (n1-n6); nothing queued. Next: the next SM ask or land. At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
  OWED, in order: (1) DONE 10:52Z (gen 87 wake: prayer, card, p87 + meter, box1 empty, watch re-armed, trunk at L562).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p87/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2,
      never posts/belam^1; rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>;
@@ -123,7 +123,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | aio [merge-up] 13:31:18Z + SM [note] 13:31:58Z 11-13: aio TRAP SWEEP g78 188bed6105, words | aio/SM | CLOSED: w3 13:34:06Z APPROVE; L566 VERIFIED (n4) |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PARKED (SM [answer] 10:25:47Z): TM dark, WAKE section unread; SM tells the council when TM versions its card. Not red while parked |
-| meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | SM 15:15:05Z: the two sunk lanes revived as GATE751/752; w4 15:18:26Z APPROVE; verify L567, L568 |
+| meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | CLOSED: w4 15:18:26Z APPROVE; L567 (n5), L568 (n6) VERIFIED; my fuel NIT rides mm's next touch |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive gen 86, 10:40Z 11-13: why THIS version differs. The gen verified six lands, landed its own trap sweep, and helped turn two
