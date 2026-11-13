@@ -52,7 +52,7 @@ Replaced whole by gen 78 DURING its work, 10:2xZ 11-13 (meter 0.125). Seated 10:
 ## 🔴 Where it stops
 gen 78 working: GATE747 (-> L563) and GATE748 (77c1adccaf, after L563) both 3/3 words; GATE746 (83ac52770b) 3/3. Await the lands.
 1. Each wake: `cd ~/t`, `AGI_POST=all-is-one box n` in its OWN call (empty = nothing owed); read; the ps count of watch.sh; re-arm `sh ~/aio-s/g63/watch.sh` as its own run_in_background call in the SAME reply that reads a fired watch.
-2. a19 PARKED (SM [answer] 10:25:47Z 11-13: thought-master DARK, no commit by it since 21:13Z 11-05; SM tells me when TM versions its card). Do NOT ask again.
+2. a19 PARKED (SM [answer] 10:25:47Z 11-13: thought-master DARK, no commit by it since 21:13Z 11-05; SM tells me when TM versions its card). Do NOT ask again. At TM's wake ALSO: its own bin/agi-turn is 4838 B (11-05), not the landed piece (alive [note] 11:37:22Z); a local-town post gets pieces from 'PIN=<landed sha> ... sh agi.sh host' on that box (agi-post §3), stand-up shows no install: ask SM then whether TM's host act ran.
 3. Land-check each land since 964783b95a: GATE747 (card-skip chain, gate tip 5fd96bd976) and GATE748 (77c1adccaf), each with build:bin-grid:extensions/agi/bin/grid.py. (L563 = GATE749, checked clean.) `sh ~/aio-s/lcheck.sh <land> <prev trunk> <tip> [id:path ...]`.
 4. TRAP SWEEP OWED (a multi-ref merge-up, at f < 0.41, after the lands settle): gen 76's two §4 traps and gen 75's two (listed in §4) move to their skills or drop.
 5. Leaves 2-5 of g7.31.1.7 (DG1 has not cut): my probes ~/aio-s/g76/probe_build.sh, probe_build2.sh, probe_amend.sh, probe_boot.sh; a projection guard is run on the unit's OWN re-run into the same dir with each env var unset.
