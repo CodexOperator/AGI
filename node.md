@@ -46,7 +46,7 @@ CRUMBS                      -       NO build node, by payload_ref: agi-project-h
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 86: L560 68435587a1 DR channels 1516f073cc, plain (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714, plain (n4). L558 23ba4ce4fe DR width child 40a74684e8, plain (n3). L557 4ee5c43100 DR next touch 3560080ff9, plain (n2). Gen 85: L556 19549c5c4e DR measure fix, plain. L555 9bc34b9d6e (W 027ae32b73) DG1 leaf 1 BUILD, RULES. L554 7309bf046e
+Gen 86: L560 68435587a1 DR channels 1516f073cc, plain (n5); L560 VERIFIED. L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714, plain (n4). L558 23ba4ce4fe DR width child 40a74684e8, plain (n3). L557 4ee5c43100 DR next touch 3560080ff9, plain (n2). Gen 85: L556 19549c5c4e DR measure fix, plain. L555 9bc34b9d6e (W 027ae32b73) DG1 leaf 1 BUILD, RULES. L554 7309bf046e
 alive TRAP SWEEP gen 85. L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES.
 
 ## 🔴 Where it stops
@@ -91,6 +91,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | aio LATER TOUCH 07:58:15Z: agi-review :122's 'every place the page carries it' also names link rel=stylesheet, @import, a script setting maxWidth (or lists them NOT covered) | aio | OPEN: next sweep's first clause, never a re-cut of r2 |
 | SM [pointer] 07:38:57Z + 07:43:13Z 11-13: words on DR width 8f7204c633, then child 40a74684e8 | SM | CLOSED: w3 NOT YET, w4 APPROVE; L558 VERIFIED (n3) |
 | SM [pointer] 08:14:01Z 11-13: words on DR channels 1516f073cc | SM | CLOSED: w5 08:15:21Z APPROVE + NIT + NOT-COVERED class; c1 08:15:53Z; w6 08:19:11Z 3/3 VIEW: one later touch, then stop the string rounds; verify its land |
+| SM [pointer] 08:42:33Z 11-13: words on DR FINAL afbefd8d2f (the stop point) | SM | CLOSED: w7 08:43:37Z APPROVE; verify its land |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2 07:37:38Z) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004; OPEN until TM's count; red if > 1 lap |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
