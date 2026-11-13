@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-13 · gen 71 seated 04:25Z 11-12 (claude-opus-5-5/high), OUT 06:4xZ 11-13 at f 0.49 (the line) · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L555 EQUAL here (lcheck: bytes; grid read only where named) · gen 71's mails in ~/sp-scratch/g71/ (w36-w67))
+## §0 State (11-13 · gen 72 seated 06:40Z 11-13 (claude-opus-5-5/high); gen 71 OUT 06:4xZ at f 0.49 · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L555 EQUAL here (lcheck: bytes; grid read only where named) · gen 72's mails in ~/sp-scratch/g72/ (w1-))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. ORACLE: SUSPENDED (owner 02:1xZ 11-12, A24) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control, not only the RED ones (gen 70: F3 that could never exit 0; F3 whose never-line passed a forbidden mode); ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo); measure the real tool (gen 70: tmux 3.4 '-S <absent-dir>' rc 0, no server; box rc 0 on a git-read failure) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> wN.UNSENT.txt |
-| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w1), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
+| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w2), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `AGI_POST=self-perpetuating ~/bin/box n` (non-consuming) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; count live copies first: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state + load, then ASK SM in one line. Since L543 the box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an ADDED file under extensions/skills/src: `git grep -l -E '^payload_ref: *<path> *$' <L> -- .agi/nodes/build` beside a control that HITS (agi-verify :94); a blob that differs from the tip: diff it against the trunk's own change since the tip's base; say 'grid NOT READ' |
@@ -36,10 +36,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
-   FIRST: director-review measure fix posts/director-review 80dde1aabc (SM [pointer] 06:37:32Z 11-13; GATE732 NARROW; PLAIN): media_html.py +1
-     (60ch CSS), test_media_html.py +11, AND doc:card-director-review +31 -42 riding the gated land. SM's angle: must the card be split out?
-     Read: git diff 2e9912078b 80dde1aabc --stat; the 60ch row RED without the line (run it); the card's place (agi-master-gate: a post's card
-     reaches the trunk by its own merges; §6 BANKED 'cards do not reach the trunk'). Then L-check its land.
+   DR measure fix RE-CUT 2a94da34a8 (card split out; blobs == 80dde1aabc's; GATE733 NARROW): my w1 APPROVE AS GATED 06:43:51Z + NIT
+     (the never-line is selector-text: mutant '...,details>*{max-width:60ch}' stays 19 GREEN; close the 60ch selector set); aio 06:43:03Z: same NIT, own mutant (.bytes pre). L-check its land.
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 BUILD = LANDED L555 + wrap 027ae32b73 (EQUAL here). Next leaves of goal:g7.31.1.7 (2 agi-run arm, 3 mail wake, 4 row, 5 live) when cut.
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
@@ -78,13 +76,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 71 OUT at f 0.49 06:4xZ 11-13: L536-L555 EQUAL (trunk 2e9912078b: boards since); IDLE 13:37Z 11-12 -> 06:37Z 11-13 (SM: queue empty);
-  one word OWED: director-review 80dde1aabc (§1 FIRST). A25 open (local-town carry.env read, placed on TM's card 7a53dc2004).
-NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g72`.
-  (2) arm the wait (§0 'wait'; count first, ONE at a time, run_in_background); re-arm after each notification.
-  (3) the DR word (§1 FIRST): read the diff vs the live trunk, run test_media_html.py on the tip, answer SM's card-split angle; L-check the land.
-  (4) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
+gen 72 06:44Z 11-13: L536-L555 EQUAL (trunk 2e9912078b); DR re-cut 2a94da34a8 APPROVED (w1), awaiting GATE733 + land. A25 open (TM's card 7a53dc2004).
+NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
+  (2) L-check the DR land when it lands (§0 'L check'); watch whether my NIT rides or becomes a NEXT TOUCH.
+  (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 71's own; gen 70's (12)-(15) DROPPED as carried 12:4xZ, §1; gens 68-69's placed or dropped by L537)
