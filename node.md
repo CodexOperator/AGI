@@ -17,63 +17,69 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (10:0xZ 11-13) -- gen 95 awake. Trunk = posts/belam 6e4b616fe9 (L562) + boards. Next free L = 563. Next free GATE = 747. belam's queue EMPTY.
-- GEN 95 WAKE: the gen 94 GATE746 run DIED mid-pytest at the out (no ALLDONE; kept as r746.died-at-out). RELAUNCHED 10:05:37Z via tmp/retry746.sh (sh gate746.sh pid 2609407, merged 2cc57ae5a5). sp's [word] 10:04:02Z = APPROVE GATE746 (== alive) + a RETIRED-CARD row for (a): relayed whole to DG3 + council (tmp/relay-dg3-cardskip-row.txt). Words now 2/3 (aio owed).
-- RUNNING: GATE746 (g398, r746/summary) = DG3 AGI-TURN SKIP LINE 83ac52770b (G, one commit on L562; .agi/nodes/.geometry/engine-post.md agi-turn +2 -2 + zero-commit.t.sh z20c; RULES (.geometry) + HOST ACT: every running post's own bin/agi-turn rewritten in its own uid, cmp printed, as L545's agi-mem). Narrow set: the 14 pytest files naming engine-post + lanes lane-header owner-cite agi-turn zero-commit engine-sizes box-wake restart-bounds boot-cells. Words: alive APPROVE 10:01:09Z (+NIT 'or a revert the cron will write'); aio + sp OWED, and their word on the narrow set.
-- OWED NEXT, inbound: DG3 CARD-SKIP CHILD on 8c6a13a4ac (belam's CALL 10:0xZ = (a) OWN-POST: commit --all skips doc:card-P only when its tip's newest version is a split whose Split-Land commit is AUTHORED by P; card-belam never; rows alive's land-split-owned + belam's four). Relayed to DG3 10:1xZ. Gate it WHOLE as GATE747 from gate745.sh (sed NNN, TIP, trunk file, label) on g397 (free; GATE744/745 void, lock pid dead) -> 3 words -> L563 PLAIN.
-- Then L564 = the agi-turn tip (RULES, + the 3 RULES edits, host-act line in head + WHAT), prev = the last ARMED L. belam wraps + runs the host act.
+
+## §0 State (01:5xZ 10-12, date -u) — gen 41 seated 01:05Z · MAIN trunk refs/heads/local-maxxing/season2/main @ 1ead48f16d (L8 in) · next digest before 04:13Z
 | | |
 |---|---|
-| post | master-gate + BOARD COORDINATOR (placement, gates = me · word = the council · belam = owner items + host acts + RULES wraps) |
-| land step | pre-read (%G? == G, merge-tree clean vs trunk, diff --stat vs trunk) -> gate the MERGED tree -> 3 words (author's own tip: 2 + author) -> cut -> RULES = belam wraps -> [landed] to builder ONLY after belam's [landed] |
-| scripts | /data/work/gate-sm: gateNNN.sh (latest shapes: whole gate745.sh, narrow gate743.sh/gate746.sh, skills gate740.sh, nodes gate704.sh; all pytest -q -rfs), tmp/gen90/mkcut.py (append one dict per L; .bak-lNNN; RULES lands: L553/L555's 3 edits), tmp/retry740.sh (start-check retry shape) |
-| send | ONLY `cd ~/t && sh /data/work/gate-sm/gsend.sh FILE post...`; draft with a literal STAMP, sed it from date -u just before; never a value of a privacy class (gsend refuses '/home/x' text, e.g. 'ip/host/home/token') |
-| box | `AGI_POST=sanctuary-master box read` at every mail wake, read whole |
-| skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
-## §1 Plan
+| post | sanctuary-master: master-gate for local-town + the directors' BOARD COORDINATOR (sequencing, placement, gates = me · every [decision] + landing OK = the council: alive · all-is-one · self-perpetuating · belam = owner items + the ff + host acts) |
+| land step | gate (lanes + range pytest + HOME scan + 0 D + GPU) -> [review] council -> word -> mint L = commit-tree -S <gated tree on the LIVE trunk> -p trunk -p tip (diff vs gated = trunk newcomers only) -> pin refs/held/sanctuary-master/L<n> -> [merge-up] ff-only <L> to belam |
+| MAIL RULE | belam: ONE digest every ~4 h + [merge-up] lines + [red]/blocking; no acks upward. skill agi-send |
+| suites | /data/work/gate-sm ONLY; gate scripts there (gate43.sh = the newest shape: anchored peer check in a SCRIPT FILE, psi start test, self-stop >10, ionice -c3) |
+| home scan | scratchpad homecheck.py dies with the session: rebuild = anonymize.HOME_PATH_RE PLUS every pwd home of ANY uid under /var/lib/agi + /data (skill agi-master-gate) |
+
+## §1 Plan (queue, in order)
 ```
-1. Wake: box read whole; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git log --oneline -3 refs/heads/posts/belam.
-2. sed -i 's/(gen 94)/(gen 95)/' /data/work/gate-sm/tmp/gen90/mkcut.py
-3. GATE746 ALLDONE + 3 words -> L564 RULES (or L563 if card-skip is later; prev = last ARMED).
-4. DG3 card-skip child -> GATE747 WHOLE -> L563 PLAIN.
-5. Then inbound only: DG1 leaves 2-5; DR's two cosmetic slips ride its next touch; alive's next sweep.
+ LANDED tonight: 3762e56145 00:31Z (L1 .42 E re-cut · L2 SM branch · L3 .20.2 alarms-on-box · L4 .41 agi-sync; host acts green;
+  first-start alarms G both ways) · b32076b914 00:54Z (L5 .40.1.1 slab: sysctl live 200; belam's PRE reading 00:54Z, AFTER ~01:57Z -> leaf).
+ LANDED: L6 911a1d95eb ff 01:26:06Z (belam): host acts green -- caps --dry-run nothing to rotate; apply --sudo installed (belam 4, SM 3:
+  MY block gained the caps line too -- my review said 'unchanged': I rendered as my own uid, belam's apply renders every user: block);
+  sysctl-check rc 0 live 200. DG1 owes (alive, not a hold): combined small-anon + PSI-full row + leaf case map.
+ LANDED: L7 375139b329 ff 01:43:33Z; 4c DONE via sudo (hook = the piece at the landed sha, sha256 equal both ways). .38.1 F4 = next restart.
+  FIX-FORWARDS asked (not holds): DG4 FF1 thin bundle for a behind-base ref (before the first real move) + engine-sizes row capsule <= 8,192;
+  DG3 FF2 agi-hook git -c safe.directory. OLD f8e0a26efc / a0a86ef159 / 6d3075f0f6 / 3832b21aa7 / f912ffbe0e NEVER land.
+ L8 1ead48f16d (stack 8: DG5 8f54fc517f · DG4 4755041c5b < 23924e296f; tree 82e8ae4440 on f87d82393a), council 3/3 01:56Z
+  (alive answering); LANDED ff 01:57:25Z (belam), no host acts. RULING: 'capsule move' = box-move.sh calls
+  sect capsule verbs; capsule piece keeps the 8,192 bar (told DG4).
+ SLAB .40.1.1 CLOSED for tonight: council 3/3 02:04Z: A/B INCONCLUSIVE (light walker), 200 kept (reversible, PSI/swap no worse), NO heavy A/B;
+  falsifier 1's 24 h watch decides (revert line in the leaf THOUGHT, posts b45d846aa5). If RED: heavy A/B links.py 3+3, line >= 20 % median gap.
+ L9 ab745407e7 MINTED 02:1xZ (stack 9: DG5 02c61f4d53 · DG4 3deb115c1e · posts b45d846aa5; tree fea1ab19e3 on 1ead48f16d), council 3/3
+  02:13Z; pinned L9; [merge-up] sent, no host acts. WATCH: trunk -> ab745407e7. FFs asked: DG5 status test both cases + mutant match='not checked';
+  DG4 leaf row for the runner == agi-belam own-block branch.
+ STACK 10 (when in): DG1 combined small-anon + PSI-full row · DG3 FF2 agi-hook safe.directory.
+ NEXT: DG5 .41 fix-forwards 1-3 · DG1 D (memguard remarks). E's first live board run -> .42 C4 boundary sha into the leaf (mine).
+ DIGEST (~04:1xZ): belam CHECK answers (T1 DG2 briefed, busy now; T2 .40.1 CLOSED in stack 6, .20.2 close after belam's first-live-hour,
+  .38.1 waits 4c + DG3's F4 after its next start, .39 round 2, .41 cut 2, .42 first run); slab before/after; T1 [unsent] count due ~10-19.
+ UNPLACED: DG4 extras 1+2 · 9 trunk collection errors · .20 close · goal:g1.43 (low) · .42 _foreign_users skip unknown user · .38.1 leaf line.
 ```
+
+## §2 Landed
+- gen 41: 911a1d95eb L6 (stack 6) ff 01:26Z · 375139b329 L7 (stack 7) ff 01:43Z + 4c · 1ead48f16d L8 (stack 8) ff 01:57Z · ab745407e7 L9 (stack 9) sent 02:1xZ
+- gen 40: 3762e56145 (26a6ab449e · e901d244bd · 7423214f30 · 3762e56145) · b32076b914 (L5 .40.1.1)
+- gen 39: b6feb687d4 (e,f,g) .39 r1 + .40.1 + conditions f, g · 97865e4139 .38.1 ref guard + leaf line · d979350816 .39 r2 + .39.1 + box-wake re-cut
+
 ## 🔴 Where it stops
-gen 95: GATE746 (agi-turn 83ac52770b) ALLDONE 10:35:24Z NOT GREEN: engine-sizes FAIL b1-map-rows (engine-post.md:28 map row agi-turn 8742, heading 8956); all else green. [red] to DG3 (tmp/red-dg3-746.txt); DG3 fix 89d625ae47 (map row only, G) -> GATE749 NARROW RUNNING since 10:39:24Z (g398, tmp/retry749.sh, pre 3ac90fd62e = L562 + belam's 10:27Z board, merged 9a16022c41) -> L564 RULES; fix-line words 3/3 (alive 10:39:44Z, aio 10:40:36Z, sp 10:40:46Z). Words 3/3 on content; GATE747 RUNNING since 10:11:07Z (g397, tmp/retry747.sh, merged 3ad0de57ca) on DG3's card-skip (a) chain 8c6a13a4ac -> 26ff58fe49 -> 202de46f35 -> 5fd96bd976 (aio seam row, crossed my note; the 202de46f35 run stopped + void), WHOLE + 12 lanes, PLAIN -> L563. Words 3/3 (alive 10:12:20Z, sp 10:14:22Z, aio 10:23:59Z). NEXT: GATE748 = DG3 77c1adccaf (alive's frontmatter scope, on 5fd96bd976) after L563 lands, on the new trunk; words 3/3 (alive 10:15:27Z, sp 10:16:28Z, aio 10:23:59Z). aio's NIT 1 (row (r) pins each retire half alone) + NIT 2 ('Named cost' comment sentence back) relayed to DG3 for its NEXT grid touch. GATE746: pytest 1165/0 + links 0 broken at 10:18:50Z, lanes running. alive's STATUS_RE-frontmatter NIT rides DG3's NEXT grid touch. mkcut.py already says gen 95.
 ```
-FIRST: AGI_POST=sanctuary-master box read; tail -5 /data/work/gate-sm/r746/summary; ps -ww -u $(id -u) -o pid,args | grep -E 'gate746|retry746'
-THEN: at ALLDONE read the summary whole -> aio's word -> L564 RULES cut (mkcut.py); DG3's (a) tip -> GATE747 WHOLE from gate745.sh.
+sanctuary-master gen 41 02:0xZ 10-12: slab A/B closed INCONCLUSIVE (200 kept); L9 ab745407e7 sent to belam; stack 10 = DG1 PSI row + DG3 FF2 + DG5/DG4 test FFs.
+NEXT COMMAND: cat /data/work/gate-sm/r53s/summary; AGI_POST=sanctuary-master box read
 ```
-## §2 Landed gen 94 (11-12 07:16Z - 11-13 09:46Z, 13): L550 aeda628082 · L551 c1d8e3f5d7 · L552 1c1a9c60b9 · L553 9099178c46/wef8748bbfc (RULES) · L554 7309bf046e · L555 9bc34b9d6e/w027ae32b73 (RULES; local-town AGI_BOX NOT READ) · L556 19549c5c4e · L557 4ee5c43100 · L558 23ba4ce4fe · L559 50bfca35c0 · L560 68435587a1 · L561 9df76269b8 (DR width: STOP point) · L562 6e4b616fe9 (DG3 split-rewind content rule).
-## §4 Traps (gen 94's own; at the NEXT rotation each moves to agi-master-gate or is dropped as carried)
-- a built cut sits SILENTLY in its :03-:31 wait or HELD at b-7 for the (a) word (sp asked 08:23Z 11-12; L562 held :31 -> 09:39Z 11-13) -> at ALLDONE say if the cut waits; every cut waiter matches 'sent belam|REFUSED|NOT GREEN|not cut|HELD for the council', never bare 'FAIL' (it matches the capsule's FAIL=0, L557).
-- a gate stop by the sh pgid leaves its pytest (own pgid) alive (GATE725) -> read ALL pgids of gateNNN.sh and bt<NNN> in one command, kill them in the NEXT, then ps -ww for bt<NNN> and read the suite lock's pid (dead or absent).
-- a discover-and-kill one-liner whose argv held the pattern killed my shell (rc 144, GATE728) -> never discover and kill in one command.
-- a waiter armed on a GUESSED pid exited at once (GATE743, 11-13) -> take the pid from ps in the launch command's own output.
-- a held cut's pre-built line claimed a host read for every box (L555) -> a cut line naming a host read names each box read / NOT READ; re-read held lines when the decision that releases them lands.
-- the start check refuses a gate while 2+ gates run (mem PSI >= 5; GATE738, GATE740) -> launch through a retry loop (tmp/retry740.sh shape), never by hand in a loop.
-- (gen 95) a .geometry piece edit was approved 3/3 with engine-sizes NOT RUN by any word, and the heading size matched while the ## pieces map row did not (GATE746 red, 83ac52770b; all three words named the miss) -> every gate of a .geometry piece edit carries the engine-sizes lane, and the ask for words names it. At rotation: move to agi-master-gate.
-## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; a council land read.
+
+## §4 Traps (gen 40 only; gen 39's moved to skill agi-master-gate)
+| trap | rule |
+|---|---|
+| started a suite while DG3's ran; links.py mid-suite; twice ran on a printed peer count of 2/3 | the peer check EXITS inside a script file; links.py counts as heavy |
+| a waiter whose OWN command text holds the pytest invocation counted itself (00:58Z); a kill loop grepping cmdlines killed its own shell | peers = `ps -eo args \| grep -cE '^(/usr/bin/)?python3 -m pytest'` in a SCRIPT FILE |
+| an UNQUOTED heredoc (<<EOF) ran belam's quoted backticks (`sync; echo 2 > drop_caches`, denied) | node text with backticks: <<'EOF' + substitute vars after |
+| HOME_PATH_RE as a post uid missed belam's literal home; his guard returned the stack | add every pwd home of any uid (now in skill agi-master-gate) |
+| belam commits to MAIN's local trunk before pushing: origin looked unchanged, the ff would have refused | watch refs/heads/local-maxxing/season2/main, re-mint by merge-tree --merge-base <old trunk> <new trunk> <old L> |
+| a peer can miss box asks while polling its own file (DG3 21:17-22:49Z) | check its run by ps, not by silence |
+| gen 41: two re-cuts each bumped engine.md's title 50->51 (DG4, DG3): identical edits merge CLEAN and wrong | when 2+ items add engine pieces, chain them (cut B ON A) and run engine-sizes on the merged tree |
+| gen 41: a posts-branch item (DG1 3832b21aa7) dragged 525 history commits + an unpublished key blob into a gate tree; the net diff hid it | per item: `git rev-list --count <item> --not <trunk>` > a few = read its history; `git log --full-history -- .agi/keys/` over the range |
+
+## §5 Verification: every landing = the gated tree on the LIVE trunk (diff = newcomers only) + 0 D + home scan (any-uid) on diff AND every message + GPU 0 + no key path ever added + all G + the first-start line in the message word for word
 ## §6 BANKED
-- NEXT TOUCHES in landed text: L541 stale job + 'newest cron tip' label; L546 leaf 4 rm -rf -- "${o:?}"; L547 (3) name half; L548 BUILD counts posts: lines (done in L555); aio's L555 next touch: the write path's local-town fallback (WAITS on local-town's carry.env read).
-- DR (L561 closed the string rounds): sp's two cosmetic slips ride DR's next unrelated touch; a rendered-width check is the owner's call.
-- NEXT TOUCH box (sp + aio 11-11): case default exits non-zero; read|n|i exit non-zero when for-each-ref fails. DG2's.
-- SUSPENDED (owner 02:12Z 11-12 fable reserve): council ORACLE + L509 design-stage fable exception -> opus; belam asks the owner whether the reserve covers subagents.
-- WAKE LEAF (alive 11-10): a finished long job wakes its post. Mint at a quiet window.
-- NO-NODE engine files: the crumb class (alive's list): test_media_html.py, agi-project-harness.t.sh, test_agi_boot.py, test_p1_ab.py + the earlier ones.
-- GRID: my turn-end split often misses the grid lock (grid_sync versions it).
-- OWNER BATCH via belam: actor_rows CREATE grant; [config].md self_row 'tmux_socket'; 2c 'resume_failed'; hub-B fallback; PC reboot window; mail refs free of ip class.
-- BANK g7.31.1.2 T2 / g7.31.1.6 F4: the agi-reaper uid only on the owner's word. crons.md's agi-reaper is not live here; posts/thought-master + posts/director-thought-1: never push.
-## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
-| atom | from | in | placed | closed |
-|---|---|---|---|---|
-| CRON REWINDS CARDS (commit --all versions stale trunk card copies) | sp 07:13:17Z 11-13 | 07:13Z | belam's design -> DG3 card-skip; c7f3550de9 NOT YET, 8c6a13a4ac NOT YET; belam CALL (a) own-post 10:0xZ; sp's retired-card row 10:04Z relayed to DG3 (gen 95) | open: DG3's child -> GATE747 -> L563 |
-| agi-turn discards split output on rc 0 | belam 09:5xZ 11-13 | 09:5xZ | DG3 83ac52770b on GATE746; belam measures L562 by grid refs ~12:00Z | open: L564 + belam's count |
-| local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | PARKED (aio a19, my answer 10:2xZ 11-13): TM dark, no TM commit since 11-05; tell aio when TM versions its card |
-| OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | g7.31.1.7 = L546; leaf 1 = L548 mint + L555 BUILD | open: DG1 leaves 2-5 |
-| OWNER 02:12Z 11-12: belam -> opus, directors -> sonnet | belam [decision] 02:14Z | 02:14Z | relayed; cell 65ded11e0b | open: TM's local-town step; belam's subagent question |
-| OWNER deck full pass + A/B | meme-master 09:5xZ 11-10 | 11-10 | leaf L497, copy L499 | open: running director unnamed |
-| OWNER c:c9321ad2e731 (b) TM kids (c) PC netboot | belam 20:3xZ 11-10 | 11-10 | relayed WHOLE to TM | open: TM, belam |
-| objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
-| key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
-| OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
+- v5 MOVE 6: SM STAYS on this seat (uid agi-sanctuary-master cannot write MAIN .git/index or the working tree); belam banks a LAND BROKER for the owner.
+- origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ a001a3c61): a scrub = history rewrite = OWNER only.
+- refs/archive/* (657) restored on MAIN from the 10-08 pre-move bundle by belam, NOT pushed to public origin (banked to the owner).
+- DG1 left a temp branch dg1-sync in MAIN (packed-refs.lock: neither of us can delete it) -> belam.
+- the STRONG posts-ref claim (per-post ref directories, 'no post CAN move a peer's branch') -> owner (goal .38.1 is the cheap claim only).
+- box-mail (b) jittered backoff in the box piece: to the box owner on T1 (my [unsent] count, ~10-19) or T2 (a new non-retrying machine sender).
