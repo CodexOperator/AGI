@@ -2881,3 +2881,48 @@ def test_split_skips_a_node_whose_blob_is_an_older_version_of_its_grid_history(t
     fresh = commit("newer body")
     assert grid.cmd_split(graph, base, fresh, write=True, lock_wait=1) == 0       # control: genuinely new content writes
     assert git("rev-parse", ref) != tip
+
+
+# --------------- belam [decision] 11-13: commit --all skips every doc:card-* but doc:card-belam ----
+
+def test_commit_all_skips_post_cards_but_not_the_trunk_card_or_other_nodes(tmp_path, capsys):
+    """(1) a post's split versions its card v2, then commit --all leaves the tip at v2 (mutant: no skip -> v3, RED); (2) doc:card-belam is still
+    versioned by commit --all when its file changes; (3) a non-card node changed on the trunk still is; (4) the count line is printed."""
+    agi = _make_g11_project(tmp_path)
+    root = agi.parent
+    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+    graph = grid.find_project_root(agi)
+    (agi / "nodes" / "doc").mkdir(parents=True)
+    mints = {"card-dg": "b2" * 16, "card-belam": "c3" * 16}
+    for name, mint in mints.items():
+        (agi / "nodes" / "doc" / f"{name}.md").write_text(f'---\nid: "doc:{name}"\nmint_id: {mint}\ntype: doc\n---\n\nv1 {name}\n')
+
+    def git(*argv):
+        return subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null", *argv], check=True, env=env,
+                              capture_output=True, text=True).stdout.strip()
+
+    def tips():
+        return {k: git("rev-parse", grid.mint_node_ref(m)) for k, m in [("g", MINT_X), *mints.items()]}
+
+    def edit(path, old, new):
+        path.write_text(path.read_text().replace(old, new))
+
+    git("add", "-A"); git("commit", "-qm", "root"); base = git("rev-parse", "HEAD")
+    git("add", "-A")
+    cron = lambda: grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)
+    cron_out = lambda: capsys.readouterr().out
+    cron(); out = cron_out()
+    assert "cards skipped 1 (versioned by their posts' turn ends)" in out, out        # (4) card-dg skipped, card-belam versioned
+    assert grid.mint_node_ref(mints["card-dg"]) not in {l.split()[0] for l in git("for-each-ref", "--format=%(refname)").splitlines()}
+    dg = agi / "nodes" / "doc" / "card-dg.md"
+    edit(dg, "v1 card-dg", "v2 card-dg"); git("commit", "-qam", "dg card")
+    assert grid.cmd_split(graph, base, git("rev-parse", "HEAD"), write=True, lock_wait=1) == 0     # the post's turn-end split
+    before = tips(); capsys.readouterr()
+    edit(dg, "v2 card-dg", "v3 card-dg")                                                           # the trunk's stale/other bytes
+    edit(agi / "nodes" / "doc" / "card-belam.md", "v1 card-belam", "v2 card-belam")                 # (2)
+    edit(agi / "nodes" / "idea" / "g.md", "hi", "changed")                                          # (3)
+    cron(); capsys.readouterr()
+    after = tips()
+    assert after["card-dg"] == before["card-dg"], "(1) the cron versioned a post's card"
+    assert after["card-belam"] != before["card-belam"], "(2) the trunk card was not versioned"
+    assert after["g"] != before["g"], "(3) a non-card node was not versioned"

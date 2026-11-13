@@ -100,6 +100,10 @@ LEGACY_NS: list[str] = []
 # engine tree stays where it always was — the node's own `payload_ref` field —
 # rather than being duplicated in the ref layout.
 NODE_ENTRY = "node.md"
+#: `commit --all` (the cron) skips every post's card: its live text is posts/P, versioned by that post's turn-end split. The trunk post's
+#: card lives on the trunk, so the cron still versions it (belam [decision] 11-13, goal:g7.16.1.11.46.30).
+CARD_PREFIX = "doc:card-"
+CARD_TRUNK_ID = "doc:card-belam"
 PAYLOAD_ENTRY = "payload"
 # The graph repo's staged payload checkout (`grid.py checkout`). Gitignored:
 # the committed home of these bytes is the node's grid ref, and this directory
@@ -1647,6 +1651,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         payloads = 0
         payload_missing = 0
         payload_retired = 0
+        cards_skipped = 0
         for p in paths:
             if not p.exists():
                 print(f"skip (missing): {p}", file=sys.stderr)
@@ -1654,6 +1659,9 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             node_id = parse_node_id(p)
             if node_id is None:
                 print(f"skip (no id): {p}", file=sys.stderr)
+                continue
+            if do_all and not session and node_id.startswith(CARD_PREFIX) and node_id != CARD_TRUNK_ID:
+                cards_skipped += 1                    # belam [decision] 11-13: a post's card is versioned by ITS turn-end split (posts/P)
                 continue
             payload = None
             if session:
@@ -1691,6 +1699,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             if v:
                 written += 1
                 print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
+        if cards_skipped:
+            print(f"grid: cards skipped {cards_skipped} (versioned by their posts' turn ends)")
         print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
               f"{payload_retired} retired with their node, "
