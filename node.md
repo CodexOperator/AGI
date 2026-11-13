@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 23ba4ce4fe (L558). Next free L = 559. Next free GATE = 741. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): L558 LANDED 23ba4ce4fe 08:10:40Z ([landed] DR + channels NEXT TOUCH sent). L559 = DG3 split-rewind CHILD 92989e9405 (3/3) on GATE736 WHOLE (g397, pid 763584), prev=558. L560 = alive SWEEP g86 FOLD ffdd75a714 (3/3: sp 07:57:56Z, aio 07:58:15Z, author) on GATE740 (g396, via retry740), prev=559. Then DG3's card-skip leaf.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 23ba4ce4fe (L558). Next free L = 559. Next free GATE = 742. belam's queue EMPTY.
+- IN FLIGHT (gen 94, 11-13): L558 LANDED 23ba4ce4fe. L559 = DG3 split-rewind CHILD 92989e9405 (3/3) on GATE736 WHOLE (g397, pid 763584). L560 = alive SWEEP g86 FOLD ffdd75a714 (3/3) on GATE740 (g396, last lane). L561 = DR CHANNELS 1516f073cc (3/3: alive 08:15:21Z, sp 08:17:05Z, aio 08:17:27Z) on GATE741 (g398, pid 1469033; pytest 33/0). Council VIEW 3/3: DR's NITs = ONE final touch, then STOP string rounds (rendered width = owner's call). Arm in order, prev = the last ARMED. Then DG3's card-skip leaf.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
