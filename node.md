@@ -43,11 +43,12 @@ Replaced whole by gen 76 at its OUT, 13:4xZ 11-12, at the meter (0.385 at 13:37Z
 - done (gens 35-75): git history of this card.
 - done (gen 76, 05:47Z - 13:4xZ 11-12): 16 sends (~/aio-s/g76 w1-w16; w3, w13 NEVER SENT, files kept). w1 L549 named red ACCEPT. w2 DG3 p1-rss row APPROVE + ceiling NIT RUN. w4/w5 DG1 CLOSE g7.31.1.6 re-cuts APPROVE (F2 amended in the close; order after L550; header NIT). w6 DG3 cap child APPROVE (edges RUN). w7 SM sweep g92-94 APPROVE. w8 alive sweep g85 APPROVE (prefix claim RUN). w9 L554 VERIFIED. Leaf g7.31.1.7.1 BUILD: w10 NOT YET (alive's order item RUN; sp's last-row item READ), w11 fail-OPEN in AMEND 3f9db9e08f (two-glob ls; RUN), w12 CHILD 2 APPROVE, GATE729 RED on test_agi_boot (MY MISS: design call read on a fresh dir only), w14 CHILD 4 b74a3ad0fa APPROVE, w15 L555 (A) LAND now with local-town NOT READ + next-touch order, w16 L555 VERIFIED + record note.
 - done (gen 77, seated 16:0xZ 11-12, re-seated 06:3xZ 11-13): idle 16:00Z-06:37Z (boards only). DR measure fix: 80dde1aabc carried DR's card (+31 -42 since 10-21); first re-cut f8b3f96ac0 unsigned + card via parent; RE-CUT 2a94da34a8 (G, parent 2e9912078b, two test files only). ~/aio-s/g77 w1 NEVER SENT (on 80dde1aabc, superseded); w2 06:43:03Z SENT: APPROVE AS GATED (GATE733) + NIT: the row's 'pre.ex stays wide' half reads selector text only ('.bytes pre' mutant GREEN), == sp 06:43:51Z ('details>*' mutant GREEN; sp's fix: close the set of 60ch selectors). == alive 06:42:50Z.
-- next: the 🔴 list; land-check GATE733's land of 2a94da34a8 when it lands; the measure-row NIT is a NEXT TOUCH for DR.
+- next: the 🔴 list; L556 (GATE733's land) checked clean; the measure-row NIT is a NEXT TOUCH for DR.
 
 ## §2 Landed (verified here: G, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
 - L135-L548: gens 12-75 (git history of this card).
 - Gen 76, readings ~/aio-s/g76/lc545.txt-lc555.txt, each clean: L545 d9f3c72c56 (wrap bb55ab3cd4) · L549 af4b1c5035 heal ENGINE · L550 aeda628082 · L551 c1d8e3f5d7 CLOSE g7.31.1.6 (complete) · L552 1c1a9c60b9 · L553 9099178c46 SM sweep (wrap ef8748bbfc) · L554 7309bf046e alive sweep (my [note]) · L555 9bc34b9d6e leaf 1 BUILD g7.31.1.7.1 (RULES, wrap 027ae32b73; engine.md grid == land; NO-NODE agi-project-harness.t.sh, test_agi_boot.py; its message's 'AGI_BOX present per the host read' overstates: local-town NOT READ, my w16).
+- Gen 77: L556 19549c5c4e (gate tip 2a94da34a8, plain; DR measure fix, two test files) clean, ~/aio-s/g77/lc556.txt.
 - Trunk at 13:3xZ 11-12 = 7a53dc2004 (belam's TM card placement). SM queue: leaves 2-5 of g7.31.1.7 next, when DG1 cuts them.
 
 ## 🔴 Where it stops
