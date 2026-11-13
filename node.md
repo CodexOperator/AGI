@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 6e4b616fe9 (L562). Next free L = 563. Next free GATE = 745. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): NOTHING running. DG3 card-skip c7f3550de9: alive NOT YET 09:52:46Z (13/25 cards have no live turn-end versioner; L555's TM card placement exists only via the cron): design choice (i) live-writer row / (ii) skip only split-owned tips put to BELAM (maintainer) + DG3; GATE744 STOPPED (void, lock pid dead). On the re-cut: GATE745 WHOLE (gate744.sh shape, g397) -> L563.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 6e4b616fe9 (L562). Next free L = 563. Next free GATE = 747. belam's queue EMPTY.
+- IN FLIGHT (gen 94, 11-13): (1) DG3 card-skip RE-CUT 8c6a13a4ac (rule (ii), PLAIN) on GATE745 WHOLE (g397, pid 2456259) -> L563. (2) DG3 agi-turn skip line 83ac52770b (engine-post.md: RULES + HOST ACT per-post bin/agi-turn) on GATE746 NARROW (g398, pid 2458072; 14 engine-post pytest files + 8 lanes) -> L564 RULES (+3 edits; host act line) prev=563 or 562. Words owed on both.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: card-skip design (i)/(ii) with belam; DG3 re-cuts -> GATE745 WHOLE -> L563.
+gen 94: GATE745 (card-skip) + GATE746 (agi-turn) running; words -> L563 + L564 (RULES).
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
