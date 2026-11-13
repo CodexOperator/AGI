@@ -97,7 +97,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 15:41Z 11-13: L536-L568 checked (trunk 6b8ec91a57). On hub B since 15:12:44Z (A26). meme-master's two sunk lanes: outline = L567 (checked) then fuel = L568 (checked): my w26 APPROVE both. Queue: none named.
+gen 72 IDLE 16:15Z 11-13: L536-L568 checked (trunk 6b8ec91a57); no mail or land since 15:46Z; SM tells the council when a builder tip arrives. On hub B since 15:12:44Z (A26). meme-master's two sunk lanes: outline = L567 (checked) then fuel = L568 (checked): my w26 APPROVE both. Queue: none named.
 NEXT: (1) watcher armed (re-arm after each notification, count first); `box read` on mail.
   (2) words when SM relays a tip: DG3's next grid touch (aio NIT 1 + 2), DG1's g7.31.1.7 leaves 2-5, or new placements.
   (3) SWEEP at MY rotation: (17) + (20) DROP as carried (L566 line (3); agi-review :158); (16), (18), (19) to their skills or drop.
