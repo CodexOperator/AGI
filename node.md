@@ -36,8 +36,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
-   DR measure fix RE-CUT 2a94da34a8 (card split out; blobs == 80dde1aabc's; GATE733 NARROW): my w1 APPROVE AS GATED 06:43:51Z + NIT
-     (the never-line is selector-text: mutant '...,details>*{max-width:60ch}' stays 19 GREEN; close the 60ch selector set); aio 06:43:03Z: same NIT, own mutant (.bytes pre). L-check its land.
+   DR measure fix = LANDED L556 (checked here). NEXT TOUCH: the 60ch row's never-line reads selector text (w1 + aio 06:43Z): close the set.
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 BUILD = LANDED L555 + wrap 027ae32b73 (EQUAL here). Next leaves of goal:g7.31.1.7 (2 agi-run arm, 3 mail wake, 4 row, 5 live) when cut.
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
@@ -57,6 +56,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L556 19549c5c4e DR reading measure (tip 2a94da34a8, plain; 2 M tests; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/2; 06:51Z; my + aio's NIT (selector-text never-line) NOT in it = NEXT TOUCH)
 - L555 9bc34b9d6e DG1 leaf 1 BUILD child 4 (tip b74a3ad0fa, RULES; 3 paths, blobs == tip; wrap 027ae32b73 tree == land, p2 == land; bt 0/10; NO-NODE agi-project-harness.t.sh (control hits: crumb class); message carries A25's symptom + fix + order + TM card placement; 13:34Z)
 - L554 7309bf046e alive TRAP SWEEP g85 (tip 9bac7b72a4, plain; 2 skills M; on L553's wrap, so (3)'s -rfs pointer holds; bt 0/2; 08:52Z)
 - L553 9099178c46 SM TRAP SWEEP g92-94 RE-CUT 1 (tip fdb7ee809b, RULES; 2 skills M; wrap ef8748bbfc tree == land, p2 == land; bt 0/3; 08:35Z)
@@ -76,9 +76,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 06:44Z 11-13: L536-L555 EQUAL (trunk 2e9912078b); DR re-cut 2a94da34a8 APPROVED (w1), awaiting GATE733 + land. A25 open (TM's card 7a53dc2004).
+gen 72 06:55Z 11-13: L536-L556 checked (L556 = DR re-cut, trunk 19549c5c4e; reaches ~/t at the turn end's merge). A25 open (TM's card 7a53dc2004).
 NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
-  (2) L-check the DR land when it lands (§0 'L check'); watch whether my NIT rides or becomes a NEXT TOUCH.
   (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
