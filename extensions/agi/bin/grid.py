@@ -100,11 +100,10 @@ LEGACY_NS: list[str] = []
 # engine tree stays where it always was — the node's own `payload_ref` field —
 # rather than being duplicated in the ref layout.
 NODE_ENTRY = "node.md"
-#: `commit --all` (the cron) skips a post's card ONLY when its grid tip's NEWEST version carries a `Split-Land:` trailer (a POSITIVE
-#: test of the one reader: a tip the cron or `unify` wrote is versioned as today, so a post with no turn-end versioner is never left
-#: unversioned): that card's live text is posts/P, versioned by its post's turn-end split. The trunk post's card lives on the trunk, so the
-#: cron always versions it. Ownership is the newest version only (a cron tip after older splits is the cron's). Named cost: a split-owned
-#: card's trunk edit is not cron-versioned (a land's split can make a card split-owned). belam [decision] 11-13, alive's two, goal:g7.16.1.11.46.30.
+#: `commit --all` (the cron) skips doc:card-P ONLY when its grid tip's NEWEST version is a split whose `Split-Land:` commit is AUTHORED by P
+#: itself, i.e. P's own turn end versioned it (belam [decision] 11-13 (a), alive 10:01Z): the card's live text is posts/P. Every other card is
+#: versioned as today: a cron or `unify` tip, a split by a LAND (a master's) or by belam's wrap, a post with no branch (six are dark). Ownership
+#: is the newest version only. The trunk post's card lives on the trunk, so the cron always versions it. goal:g7.16.1.11.46.30.
 CARD_PREFIX = "doc:card-"
 CARD_TRUNK_ID = "doc:card-belam"
 PAYLOAD_ENTRY = "payload"
@@ -1676,7 +1675,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                     errors += 1
                     continue
                 if (do_all and node_id.startswith(CARD_PREFIX) and node_id != CARD_TRUNK_ID
-                        and _tip_split_land(root, ref_tip(root, ref))):
+                        and _split_land_author(root, ref_tip(root, ref)) == node_id[len(CARD_PREFIX):]):
                     cards_skipped += 1                # a split owns this card's tip: versioned by its post's turn end (posts/P)
                     continue
                 msg_prefix = prefix
@@ -1815,6 +1814,16 @@ def _tip_split_land(root: Path, tip: str | None) -> str | None:
     r = git_try(root, "log", "-1", "--format=%B", tip)
     m = re.search(r"^Split-Land: ([0-9a-f]{40,64})$", r.stdout, re.M) if r.returncode == 0 else None
     return m.group(1) if m else None
+
+
+def _split_land_author(root: Path, tip: str | None) -> str | None:
+    """The author name of the commit a grid tip's `Split-Land:` names (a post's own commits are authored by the post), or None: no trailer, or
+    the land is not readable here."""
+    land = _tip_split_land(root, tip)
+    if not land:
+        return None
+    r = git_try(root, "log", "-1", "--format=%an", land)
+    return r.stdout.strip() or None if r.returncode == 0 else None
 
 
 def _older_node_blobs(root: Path, tip: str | None) -> set[str]:

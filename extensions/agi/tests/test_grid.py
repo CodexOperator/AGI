@@ -2883,25 +2883,27 @@ def test_split_skips_a_node_whose_blob_is_an_older_version_of_its_grid_history(t
     assert git("rev-parse", ref) != tip
 
 
-# --------------- belam [decision] 11-13 (ii): commit --all skips a doc:card-* ONLY when its tip's newest version carries a Split-Land ----
+# --------------- belam [decision] 11-13 (a): commit --all skips doc:card-P ONLY when its tip's newest version is a split whose Split-Land commit P itself authored ----
 
-def test_commit_all_skips_a_card_only_when_a_split_owns_its_tip(tmp_path, capsys):
-    """Ownership is the NEWEST version's Split-Land trailer, a positive test. (a) split-owned card, edited on the trunk: NOT versioned, counted;
-    (b) cron-owned card: versioned (alive's RED row on the first cut); (c) doc:card-belam versioned whatever owns its tip; (d) a cron tip after
-    older split versions: versioned; (e) a 'unify' tip: versioned; (f) a non-card node: versioned; the count line names only what it skipped."""
+def test_commit_all_skips_a_card_only_when_its_own_post_split_owns_its_tip(tmp_path, capsys):
+    """Ownership is the NEWEST version's Split-Land commit AUTHOR. (a) a card its own post split, edited on the trunk: NOT versioned, counted;
+    (b) cron-owned: versioned; (c) doc:card-belam versioned though belam split it; (d) a cron tip after older splits: versioned; (e) a 'unify'
+    tip: versioned; (l) a card split by a LAND (a master's commit), alive 10:01Z: versioned; (f) a non-card node: versioned; the count line
+    names only what it skipped."""
     agi = _make_g11_project(tmp_path)
     root = agi.parent
     env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
     graph = grid.find_project_root(agi)
     (agi / "nodes" / "doc").mkdir(parents=True)
-    names = {"card-a": "f6", "card-b": "b2", "card-belam": "c3", "card-d": "d4", "card-e": "e5"}
+    names = {"card-a": "f6", "card-b": "b2", "card-belam": "c3", "card-d": "d4", "card-e": "e5", "card-l": "17"}
     mints = {n: m * 16 for n, m in names.items()}
     path = lambda n: agi / "nodes" / "doc" / f"{n}.md"
     for n, m in mints.items():
         path(n).write_text(f'---\nid: "doc:{n}"\nmint_id: {m}\ntype: doc\n---\n\nv1 {n}\n')
 
-    def git(*argv):
-        return subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null", *argv], check=True, env=env,
+    def git(*argv, who=None):
+        e = dict(env, GIT_AUTHOR_NAME=who, GIT_COMMITTER_NAME=who) if who else env
+        return subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null", *argv], check=True, env=e,
                               capture_output=True, text=True).stdout.strip()
 
     def tip(n):
@@ -2910,15 +2912,16 @@ def test_commit_all_skips_a_card_only_when_a_split_owns_its_tip(tmp_path, capsys
     def edit(path_, old, new):
         path_.write_text(path_.read_text().replace(old, new))
 
-    def split_version(n, word):
-        before = git("rev-parse", "HEAD"); edit(path(n), f"v1 {n}", word); git("commit", "-qam", word)
+    def split_version(n, word, who):
+        before = git("rev-parse", "HEAD"); edit(path(n), f"v1 {n}", word); git("commit", "-qam", word, who=who)
         assert grid.cmd_split(graph, before, git("rev-parse", "HEAD"), write=True, lock_wait=1) == 0
 
     git("add", "-A"); git("commit", "-qm", "root")
     grid.cmd_commit(graph, [], do_all=True, session=None, lock_wait=1)                   # every node: a cron v1 (no tip yet, nothing owns it)
     capsys.readouterr()
-    split_version("card-a", "a by split"); split_version("card-belam", "belam by split")  # (a), (c): split-owned tips
-    split_version("card-d", "d by split")
+    split_version("card-a", "a by split", "a"); split_version("card-belam", "belam by split", "belam")   # (a), (c): the post's own split
+    split_version("card-l", "l by land", "sanctuary-master")                                # (l): split by a land
+    split_version("card-d", "d by split", "d")
     grid.cmd_commit(graph, [str(path("card-d"))], do_all=False, session=None, lock_wait=1)   # (d): a hand/cron version AFTER the split
     edit(path("card-d"), "d by split", "d by hand"); grid.cmd_commit(graph, [str(path("card-d"))], do_all=False, session=None, lock_wait=1)
     e_tip = tip("card-e")
@@ -2934,6 +2937,6 @@ def test_commit_all_skips_a_card_only_when_a_split_owns_its_tip(tmp_path, capsys
     after = {n: tip(n) for n in [*mints, "g"]}
     assert after["card-a"] == before["card-a"], "(a) the cron versioned a split-owned card"
     for n, why in (("card-b", "(b) cron-owned"), ("card-belam", "(c) the trunk card"), ("card-d", "(d) a cron tip after splits"),
-                   ("card-e", "(e) a unify tip"), ("g", "(f) a non-card node")):
+                   ("card-e", "(e) a unify tip"), ("card-l", "(l) a land-split card"), ("g", "(f) a non-card node")):
         assert after[n] != before[n], f"{why} was not versioned"
     assert "cards skipped 1 (versioned by their posts' turn ends)" in out, out
