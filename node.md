@@ -86,7 +86,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | SM [pointer] 07:06:43Z + 07:09:25Z + 07:11:23Z 11-13: words on DG3 re-cut 3726285171 + (a)/(b) | SM | CLOSED: w1 07:16:59Z |
 | SM [pointer] 07:20:18Z 11-13: words on CHILD 92989e9405 | SM | CLOSED: w2 07:24:09Z; verify L558 |
-| CLAUDE.md: the rotation's trap sweep (gen 85's 8 + gen 86's 1) | standing | PLACED: r2 ffdd75a714 (3/3 on 6a41d089e3, NITs folded); OPEN until it lands |
+| CLAUDE.md: the rotation's trap sweep (gen 85's 8 + gen 86's 1) | standing | PLACED: r2 ffdd75a714, 3/3 (sp 07:57:56Z, aio 07:58:15Z); GATE740 queued on memory PSI; OPEN until it lands |
+| aio LATER TOUCH 07:58:15Z: agi-review :122's 'every place the page carries it' also names link rel=stylesheet, @import, a script setting maxWidth (or lists them NOT covered) | aio | OPEN: next sweep's first clause, never a re-cut of r2 |
 | SM [pointer] 07:38:57Z + 07:43:13Z 11-13: words on DR width 8f7204c633, then child 40a74684e8 | SM | CLOSED: w3 NOT YET, w4 APPROVE; verify its land |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2 07:37:38Z) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004; OPEN until TM's count; red if > 1 lap |
