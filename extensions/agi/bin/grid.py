@@ -100,8 +100,11 @@ LEGACY_NS: list[str] = []
 # engine tree stays where it always was — the node's own `payload_ref` field —
 # rather than being duplicated in the ref layout.
 NODE_ENTRY = "node.md"
-#: `commit --all` (the cron) skips every post's card: its live text is posts/P, versioned by that post's turn-end split. The trunk post's
-#: card lives on the trunk, so the cron still versions it (belam [decision] 11-13, goal:g7.16.1.11.46.30).
+#: `commit --all` (the cron) skips a post's card ONLY when its grid tip's NEWEST version carries a `Split-Land:` trailer (a POSITIVE
+#: test of the one reader: a tip the cron or `unify` wrote is versioned as today, so a post with no turn-end versioner is never left
+#: unversioned): that card's live text is posts/P, versioned by its post's turn-end split. The trunk post's card lives on the trunk, so the
+#: cron always versions it. Ownership is the newest version only (a cron tip after older splits is the cron's). Named cost: a split-owned
+#: card's trunk edit is not cron-versioned (a land's split can make a card split-owned). belam [decision] 11-13, alive's two, goal:g7.16.1.11.46.30.
 CARD_PREFIX = "doc:card-"
 CARD_TRUNK_ID = "doc:card-belam"
 PAYLOAD_ENTRY = "payload"
@@ -1660,9 +1663,6 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             if node_id is None:
                 print(f"skip (no id): {p}", file=sys.stderr)
                 continue
-            if do_all and not session and node_id.startswith(CARD_PREFIX) and node_id != CARD_TRUNK_ID:
-                cards_skipped += 1                    # belam [decision] 11-13: a post's card is versioned by ITS turn-end split (posts/P)
-                continue
             payload = None
             if session:
                 ref = session_ref(session[0], session[1], node_id)
@@ -1674,6 +1674,10 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 except MissingMintIdError as exc:
                     print(f"ERROR: {exc}", file=sys.stderr)
                     errors += 1
+                    continue
+                if (do_all and node_id.startswith(CARD_PREFIX) and node_id != CARD_TRUNK_ID
+                        and _tip_split_land(root, ref_tip(root, ref))):
+                    cards_skipped += 1                # a split owns this card's tip: versioned by its post's turn end (posts/P)
                     continue
                 msg_prefix = prefix
                 trailer = build_parent_mint_trailer(p, id_index, resolve)
@@ -1801,6 +1805,16 @@ def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], dict[str
             if mi and mi.group(1) not in gated_mints:
                 unread.append(f"unread {q} (deleted with no gated file of its mint {mi.group(1)}: retire, never delete)")
     return [items[m] for m in sorted(items)], view, retired_gone, unread
+
+
+def _tip_split_land(root: Path, tip: str | None) -> str | None:
+    """The `Split-Land:` sha the grid tip's commit message carries (a split version: a land's, or a post's turn end), or None (a cron, unify
+    or hand version has none)."""
+    if not tip:
+        return None
+    r = git_try(root, "log", "-1", "--format=%B", tip)
+    m = re.search(r"^Split-Land: ([0-9a-f]{40,64})$", r.stdout, re.M) if r.returncode == 0 else None
+    return m.group(1) if m else None
 
 
 def _older_node_blobs(root: Path, tip: str | None) -> set[str]:
