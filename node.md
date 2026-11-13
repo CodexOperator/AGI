@@ -109,7 +109,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM gen 95 10:05-10:08Z: card-skip (a) chain 26ff58fe49 -> 202de46f35 (GATE747 WHOLE) | SM | CLOSED: w12 10:09:37Z APPROVE (reader skips exactly 4 live posts' cards; seam row absent, SM's call; STATUS_RE body NIT); verify L563 |
 | SM gen 95 10:11-10:13Z: words on seam row 5fd96bd976 + frontmatter scope 77c1adccaf (GATE748 after L563) | SM | CLOSED: w13 10:12:20Z, w14 10:15:27Z APPROVE; verify L563 (chain to 5fd96bd976) and GATE748's land |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2 07:37:38Z) |
-| L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004; OPEN until TM's count; red if > 1 lap |
+| L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | OPEN > 1 lap (RED by the age rule): TM dark since 11-09, TM card tip still cron v15; aio [ask] 10:25:11Z asks SM to PARK it (aio's a19); follow SM's answer, mirror it here |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
