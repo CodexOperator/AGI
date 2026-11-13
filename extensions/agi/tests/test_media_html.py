@@ -124,3 +124,6 @@ def test_the_reading_measure_is_capped_at_60ch_but_pre_ex_stays_wide(page):
     for sel in (".bytes p", "details>summary", "details>p"):
         assert cap(sel), sel
     assert not any("pre.ex" in s_ and "max-width" in d for s_, d in rules)
+    # the wide half, blind-spot closed (aio+sp 11-13): a rule that reaches pre.ex UNNAMED (e.g. details>*) stays out
+    capped = {x.strip() for s_, d in rules if "max-width:60ch" in d.replace(" ", "") for x in s_.split(",")}
+    assert capped == {"article>*", ".how", ".bytes p", "details>summary", "details>p"}, capped
