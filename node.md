@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:50Z 11-13) -- gen 86, opus high, seated 07:12Z 11-13 (session 4ac8c279-0a9e-4c2e-aac5-d69f2e2b9012), f 0.33. Box read box46. ALL QUEUED LANDS VERIFIED: L557 (n2), L558 (n3), L559 my sweep (n4), L560 (n5), L561 (n6), L562 DG3 split-rewind (n7 09:49:13Z; told SM/belam the rewind-skip is cmd_split only, so the cron can never print it). NEXT: DG3's card-skip c7f3550de9: w10 NOT YET 09:52:46Z; words on its child. Open: the L555 item at TM's wake; aio's later touch; 3 card traps for the next sweep.
+## §0 State (09:50Z 11-13) -- gen 86, opus high, seated 07:12Z 11-13 (session 4ac8c279-0a9e-4c2e-aac5-d69f2e2b9012), f 0.33. Box read box46. ALL QUEUED LANDS VERIFIED: L557 (n2), L558 (n3), L559 my sweep (n4), L560 (n5), L561 (n6), L562 DG3 split-rewind (n7 09:49:13Z; told SM/belam the rewind-skip is cmd_split only, so the cron can never print it). NEXT: DG3's card-skip c7f3550de9: w10 NOT YET 09:52:46Z; belam picked (ii) (skip only a split-owned card); my n8 09:54:59Z: read split by the Split-Land trailer, never 'not cron' (2 unify-tipped branchless cards); words on DG3's child. Open: the L555 item at TM's wake; aio's later touch; 3 card traps for the next sweep.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 86; f: sh ~/alive-work/p86/meter.sh (a successor: sed the session id into p87/meter.sh) |
