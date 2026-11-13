@@ -1793,6 +1793,17 @@ def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], dict[str
     return [items[m] for m in sorted(items)], view, retired_gone, unread
 
 
+def _older_node_blobs(root: Path, tip: str | None) -> set[str]:
+    """Every node.md blob in a grid tip's history EXCEPT the tip's own: the contents the node held before now (one git log, no checkout)."""
+    if not tip:
+        return set()
+    r = git_try(root, "log", "--no-abbrev", "--raw", "--format=", tip, "--", NODE_ENTRY)
+    if r.returncode != 0:
+        return set()
+    blobs = [ln.split()[3] for ln in r.stdout.splitlines() if ln.startswith(":") and len(ln.split()) >= 5]   # newest first
+    return set(blobs[1:]) - set(blobs[:1])
+
+
 def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 120) -> int:
     """goal:g7.16.1.11.46.18 G1b-2 (A14 + I14 + U5): a land is a SPLIT. One grid commit per changed node of base..gated on
     its `mint_node_ref` (the builder), under GridLock, through the ONE per-version helper commit_file uses
@@ -1840,7 +1851,14 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
         read = dict(x.split() for x in res.stdout.splitlines()) if res is not None else {}   # the tips, read ONCE
         # PREPARE, every node, before any write (U5)
         prepared = []
+        rewound: list[str] = []
         for it, ref in zip(items, refs):
+            if it["node"] in _older_node_blobs(root, read.get(ref)):
+                # belam [red] 11-13: a post's stale merge carries an OLDER node over a newer grid tip (cron or land alike). Its blob is
+                # one the node's history already holds BEFORE the tip, so writing it would rewind: skipped, named, the rest still written.
+                rewound.append(f"  rewind-skip {it['mint']} {it['path']} (its blob {it['node'][:12]} is an older version in the history of "
+                               f"grid tip {read[ref][:12]}: this node not written; with crons_live true the */30 grid cron re-versions a trunk file, a doc:card-* only from its post's own turn end)")
+                continue
             lines = f"{GIT_MODE_REGULAR} blob {it['node']}\t{NODE_ENTRY}\n"
             if it["payload"]:
                 lines += f"{it['payload'][0]} blob {it['payload'][1]}\t{PAYLOAD_ENTRY}\n"
@@ -1867,6 +1885,8 @@ def cmd_split(root: Path, base: str, gated: str, write: bool, lock_wait: int = 1
                 print(f"  {u}")
             print(f"split: unread {len(unread)}; nothing written")
             return 1
+        for r in rewound:
+            print(r)
         # WRITE: the commit and ONE CAS per node; nothing else is read
         written = same = planned = 0
         for it, ref, verdict, tree, n in prepared:
