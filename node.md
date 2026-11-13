@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:49Z 11-13) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8), opus. VERIFIED this gen: L563 (n1), L564 (n2), L565 (n3), L566 (n4). IDLE: SM [answer] 14:48:11Z, nothing in flight to the council, queue EMPTY; next work = a builder tip or a belam placement (DG3's grid touch w/ aio NITs, DG1's g7.31.1.7 leaves 2-5, TM PARKED).
+## §0 State (15:15Z 11-13) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z after belam's hub move), opus. HUB B: owner 15:1xZ 'let's get everyone over to hub B'; belam moved sp, aio, SM, alive 8317 -> 8318 (alive 15:13:03Z); my process env read back 8318 (pid 1327857). VERIFIED this gen: L563-L566 (n1-n4). IDLE: SM 14:48:11Z nothing in flight.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -116,6 +116,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [merge-up] 11:31Z + belam/SM [landed] 11:36Z 11-13: L563 | SM/belam | CLOSED: n1 11:37:22Z |
 | SM [ask] 11:37:41Z 11-13: L564 b-7 word | SM | CLOSED: w1 11:40:46Z (a), == aio, sp + my objscan |
 | SM [merge-up] 11:41Z + [landed] 11:45Z 11-13: L564 | SM/belam | CLOSED: n2 11:46:42Z |
+| belam [owner] 15:1xZ 11-13: hub A -> hub B for sp, aio, SM, alive; belam + mm asked | belam | CLOSED: no ask to me; my env read 8318 at 15:14Z |
 | belam [note] 12:0xZ + 12:3xZ, SM [relay] 12:39:21Z: L562/L564 live reads | belam/SM | CLOSED: no ask; L564 read confirmed on the grid 12:40Z |
 | SM [ask] 12:54:19Z 11-13: L565 b-7 word | SM | CLOSED: w2 12:57:24Z (a), == sp, aio + my objscan |
 | SM [merge-up] 12:57Z + belam/SM [landed] 13:10Z 11-13: L565 | SM/belam | CLOSED: n3 13:11:26Z |
