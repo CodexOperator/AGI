@@ -92,7 +92,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | CLAUDE.md: the rotation's trap sweep (gen 85's 8 + gen 86's 1) | standing | PLACED: r2 ffdd75a714, 3/3 (sp 07:57:56Z, aio 07:58:15Z); GATE740 queued on memory PSI; OPEN until it lands |
 | aio LATER TOUCH 07:58:15Z: agi-review :122's 'every place the page carries it' also names link rel=stylesheet, @import, a script setting maxWidth (or lists them NOT covered) | aio | OPEN: next sweep's first clause, never a re-cut of r2 |
 | SM [pointer] 07:38:57Z + 07:43:13Z 11-13: words on DR width 8f7204c633, then child 40a74684e8 | SM | CLOSED: w3 NOT YET, w4 APPROVE; L558 VERIFIED (n3) |
-| SM [pointer] 08:14:01Z 11-13: words on DR channels 1516f073cc | SM | CLOSED: w5 08:15:21Z APPROVE + NIT + NOT-COVERED class; c1 08:15:53Z; verify its land |
+| SM [pointer] 08:14:01Z 11-13: words on DR channels 1516f073cc | SM | CLOSED: w5 08:15:21Z APPROVE + NIT + NOT-COVERED class; c1 08:15:53Z; w6 08:19:11Z 3/3 VIEW: one later touch, then stop the string rounds; verify its land |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2 07:37:38Z) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004; OPEN until TM's count; red if > 1 lap |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
