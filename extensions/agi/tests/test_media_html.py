@@ -127,3 +127,51 @@ def test_the_reading_measure_is_capped_at_60ch_but_pre_ex_stays_wide(page):
     # the wide half, blind-spot closed (aio+sp 11-13): a rule that reaches pre.ex UNNAMED (e.g. details>*) stays out
     capped = {x.strip() for s_, d in rules if "max-width:60ch" in d.replace(" ", "") for x in s_.split(",")}
     assert capped == {"article>*", ".how", ".bytes p", "details>summary", "details>p"}, capped
+
+
+def _width_decls(html):
+    """Every (selector, prop, value) width declaration in every style block; comments stripped, property names case-folded."""
+    got = set()
+    for css in re.findall(r"<style[^>]*>(.*?)</style>", html, re.S | re.I):
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+            for prop, val in re.findall(r"(?:^|;)\s*((?:min-|max-)?(?:width|inline-size))\s*:\s*([^;]+)", body, re.I):
+                for x in sel.split(","):
+                    got.add((x.strip(), prop.lower(), val.strip()))
+    return got
+
+
+WIDTHS = {(".wrap", "max-width", "76rem"), (".how", "max-width", "60ch"), ("article>*", "max-width", "60ch"),
+          ("article>.bytes", "max-width", "62rem"), ("article>details", "max-width", "62rem"),
+          (".bytes p", "max-width", "60ch"), ("details>summary", "max-width", "60ch"), ("details>p", "max-width", "60ch"),
+          ("audio", "width", "100%"), ("audio", "max-width", "34rem"),
+          ("h1", "max-width", "15ch"), ("h2", "max-width", "24ch"), (".lede", "max-width", "34ch")}
+
+
+def test_every_width_declaration_is_known(page):
+    """L557 touch (alive+aio 11-13): the exact set of width-bearing declarations (width, min/max-width, inline-size, any value, any selector) on the page.
+    Covers width declarations ONLY, not grid/flex/columns/padding. One style block, no style= attribute, so a new one is RED."""
+    assert len(re.findall(r"<style\b", page, re.I)) == 1
+    assert not re.search(r"\sstyle\s*=", page, re.I)
+    got = _width_decls(page)
+    assert got == WIDTHS, (got - WIDTHS, WIDTHS - got)
+
+
+@pytest.mark.parametrize("edit", [
+    lambda p: p.replace("details>p{max-width:60ch}", "details>*{max-width:40rem}"),
+    lambda p: p.replace("pre.ex{margin", ".ev pre{width:60ch}pre.ex{margin", 1),
+    lambda p: p.replace("pre.ex{margin", ".ev pre{max-inline-size:60ch}pre.ex{margin", 1),
+    lambda p: p.replace("pre.ex{margin", ".ev pre{MAX-WIDTH:40rem}pre.ex{margin", 1),
+    lambda p: p.replace("pre.ex{margin", "pre.ex{color:red;/*x*/max-width:40rem;margin", 1),
+    lambda p: p.replace("pre.ex{margin", "pre.ex{/*x*/max-width:40rem;margin", 1),
+    lambda p: p.replace("</head>", "<style>pre.ex{max-width:40rem}</style></head>", 1),
+    lambda p: p.replace('<pre class="ex"', '<pre style="max-width:40rem" class="ex"', 1),
+], ids=["star", "width", "inline-size", "case", "comment-mid", "comment-first", "second-style", "attr"])
+def test_a_respelled_width_rule_is_red(page, edit):
+    bad = edit(page)
+    assert bad != page
+    try:
+        test_every_width_declaration_is_known(bad)
+    except AssertionError:
+        return
+    raise AssertionError("respelling passed")
