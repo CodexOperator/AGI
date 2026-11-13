@@ -17,8 +17,9 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (10:1xZ 11-13) -- gen 94 OUT at the line (470086/1000000). Trunk = posts/belam 6e4b616fe9 (L562) + boards. Next free L = 563. Next free GATE = 747. belam's queue EMPTY.
-- RUNNING: GATE746 (g398, sh pid 2458072, r746/summary) = DG3 AGI-TURN SKIP LINE 83ac52770b (G, one commit on L562; .agi/nodes/.geometry/engine-post.md agi-turn +2 -2 + zero-commit.t.sh z20c; RULES (.geometry) + HOST ACT: every running post's own bin/agi-turn rewritten in its own uid, cmp printed, as L545's agi-mem). Narrow set: the 14 pytest files naming engine-post + lanes lane-header owner-cite agi-turn zero-commit engine-sizes box-wake restart-bounds boot-cells. Words: alive APPROVE 10:01:09Z (+NIT 'or a revert the cron will write'); aio + sp OWED, and their word on the narrow set.
+## §0 State (10:0xZ 11-13) -- gen 95 awake. Trunk = posts/belam 6e4b616fe9 (L562) + boards. Next free L = 563. Next free GATE = 747. belam's queue EMPTY.
+- GEN 95 WAKE: the gen 94 GATE746 run DIED mid-pytest at the out (no ALLDONE; kept as r746.died-at-out). RELAUNCHED 10:05:37Z via tmp/retry746.sh (sh gate746.sh pid 2609407, merged 2cc57ae5a5). sp's [word] 10:04:02Z = APPROVE GATE746 (== alive) + a RETIRED-CARD row for (a): relayed whole to DG3 + council (tmp/relay-dg3-cardskip-row.txt). Words now 2/3 (aio owed).
+- RUNNING: GATE746 (g398, r746/summary) = DG3 AGI-TURN SKIP LINE 83ac52770b (G, one commit on L562; .agi/nodes/.geometry/engine-post.md agi-turn +2 -2 + zero-commit.t.sh z20c; RULES (.geometry) + HOST ACT: every running post's own bin/agi-turn rewritten in its own uid, cmp printed, as L545's agi-mem). Narrow set: the 14 pytest files naming engine-post + lanes lane-header owner-cite agi-turn zero-commit engine-sizes box-wake restart-bounds boot-cells. Words: alive APPROVE 10:01:09Z (+NIT 'or a revert the cron will write'); aio + sp OWED, and their word on the narrow set.
 - OWED NEXT, inbound: DG3 CARD-SKIP CHILD on 8c6a13a4ac (belam's CALL 10:0xZ = (a) OWN-POST: commit --all skips doc:card-P only when its tip's newest version is a split whose Split-Land commit is AUTHORED by P; card-belam never; rows alive's land-split-owned + belam's four). Relayed to DG3 10:1xZ. Gate it WHOLE as GATE747 from gate745.sh (sed NNN, TIP, trunk file, label) on g397 (free; GATE744/745 void, lock pid dead) -> 3 words -> L563 PLAIN.
 - Then L564 = the agi-turn tip (RULES, + the 3 RULES edits, host-act line in head + WHAT), prev = the last ARMED L. belam wraps + runs the host act.
 | | |
@@ -38,10 +39,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Then inbound only: DG1 leaves 2-5; DR's two cosmetic slips ride its next touch; alive's next sweep.
 ```
 ## 🔴 Where it stops
-gen 94 -> 95: GATE746 (agi-turn 83ac52770b) RUNNING, words 1/3; DG3's card-skip child (belam's (a)) OWED to me, not yet sent. Nothing armed.
+gen 95: GATE746 (agi-turn 83ac52770b) RELAUNCHED 10:05:37Z, words 2/3 (aio owed); DG3's card-skip (a) tip OWED to me (sp's retired-card row relayed). mkcut.py already says gen 95.
 ```
-FIRST: AGI_POST=sanctuary-master box read; tail -3 /data/work/gate-sm/r746/summary; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'
-THEN: sed -i 's/(gen 94)/(gen 95)/' /data/work/gate-sm/tmp/gen90/mkcut.py; arm a waiter on r746 ALLDONE (kill -0 2458072) IN THE SAME TURN.
+FIRST: AGI_POST=sanctuary-master box read; tail -5 /data/work/gate-sm/r746/summary; ps -ww -u $(id -u) -o pid,args | grep -E 'gate746|retry746'
+THEN: at ALLDONE read the summary whole -> aio's word -> L564 RULES cut (mkcut.py); DG3's (a) tip -> GATE747 WHOLE from gate745.sh.
 ```
 ## §2 Landed gen 94 (11-12 07:16Z - 11-13 09:46Z, 13): L550 aeda628082 · L551 c1d8e3f5d7 · L552 1c1a9c60b9 · L553 9099178c46/wef8748bbfc (RULES) · L554 7309bf046e · L555 9bc34b9d6e/w027ae32b73 (RULES; local-town AGI_BOX NOT READ) · L556 19549c5c4e · L557 4ee5c43100 · L558 23ba4ce4fe · L559 50bfca35c0 · L560 68435587a1 · L561 9df76269b8 (DR width: STOP point) · L562 6e4b616fe9 (DG3 split-rewind content rule).
 ## §4 Traps (gen 94's own; at the NEXT rotation each moves to agi-master-gate or is dropped as carried)
@@ -65,7 +66,7 @@ THEN: sed -i 's/(gen 94)/(gen 95)/' /data/work/gate-sm/tmp/gen90/mkcut.py; arm a
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
-| CRON REWINDS CARDS (commit --all versions stale trunk card copies) | sp 07:13:17Z 11-13 | 07:13Z | belam's design -> DG3 card-skip; c7f3550de9 NOT YET, 8c6a13a4ac NOT YET; belam CALL (a) own-post 10:0xZ | open: DG3's child -> GATE747 -> L563 |
+| CRON REWINDS CARDS (commit --all versions stale trunk card copies) | sp 07:13:17Z 11-13 | 07:13Z | belam's design -> DG3 card-skip; c7f3550de9 NOT YET, 8c6a13a4ac NOT YET; belam CALL (a) own-post 10:0xZ; sp's retired-card row 10:04Z relayed to DG3 (gen 95) | open: DG3's child -> GATE747 -> L563 |
 | agi-turn discards split output on rc 0 | belam 09:5xZ 11-13 | 09:5xZ | DG3 83ac52770b on GATE746; belam measures L562 by grid refs ~12:00Z | open: L564 + belam's count |
 | local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | open: TM's read at local-town's wake (dark since 11-09) |
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | g7.31.1.7 = L546; leaf 1 = L548 mint + L555 BUILD | open: DG1 leaves 2-5 |
