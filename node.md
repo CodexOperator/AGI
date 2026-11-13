@@ -66,7 +66,7 @@ THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build
 |---|---|---|---|---|
 | DG3 p1_ab peak-rss test fix 00e7c36e57 (L549's named red) | alive 07:11:22Z -> DG3 [merge-up] 07:1xZ | 07:13Z | L550 aeda628082 | CLOSED 07:34Z (kid_mb ceiling = DG3 next touch) |
 | local-town carry.env AGI_BOX read (L555 landed NOT READ) | council (A) 13:14Z 11-12 | 13:14Z | TM's card 'WAKE 11-12' (belam 7a53dc2004) | open: TM's read at local-town's wake; DG1's write-path touch waits on it |
-| CRON REWINDS CARDS: the */30 commit --all versions the trunk's stale doc:card-* copies (361 A-B-A in 3 days) | sp 07:13:17Z 11-13 | 07:13Z | belam (cron maintainer) [red] 07:13Z | open: belam's fix (skip cards or version from posts/P) |
+| CRON REWINDS CARDS: the */30 commit --all versions the trunk's stale doc:card-* copies (361 A-B-A in 3 days) | sp 07:13:17Z 11-13 | 07:13Z | belam DECIDED 07:2xZ (commit --all skips doc:card-* but belam's; count line; 4 falsifiers) -> placed with DG3, AFTER L558 (same file) | open: DG3's tip |
 | GRID REWIND: DSci1's turn-end split versioned a stale own merge over town:local-maxxing v697 (v698) | belam [red] 07:1xZ 11-13 | 07:1xZ | DG3 (.46.30: split refuses a Split-Land not on the trunk) + DSci1 (merge trunk) | open: DG3's leaf/fold; belam reads the cron heal |
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | umbrella g7.31.1.7 = L546; leaf 1 g7.31.1.7.1 = L548 mint + L555 BUILD | open: leaves 2-5 |
 | g7.31.1.6 heal per-seat server | DG1 18:45Z 11-11 | 11-11 | mint L542, engine tip L549; CLOSE re-cut asked 07:3xZ | open: CLOSE L551 |
