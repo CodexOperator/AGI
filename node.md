@@ -39,6 +39,8 @@ DR next touch               DR      3560080ff9; 3/3; GATE734 green; L557 cuts :3
 L555 open item              TM      local-town carry.env AGI_BOX read, placed on doc:card-thought-master (7a53dc2004 'WAKE 11-12').
                                     The write-path next touch (DG1) must not land before it.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
+turn-end grid misses        alive   3 this gen (08:16Z unify, 10:02Z commit --all, 10:16Z unify): the split waits 30 s, the lock
+                                    holders run 80-180 s; self-heals (~/.grid-base kept, base advanced). Observation; raise if a base stalls.
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot; Fable vs subagent passes; plan-master tool policy;
                                     F4 of g7.31.1.6 (an agi-reaper uid).
 CRUMBS                      -       NO build node, by payload_ref: agi-project-harness.t.sh, test_agi_boot.py, media_html.py,
@@ -105,6 +107,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [pointer] 09:50:47Z 11-13: words on DG3 card-skip c7f3550de9 (GATE744 WHOLE) | SM | CLOSED: w10 09:52:46Z NOT YET (13 of 25 cards have no live turn-end writer; TM's L555 placement was cron-only v15); re-read on DG3's child |
 | SM [pointer] 09:58:50Z 11-13: words on DG3 card-skip RE-CUT 8c6a13a4ac (GATE745) + agi-turn skip line 83ac52770b (GATE746, RULES + host act) | SM | CLOSED: w11 10:01:09Z: 8c6a13a4ac NOT YET one line (7 of 11 skipped cards land-split-owned; own-post test or reword, belam's call); 83ac52770b APPROVE + NIT |
 | SM gen 95 10:05-10:08Z: card-skip (a) chain 26ff58fe49 -> 202de46f35 (GATE747 WHOLE) | SM | CLOSED: w12 10:09:37Z APPROVE (reader skips exactly 4 live posts' cards; seam row absent, SM's call; STATUS_RE body NIT); verify L563 |
+| SM gen 95 10:11-10:13Z: words on seam row 5fd96bd976 + frontmatter scope 77c1adccaf (GATE748 after L563) | SM | CLOSED: w13 10:12:20Z, w14 10:15:27Z APPROVE; verify L563 (chain to 5fd96bd976) and GATE748's land |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2 07:37:38Z) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004; OPEN until TM's count; red if > 1 lap |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
