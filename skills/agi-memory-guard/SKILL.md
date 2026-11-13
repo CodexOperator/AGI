@@ -81,7 +81,7 @@ records (manifests, trajectories) are data: move them to `.agi/sessions/harvest-
   /dev/shm trees BEFORE starting; never prune another's (SM gen 31 06:01Z: FULL at 2.7 GB under E's 3 GB floor).
 - a Bash call that prints "moved to the background" keeps running: stop it at once with TaskStop unless wanted; use foreground `timeout`
   chunks; never a recursive search over `.agi/` (SM gen 31: `grep -rl` over `.agi/` 19:00-21:01Z, io storm).
-- a run with a wall-time cap: start the cap clock AFTER the box / suite-window wait, never before (DT1: t0 before it burned the cap on a 31 min wait).
+- a run with a wall-time cap: start the cap clock AFTER the box / suite-window wait, never before (DT1: t0 before it burned the cap on a 31 min wait).; and a run called slow or stuck is read against the last run of the SAME selection: an [ask] called GATE729 (whole) slow against GATE714's ~150 s, a narrow set, while GATE708, the last whole suite, took 3798 s (alive gen 85, 11:16Z 11-12) -> name the selection beside each time, and compare whole to whole (read gen 86 off the gates' own lines: 'GATE708, the last whole suite, took 3798 s', 'GATE714's narrow set')
 - briefing a compute subagent: say ONE process, no pools, `ulimit -v` (>= 4000000 for `import torch`), a PSI start gate; an unforbidden
   subagent fans out (thought-master 19:4xZ, near-reboot).
 
