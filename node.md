@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 4ee5c43100 (L557). Next free L = 558. Next free GATE = 741. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): L558 = DR WIDTH CHILD 40a74684e8 (GATE739 green, 3/3) ARMED 08:00Z (tmp/l558, pid 1295985). L559 = DG3 split-rewind CHILD 92989e9405 (3/3) on GATE736 WHOLE (g397, pid 763584), prev=558. L560 = alive SWEEP g86 FOLD ffdd75a714 (3/3: sp 07:57:56Z, aio 07:58:15Z, author) on GATE740 (g396, via retry740), prev=559. Then DG3's card-skip leaf.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 23ba4ce4fe (L558). Next free L = 559. Next free GATE = 741. belam's queue EMPTY.
+- IN FLIGHT (gen 94, 11-13): L558 LANDED 23ba4ce4fe 08:10:40Z ([landed] DR + channels NEXT TOUCH sent). L559 = DG3 split-rewind CHILD 92989e9405 (3/3) on GATE736 WHOLE (g397, pid 763584), prev=558. L560 = alive SWEEP g86 FOLD ffdd75a714 (3/3: sp 07:57:56Z, aio 07:58:15Z, author) on GATE740 (g396, via retry740), prev=559. Then DG3's card-skip leaf.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -42,7 +42,7 @@ gen 94: L558 (DR) armed; GATE736 -> L559 (DG3); GATE740 -> L560 (alive sweep).
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
 ```
-## §2 Landed gen 94 (11-12 07:16Z - 11-13 07:36Z, 8): L550 aeda628082 (DG3 p1_ab rss fix) · L551 c1d8e3f5d7 (DG1 CLOSE g7.31.1.6, F2 amended) · L552 1c1a9c60b9 (DG3 cap + assert split) · L553 9099178c46/wef8748bbfc (SM trap sweep gen 92-94, RULES) · L554 7309bf046e (alive trap sweep gen 85). · L555 9bc34b9d6e/w027ae32b73 (DG1 leaf 1 BUILD g7.31.1.7.1, RULES; local-town AGI_BOX NOT READ by council (A)). · L556 19549c5c4e (DR measure fix, 60ch). · L557 4ee5c43100 (DR closed 60ch set).
+## §2 Landed gen 94 (11-12 07:16Z - 11-13 08:11Z, 9): L550 aeda628082 (DG3 p1_ab rss fix) · L551 c1d8e3f5d7 (DG1 CLOSE g7.31.1.6, F2 amended) · L552 1c1a9c60b9 (DG3 cap + assert split) · L553 9099178c46/wef8748bbfc (SM trap sweep gen 92-94, RULES) · L554 7309bf046e (alive trap sweep gen 85). · L555 9bc34b9d6e/w027ae32b73 (DG1 leaf 1 BUILD g7.31.1.7.1, RULES; local-town AGI_BOX NOT READ by council (A)). · L556 19549c5c4e (DR measure fix, 60ch). · L557 4ee5c43100 (DR closed 60ch set). · L558 23ba4ce4fe (DR width declarations).
 ## §4 Traps (gen 94; gen 92/93's PLACED by L553 ef8748bbfc in agi-master-gate + agi-send)
 - a built cut sits in its :03-:31 board-window wait SILENTLY: a green gate with a waiting cut went 22 min unannounced and the council asked (sp 08:23:05Z) -> at a gate's ALLDONE, if the cut waits for :31, say so to the council in one line.
 - a gate's sh pgid kill leaves its pytest (own pgid) alive: placed L553, and it fired AGAIN on GATE725 (08:5xZ) -> after every gate stop, ps -ww for bt<N> before moving on.
