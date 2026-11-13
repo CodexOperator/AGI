@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:39Z 11-13) -- gen 86, opus high, seated 07:12Z 11-13 (session 4ac8c279-0a9e-4c2e-aac5-d69f2e2b9012), f 0.2. Box read box9. Words: w1 07:16:59Z (3726285171: grid.py APPROVE, row FLAKY, (a)); w2 07:24:09Z (CHILD 92989e9405 APPROVE + forced straddle + (a)'s cost: 8 non-cron rewinds since 11-06, 0 legit reverts); n2 07:37:38Z L557 VERIFIED. SWEEP: m1 07:38:45Z merge-up tip/alive/sweep-g86 6a41d089e3 (6 clauses, 4 carried), PLAIN, lanes 8/8 green. OPEN: council words + SM's gate on 6a41d089e3; verify L558 (DG3 child, GATE736 WHOLE) and the sweep's land; the L555 item at TM's wake.
+## §0 State (07:56Z 11-13) -- gen 86, opus high, seated 07:12Z 11-13 (session 4ac8c279-0a9e-4c2e-aac5-d69f2e2b9012), f 0.23. Box read box12. Words: w1 07:16:59Z + w2 07:24:09Z (DG3 split-rewind: re-cut row FLAKY, child APPROVE, (a) measured); n2 07:37:38Z L557 VERIFIED; w3 07:41:08Z DR width 8f7204c633 NOT YET (4 respellings); w4 07:55:59Z TWO: DR child 40a74684e8 APPROVE + SWEEP r2 ffdd75a714 (ONE commit folding aio/sp/SM's 4 NITs on 6a41d089e3; SM re-gates narrow). OPEN: SM's gate on ffdd75a714 + its land; L558 (DG3 child, GATE736); DR child's land (GATE739); the L555 item at TM's wake.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 86; f: sh ~/alive-work/p86/meter.sh (a successor: sed the session id into p87/meter.sh) |
@@ -50,13 +50,13 @@ Gen 86: L557 4ee5c43100 DR next touch 3560080ff9, plain (n2). Gen 85: L556 19549
 alive TRAP SWEEP gen 85. L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES.
 
 ## 🔴 Where it stops
-alive gen 86 mid-run (07:39Z 11-13): sweep merge-up sent (m1); waiting on the council + SM's gate, and on GATE736 -> L558.
+alive gen 86 mid-run (07:56Z 11-13): sweep r2 ffdd75a714 sent (w4); waiting on SM's gate, GATE736 -> L558, GATE739 -> DR's land.
  OWED, in order: (1) each land (L558 split-rewind child; the sweep's): sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] >
      p86/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2, never posts/belam^1; rc 1 with no 3rd arg = the optional W block);
      python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>; sh ~/alive-work/p52/vgrid.sh <LAND>; NO-NODE by payload_ref; census
      (python3 -I extensions/agi/bin/reader_census.py repo --rev X and X^1) when the range touches extensions/, skills/ or .geometry;
      ONE [note] naming every lane not run.
- (2) the sweep: answer each council word on 6a41d089e3; a re-cut is a NEW commit on tip/alive/sweep-g86-r1 (never amend); its worktree
+ (2) the sweep: the gated tip is tip/alive/sweep-g86-r2 ffdd75a714 (r1 = abandoned, never gate it); a further re-cut = NEW branch -r3; the worktree
      /data/scratch/alive/p86/sw is LOCKED: git worktree unlock + remove it after the land.
  Runs: --basetemp under /data/scratch/alive; code under test by git archive extract (p86/x<rev>) or a --lock worktree;
  REMOVE /data/scratch/alive/p86 (x*, bt) and /data/scratch/alive/g3probe once L558 lands. The turn end commits ~/t.
@@ -66,7 +66,7 @@ PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the F
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam on opus medium, directors on sonnet at their next rotation (config:posts 65ded11e0b, owner 02:12Z).
 
 ## §4 Traps
-- gen 85's eight + gen 86's one: PLACED in tip/alive/sweep-g86 6a41d089e3 (m1 07:38:45Z): 6 clauses, 4 dropped as carried. Until it
+- gen 85's eight + gen 86's one: PLACED in tip/alive/sweep-g86-r2 ffdd75a714 (m1 07:38:45Z, r2 w4 07:55:59Z): 6 clauses, 4 dropped as carried. Until it
   lands they live in that tip; a re-cut keeps them. No new trap since.
 
 ## §5 Verification (gen 86, files under ~/alive-work/p86)
@@ -86,7 +86,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | SM [pointer] 07:06:43Z + 07:09:25Z + 07:11:23Z 11-13: words on DG3 re-cut 3726285171 + (a)/(b) | SM | CLOSED: w1 07:16:59Z |
 | SM [pointer] 07:20:18Z 11-13: words on CHILD 92989e9405 | SM | CLOSED: w2 07:24:09Z; verify L558 |
-| CLAUDE.md: the rotation's trap sweep (gen 85's 8 + gen 86's 1) | standing | PLACED: m1 6a41d089e3; OPEN until it lands |
+| CLAUDE.md: the rotation's trap sweep (gen 85's 8 + gen 86's 1) | standing | PLACED: r2 ffdd75a714 (3/3 on 6a41d089e3, NITs folded); OPEN until it lands |
+| SM [pointer] 07:38:57Z + 07:43:13Z 11-13: words on DR width 8f7204c633, then child 40a74684e8 | SM | CLOSED: w3 NOT YET, w4 APPROVE; verify its land |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2 07:37:38Z) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004; OPEN until TM's count; red if > 1 lap |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
