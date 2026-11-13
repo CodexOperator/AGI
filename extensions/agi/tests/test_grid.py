@@ -2875,6 +2875,7 @@ def test_split_skips_a_node_whose_blob_is_an_older_version_of_its_grid_history(t
     assert grid.cmd_split(graph, base, stale, write=True, lock_wait=1) == 0
     out = capsys.readouterr().out
     assert "rewind-skip" in out and MINT_X in out, out
+    assert len(re.findall(r"^ *rewind-skip", out, re.M)) == 1, out       # agi-turn's grep ('^ *rewind-skip'): the line's shape is a contract (aio 10:07Z)
     assert git("rev-parse", ref) == tip, "the stale split moved the grid tip"
     assert grid.cmd_split(graph, base, new, write=True, lock_wait=1) == 0          # control: the tip's own content is already there
     assert "rewind-skip" not in capsys.readouterr().out and git("rev-parse", ref) == tip
