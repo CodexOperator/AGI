@@ -93,7 +93,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 07:14Z 11-13: L536-L564 checked (trunk e32f378635); DG3 3726285171 gating (GATE735). A25 PARKED on TM's wake (SM 10:25:47Z).
+gen 72 07:14Z 11-13: L536-L564 checked (trunk e32f378635); 12:16Z read: no cron card version since 12:00 (last on my card: cron v656 11:00, pre-L564); whether the 12:00 cron ran at all NOT READ (no cron version of any node since 11:55): belam reads its log line DG3 3726285171 gating (GATE735). A25 PARKED on TM's wake (SM 10:25:47Z).
 NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
   (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
