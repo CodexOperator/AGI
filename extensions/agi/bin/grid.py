@@ -100,6 +100,12 @@ LEGACY_NS: list[str] = []
 # engine tree stays where it always was — the node's own `payload_ref` field —
 # rather than being duplicated in the ref layout.
 NODE_ENTRY = "node.md"
+#: `commit --all` (the cron) skips doc:card-P ONLY when its grid tip's NEWEST version is a split whose `Split-Land:` commit is AUTHORED by P
+#: itself, i.e. P's own turn end versioned it (belam [decision] 11-13 (a), alive 10:01Z): the card's live text is posts/P. Every other card is
+#: versioned as today: a cron or `unify` tip, a split by a LAND (a master's) or by belam's wrap, a post with no branch (six are dark). Ownership
+#: is the newest version only. A retired card (deprecated) is never skipped. The trunk post's card lives on the trunk, so the cron always versions it. goal:g7.16.1.11.46.30.
+CARD_PREFIX = "doc:card-"
+CARD_TRUNK_ID = "doc:card-belam"
 PAYLOAD_ENTRY = "payload"
 # The graph repo's staged payload checkout (`grid.py checkout`). Gitignored:
 # the committed home of these bytes is the node's grid ref, and this directory
@@ -1647,6 +1653,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         payloads = 0
         payload_missing = 0
         payload_retired = 0
+        cards_skipped = 0
         for p in paths:
             if not p.exists():
                 print(f"skip (missing): {p}", file=sys.stderr)
@@ -1666,6 +1673,11 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 except MissingMintIdError as exc:
                     print(f"ERROR: {exc}", file=sys.stderr)
                     errors += 1
+                    continue
+                if (do_all and node_id.startswith(CARD_PREFIX) and node_id != CARD_TRUNK_ID
+                        and not _is_deprecated(root, p)
+                        and _split_land_author(root, ref_tip(root, ref)) == node_id[len(CARD_PREFIX):]):
+                    cards_skipped += 1                # a split owns this card's tip: versioned by its post's turn end (posts/P)
                     continue
                 msg_prefix = prefix
                 trailer = build_parent_mint_trailer(p, id_index, resolve)
@@ -1691,6 +1703,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             if v:
                 written += 1
                 print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
+        if cards_skipped:
+            print(f"grid: cards skipped {cards_skipped} (versioned by their posts' turn ends)")
         print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
               f"{payload_retired} retired with their node, "
@@ -1791,6 +1805,35 @@ def _split_plan(root: Path, base: str, gated: str) -> tuple[list[dict], dict[str
             if mi and mi.group(1) not in gated_mints:
                 unread.append(f"unread {q} (deleted with no gated file of its mint {mi.group(1)}: retire, never delete)")
     return [items[m] for m in sorted(items)], view, retired_gone, unread
+
+
+def _tip_split_land(root: Path, tip: str | None) -> str | None:
+    """The `Split-Land:` sha the grid tip's commit message carries (a split version: a land's, or a post's turn end), or None (a cron, unify
+    or hand version has none)."""
+    if not tip:
+        return None
+    r = git_try(root, "log", "-1", "--format=%B", tip)
+    m = re.search(r"^Split-Land: ([0-9a-f]{40,64})$", r.stdout, re.M) if r.returncode == 0 else None
+    return m.group(1) if m else None
+
+
+def _is_deprecated(root: Path, path: Path) -> bool:
+    """A retired node (under nodes/deprecated/, or `status: deprecated`) is never skipped by the card rule: its post is dead, so only the cron
+    can version the retirement (self-perpetuating 10:04Z)."""
+    if is_retired_node_file(root, path):
+        return True
+    m = STATUS_RE.search(path.read_text(encoding="utf-8"))
+    return bool(m and m.group(1) == "deprecated")
+
+
+def _split_land_author(root: Path, tip: str | None) -> str | None:
+    """The author name of the commit a grid tip's `Split-Land:` names (a post's own commits are authored by the post), or None: no trailer, or
+    the land is not readable here."""
+    land = _tip_split_land(root, tip)
+    if not land:
+        return None
+    r = git_try(root, "log", "-1", "--format=%an", land)
+    return r.stdout.strip() or None if r.returncode == 0 else None
 
 
 def _older_node_blobs(root: Path, tip: str | None) -> set[str]:
