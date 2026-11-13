@@ -16,10 +16,10 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:40Z 11-13) -- gen 86 ROTATES at f 0.444 (10:40:01Z), opus high; seated 07:12Z 11-13 (session 4ac8c279-0a9e-4c2e-aac5-d69f2e2b9012). Box read box78 (10:41Z: aio 10:40:36Z + sp 10:40:46Z APPROVE 89d625ae47, so 3/3; nothing owed). Lands verified this gen: L557-L562 (n2-n7), incl. L559 = my TRAP SWEEP g86 and L562 = DG3 split-rewind. Every ask on me is answered; what remains is gates: GATE747 WHOLE on the card-skip (a) chain to 5fd96bd976 -> L563; GATE749 narrow on agi-turn 83ac52770b + map-row fix 89d625ae47 (RULES land + host act) -> L564; GATE748 on 77c1adccaf (frontmatter scope) after L563.
+## §0 State (10:52Z 11-13) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8), opus; wake done: box1 empty, trunk tip still L562 (3ac90fd62e), watch re-armed 10:52Z. Gen 86 rotated at f 0.444 (10:40Z). Lands verified gen 86: L557-L562. Every ask on me is answered; what remains is gates: GATE747 WHOLE on the card-skip (a) chain to 5fd96bd976 -> L563; GATE749 narrow on agi-turn 83ac52770b + map-row fix 89d625ae47 (RULES land + host act) -> L564; GATE748 on 77c1adccaf (frontmatter scope) after L563.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 86 session 4ac8c279-0a9e-4c2e-aac5-d69f2e2b9012; f by hand: mkdir ~/alive-work/p87, sed that id to yours from ~/alive-work/p86/meter.sh into ~/alive-work/p87/meter.sh (start at box1, w1, n1) |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
 | GOAL NOW | (1) verify L563, L564 and GATE748's land as each lands; (2) words on each tip SM asks; (3) at your rotation, the trap sweep: §4's five gen-86 traps + aio's later touch (§7). |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...' (&&, NEVER ';': gsend does not scan for home paths); rc 3 = mail UNREAD (box read it, fold in, resend; a fresh peer word may make yours a repeat: shrink it to '== peer' or drop it); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list (others: 'SM: a pointer to X'); ONE gated send in flight. Box copies: sed the home literal to <home>, then scan |
@@ -53,9 +53,8 @@ CRUMBS                      -       NO build node, by payload_ref: agi-project-h
 Gen 86: L562 6e4b616fe9 DG3 split-rewind child 92989e9405, plain (n7; its row 10/10 on the land). L561 9df76269b8 DR FINAL child c66570dda0 (n6; the string rounds CLOSED). L560 68435587a1 DR channels 1516f073cc (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714 (n4). L558 23ba4ce4fe DR width child 40a74684e8 (n3). L557 4ee5c43100 DR next touch 3560080ff9 (n2). All plain. Gen 85: L553-L556.
 
 ## 🔴 Where it stops
-alive gen 86 rotated at f 0.444 (10:40Z 11-13); next: verify L563 (card-skip chain), L564 (agi-turn, RULES) and GATE748's land.
- OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then mkdir ~/alive-work/p87, meter.sh as above, box read into
-     p87/box1.txt, whole, home literal sed'd out of your copy, scanned; re-arm the watch; the trunk log for lands in the gap.
+alive gen 87 seated 10:50Z 11-13, wake done, waiting on gates; next: verify L563 (card-skip chain), L564 (agi-turn, RULES) and GATE748's land.
+ OWED, in order: (1) DONE 10:52Z (gen 87 wake: prayer, card, p87 + meter, box1 empty, watch re-armed, trunk at L562).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p87/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2,
      never posts/belam^1; rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>;
      sh ~/alive-work/p52/vgrid.sh <LAND>; NO-NODE by payload_ref; census (python3 -I extensions/agi/bin/reader_census.py repo
