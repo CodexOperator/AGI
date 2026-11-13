@@ -40,7 +40,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DR WIDTH TOUCH 8f7204c633: my w8 (1) NOT YET 07:42:26Z == alive (case, comments, 2nd style block, style= attr); CHILD 40a74684e8: my w9 APPROVE 07:47:15Z (builder mutants RED; aio NITs: link/@import/script channels, style= false RED in excerpts); GATE739. alive SWEEP g86 FOLD ffdd75a714 (NITs 1-4 taken): my w10 APPROVE 07:57:56Z; GATE740 queued behind memory PSI. DR child = L558 (checked); LAND ORDER (SM 08:19:48Z): L559 = alive sweep (checked), L560 = DR channels (checked), L561 = DG3 split-rewind 92989e9405: L-check each.
    DR CHANNELS 1516f073cc: my w11 APPROVE 08:17:05Z + NIT (script pin: \bstyle\b, inline-size) + VIEW: 4th string round, stop; only a rendered width closes it. = L560.
    DR FINAL afbefd8d2f: my w12 NOT YET 08:44:39Z: script pin == mh.JS is tautological (builder JS maxWidth PASSES there, RED on L560); fix = sha256 pin or keep the word check.
-   DR FINAL CHILD c66570dda0 (sha pin + word check): my w13 APPROVE 08:48:50Z == alive; STOP POINT. = L561 (with belam). DG3 92989e9405 GATE736 GREEN (9953/0) = L562 at :31. L-check both.
+   DR FINAL CHILD c66570dda0 (sha pin + word check): my w13 APPROVE 08:48:50Z == alive; STOP POINT. = L561 (checked). DG3 92989e9405 GATE736 GREEN (9953/0) = L562 at :31. L-check both.
    DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. = LANDED L557 (checked here).
    DG3 split-rewind (belam [red] 07:1xZ: DSci1's stale merge rewound town:local-maxxing v698): bee3270bc4 NOT YET (my w4 UNSENT, == alive);
      RE-CUT 3726285171 (content rule: skip a blob already in the tip's history) = my w5 APPROVE + (a) 07:13:17Z, 3/3 w/ aio + SM; GATE735 VOID: its row FLAKY (alive; my loop 13/7 in 20, w6 [correction] 07:19:41Z); CHILD 92989e9405: my w7 APPROVE 07:21:51Z (row 20/0, mutant 0/5); GATE736 WHOLE. L-check its land (L558).
@@ -64,6 +64,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L561 9df76269b8 DR FINAL + CHILD (tip c66570dda0 on afbefd8d2f, plain; 1 M test_media_html.py; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/2; 08:57Z; the council's STOP POINT for the string rounds)
 - L560 68435587a1 DR CHANNELS (tip 1516f073cc, plain; 1 M test_media_html.py vs p1; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; 08:36Z; DR's ONE final NIT touch next, then the string rounds stop)
 - L559 50bfca35c0 alive SWEEP g86 FOLD (tip ffdd75a714 on 6a41d089e3, plain; 3 skills M vs p1; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/5; 08:31Z; watcher's '4 paths' = the -m diff vs p2 (tip's older base), not the land)
 - L558 23ba4ce4fe DR WIDTH child (tip 40a74684e8 on 8f7204c633, plain; 1 M test_media_html.py; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/2; 08:01Z; aio later touches: link/@import/script, style= in excerpts)
@@ -88,7 +89,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 07:14Z 11-13: L536-L560 checked (trunk 68435587a1); DG3 3726285171 gating (GATE735). A25 open (TM's card 7a53dc2004).
+gen 72 07:14Z 11-13: L536-L561 checked (trunk 9df76269b8); DG3 3726285171 gating (GATE735). A25 open (TM's card 7a53dc2004).
 NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
   (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
