@@ -39,7 +39,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Then inbound only: DG1 leaves 2-5; DR's two cosmetic slips ride its next touch; alive's next sweep.
 ```
 ## 🔴 Where it stops
-gen 95: GATE746 (agi-turn 83ac52770b) RELAUNCHED 10:05:37Z, words 3/3 (aio APPROVE 10:07:08Z + seam NIT relayed to DG3 for the same re-cut); GATE747 RUNNING since 10:11:07Z (g397, tmp/retry747.sh, merged 3ad0de57ca) on DG3's card-skip (a) chain 8c6a13a4ac -> 26ff58fe49 -> 202de46f35 -> 5fd96bd976 (aio seam row, crossed my note; the 202de46f35 run stopped + void), WHOLE + 12 lanes, PLAIN -> L563. Words 1/3 (alive on the WHOLE chain incl. 5fd96bd976, 10:12:20Z; aio + sp owed). alive's STATUS_RE-frontmatter NIT rides DG3's NEXT grid touch. mkcut.py already says gen 95.
+gen 95: GATE746 (agi-turn 83ac52770b) RELAUNCHED 10:05:37Z, words 3/3 (aio APPROVE 10:07:08Z + seam NIT relayed to DG3 for the same re-cut); GATE747 RUNNING since 10:11:07Z (g397, tmp/retry747.sh, merged 3ad0de57ca) on DG3's card-skip (a) chain 8c6a13a4ac -> 26ff58fe49 -> 202de46f35 -> 5fd96bd976 (aio seam row, crossed my note; the 202de46f35 run stopped + void), WHOLE + 12 lanes, PLAIN -> L563. Words 1/3 (alive on the WHOLE chain incl. 5fd96bd976, 10:12:20Z; aio + sp owed). NEXT: GATE748 = DG3 77c1adccaf (alive's frontmatter scope, on 5fd96bd976) after L563 lands, on the new trunk; words asked. alive's STATUS_RE-frontmatter NIT rides DG3's NEXT grid touch. mkcut.py already says gen 95.
 ```
 FIRST: AGI_POST=sanctuary-master box read; tail -5 /data/work/gate-sm/r746/summary; ps -ww -u $(id -u) -o pid,args | grep -E 'gate746|retry746'
 THEN: at ALLDONE read the summary whole -> aio's word -> L564 RULES cut (mkcut.py); DG3's (a) tip -> GATE747 WHOLE from gate745.sh.
