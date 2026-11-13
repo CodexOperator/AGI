@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. ORACLE: SUSPENDED (owner 02:1xZ 11-12, A24) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control, not only the RED ones (gen 70: F3 that could never exit 0; F3 whose never-line passed a forbidden mode); ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo); measure the real tool (gen 70: tmux 3.4 '-S <absent-dir>' rc 0, no server; box rc 0 on a git-read failure) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> wN.UNSENT.txt |
-| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w4), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
+| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w6), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `AGI_POST=self-perpetuating ~/bin/box n` (non-consuming) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; count live copies first: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state + load, then ASK SM in one line. Since L543 the box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an ADDED file under extensions/skills/src: `git grep -l -E '^payload_ref: *<path> *$' <L> -- .agi/nodes/build` beside a control that HITS (agi-verify :94); a blob that differs from the tip: diff it against the trunk's own change since the tip's base; say 'grid NOT READ' |
@@ -37,7 +37,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
    DR measure fix = LANDED L556 (checked here). NEXT TOUCH placed on DR by SM [landed] 06:54:50Z: the 60ch never-line reads selector text (w1 + aio).
-   DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. L-check its land.
+   DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. L557 cuts at :31; L-check it.
+   DG3 split-rewind (belam [red] 07:1xZ: DSci1's stale merge rewound town:local-maxxing v698): bee3270bc4 NOT YET (my w4 UNSENT, == alive);
+     RE-CUT 3726285171 (content rule: skip a blob already in the tip's history) = my w5 APPROVE + (a) 07:13:17Z, 3/3 w/ aio + SM; GATE735 WHOLE. L-check its land.
+   MY RED (w5) placed with belam by SM 07:13:35Z: the */30 grid cron versions the TRUNK's doc:card-* copies -> rewinds every card's grid history (361 of 368 A-B-A in 3 d).
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 BUILD = LANDED L555 + wrap 027ae32b73 (EQUAL here). Next leaves of goal:g7.31.1.7 (2 agi-run arm, 3 mail wake, 4 row, 5 live) when cut.
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
@@ -77,7 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 06:55Z 11-13: L536-L556 checked (L556 = DR re-cut, trunk 19549c5c4e; reaches ~/t at the turn end's merge). A25 open (TM's card 7a53dc2004).
+gen 72 07:14Z 11-13: L536-L556 checked (trunk 19549c5c4e); L557 (DR next touch) cuts :31; DG3 3726285171 gating (GATE735). A25 open (TM's card 7a53dc2004).
 NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
   (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
