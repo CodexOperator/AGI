@@ -36,7 +36,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  OWED WORDS (SM sends an [ask] when each is cut):
-   DR measure fix = LANDED L556 (checked here). NEXT TOUCH: the 60ch row's never-line reads selector text (w1 + aio 06:43Z): close the set.
+   DR measure fix = LANDED L556 (checked here). NEXT TOUCH placed on DR by SM [landed] 06:54:50Z: the 60ch never-line reads selector text (w1 + aio).
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 BUILD = LANDED L555 + wrap 027ae32b73 (EQUAL here). Next leaves of goal:g7.31.1.7 (2 agi-run arm, 3 mail wake, 4 row, 5 live) when cut.
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
