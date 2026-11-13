@@ -103,7 +103,7 @@ NODE_ENTRY = "node.md"
 #: `commit --all` (the cron) skips doc:card-P ONLY when its grid tip's NEWEST version is a split whose `Split-Land:` commit is AUTHORED by P
 #: itself, i.e. P's own turn end versioned it (belam [decision] 11-13 (a), alive 10:01Z): the card's live text is posts/P. Every other card is
 #: versioned as today: a cron or `unify` tip, a split by a LAND (a master's) or by belam's wrap, a post with no branch (six are dark). Ownership
-#: is the newest version only. The trunk post's card lives on the trunk, so the cron always versions it. goal:g7.16.1.11.46.30.
+#: is the newest version only. A retired card (deprecated) is never skipped. The trunk post's card lives on the trunk, so the cron always versions it. goal:g7.16.1.11.46.30.
 CARD_PREFIX = "doc:card-"
 CARD_TRUNK_ID = "doc:card-belam"
 PAYLOAD_ENTRY = "payload"
@@ -1675,6 +1675,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                     errors += 1
                     continue
                 if (do_all and node_id.startswith(CARD_PREFIX) and node_id != CARD_TRUNK_ID
+                        and not _is_deprecated(root, p)
                         and _split_land_author(root, ref_tip(root, ref)) == node_id[len(CARD_PREFIX):]):
                     cards_skipped += 1                # a split owns this card's tip: versioned by its post's turn end (posts/P)
                     continue
@@ -1814,6 +1815,15 @@ def _tip_split_land(root: Path, tip: str | None) -> str | None:
     r = git_try(root, "log", "-1", "--format=%B", tip)
     m = re.search(r"^Split-Land: ([0-9a-f]{40,64})$", r.stdout, re.M) if r.returncode == 0 else None
     return m.group(1) if m else None
+
+
+def _is_deprecated(root: Path, path: Path) -> bool:
+    """A retired node (under nodes/deprecated/, or `status: deprecated`) is never skipped by the card rule: its post is dead, so only the cron
+    can version the retirement (self-perpetuating 10:04Z)."""
+    if is_retired_node_file(root, path):
+        return True
+    m = STATUS_RE.search(path.read_text(encoding="utf-8"))
+    return bool(m and m.group(1) == "deprecated")
 
 
 def _split_land_author(root: Path, tip: str | None) -> str | None:
