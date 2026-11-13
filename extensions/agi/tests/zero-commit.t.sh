@@ -152,6 +152,13 @@ W=3;printf '#!/bin/sh\necho x>>%s/gl.log;sleep %s;echo "grid: split could not ac
 gw(){ [ -f $T/gl.log ]&&wc -l <$T/gl.log|tr -d ' '||echo 0;}
 fl(){ rm -f $T/gl.log;s0=$(date +%s%N);AGI_GRID_X=$T/glk run agi-flush >/dev/null 2>$T/ef;fr=$?;ms=$((($(date +%s%N)-s0)/1000000));}
 nz(){ printf -- '---\nid: doc:n%s\nmint_id: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee%s\ntype: doc\nparents:\n  - doc:a\n---\nnew\n' $1 $2 >$T/hm/t/.agi/nodes/doc/n$1.md;}
+# z20c (belam 09:5xZ 11-13, sp) a split that exits 0 but prints 'rewind-skip' (L562) reaches the post: ONE [grid] line naming it, rc 0, ~/.grid-base dropped (the split DID run); control: a clean rc 0 split prints none; mu20c today's agi-turn (success branch = rm -f only) prints none (RED)
+printf '#!/bin/sh\necho "  rewind-skip eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee .agi/nodes/doc/a.md (its blob is an older version)"\necho "split: 1 changed node(s); 0 written, clean"\nexit 0\n' >$T/rsk;chmod +x $T/rsk
+mk;echo "edit z20c" >>$T/hm/t/$NA;AGI_GRID_X=$T/rsk run agi-turn >/dev/null 2>$T/e21;rc20c=$?;RCS="$RCS $rc20c";gl20c=$(nl_ '^\[grid\] alive: 1 node(s) rewind-skipped');bs20c=$([ -e $T/hm/.grid-base ]&&echo yes||echo no)
+mk;echo "edit z20cc" >>$T/hm/t/$NA;run agi-turn >/dev/null 2>&1;cn20c=$(nl_ 'rewind-skipped')
+mut gr;python3 -I -c 'import sys;p=sys.argv[1];s=open(p).read();o="&&{ rm -f $s;w=";assert s.count(o)==1;i=s.index(o);j=s.index("}||{",i);open(p,"w").write(s[:i]+"&&rm -f $s"+s[j+1:])' $T/m-gr/agi-turn
+mk;echo "edit mu20c" >>$T/hm/t/$NA;AGI_GRID_X=$T/rsk BIN=$T/m-gr run agi-turn >/dev/null 2>&1;mu20c=$(nl_ 'rewind-skipped')
+ok "z20c-a-rewind-skip-on-rc-0-reaches-the-post rc $rc20c (want 0), [grid] rewind-skipped lines $gl20c (want 1), the base dropped: $bs20c (want no); control, a clean split: $cn20c (want 0); mu20c today's success branch: $mu20c (want 0: RED)" '[ $rc20c = 0 ]&&[ "$gl20c" = 1 ]&&[ $bs20c = no ]&&[ "$cn20c" = 0 ]&&[ "$mu20c" = 0 ]'
 # z20 the grid miss ALONE: agi-flush finishes inside ONE wait (one call, under 2 x W), ONE [grid] line, ~/.grid-base kept; z20b the next agi-turn with the lock free grows it and drops the base; m20 today's k=1 in the grid branch = 4 waits (RED)
 mk;echo "edit z20" >>$T/hm/t/$NA;echo "edit z20" >>$T/hm/t/README.md;fl;r20=$fr;RCS="$RCS $r20";w20=$(gw);t20=$ms;g20=$(nl_ '^\[grid\] alive: ');k20=$([ -s $T/hm/.grid-base ]&&echo yes||echo no);l20=$($G -C $T/g show posts/alive:README.md|grep -c 'edit z20')
 run agi-turn >/dev/null 2>$T/e20b;r20b=$?;RCS="$RCS $r20b";gv=$($G -C $T/g rev-parse -q --verify refs/grid/node/$MA 2>/dev/null);v20=$($G -C $T/g cat-file -p "$gv:node.md" 2>/dev/null|grep -c 'edit z20');b20=$([ -e $T/hm/.grid-base ]&&echo yes||echo no)
