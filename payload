@@ -2945,3 +2945,7 @@ def test_commit_all_skips_a_card_only_when_its_own_post_split_owns_its_tip(tmp_p
                    ("card-e", "(e) a unify tip"), ("card-l", "(l) a land-split card"), ("card-r", "(r) a retired own-post-split card"), ("g", "(f) a non-card node")):
         assert after[n] != before[n], f"{why} was not versioned"
     assert "cards skipped 1 (versioned by their posts' turn ends)" in out, out
+    # a status-less own-post-split card whose BODY says 'status: deprecated' is prose, not a retirement: still skipped (frontmatter wins)
+    assert grid._is_deprecated(graph, path("card-a")) is False
+    path("card-a").write_text(path("card-a").read_text() + "\nstatus: deprecated\n")
+    assert grid._is_deprecated(graph, path("card-a")) is False, "a body line read as the card's status"
