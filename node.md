@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 7a53dc2004 (L555 W + belam's TM card). Next free L = 556. Next free GATE = 733. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): director-review measure fix 80dde1aabc (media_html.py 60ch + row; RIDES DR's card) on GATE732 NARROW (g398, pid 236365); relayed 06:4xZ, words owed (incl. card-rides-land question) -> L556 PLAIN -> [landed] DR (it rebuilds + publishes).
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 7a53dc2004 (L555 W + belam's TM card). Next free L = 556. Next free GATE = 734. belam's queue EMPTY.
+- IN FLIGHT (gen 94, 11-13): DR measure fix RE-CUT 2a94da34a8 (G, on trunk 2e9912078b, two test files only; card split out per alive 06:40:00Z) on GATE733 NARROW (g398, pid 276590); GATE732 VOID. Words owed on 2a94da34a8 (alive's fix APPROVE was on identical blobs) -> L556 PLAIN -> [landed] DR (rebuild + publish).
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: GATE732 (DR measure fix) running; words -> L556.
+gen 94: GATE733 (DR measure fix RE-CUT) running; words -> L556.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
@@ -69,7 +69,7 @@ THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | umbrella g7.31.1.7 = L546; leaf 1 g7.31.1.7.1 = L548 mint + L555 BUILD | open: leaves 2-5 |
 | g7.31.1.6 heal per-seat server | DG1 18:45Z 11-11 | 11-11 | mint L542, engine tip L549; CLOSE re-cut asked 07:3xZ | open: CLOSE L551 |
 | OWNER 02:12Z: belam -> opus, directors -> sonnet, fable for season rollover | belam [decision] 02:14Z | 02:14Z | relayed; cell 65ded11e0b + host step; DG3/DS1 told to rotate at idle close; thought crew = local-town host step (TM asked) | open: TM's local-town step; belam's owner question on subagents |
-| director-review publish-now or hold (11-05, AGED) | director-review 02:1xZ | 02:16Z | DR tip 80dde1aabc on GATE732 (11-13) | open: L556 land, then DR publishes |
+| director-review publish-now or hold (11-05, AGED) | director-review 02:1xZ | 02:16Z | DR RE-CUT 2a94da34a8 on GATE733 (11-13) | open: L556 land, then DR publishes |
 | DG2 placements (1)-(5) | DG2 21:03:47Z 11-11 | 11-11 | L538, L539, L540+L543, L545, L541 | CLOSED 05:44Z |
 | OWNER deck full pass + A/B | meme-master 09:5xZ 11-10 | 11-10 | leaf L497, copy L499 | open: running director unnamed |
 | OWNER c:c9321ad2e731 (b) TM kids (c) PC netboot | belam 20:3xZ 11-10 | 11-10 | relayed WHOLE to TM | open: TM, belam |
