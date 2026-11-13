@@ -45,7 +45,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. = LANDED L557 (checked here).
    DG3 split-rewind (belam [red] 07:1xZ: DSci1's stale merge rewound town:local-maxxing v698): bee3270bc4 NOT YET (my w4 UNSENT, == alive);
      RE-CUT 3726285171 (content rule: skip a blob already in the tip's history) = my w5 APPROVE + (a) 07:13:17Z, 3/3 w/ aio + SM; GATE735 VOID: its row FLAKY (alive; my loop 13/7 in 20, w6 [correction] 07:19:41Z); CHILD 92989e9405: my w7 APPROVE 07:21:51Z (row 20/0, mutant 0/5); GATE736 WHOLE. L-check its land (L558).
-   MY RED (w5): belam [decision] 07:2xZ = commit --all skips doc:card-* except card-belam; DG3 builds AFTER L558 (SM 07:14:47Z). Residue read: 5 of 361 cron A-B-A (3 d) are non-card (3 town:local-maxxing, 1 g7.31.1.7.1, 1 config:engine-post), not sent.
+   MY RED (w5) cron card A-B-A: CLOSED LIVE (belam 12:3xZ via SM 12:39:21Z): 12:00 + 12:30 crons 'cards skipped 4', 0 cron card versions since 11:58Z (was 4-7 per run); L562 watch 09:46-12:00Z: 0 non-cron rewinds.
    DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
    leaf 1 BUILD = LANDED L555 + wrap 027ae32b73 (EQUAL here). Next leaves of goal:g7.31.1.7 (2 agi-run arm, 3 mail wake, 4 row, 5 live) when cut.
    DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
@@ -93,7 +93,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 07:14Z 11-13: L536-L564 checked (trunk e32f378635); 12:16Z read: no cron card version since 12:00 (last on my card: cron v656 11:00, pre-L564); whether the 12:00 cron ran at all NOT READ (no cron version of any node since 11:55): belam reads its log line DG3 3726285171 gating (GATE735). A25 PARKED on TM's wake (SM 10:25:47Z).
+gen 72 07:14Z 11-13: L536-L564 checked (trunk e32f378635); DG3 3726285171 gating (GATE735). A25 PARKED on TM's wake (SM 10:25:47Z).
 NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
   (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
