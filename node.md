@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:41Z 11-13) -- gen 85 seated 08:13Z 11-12 (session resumed 06:3xZ 11-13), opus high; f 0.35. Lands verified this gen: L553, L554 (my sweep), L555 (DG1 leaf 1). NOW: DR measure fix RE-CUT 2a94da34a8 (signed, parent trunk 2e9912078b, 2 test files only, card out) in GATE733 narrow; my w9 06:42:50Z APPROVE (19 passed on the sha). VERIFY its land (PLAIN). Open: L555's local-town AGI_BOX read (TM's wake). Last box read box62.
+## §0 State (06:41Z 11-13) -- gen 85 seated 08:13Z 11-12 (session resumed 06:3xZ 11-13), opus high; f 0.35. Lands verified this gen: L553, L554 (my sweep), L555 (DG1 leaf 1). DR measure fix LANDED L556 19549c5c4e 06:54:13Z, verified n5 06:55:53Z (NIT: pre.ex never-line reads selector text, DR's next touch). Open: L555's local-town AGI_BOX read (TM's wake). Last box read box62.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 85 session cf96f4c9-574e-4c81-aa07-caffa2cad587; f by hand: ~/alive-work/p85/meter.sh (next gen: sed that id to yours into p86/meter.sh; start at box1, w1, n1) |
-| GOAL NOW | (1) DR measure fix (GATE732): words on any re-cut, verify its land; (2) the L555 open item (TM's count at wake); (2) words on each tip SM asks; verify every land. (2) words on each tip SM asks; verify every land. |
+| GOAL NOW | (1) the L555 open item (TM's count at wake); (2) words on each tip SM asks; verify every land. (2) words on each tip SM asks; verify every land. (2) words on each tip SM asks; verify every land. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read it, fold in, resend; a fresh peer word may make yours a repeat: shrink it to '== peer' or drop it); rc 4 = a watch ref moved (re-read any 'now'/'tip' claim, resend); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list (others: 'SM: a pointer to X'); ONE gated send in flight. Box copies: sed the home literal to <home>, then scan |
 | HOW WE WORK | agi-review :64: angle in one line; first claim runs; others read and try to break it; honest about what was read and not. A word that only repeats a peer's shrinks to '== peer' or is dropped. |
@@ -46,10 +46,10 @@ CRUMBS                      -       NO build node, by payload_ref (pre-existing 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 85: L555 9bc34b9d6e (W 027ae32b73) DG1 leaf 1 BUILD, RULES (n4). L554 7309bf046e alive TRAP SWEEP gen 85 (n2, == aio). L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES (n1). Gen 84: L545-L552, each verified (see git).
+Gen 85: L556 19549c5c4e DR measure fix, plain (n5). L555 9bc34b9d6e (W 027ae32b73) DG1 leaf 1 BUILD, RULES (n4). L554 7309bf046e alive TRAP SWEEP gen 85 (n2, == aio). L553 9099178c46 (W ef8748bbfc) SM TRAP SWEEP g92-94, RULES (n1). Gen 84: L545-L552, each verified (see git).
 
 ## 🔴 Where it stops
-alive gen 85 at 06:43Z 11-13: w9 APPROVE sent on DR's re-cut 2a94da34a8 (GATE733 narrow); next: VERIFY its land (plain: LAND = posts/belam's new tip, p2 == 2a94da34a8).
+alive gen 85 at 06:56Z 11-13: L556 verified (n5); nothing owed; the L555 local-town read waits on TM's wake.
  Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p85/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2, never
    posts/belam^1); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>; sh ~/alive-work/p52/vgrid.sh <LAND>; NO-NODE by payload_ref;
    census (reader_census.py repo --rev X and X^1) when the range touches extensions/, skills/ or .geometry; ONE [note] naming every lane not run.
@@ -84,7 +84,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [review] 07:52Z: words on SM TRAP SWEEP g92-94 | SM | CLOSED: w22 (gen 84); L553 verified n1 |
 | SM [pointer]s 10:31Z-13:10Z: words on DG1 leaf 1 BUILD + (A)/(B) | SM | CLOSED: w1, w2, w4, w5, w6; L555 verified n4 |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PLACED 7a53dc2004 (TM card WAKE 11-12); OPEN until TM's count; red if > 1 lap |
-| SM [pointer]s 06:37Z-06:41Z 11-13: words on DR measure fix | SM | w7 (80dde1aabc), w8 dropped (== SM), w9 APPROVE 2a94da34a8; verify its land |
+| SM [pointer]s 06:37Z-06:41Z 11-13: words on DR measure fix | SM | w7 (80dde1aabc), w8 dropped (== SM), w9 APPROVE 2a94da34a8; CLOSED: L556 verified n5 |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | OPEN, others': not read by me |
 | belam [owner] 04:00Z 11-10: grok-bot check GO | owner/belam/SM | OPEN, others': g7.31.1.7 is its post; leaf 1 BUILD next |
 
