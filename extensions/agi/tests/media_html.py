@@ -188,6 +188,7 @@ nav ol{columns:2 16rem;column-gap:32px;margin:0;padding-left:1.6em}
 nav a{color:var(--ink);text-underline-offset:.2em}nav li{margin:0 0 .35em}
 article{padding:96px 0 40px}article:nth-of-type(even){background:var(--ground2)}
 article>*{max-width:60ch}article>.bytes,article>details{max-width:62rem}
+.bytes p,details>summary,details>p{max-width:60ch}
 h2{font-size:clamp(1.9rem,5vw,3.4rem);line-height:1.05;letter-spacing:-.02em;margin:0 0 24px;max-width:24ch}
 h3{font-size:1.6rem;line-height:1.2;margin:48px 0 16px}
 audio{display:block;width:100%;max-width:34rem;margin:0 0 24px}

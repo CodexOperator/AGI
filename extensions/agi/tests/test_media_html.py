@@ -113,3 +113,14 @@ def test_mutant_without_the_download_line_is_red(page, tmp_path, audio):
 
 def test_the_audio_names_follow_the_chapter_numbers(page):
     assert [f"../season3-C{i}-narration.mp3" for i in range(18)] == re.findall(r'src="(\.\./season3-C\d+-narration\.mp3)"', page)
+
+
+def test_the_reading_measure_is_capped_at_60ch_but_pre_ex_stays_wide(page):
+    """SM 11-12: prose inside the 62rem bytes/details boxes must not run to ~110 chars; excerpts (pre.ex) keep the wide box."""
+    css = re.search(r"<style[^>]*>(.*?)</style>", page, re.S).group(1)
+    rules = re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+    def cap(sel):
+        return [d for s_, d in rules if sel in [x.strip() for x in s_.split(",")] and "max-width:60ch" in d.replace(" ", "")]
+    for sel in (".bytes p", "details>summary", "details>p"):
+        assert cap(sel), sel
+    assert not any("pre.ex" in s_ and "max-width" in d for s_, d in rules)
