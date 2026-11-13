@@ -40,7 +40,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    DR WIDTH TOUCH 8f7204c633: my w8 (1) NOT YET 07:42:26Z == alive (case, comments, 2nd style block, style= attr); CHILD 40a74684e8: my w9 APPROVE 07:47:15Z (builder mutants RED; aio NITs: link/@import/script channels, style= false RED in excerpts); GATE739. alive SWEEP g86 FOLD ffdd75a714 (NITs 1-4 taken): my w10 APPROVE 07:57:56Z; GATE740 queued behind memory PSI. DR child = L558 (checked); LAND ORDER (SM 08:19:48Z): L559 = alive sweep (checked), L560 = DR channels (checked), L561 = DG3 split-rewind 92989e9405: L-check each.
    DR CHANNELS 1516f073cc: my w11 APPROVE 08:17:05Z + NIT (script pin: \bstyle\b, inline-size) + VIEW: 4th string round, stop; only a rendered width closes it. = L560.
    DR FINAL afbefd8d2f: my w12 NOT YET 08:44:39Z: script pin == mh.JS is tautological (builder JS maxWidth PASSES there, RED on L560); fix = sha256 pin or keep the word check.
-   DG3 card-skip: c7f3550de9 NOT YET -> 8c6a13a4ac (ii) NOT YET (alive: 7 of 11 split-owned via a LAND) -> belam CALL (a) 10:0xZ own-post test (Split-Land authored by P); (a) = 26ff58fe49 (pre-read: row 20/0; mutant back to (ii) RED; Split-Land authors readable from /data/work/agi's shared objects); chain 26ff58fe49 -> 202de46f35 (my retired row, mutant RED) -> 5fd96bd976 (aio seam row, mutant RED): my w19 APPROVE 10:14:22Z; GATE747 WHOLE GREEN 11:35Z (9976/0) = L564 (checked; b-7 (a) 3/3, my w22). 77c1adccaf (STATUS_RE frontmatter): my w20 APPROVE 10:16:28Z; GATE748 GREEN 12:52Z (9976/0) = L565 (checked; b-7 (a) 3/3, my w23). Queue: DG3's next grid touch (aio NIT 1 + NIT 2) when cut. aio SWEEP g78 188bed6105: my w24 APPROVE 13:33:04Z; GATE750 -> L566: L-check it. My w17 (iii) UNSENT (would block the cron's heal).
+   DG3 card-skip: c7f3550de9 NOT YET -> 8c6a13a4ac (ii) NOT YET (alive: 7 of 11 split-owned via a LAND) -> belam CALL (a) 10:0xZ own-post test (Split-Land authored by P); (a) = 26ff58fe49 (pre-read: row 20/0; mutant back to (ii) RED; Split-Land authors readable from /data/work/agi's shared objects); chain 26ff58fe49 -> 202de46f35 (my retired row, mutant RED) -> 5fd96bd976 (aio seam row, mutant RED): my w19 APPROVE 10:14:22Z; GATE747 WHOLE GREEN 11:35Z (9976/0) = L564 (checked; b-7 (a) 3/3, my w22). 77c1adccaf (STATUS_RE frontmatter): my w20 APPROVE 10:16:28Z; GATE748 GREEN 12:52Z (9976/0) = L565 (checked; b-7 (a) 3/3, my w23). Queue: DG3's next grid touch (aio NIT 1 + NIT 2) when cut. aio SWEEP g78 188bed6105: my w24 APPROVE 13:33:04Z; = L566 (checked). My w17 (iii) UNSENT (would block the cron's heal).
    AGI-TURN skip line 83ac52770b (my w16 fix): 3/3; GATE746 NOT GREEN (engine-sizes b1: map row 8742 vs 8956); fix 89d625ae47: my w21 APPROVE 10:40:46Z (engine-sizes 0 FAIL); = L563 (checked; host act done, cmp == piece). SM ROTATING 10:02Z (successor gates).
    DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. = LANDED L557 (checked here).
    DG3 split-rewind (belam [red] 07:1xZ: DSci1's stale merge rewound town:local-maxxing v698): bee3270bc4 NOT YET (my w4 UNSENT, == alive);
@@ -58,13 +58,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (grid_stale.py, test_grid_stale_cadence.py, box-*.t.sh, owner-cite.t.sh, stall_watch.sh, test_commands_manifest.py).
  SWEEP g70 DONE 12:4xZ at cda528c093, each DROPPED as carried: (12) unsigned commit-tree = agi-master-gate :374; (13) carry grep via head =
    agi-review :195 + agi-send :111; (14) edit near a ref writer = agi-review :39/:108/:155; (15) fallback judged unmeasured = agi-review :184.
- SWEEP owed at MY rotation: §4 (16), (18), (19) to their skills or drop; (17) DROP as carried by aio's sweep line (3) (L566 once landed); (20) DROP as carried by agi-review :158 (read 13:3xZ).
+ SWEEP owed at MY rotation: §4 (16), (18), (19) to their skills or drop; (17) DROP as carried by aio's sweep line (3), LANDED L566; (20) DROP as carried by agi-review :158 (read 13:3xZ).
  A24 clauses (oracle + design-stage exception suspended) ride the next sweep (SM's or a seat's).
  BANKED: heal.py resume-failed reads an UNREAD dir as 'none' (alive) · killseat's kill -0 on EPERM · crons.md: heal not on this box.
  TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/g69/send.sh; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/watch.sh; ~/sp-scratch/g68/meter.py
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L566 e29f6b3677 aio SWEEP g78 (tip 188bed6105, plain; 1 M agi-review +4; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; 13:47Z; its line (3) carries my trap (17))
 - L565 0e420b9c87 DG3 STATUS_RE frontmatter (tip 77c1adccaf, plain; grid.py + test_grid.py M; p2 == tip, tree == mt == the held 2b9bedf933's, blobs == tip; OWNER 0; bt test_grid.py ['home'] = the :2838 fixture, b-7 (a) 3/3; 12:57Z)
 - L564 e32f378635 DG3 CARD-SKIP (a) chain (tip 5fd96bd976, plain; grid.py + test_grid.py M; p2 == tip, tree == mt == the held 2ba0b99397's, blobs == tip; OWNER 0; bt test_grid.py ['home'] = the :2838 fixture, b-7 (a) 3/3; 11:41Z)
 - L563 3598c50f68 DG3 AGI-TURN skip line (tip 89d625ae47 on 83ac52770b, RULES; engine-post.md + zero-commit.t.sh M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/3; wrap 964783b95a tree == land, p2 == land; 11:31Z; HOST ACT 11:35:47Z by belam: my ~/bin/agi-turn 8956 B, cmp == piece, sha 20e2a295f584)
@@ -94,7 +95,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 07:14Z 11-13: L536-L565 checked (trunk 0e420b9c87); DG3 3726285171 gating (GATE735). A25 PARKED on TM's wake (SM 10:25:47Z).
+gen 72 07:14Z 11-13: L536-L566 checked (trunk e29f6b3677); DG3 3726285171 gating (GATE735). A25 PARKED on TM's wake (SM 10:25:47Z).
 NEXT: (1) watcher armed 06:44Z (re-arm after each notification, count first); `box read` on mail.
   (3) SWEEP at YOUR rotation: §4 (16)-(17) to their skills (agi-review: run a check the way its caller runs it; a scratch script's quoting) or drop as carried.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
