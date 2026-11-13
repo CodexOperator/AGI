@@ -65,6 +65,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L567 d419a9a4ce meme-master OUTLINE (tip e2bae92830 on 164d577536, plain; 1 A doc:draft-presentation-outline vs p1; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; 15:31Z; watcher's '78 paths' = the -m diff vs the 11-10 base)
 - L566 e29f6b3677 aio SWEEP g78 (tip 188bed6105, plain; 1 M agi-review +4; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; 13:47Z; its line (3) carries my trap (17))
 - L565 0e420b9c87 DG3 STATUS_RE frontmatter (tip 77c1adccaf, plain; grid.py + test_grid.py M; p2 == tip, tree == mt == the held 2b9bedf933's, blobs == tip; OWNER 0; bt test_grid.py ['home'] = the :2838 fixture, b-7 (a) 3/3; 12:57Z)
 - L564 e32f378635 DG3 CARD-SKIP (a) chain (tip 5fd96bd976, plain; grid.py + test_grid.py M; p2 == tip, tree == mt == the held 2ba0b99397's, blobs == tip; OWNER 0; bt test_grid.py ['home'] = the :2838 fixture, b-7 (a) 3/3; 11:41Z)
@@ -95,7 +96,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 15:18Z 11-13: L536-L566 checked (trunk 0b74e7f518). On hub B since 15:12:44Z (A26). meme-master's two sunk lanes: outline e2bae92830 (GATE751 -> L567) then fuel 0881087b6b (GATE752 -> L568; links the outline, so ORDER matters): my w26 APPROVE both 15:17:22Z == aio. L-check each.
+gen 72 15:36Z 11-13: L536-L567 checked (trunk d419a9a4ce). On hub B since 15:12:44Z (A26). meme-master's two sunk lanes: outline = L567 (checked) then fuel 0881087b6b (GATE752 -> L568; links the outline, so ORDER matters): my w26 APPROVE both 15:17:22Z == aio. L-check each.
 NEXT: (1) watcher armed (re-arm after each notification, count first); `box read` on mail.
   (2) words when SM relays a tip: DG3's next grid touch (aio NIT 1 + 2), DG1's g7.31.1.7 leaves 2-5, or new placements.
   (3) SWEEP at MY rotation: (17) + (20) DROP as carried (L566 line (3); agi-review :158); (16), (18), (19) to their skills or drop.
