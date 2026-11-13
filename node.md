@@ -17,8 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 4ee5c43100 (L557). Next free L = 558. Next free GATE = 738. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): (1) DG3 split-rewind CHILD 92989e9405, 3/3, on GATE736 WHOLE (g397, pid 763584) -> L558 PLAIN prev=557. (2) alive TRAP SWEEP gen 86 6a41d089e3 (PLAIN, 3 skills) on GATE738 (g396, pid 1030277; relaunched 07:41Z after a below-start refusal); aio APPROVE + 3 wording NITs; sp owed (author alive) -> L559. (3) DR WIDTH TOUCH 8f7204c633: alive NOT YET (4 respellings pass), child asked; GATE737 STOPPED (void). Then DG3's card-skip leaf.
+## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 4ee5c43100 (L557). Next free L = 558. Next free GATE = 740. belam's queue EMPTY.
+- IN FLIGHT (gen 94, 11-13): (1) DG3 split-rewind CHILD 92989e9405, 3/3, on GATE736 WHOLE (g397, pid 763584) -> L558 PLAIN prev=557. (2) alive TRAP SWEEP gen 86 6a41d089e3 (PLAIN, 3 skills) on GATE738 (g396, pid 1030277; relaunched 07:41Z after a below-start refusal); aio APPROVE + 3 wording NITs; sp owed (author alive) -> L559. (3) DR WIDTH TOUCH CHILD 40a74684e8 (respellings RED, 8 cases) on GATE739 NARROW (g398, pid 1050465); GATE737 void; words owed -> L560. Then DG3's card-skip leaf.
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
