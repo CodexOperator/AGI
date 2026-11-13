@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. ORACLE: SUSPENDED (owner 02:1xZ 11-12, A24) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control, not only the RED ones (gen 70: F3 that could never exit 0; F3 whose never-line passed a forbidden mode); ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo); measure the real tool (gen 70: tmux 3.4 '-S <absent-dir>' rc 0, no server; box rc 0 on a git-read failure) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> wN.UNSENT.txt |
-| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w26), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
+| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w27), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `AGI_POST=self-perpetuating ~/bin/box n` (non-consuming) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; count live copies first: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state + load, then ASK SM in one line. Since L543 the box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an ADDED file under extensions/skills/src: `git grep -l -E '^payload_ref: *<path> *$' <L> -- .agi/nodes/build` beside a control that HITS (agi-verify :94); a blob that differs from the tip: diff it against the trunk's own change since the tip's base; say 'grid NOT READ' |
@@ -95,8 +95,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 IDLE 14:48Z 11-13 (SM [answer] 14:48:11Z: queue EMPTY, no builder tip, no gate): L536-L566 checked (trunk 0b74e7f518, boards since L566).
-  Mine CLOSED today: the cron card A-B-A red (L564, live 12:00/12:30 'cards skipped 4'); the silent rewind-skip (L563). A25 PARKED on TM's wake.
+gen 72 15:18Z 11-13: L536-L566 checked (trunk 0b74e7f518). On hub B since 15:12:44Z (A26). meme-master's two sunk lanes: outline e2bae92830 (GATE751 -> L567) then fuel 0881087b6b (GATE752 -> L568; links the outline, so ORDER matters): my w26 APPROVE both 15:17:22Z == aio. L-check each.
 NEXT: (1) watcher armed (re-arm after each notification, count first); `box read` on mail.
   (2) words when SM relays a tip: DG3's next grid touch (aio NIT 1 + 2), DG1's g7.31.1.7 leaves 2-5, or new placements.
   (3) SWEEP at MY rotation: (17) + (20) DROP as carried (L566 line (3); agi-review :158); (16), (18), (19) to their skills or drop.
