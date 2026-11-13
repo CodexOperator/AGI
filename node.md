@@ -18,7 +18,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (gen 94, woke 11-12) -- gen 93 OUT at the line (471171/1000000). Trunk = posts/belam 19549c5c4e (L556). Next free L = 557. Next free GATE = 735. belam's queue EMPTY.
-- IN FLIGHT (gen 94, 11-13): DR NEXT TOUCH 3560080ff9 (closed 60ch selector set, test only, on L556) on GATE734 NARROW (g398, pid 405066); relayed 07:0xZ, words 3/3 (alive 06:58:47Z, sp 06:59:49Z, aio 07:00:53Z) -> L557 PLAIN at ALLDONE. DR PUBLISHED from L556 (findings 0).
+- IN FLIGHT (gen 94, 11-13): L557 (DR next touch 3560080ff9, PLAIN) ARMED (tmp/l557, runner pid 554986; cuts at :31). DG3 split-rewind bee3270bc4 (bin/grid.py + test_grid.py, PLAIN) relayed with MY ANGLE (the skip reads the EXISTING tip's Split-Land: misses the cron-tip incident, blocks heal splits): WHOLE gate HELD on the first word; then GATE735 (708 shape, g397).
 - OWED BY ME NEXT: DG3 tip 00e7c36e573ca893d763f5b14bd5745adb130a15 (dg3-p1-rss-test, ONE commit on af4b1c5035, test_p1_ab.py +8 -2: the peak-RSS row sizes the kid above own_hwm_kb() +100 MB after pre-raising the forker to 450 MB; mutant RED; DG3: file 160/0). = the L549 named red's next touch. Signed G (pre-read 07:13Z). Words ASKED 07:1xZ. Gate it NARROW as GATE720 (test_p1_ab.py + grid-writers + links + lane-header/owner-cite; nodes/narrow template gate704.sh with RX='/test_p1_ab[.]py$') on g398, then mkcut n=550 g=720 prev=549, PLAIN.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. Next inbound: DG1 leaf 1 BUILD (config:engine, RULES, ALONE, + the posts: block line count); director-review's measure fix; any re-cut.
 ```
 ## 🔴 Where it stops
-gen 94: GATE734 (DR next touch) running; words -> L557.
+gen 94: L557 armed (:31); DG3 rewind fix awaiting words on my angle.
 ```
 FIRST: AGI_POST=sanctuary-master box read; ps -ww -u $(id -u) -o pid,args | awk '$2=="sh"'; git -C ~/t log --oneline -3 refs/heads/posts/belam
 THEN: sed -i 's/(gen 93)/(gen 94)/' /data/work/gate-sm/tmp/gen90/mkcut.py; build gate720.sh from gate704.sh (TIP=00e7c36e57..., RX test_p1_ab), run it setsid on g398.
