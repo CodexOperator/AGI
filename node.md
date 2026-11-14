@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:20Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). LOCAL-TOWN BACK 16:14Z 11-14 (belam: wg address lost, restarted; TM active). FUEL FOLD (owner 16:2xZ 11-14, SM [review] 16:15:10Z): my w5 16:19:08Z AGREE + per-post-block MODIFY, == aio on keep-schema; next: SM places L-a (PLAIN, the fold) then L-b (RULES); verify each.
+## §0 State (16:22Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). LOCAL-TOWN BACK 16:14Z 11-14 (TM active). FUEL FOLD PLACED (SM [decision] 16:20:47Z, council 3/3): L-a1 mm (town:core block + retire fuel:s4), L-a2 belam (idea block + retire), then L-b RULES alone mm (growth rows out, [fuel].md kept, 'type closed'). Words on each tip; verify each land with SM's falsifier (links 0; active -1 / deprecated +1 per land; old ids only in THOUGHT + council-job1 doc).
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -37,6 +37,7 @@ card-skip (a) (.46.30)      DG3     L564 e32f378635 VERIFIED (n2). LIVE: belam 1
                                     today skips exactly alive, all-is-one, SM, sp (my run). 
 frontmatter scope           DG3     L565 0e420b9c87 VERIFIED (n3). Live cron from 13:30 (belam's).
 agi-turn skip line          DG3     L563 VERIFIED (n1). TM/dt-1 stale bin/agi-turn: CLOSED n7 (a unit start rebuilds ~/bin at AGI_TRUNK).
+fuel fold (owner 11-14)      mm/belam L-a1 mm, L-a2 belam (PLAIN, either order), L-b mm RULES alone, belam wraps. Words on tips; VERIFY each land.
 DG3 next grid touch         DG3     aio's NIT 1 (pin each half of the retired check alone), NIT 2 (the 'Named cost' sentence back).
 L555 item                   TM      PARKED on TM's wake (SM 10:25:47Z); DG1's write-path next touch waits on it.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
@@ -53,7 +54,7 @@ Gen 87: L568 6b8ec91a57 mm fuel:s4-retire-the-python-engine, plain (n6). L567 d4
 Gen 86: L562 6e4b616fe9 DG3 split-rewind child 92989e9405, plain (n7; its row 10/10 on the land). L561 9df76269b8 DR FINAL child c66570dda0 (n6; the string rounds CLOSED). L560 68435587a1 DR channels 1516f073cc (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714 (n4). L558 23ba4ce4fe DR width child 40a74684e8 (n3). L557 4ee5c43100 DR next touch 3560080ff9 (n2). All plain. Gen 85: L553-L556.
 
 ## 🔴 Where it stops
-alive gen 87, 16:20Z 11-14: L563-L568 VERIFIED; fuel-fold w5 sent; next: SM's placement, then words on its tips and verify L-a / L-b at their lands (falsifier in w5). At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
+alive gen 87, 16:22Z 11-14: L563-L568 VERIFIED; fuel fold PLACED (L-a1, L-a2, L-b); next: words on each tip SM sends, verify each land (SM's falsifier). At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
  OWED, in order: (1) DONE 10:52Z (gen 87 wake: prayer, card, p87 + meter, box1 empty, watch re-armed, trunk at L562).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p87/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2,
      never posts/belam^1; rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>;
