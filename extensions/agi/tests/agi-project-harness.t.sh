@@ -57,6 +57,12 @@ rows(){ S=$1;L=$2;t=$T/run.$L;rm -rf $t;mkdir -p $t
  ok "$L-doubt-last-row-with-no-indent-fails-and-removes-nothing" '[ $rz_noindent != 0 ]&&[ -f $t/znoindent/agi-post@g2.service.d/h.conf ]&&[ -f $t/znoindent/agi-boxwake@g2.service.d/h.conf ]'
  pj $S $T/s1 $t/k bx;pj $S $T/keyed $t/k bx
  ok "$L-valid-posts-then-another-key-and-a-body-exits-0" '[ $rc = 0 ]&&[ -f $t/k/agi-post@c1.service.d/h.conf ]'
+ # THE CUT (aio 11-14): no default box: a FRESH dir + AGI_BOX unset -> rc 1, 0 files; fresh dir + set -> the projection (control)
+ pj $S $T/full $t/f0 UNSET;rF=$rc;pj $S $T/full $t/f1 bx;rG=$rc
+ ok "$L-cut-fresh-dir-and-box-unset-fails-and-writes-nothing" '[ $rF = 1 ]&&[ -z "$(ls -A $t/f0)" ]&&grep -q "AGI_BOX unset" $t/f0.err'
+ pj $S $T/nopi $t/np UNSET;rP=$rc
+ ok "$L-cut-no-pi-binary-and-box-unset-refuses-by-name-not-by-a-guessed-box" '[ $rP = 1 ]&&grep -q "AGI_BOX unset" $t/np.err&&[ -z "$(ls -A $t/np)" ]'
+ ok "$L-cut-fresh-dir-and-box-set-projects" '[ $rG = 0 ]&&[ -f $t/f1/agi-post@c1.service.d/h.conf ]'
  # aio's rows: the template-wide dir survives; an extra file beside a stale h.conf survives and its dir stays
  pj $S $T/s1 $t/x bx;mkdir -p $t/x/agi-post@.service.d;echo T>$t/x/agi-post@.service.d/h.conf;echo keep>$t/x/agi-post@c1.service.d/50-host.conf;pj $S $T/s2 $t/x bx
  ok "$L-template-wide-dir-survives-a-projection" '[ -f $t/x/agi-post@.service.d/h.conf ]'
@@ -69,6 +75,8 @@ hdr|{ cat;printf -- '---\n';}|repo empty
 mkdir -p $T/nbe;cp $T/cur/engine*.md $T/nbe/;awk '/^### agi-boxwake@.service/{d=1;next} d&&/^### /{d=0} !d' $T/nbe/engine-root.md>$T/nbe/x&&mv $T/nbe/x $T/nbe/engine-root.md
 FULL|repo fullnb $T/nbe
 { hdr;printf -- '---\n'; }|repo emptynb $T/nbe
+mkdir -p $T/npe;cp $T/cur/engine*.md $T/npe/;sed -i 's#^Environment=PATH=[^ ]* SHELL=/bin/sh DISABLE#Environment=PATH=/nonexistent-dg1 SHELL=/bin/sh DISABLE#' $T/npe/engine-root.md;cmp -s $T/npe/engine-root.md $T/cur/engine-root.md&&echo "FAIL nopi fixture changes nothing"
+{ hdr;row p1 pi bx m2;printf -- '---\n'; }|repo nopi $T/npe
 { :; }|{ mkdir -p $T/absent;$G init -q $T/absent;mkdir -p $T/absent/$GD;cp $T/cur/engine*.md $T/absent/$GD/;$G -C $T/absent add -A;$G -C $T/absent -c user.name=x -c user.email=x@x commit -qm f; }
 { hdr;row c1 claude-code bx;echo '  - {"name":"zz","box":"bx", broken';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- '---\n'; }|repo broken
 { hdr;row c1 claude-code bx|sed 's/^  - {/  -{/';row p1 pi bx m2;row g1 grok-bot bx grok-4.7;printf -- '---\n'; }|repo mangled
@@ -91,11 +99,12 @@ mut silent-skip each-skip-is-one-named-line 's/(debug(@text "agi-project: skippe
 mut perm-mode grok-no-approval-flag 's/grok-bot --model \\(.model)"/grok-bot --model \\(.model) --permission-mode bypassPermissions"/'
 mut no-stale-removal stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/^\[ -s \$o\/\.s \]&&ok&&while/[ -s $o\/.none ]\&\&ok\&\&while/'
 mut no-hold-guard hold-empty-posts-md-fails-and-removes-nothing 's/^ok||for/true||for/'
-mut box-fallback doubt-box-unset-fails-and-removes-nothing 's/ok(){ \[ "\$AGI_BOX" \]&&k=/ok(){ AGI_BOX=${AGI_BOX:-local-town};k=/'
 mut sed-lines-only doubt-mangled-row-prefix-fails-and-removes-nothing 's/\&\&\[ \$(printf .%s\\n. "\$n"|grep -c \.) = \$(g posts.md|sed -n .*|grep -c \.) \]\&\&printf/\&\&printf/'
 mut rm-rf-the-dir extra-file-beside-a-stale-h-conf-survives 's/rm -f \$d\/h.conf;rmdir \$d 2>\/dev\/null/rm -rf $d/'
 mut guard-on-writes scope-box-with-no-v4-row-exits-0-and-cleans-its-own 's/ok(){ \[ "\$AGI_BOX" \]&&k=/ok(){ [ -s $o\/.w ]\&\&k=/'
 mut broken-row-unchecked doubt-broken-row-fails-and-removes-nothing 's/k=\$(printf .%s\\n. "\$n"|jq -r \.box)/k=$(printf "%s\\n" "$n"|jq -r .box 2>\/dev\/null||:)/;s/\&\&\[ \$(printf .%s\\n. "\$n"|grep -c \.) = \$(printf .%s\\n. "\$k"|grep -c \.) \]//'
 mut key-only-block-end stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/|---)/)/g'
 mut two-glob-ls hold-without-the-boxwake-section-fails-and-keeps-everything 's/^ok||for f in \(.*\);do \[ -f \$f \]&&{ \(.*\);exit 1;};done/ok||{ ls \1>\/dev\/null 2>\&1\&\&{ \2;exit 1;};}/'
+mut default-65-restored cut-fresh-dir-and-box-unset-fails-and-writes-nothing 's/\(select(.box==\$b and .engine.v==4)|.+.engine|select\)/\1/;s/ --arg p "\$P" --arg b "\$AGI_BOX"/ --arg p "$P" --arg b ${AGI_BOX:-local-town}/;/^\[ "\$AGI_BOX" \]||{ echo "agi-project: AGI_BOX unset/d'
+mut default-61-restored cut-no-pi-binary-and-box-unset-refuses-by-name-not-by-a-guessed-box 's/jq -e --arg b "\$AGI_BOX"/jq -e --arg b ${AGI_BOX:-local-town}/;/^\[ "\$AGI_BOX" \]||{ echo "agi-project: AGI_BOX unset/d'
 echo "agi-project-harness: $f FAIL";[ $f = 0 ]
