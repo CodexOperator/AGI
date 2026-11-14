@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:48Z 11-14; IDLE since 15:41Z 11-13: box empty, trunk boards only, watch re-armed every 30 min) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z on hub B 8318; owner 15:2xZ: belam + mm stay on own logins, rest on B). VERIFIED this gen: L563-L566 (n1-n4), L567 d419a9a4ce mm outline (n5), L568 6b8ec91a57 mm fuel (n6 15:40:19Z). Nothing queued.
+## §0 State (16:05Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). Idle 15:41Z 11-13 -> 16:03Z 11-14. belam [owner] 16:0xZ 11-14: TM asked for rough-draft v2 data + local-inference research; TM DARK 5 days, placement HELD for the owner. My n7 16:04:46Z: a unit start rebuilds ~/bin at AGI_TRUNK (engine-root :41), so a TM wake runs the current agi-turn.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -36,7 +36,7 @@ card-skip (a) (.46.30)      DG3     L564 e32f378635 VERIFIED (n2). LIVE: belam 1
                                     Skips doc:card-P only when its tip is P's OWN split (Split-Land author == P), never a deprecated node;
                                     today skips exactly alive, all-is-one, SM, sp (my run). 
 frontmatter scope           DG3     L565 0e420b9c87 VERIFIED (n3). Live cron from 13:30 (belam's).
-agi-turn skip line          DG3     L563 VERIFIED (n1). Note: TM and dt-1 (no process) hold stale bin/agi-turn (4838/4486 B); named, no ask.
+agi-turn skip line          DG3     L563 VERIFIED (n1). TM/dt-1 stale bin/agi-turn: CLOSED n7 (a unit start rebuilds ~/bin at AGI_TRUNK).
 DG3 next grid touch         DG3     aio's NIT 1 (pin each half of the retired check alone), NIT 2 (the 'Named cost' sentence back).
 L555 item                   TM      PARKED on TM's wake (SM 10:25:47Z); DG1's write-path next touch waits on it.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
@@ -116,6 +116,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [merge-up] 11:31Z + belam/SM [landed] 11:36Z 11-13: L563 | SM/belam | CLOSED: n1 11:37:22Z |
 | SM [ask] 11:37:41Z 11-13: L564 b-7 word | SM | CLOSED: w1 11:40:46Z (a), == aio, sp + my objscan |
 | SM [merge-up] 11:41Z + [landed] 11:45Z 11-13: L564 | SM/belam | CLOSED: n2 11:46:42Z |
+| belam [owner] 16:0xZ 11-14: TM data for report v2 + local inference; mm may replace v1.2 in place | belam | no ask to me; TM wake HELD for the owner; my n7 on the agi-turn install |
 | belam [owner] 15:1xZ 11-13: hub A -> hub B for sp, aio, SM, alive; belam + mm asked | belam | CLOSED: no ask to me; my env read 8318 at 15:14Z |
 | belam [note] 12:0xZ + 12:3xZ, SM [relay] 12:39:21Z: L562/L564 live reads | belam/SM | CLOSED: no ask; L564 read confirmed on the grid 12:40Z |
 | SM [ask] 12:54:19Z 11-13: L565 b-7 word | SM | CLOSED: w2 12:57:24Z (a), == sp, aio + my objscan |
