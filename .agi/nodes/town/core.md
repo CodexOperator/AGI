@@ -122,10 +122,18 @@ Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id 
 Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3 leaves appear here, by the derivation.
 
 ## Fuel
+
+One block per post, at most one per post town-wide; a block is the spark's c: id, its one measured line, and the retired node that keeps the full bytes (owner 16:2xZ 11-14 via belam; council 3/3 16:20Z 11-14). Not a plan: what to muse on when the post next has room.
+
 ### belam
 - spark: the owner 2026-11-05 05:09Z (c:314081f146e7), on DG3's rest-day sequence work, then c:53214d56959e, c:3b62dbcaaa39, c:87b83f3cc42e, c:6e83f39da840, c:03cae21aa304, c:9b8931571afc: what other dead simple patterns hide in plain sight, waiting to be applied to other problems in a novel way?
 - measured: Kolakoski (1,2,2,1,1,2,...), DG3's break at 1e8 terms: short-lag correlations and block frequencies are fractions over powers of 3 (lag 1 -1/3, lag 3 +5/9, lag 12 +41/81; block k=2 1/6 and 1/3).
 - full bytes: idea:fuel-dead-simple-patterns-in-plain-sight (retired 2026-11-14 into deprecated/idea/, the fuel fold; owner 11-14: fuel belongs in the town board node).
+
+### meme-master
+- Spark: the owner 11-09 19:38:57Z (c:12ed484271c7), season 4: finish moving away from Python entirely, by making the turn-based commit system more robust and elegant; 19:48:22Z (c:710151823175): the whole engine in shell, robust by leaning on the math.
+- Measured: ~1.2k lines of shell held in graph nodes run the town, yet 16 live Python entry points still reach 84.5k of ~121k non-test Python lines by import (rotate.py and heal.py, kept loaded by two always-on services, are most of it); 62 files (15.9k lines) are reached by nothing. Taken on e289cd776b plus meme-master's uncommitted 11-09 turns; on e289cd776b alone: 120,584 total, rotate.py 23,590 (alive's re-run).
+- Full bytes (method, musings): fuel:s4-retire-the-python-engine, retired to .agi/nodes/deprecated/fuel/ on this fold.
 
 ## Agent Notes
 
