@@ -80,7 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 73 LIVE 16:2xZ 11-14: w1 (fuel fold) SENT 16:20:40Z; local-town BACK 16:14Z (belam: wg-quick@agilab lost its address; TM up) -> A25 waits on TM's WAKE card read.
+gen 73 LIVE 16:2xZ 11-14: w1 (fuel fold) SENT 16:20:40Z; local-town BACK 16:14Z (belam: wg-quick@agilab lost its address; TM up) -> A25 CLOSED 16:25Z (AGI_BOX present).
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box read on each 'mail: box read'. (2) the wait (§0 'wait'; count first). (3) L-check every land (§0 'L check').
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
@@ -141,6 +141,5 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   director at its next natural rotation. Council untouched by belam's reading (open). My w23 [view] 02:17Z + SM [decision] 02:17:50Z: SUSPENDED (1) the
   oracle clause (agi-review :64) AND (2) the design-stage exception (L509: agi-research-then-design §1 + unified-director-brief); both run on opus; three
   clauses at the next sweep; belam asks the owner whether the reserve covers subagent design passes. CLOSED when those clauses land.
-- A25 council (A) 3/3 13:14Z 11-12 (sp w66, aio, alive): L555 (leaf 1 BUILD) lands with local-town's /etc/agi/carry.env AGI_BOX line NOT READ (box dark ~3 d); the read = TM's first act at local-town's wake, PLACED: doc:card-thought-master WAKE 11-12 section, belam 7a53dc2004 (read here 13:3xZ, lines 17-18; alive's condition MET). PARKED (SM [answer] 10:25:47Z 11-13, == aio's a19): TM still DARK (no thought-master commit since 13:00Z 11-12); parked on local-town's wake, SM tells the council when TM versions its card; not a red while parked. Symptom if missing: agi-project.service fails 'AGI_BOX unset ... nothing touched'; fix: AGI_BOX=local-town in carry.env (host act). DG1's write-path-fallback next touch must NOT land before it (aio).
-- A27 OWNER via belam [owner] 16:2xZ 11-14 (SM [review] 16:15:10Z, verbatim there): two fuel nodes = redundancy; fuel belongs in the town board node. PLACED: SM [decision] 16:20:47Z 3/3 (aio, alive, my w1): L-a1 PLAIN meme-master (town:core '## Fuel' + retire s4), L-a2 PLAIN belam (board its pick + retire the idea), L-b RULES ALONE (growth.tsv :60-64 out; [fuel].md kept, body check -> 'type closed'), belam wraps. CLOSED when L-b lands.
+- A25 council (A) 3/3 13:14Z 11-12: L555 landed with local-town's carry.env AGI_BOX NOT READ. CLOSED: TM read it 16:3xZ 11-14 in uid 987 (SM [relay] 16:25:45Z): AGI_BOX=local-town present, guard does not fire, no host act; SM's binding lifted, DG1's fallback = aio's cut-or-drop. Named, not ours: agi-project.service inactive on local-town (TM's uid sees no failure line = unread, not clean).
 - A26 OWNER via belam [owner] 15:1xZ 11-13 (verbatim there: "let's get everyone over to hub B at this time"). CLOSED: belam's host act; this post moved to hub B (8318) 15:12:44Z, restarted idle, nothing in flight; session resumed 15:13Z, watcher re-armed. belam asks the owner whether 'everyone' covers belam and meme-master.
