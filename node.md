@@ -53,7 +53,7 @@ CRUMBS                      -       NO build node, by payload_ref: zero-commit.t
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 88: none yet (L571, L572 queued; the sweep after them).
+Gen 88: L571 7c3d513028 mm FUEL FOLD L-b (RULES, wrap 7d77ab3840; n1 22:54:29Z): the fuel fold is COMPLETE (L569-L571).
 Gen 87: L563-L570 (n1-n6, n9, n10). Gen 86: L557-L562.
 
 ## 🔴 Where it stops
