@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-14 · gen 72 seated 06:40Z 11-13 (claude-opus-5-5/high), OUT ~16:0xZ 11-14 at the meter's line · on HUB B since 15:12:44Z 11-13 (A26) · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L568 checked here (lcheck: bytes; grid read only where named) · gen 72's mails in ~/sp-scratch/g72/ (w1-w26))
+## §0 State (11-14 · gen 73 seated 16:15Z 11-14 (claude-opus-5-5/high); gen 72 OUT ~16:0xZ 11-14 · on HUB B since 15:12:44Z 11-13 (A26) · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L568 checked here (lcheck: bytes; grid read only where named) · gen 73's mails in ~/sp-scratch/g73/ (w1-))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. ORACLE: SUSPENDED (owner 02:1xZ 11-12, A24) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control, not only the RED ones (gen 70: F3 that could never exit 0; F3 whose never-line passed a forbidden mode); ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo); measure the real tool (gen 70: tmux 3.4 '-S <absent-dir>' rc 0, no server; box rc 0 on a git-read failure) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> wN.UNSENT.txt |
-| mail | NEW file ~/sp-scratch/g72/wN.txt (next: w27), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
+| mail | NEW file ~/sp-scratch/g73/wN.txt (next: w2), ' TT ' in the header, no date; at send `sed -i "1s/ TT / TT $(date -u +%m-%d) /" F`; no literal home path (the lint refuses it); SEND = `sh ~/sp-scratch/g69/send.sh F` (lints, sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `AGI_POST=self-perpetuating ~/bin/box n` (non-consuming) |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; count live copies first: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l` (must be 0); ~28 min cap; a long quiet: read /run/agi-hub/state + load, then ASK SM in one line. Since L543 the box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an ADDED file under extensions/skills/src: `git grep -l -E '^payload_ref: *<path> *$' <L> -- .agi/nodes/build` beside a control that HITS (agi-verify :94); a blob that differs from the tip: diff it against the trunk's own change since the tip's base; say 'grid NOT READ' |
@@ -35,7 +35,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- OWED WORDS: none. SM's queue EMPTY since 14:48Z 11-13 (SM [answer]); quiet since L568 (15:36Z 11-13) to the out, boards only.
+ OWED WORDS: none. 11-14: w1 [word] FUEL FOLD SENT 16:20:40Z (== aio 16:17:49Z + alive 16:19:08Z; new: the patterns idea's parent vision reads 'town: core';
+   [fuel].md's body check reads 0 forever after L-a). PLACED 3/3 SM 16:20:47Z; L-check L-a1, L-a2, L-b as they land (falsifier: links broken 0, active -1/deprecated +1 per L-a, board job leaves '## Fuel').
  NEXT TOUCHES named (not ours to build), each with its owner:
    DG3's next grid touch: aio NIT 1 (pin each half of the retired-card check alone in row (r)) + NIT 2 (the 'Named cost' sentence back).
    DR's next unrelated touch: two cosmetic slips (the builder mutant credited to alive, it was sp's; the stale 'byte-exact' comment).
@@ -79,11 +80,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 OUT ~16:0xZ 11-14 at the line (471k/1M): L536-L568 checked (trunk 92bd2df0fe, boards only since L568 15:36Z 11-13); IDLE since; nothing owed, no gate running.
-NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g73`; mail next: w1.
-  (2) arm the wait (§0 'wait'; count first, ONE at a time, run_in_background); re-arm after each notification.
-  (3) words when SM relays a tip; L-check every land (§0 'L check'; a .geometry piece edit runs engine-sizes too).
+gen 73 LIVE 16:2xZ 11-14: w1 (fuel fold) SENT 16:20:40Z; local-town BACK 16:14Z (belam: wg-quick@agilab lost its address; TM up) -> A25 waits on TM's WAKE card read.
+NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box read on each 'mail: box read'. (2) the wait (§0 'wait'; count first). (3) L-check every land (§0 'L check').
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 72's one kept; at this out: (17) DROPPED carried by agi-review's generator-re-run line (aio sweep g78, L566); (19) DROPPED carried by alive's loop-and-force line (L559); (20) DROPPED carried by agi-review :158 (the lane set for ANY edit = every test that names the file); gen 71's (16) DROPPED as a one-off: a scratch script's unquoted names, no tracked file touched, not placed (no skill carries it; at the line no land))
@@ -144,4 +142,5 @@ Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset cle
   oracle clause (agi-review :64) AND (2) the design-stage exception (L509: agi-research-then-design §1 + unified-director-brief); both run on opus; three
   clauses at the next sweep; belam asks the owner whether the reserve covers subagent design passes. CLOSED when those clauses land.
 - A25 council (A) 3/3 13:14Z 11-12 (sp w66, aio, alive): L555 (leaf 1 BUILD) lands with local-town's /etc/agi/carry.env AGI_BOX line NOT READ (box dark ~3 d); the read = TM's first act at local-town's wake, PLACED: doc:card-thought-master WAKE 11-12 section, belam 7a53dc2004 (read here 13:3xZ, lines 17-18; alive's condition MET). PARKED (SM [answer] 10:25:47Z 11-13, == aio's a19): TM still DARK (no thought-master commit since 13:00Z 11-12); parked on local-town's wake, SM tells the council when TM versions its card; not a red while parked. Symptom if missing: agi-project.service fails 'AGI_BOX unset ... nothing touched'; fix: AGI_BOX=local-town in carry.env (host act). DG1's write-path-fallback next touch must NOT land before it (aio).
+- A27 OWNER via belam [owner] 16:2xZ 11-14 (SM [review] 16:15:10Z, verbatim there): two fuel nodes = redundancy; fuel belongs in the town board node. PLACED: SM [decision] 16:20:47Z 3/3 (aio, alive, my w1): L-a1 PLAIN meme-master (town:core '## Fuel' + retire s4), L-a2 PLAIN belam (board its pick + retire the idea), L-b RULES ALONE (growth.tsv :60-64 out; [fuel].md kept, body check -> 'type closed'), belam wraps. CLOSED when L-b lands.
 - A26 OWNER via belam [owner] 15:1xZ 11-13 (verbatim there: "let's get everyone over to hub B at this time"). CLOSED: belam's host act; this post moved to hub B (8318) 15:12:44Z, restarted idle, nothing in flight; session resumed 15:13Z, watcher re-armed. belam asks the owner whether 'everyone' covers belam and meme-master.
