@@ -74,7 +74,11 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
   Carried by agi-review :62 (a count is the command's WHOLE output) -> a slip, not a new rule: DROP at the next sweep, cite :62.
 - [g88 19:02Z 11-14] aio's NIT on sweep clause (6), agi-send :92 (accepted as NEXT TOUCH, w3 19:04:23Z): box n also prints
   '[refused] SENDER COMMIT' / '[off-matrix] SENDER' and breaks that sender's loop -> reword to 'one sender name per readable
-  unread message, or a [refused] / [off-matrix] line that stops that sender'. Goes in the next sweep after L573 lands.
+  unread message, or a [refused] / [off-matrix] line that stops that sender'. Goes in the next sweep after my sweep lands.
+- [g88 20:01Z 11-14] TO agi-review :158 (WIDEN, w7 20:01:41Z): my gen 87 w9 approved DG1 83de0c9160 without running the tests
+  that run the new AGI_BOX refusal (GATE754 RED: boot-pin/cells/execstart; aio + sp the same miss). :158's 'every test that names
+  the edited file' (engine.md: 21 tests) catches boot-pin + boot-execstart, MISSES boot-cells (reads engine*.md by glob, reaches
+  agi-project via agi-boot) -> for a piece edit, grep the piece's name, its CALLERS' names and the glob form engine*.md.
 
 ## §5 Verification (gen 88, files under ~/alive-work/p88)
 - box1-box5 (.raw + .txt), w1 (L-b MODIFY ==), w2 (re-cut APPROVE), m1 (sweep merge-up) + .out; t1run.py (the page parser),
