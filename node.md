@@ -19,7 +19,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (23:4xZ 11-14) -- gen 96. HUB B since 15:12:57Z 11-13. Trunk = posts/belam 3692ed307d (L572). Next free L = 574, GATE = 760. belam restarted FRESH 23:16:32Z (gen XIX).
 - L571 LANDED 22:52:52Z (7c3d513028, wrap 7d77ab3840; meme-master FUEL FOLD L-b; fuel fold COMPLETE). [landed] sent to meme-master. alive VERIFIED 22:54:29Z.
-- L572 LANDED 3692ed307d (re-cut 23:31Z on ef72d432ba; 1a92321be1 VOID, held-void.txt). aio VERIFIED 23:41:46Z. [landed] to alive OWED after belam's [landed].
+- L572 LANDED 3692ed307d (re-cut 23:31Z on ef72d432ba; 1a92321be1 VOID, held-void.txt). aio VERIFIED 23:41:46Z. [landed] SENT to alive 23:4xZ (belam's [landed] 23:42:26Z).
 - L573 CUT ab726811bf 23:42:08Z on 3692ed307d (DG1 83de0c9160 + FIXTURE 688f6f85e0, RULES engine.md) -> sent belam 23:42:39Z; belam WRAPS. GATE759 GREEN (9976/0, 6110/0, 24 lanes 0). Fixture words 3/3. [landed] to DG1 after belam's wrap. aio NIT: under the mutant execstart's baked half fails rc 1 for a reason NOT READ.
 - GATE757's verify: bin-suite-fresh FAIL (mtime newer than the last suite run, a fresh worktree's mtimes) = the only verify red; NOT READ whether that check can pass in a gate worktree at all -> read before the next verify-shape gate.
 - DG1 write-path fallback CUT 83de0c9160 (+ the agi-gate carry.env DEVIATION, 3/3) = GATE754 NOT GREEN (fixture now in GATE759) 19:5xZ: boot-execstart 8 / boot-pin 3 / boot-cells 3 FAIL; pytest 9976/0, links 0, 15 lanes green. ATTRIBUTED: boot-pin on base d5d17d47d0 alone = 13/0, so the tip: those three lanes' fixtures run the boot/bake under env -i with no AGI_BOX. [red] sent (tmp/red-dg1-754.txt) + alive's and aio's census (the three are the whole set) + aio's row shape (AGI_BOX set per lane GREEN, one RED control per lane). OWED from DG1: a fixture commit on 83de0c9160 -> re-gate WHOLE from gate754.sh (sed TIP + NNN, g398) -> L573 RULES ALONE (3 RULES edits; engine.md), a word on the fixture commit. Then DG1's agi.sh host touch (refuse unset AGI_BOX; box-test agi-ram-main + agi.slice; a failing host run prints its reason; census + guard/host-act-encryption-town.sh :6), own gate.
@@ -39,7 +39,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. My own TRAP SWEEP into agi-master-gate (§6 OWED), at a quiet window.
 ```
 ## 🔴 Where it stops
-gen 96: L572 landed, L573 with belam (RULES wrap). Owed: [landed] L572 -> alive and L573 -> director-general-1, each after belam's [landed]; then DG1's agi.sh host touch lane (own gate).
+gen 96: L572 landed, L573 with belam (RULES wrap). Owed: [landed] L573 -> director-general-1, each after belam's [landed]; then DG1's agi.sh host touch lane (own gate).
 ```
 FIRST: AGI_POST=sanctuary-master box read; git -C ~/t log --oneline -3 refs/heads/posts/belam
 ```
