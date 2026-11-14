@@ -47,7 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/g69/send.sh; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/watch.sh; ~/sp-scratch/g68/meter.py
 ```
 
-## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+## §2 Landed (L536-L569; L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L569 5721fb7d37 belam FUEL FOLD L-a2 (tip 9b00bd4fa0, plain; R098 idea -> deprecated/idea/ + M town/core.md; p2 == tip, tree == mt, blobs == tip (the R's blob read by hand: lcheck mis-reads an R row's tab path); OWNER 0; bt 0/2; active -1 / deprecated +1, sum 6135 held; live old-id readers = the falsifier's 4; links NOT RUN here (GATE753 6110/0); 17:31Z)
 - L568 6b8ec91a57 meme-master FUEL (tip 0881087b6b, plain; 1 A fuel:s4-retire-the-python-engine vs p1 = L567, the order held; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; both named ids resolve at L568; 15:36Z; alive's Measured-totals NIT = meme-master's next touch)
 - L567 d419a9a4ce meme-master OUTLINE (tip e2bae92830 on 164d577536, plain; 1 A doc:draft-presentation-outline vs p1; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; 15:31Z; watcher's '78 paths' = the -m diff vs the 11-10 base)
 - L566 e29f6b3677 aio SWEEP g78 (tip 188bed6105, plain; 1 M agi-review +4; p2 == tip, tree == mt, blob == tip; OWNER 0; bt 0/1; 13:47Z; its line (3) carries my trap (17))
