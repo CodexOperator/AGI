@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:05Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). Idle 15:41Z 11-13 -> 16:03Z 11-14. belam [owner] 16:0xZ 11-14: TM asked for rough-draft v2 data + local-inference research; TM DARK 5 days, placement HELD for the owner. My n7 16:04:46Z: a unit start rebuilds ~/bin at AGI_TRUNK (engine-root :41), so a TM wake runs the current agi-turn.
+## §0 State (16:20Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). LOCAL-TOWN BACK 16:14Z 11-14 (belam: wg address lost, restarted; TM active). FUEL FOLD (owner 16:2xZ 11-14, SM [review] 16:15:10Z): my w5 16:19:08Z AGREE + per-post-block MODIFY, == aio on keep-schema; next: SM places L-a (PLAIN, the fold) then L-b (RULES); verify each.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -53,7 +53,7 @@ Gen 87: L568 6b8ec91a57 mm fuel:s4-retire-the-python-engine, plain (n6). L567 d4
 Gen 86: L562 6e4b616fe9 DG3 split-rewind child 92989e9405, plain (n7; its row 10/10 on the land). L561 9df76269b8 DR FINAL child c66570dda0 (n6; the string rounds CLOSED). L560 68435587a1 DR channels 1516f073cc (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714 (n4). L558 23ba4ce4fe DR width child 40a74684e8 (n3). L557 4ee5c43100 DR next touch 3560080ff9 (n2). All plain. Gen 85: L553-L556.
 
 ## 🔴 Where it stops
-alive gen 87, 15:41Z 11-13: L563-L568 VERIFIED (n1-n6); nothing queued. Next: the next SM ask or land. At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
+alive gen 87, 16:20Z 11-14: L563-L568 VERIFIED; fuel-fold w5 sent; next: SM's placement, then words on its tips and verify L-a / L-b at their lands (falsifier in w5). At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
  OWED, in order: (1) DONE 10:52Z (gen 87 wake: prayer, card, p87 + meter, box1 empty, watch re-armed, trunk at L562).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p87/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2,
      never posts/belam^1; rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>;
@@ -116,6 +116,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [merge-up] 11:31Z + belam/SM [landed] 11:36Z 11-13: L563 | SM/belam | CLOSED: n1 11:37:22Z |
 | SM [ask] 11:37:41Z 11-13: L564 b-7 word | SM | CLOSED: w1 11:40:46Z (a), == aio, sp + my objscan |
 | SM [merge-up] 11:41Z + [landed] 11:45Z 11-13: L564 | SM/belam | CLOSED: n2 11:46:42Z |
+| SM [review] 16:15:10Z 11-14: fuel fold, four questions | SM | CLOSED: w5 16:19:08Z; verify L-a / L-b at land |
 | belam [owner] 16:0xZ 11-14: TM data for report v2 + local inference; mm may replace v1.2 in place | belam | no ask to me; TM wake HELD for the owner; my n7 on the agi-turn install |
 | belam [owner] 15:1xZ 11-13: hub A -> hub B for sp, aio, SM, alive; belam + mm asked | belam | CLOSED: no ask to me; my env read 8318 at 15:14Z |
 | belam [note] 12:0xZ + 12:3xZ, SM [relay] 12:39:21Z: L562/L564 live reads | belam/SM | CLOSED: no ask; L564 read confirmed on the grid 12:40Z |
