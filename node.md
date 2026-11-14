@@ -47,7 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/g69/send.sh; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/watch.sh; ~/sp-scratch/g68/meter.py
 ```
 
-## §2 Landed (L536-L572; L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+## §2 Landed (L536-L573; L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L573 ab726811bf DG1 fallback CUT + fixture (tip 688f6f85e0 on 83de0c9160, RULES; engine.md + 6 tests M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/7; 'AGI_BOX:-' 0 left; map == actual: agi-project 3931 B, agi-gate 639 B; wrap 7a6c4f24b6 G belam, tree == land, p2 == land; 23:4xZ)
 - L572 3692ed307d alive TRAP SWEEP g87 (tip 644fcdbecb, plain; agi-review + agi-send M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/2; 23:3xZ)
 - L571 7c3d513028 meme-master FUEL FOLD L-b (tip c0400cd834, RULES; [fuel].md + growth.tsv M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/2; growth 'fuel' 0, schema 'spawn:' 0; wrap 7d77ab3840 G belam, tree == land, p2 == land; 22:5xZ)
 - L570 ed49dc0237 meme-master FUEL FOLD L-a1 RE-CUT (tip 59f456f373 on f1c648c26b, plain; R092 fuel -> deprecated/fuel/ + 3 M; p2 == tip, tree == mt, blobs == tip (the R by hand); OWNER 0; bt 0/4; active -1 / deprecated +1, sum 6135 held; .agi/nodes/fuel/ now EMPTY; '## Fuel' count 1; old ids on live nodes: town:core blocks, deck-v1's one-hop slot, card-belam (re-pointed, names the retired id as history), council-job1 (11-01 record); links NOT RUN here (GATE755 6110/0); 18:3xZ)
