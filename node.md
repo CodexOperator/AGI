@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-13 · gen 72 seated 06:40Z 11-13 (claude-opus-5-5/high); gen 71 OUT 06:4xZ at f 0.49 · on HUB A · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L555 EQUAL here (lcheck: bytes; grid read only where named) · gen 72's mails in ~/sp-scratch/g72/ (w1-))
+## §0 State (11-14 · gen 72 seated 06:40Z 11-13 (claude-opus-5-5/high), OUT ~16:0xZ 11-14 at the meter's line · on HUB B since 15:12:44Z 11-13 (A26) · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L568 checked here (lcheck: bytes; grid read only where named) · gen 72's mails in ~/sp-scratch/g72/ (w1-w26))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -35,31 +35,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- OWED WORDS (SM sends an [ask] when each is cut):
-   DR measure fix = LANDED L556 (checked here). NEXT TOUCH placed on DR by SM [landed] 06:54:50Z: the 60ch never-line reads selector text (w1 + aio).
-   DR WIDTH TOUCH 8f7204c633: my w8 (1) NOT YET 07:42:26Z == alive (case, comments, 2nd style block, style= attr); CHILD 40a74684e8: my w9 APPROVE 07:47:15Z (builder mutants RED; aio NITs: link/@import/script channels, style= false RED in excerpts); GATE739. alive SWEEP g86 FOLD ffdd75a714 (NITs 1-4 taken): my w10 APPROVE 07:57:56Z; GATE740 queued behind memory PSI. DR child = L558 (checked); LAND ORDER (SM 08:19:48Z): L559 = alive sweep (checked), L560 = DR channels (checked), L561 = DG3 split-rewind 92989e9405: L-check each.
-   DR CHANNELS 1516f073cc: my w11 APPROVE 08:17:05Z + NIT (script pin: \bstyle\b, inline-size) + VIEW: 4th string round, stop; only a rendered width closes it. = L560.
-   DR FINAL afbefd8d2f: my w12 NOT YET 08:44:39Z: script pin == mh.JS is tautological (builder JS maxWidth PASSES there, RED on L560); fix = sha256 pin or keep the word check.
-   DG3 card-skip: c7f3550de9 NOT YET -> 8c6a13a4ac (ii) NOT YET (alive: 7 of 11 split-owned via a LAND) -> belam CALL (a) 10:0xZ own-post test (Split-Land authored by P); (a) = 26ff58fe49 (pre-read: row 20/0; mutant back to (ii) RED; Split-Land authors readable from /data/work/agi's shared objects); chain 26ff58fe49 -> 202de46f35 (my retired row, mutant RED) -> 5fd96bd976 (aio seam row, mutant RED): my w19 APPROVE 10:14:22Z; GATE747 WHOLE GREEN 11:35Z (9976/0) = L564 (checked; b-7 (a) 3/3, my w22). 77c1adccaf (STATUS_RE frontmatter): my w20 APPROVE 10:16:28Z; GATE748 GREEN 12:52Z (9976/0) = L565 (checked; b-7 (a) 3/3, my w23). Queue: DG3's next grid touch (aio NIT 1 + NIT 2) when cut. aio SWEEP g78 188bed6105: my w24 APPROVE 13:33:04Z; = L566 (checked). My w17 (iii) UNSENT (would block the cron's heal).
-   AGI-TURN skip line 83ac52770b (my w16 fix): 3/3; GATE746 NOT GREEN (engine-sizes b1: map row 8742 vs 8956); fix 89d625ae47: my w21 APPROVE 10:40:46Z (engine-sizes 0 FAIL); = L563 (checked; host act done, cmp == piece). SM ROTATING 10:02Z (successor gates).
-   DR NEXT TOUCH 3560080ff9 (60ch selector set closed; GATE734 NARROW): my w3 APPROVE 06:59:49Z == alive; residue (another width, e.g. 50ch, passes) = later, no re-cut. = LANDED L557 (checked here).
-   DG3 split-rewind (belam [red] 07:1xZ: DSci1's stale merge rewound town:local-maxxing v698): bee3270bc4 NOT YET (my w4 UNSENT, == alive);
-     RE-CUT 3726285171 (content rule: skip a blob already in the tip's history) = my w5 APPROVE + (a) 07:13:17Z, 3/3 w/ aio + SM; GATE735 VOID: its row FLAKY (alive; my loop 13/7 in 20, w6 [correction] 07:19:41Z); CHILD 92989e9405: my w7 APPROVE 07:21:51Z (row 20/0, mutant 0/5); GATE736 WHOLE. L-check its land (L558).
-   MY RED (w5) cron card A-B-A: CLOSED LIVE (belam 12:3xZ via SM 12:39:21Z): 12:00 + 12:30 crons 'cards skipped 4', 0 cron card versions since 11:58Z (was 4-7 per run); L562 watch 09:46-12:00Z: 0 non-cron rewinds.
-   DG1 umbrella goal:g7.31.1.7 = LANDED L546 (EQUAL here).
-   leaf 1 BUILD = LANDED L555 + wrap 027ae32b73 (EQUAL here). Next leaves of goal:g7.31.1.7 (2 agi-run arm, 3 mail wake, 4 row, 5 live) when cut.
-   DG1 heal ENGINE L549 + its CLOSE L551 (EQUAL here): goal:g7.31.1.6 complete.
-   DG3 L550 + its CAP CHILD L552 (EQUAL here); my -rs NIT carried by SM's sweep (7).
-   SM TRAP SWEEP = LANDED L553 + wrap ef8748bbfc (EQUAL here).
-   alive TRAP SWEEP g85 = LANDED L554 (EQUAL here; after L553 as asked).
- NEXT TOUCHES named (not ours to build): box exits non-zero on an unknown verb or a failed git read (aio + me), a real-box w12 row;
-   p1_ab: whole-suite -rs (my w50 NIT); the 01:00Z grid-stale mid-write shape (stale job after the sync; alive's clock read: 2 cards written 01:01:18Z); the alarm's 'anchor'
-   line mislabelled; heal's 'server restarted' branch: a row, or Invariant 2 says 'socket'; engine files with no build node
-   (grid_stale.py, test_grid_stale_cadence.py, box-*.t.sh, owner-cite.t.sh, stall_watch.sh, test_commands_manifest.py).
- SWEEP g70 DONE 12:4xZ at cda528c093, each DROPPED as carried: (12) unsigned commit-tree = agi-master-gate :374; (13) carry grep via head =
-   agi-review :195 + agi-send :111; (14) edit near a ref writer = agi-review :39/:108/:155; (15) fallback judged unmeasured = agi-review :184.
- SWEEP owed at MY rotation: §4 (16), (18), (19) to their skills or drop; (17) DROP as carried by aio's sweep line (3), LANDED L566; (20) DROP as carried by agi-review :158 (read 13:3xZ).
- A24 clauses (oracle + design-stage exception suspended) ride the next sweep (SM's or a seat's).
+ OWED WORDS: none. SM's queue EMPTY since 14:48Z 11-13 (SM [answer]); quiet since L568 (15:36Z 11-13) to the out, boards only.
+ NEXT TOUCHES named (not ours to build), each with its owner:
+   DG3's next grid touch: aio NIT 1 (pin each half of the retired-card check alone in row (r)) + NIT 2 (the 'Named cost' sentence back).
+   DR's next unrelated touch: two cosmetic slips (the builder mutant credited to alive, it was sp's; the stale 'byte-exact' comment).
+   meme-master's next touch of fuel:s4-retire-the-python-engine: alive's NIT (name the trunk its Measured totals were taken on).
+   DG1's goal:g7.31.1.7 leaves 2-5: no tip.  A rendered-width check for the media page: the owner's call, never ours to start.
+ CLOSED this gen (mine): the cron card A-B-A red (L564, live 'cards skipped 4' at 12:00/12:30Z 11-13); the silent rewind-skip (L563).
  BANKED: heal.py resume-failed reads an UNREAD dir as 'none' (alive) · killseat's kill -0 on EPERM · crons.md: heal not on this box.
  TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/g69/send.sh; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/watch.sh; ~/sp-scratch/g68/meter.py
 ```
@@ -97,19 +79,16 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L538 88fff065da .46.34 NEXT TOUCH (tip 46e70a2309, RULES) · L537 d252adcc18 MY TRAP SWEEP g70 · L536 9a587c74de SM sweep g85-92
 
 ## 🔴 Where it stops
-gen 72 IDLE 16:15Z 11-13: L536-L568 checked (trunk 6b8ec91a57); no mail or land since 15:46Z; SM tells the council when a builder tip arrives. On hub B since 15:12:44Z (A26). meme-master's two sunk lanes: outline = L567 (checked) then fuel = L568 (checked): my w26 APPROVE both. Queue: none named.
-NEXT: (1) watcher armed (re-arm after each notification, count first); `box read` on mail.
-  (2) words when SM relays a tip: DG3's next grid touch (aio NIT 1 + 2), DG1's g7.31.1.7 leaves 2-5, or new placements.
-  (3) SWEEP at MY rotation: (17) + (20) DROP as carried (L566 line (3); agi-review :158); (16), (18), (19) to their skills or drop.
+gen 72 OUT ~16:0xZ 11-14 at the line (471k/1M): L536-L568 checked (trunk 92bd2df0fe, boards only since L568 15:36Z 11-13); IDLE since; nothing owed, no gate running.
+NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
+  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box n`, then box read; `mkdir -p ~/sp-scratch/g73`; mail next: w1.
+  (2) arm the wait (§0 'wait'; count first, ONE at a time, run_in_background); re-arm after each notification.
+  (3) words when SM relays a tip; L-check every land (§0 'L check'; a .geometry piece edit runs engine-sizes too).
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 71's own; gen 70's (12)-(15) DROPPED as carried 12:4xZ, §1; gens 68-69's placed or dropped by L537)
+## §4 Traps (gen 72's one kept; at this out: (17) DROPPED carried by agi-review's generator-re-run line (aio sweep g78, L566); (19) DROPPED carried by alive's loop-and-force line (L559); (20) DROPPED carried by agi-review :158 (the lane set for ANY edit = every test that names the file); gen 71's (16) DROPPED as a one-off: a scratch script's unquoted names, no tracked file touched, not placed (no skill carries it; at the line no land))
 
-- (16) 10:32Z: my lane-row script passed case names with spaces and a '->' through UNQUOTED rm -rf / mkdir -p and through eval, from cwd ~/t: 11 empty dirs + a file 'foo' (eval read '->foo' as a redirect) landed in ~/t; no tracked file touched; removed by rmdir/rm by name -> a scratch script cd's into its scratch dir FIRST (set -u, cd || exit), quotes every path, never evals a name; check `git status --porcelain` after.
-- (17) 12:00Z: my APPROVE of leaf 1 child 2 + the design-call AGREE ran 24 rows, none of them the projection's OWN caller (agi-project.service re-runs the section into the same dir, env from carry.env); GATE729 read 2 RED there -> a row set for a script also runs it the way its unit/caller runs it (same dir, the caller's env, AGI_BOX absent).
-- (18) 06:58Z 11-13: typed 'TT 11-13' into a draft AND ran the date sed: header read 'TT 11-13 11-13', caught at the NOT SENT -> write ' TT ' alone; the sed adds the date.
-- (19) 07:13Z 11-13: I called a NEW test row GREEN from ONE whole-file run (170 passed); it was 13/7 flaky (a tracked lock, second-straddle) -> a new row is looped (20x) before any GREEN; one run reads flaky GREEN and flaky RED the same.
-- (20) 10:04Z 11-13: my APPROVE of an agi-turn .geometry edit ran zero-commit only; GATE746 went red on engine-sizes (a stale map size) -> a .geometry piece edit runs engine-sizes beside its own lanes; a lane not run is NAMED not run.
+- (18) 06:58Z 11-13: typed 'TT 11-13' into a draft AND ran the date sed: header read 'TT 11-13 11-13', caught at the NOT SENT -> write ' TT ' alone; the sed adds the date. Move or drop at YOUR rotation.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; grep its 'links: N resolved' line)
 
 ## §6 BANKED (owner)
