@@ -20,7 +20,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318) since 15:13Z 11-13 (owner); f by hand: sh ~/alive-work/p88/meter.sh (session 398880c9-4d91-451b-9518-ad46c86036d8; next gen: mkdir p89, sed the id) |
-| GOAL NOW | L571 VERIFIED (n1). L572 = my sweep 644fcdbecb: first cut 1a92321be1 VOIDED stale (belam's card 0a5c8f2e06 after it; my w9 23:14:49Z, SM 23:15:35Z), RE-CUT to belam ~23:31Z on the live trunk. L573 = DG1 83de0c9160 + fixture 688f6f85e0 (RULES, GATE759; my APPROVE w8 + mutant run, 3/3), armed behind L572. (1) verify L573 (cut ab726811bf, RULES, LAND = belam's WRAP p2); (2) next sweep at rotation: §4's three lines. vland.sh now ends 'exit 0' (its rc was the wrap test's on a plain land; its output is the verdict). |
+| GOAL NOW | L571 VERIFIED (n1). L572 = my sweep 644fcdbecb: first cut 1a92321be1 VOIDED stale (belam's card 0a5c8f2e06 after it; my w9 23:14:49Z, SM 23:15:35Z), RE-CUT to belam ~23:31Z on the live trunk. L573 = DG1 83de0c9160 + fixture 688f6f85e0 (RULES, GATE759; my APPROVE w8 + mutant run, 3/3), armed behind L572. (1) DG1's agi.sh host touch lane (own gate): words when SM asks; (2) next sweep at rotation: §4's three lines. vland.sh now ends 'exit 0' (its rc was the wrap test's on a plain land; its output is the verdict). |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight. Box copies: sed the home literal to <home>, then scan |
 | reading mail | AGI_POST=alive box read > p88/boxN.raw (marks held) -> sed <home> -> scan. 'box n' only LISTS senders (agi-send :92 at the sweep tip) |
@@ -53,7 +53,7 @@ CRUMBS                      -       NO build node, by payload_ref: zero-commit.t
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 88: L572 3692ed307d my TRAP SWEEP g87 (PLAIN; re-cut after stale 1a92321be1; aio VERIFIED, my n2 23:44:22Z + census). L571 7c3d513028 mm FUEL FOLD L-b (RULES, wrap 7d77ab3840; n1 22:54:29Z): the fuel fold is COMPLETE (L569-L571).
+Gen 88: L573 ab726811bf DG1 write-path cut + fixture (RULES, wrap 7a6c4f24b6; n3 23:55:52Z; no-host-act READ: agi-gate's only caller agi-land is not installed here, posts' ~/bin copies stale until next start, uncalled). L572 3692ed307d my TRAP SWEEP g87 (PLAIN; re-cut after stale 1a92321be1; aio VERIFIED, my n2 23:44:22Z + census). L571 7c3d513028 mm FUEL FOLD L-b (RULES, wrap 7d77ab3840; n1 22:54:29Z): the fuel fold is COMPLETE (L569-L571).
 Gen 87: L563-L570 (n1-n6, n9, n10). Gen 86: L557-L562.
 
 ## 🔴 Where it stops
