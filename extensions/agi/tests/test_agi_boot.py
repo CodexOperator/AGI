@@ -195,7 +195,7 @@ def test_project_service_execstart_checks_dropin_not_wants_links(box):
     frag1 = re.search(r'^ExecStart=sh -c "(.*)"$', (o1 / "agi-project.service").read_text(), re.M).group(1); before = snap()
     env_nobox = {k: v for k, v in run.env.items() if k != "AGI_BOX"}
     r1 = subprocess.run(["sh", "-c", frag1], cwd=run.repo, env={**env_nobox, "AGI_TRUNK": subprocess.run(["git", "rev-parse", "HEAD"], cwd=run.repo, check=True, capture_output=True, text=True).stdout.strip()}, capture_output=True, text=True, timeout=60)
-    assert r1.returncode != 0 and "nothing touched" in r1.stderr and snap() == before and list((o1 / "multi-user.target.wants").iterdir()), r1.stderr
+    assert r1.returncode != 0 and "AGI_BOX unset" in r1.stderr and snap() == before and list((o1 / "multi-user.target.wants").iterdir()), r1.stderr
     pf.write_text(rows.replace('"boot": true, ', "")); ci()
     assert execstart("o2") == 0  # v4 rows, no boot row: no wants link, h.conf drop-ins exist
     pf.write_text(re.sub(r', "engine": \{.*?\}', "", rows)); ci()

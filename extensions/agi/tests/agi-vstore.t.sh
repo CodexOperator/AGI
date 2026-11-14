@@ -143,7 +143,7 @@ counts(){ sf=$(grep -c '^setfacl' $T/log||true);st=$(grep -c '^b ' $T/log||true)
 comp(){ rm -f $T/startran;(set -f;cd $T/m&&env -i $1 timeout 90 sh -c 'sh "$0"&&{ : >"$2";sh -c "$1";}' $VP "$2" $T/startran >$T/x.out 2>$T/err);crc=$?;[ -e $T/startran ]&&ran=1||ran=0;counts;}
 pre_only(){ (set -f;cd $T/m&&env -i $1 timeout 60 sh $VP >$T/pre.out 2>$T/pre.err);prc=$?;}
 start_only(){ rm -f $T/startran;(set -f;cd $T/m&&env -i $1 timeout 60 sh -c "$2" >$T/x.out 2>$T/err);brc=$?;counts;}
-bw(){ echo "PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null $OWN AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io $UER AGI_VSTORE=$T/vs AGI_MAIN=$T/m AGI_TRUNK=$PIN";}   # a function: mkm mints a NEW MAIN (a new pin) every time
+bw(){ echo "AGI_BOX=local-town PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null $OWN AGI_RAM=$T/ram AGI_BOOT_OUT=$T/out AGI_LOADAVG=$T/la AGI_PSI_IO=$T/io $UER AGI_VSTORE=$T/vs AGI_MAIN=$T/m AGI_TRUNK=$PIN";}   # a function: mkm mints a NEW MAIN (a new pin) every time
 breset(){ rm -rf $T/vs $T/out $T/ram $MARK;: >$T/log;}
 mkm;breset;comp "$(bw)" "$UCMD"
 ok "c2-clean-main-boots-through-the-store the composed chain sh -c 'PRE && START' (cwd MAIN, GIT_DIR=$T/vs from the unit) on a clean MAIN: rc $crc (want 0), START reached: $ran (want 1), $st start(s) (want 2), $uf unit file(s) written (want > 0), the unit's GIT_DIR word present: $gdw (want 1)" '[ $LIVE = 1 ]&&[ $gdw = 1 ]&&[ $crc = 0 ]&&[ $ran = 1 ]&&[ $st = 2 ]&&[ $uf -gt 0 ]'
@@ -169,7 +169,7 @@ ok "c3-path-unit-watches-the-pin-file agi-project.path: PathChanged=/etc/agi/car
 UB=$(sed -n 's/^ExecStart=//p' $BS);BE=$(sed -n 's/^Environment=//p' $BS|tr ' ' '\n'|sed "s#GIT_DIR=$bgd#GIT_DIR=$T/vp#;s#AGI_VSTORE=$bgd#AGI_VSTORE=$T/vp#")
 # B2 for the baked unit: WorkingDirectory=%s is $PWD at bake time = MAIN; the same composed chain, the baked unit's own Environment words (GIT_DIR rewritten to the scratch store) + ONLY the pin from carry.env
 bcounts(){ hc=$(ls $T/out/agi-post@*.service.d/h.conf 2>/dev/null|wc -l|tr -d ' ');su=$(grep -c '^sysusers' $T/log||true);}
-bwb(){ echo "PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null $OWN $BE AGI_MAIN=$T/m AGI_TRUNK=$PIN";}
+bwb(){ echo "AGI_BOX=local-town PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null $OWN $BE AGI_MAIN=$T/m AGI_TRUNK=$PIN";}
 bareset(){ rm -rf $T/vp $T/out $MARK;: >$T/log;}
 mkm;bareset;comp "$(bwb)" "$UB";bcounts;BAKEOK=0;[ $LIVE = 1 ]&&[ -n "$UB" ]&&[ $crc = 0 ]&&[ $ran = 1 ]&&[ $hc -gt 0 ]&&[ $su = 1 ]&&BAKEOK=1
 ok "c3-baked-execstart-regrows-through-its-store the composed chain sh -c 'PRE && START' of the baked unit (cwd MAIN), clean MAIN, only AGI_TRUNK from carry.env: rc $crc (want 0), START reached: $ran (want 1), $hc post unit drop-in(s) regrown (want > 0), sysusers called $su time(s) (want 1)" '[ $LIVE = 1 ]&&[ -n "$UB" ]&&[ $crc = 0 ]&&[ $ran = 1 ]&&[ $hc -gt 0 ]&&[ $su = 1 ]'
@@ -193,7 +193,7 @@ sect sect >$T/fk/sect;sect agi-gate >$T/fk/agi-gate;chmod +x $T/fk/sect $T/fk/ag
 mkm;sed 's|\\047/^### agi-project /|\\047/^### agi-projectX /|' $T/m/.agi/nodes/.geometry/engine.md >$T/bad.engine;nbad=$(grep -c 'agi-projectX' $T/bad.engine||true)
 GOODC=$PIN;cp $T/bad.engine $T/m/.agi/nodes/.geometry/engine.md;$G -C $T/m add -A;$G -C $T/m commit -qm "bad candidate";BADC=$($G -C $T/m rev-parse HEAD)
 printf -- '---\nposts:\n' >$T/old.posts;row zold >>$T/old.posts;ob=$($G -C $T/m hash-object -w $T/old.posts);rm -f $T/idx;GIT_INDEX_FILE=$T/idx $G -C $T/m read-tree $GOODC;GIT_INDEX_FILE=$T/idx $G -C $T/m update-index --cacheinfo 100644,$ob,.agi/nodes/.geometry/posts.md;STALE=$(GIT_INDEX_FILE=$T/idx $G -C $T/m commit-tree -m stale $(GIT_INDEX_FILE=$T/idx $G -C $T/m write-tree))
-gate(){ (cd $T/m&&env -i PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null $OWN GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' $1 timeout 60 sh $T/fk/agi-gate $2 >$T/g.out 2>$T/g.err);grc=$?;}
+gate(){ (cd $T/m&&env -i AGI_BOX=local-town PATH=$T/fk:/usr/bin:/bin HOME=$T/hm GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null $OWN GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' $1 timeout 60 sh $T/fk/agi-gate $2 >$T/g.out 2>$T/g.err);grc=$?;}
 gate "" $GOODC;g1=$grc;gate "" $BADC;g2=$grc;gate "AGI_TRUNK=$STALE" $GOODC;g3=$grc;gate "AGI_TRUNK=$STALE" $BADC;g4=$grc
 ok "c5-agi-gate-accepts-a-good-candidate-whatever-AGI_TRUNK the gate piece present: $hg (want 1); a GOOD candidate with AGI_TRUNK UNSET: rc $g1 (want 0); with a STALE AGI_TRUNK=<another commit, different posts> in the env: rc $g3 (want 0)" '[ $hg = 1 ]&&[ $LIVE = 1 ]&&[ "$g1" = 0 ]&&[ "$g3" = 0 ]'
 ok "c5-agi-gate-refuses-a-candidate-whose-agi-project-would-not-regrow-whatever-AGI_TRUNK a BAD candidate (its baked ExecStart extracts a section that does not exist: $nbad edit): AGI_TRUNK UNSET rc $g2, STALE AGI_TRUNK rc $g4 (want both != 0 and != 127, identical verdicts)" '[ $hg = 1 ]&&[ "$nbad" = 1 ]&&[ "$g2" != 0 ]&&[ "$g2" != 127 ]&&[ "$g4" != 0 ]&&[ "$g4" != 127 ]'
