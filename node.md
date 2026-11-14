@@ -55,7 +55,7 @@ goal:g5.4.3 holds the owner's first ask (the post, the presentation, then the pa
 ## Invariants
 - Nothing the owner keeps verbal-only (c:2763ec818294) is on screen, in charts, in the references or in the deck source, except its speaker notes (\note{...}), which the owner allows (c:4b5d4abae03e); % comments and every other line stay clean.
 - Evidence on slides only from cited, checked sources; a prediction is labelled a prediction; no invented number. Data the town has not gathered is a visible placeholder.
-- The live-engine fact is "~1.2k lines of shell stored in graph nodes run the town; ~100k lines of older Python are being retired", never "104k lines of engine Python" (fuel:s4-retire-the-python-engine).
+- The live-engine fact is "~1.2k lines of shell stored in graph nodes run the town; ~100k lines of older Python are being retired", never "104k lines of engine Python" (town:core '## Fuel', meme-master block).
 - goal:g5.4.3's invariants hold (finals the owner's; photos never committed; boxes SM and TM, never belam).
 
 ## Falsifier
