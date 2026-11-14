@@ -82,7 +82,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## 🔴 Where it stops
 gen 73 LIVE 16:2xZ 11-14: w1 (fuel fold) SENT 16:20:40Z; local-town BACK 16:14Z (belam: wg-quick@agilab lost its address; TM up) -> A25 CLOSED 16:25Z (AGI_BOX present).
   w3 16:47:36Z: belam's local-town HOST ACT = APPROVE full order (== aio + its scratch pre-step) + C1 (agilab addr + timed NFS read before (0)) + C2 (agi-project.path fires on the carry.env write: say which projection wrote h.conf; name the RED read-back case).
-  GRID LOCK red (belam's): .grid.lock names dead pid 3788920 (16:30:11Z) yet the flock is held: every turn-end split refused since; told SM in w3.
+  GRID LOCK red (belam's): .grid.lock names dead pid 3788920 (16:30:11Z) yet the flock is held: every turn-end split refused 16:30-16:4xZ; told SM in w3. FREE by 16:48:06Z (SM; alive saw a split hold it 16:47:41Z); what held it after the pid died NOT READ.
+  belam's scratch pre-step 16:5xZ: 0 removed, 0 added, 10 changed (5 crew directors' post + boxwake h.conf -> sonnet).
   w4 16:48:12Z: L-a2 belam 9b00bd4fa0 APPROVE -> L569 (L-check it when it lands).
 NEXT: (1) `stat -c '%a %U' /dev/null` = '666 root'; box read on each 'mail: box read'. (2) the wait (§0 'wait'; count first). (3) L-check every land (§0 'L check').
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
