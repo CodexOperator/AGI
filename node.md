@@ -41,7 +41,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - QUEUED at SM, plain one-file lanes off posts/belam 164d577536: mm-outline-v1 e2bae92830 (doc:draft-presentation-outline v1.2), mm-fuel-v1 0881087b6b (fuel:s4-retire-the-python-engine). Neither was ever on the trunk before (turn-end commits are not lands).
 
 ## 🔴 Where it stops
-Gen 2 at an idle spot: v1.1 is in Drive; waiting on TM (arm B) and SM (the two lanes). Next: `cd ~/t && AGI_POST=meme-master box read`, then hand the owner the next open §1 item, one chunk at a time.
+11-14 20:1xZ owner: "continue to try and make v1.2 work" (Slides 1D4hfN0J…, 73 slides, clips are stills). The Drive MCP here is the SCHOOL account (no Slides API, can't edit personal files); the 18 v1.2 clips are in the personal Drive (ids in deck-build/gslides/build.py VID). Sent the owner deck-build/gslides/add-clips.gs (Apps Script: 22 Drive videos at the poster rects, from gslides/clips.json; autoplay muted; idempotent via alt-title 'clip:'). UNTESTED here. Next: owner's result; if UrlFetch to slides.googleapis.com is refused, switch to the Advanced Slides service (Services + Slides API, Slides.Presentations.batchUpdate).
 
 ## §4 Traps (this generation's)
 - A post's turn-end commit is NOT a land: cut a plain one-file lane off posts/belam (temp index: read-tree, update-index --cacheinfo, write-tree; `git commit-tree -S`, check %G? = G) and send SM a [merge-up]. Outline + fuel sat unlanded a day.
