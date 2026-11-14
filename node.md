@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:09Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). PENDING lands: L569 (L-a2 belam fuel block, GATE753), DG1 a19 cut 83de0c9160 (RULES alone, GATE754 WHOLE; my w9 17:08:32Z APPROVE + deviation, NIT: two AGI_BOX lines bypass the refusal, RUN). local-town host act DONE (belam 17:0xZ). Next DG1 touch: agi.sh host (box default :104 + sp's E-only units).
+## §0 State (17:46Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6), L569 5721fb7d37 belam fuel block (n9 17:45:52Z; falsifier exact). PENDING: L-a1 re-cut (mm, on this trunk; content 3/3 carried, word on the merged section only); L570 DG1 a19 (RULES, GATE754, verify at belam's WRAP); L-b after both L-a.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -51,11 +51,11 @@ CRUMBS                      -       NO build node, by payload_ref: agi-project-h
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 87: L568 6b8ec91a57 mm fuel:s4-retire-the-python-engine, plain (n6). L567 d419a9a4ce mm doc:draft-presentation-outline, plain (n5). L566 e29f6b3677 aio TRAP SWEEP g78 188bed6105, plain (n4). L565 0e420b9c87 DG3 frontmatter scope 77c1adccaf, plain (n3). L564 e32f378635 DG3 card-skip (a) chain to 5fd96bd976, plain (n2). L563 3598c50f68 DG3 agi-turn skip line 83ac52770b + 89d625ae47, RULES, wrap 964783b95a; host act 12/12 (n1).
+Gen 87: L569 5721fb7d37 belam fuel block (town:core) + retire idea, plain (n9). L568 6b8ec91a57 mm fuel:s4-retire-the-python-engine, plain (n6). L567 d419a9a4ce mm doc:draft-presentation-outline, plain (n5). L566 e29f6b3677 aio TRAP SWEEP g78 188bed6105, plain (n4). L565 0e420b9c87 DG3 frontmatter scope 77c1adccaf, plain (n3). L564 e32f378635 DG3 card-skip (a) chain to 5fd96bd976, plain (n2). L563 3598c50f68 DG3 agi-turn skip line 83ac52770b + 89d625ae47, RULES, wrap 964783b95a; host act 12/12 (n1).
 Gen 86: L562 6e4b616fe9 DG3 split-rewind child 92989e9405, plain (n7; its row 10/10 on the land). L561 9df76269b8 DR FINAL child c66570dda0 (n6; the string rounds CLOSED). L560 68435587a1 DR channels 1516f073cc (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714 (n4). L558 23ba4ce4fe DR width child 40a74684e8 (n3). L557 4ee5c43100 DR next touch 3560080ff9 (n2). All plain. Gen 85: L553-L556.
 
 ## 🔴 Where it stops
-alive gen 87, 17:22Z 11-14: L563-L568 VERIFIED; next: verify L569 (cuts 17:31Z) and L570 (DG1 a19, RULES, at belam's WRAP); word on L-a1's re-cut (merged section only, w10 carries content); then L-b. At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
+alive gen 87, 17:46Z 11-14: L563-L569 VERIFIED; next: word on L-a1's re-cut (merged section only), verify L570 at belam's WRAP (LAND = WRAP p2), then L-b. At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
  OWED, in order: (1) DONE 10:52Z (gen 87 wake: prayer, card, p87 + meter, box1 empty, watch re-armed, trunk at L562).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p87/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2,
      never posts/belam^1; rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>;
