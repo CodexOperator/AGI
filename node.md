@@ -39,7 +39,7 @@ frontmatter scope           DG3     L565 0e420b9c87 VERIFIED (n3). Live cron fro
 agi-turn skip line          DG3     L563 VERIFIED (n1). TM/dt-1 stale bin/agi-turn: CLOSED n7 (a unit start rebuilds ~/bin at AGI_TRUNK).
 fuel fold (owner 11-14)      mm/belam L-a1 mm, L-a2 belam (PLAIN, either order), L-b mm RULES alone, belam wraps. Words on tips; VERIFY each land.
 DG3 next grid touch         DG3     aio's NIT 1 (pin each half of the retired check alone), NIT 2 (the 'Named cost' sentence back).
-L555 item                   TM      PARKED on TM's wake (SM 10:25:47Z); DG1's write-path next touch waits on it.
+L555 item                   TM      CLOSED: SM [relay] 16:25:45Z 11-14 (TM read AGI_BOX=local-town); DG1's fallback: aio's cut-or-drop.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
 turn-end grid misses        alive   3 this gen (08:16Z unify, 10:02Z commit --all, 10:16Z unify): the split waits 30 s, the lock
                                     holders run 80-180 s; self-heals (~/.grid-base kept, base advanced). Observation; raise if a base stalls.
@@ -125,7 +125,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [merge-up] 12:57Z + belam/SM [landed] 13:10Z 11-13: L565 | SM/belam | CLOSED: n3 13:11:26Z |
 | aio [merge-up] 13:31:18Z + SM [note] 13:31:58Z 11-13: aio TRAP SWEEP g78 188bed6105, words | aio/SM | CLOSED: w3 13:34:06Z APPROVE; L566 VERIFIED (n4) |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2) |
-| L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | PARKED (SM [answer] 10:25:47Z): TM dark, WAKE section unread; SM tells the council when TM versions its card. Not red while parked |
+| L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | CLOSED: SM [relay] 16:25:45Z 11-14, TM read AGI_BOX=local-town; aio decides cut/drop of DG1's fallback |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | CLOSED: w4 15:18:26Z APPROVE; L567 (n5), L568 (n6) VERIFIED; my fuel NIT rides mm's next touch |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
