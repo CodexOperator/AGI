@@ -540,7 +540,7 @@ submitted bytes: rough-draft-v1 = the PRIVATE deck as built (the owner's Drive a
     \input{charts/s8-funnel.tex} % F1, owner-approved 11-10 (stats-graph.md, 2026-11-10); clicks 1-5
   \column{0.42\textwidth}
     \uncover<6->{{\small\bfseries What it takes to run it today:}\\[2pt] % OWNER c:pending-tap
-    % F4 (owner 11-10): engine size, honest split (trace 11-09, fuel:s4-retire-the-python-engine; static, upper bound). Page = ~50 lines, illustrative.
+    % F4 (owner 11-10): engine size, honest split (trace 11-09, town:core ## Fuel, meme-master block; static, upper bound). Page = ~50 lines, illustrative.
     \begin{tikzpicture}[x=0.5mm,y=1mm,font=\tiny]% bar lengths in thousands of lines (TeX caps a number near 16k)
       \foreach \y/\n/\lab/\pg/\c in {15/1.2/{shell engine, in the graph}/{$\approx$24 pages}/goal,10/84.5/{python it imports (upper bound)}/{$\approx$1,700 pages}/hyp,5/20.7/{python reached by name only}/{$\approx$400 pages}/hyp!50,0/15.9/{python nothing reaches (retire first)}/{$\approx$300 pages}/edge}{
         \fill[\c](0,\y)rectangle(\n,\y+3);
@@ -576,7 +576,7 @@ submitted bytes: rough-draft-v1 = the PRIVATE deck as built (the owner's Drive a
 \begin{frame}{About that presentation} % OWNER c:pending-tap
   \vclip{hf_reveal}{C6 · HyperFrames · 10 s · real node ids}
   \note{OWNER (c:pending-tap): little speaking here; the owner wings it while the clip clicks through: the bigger goals, then the nested subgoals, then the research, skills and drafts the agents made (C6 v6 beats). \\
-  Slots: [OWNER WRITES: who did what: your words vs agents' drafting, sourcing, measuring] · [the correction the graph caught: fuel:s4-retire-the-python-engine]. Q: proof, not a trick: how do you say "this talk is itself a node chain"? Decide: show the c: chunk ids or keep them elided.}
+  Slots: [OWNER WRITES: who did what: your words vs agents' drafting, sourcing, measuring] · [the correction the graph caught: fuel:s4-retire-the-python-engine (retired; its THOUGHT holds the near miss)]. Q: proof, not a trick: how do you say "this talk is itself a node chain"? Decide: show the c: chunk ids or keep them elided.}
   \note{cleaned up rough draft written by AI: [empty slot, the title] This talk is a branch on that tree}
   \note{cleaned up rough draft written by AI: [empty slot, who did what] The words you heard were mine. Agents drafted the visuals, found the sources and counted the numbers, and an AI pass suggested cleaner wording that I accepted or rejected line by line.}
   \note{AI fact flag (not a rewording): if you adopt any AI rewording from these notes, ``every line is mine'' stops being exact. The draft above says it honestly; change it to match what you actually keep.}
