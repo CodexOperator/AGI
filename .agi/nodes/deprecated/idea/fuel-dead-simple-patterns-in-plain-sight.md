@@ -5,9 +5,11 @@ type: idea
 parents:
   - vision:the-living-being
 next_edges: []
+deprecated_note: "fuel fold (owner 11-14, council 3/3 16:20Z): its fuel lives in town:core ## Fuel, block belam"
 edited_by: belam
 scale: small
 season: 3
+status: deprecated
 title: "FUEL for musing and brainstorming (owner 11-05): what other dead simple patterns hide in plain sight, waiting to be found and applied to other problems in a novel way? Seed: DG3's powers of 3 in the Kolakoski sequence"
 ---
 # idea:fuel-dead-simple-patterns-in-plain-sight
