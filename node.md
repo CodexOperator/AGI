@@ -121,6 +121,12 @@ Then add goal:g5.31 by name. RED = a derived id not in the table, or a table id 
 
 Season 2's bundle (g7.16.1.11) closes on the season-2 trunk; only its horizon-s3 leaves appear here, by the derivation.
 
+## Fuel
+### belam
+- spark: the owner 2026-11-05 05:09Z (c:314081f146e7), on DG3's rest-day sequence work, then c:53214d56959e, c:3b62dbcaaa39, c:87b83f3cc42e, c:6e83f39da840, c:03cae21aa304, c:9b8931571afc: what other dead simple patterns hide in plain sight, waiting to be applied to other problems in a novel way?
+- measured: Kolakoski (1,2,2,1,1,2,...), DG3's break at 1e8 terms: short-lag correlations and block frequencies are fractions over powers of 3 (lag 1 -1/3, lag 3 +5/9, lag 12 +41/81; block k=2 1/6 and 1/3).
+- full bytes: idea:fuel-dead-simple-patterns-in-plain-sight (retired 2026-11-14 into deprecated/idea/, the fuel fold; owner 11-14: fuel belongs in the town board node).
+
 ## Agent Notes
 
 - Host alias: SSH `encryption-town` → the box; graph town id = `town:core`.
