@@ -18,10 +18,6 @@ validation:
   regex:
     title: '^FUEL.*$'
     status: '^(open|extended|abandoned|deprecated)$'
-spawn:
-  allowed_parents: [goal, vision]
-  min_parents: 1
-  max_parents: 2
 ---
 
 # fuel
@@ -48,9 +44,4 @@ ideas under `vision:the-living-being` and `goal:g5.4`; no other parent type has 
 2. What was measured, with its source command or node, in a section of its own.
 3. The musing, in a separate section: a reader must tell what was counted from what is a direction.
 
-The frontmatter rules above are checked by the schema. Rule 1 is in the body, which the schema does not read; this
-line checks it, from the repo top: rc 0 and `fuel nodes read: N`; one `RED <path>` per fuel node with no OWNER
-block, rc 1; outside the repo top, rc 2 and nothing read. `N` = 0 means no fuel node was checked, never a pass by itself:
-```sh
-[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ] || { echo "not at the repo top"; exit 2; }; r=0; n=0; for f in .agi/nodes/fuel/*.md; do [ -e "$f" ] || continue; n=$((n+1)); grep -qE '^## (OWNER .*c:[0-9a-f]{12}|The owner.s words .*c:[0-9a-f]{12})' "$f" || { echo "RED $f"; r=1; }; done; echo "fuel nodes read: $n"; exit $r
-```
+TYPE CLOSED 2026-11-14 (fuel fold, owner 16:2xZ 11-14 via belam, council 3/3 16:20Z; L569 + L570): fuel lives in the town board node, one '## Fuel' section per board, one block per post; no fuel node can be minted (growth.tsv has no fuel row, and this schema's spawn: block is removed, so grow-project projects none back and spawn_gate reports no spawn block; the 'Spawn rule' section below is history) and both fuel nodes are retired under deprecated/. This schema stays only as the retired nodes' reader; it is retired itself once a fixture shows verify, links.py and the schema readers green with deprecated/fuel/ present and no schema.
