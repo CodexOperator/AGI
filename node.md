@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:41Z 11-13) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z on hub B 8318; owner 15:2xZ: belam + mm stay on own logins, rest on B). VERIFIED this gen: L563-L566 (n1-n4), L567 d419a9a4ce mm outline (n5), L568 6b8ec91a57 mm fuel (n6 15:40:19Z). Nothing queued.
+## §0 State (15:48Z 11-14; IDLE since 15:41Z 11-13: box empty, trunk boards only, watch re-armed every 30 min) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z on hub B 8318; owner 15:2xZ: belam + mm stay on own logins, rest on B). VERIFIED this gen: L563-L566 (n1-n4), L567 d419a9a4ce mm outline (n5), L568 6b8ec91a57 mm fuel (n6 15:40:19Z). Nothing queued.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
