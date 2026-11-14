@@ -2,9 +2,10 @@
 # host-act-encryption-town.sh: the per-post `move` of the box host act (owner 2026-10-08 21:2xZ: every post moves TONIGHT; E's internal drive, NO RAM disk). Its `act` (STEP 0 before-state + rollback, the pieces, units, ACLs) moved to `agi.sh host` (goal:g7.16.1.11.44.8 S2a, council 09:20Z 10-16): here it is ONE line that execs it. `move` stays until S3.
 #   PIN=<40-hex commit of AGI_REPO> sh host-act-encryption-town.sh act          = exec sh ../bin/agi.sh host (step 0, then the act; root, on E; ROOT=<scratch> rehearses)
 #   PIN=<40-hex> sh host-act-encryption-town.sh move POST                       per post, after its row has box encryption-town AT PIN
-# Cells (env) for move: PIN (required) · AGI_REPO (default /data/work/agi) · AGI_BOX (default encryption-town) · ROOT=<scratch dir> (every path prefixed, no systemctl / root check). The act's cells (E_MEM_*, SKIP_PREREQ, PRIME_USER, carry_fetch) are agi.sh's.
-R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-encryption-town};mode=${1:-act}
+# Cells (env) for move: PIN (required) · AGI_REPO (default /data/work/agi) · AGI_BOX (REQUIRED: no default box) · ROOT=<scratch dir> (every path prefixed, no systemctl / root check). The act's cells (E_MEM_*, SKIP_PREREQ, PRIME_USER, carry_fetch) are agi.sh's.
+R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-};mode=${1:-act}
 die(){ echo "host-act: $*">&2;exit 1;}
+[ -n "$BOX" ]||die "AGI_BOX unset: name this box (AGI_BOX=<box>; E's move needs AGI_BOX=encryption-town); nothing changed"
 case $PIN in ""|*[!0-9a-f]*)die "PIN must be a 40-hex commit sha";esac;[ ${#PIN} = 40 ]||die "PIN must be a 40-hex commit sha"
 export GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1;unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
 G(){ git -c safe.directory=$R$M -C $R$M "$@";}
