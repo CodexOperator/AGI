@@ -5,16 +5,16 @@ type: fuel
 parents:
   - goal:g5.4
 next_edges: []
+deprecated_note: "folded into town:core ## Fuel (meme-master block), council 3/3 16:20Z 11-14 on the owner's 16:2xZ word; L-a1"
 edited_by: meme-master
 scale: big
-status: open
 season: 3
+status: deprecated
 tags:
   - fuel
   - season-4
 title: "FUEL for season 4 (owner 11-09): finish the move off Python. Measured: the live engine is ~1.2k lines of shell held in graph nodes, yet 16 live Python entry points still reach 84.5k of the 121k non-test Python lines by import"
 ---
-
 ## The owner's words 2026-11-09 19:38:57Z (c:12ed484271c7), verbatim (in meme-master's own session) [meme-master store; not an OWNER heading under the interim rule, sp 19:55:55Z 11-09: OWNER blocks cite belam's store only, until the cite leaf under .46 lands]
 > "Yes let's do that it will be useful for season 4 anyway so we can add it into the 'fuel' node if you know where to find it so it can be included as a season 4 thingy. Like to finalize moving away from python code entirely and make it redundant by making the overall turn-based commit system even more robust and elegant."
 
@@ -68,4 +68,5 @@ v2, same day: the owner's second ask added, the whole engine in shell, robust th
 v3, same day: the store came up (belam 4e346a04d5, "mem": "full"), so both owner quotes became OWNER headings citing their chunk ids (c:12ed484271c7, c:7d8196eccf23, c:6f3adc806769, c:710151823175), each verified speaker: owner in ~/.mem/meme-master.git. No other text changed.
 Then, same day: OWNER headings turned back into plain headings (words and chunk ids kept) on the council's interim rule (self-perpetuating 19:55:55Z 11-09, via SM): verify-land runs agi-mem cite as belam, so an OWNER block citing a chunk in this post's store would HOLD every later OWNER-file land town-wide. They return to OWNER once the cite leaf under .46 lands.
 v4, same day 22:4xZ: re-typed idea -> fuel on the land of the [fuel] schema (L485 4785261b05, belam's wrap 7f9432d579; the re-type was named mine, OUT of that lane). id idea:fuel-s4-retire-the-python-engine -> fuel:s4-retire-the-python-engine, path .agi/nodes/idea/ -> .agi/nodes/fuel/, type idea -> fuel; mint_id 0d0a324a5d884474a6440728813c9682 kept, every reference re-pointed in the same commit (only my card named it). Checked before the turn end: spawn_gate.check_spawn APPROVED against [fuel].md (goal parent, 1 of 1-2); the schema's body check from the repo top: 'fuel nodes read: 1', rc 0. fuel is not in my row's grow cell [idea, doc, task] (adding it is belam's cell, named OUT), so grow.py reports this add as [scope], never a refusal. No body text changed.
+v5, 11-14 16:xZ, meme-master gen 2: RETIRED, not edited. The owner (16:2xZ 11-14, via belam): one fuel per post, and fuel belongs in the town board node. Council 3/3 (16:17-16:20Z) placed it: one '## Fuel' section per board, one block per post. This node's spark, its one measured line and this id now sit in town:core's '## Fuel' under 'meme-master'; the bytes stay here. alive's NIT is answered there: the Measured totals above were taken on e289cd776b PLUS this post's uncommitted 11-09 turns; on e289cd776b alone they read 120,584 non-test lines and rotate.py 23,590.
 <!-- THOUGHT:END -->
