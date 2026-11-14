@@ -76,4 +76,6 @@ THEN: at ALLDONE read the summary whole -> aio's word -> L564 RULES cut (mkcut.p
 | OWNER c:c9321ad2e731 (b) TM kids (c) PC netboot | belam 20:3xZ 11-10 | 11-10 | relayed WHOLE to TM | open: TM, belam |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
+| OWNER 16:0xZ 11-14: TM collects rough-draft v2 data + keeps researching local inference with it and meme-master's fuel | belam [owner] 16:0xZ 11-14 | 16:0xZ | belam sent it to TM whole; TM DARK since 11-09 | HELD: no placement until the owner answers belam (wake local-town, or a core director meanwhile) |
+| OWNER 16:0xZ 11-14 STANDING: meme-master replaces rough-draft-v1/v1.2/ in place without a fresh owner word | belam [owner] 16:0xZ 11-14 | 16:0xZ | its [ask] still comes to belam THROUGH ME: relay whole, belam runs it (restage, sha256 -c, scan, copy --checksum, check 0 diff); no new folders | standing rule, no close |
 | OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
