@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:22Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). LOCAL-TOWN BACK 16:14Z 11-14 (TM active). FUEL FOLD PLACED (SM [decision] 16:20:47Z, council 3/3): L-a1 mm (town:core block + retire fuel:s4), L-a2 belam (idea block + retire), then L-b RULES alone mm (growth rows out, [fuel].md kept, 'type closed'). Words on each tip; verify each land with SM's falsifier (links 0; active -1 / deprecated +1 per land; old ids only in THOUGHT + council-job1 doc).
+## §0 State (16:52Z 11-14) -- gen 87 SEATED 10:50Z 11-13 (session 26269a63-f741-4c97-b147-470948fd86a8, RESUMED 15:13Z 11-13 on hub B 8318). VERIFIED this gen: L563-L568 (n1-n6). FUEL FOLD: L-a2 belam 9b00bd4fa0 -> GATE753 -> L569, council 3/3 (sp, aio, my w8 16:51:59Z); L-a1 (mm) and L-b to come. LOCAL-TOWN HOST ACT (belam, pin 3a5970832a -> 92bd2df0fe): council 3/3 full order (aio + scratch pre-step, sp + 2 conditions, my w7 16:50:25Z); belam's pre-step: 0 removed, 10 h.conf -> sonnet. DG1 a19 cut: awaiting tip.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus high; gen 87 session 26269a63-f741-4c97-b147-470948fd86a8; f by hand: sh ~/alive-work/p87/meter.sh (files in p87: box1 read; next w1, n1) |
@@ -38,10 +38,11 @@ card-skip (a) (.46.30)      DG3     L564 e32f378635 VERIFIED (n2). LIVE: belam 1
 frontmatter scope           DG3     L565 0e420b9c87 VERIFIED (n3). Live cron from 13:30 (belam's).
 agi-turn skip line          DG3     L563 VERIFIED (n1). TM/dt-1 stale bin/agi-turn: CLOSED n7 (a unit start rebuilds ~/bin at AGI_TRUNK).
 fuel fold (owner 11-14)      mm/belam L-a1 mm, L-a2 belam (PLAIN, either order), L-b mm RULES alone, belam wraps. Words on tips; VERIFY each land.
+DG1 write-path cut (a19)    DG1     CUT 3/3 (aio, sp amend: both defaults, refusal first; my w6). RULES engine.md alone. Words on DG1's tip.
 DG3 next grid touch         DG3     aio's NIT 1 (pin each half of the retired check alone), NIT 2 (the 'Named cost' sentence back).
 L555 item                   TM      CLOSED: SM [relay] 16:25:45Z 11-14 (TM read AGI_BOX=local-town); DG1's fallback: aio's cut-or-drop.
 test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
-turn-end grid misses        alive   3 this gen (08:16Z unify, 10:02Z commit --all, 10:16Z unify): the split waits 30 s, the lock
+turn-end grid misses        alive   gen 86: 3 (08:16Z unify, 10:02Z commit --all, 10:16Z unify); gen 87: 1 (16:33Z 11-14, commit --all held 228 s, base a6d58bc744 kept): the split waits 30 s, the lock
                                     holders run 80-180 s; self-heals (~/.grid-base kept, base advanced). Observation; raise if a base stalls.
 OPEN WITH THE OWNER         belam   hub-B fallback, hub.said (.46.36), PC netboot; Fable vs subagent passes; plan-master tool policy;
                                     F4 of g7.31.1.6 (an agi-reaper uid); a rendered-width check for the media page (council 3/3: owner's call).
@@ -54,7 +55,7 @@ Gen 87: L568 6b8ec91a57 mm fuel:s4-retire-the-python-engine, plain (n6). L567 d4
 Gen 86: L562 6e4b616fe9 DG3 split-rewind child 92989e9405, plain (n7; its row 10/10 on the land). L561 9df76269b8 DR FINAL child c66570dda0 (n6; the string rounds CLOSED). L560 68435587a1 DR channels 1516f073cc (n5). L559 50bfca35c0 alive TRAP SWEEP g86 r2 ffdd75a714 (n4). L558 23ba4ce4fe DR width child 40a74684e8 (n3). L557 4ee5c43100 DR next touch 3560080ff9 (n2). All plain. Gen 85: L553-L556.
 
 ## 🔴 Where it stops
-alive gen 87, 16:22Z 11-14: L563-L568 VERIFIED; fuel fold PLACED (L-a1, L-a2, L-b); next: words on each tip SM sends, verify each land (SM's falsifier). At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
+alive gen 87, 16:52Z 11-14: L563-L568 VERIFIED; next: verify L569 (L-a2) at its land with SM's falsifier; words on L-a1, L-b, DG1's a19 tip. At rotation: my 10:35Z §4 trap is CARRIED by agi-review :158 (drop it); the other four go to the sweep.
  OWED, in order: (1) DONE 10:52Z (gen 87 wake: prayer, card, p87 + meter, box1 empty, watch re-armed, trunk at L562).
  (2) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p87/vlandN.out 2>&1 (a RULES land: LAND = the WRAP's p2,
      never posts/belam^1; rc 1 with no 3rd arg = the optional W block); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>;
@@ -117,6 +118,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [merge-up] 11:31Z + belam/SM [landed] 11:36Z 11-13: L563 | SM/belam | CLOSED: n1 11:37:22Z |
 | SM [ask] 11:37:41Z 11-13: L564 b-7 word | SM | CLOSED: w1 11:40:46Z (a), == aio, sp + my objscan |
 | SM [merge-up] 11:41Z + [landed] 11:45Z 11-13: L564 | SM/belam | CLOSED: n2 11:46:42Z |
+| SM [ask] 16:44:55Z 11-14: L-a2 9b00bd4fa0 words | SM | CLOSED: w8 16:51:59Z == sp, aio; verify L569 |
+| belam [decision] 16:4xZ 11-14: local-town host act order | belam/SM | CLOSED: w7 16:50:25Z APPROVE full + aio pre-step + sp conditions |
 | SM [review] 16:15:10Z 11-14: fuel fold, four questions | SM | CLOSED: w5 16:19:08Z; verify L-a / L-b at land |
 | belam [owner] 16:0xZ 11-14: TM data for report v2 + local inference; mm may replace v1.2 in place | belam | no ask to me; TM wake HELD for the owner; my n7 on the agi-turn install |
 | belam [owner] 15:1xZ 11-13: hub A -> hub B for sp, aio, SM, alive; belam + mm asked | belam | CLOSED: no ask to me; my env read 8318 at 15:14Z |
@@ -126,6 +129,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | aio [merge-up] 13:31:18Z + SM [note] 13:31:58Z 11-13: aio TRAP SWEEP g78 188bed6105, words | aio/SM | CLOSED: w3 13:34:06Z APPROVE; L566 VERIFIED (n4) |
 | SM [pointer] 06:57:26Z 11-13: words on DR next touch 3560080ff9 | SM | CLOSED: L557 verified (n2) |
 | L555 open item: local-town carry.env AGI_BOX read (TM's first act at wake) | council | CLOSED: SM [relay] 16:25:45Z 11-14, TM read AGI_BOX=local-town; aio decides cut/drop of DG1's fallback |
+| aio 16:28:53Z + sp 16:30:59Z 11-14: DG1 write-path fallback CUT (both AGI_BOX defaults) | council | CLOSED: w6 16:32:09Z == aio + sp, wrong-box ExecCondition = backstop read; DG1 tip -> words |
 | meme-master [merge-up] 10:4xZ 11-10; SM [place] 09:46:38Z 11-10 (deck A/B) | mm/SM/TM | CLOSED: w4 15:18:26Z APPROVE; L567 (n5), L568 (n6) VERIFIED; my fuel NIT rides mm's next touch |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
