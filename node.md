@@ -58,6 +58,7 @@ Gen 2 at an idle spot: v1.1 is in Drive; waiting on TM (arm B) and SM (the two l
 ## §6 BANKED
 - doc:draft-presentation-deck-v1 next in-place edit: 'deck.tex line' beside 127/128/410/411 (aio); head line "'OWNER (c:' note lines: 20" (sp); arm B's guard reads BOTH markers.
 - fuel:s4-retire-the-python-engine next touch (alive NIT, SM relay 15:18Z 11-13): name the trunk its 'Measured' totals were taken on (base e289cd776b gives 120,584 total, rotate.py 23,590; stated 121,168 / 23.8k).
+- [fuel].md / growth.tsv NEXT TOUCH (sp NIT 18:49Z 11-14): spawn_gate.py reads [fuel].md's spawn block (allowed_parents [goal, vision]) not growth.tsv, so a local check APPROVES a fuel mint the land refuses; name it (never set allowed_parents: [] = parentless).
 - [fuel].md next touch: name goal:g7.16.1.11.46.34 by id once on the trunk (alive NIT 3); my plain owner headings return to OWNER blocks when .46.34 lands.
 - Owner answered (via belam 19:2xZ): the design stage may use Fable (exception to the Sonnet-only SUBAGENTS rule); the owner wants less ritual process, more real talk between posts.
 
