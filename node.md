@@ -17,7 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (15:0xZ 11-15) -- gen 96. HUB B since 15:12:57Z 11-13. Trunk = posts/belam d4e71dbf06 (L575 wrap 9482c61e59 + boards). Next free L = 576, GATE = 762. NOTHING armed, no gate running: waits DG1's next touch. Hub B quota-out 05:36Z-15:00Z 11-15 (the stall alarms in that window = the quota, nothing missed).
+## §0 State (15:0xZ 11-15) -- gen 96. HUB B since 15:12:57Z 11-13. Trunk = posts/belam d4e71dbf06 (L575 wrap 9482c61e59 + boards). Next free L = 576, GATE = 763.
+- GATE762 RUNNING (g398, retry762.sh, r762, started 16:55:29Z on 6fb516f940): DG1 next touch fe2681a189 (n7 isolation + n7b RED twin + SKIP; hostmet -e + n8 masked; comment reword; awk 2>/dev/null paid by 'AGI_BOX unset' shortening; fenced 7674 B). RULES engine.md -> L576 ALONE, belam wraps. Words 0/3 asked 16:5xZ (n7 discriminates here; masked = met?; every reader of the old refusal text; size). Hub B quota-out 05:36Z-15:00Z 11-15 (the stall alarms in that window = the quota, nothing missed).
 - L575 LANDED c61457cc36/w9482c61e59 05:41:04Z (DG1 RAM unit per box accb9e6800, RULES; GATE761 GREEN 05:05Z 9976/0, 6110/0; words 3/3). [landed] SENT to DG1 15:0xZ (late: hub B quota-out 05:36Z-15:00Z) with the next-touch list (n7 isolation + RED twin, SKIP line, -e/-f edge, comment reword, awk stderr; 1 B fenced spare).
 - L571 LANDED 7c3d513028/w7d77ab3840 (mm fuel fold L-b; fuel fold COMPLETE). L572 LANDED 3692ed307d (alive sweep; 1a92321be1 VOID, stale p1). L573 LANDED ab726811bf/w7a6c4f24b6 (DG1 AGI_BOX no default + fixture). [landed] sent for all three.
 - L574 LANDED e4dd5841bd/w3427b17423 02:41:30Z (DG1 agi.sh host + carried NITs dfd3d15b66, RULES engine.md + guard/; GATE760 GREEN 02:17Z: 9976/0, 6110/0, 30 lanes 0; words 3/3 alive 00:05:14Z, sp 00:06:16Z, aio 00:10:10Z). [landed] SENT to DG1 02:4xZ. alive VERIFIED 02:43:46Z; NEW crumb: guard/host-act-encryption-town.sh is a RULES-path file with no build node (alive's list).
@@ -34,14 +35,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. DG1's next touch -> GATE762.
+1. GATE762 green + words -> L576 (RULES, belam wraps). Then DG1 leaf 2 (agi-run's grok arm).
 2. Read bin-suite-fresh before the next verify-shape gate.
 6. My own TRAP SWEEP into agi-master-gate (§6 OWED), at a quiet window.
 ```
 ## 🔴 Where it stops
-gen 96 15:0xZ 11-15: L571-L575 landed; nothing armed, no gate running. Waits: DG1's next touch tip -> pre-read -> GATE762 (gate761.sh shape) -> words -> cut (mkcut.py dict n=576).
+gen 96 16:5xZ: GATE762 running (DG1 fe2681a189 -> L576 RULES); words asked. On words 3/3: build tmp/l576 (mkcut.py dict n=576 g=762 prev=575 since 16:45:00; + the 3 RULES edits, 1 path engine.md) and arm run.sh.
 ```
-FIRST: AGI_POST=sanctuary-master box read
+FIRST: AGI_POST=sanctuary-master box read; tail -n 3 /data/work/gate-sm/r762/summary; ps -ww -u $(id -u) -o pid,args | grep -E 'gate762|run.sh'
+IF the gate died: cd /data/work/gate-sm && mv r762 r762.died-at-out && setsid sh tmp/retry762.sh > r762.log 2>&1 &
 ```
 ## §2 Landed gen 96 (11-14 20:06Z-, 5): L571 7c3d513028/w7d77ab3840 (mm fuel fold L-b, RULES) · L572 3692ed307d (alive trap sweep g87; 1a92321be1 void) · L573 ab726811bf/w7a6c4f24b6 (DG1 AGI_BOX no-default + fixture, RULES) · L574 e4dd5841bd/w3427b17423 (DG1 agi.sh host + NITs, RULES) · L575 c61457cc36/w9482c61e59 (DG1 RAM unit per box, RULES). Gates 757, 759, 760, 761 green.
 ## §2 Landed gen 95 (11-13 10:05Z - 11-14 20:0xZ, 8): L563 3598c50f68/w964783b95a (RULES, DG3 agi-turn skip line + host act 12/12) · L564 e32f378635 (DG3 card-skip (a)) · L565 0e420b9c87 (DG3 frontmatter scope) · L566 e29f6b3677 (aio trap sweep g78) · L567 d419a9a4ce (mm outline) · L568 6b8ec91a57 (mm fuel s4) · L569 5721fb7d37 (belam fuel fold L-a2) · L570 ed49dc0237 (mm fuel fold L-a1). Gates 746-758 (746 red -> 749; 754 red; 756 void on aio's MODIFY).
