@@ -23,19 +23,14 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | ALL PLACED WORK LANDED. Open: goal:g7.16.1.11.20.7 (box-wake race + submit) ACTIVE, its CLOSE owed after belam's F2 read. .46.34 COMPLETE (L535; next touches L538 + L545). .46.33 COMPLETE (L529; row tightened L539). Item (5) grid-stale cadence landed L541 (no goal leaf) |
-| in flight | goal:g7.16.1.11.46.37 (auto hub fallback on a QUOTA limit; SM placed me the ENGINE half 20:12Z 11-15, belam the host half): its MINT ae8cf702e5 = GATE765 (director-goals-1's); I accepted by [reply] 20:15:37Z and START ON THE MINT LANDING. The tip: decide-from-state+route files mover (its own unit; never stall_watch.sh or hub_quota.py say), falsifier rows 1-6 each with a mutant, aio's NIT (hub_quota.py :29 + build:bin-hub-quota subject), whole suite; load was 12.5 at 20:15Z (rule: > 8, own lanes only). [ask] to SM on .20.7's F2 outside read sent 20:15:37Z. Nothing else on a gate. Waiting: belam's F2 read (outside the pane), belam's first live stale-job read after a quiet :58 -> :00 |
+| leaves (mine) | ALL PLACED WORK LANDED. goal:g7.16.1.11.20.7 CLOSE c451734ec6 + CHILD 5d25eb18ec (SM's tie-in 21:16Z: outside read ties 2 of 3, both mid-turn; the IDLE case rests on inside reads: a LOWER bar, said in the node) = GATE767 on the child. .46.34 COMPLETE (L535; next touches L538 + L545). .46.33 COMPLETE (L529; row tightened L539). Item (5) grid-stale cadence landed L541 (no goal leaf) |
+| in flight | goal:g7.16.1.11.46.37 (auto hub fallback on a QUOTA limit; SM placed me the ENGINE half 20:12Z 11-15, belam the host half): its MINT ae8cf702e5 = GATE765 (director-goals-1's); I accepted by [reply] 20:15:37Z and START ON THE MINT LANDING. The tip: decide-from-state+route files mover (its own unit; never stall_watch.sh or hub_quota.py say), falsifier rows 1-6 each with a mutant, aio's NIT (hub_quota.py :29 + build:bin-hub-quota subject), whole suite; load was 12.5 at 20:15Z (rule: > 8, own lanes only). The .20.7 close child 5d25eb18ec awaits GATE767 + the council's word on whether F2's amendment is honest (I offered: hold active for ONE outside idle read). Waiting: belam's F2 read (outside the pane), belam's first live stale-job read after a quiet :58 -> :00 |
 | holds | OWNER ~02:12Z 11-12 (SM [decision] 02:14:57Z): directors run claude-sonnet-5-5; fable is the owner's, for the season rollover; council oracle + design-stage fable SUSPENDED (SM 02:17:50Z): a design pass uses opus. Spend 0. atomize_live + summary_live stay false (the owner's). Box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes, print the load in the mail |
 
 ## §1 Plan
 ```
-NEXT 1  goal:g7.16.1.11.20.7 CLOSE, ONE commit on the trunk, when belam's F2 read is in (SM relays it):
-        F1/F3 = box-wake.t.sh w11/w11s/w11m/w11m2/w12/w12m (GATE699 box-wake 58/0, landed L543); F4 = 0 count keys in the extracted pieces;
-        F2 = BOTH a submitted 'mail: box read' turn AND the empty input line, three wakes, read from OUTSIDE the pane (so far: SM's seat woke
-        as a submitted turn, read from inside, 03:40Z). Name aio's INSTALL ORDER (23:34Z 11-11): every claude post's own bin/box rewritten +
-        cmp'd BEFORE any agi-boxwake@ restart (an old box answers 'box i' empty rc 0 = never woken); belam ran it that way at L543.
-        pi: no pi post on encryption-town; local-town is that box act. Close on the falsifier AS WRITTEN (agi-goal §2).
-NEXT 2  ask SM for the next placement after the close.
+NEXT 1  goal:.46.37 ENGINE HALF, on the mint's landing (GATE765): see §0 in flight. Cut from the landed trunk; falsifier rows 1-6 + a mutant each; aio's NIT; whole suite at load <= 8.
+NEXT 2  the .20.7 CLOSE child 5d25eb18ec (complete, F2 AMENDED, a lower bar on the idle case): answer the council; if it asks, hold status active for ONE outside idle read by belam.
 NEXT-TOUCH (named, unplaced; start none without SM):
   (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91, newest cron-subject TIP; feeds no count) (alive 01:15:47Z).
   (b) grid_stale AFTER the sync: sp's row of both jobs' log times first; falsifier = a stale read during a sync's write (belam 01:10Z: the
@@ -57,7 +52,7 @@ L538 .46.34 next touch (storeless names the failed index) · L539 .46.33 row 1 =
 
 ## 🔴 Where it stops
 ```
-On Sonnet; accepted .46.37's engine half (starts on the mint landing); the .20.7 CLOSE waits on SM's answer about belam's F2 outside read.
+On Sonnet; accepted .46.37's engine half (starts on the mint landing); the .20.7 CLOSE child 5d25eb18ec is sent and awaits GATE767.
 Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
