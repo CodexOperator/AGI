@@ -296,7 +296,12 @@ ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
 mk n1;before=$(tree);run env -u AGI_BOX sh $ACT act>$T/n1.out 2>$T/n1.err;rn1=$?
 ok n1-an-unset-agi-box-is-refused-by-name-and-nothing-is-written "[ $rn1 != 0 ]&&grep -q 'AGI_BOX unset' $T/n1.err&&[ \"\$(tree)\" = \"\$before\" ]&&[ ! -e $X/var/backups ]&&[ ! -e $X/etc/agi ]"
 mk n2;run env AGI_BOX=local-town sh $ACT act>$T/n2.out 2>$T/n2.err;rn2=$?;run env AGI_BOX=local-town sh $ACT act>$T/n2b.out 2>$T/n2b.err;rn2b=$?
-ok n2-a-box-other-than-E-gets-neither-the-noop-ram-unit-nor-the-6g-slice "[ $rn2 = 0 ]&&[ ! -e $X/etc/systemd/system/agi-ram-main.service ]&&[ ! -e $X/etc/systemd/system/agi.slice ]&&[ ! -e $X/mnt/agi-ram ]&&grep -qx 'AGI_BOX=local-town' $X/etc/agi/carry.env&&[ $rn2b = 0 ]&&grep -q 'host: met' $T/n2b.out"
+ok n2-a-box-other-than-E-gets-a-stand-in-ram-unit-and-no-6g-slice "[ $rn2 = 0 ]&&grep -q '^# stand-in' $X/etc/systemd/system/agi-ram-main.service&&[ ! -e $X/etc/systemd/system/agi.slice ]&&[ ! -e $X/mnt/agi-ram ]&&grep -qx 'AGI_BOX=local-town' $X/etc/agi/carry.env&&[ $rn2b = 0 ]&&grep -q 'host: met' $T/n2b.out"
+mk n6;printf 'OLD-RAM-UNIT\n'>$X/etc/systemd/system/agi-ram-main.service;run env AGI_BOX=local-town sh $ACT act>$T/n6.out 2>$T/n6.err;rn6=$?;run env AGI_BOX=local-town sh $ACT act>$T/n6b.out 2>&1
+ok n6-a-box-with-its-own-ram-unit-keeps-it-and-is-met "[ $rn6 = 0 ]&&[ \"\$(cat $X/etc/systemd/system/agi-ram-main.service)\" = OLD-RAM-UNIT ]&&grep -q 'host: met' $T/n6b.out"
+rm -f $X/etc/systemd/system/agi-ram-main.service;run env AGI_BOX=local-town sh $ACT act>$T/n6c.out 2>&1
+ok n6b-a-box-missing-its-ram-unit-is-not-met-and-the-act-repairs-it "! grep -q 'host: met' $T/n6c.out&&[ -f $X/etc/systemd/system/agi-ram-main.service ]"
+ok n7-systemd-analyze-verifies-the-units-the-act-leaves-on-a-non-E-root "[ -f $X/etc/systemd/system/agi-ram-main.service ]&&(command -v systemd-analyze>/dev/null||exit 0;V=\$(mktemp -d);cp $X/etc/systemd/system/agi-*.service $X/etc/systemd/system/agi-*.path $X/etc/systemd/system/agi-*.timer \$V/;systemd-analyze verify \$V/agi-ram-main.service \$V/agi-boot.service 2>\$T/v7.err;rv=\$?;rm -rf \$V;[ \$rv = 0 ])"
 mk n3;rm $X/opt/agi/bin/pi;run env AGI_BOX=local-town sh $ACT act>$T/n3.out 2>$T/n3.err;rn3=$?
 ok n3-no-pi-is-no-prereq-when-this-box-has-no-pi-row "[ $rn3 = 0 ]&&! grep -q PREREQ $T/n3.err"
 mk n4;chmod 555 $X/etc;run sh $ACT act>$T/n4.out 2>$T/n4.err;rn4=$?;chmod 755 $X/etc
@@ -310,4 +315,5 @@ ok mutant-default-restored-reads-red-on-n1 "[ $rm1 = 0 ]||! grep -q 'AGI_BOX uns
 mutact 's/^E=;\[ "$BOX" != encryption-town \]||E=1.*/E=1/' "E always";mk n2;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>&1;ok mutant-e-units-for-every-box-reads-red-on-n2 "[ -e $X/etc/systemd/system/agi.slice ]"
 mutact 's/^\[ -n "$SKIP_PREREQ" \]||! G show.*|jq -e [^|]*|[^{]*||{ \[ -x/[ -n "$SKIP_PREREQ" ]||{ [ -x/' "prereq blind";mk n3;rm $X/opt/agi/bin/pi;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>$T/m3.err;rm3=$?;ok mutant-box-blind-prereq-reads-red-on-n3 "[ $rm3 != 0 ]&&grep -q PREREQ $T/m3.err"
 mutact 's/^trap .*EXIT.*$/:/' "trap";mk n4;chmod 555 $X/etc;run sh $ACTM act>/dev/null 2>$T/m4.err;chmod 755 $X/etc;ok mutant-no-trap-reads-red-on-n4 "! grep -q 'host-act: failed' $T/m4.err"
+mutact 's/^\[ -n "$E" \]||\[ -e $R\/etc\/systemd\/system\/agi-ram-main.service \]||{ standin.*$/:/' "no stand-in";mk n2;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>&1;ok mutant-no-stand-in-reads-red-on-n7 "[ ! -e $X/etc/systemd/system/agi-ram-main.service ]"
 echo "host-act-encryption-town: $f FAIL";exit $f

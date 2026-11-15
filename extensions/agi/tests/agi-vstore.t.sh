@@ -201,10 +201,15 @@ ok "c5-agi-gate-refuses-a-candidate-whose-agi-project-would-not-regrow-whatever-
 # c5b (council 11-14, sp + alive NITs): with AGI_BOX unset the gate takes it from carry.env (path: AGI_CARRY_ENV, default /etc/agi/carry.env) ONLY when exactly ONE AGI_BOX= line is there; none or two -> unset -> agi-project's named line, rc != 0
 printf 'AGI_BOX=local-town\nAGI_REPO=x\n'>$T/ce1;printf 'AGI_BOX=local-town\nAGI_BOX=local-town\n'>$T/ce2;printf 'AGI_REPO=x\n'>$T/ce0
 GB=;gate "AGI_CARRY_ENV=$T/ce1" $GOODC;c1=$grc;gate "AGI_CARRY_ENV=$T/ce2" $GOODC;c2=$grc;c2e=$(grep -c 'AGI_BOX unset' $T/g.err||true);gate "AGI_CARRY_ENV=$T/ce0" $GOODC;c0=$grc;c0e=$(grep -c 'AGI_BOX unset' $T/g.err||true)
-cp $T/fk/agi-gate $T/fk/agi-gate.m;sed -i "s/\[ \"\$(grep -c '^AGI_BOX=' \$c 2>\/dev\/null)\" = 1 \]&&//" $T/fk/agi-gate.m;cmp -s $T/fk/agi-gate $T/fk/agi-gate.m&&echo "FAIL fixture: the c5b mutant changed nothing"
-cp $T/fk/agi-gate $T/fk/agi-gate.keep;cp $T/fk/agi-gate.m $T/fk/agi-gate;gate "AGI_CARRY_ENV=$T/ce2" $GOODC;m2e=$(grep -c 'AGI_BOX unset' $T/g.err||true);cp $T/fk/agi-gate.keep $T/fk/agi-gate;GB=AGI_BOX=local-town
+printf 'AGI_BOX="local-town"\n'>$T/ce3;printf 'AGI_BOX=local-town\r\n'>$T/ce4;GB=;gate "AGI_CARRY_ENV=$T/ce3" $GOODC;c3=$grc;c3e=$(grep -c 'AGI_BOX unset' $T/g.err||true);gate "AGI_CARRY_ENV=$T/ce4" $GOODC;c4=$grc;c4e=$(grep -c 'AGI_BOX unset' $T/g.err||true)
+mutg(){ cp $T/fk/agi-gate $T/fk/agi-gate.keep;sed "$1" $T/fk/agi-gate.keep>$T/fk/agi-gate;cmp -s $T/fk/agi-gate $T/fk/agi-gate.keep&&echo "FAIL fixture: the c5b mutant $2 changed nothing";gate "AGI_CARRY_ENV=$3" $GOODC;mg=$(grep -c 'AGI_BOX unset' $T/g.err||true);cp $T/fk/agi-gate.keep $T/fk/agi-gate;}
+mutg 's/n==1&&//' count-dropped $T/ce2;m2e=$mg
+mutg 's/&&v~\/^\[A-Za-z0-9._-\]+\$\///' name-test-dropped $T/ce3;m3e=$mg
+GB=AGI_BOX=local-town
 ok "c5b-gate-takes-AGI_BOX-from-carry-env-only-when-exactly-one-line one line: rc $c1 (want 0); two lines: rc $c2 (want != 0), the named line $c2e (want >= 1); no line: rc $c0 (want != 0), the named line $c0e (want >= 1)" '[ "$c1" = 0 ]&&[ "$c2" != 0 ]&&[ "$c2e" -ge 1 ]&&[ "$c0" != 0 ]&&[ "$c0e" -ge 1 ]'
 ok "c5b-mutant-the-count-dropped-reads-red the same gate without the exactly-one test: the two-line carry.env prints the named line $m2e time(s) (want 0 = the mutant is seen)" '[ "$m2e" = 0 ]'
+ok "c5b-gate-takes-only-a-NAME-from-carry-env a quoted line: rc $c3 (want != 0), the named line $c3e (want >= 1); a CRLF line: rc $c4 (want != 0), the named line $c4e (want >= 1)" '[ "$c3" != 0 ]&&[ "$c3e" -ge 1 ]&&[ "$c4" != 0 ]&&[ "$c4e" -ge 1 ]'
+ok "c5b-mutant-the-name-test-dropped-reads-red the same gate without the name test: the quoted carry.env prints the named line $m3e time(s) (want 0 = seen)" '[ "$m3e" = 0 ]'
 # --- c4: carry.env gains no cell (the host installer writes the key set; the unit texts use no other cell)
 INS=$R0/.agi/context/local-maxxing/aa1m/aa1m-install.sh;keys=$(grep -o "printf 'AGI_BOX=%s[^']*'" $INS 2>/dev/null|head -1|grep -o '[A-Z_0-9]*=%s'|sed 's/=%s//'|sort|tr '\n' ' ')
 ok "c4-carry-env-gains-no-cell the installer writes the cells [${keys% }] (want exactly AGI_BOX AGI_HUB AGI_REPO AGI_TRUNK GIT_CONFIG_VALUE_0)" '[ "${keys% }" = "AGI_BOX AGI_HUB AGI_REPO AGI_TRUNK GIT_CONFIG_VALUE_0" ]'

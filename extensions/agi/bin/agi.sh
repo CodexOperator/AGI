@@ -125,6 +125,7 @@ put1(){ put $n $d $m $k;}
 pmet(){ S $n|cmp -s - $R$d&&[ "$(stat -c %a $R$d)" = $m ];}
 carry_env(){ printf 'AGI_BOX=%s\nAGI_HUB=\nAGI_REPO=%s\nAGI_TRUNK=%s\nGIT_CONFIG_VALUE_0=%s\n' $BOX $M $PIN $M;}
 ramunit(){ printf '%s\n' '# encryption-town ONLY: MAIN is a plain directory on the internal drive; this satisfies the pinned agi-boot.service Requires/After' '[Unit]' 'Description=encryption-town: no RAM disk, MAIN on the internal drive' '[Service]' 'Type=oneshot' 'RemainAfterExit=yes' 'ExecStart=/bin/true';}
+standin(){ printf '%s\n' '# stand-in written by agi.sh host on a box with no agi-ram-main.service of its own (never over an existing one): MAIN is a plain directory; this satisfies the pinned agi-boot.service Requires/After' '[Unit]' 'Description=stand-in: no RAM disk, MAIN on a plain directory' '[Service]' 'Type=oneshot' 'RemainAfterExit=yes' 'ExecStart=/bin/true';}
 sliceunit(){ printf '%s\n' '# encryption-town: typed here (config:guard has no E line); 7.8 GB box' '[Slice]' "MemoryHigh=${E_MEM_HIGH:-5G}" "MemoryMax=${E_MEM_MAX:-6G}" 'ManagedOOMMemoryPressure=kill' "ManagedOOMMemoryPressureLimit=${E_OOM_LIMIT:-40%}";}
 acl1(){ getfacl -p "$1" 2>/dev/null|grep -qx "$2";}
 aclmet(){ for d in objects refs logs worktrees;do acl1 $R$M/.git/$d "group:$AG:rwx"&&acl1 $R$M/.git/$d "user:$PU:rwx"||return 1;done;for d in $R$M/.agi/sessions $R$M/.agi/sessions/inbox $R$M/.agi/comms;do acl1 $d "group:$AG:rwx"||return 1;done;acl1 $R$M/.agi/comms "user:$PU:rwx";}
@@ -143,7 +144,7 @@ projpiece(){ S agi-project|(cd $R$M&&AGI_BOX=$BOX GIT_CONFIG_COUNT=1 GIT_CONFIG_
 projmet(){ [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ]&&return 0
  e=$(mktemp -d)||return 1;U=$R/run/systemd/system
  projpiece $e >/dev/null 2>&1&&cmp -s $e/agi-users.conf $U/agi-users.conf&&[ "$(ls $e/multi-user.target.wants|grep '^agi-post@')" = "$(ls $U/multi-user.target.wants 2>/dev/null|grep '^agi-post@')" ];pr=$?;rm -rf $e;return $pr;}
-hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&{ [ -z "$E" ]||{ ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ];};}&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
+hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&{ [ -n "$E" ]||[ -f $R/etc/systemd/system/agi-ram-main.service ];}&&{ [ -z "$E" ]||{ ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ];};}&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
 tm(){ [ "$CF" = true ]||return 0;stp&&return 0;if [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
 # ---- preflight (nothing written yet) ----
 for c in git jq setfacl sed;do command -v $c>/dev/null||die "missing tool: $c";done
@@ -184,6 +185,7 @@ carry_env>$R/etc/agi/carry.env||exit 1;chmod 644 $R/etc/agi/carry.env
 STEP="the units";[ -z "$E" ]||{ install -d -m 755 $OWN $R/mnt/agi-ram $R/mnt/agi-ram/state||exit 1
 ramunit>$R/etc/systemd/system/agi-ram-main.service||exit 1;chmod 644 $R/etc/systemd/system/agi-ram-main.service
 sliceunit>$R/etc/systemd/system/agi.slice||exit 1;chmod 644 $R/etc/systemd/system/agi.slice;}
+[ -n "$E" ]||[ -e $R/etc/systemd/system/agi-ram-main.service ]||{ standin>$R/etc/systemd/system/agi-ram-main.service||exit 1;chmod 644 $R/etc/systemd/system/agi-ram-main.service;echo "  stand-in agi-ram-main.service (this box had none)";}   # agi-boot.service Requires= it: a fresh non-E box would pass 'host: met' and fail at boot (sp 11-15); an existing one (local-town's) is never touched
 install -d -m 755 $OWN $R/var/lib/agi||exit 1
 STEP="the ACLs"
 # MAIN ACL: the post users (group agi) create refs, objects, logs and worktrees in MAIN's .git; L carries this, nothing in the repo made it
@@ -215,7 +217,7 @@ if [ -z "$R" ];then
 fi
 STEP="the tail (verify, reload, project, enable)"
 if [ -z "$R" ]||[ -n "$AGI_HOST_UNITS" ];then   # AGI_HOST_UNITS=<stub dir>: a rehearsal runs this tail too, against the systemctl / systemd-analyze stubs IN that dir (R-b: refused otherwise)
- systemd-analyze verify ${E:+$R/etc/systemd/system/agi-ram-main.service} $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service ${E:+$R/etc/systemd/system/agi.slice}||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
+ systemd-analyze verify $R/etc/systemd/system/agi-ram-main.service $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service ${E:+$R/etc/systemd/system/agi.slice}||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
  # council 17:58Z 10-21: the projection is EXPLICIT, right after daemon-reload and the carry.env write above (agi-project.path never ran on this box; one oneshot at carry.env's pin, it starts no post). A stopped town projects too: stop leaves /run's units and hostmet reads them.
  PJ="agi-project.service did not run at $PIN (the box has no projection of it): sh $B/rollback.sh"
  # council 19:46Z 10-21 FRESH-BOX DEADLOCK: /run/systemd/system/agi-project.service exists only after the pinned piece has run into /run (engine.md writes it), which on a box is agi-boot's job at boot, and agi-boot.service is INSTALLED by this very act; so on a box that never ran it the start below dies, every re-run dies the same way and a reboot does not help (agi-boot is not yet enabled). When the unit is absent the tail runs the SAME pinned piece into /run first (one code, two callers, no second writer: the unit's own start then works on every later run); a piece that itself fails dies by name.
