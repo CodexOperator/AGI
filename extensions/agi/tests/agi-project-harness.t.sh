@@ -62,6 +62,7 @@ rows(){ S=$1;L=$2;t=$T/run.$L;rm -rf $t;mkdir -p $t
  ok "$L-cut-fresh-dir-and-box-unset-fails-and-writes-nothing" '[ $rF = 1 ]&&[ -z "$(ls -A $t/f0)" ]&&grep -q "AGI_BOX unset" $t/f0.err'
  pj $S $T/nopi $t/np UNSET;rP=$rc
  ok "$L-cut-no-pi-binary-and-box-unset-refuses-by-name-not-by-a-guessed-box" '[ $rP = 1 ]&&grep -q "AGI_BOX unset" $t/np.err&&[ -z "$(ls -A $t/np)" ]'
+ ok "$L-cut-unset-leaves-no-h-conf-even-with-a-local-town-row" '[ -z "$(ls -d $t/f0/agi-post@*.service.d 2>/dev/null)" ]'
  ok "$L-cut-fresh-dir-and-box-set-projects" '[ $rG = 0 ]&&[ -f $t/f1/agi-post@c1.service.d/h.conf ]'
  # aio's rows: the template-wide dir survives; an extra file beside a stale h.conf survives and its dir stays
  pj $S $T/s1 $t/x bx;mkdir -p $t/x/agi-post@.service.d;echo T>$t/x/agi-post@.service.d/h.conf;echo keep>$t/x/agi-post@c1.service.d/50-host.conf;pj $S $T/s2 $t/x bx
@@ -107,4 +108,6 @@ mut key-only-block-end stale-claude-h-conf-is-removed-when-the-row-turns-foo 's/
 mut two-glob-ls hold-without-the-boxwake-section-fails-and-keeps-everything 's/^ok||for f in \(.*\);do \[ -f \$f \]&&{ \(.*\);exit 1;};done/ok||{ ls \1>\/dev\/null 2>\&1\&\&{ \2;exit 1;};}/'
 mut default-65-restored cut-fresh-dir-and-box-unset-fails-and-writes-nothing 's/\(select(.box==\$b and .engine.v==4)|.+.engine|select\)/\1/;s/ --arg p "\$P" --arg b "\$AGI_BOX"/ --arg p "$P" --arg b ${AGI_BOX:-local-town}/;/^\[ "\$AGI_BOX" \]||{ echo "agi-project: AGI_BOX unset/d'
 mut default-61-restored cut-no-pi-binary-and-box-unset-refuses-by-name-not-by-a-guessed-box 's/jq -e --arg b "\$AGI_BOX"/jq -e --arg b ${AGI_BOX:-local-town}/;/^\[ "\$AGI_BOX" \]||{ echo "agi-project: AGI_BOX unset/d'
+mut refusal-dropped-only cut-fresh-dir-and-box-unset-fails-and-writes-nothing '/^\[ "\$AGI_BOX" \]||{ echo "agi-project: AGI_BOX unset/d'
+mut both-defaults-restored cut-unset-leaves-no-h-conf-even-with-a-local-town-row 's/--arg b "\$AGI_BOX"/--arg b ${AGI_BOX:-local-town}/g;/^\[ "\$AGI_BOX" \]||{ echo "agi-project: AGI_BOX unset/d'
 echo "agi-project-harness: $f FAIL";[ $f = 0 ]
