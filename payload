@@ -101,9 +101,13 @@ cmd_answer(){ [ $# = 2 ]||die "answer KEY VALUE";k=$1;v=$2
 # agi-carry-fetch.timer is enabled only when .agi/config.json values.local_maxxing.agi_town.carry_fetch is true at the PIN (default false: the hub route is out). NO sudoers file is written here (S2b). The pieces are ONE list (PC) read by the writer AND by hostmet.
 # /etc/agi/host.done = the PIN is the act's LAST write (cleared before the first): hostmet requires it, so an act that died at verify / enable re-runs. STOP leaves the host installed and never touches it: ck_host / dn_host are met / no-op (S2b: start's host check is hostmet).
 up_host(){ (
-R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-encryption-town}
+R=${ROOT:-};M=${AGI_REPO:-/data/work/agi};PIN=${PIN:-};BOX=${AGI_BOX:-}
 PU=${PRIME_USER:-belam};[ -z "$R" ]||PU=${PRIME_USER:-$(id -un)}
-die(){ echo "host-act: $*">&2;exit 1;}
+DIED=;STEP=preflight;die(){ DIED=1;echo "host-act: $*">&2;exit 1;}
+trap 'r=$?;[ $r = 0 ]||[ -n "$DIED" ]||echo "host-act: failed (rc $r) at: $STEP">&2' EXIT   # a step that fails silently (`||exit 1`) names where (run 1 rc 1 with an empty log)
+[ -n "$BOX" ]||die "AGI_BOX unset: name this box (AGI_BOX=<box>, the box cell of its posts rows); nothing written"
+case $BOX in *[!A-Za-z0-9._-]*)die "AGI_BOX '$BOX' is not a name; nothing written";;esac
+E=;[ "$BOX" != encryption-town ]||E=1   # the RAM unit and the slice below are typed for encryption-town ONLY (no RAM disk, 7.8 GB box): any other box keeps its own
 case $PIN in ""|*[!0-9a-f]*)die "PIN must be a 40-hex commit sha";esac;[ ${#PIN} = 40 ]||die "PIN must be a 40-hex commit sha"
 export GIT_NO_REPLACE_OBJECTS=1 GIT_NO_LAZY_FETCH=1;unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
 G(){ git -c safe.directory=$R$M -C $R$M "$@";}
@@ -139,7 +143,7 @@ projpiece(){ S agi-project|(cd $R$M&&AGI_BOX=$BOX GIT_CONFIG_COUNT=1 GIT_CONFIG_
 projmet(){ [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ]&&return 0
  e=$(mktemp -d)||return 1;U=$R/run/systemd/system
  projpiece $e >/dev/null 2>&1&&cmp -s $e/agi-users.conf $U/agi-users.conf&&[ "$(ls $e/multi-user.target.wants|grep '^agi-post@')" = "$(ls $U/multi-user.target.wants 2>/dev/null|grep '^agi-post@')" ];pr=$?;rm -rf $e;return $pr;}
-hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ]&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
+hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&{ [ -z "$E" ]||{ ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ];};}&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
 tm(){ [ "$CF" = true ]||return 0;stp&&return 0;if [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
 # ---- preflight (nothing written yet) ----
 for c in git jq setfacl sed;do command -v $c>/dev/null||die "missing tool: $c";done
@@ -150,8 +154,9 @@ G show $PIN:.agi/nodes/.geometry/posts.md>/dev/null||die "no posts.md at $PIN"
 # B3 (alive/aio 10-21): `up_host check` writes nothing: met -> rc 0, else rc 1 with the line start prints. The live box has no host.done until ONE `sudo PIN=<pin> sh agi.sh host` has run (owner / SM GO); start never runs the act itself.
 if [ "$1" = check ];then hostmet&&{ echo "host: met";exit 0;};echo "host: not met; run agi.sh host" >&2;exit 1;fi
 id $PU>/dev/null 2>&1||die "PREREQ: user $PU (the comms ACL's second entry) is absent: PRIME_USER=<user> to name another"
-[ -n "$SKIP_PREREQ" ]||{ [ -x $R/opt/agi/bin/pi ]||[ -x $R/usr/local/bin/pi ]||die "PREREQ: no pi at /opt/agi/bin/pi (agi-project exits 3 without it while a pi row has box $BOX): install it first, SKIP_PREREQ=1 to override";}
+[ -n "$SKIP_PREREQ" ]||! G show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b $BOX 'select(.box==$b and .engine.v==4)|.+.engine|select((.harness//"")|test("^pi"))'>/dev/null||{ [ -x $R/opt/agi/bin/pi ]||[ -x $R/usr/local/bin/pi ]||die "PREREQ: no pi at /opt/agi/bin/pi (agi-project exits 3 without it while a pi row has box $BOX): install it first, SKIP_PREREQ=1 to override";}
 hostmet&&{ echo "host: met";exit 0;}
+STEP="step 0: the before-state backup"
 # ---- STEP 0 (root, BEFORE anything else): back the before-state up and write ONE rollback command ----
 B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p $R/var/backups&&mkdir $B||die "$B exists or cannot be made: refusing to overwrite a before-state";mkdir $B/files
@@ -171,15 +176,16 @@ if [ -s $B/run.list ];then tar -C $U -cpf $B/run.tar -T $B/run.list||exit 1;(cd 
 printf '%s\n' '#!/bin/sh' "B=$B;R=$R" 'U=$R/run/systemd/system' '[ -n "$R" ]||systemctl disable --now agi-carry-fetch.timer 2>/dev/null' '[ -n "$R" ]||systemctl disable agi-boot.service 2>/dev/null' '[ ! -d $B/files ]||cp -a $B/files/. ${R:-/}||exit 1' '[ ! -s $B/acl.before ]||setfacl --restore=$B/acl.before||echo "rollback: acl restore rc $? (vanished paths skipped)">&2' 'if [ -d $U ];then ( cd $U;find agi-* agi.slice multi-user.target.wants/agi-* 2>/dev/null|while read p;do grep -qxF "$p" $B/run.before||rm -rf "$p";done );fi' '[ ! -s $B/run.tar ]||tar -C $U -xpf $B/run.tar' '[ ! -s $B/absent ]||while read f;do rm -f $R$f;done<$B/absent' '[ ! -s $B/absentdirs ]||while read d;do rmdir $R$d 2>/dev/null;done<$B/absentdirs' '[ -n "$R" ]||systemctl daemon-reload' 'echo rolled back from $B "(an act-made dir that posts have filled since stays: rmdir removes only empty ones)"'>$B/rollback.sh
 echo "backup $B: $(wc -l <$B/before.sha256) files, $(wc -l <$B/run.before) /run paths, $(cat $B/absent 2>/dev/null|wc -l|tr -d " ") absent files; rollback: sh $B/rollback.sh"
 # ---- the act: the pieces and units, carry.env, the E no-op ram unit, the slice, reload, enable ----
-rm -f $R/etc/agi/host.done||exit 1   # an act that dies below leaves NO marker: the re-run is not met
+STEP="the act: host.done cleared, pieces";rm -f $R/etc/agi/host.done||exit 1   # an act that dies below leaves NO marker: the re-run is not met
 echo "installing from $PIN:"
 each put1||exit 1
-install -d -m 755 $OWN $R/etc/agi||exit 1
+STEP="carry.env";install -d -m 755 $OWN $R/etc/agi||exit 1
 carry_env>$R/etc/agi/carry.env||exit 1;chmod 644 $R/etc/agi/carry.env
-install -d -m 755 $OWN $R/mnt/agi-ram $R/mnt/agi-ram/state||exit 1
+STEP="the units";[ -z "$E" ]||{ install -d -m 755 $OWN $R/mnt/agi-ram $R/mnt/agi-ram/state||exit 1
 ramunit>$R/etc/systemd/system/agi-ram-main.service||exit 1;chmod 644 $R/etc/systemd/system/agi-ram-main.service
-sliceunit>$R/etc/systemd/system/agi.slice||exit 1;chmod 644 $R/etc/systemd/system/agi.slice
+sliceunit>$R/etc/systemd/system/agi.slice||exit 1;chmod 644 $R/etc/systemd/system/agi.slice;}
 install -d -m 755 $OWN $R/var/lib/agi||exit 1
+STEP="the ACLs"
 # MAIN ACL: the post users (group agi) create refs, objects, logs and worktrees in MAIN's .git; L carries this, nothing in the repo made it
 install -d $R$M/.git/worktrees||exit 1
 for d in objects refs logs worktrees;do setfacl -R -m g:$AG:rwX,u:$PU:rwX $R$M/.git/$d&&find $R$M/.git/$d -type d -exec setfacl -d -m g:$AG:rwX,u:$PU:rwX {} +||die "cannot set the MAIN ACL on .git/$d: sh $B/rollback.sh";done
@@ -207,15 +213,16 @@ if [ -z "$R" ];then
   echo "  probe: agi-$U creates and removes a dir in .git/{objects,refs,logs,worktrees} and a file in .agi/sessions, .agi/sessions/inbox and .agi/comms"
  else echo "  probe SKIPPED: no agi-<post> user for a box $BOX row yet">&2;fi
 fi
+STEP="the tail (verify, reload, project, enable)"
 if [ -z "$R" ]||[ -n "$AGI_HOST_UNITS" ];then   # AGI_HOST_UNITS=<stub dir>: a rehearsal runs this tail too, against the systemctl / systemd-analyze stubs IN that dir (R-b: refused otherwise)
- systemd-analyze verify $R/etc/systemd/system/agi-ram-main.service $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service $R/etc/systemd/system/agi.slice||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
+ systemd-analyze verify ${E:+$R/etc/systemd/system/agi-ram-main.service} $R/etc/systemd/system/agi-boot.service $R/etc/systemd/system/agi-carry@.service $R/etc/systemd/system/agi-carry-fetch.service ${E:+$R/etc/systemd/system/agi.slice}||die "systemd-analyze verify refused a unit: sh $B/rollback.sh"
  # council 17:58Z 10-21: the projection is EXPLICIT, right after daemon-reload and the carry.env write above (agi-project.path never ran on this box; one oneshot at carry.env's pin, it starts no post). A stopped town projects too: stop leaves /run's units and hostmet reads them.
  PJ="agi-project.service did not run at $PIN (the box has no projection of it): sh $B/rollback.sh"
  # council 19:46Z 10-21 FRESH-BOX DEADLOCK: /run/systemd/system/agi-project.service exists only after the pinned piece has run into /run (engine.md writes it), which on a box is agi-boot's job at boot, and agi-boot.service is INSTALLED by this very act; so on a box that never ran it the start below dies, every re-run dies the same way and a reboot does not help (agi-boot is not yet enabled). When the unit is absent the tail runs the SAME pinned piece into /run first (one code, two callers, no second writer: the unit's own start then works on every later run); a piece that itself fails dies by name.
  fresh(){ [ -e $R/run/systemd/system/agi-project.service ]&&return 0;mkdir -p $R/run/systemd/system&&projpiece $R/run/systemd/system||die "the pinned agi-project piece failed at $PIN, /run has no agi-project.service: sh $B/rollback.sh";systemctl daemon-reload||die "daemon-reload failed: sh $B/rollback.sh";}
  if stp;then systemctl daemon-reload||die "daemon-reload failed: sh $B/rollback.sh";fresh;systemctl start agi-project.service||die "$PJ";echo "stopped town: start's steps re-enable"
  else systemctl daemon-reload&&fresh&&{ systemctl start agi-project.service||die "$PJ";}&&tm&&systemctl enable agi-boot.service||die "enable failed: sh $B/rollback.sh";fi   # (2) council 10-21: ENABLE only, no start: start (S5) writes the flags with no post up, then its restart of agi-boot starts the posts
- echo "slice:";systemctl show agi.slice -p MemoryHigh -p MemoryMax -p ManagedOOMMemoryPressure
+ [ -z "$E" ]||{ echo "slice:";systemctl show agi.slice -p MemoryHigh -p MemoryMax -p ManagedOOMMemoryPressure;}
 else tm||exit 1;fi
 echo "act done; next: per post, PIN=$PIN sh $D/../guard/host-act-encryption-town.sh move <post> (after its row has box $BOX at that pin)"
 printf '%s\n' $PIN>$R/etc/agi/host.done&&chmod 644 $R/etc/agi/host.done||exit 1   # the LAST line (council R1): only a completed act is met
