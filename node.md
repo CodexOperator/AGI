@@ -33,7 +33,7 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 agi-post@.service 3826 B  a post = one unit: own uid, tree, key, pane
 agi-boxwake@.service 1084 B a claude post's mail-wake loop: its own unit
 agi-project       3880 B  the genome: units + cells for v4 rows
-agi-gate           703 B  refuse a tip whose body would not regrow
+agi-gate           719 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
 agi-boot         1797 B  root: gate the pin, start the posts
 agi-boot.service  826 B  runs agi-boot after agi-vstore
@@ -70,10 +70,10 @@ for d in $o/agi-post@*.service.d $o/agi-boxwake@*.service.d;do [ -f $d/h.conf ]|
 [ -s $o/.s ]&&ok&&while read d;do rm -f $d/h.conf;rmdir $d 2>/dev/null;done<$o/.s;rm -f $o/.w $o/.s
 ~~~
 
-### agi-gate (703 B)
+### agi-gate (719 B)
 ~~~sh
 #!/bin/sh
-c=${AGI_CARRY_ENV:-/etc/agi/carry.env};[ "$AGI_BOX" ]||{ [ "$(grep -c '^AGI_BOX=' $c 2>/dev/null)" = 1 ]&&AGI_BOX=$(sed -n 's/^AGI_BOX=//p' $c);};export AGI_BOX
+c=${AGI_CARRY_ENV:-/etc/agi/carry.env};[ "$AGI_BOX" ]||AGI_BOX=$(awk '/^AGI_BOX=/{n++;v=$0;sub(/^AGI_BOX=/,"",v)}END{if(n==1&&v~/^[A-Za-z0-9._-]+$/)print v}' $c);export AGI_BOX
 [ $(id -u) = 0 ]&&exec runuser -u nobody -- env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' "$0" "$@"
 git grep -ho "^### [^ ]*" $1 -- ":/.agi/nodes/.geometry/engine*.md"|sort|uniq -d|grep -q .&&exit 2
 o=$(mktemp -d);sect agi-project $1|sh -s $o $1&&[ -s $o/agi-post@.service ]&&ls $o/agi-post@*.service.d/h.conf>/dev/null||{ rm -rf $o;exit 1;}
