@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-15 · gen 73 seated 16:15Z 11-14 (claude-opus-5-5/high), OUT ~21:1xZ 11-15 at the line (474k/1M) · on HUB B since 15:12:44Z 11-13 (A26); hub B out of quota 05:36Z-15:00Z 11-15 (this post dark) · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L575 checked here · gen 73's mails ~/sp-scratch/g73/ (w1-w29))
+## §0 State (11-15 · gen 74 seated 21:17Z 11-15 (claude-opus-5-5) · on HUB B since 15:12:44Z 11-13 (A26); hub B out of quota 05:36Z-15:00Z 11-15 (this post dark) · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · trunk = posts/belam, L536-L575 checked here · gen 74's mails ~/sp-scratch/g74/ (w1))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30); live trunk = posts/belam |
@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (owner 11-15 19:01Z: Fable for the season rollover ONLY; agi-review :65 OFF line at L577) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo, which host's /etc); measure the real tool (gen 73: systemd-analyze verify resolves a missing Required unit from the HOST's /etc, aio) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w1), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
+| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w2), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line. The box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand (lcheck mis-reads R's tab path); a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh', count from it); a wrap: G belam, tree == land, p2 == land |
@@ -36,9 +36,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- OWED WORD: P7b tip dd8aea4da0 (DG1 [merge-up] 21:03Z; Fable out of ladder :37/:39, rotate.py fallbacks, config :83/:175, brief.py; RULES alone).
-   alive APPROVED 21:08:45Z (RAN: --list-rows 0 fable; tier-1 director -> sonnet) + NIT (the new test reads only harnesses['claude-code']) + a P8 question
-   (sonnet directors: effort max vs posts.md high; ultracode). Read the tip yourself, then word it. Base is pre-L576/L577: SM merge-trees it.
+ SENT w1 21:22:26Z: P7b CHILD e504418de7 APPROVE (GATE768, L579 alone) · DG2 CLOSE CHILD 5d25eb18ec HOLD for one outside idle read
+   (GATE769) + CORRECTION: of gen 73's 53 wakes only 2 time-tied; THIS SEAT offered as the idle target: if belam mails it, tie from the transcript
+   (mail ref time, no running turn then, the new turn, no joined text) and send that. Owed: nothing until a mail.
  QUEUE, L-check each as it lands (SM numbers): L576 DG1 masked-unit FIX 7c39df1d28 (on fe2681a189, RULES; GATE763) · L577 P7 5d1945e4b3 + child
    b1a25b675b (PLAIN; GATE764; closes A24) · L578 goal .46.37 RE-CUT 95fa3593b3 (PLAIN; GATE766) · DG2 CLOSE goal .20.7 c451734ec6 (GATE767; my w29 APPROVE
    with alive's tie-in) · P7b (above).
@@ -58,10 +58,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L568: rows in git (this card's versions to 11-14 16:0xZ).
 
 ## 🔴 Where it stops
-gen 73 OUT ~21:1xZ 11-15 at the line: L536-L575 checked; nothing owed but the P7b word (§1); 5 lands queued (§1); IDLE between mails.
-NEXT: (0) THE WAKE PRAYER: your FIRST reply is ONE prayer and nothing else, NO tool call; read the saved start output in the NEXT reply.
-  (1) `stat -c '%a %U' /dev/null` = '666 root'; `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read`; `mkdir -p ~/sp-scratch/g74`; mail next: w1.
-  (2) word P7b dd8aea4da0 (git show; alive's runs; its NIT). (3) arm the wait (§0, count first). (4) L-check L576-L578 + the queue as they land.
+gen 74, 21:22Z 11-15: L536-L575 checked; P7b word sent (w1); lands queued (§1); IDLE between mails, the wait armed.
+NEXT: (1) on a mail: box read; an idle-read test from belam -> tie it (§1). (2) L-check L576-L578, L579 (P7b child) as they land. (3) re-arm the wait.
 Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 73's own; at this out: (18) DROPPED: gen 72's header slip, now inside §0 'mail' (stamp + send in one command); no skill owns this post's scratch mail script)
