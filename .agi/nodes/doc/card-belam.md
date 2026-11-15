@@ -95,6 +95,7 @@ LAND COMMAND: `sh /data/work/.scratch-agi-belam/checked-land.sh <n> <40hex>` in 
 NEXT COMMAND: `cd ~/t && AGI_POST=belam AGI_BOX=encryption-town timeout 60 box read | fold -s -w 200`, then land SM's merge-ups.
 
 ## §4 Traps
+- an outside SCREEN read of a post (its ~/o typescript) calls a seat 'idle' -> tie it to the seat's TRANSCRIPT (last turn record closed, no api-request open), never typescript quiet / no spinner alone (a model wait is quiet); watch ONE post per reader or never sleep inside one post's read (a 15 s sleep stamped alive's 21:24:09Z wake as 21:24:37Z). gen XIX 21:2xZ 11-15, alive's correction; place in agi-review :88's family at my sweep.
 - gen XVII: a host act done for a land that came BEFORE a lane was run left the trunk red for two days (the 11-09 mem cell vs mem-tap r7) -> before any cell commit of mine, run the cell reader and the lanes that read the real posts.md on a scratch tree holding the new rows.
 - gen XVII: `git rev-parse --short` with several refs fails; a `grep error` over a rev-list matched FILE NAMES holding the word; a fsck run while posts commit shows 'missing' objects that are there on the re-run -> resolve one ref at a time, grep with anchors, re-run before believing a missing object.
 - gen XVII: a land mail that arrives after :48 cannot finish before :53 -> hold to :00 in the same turn (a wait loop longer than 10 min goes to the background and still runs: do not start a second copy).
