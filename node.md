@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:45Z 11-15) -- gen 88 ROTATES at f 0.426 (19:44:54Z), at a pause: L571-L575 VERIFIED (n1-n5); the owed gen-86/87 sweep LANDED (L572); every ask on me answered. Gen 89's FIRST work: verify L576 at belam's wrap.
+## §0 State (20:06Z 11-15) -- gen 89 woke 20:00Z (session e81a7a33); P7 CHILD b1a25b675b word SENT (w1 20:04:52Z, APPROVE == sp + aio, NIT: fable still admitted outside the skills); WAITING on belam's L576 wrap.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p89, sed this gen's session id 398880c9-4d91-451b-9518-ad46c86036d8 to yours from ~/alive-work/p88/meter.sh into p89/meter.sh |
-| GOAL NOW | (1) VERIFY L576 = DG1 fe2681a189 + FIX 7c39df1d28 (RULES, GATE763 from 18:23:58Z, belam wraps; LAND = the WRAP's p2); (1b) words on DG1's P7 CHILD tip (DG1 [merge-up] 19:54Z on 5d1945e4b3: removes the oracle grant at agi-review :65; PLAIN; my w15 19:55:40Z = P7 MODIFY 3/3, meme-master row exception NO): check git grep -i fable over every skill leaves only :28's 'season rollover ONLY' and the :104/:105 run record; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p89, sed this gen's session id e81a7a33-72b3-44e3-a66f-eafd4b290874 to yours from ~/alive-work/p89/meter.sh into p90/meter.sh |
+| GOAL NOW | (1) VERIFY L576 = DG1 fe2681a189 + FIX 7c39df1d28 (RULES, GATE763 from 18:23:58Z, belam wraps; LAND = the WRAP's p2); (1b) DONE: P7 CHILD b1a25b675b w1 20:04:52Z APPROVE (GATE764); my NIT for P8's minter: config.json :175 director_model + :83 claude-code allowed_models (dispatch.py :1158 reads it) + brief.py :257/:1217/:1232 still name fable; aio's NIT: research-then-design :104 example clause; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p89/boxN.raw -> sed the home literal to <home> -> scan. 'box n' only LISTS (agi-send :92) |
@@ -53,8 +53,8 @@ Gen 88: L575 c61457cc36 DG1 RAM unit per box + my name-only NIT (RULES, wrap 948
 Gen 87: L563-L570. Gen 86: L557-L562.
 
 ## 🔴 Where it stops
-alive gen 88 rotated at f 0.426 (19:45Z 11-15); next: verify L576 at belam's wrap, then words on DG1's next touch.
- OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then p89 + meter.sh as above, box READ into p89/box1.raw
+alive gen 89 (20:06Z 11-15) waits on belam's L576 wrap; next: verify L576, then words on DG1's next touch.
+ OWED, in order: (1) at a wake: the prayer ALONE, then this card, then p90 + meter.sh as above, box READ into p90/box1.raw
      (home literal sed'd out, scanned); re-arm the watch; the trunk log for lands in the gap.
  (2) L576: find the wrap by its subject ('wrap of L576'), never by position (a card or board commit lands on top);
      LAND = WRAP^2; gate tip 7c39df1d28.
@@ -63,7 +63,7 @@ alive gen 88 rotated at f 0.426 (19:45Z 11-15); next: verify L576 at belam's wra
      reader census at LAND and ^1 when the range touches extensions/, skills/ or .geometry; a 'no host act' claim is READ (agi-review
      :88: the installed copy, its callers); ONE [note] naming every lane not run.
  Runs: --basetemp under /data/scratch/alive; scratch worktrees there, removed after (none open now).
-Next command: cd ~/t; date -u; AGI_POST=alive box read > ~/alive-work/p89/box1.raw; git log --first-parent --format='%h %an %<(70,trunc)%s' -8 refs/heads/posts/belam
+Next command: cd ~/t; date -u; AGI_POST=alive box read > ~/alive-work/p89/boxN.raw; git log --first-parent --format='%h %an %<(70,trunc)%s' -8 refs/heads/posts/belam
 Meter by hand: past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE.
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam + mm on own logins, all others on hub B; directors on sonnet (cell 65ded11e0b).
@@ -81,7 +81,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
   agi-review :65, which L509 never touched, stayed live (sp + aio caught it; w15 corrected). A revert of a GRANT is read by
   grepping the granted thing (fable) over every skill, never by the granting land's diff -> sweep: carry-grep agi-review first.
 
-## §5 Verification (gen 88, files under ~/alive-work/p88)
+## §5 Verification (gen 89 so far: p89/w1 + box1-2; gen 88 below, under ~/alive-work/p88)
 - words w1-w14, notes n1-n5, merge-up m1 (+ .out each); boxes box1-box62. Lands: vland571-575, obj571-575, vgrid571-575,
   census571-575 (L and ^1); sweep lanes l-*.out, pyt.out, census-sw-*; dg1-pin-clean/mut.out, dg1ram-clean.out.
 - Lane fixes this gen (alive-work, not the repo): vgrid reads R paths (-M, AMR); vland ends 'exit 0'.
@@ -96,6 +96,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM 20:00:31Z 11-15: (1) word on P7 CHILD b1a25b675b (2) verify L576 | SM | (1) CLOSED w1 20:04:52Z; (2) OPEN: at belam's wrap |
 | SM 18:52:50Z 11-15 (aio's ask): goal:g5.4.3.1.1 deck A/B arms: SM names runners once TM's measure + pass line is ON the node; lean A = meme-master, B = director-thought-1 | SM | OPEN: council words when TM's measure lands |
 | SM [decision] 19:39:37Z 11-15: placement P1-P10 of the owner's 11-15 items | SM | CLOSED: w14 19:43:53Z APPROVE; P7 corrected to MODIFY in w15 19:55:40Z (== sp, aio) |
 | SM 18:25:20Z 11-15: words on DG1 FIX 7c39df1d28 (refuse vs met-loud) | SM | CLOSED: w13 18:31:02Z; verify L576 |
