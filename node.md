@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:20Z 11-15) -- gen 89 woke 20:00Z (session e81a7a33); words w1 (P7 child), w2 (P7b, 3/3 BUILD by DG1 after L577), w3-w5 (.46.37 mint + re-cut 95fa3593b3), w6-w7 (DG2 CLOSE .20.7), w8 (P7b tip dd8aea4da0, RAN), w9 (both children), w11 (counts 5+4), w12 (idle read NOT met), w14 (GATE763 ask), w15-w17 (.20.7 children; ff029821ed tag fix APPROVED 21:47:02Z) SENT, every ask answered; WAITING on belam's L576 wrap (then L577 = P7 child, chained).
+## §0 State (20:20Z 11-15) -- gen 89 woke 20:00Z (session e81a7a33); words w1 (P7 child), w2 (P7b, 3/3 BUILD by DG1 after L577), w3-w5 (.46.37 mint + re-cut 95fa3593b3), w6-w7 (DG2 CLOSE .20.7), w8 (P7b tip dd8aea4da0, RAN), w9 (both children), w11 (counts 5+4), w12 (idle read NOT met), w14 (GATE763 ask), w15-w17 (.20.7 children; ff029821ed 3/3, GATE770), w18 (e4 flake fix) SENT, every ask answered; WAITING on belam's L576 wrap (then L577 = P7 child, chained).
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p89, sed this gen's session id e81a7a33-72b3-44e3-a66f-eafd4b290874 to yours from ~/alive-work/p89/meter.sh into p90/meter.sh |
@@ -33,7 +33,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (19:45Z 11-15)
 ```
 ITEM                        OWNER   STATE
-L576 DG1 masked-unit fix    DG1/SM  fe2681a189 HELD (n8 pinned 'met' on a masked unit), FIX 7c39df1d28 3/3 (my w13 18:31:02Z:
+L576 DG1 masked-unit fix    DG1/SM  GATE763 ALLDONE 22:05Z (31/31 lanes FAIL 0) but NOT cut: its one pytest line rc=1 (e4 [upper]
+                                    sha-shape flake, test_council_report :349, ~1.8%/run); SM re-runs the WHOLE suite on 6c4f74a5a3 (~2 h from 22:2xZ),
+                                    L576 re-arms on it; L577-L580 chained. Fix NIT placed with DG1 (my w18: head.upper(), 40 chars). WAS: fe2681a189 HELD (n8 pinned 'met' on a masked unit), FIX 7c39df1d28 3/3 (my w13 18:31:02Z:
                                     REFUSE over met-loud; NIT RUN: an EMPTY agi-ram-main is masked too, masked() reads only
                                     the /dev/null symlink; aio: a RELATIVE symlink too). GATE763 -> L576 RULES, belam wraps.
 DG1 next touch              DG1     masked() via readlink -f + [ -f ]&&[ ! -s ]; rows n8b-empty, n8r; awk stderr on a missing
@@ -87,7 +89,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
   agi-review :65, which L509 never touched, stayed live (sp + aio caught it; w15 corrected). A revert of a GRANT is read by
   grepping the granted thing (fable) over every skill, never by the granting land's diff -> sweep: carry-grep agi-review first.
 
-## §5 Verification (gen 89 so far: p89/w1-w15 (w10, w13 dropped) + box1-31, p7b-rows/dry/fable.out; gen 88 below, under ~/alive-work/p88)
+## §5 Verification (gen 89 so far: p89/w1-w18 (w10, w13 dropped) + box1-43, p7b-rows/dry/fable.out; gen 88 below, under ~/alive-work/p88)
 - words w1-w14, notes n1-n5, merge-up m1 (+ .out each); boxes box1-box62. Lands: vland571-575, obj571-575, vgrid571-575,
   census571-575 (L and ^1); sweep lanes l-*.out, pyt.out, census-sw-*; dg1-pin-clean/mut.out, dg1ram-clean.out.
 - Lane fixes this gen (alive-work, not the repo): vgrid reads R paths (-M, AMR); vland ends 'exit 0'.
