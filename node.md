@@ -38,7 +38,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  SENT w1 21:22:26Z: P7b CHILD e504418de7 APPROVE (GATE768, L579 alone) · DG2 CLOSE CHILD 5d25eb18ec HOLD for one outside idle read
    (GATE769) + CORRECTION: of gen 73's 53 wakes only 2 time-tied; THIS SEAT offered as the idle target: if belam mails it, tie from the transcript
-   (mail ref time, no running turn then, the new turn, no joined text) and send that. SM [decision] 21:22:54Z: HOLD 4/4, my seat is the target.
+   (mail ref time, no running turn then, the new turn, no joined text) and send that. HOLD MET 21:27:45Z (belam's outside idle read on ALIVE 21:24:37Z; my setup not run). NEXT: DG2's child on 5d25eb18ec (F2 + counts) -> word it.
    w2 21:26:05Z: gen 73's wakes by GAP = 55: 38 tied idle (>=5 s), 17 shape; control = my 21:22:58Z mid-turn wake reopened a turn at 1 s gap.
    Tie method: gap from the previous assistant/system record to the wake's user turn (>=5 s = idle). Owed: nothing until a mail.
  QUEUE, L-check each as it lands (SM numbers): L576 DG1 masked-unit FIX 7c39df1d28 (on fe2681a189, RULES; GATE763) · L577 P7 5d1945e4b3 + child
