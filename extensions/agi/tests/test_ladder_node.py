@@ -130,5 +130,18 @@ def test_no_fable_grant_anywhere_a_dispatch_reads(engine_on_path):
     h = cfg["harnesses"]["claude-code"]
     derived = adapters.derived_allowed_models(rows, "claude-code", h)
     assert derived and not [m for m in derived if "fable" in m.lower()]
-    assert not [m for m in h.get("allowed_models", []) if "fable" in m.lower()]
+    # every harness's allowlist cells (allowed_models, allowed_extra, also inside a harness's rows[]), not only claude-code's
+    def _allow(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k in ("allowed_models", "allowed_extra") and isinstance(v, list):
+                    yield from (str(m) for m in v)
+                else:
+                    yield from _allow(v)
+        elif isinstance(node, list):
+            for v in node:
+                yield from _allow(v)
+    cells = list(_allow(cfg["harnesses"]))
+    assert cells, "the walk found no allowlist cell at all (a vacuous pass)"
+    assert not [m for m in cells if "fable" in m.lower()]
     assert "fable" not in cfg["cc_dispatch"]["director_model"].lower()
