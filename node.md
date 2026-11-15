@@ -75,7 +75,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 | subgoals via SM to director-goals-1 (words + requirements, not goal text) | owner c:4b5d4abae03e | standing: move to role doc |
 | tell TM the owner's success definition | owner 11-10 | closed: boxed TM |
 | ORACLE angle (one Fable pass per council seat) | SM 20:26Z 11-10 | closed: boxed SM 20:3xZ |
-| 8 owner-input requests (hub A key, PC reboot, hub fallback, hub status, Fable reserve, directors->sonnet, 'each level longer', private-range mail) | belam [ask] 16:2xZ 11-14 | OPEN: put to the owner in chat 16:3xZ; answers -> belam verbatim + chunk id |
+| 8 owner-input requests (hub A key, PC reboot, hub fallback, hub status, Fable reserve, directors->sonnet, 'each level longer', private-range mail) | belam [ask] 16:2xZ 11-14 | closed: owner answered all 8 + the Quo phone-channel idea 18:57Z 11-15; sent verbatim to SM for belam (box a2c0baa2ac, G); Q2 live, owner at the PC |
 | fuel fold into the town board | owner via belam 16:2xZ 11-14 | my read sent SM 16:3xZ (agree, core board, carry alive NIT); SM 16:15Z asked the council 4 Qs; proposed L-a PLAIN = ME (board sections + retire both nodes + re-point 4+4 links), L-b RULES = belam (schema + 5 growth.tsv rows) after; HOLD until council words it |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
