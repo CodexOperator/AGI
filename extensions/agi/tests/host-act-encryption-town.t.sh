@@ -11,8 +11,9 @@ mk(){ X=$T/$1;rm -rf $X;mkdir -p $X/data/work/agi/.agi/nodes/.geometry $X/opt/ag
  { printf '%s\n' '---' 'posts:';printf '  - {"name":"xp","box":"encryption-town","engine":{"v":4,"name":"xp","harness":"claude-code","model":"m","effort":"low"}}\n  - {"name":"lp","box":"local-town","engine":{"v":4,"name":"lp","harness":"claude-code","model":"m","effort":"low"}}\n';printf '%s\n' '---';} >$M/.agi/nodes/.geometry/posts.md
  [ -z "$CFG" ]||printf '%s\n' "$CFG">$M/.agi/config.json
  [ -n "$NOCOMMS" ]||{ mkdir -p $M/.agi/comms/season-2/dm;echo x>$M/.agi/comms/season-2/dm/a--b.md;}
+ [ -z "$PIROW" ]||sed -i '/"name":"xp"/a\  - {"name":"xq","box":"encryption-town","engine":{"v":4,"name":"xq","harness":"pi","model":"m","effort":"low"}}' $M/.agi/nodes/.geometry/posts.md
  git init -q $M;git -C $M add -A;git -C $M -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm fx;PIN=$(git -C $M rev-parse HEAD);printf '#!/bin/sh\n' >$X/opt/agi/bin/pi;chmod +x $X/opt/agi/bin/pi;}
-run(){ ( cd $T;env -i PATH=$PATH HOME=$T ROOT=$X PIN=${PIN} AGI_REPO=/data/work/agi STUB_X=$X STUB_M=$X/data/work/agi "$@" );}
+run(){ ( cd $T;env -i PATH=$PATH HOME=$T ROOT=$X PIN=${PIN} AGI_BOX=encryption-town AGI_REPO=/data/work/agi STUB_X=$X STUB_M=$X/data/work/agi "$@" );}
 # one line per getfacl record, sorted: readdir order differs between filesystems (tmpfs moves .git/index when it is rewritten), the content does not
 acls(){ { getfacl -R -p $X/data/work/agi/.git $X/data/work/agi/.agi/comms;getfacl -p $X/data/work/agi/.agi/sessions;} 2>/dev/null|awk 'BEGIN{RS=""}{gsub(/\n/,"|");print}'|sort;}
 tree(){ (cd $X&&find . -path ./data -prune -o -path ./var/backups -prune -o -print|sort|xargs -I{} stat -c '%a %n' {});}
@@ -73,7 +74,7 @@ ok j1-a-vanished-recorded-path-warns-and-the-rollback-finishes "[ $rj = 0 ]&&gre
 ok j2-the-later-undo-steps-ran-run-list-absent-files-and-act-made-dirs "[ ! -e $X/run/systemd/system/agi-junk.service ]&&[ ! -e $X/etc/agi/carry.env ]&&[ ! -e $X/data/work/agi/.agi/sessions ]&&[ ! -e $X/data/work/agi/.git/worktrees ]"
 ok j3-the-rollback-echo-says-a-filled-act-made-dir-stays "grep -q 'act-made dir that posts have filled since stays' $T/j.rb"
 # ---- refusals write NOTHING ----
-mk d;before=$(tree);run env PIN=zz sh $ACT act>/dev/null 2>$T/d1.err;r1=$?;run env PIN=0000000000000000000000000000000000000000 sh $ACT act>/dev/null 2>$T/d2.err;r2=$?;rm $X/opt/agi/bin/pi;run sh $ACT act>/dev/null 2>$T/d3.err;r3=$?
+PIROW=1 mk d;before=$(tree);run env PIN=zz sh $ACT act>/dev/null 2>$T/d1.err;r1=$?;run env PIN=0000000000000000000000000000000000000000 sh $ACT act>/dev/null 2>$T/d2.err;r2=$?;rm $X/opt/agi/bin/pi;run sh $ACT act>/dev/null 2>$T/d3.err;r3=$?
 ok d1-a-bad-pin-is-refused-by-name "[ $r1 != 0 ]&&grep -q 'PIN must be' $T/d1.err"
 ok d2-a-pin-that-is-no-commit-is-refused "[ $r2 != 0 ]&&grep -q 'is not a commit' $T/d2.err"
 ok d3-no-pi-is-refused-and-nothing-is-written "[ $r3 != 0 ]&&grep -q 'PREREQ: no pi' $T/d3.err&&[ ! -e $X/var/backups ]&&[ ! -e $X/etc/agi ]&&[ \"\$(tree)\" = \"\$(echo \"$before\"|grep -v opt/agi/bin/pi)\" ]"
@@ -290,4 +291,23 @@ printf 'a\n' >$T/c1;x=$(sedc 's/^zzz/q/' $T/c1 "a drifted sed -i";echo AFTER);rc
 ok sedc-a-sed-i-that-matches-nothing-exits-99-with-one-named-line '[ $rc = 99 ]&&[ "$x" = "FAIL fixture: chg matched nothing: a drifted sed -i" ]'
 x=$(sedc(){ cp "$2" $T/sedc.pre;sed -i "$1" "$2";};sedc 's/^zzz/q/' $T/c1 "the old bare sed -i";echo AFTER);rc=$?
 ok sedc-mutant-the-bare-sed-i-is-RED '[ $rc = 0 ]&&[ "$x" = "AFTER" ]'
+
+# ---- goal:g7.31.1.7.1 next touch (aio/sp 11-14): `agi.sh host` has NO default box, the E-only units are E-only, the pi PREREQ reads THIS box's rows, a failing run prints where
+mk n1;before=$(tree);run env -u AGI_BOX sh $ACT act>$T/n1.out 2>$T/n1.err;rn1=$?
+ok n1-an-unset-agi-box-is-refused-by-name-and-nothing-is-written "[ $rn1 != 0 ]&&grep -q 'AGI_BOX unset' $T/n1.err&&[ \"\$(tree)\" = \"\$before\" ]&&[ ! -e $X/var/backups ]&&[ ! -e $X/etc/agi ]"
+mk n2;run env AGI_BOX=local-town sh $ACT act>$T/n2.out 2>$T/n2.err;rn2=$?;run env AGI_BOX=local-town sh $ACT act>$T/n2b.out 2>$T/n2b.err;rn2b=$?
+ok n2-a-box-other-than-E-gets-neither-the-noop-ram-unit-nor-the-6g-slice "[ $rn2 = 0 ]&&[ ! -e $X/etc/systemd/system/agi-ram-main.service ]&&[ ! -e $X/etc/systemd/system/agi.slice ]&&[ ! -e $X/mnt/agi-ram ]&&grep -qx 'AGI_BOX=local-town' $X/etc/agi/carry.env&&[ $rn2b = 0 ]&&grep -q 'host: met' $T/n2b.out"
+mk n3;rm $X/opt/agi/bin/pi;run env AGI_BOX=local-town sh $ACT act>$T/n3.out 2>$T/n3.err;rn3=$?
+ok n3-no-pi-is-no-prereq-when-this-box-has-no-pi-row "[ $rn3 = 0 ]&&! grep -q PREREQ $T/n3.err"
+mk n4;chmod 555 $X/etc;run sh $ACT act>$T/n4.out 2>$T/n4.err;rn4=$?;chmod 755 $X/etc
+ok n4-a-silent-failure-prints-its-rc-and-the-step "[ $rn4 != 0 ]&&grep -q 'host-act: failed (rc [0-9]*) at: ' $T/n4.err"
+mk n5;run env -u AGI_BOX PIN=$PIN sh $ACT move xp>$T/n5.out 2>$T/n5.err;rn5=$?
+ok n5-the-guards-move-has-no-default-box-either "[ $rn5 != 0 ]&&grep -q 'AGI_BOX unset' $T/n5.err&&[ ! -e $X/etc/agi ]"
+# mutants of agi.sh (a copy of guard/ + bin/): each must read RED on its row
+mutact(){ rm -rf $T/mt;mkdir -p $T/mt/guard $T/mt/bin;cp $R0/extensions/agi/guard/host-act-encryption-town.sh $T/mt/guard/;cp $R0/extensions/agi/bin/agi.sh $T/mt/bin/;sedc "$1" $T/mt/bin/agi.sh "$2";ACTM=$T/mt/guard/host-act-encryption-town.sh;}
+mutact 's/BOX=${AGI_BOX:-}$/BOX=${AGI_BOX:-encryption-town}/' "default restored";mk n1;run env -u AGI_BOX sh $T/mt/bin/agi.sh host>/dev/null 2>$T/m1.err;rm1=$?
+ok mutant-default-restored-reads-red-on-n1 "[ $rm1 = 0 ]||! grep -q 'AGI_BOX unset' $T/m1.err"
+mutact 's/^E=;\[ "$BOX" != encryption-town \]||E=1.*/E=1/' "E always";mk n2;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>&1;ok mutant-e-units-for-every-box-reads-red-on-n2 "[ -e $X/etc/systemd/system/agi.slice ]"
+mutact 's/^\[ -n "$SKIP_PREREQ" \]||! G show.*|jq -e [^|]*|[^{]*||{ \[ -x/[ -n "$SKIP_PREREQ" ]||{ [ -x/' "prereq blind";mk n3;rm $X/opt/agi/bin/pi;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>$T/m3.err;rm3=$?;ok mutant-box-blind-prereq-reads-red-on-n3 "[ $rm3 != 0 ]&&grep -q PREREQ $T/m3.err"
+mutact 's/^trap .*EXIT.*$/:/' "trap";mk n4;chmod 555 $X/etc;run sh $ACTM act>/dev/null 2>$T/m4.err;chmod 755 $X/etc;ok mutant-no-trap-reads-red-on-n4 "! grep -q 'host-act: failed' $T/m4.err"
 echo "host-act-encryption-town: $f FAIL";exit $f
