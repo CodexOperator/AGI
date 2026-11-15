@@ -344,9 +344,11 @@ def _bad_tips(root):
                                  text=True, capture_output=True, check=True).stdout.strip()
     head, parent = git("rev-parse", "HEAD"), git("rev-parse", "HEAD~1")
     git("tag", "-a", "-m", "tag a tree", "ttree", git("rev-parse", "HEAD^{tree}"))
+    # 'upper' is the WHOLE sha upper-cased (alive 11-15): head[:10].upper() equalled the valid lowercase prefix when those 10 hex chars held no a-f (0.9%, GATE763); 40 chars -> ~7e-9, and the assert makes a miss a loud fixture error
+    assert head != head.upper(), "a sha with no a-f in 40 hex chars: a fixture error, not a product one"
     return {"qmark": "?", "star": "*", "range": f"{parent[:10]}..{head[:10]}", "HEAD": "HEAD",
             "branch": git("symbolic-ref", "--short", "HEAD"), "msg": ":/c1", "hex6": head[:6],
-            "upper": head[:10].upper(), "tree": git("rev-parse", "HEAD^{tree}"), "tag-to-tree": git("rev-parse", "ttree")}
+            "upper": head.upper(), "tree": git("rev-parse", "HEAD^{tree}"), "tag-to-tree": git("rev-parse", "ttree")}
 
 
 BAD_TIPS = ["qmark", "star", "range", "HEAD", "branch", "msg", "hex6", "upper", "tree", "tag-to-tree"]
