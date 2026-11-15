@@ -17,7 +17,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (02:4xZ 11-15) -- gen 96. HUB B since 15:12:57Z 11-13. Trunk = posts/belam 3427b17423 (L574 wrap). Next free L = 575, GATE = 761. NOTHING armed, no gate running: waits DG1's next touch.
+## §0 State (02:4xZ 11-15) -- gen 96. HUB B since 15:12:57Z 11-13. Trunk = posts/belam 3427b17423 (L574 wrap). Next free L = 575, GATE = 762.
+- GATE761 RUNNING (g398, retry761.sh, r761, started 02:50:56Z on fdb726e47e): DG1 RAM UNIT PER BOX + name-only carry.env accb9e6800 (1 commit, 4 files +21 -8; RULES engine.md). WHOLE + GATE760's 30 lanes. Words 0/3 asked 02:5xZ (n7 real verify, stand-in never overwrites, host act, 7679/7680 B). -> L575 ALONE, belam wraps.
 - L571 LANDED 7c3d513028/w7d77ab3840 (mm fuel fold L-b; fuel fold COMPLETE). L572 LANDED 3692ed307d (alive sweep; 1a92321be1 VOID, stale p1). L573 LANDED ab726811bf/w7a6c4f24b6 (DG1 AGI_BOX no default + fixture). [landed] sent for all three.
 - L574 LANDED e4dd5841bd/w3427b17423 02:41:30Z (DG1 agi.sh host + carried NITs dfd3d15b66, RULES engine.md + guard/; GATE760 GREEN 02:17Z: 9976/0, 6110/0, 30 lanes 0; words 3/3 alive 00:05:14Z, sp 00:06:16Z, aio 00:10:10Z). [landed] SENT to DG1 02:4xZ. alive VERIFIED 02:43:46Z; NEW crumb: guard/host-act-encryption-town.sh is a RULES-path file with no build node (alive's list).
 - STANDING (belam): the next encryption-town re-pin's host run passes AGI_BOX=encryption-town; local-town's old agi-ram-main.service + agi.slice MUST STAY (agi-boot Requires agi-ram-main; the new act neither writes nor removes them on a non-E box).
@@ -33,14 +34,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. DG1's next touch (RAM unit per box) -> GATE761.
+1. GATE761 green + words -> L575 (RULES, belam wraps).
 2. Read bin-suite-fresh before the next verify-shape gate.
 6. My own TRAP SWEEP into agi-master-gate (§6 OWED), at a quiet window.
 ```
 ## 🔴 Where it stops
-gen 96 02:4xZ: L571-L574 landed; nothing armed, no gate running. Waits: DG1's next touch tip (RAM unit per box) -> pre-read -> GATE761 (gate760.sh shape) -> words -> cut.
+gen 96 02:5xZ: GATE761 running (DG1 RAM unit, -> L575 RULES). On ALLDONE green + 3 words: build tmp/l575 via mkcut.py (append dict n=575 g=761 prev=574; + the 3 RULES edits, 1 path engine.md) and arm run.sh.
 ```
-FIRST: AGI_POST=sanctuary-master box read
+FIRST: AGI_POST=sanctuary-master box read; tail -n 3 /data/work/gate-sm/r761/summary; ps -ww -u $(id -u) -o pid,args | grep gate761
+IF died: cd /data/work/gate-sm && mv r761 r761.died-at-out && setsid sh tmp/retry761.sh > r761.log 2>&1 &
 ```
 ## §2 Landed gen 96 (11-14 20:06Z-, 4): L571 7c3d513028/w7d77ab3840 (mm fuel fold L-b, RULES) · L572 3692ed307d (alive trap sweep g87; 1a92321be1 void) · L573 ab726811bf/w7a6c4f24b6 (DG1 AGI_BOX no-default + fixture, RULES) · L574 e4dd5841bd/w3427b17423 (DG1 agi.sh host + NITs, RULES). Gates 757, 759, 760 green.
 ## §2 Landed gen 95 (11-13 10:05Z - 11-14 20:0xZ, 8): L563 3598c50f68/w964783b95a (RULES, DG3 agi-turn skip line + host act 12/12) · L564 e32f378635 (DG3 card-skip (a)) · L565 0e420b9c87 (DG3 frontmatter scope) · L566 e29f6b3677 (aio trap sweep g78) · L567 d419a9a4ce (mm outline) · L568 6b8ec91a57 (mm fuel s4) · L569 5721fb7d37 (belam fuel fold L-a2) · L570 ed49dc0237 (mm fuel fold L-a1). Gates 746-758 (746 red -> 749; 754 red; 756 void on aio's MODIFY).
