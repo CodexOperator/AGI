@@ -115,19 +115,20 @@ DEFAULT_PROMPT_FILE = (
 )
 
 #: Fallback role row when neither the ladder roles table nor config.json has it.
-#: Fable 5.1 at max with the ultracode settings flag is the ladder contract for
-#: prime/director.
+#: Opus 5.5 (prime_director) and Sonnet 5.5 (director) at max with the ultracode
+#: settings flag; Fable is for the season rollover only, OFF dispatch (owner
+#: 11-15 19:01Z; goal:g7.31.1.7.1 P7b).
 DEFAULT_CC_ROLES = {
     "prime_director": {
         "harness": "claude-code",
-        "model": "claude-fable-5-1",
+        "model": "claude-opus-5-5",
         "effort": "max",
         "settings": {"ultracode": True},
         "tier": 3,
     },
     "director": {
         "harness": "claude-code",
-        "model": "claude-fable-5-1",
+        "model": "claude-sonnet-5-5",
         "effort": "max",
         "settings": {"ultracode": True},
         "tier": 2,

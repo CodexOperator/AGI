@@ -65,7 +65,7 @@ def test_ladder_node_declares_roles_table(engine_on_path):
     prime = next(r for r in rows
                  if r.get("tier") == 3 and r.get("role") == "prime_director")
     assert prime.get("harness") == "claude-code"
-    assert prime.get("model") == "claude-fable-5-1"
+    assert prime.get("model") == "claude-opus-5-5"   # P7b (owner 11-15 19:01Z): Fable is for the season rollover only, off dispatch
     assert prime.get("effort") == "max"
     # commit 1073d3687 (2026-09-27) DROPPED settings from BOTH tier-3 rows:
     # ultracode reaches a real launch flag (dispatch.py:2093-2094), so a
@@ -111,3 +111,24 @@ the ladder, derived into heads, never hardcoded in brief.py."""
     fm = _ladder_node_file().frontmatter
     mantles = fm.get("mantles", {}) or {}
     assert mantles.get("prime_director") == "Belam"
+
+
+def test_no_fable_grant_anywhere_a_dispatch_reads(engine_on_path):
+    """goal:g7.31.1.7.1 P7b (owner 11-15 19:01Z: Fable for the season rollover ONLY):
+    no ladder row, no derived allowlist, no legacy allowed_models and no cc_dispatch
+    cell holds a fable model, so a seat-less `--tier director` spawn resolves to Sonnet
+    and a spawn naming fable is refused by design (the rollover's Fable runs OFF
+    dispatch). The other fable strings in the suite are fixtures, not grants."""
+    import json
+    import adapters
+    rows = _ladder_node_file().frontmatter.get("roles")
+    assert not [r for r in rows if "fable" in str(r.get("model", "")).lower()]
+    director = next(r for r in rows if r.get("tier") == 1 and r.get("role") == "director"
+                    and r.get("harness") == "claude-code")
+    assert director.get("model") == "claude-sonnet-5-5"
+    cfg = json.loads((TESTS_DIR.parent.parent.parent / ".agi" / "config.json").read_text())
+    h = cfg["harnesses"]["claude-code"]
+    derived = adapters.derived_allowed_models(rows, "claude-code", h)
+    assert derived and not [m for m in derived if "fable" in m.lower()]
+    assert not [m for m in h.get("allowed_models", []) if "fable" in m.lower()]
+    assert "fable" not in cfg["cc_dispatch"]["director_model"].lower()
