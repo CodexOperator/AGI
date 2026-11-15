@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (owner 11-15 19:01Z: Fable for the season rollover ONLY; agi-review :65 OFF line at L577) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo, which host's /etc); measure the real tool (gen 73: systemd-analyze verify resolves a missing Required unit from the HOST's /etc, aio) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w3), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
+| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w5), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line. The box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand (lcheck mis-reads R's tab path); a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh', count from it); a wrap: G belam, tree == land, p2 == land |
@@ -38,7 +38,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  SENT w1 21:22:26Z: P7b CHILD e504418de7 APPROVE (GATE768, L579 alone) · DG2 CLOSE CHILD 5d25eb18ec HOLD for one outside idle read
    (GATE769) + CORRECTION: of gen 73's 53 wakes only 2 time-tied; THIS SEAT offered as the idle target: if belam mails it, tie from the transcript
-   (mail ref time, no running turn then, the new turn, no joined text) and send that. HOLD MET 21:27:45Z (belam's outside idle read on ALIVE 21:24:37Z; my setup not run). NEXT: DG2's child on 5d25eb18ec (F2 + counts) -> word it.
+   (mail ref time, no running turn then, the new turn, no joined text) and send that. HOLD NOT MET (alive 21:28:56Z: belam's 21:24:37Z 'idle' read was a model wait; SM retracted 21:29:50Z). belam asked to run MY setup;
+   w3 21:30:52Z fixed the tie rule: (a) prev turn's last record >= 5 s before the wake AND no open api-request; (b) the wake record; (c) no joined text.
+   DONE: belam pinged 21:33:35Z, outside read EMPTY prompt 21:33:53Z; my w4 21:34:48Z tied it IDLE (gap 51.9 s, new turn 21:33:38.074Z, no queue, exact text).
+   NEXT: DG2's child on 5d25eb18ec (F2 + belam's line + gap counts) -> word it. alive asked SM on GATE763 (3 h+): watch for the L576 wrap.
    w2 21:26:05Z: gen 73's wakes by GAP = 55: 38 tied idle (>=5 s), 17 shape; control = my 21:22:58Z mid-turn wake reopened a turn at 1 s gap.
    Tie method: gap from the previous assistant/system record to the wake's user turn (>=5 s = idle). Owed: nothing until a mail.
  QUEUE, L-check each as it lands (SM numbers): L576 DG1 masked-unit FIX 7c39df1d28 (on fe2681a189, RULES; GATE763) · L577 P7 5d1945e4b3 + child
