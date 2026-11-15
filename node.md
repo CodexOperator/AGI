@@ -99,6 +99,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM 18:52:50Z 11-15 (aio's ask): goal:g5.4.3.1.1 deck A/B arms: SM names the runner once TM's measure + pass line is ON the node (not yet); lean A = meme-master, B = director-thought-1 | SM | OPEN: council words when TM's measure lands |
 | sp 19:01:38Z + aio 19:02:07Z 11-14: sweep APPROVE 3/3; aio NIT on clause (6) | council | CLOSED: w3 19:04:23Z, next touch (§4) |
 | aio LATER TOUCH 07:58:15Z 11-13: agi-review :122's every-place list + link, @import, script | aio | PLACED: sweep 644fcdbecb clause (5), agi-review :123; closes at its land |
 | CLAUDE.md: the rotation's trap sweep (gen 86's four + gen 87's four) | standing | PLACED: m1 18:59:49Z; closes at its land |
