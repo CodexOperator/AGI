@@ -32,8 +32,8 @@ Depth 0 = diagram · 1 = pieces · 2 = one piece: `sect <name>` (any `.geometry/
 ~~~
 agi-post@.service 3826 B  a post = one unit: own uid, tree, key, pane
 agi-boxwake@.service 1084 B a claude post's mail-wake loop: its own unit
-agi-project       3880 B  the genome: units + cells for v4 rows
-agi-gate           719 B  refuse a tip whose body would not regrow
+agi-project       3863 B  the genome: units + cells for v4 rows
+agi-gate           731 B  refuse a tip whose body would not regrow
 agi-vstore         856 B  root: fetches the pin into a re-hashed RAM store
 agi-boot         1797 B  root: gate the pin, start the posts
 agi-boot.service  826 B  runs agi-boot after agi-vstore
@@ -54,11 +54,11 @@ agi-cred.timer   89 B  every 5 min: agi-cred
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-project (3880 B)
+### agi-project (3863 B)
 ~~~sh
 #!/bin/sh
 o=$1 r=$2 w=$1/multi-user.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};s(){ git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
-[ "$AGI_BOX" ]||{ echo "agi-project: AGI_BOX unset: nothing written">&2;exit 1;}
+[ "$AGI_BOX" ]||{ echo "agi-project: AGI_BOX unset">&2;exit 1;}
 u=$(s agi-post@.service);[ "$u" ]||exit 3;P=$(printf '%s\n' "$u"|sed -n 's/^Environment=PATH=\([^ ]*\).*/\1/p'|tr : '\n'|while read d;do [ -f $d/pi ]&&[ -x $d/pi ]&&echo $d&&break;done);[ "$P" ]||{ g posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b "$AGI_BOX" 'select(.box==$b and .engine.v==4)|.+.engine|select(.harness|test("^pi"))'>/dev/null;[ $? = 4 ]||exit 3;}
 n=$(g posts.md|sed -n 's/^  - {/{/p');ok(){ [ "$AGI_BOX" ]&&k=$(printf '%s\n' "$n"|jq -r .box)&&[ $(printf '%s\n' "$n"|grep -c .) = $(printf '%s\n' "$k"|grep -c .) ]&&[ $(printf '%s\n' "$n"|grep -c .) = $(g posts.md|sed -n -E '/^posts:/,/^([A-Za-z_][A-Za-z0-9_]*:|---)/{/^posts:/d;/^([A-Za-z_][A-Za-z0-9_]*:|---)/d;/./p}'|grep -c .) ]&&printf '%s\n' "$k"|grep -Fqx -- "$AGI_BOX";}
 ok||for f in $o/agi-post@*.service.d/h.conf $o/agi-boxwake@*.service.d/h.conf;do [ -f $f ]&&{ echo "agi-project: posts.md or AGI_BOX unusable: nothing touched">&2;exit 1;};done
@@ -70,10 +70,10 @@ for d in $o/agi-post@*.service.d $o/agi-boxwake@*.service.d;do [ -f $d/h.conf ]|
 [ -s $o/.s ]&&ok&&while read d;do rm -f $d/h.conf;rmdir $d 2>/dev/null;done<$o/.s;rm -f $o/.w $o/.s
 ~~~
 
-### agi-gate (719 B)
+### agi-gate (731 B)
 ~~~sh
 #!/bin/sh
-c=${AGI_CARRY_ENV:-/etc/agi/carry.env};[ "$AGI_BOX" ]||AGI_BOX=$(awk '/^AGI_BOX=/{n++;v=$0;sub(/^AGI_BOX=/,"",v)}END{if(n==1&&v~/^[A-Za-z0-9._-]+$/)print v}' $c);export AGI_BOX
+c=${AGI_CARRY_ENV:-/etc/agi/carry.env};[ "$AGI_BOX" ]||AGI_BOX=$(awk '/^AGI_BOX=/{n++;v=$0;sub(/^AGI_BOX=/,"",v)}END{if(n==1&&v~/^[A-Za-z0-9._-]+$/)print v}' $c 2>/dev/null);export AGI_BOX
 [ $(id -u) = 0 ]&&exec runuser -u nobody -- env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*' "$0" "$@"
 git grep -ho "^### [^ ]*" $1 -- ":/.agi/nodes/.geometry/engine*.md"|sort|uniq -d|grep -q .&&exit 2
 o=$(mktemp -d);sect agi-project $1|sh -s $o $1&&[ -s $o/agi-post@.service ]&&ls $o/agi-post@*.service.d/h.conf>/dev/null||{ rm -rf $o;exit 1;}

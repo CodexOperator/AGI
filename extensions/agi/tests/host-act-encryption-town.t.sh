@@ -301,7 +301,14 @@ mk n6;printf 'OLD-RAM-UNIT\n'>$X/etc/systemd/system/agi-ram-main.service;run env
 ok n6-a-box-with-its-own-ram-unit-keeps-it-and-is-met "[ $rn6 = 0 ]&&[ \"\$(cat $X/etc/systemd/system/agi-ram-main.service)\" = OLD-RAM-UNIT ]&&grep -q 'host: met' $T/n6b.out"
 rm -f $X/etc/systemd/system/agi-ram-main.service;run env AGI_BOX=local-town sh $ACT act>$T/n6c.out 2>&1
 ok n6b-a-box-missing-its-ram-unit-is-not-met-and-the-act-repairs-it "! grep -q 'host: met' $T/n6c.out&&[ -f $X/etc/systemd/system/agi-ram-main.service ]"
-ok n7-systemd-analyze-verifies-the-units-the-act-leaves-on-a-non-E-root "[ -f $X/etc/systemd/system/agi-ram-main.service ]&&(command -v systemd-analyze>/dev/null||exit 0;V=\$(mktemp -d);cp $X/etc/systemd/system/agi-*.service $X/etc/systemd/system/agi-*.path $X/etc/systemd/system/agi-*.timer \$V/;systemd-analyze verify \$V/agi-ram-main.service \$V/agi-boot.service 2>\$T/v7.err;rv=\$?;rm -rf \$V;[ \$rv = 0 ])"
+# n7 (aio 11-15): the verify runs under SYSTEMD_UNIT_PATH=<scratch>:/usr/lib/systemd/system (NO /etc: on E the host's own installed unit would satisfy a missing Required unit), so the stand-in is what makes it pass; an absent systemd-analyze prints SKIP and counts nothing
+if command -v systemd-analyze >/dev/null;then V7=$(mktemp -d);cp $X/etc/systemd/system/agi-*.service $X/etc/systemd/system/agi-*.path $X/etc/systemd/system/agi-*.timer $V7/ 2>/dev/null;SYSTEMD_UNIT_PATH=$V7:/usr/lib/systemd/system systemd-analyze verify $V7/agi-ram-main.service $V7/agi-boot.service 2>$T/v7.err;rv7=$?
+ ok n7-systemd-analyze-verifies-the-units-the-act-leaves-on-a-non-E-root "[ -f $X/etc/systemd/system/agi-ram-main.service ]&&[ $rv7 = 0 ]"
+ rm -f $V7/agi-ram-main.service;SYSTEMD_UNIT_PATH=$V7:/usr/lib/systemd/system systemd-analyze verify $V7/agi-boot.service 2>$T/v7b.err;rv7b=$?;rm -rf $V7
+ ok n7b-the-same-verify-without-the-stand-in-fails-and-names-it "[ $rv7b != 0 ]&&grep -q 'not found' $T/v7b.err"
+else echo "SKIP n7 n7b: no systemd-analyze on this box (neither counts)";fi
+mk n8;ln -s /dev/null $X/etc/systemd/system/agi-ram-main.service;run env AGI_BOX=local-town sh $ACT act>$T/n8.out 2>$T/n8.err;rn8=$?;run env AGI_BOX=local-town sh $ACT act>$T/n8b.out 2>&1
+ok n8-a-masked-ram-unit-is-an-existing-one-never-written-and-met "[ $rn8 = 0 ]&&[ \"\$(readlink $X/etc/systemd/system/agi-ram-main.service)\" = /dev/null ]&&grep -q 'host: met' $T/n8b.out"
 mk n3;rm $X/opt/agi/bin/pi;run env AGI_BOX=local-town sh $ACT act>$T/n3.out 2>$T/n3.err;rn3=$?
 ok n3-no-pi-is-no-prereq-when-this-box-has-no-pi-row "[ $rn3 = 0 ]&&! grep -q PREREQ $T/n3.err"
 mk n4;chmod 555 $X/etc;run sh $ACT act>$T/n4.out 2>$T/n4.err;rn4=$?;chmod 755 $X/etc
@@ -316,4 +323,5 @@ mutact 's/^E=;\[ "$BOX" != encryption-town \]||E=1.*/E=1/' "E always";mk n2;run 
 mutact 's/^\[ -n "$SKIP_PREREQ" \]||! G show.*|jq -e [^|]*|[^{]*||{ \[ -x/[ -n "$SKIP_PREREQ" ]||{ [ -x/' "prereq blind";mk n3;rm $X/opt/agi/bin/pi;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>$T/m3.err;rm3=$?;ok mutant-box-blind-prereq-reads-red-on-n3 "[ $rm3 != 0 ]&&grep -q PREREQ $T/m3.err"
 mutact 's/^trap .*EXIT.*$/:/' "trap";mk n4;chmod 555 $X/etc;run sh $ACTM act>/dev/null 2>$T/m4.err;chmod 755 $X/etc;ok mutant-no-trap-reads-red-on-n4 "! grep -q 'host-act: failed' $T/m4.err"
 mutact 's/^\[ -n "$E" \]||\[ -e $R\/etc\/systemd\/system\/agi-ram-main.service \]||{ standin.*$/:/' "no stand-in";mk n2;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>&1;ok mutant-no-stand-in-reads-red-on-n7 "[ ! -e $X/etc/systemd/system/agi-ram-main.service ]"
+mutact 's/\[ -n "$E" \]||\[ -e $R\/etc\/systemd\/system\/agi-ram-main.service \]/[ -n "$E" ]||[ -f $R\/etc\/systemd\/system\/agi-ram-main.service ]/' "hostmet -f";mk n8;ln -s /dev/null $X/etc/systemd/system/agi-ram-main.service;run env AGI_BOX=local-town sh $ACTM act>/dev/null 2>&1;run env AGI_BOX=local-town sh $ACTM act>$T/m8.out 2>&1;ok mutant-hostmet-f-reads-red-on-n8 "! grep -q 'host: met' $T/m8.out"
 echo "host-act-encryption-town: $f FAIL";exit $f
