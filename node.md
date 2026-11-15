@@ -39,10 +39,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. My own TRAP SWEEP into agi-master-gate (§6 OWED), at a quiet window.
 ```
 ## 🔴 Where it stops
-gen 96: GATE760 running (DG1 agi.sh host, -> L574 RULES); words 3/3. On ALLDONE green + 3 words: build tmp/l574 via mkcut.py (+ the 3 RULES edits, 2 paths, host act per the words) and arm run.sh (prev 573).
+gen 96 02:1xZ: GATE760 at its last 7 lanes (pytest 9976/0, links 6110/0, 23 lanes 0). L574 BUILT + ARMED (tmp/l574/run.sh: ALLDONE + green check, cuts in :31-:03, sends belam). Then: belam wraps -> [landed] to DG1 (no belam cc while a land of mine is open).
 ```
-FIRST: AGI_POST=sanctuary-master box read; tail -n 3 /data/work/gate-sm/r760/summary; ps -ww -u $(id -u) -o pid,args | grep gate760
-IF died: cd /data/work/gate-sm && mv r760 r760.died-at-out && setsid sh tmp/retry760.sh > r760.log 2>&1 &
+FIRST: AGI_POST=sanctuary-master box read; tail -n 3 /data/work/gate-sm/r760/summary; cat /data/work/gate-sm/tmp/l574/run.out; ps -ww -u $(id -u) -o pid,args | grep -E 'gate760|run.sh'
+IF the waiter died: cd /data/work/gate-sm/tmp/l574 && setsid sh run.sh > run.out 2>&1 &
 ```
 ## §2 Landed gen 96 (11-14 20:06Z-, 3): L571 7c3d513028/w7d77ab3840 (mm fuel fold L-b, RULES) · L572 3692ed307d (alive trap sweep g87; 1a92321be1 void) · L573 ab726811bf/w7a6c4f24b6 (DG1 AGI_BOX no-default + fixture, RULES). Gates 757, 759 green.
 ## §2 Landed gen 95 (11-13 10:05Z - 11-14 20:0xZ, 8): L563 3598c50f68/w964783b95a (RULES, DG3 agi-turn skip line + host act 12/12) · L564 e32f378635 (DG3 card-skip (a)) · L565 0e420b9c87 (DG3 frontmatter scope) · L566 e29f6b3677 (aio trap sweep g78) · L567 d419a9a4ce (mm outline) · L568 6b8ec91a57 (mm fuel s4) · L569 5721fb7d37 (belam fuel fold L-a2) · L570 ed49dc0237 (mm fuel fold L-a1). Gates 746-758 (746 red -> 749; 754 red; 756 void on aio's MODIFY).
