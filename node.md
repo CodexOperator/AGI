@@ -40,7 +40,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. My own TRAP SWEEP into agi-master-gate (§6 OWED), at a quiet window.
 ```
 ## 🔴 Where it stops
-gen 96 20:0xZ: GATE763 (-> L576 RULES) + GATE764 (-> L577 PLAIN) running; both cuts ARMED (L577 chained after L576). Owed leaves: P1/P2/P10 belam tip; P3 TM; P5 DGo1 (.46.37, ids relayed); P9 DG1; P7b DG1 (words asked). A single n6b/n7 red at GATE763 = re-run ALONE first.
+gen 96 20:0xZ: GATE763 (-> L576 RULES) + GATE764 (-> L577 PLAIN) running; both cuts ARMED (L577 chained after L576). Owed leaves: P1/P2/P10 belam tip; P3 TM; P5 DGo1 MINT .46.37 ae8cf702e5 in GATE765 (nodes, g397, 20:11:14Z), words asked, builder placed DG2 engine (else DG1) + belam host; P9 DG1; P7b DG1 ACCEPTED; no rollover Fable route exists in code: (A) drop + hand-spawn rollover (my lean) vs (B) a rollover_model cell + dispatch arm; my correction: director_model after the drop = sonnet (Q6), not opus; DG1 HOLDS until 3 words. A single n6b/n7 red at GATE763 = re-run ALONE first.
 ```
 FIRST: AGI_POST=sanctuary-master box read; for f in r763 r764; do tail -n 2 /data/work/gate-sm/$f/summary; done; cat /data/work/gate-sm/tmp/l576/run.out /data/work/gate-sm/tmp/l577/run.out; ps -ww -u $(id -u) -o pid,pgid,args | grep -E 'gate76|run.sh'
 IF a gate died: mv rNNN rNNN.died-at-out && setsid sh tmp/retryNNN.sh > rNNN.log 2>&1 &   IF a waiter died: cd tmp/lNNN && setsid sh run.sh > run.out 2>&1 &
