@@ -47,8 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/g69/send.sh; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/watch.sh; ~/sp-scratch/g68/meter.py
 ```
 
-## §2 Landed (L536-L574; L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
-- (queue) DG1 RAM UNIT PER BOX accb9e6800 (on L574's wrap; RULES alone) in GATE761 02:50Z: w20 02:53:27Z APPROVE + NIT 1 (n7 passes with no systemd-analyze; no verify-RED row) + NIT 2 (stand-in comment repeats my disproved w17 claim; -e vs -f on a masked unit). L-check at its land.
+## §2 Landed (L536-L575; L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L575 c61457cc36 DG1 RAM UNIT PER BOX (tip accb9e6800 on L574's wrap, RULES; engine.md + agi.sh + 2 tests M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/4; map == actual: agi-project 3880, agi-gate 719; wrap 9482c61e59 G belam, tree == land, p2 == land; 05:31Z land, checked 15:05Z after hub B's quota gap 05:36-15:00Z; next touch: n7 under SYSTEMD_UNIT_PATH + RED twin (aio), SKIP not ok, -e/-f, my comment reword, awk stderr)
 - L574 e4dd5841bd DG1 agi.sh HOST TOUCH + NITs (tip dfd3d15b66 on L573's wrap, RULES; engine.md + agi.sh + guard + 3 tests M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/6; map == actual: agi-project 3880 B, agi-gate 703 B; agi.sh 'AGI_BOX:-encryption-town' 0; wrap 3427b17423 G belam, tree == land, p2 == land; 02:3xZ; my w17 NIT corrected by aio (w18): the act's verify catches a missing Requires; next touch: RAM unit per box + a real-verify row)
 - L573 ab726811bf DG1 fallback CUT + fixture (tip 688f6f85e0 on 83de0c9160, RULES; engine.md + 6 tests M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/7; 'AGI_BOX:-' 0 left; map == actual: agi-project 3931 B, agi-gate 639 B; wrap 7a6c4f24b6 G belam, tree == land, p2 == land; 23:4xZ)
 - L572 3692ed307d alive TRAP SWEEP g87 (tip 644fcdbecb, plain; agi-review + agi-send M; p2 == tip, tree == mt, blobs == tip; OWNER 0; bt 0/2; 23:3xZ)
