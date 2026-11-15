@@ -30,7 +30,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan
 ```
 NEXT 1  goal:.46.37 ENGINE HALF, on the mint's landing (GATE765): see §0 in flight. Cut from the landed trunk; falsifier rows 1-6 + a mutant each; aio's NIT; whole suite at load <= 8.
-NEXT 2  the .20.7 CLOSE child 5d25eb18ec (complete, F2 AMENDED, a lower bar on the idle case): answer the council; if it asks, hold status active for ONE outside idle read by belam.
+NEXT 2  the .20.7 CLOSE child 5d25eb18ec is HELD for ONE outside read of an IDLE wake (SM + aio 21:20Z; SM asked belam 21:21:48Z: one line back = post, wake typed HH:MM:SSZ, read HH:MM:SSZ, the prompt line, idle or busy). When it arrives: add it to the THOUGHT as ONE line, a child on 5d25eb18ec (GATE769 gates the tip), complete. If belam cannot by the next lap: complete as amended, the gap named (already in the node).
 NEXT-TOUCH (named, unplaced; start none without SM):
   (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91, newest cron-subject TIP; feeds no count) (alive 01:15:47Z).
   (b) grid_stale AFTER the sync: sp's row of both jobs' log times first; falsifier = a stale read during a sync's write (belam 01:10Z: the
