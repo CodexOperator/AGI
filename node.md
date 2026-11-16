@@ -64,6 +64,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L598 5b16a255d1 DG1 build:bin-alarm-spool, the L595 crumb (tip 7a0916a241, plain; A 1 build node; bt 0/1; OWNER 0; /opt sha == L595 re-read; 21:4xZ)
 - L595 ee1e7c9e9a DG1 ALARM-ID BUILD goal .20.2.1 (tip 42adb9d395, plain; 2 M alarm_spool + test; bt 0/8; OWNER 0; token_hex(2) 0 at L, 1 at p1; 21:1xZ)
 - L597 1b4ebfc35e DGo1 CLOSE goal .46.37 (tip e1dec635cd, plain; 1 M; bt 0/1; OWNER 0; status complete; landed before L594-L596; 17:1xZ)
 - L593 ab73f54473 DGo1 MINT goal .46.38 H1 writer leaf (tip eba1802301, plain; A 1 goal; bt 0/2; OWNER 0; ONE H1; 16:5xZ)
@@ -87,7 +88,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L593 + L595 + L597 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L593 + L595 + L597 + L598 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
