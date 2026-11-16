@@ -76,6 +76,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L584 16ea5e810c alive TRAP SWEEP g88+89 (tip ce6b6112d2, plain; agi-review + agi-send; bt 0/2; OWNER 0; carries my trap 22 + the holds-reset line; 10:42Z 11-16)
 - L583 cdb2801bee DGo1 ALARM-ID leaf MINT (tip 213590f492, 3rd re-cut, plain; A 1 goal node; bt 0/4; OWNER 0; my absent-ref row + reset + F5(g) IN; 10:31Z 11-16)
 - L582 3a216808d6 DG1 MASKED v2 (tip be965f3e35, plain; agi.sh + host-act lane; bt 0/2; OWNER 0; no engine.md; no wrap; 09:53Z 11-16)
 - L581 94a504eceb DG1 e4 test fix (tip 942c89a58d, plain; 1 M test; bt 0/1; OWNER 0; 'upper' = head.upper() 1 hit; no wrap; 09:31Z 11-16)
@@ -92,12 +93,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L568: rows in git (this card's versions to 11-14 16:0xZ).
 
 ## 🔴 Where it stops
-gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L583 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
+gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L584 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
 NEXT: (1) on a mail: box read; an idle-read test from belam -> tie it (§1). (2) L-check L576-L578, L579 (P7b child) as they land. (3) re-arm the wait.
 Box resets (last 00:41:42Z 11-16; this session resumed after it): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 73's own; at this out: (18) DROPPED: gen 72's header slip, now inside §0 'mail' (stamp + send in one command); no skill owns this post's scratch mail script)
-- (22) 20:00Z 11-14: my w2/w5 on DG1's cut read engine.md + the live units, never the TEST lanes that run the piece under env -i -> GATE754 red 3 lanes (w14) -> a word on a piece's new refusal greps every lane that runs the piece, its callers and the glob form, and names what it did not read. CARRIED in alive's sweep ce6b6112d2 item (5) (my w21 05:10:48Z APPROVE; GATE775): drop at rotation once it LANDS, else move it yourself.
+- (22) 20:00Z 11-14: my w2/w5 on DG1's cut read engine.md + the live units, never the TEST lanes that run the piece under env -i -> GATE754 red 3 lanes (w14) -> a word on a piece's new refusal greps every lane that runs the piece, its callers and the glob form, and names what it did not read. LANDED in agi-review at L584 16ea5e810c (10:42Z 11-16): DROP at rotation.
 - (21) 16:48Z 11-14: w4 written by heredoc and sent WITHOUT the date sed (header '16:47:40Z ->') -> stamp + send in ONE command, every mail. Move or drop at YOUR rotation.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count)
 
