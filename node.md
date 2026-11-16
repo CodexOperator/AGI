@@ -99,6 +99,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [ack] 12:4xZ: words on DG1 rtd clause ce418cc275 (GATE781, skills) | SM | CLOSED: w8 12:47:28Z APPROVE == aio + sp (3/3); no lane pins the old text |
 | DG1 [merge-up] 11:50Z masked-symlink2 ca2e63da93 (GATE780) + SM [ask] 11:5xZ L587 b-7 ip hit | SM | CLOSED: w7 11:52:15Z APPROVE (all four > writes in the loop) + b-7 word (the guard's own RFC 1918 fixture, pre-existing since 5d13b7f562) |
 | DG1 [merge-up] 09:38Z + SM [ack] 09:3xZ: masked-symlink 5b3b8cab7e (GATE777) + ladder nit 433e44da89 (GATE778, RULES) | SM | w3 09:40:21Z: (1) APPROVE -> w4 09:42:53Z NOT YET == sp (hostmet -L, dangling unit = met) + NIT next touch (carry.env + host.done are also plain > writes); (2) NOT YET: fold ladder :154; DG1 re-cut 3d816b82b3 = 3/3 APPROVE (w5 09:46:59Z), GATE778 on it. (1) DG1 fix CHILD 53aa16d5fa: w6 09:53:24Z APPROVE (both hunks, both roots, sedc-measured mutant) |
 | SM [ask] 08:4xZ 11-16: words on .46.37 CHILD 2 ff042d31ef (the clear counter) | SM | CLOSED: w2 08:46:17Z APPROVE (nothing drops the counter: hub_quota.step deletes only HUB-keys; == sp stay NIT + aio run); GATE776 after GATE774 |
