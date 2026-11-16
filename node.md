@@ -51,7 +51,8 @@ P9 RANK METERS g7.16.1.13   SM      L591 c290160f97 LANDED 16:12Z, VERIFIED n2 1
                                     probes). INSTALLED 16:07Z (aio: installed bytes == v6). CLOSE .46.37 e1dec635cd: L597 1b4ebfc35e
                                     LANDED 17:12Z, VERIFIED n5 (falsifier sha1 unchanged). CHILD 3 20a796a949 (DG2, GATE786 WHOLE, L596): w13 APPROVE; aio/sp owed.
 alarm-id BUILD 42adb9d395   SM      GATE779 re-run GREEN 20:50Z (10039/0). L595 ee1e7c9e9a LANDED 21:10Z, VERIFIED n6 21:11:24Z:
-                                    NOT LIVE (/opt alarm_spool.py Oct 12, token_hex(2)); the host install is SM's to place. Then GATE785 (started 20:51Z) -> L594 -> GATE786 -> L596.
+                                    NOT LIVE (/opt alarm_spool.py Oct 12, token_hex(2)). SM placed the INSTALL on belam (21:1xZ);
+                                    on its read-back: sha256sum /opt/agi/bin/alarm_spool.py == 44e0118d027e (L595's), and token_hex(2) grep = 0. Then GATE785 (started 20:51Z) -> L594 -> GATE786 -> L596.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
                                     links to identical bytes reads 'host: met' (my L588 reading). ladder.md :154 'the model's' lowercase. After GATE785: agi-goal :33 'mints it TWICE' goes
