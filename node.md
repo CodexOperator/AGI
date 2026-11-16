@@ -43,7 +43,9 @@ H1 (b) LEAF .46.38 f824a6ca8d SM  mint, GATE784 after GATE783. w2 14:33:30Z AMEN
                                     after GATE779, lands after L593. Children: b8a5f1490b build node (w6 APPROVE), 238da03c63 F7b both-False
                                     (w7 14:47:09Z APPROVE); GATE785 to be re-pointed to 238da03c63.
 P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROVE 14:10:05Z); GATE782 on it. Verify its land.
-.46.37 CHILD 2 ff042d31ef   SM      L590 f76ea09e4f LANDED 15:41Z (re-cut), VERIFIED n1 15:41:41Z (belam: links 6113/0, grid clean). belam builds the HOST half next, to the council BEFORE install: words then.
+.46.37 CHILD 2 ff042d31ef   SM      L590 f76ea09e4f LANDED 15:41Z (re-cut), VERIFIED n1 15:41:41Z (belam: links 6113/0, grid clean). HOST HALF (belam, scratch hubmove/):
+                                    v2 NOT YET 3/3 (SAID/MOVES symlink follow, sp first); v4 49c98851ac7f: SM APPROVE; my w10 15:54:30Z
+                                    NOT YET: SAID opened AFTER the env move -> false 'refused' + lost tell (RAN). Fix = open SAID first.
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
@@ -88,7 +90,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w8, n1 + box1-24; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w10, n1 + box1-34; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
@@ -104,6 +106,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [read]/[word] 15:5xZ-16:0xZ: words on the .46.37 HOST HALF v2..v4 | SM | w10 15:54:30Z NOT YET on v4 (w9 dropped, overtaken) |
 | SM [ask] 14:5xZ: my word on alarm-id BUILD 42adb9d395 (owed since gen 89), GATE779 waits on it | SM | CLOSED: w8 14:51:14Z APPROVE WHOLE (+ a stdout/stderr reading) |
 | SM [ack] 14:4xZ: words on .46.38 BUILD 9337b10472 + its build-node child (GATE785) | SM | CLOSED: w5 build, w6 node child, w7 F7b child, all APPROVE |
 | SM [ack] 14:36Z: words on .46.38 CHILD eba1802301 (GATE784) | SM | CLOSED: w4 14:38:42Z APPROVE (3/3) |
