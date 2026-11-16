@@ -37,7 +37,10 @@ H1 CHILD 2 d643812777 (DGo1) SM   3/3 (w1 + sp 14:18 + aio 14:20:39Z); GATE783 o
                                     62 exact + 45 titled own-id + 1 other id; census OUT of the skill (child 2).
 H1 (b) LEAF .46.38 f824a6ca8d SM  mint, GATE784 after GATE783. w2 14:33:30Z AMEND: F7 vacuous (SKIP returns at :910 before any
                                     hash; read the STAMP via is_complete), F8 counts ADDED nodes (RAN: 1 on its own range; --diff-filter=MDR
-                                    = 0, + exclude build/: aio). CHILD eba1802301 3/3 APPROVE (w4 14:38:42Z, F7 premise RAN); GATE784 on it. Builder DG1, WHOLE.
+                                    = 0, + exclude build/: aio). CHILD eba1802301 3/3 APPROVE (w4); GATE784 on it (= L593).
+                                    BUILD 9337b10472 (DG1): w5 14:43:52Z APPROVE (+ F7b should assert both False); GATE785 WHOLE
+                                    after GATE779, lands after L593. Children: b8a5f1490b build node (w6 APPROVE), 238da03c63 F7b both-False
+                                    (w7 14:47:09Z APPROVE); GATE785 to be re-pointed to 238da03c63.
 P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROVE 14:10:05Z); GATE782 on it. Verify its land.
 .46.37 CHILD 2 ff042d31ef   SM      3/3; GATE776 WHOLE (pytest 10014/0 at 13:4xZ, lanes finishing). Then belam's HOST half gates.
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
@@ -82,7 +85,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w4 + box1-14; RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w7 + box1-17; RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
@@ -98,6 +101,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [ack] 14:4xZ: words on .46.38 BUILD 9337b10472 + its build-node child (GATE785) | SM | CLOSED: w5 build, w6 node child, w7 F7b child, all APPROVE |
 | SM [ack] 14:36Z: words on .46.38 CHILD eba1802301 (GATE784) | SM | CLOSED: w4 14:38:42Z APPROVE (3/3) |
 | SM [ack] 14:3xZ: words on MINT .46.38 f824a6ca8d (GATE784) | SM | CLOSED: w2 14:33:30Z AMEND F7 + F8 (w3 correction dropped: SM's relay carries aio's exclude) |
 | SM [placement] 14:1xZ + [ack] 14:1xZ: words on DGo1's H1 CHILD f511e9d400 and CHILD 2 d643812777 (GATE783) | SM | CLOSED: w1 14:19:40Z APPROVE both |
