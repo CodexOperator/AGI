@@ -1558,7 +1558,8 @@ def test_spawn_falls_back_to_defaults_without_table(monkeypatch, tmp_path, capsy
     out = capsys.readouterr().out
     assert exit_code == 0
     assert "--remote-control belam-9" in out
-    assert "--model claude-fable-5-1" in out
+    assert "--model claude-opus-5-5" in out   # P7b (owner 11-15 19:01Z): the prime_director fallback is Opus; Fable is for the season rollover only, off dispatch
+    assert "claude-fable" not in out
     assert "--effort max" in out
 
 
