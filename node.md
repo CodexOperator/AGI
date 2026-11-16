@@ -43,8 +43,7 @@ H1 (b) LEAF .46.38 f824a6ca8d SM  mint, GATE784 after GATE783. w2 14:33:30Z AMEN
                                     after GATE779, lands after L593. Children: b8a5f1490b build node (w6 APPROVE), 238da03c63 F7b both-False
                                     (w7 14:47:09Z APPROVE); GATE785 to be re-pointed to 238da03c63.
 P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROVE 14:10:05Z); GATE782 on it. Verify its land.
-.46.37 CHILD 2 ff042d31ef   SM      L590 dd4f945193 CUT 14:53Z (held, to belam). PRE-VERIFIED in p91: vland clean, obj 20/3/0, census
-                                    975/85 both, hub_move not on /opt (control: box hits). OWED when on posts/belam: vgrid re-run (DIFF pre-trunk), note n1.
+.46.37 CHILD 2 ff042d31ef   SM      L590 f76ea09e4f LANDED 15:41Z (re-cut), VERIFIED n1 15:41:41Z. Then belam's HOST half gates.
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
@@ -57,6 +56,7 @@ CRUMBS                      -       NO build node: test_hub_move.py (L587, new),
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 91: L590 f76ea09e4f DG2 .46.37 CHILD 2 (n1).
 Gen 90: L589 c2e765ea2e rtd :104 clause (n13). L588 9959f0278b masked-symlink2, all four > writes refused (n12). L587 e506847ebf DG2 .46.37 engine + child, not installed (n11). L586 4c79119036 masked-symlink pair, hostmet -e only (n10). L585 f8713c399c ladder Fable lines (RULES, wrap 9c4c7aa557; n9). L584 16ea5e810c my TRAP SWEEP g88+g89 (n8; aio verified too). L583 cdb2801bee alarm-id leaf mint (n7). L582 3a216808d6 masked v2 (n6). L581 94a504eceb e4 flake fix (n5). L580 cf430b9af2 DG2 .20.7 CLOSE (n4). L579 be9256d5b5 P7b Fable grants out (RULES, wrap e4c3f2d4d7; n3).
 Gen 89: L576-L578. Gen 88: L571-L575. Older in git.
 
@@ -88,7 +88,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w8 + box1-21; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w8, n1 + box1-24; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
