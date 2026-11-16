@@ -431,3 +431,31 @@ def test_f8m_mutant_id_dropped_is_red(tmp_path):
     run(tmp_path, script, extra=["--max-lines", "5"])
     ids = [x["id"] for x in spool(tmp_path) if x["to"] == "sanctuary-master"]
     assert len(set(ids)) != 1, "mutant still reads one id: f8 is RED on it"
+
+
+# ---------- f9 (sp + all-is-one 11-16): move, clear, move again in ONE window = two ids, two tells ----------
+def _clear(tmp, now):
+    return subprocess.run([sys.executable, "-I", str(BIN / "hub_move.py"), "clear", "alpha", "--memory", str(tmp / "mem"),
+                           "--said", str(tmp / "said"), "--moves", str(tmp / "moves"), "--now", str(now)], capture_output=True, text=True)
+
+
+def _move_clear_move(tmp, reset, script=None):
+    _state(tmp, [A_OK, f"B {OPUS} quota {reset} {NOW - 5}"])
+    _route(tmp, [f"alpha B {OPUS}"])
+    run(tmp, script)
+    assert _clear(tmp, NOW + 30).returncode == 0
+    run(tmp, script, now=NOW + 60)                                                           # the route reads B again, B still in the SAME window
+    return ([x["id"] for x in spool(tmp) if x["to"] == "sanctuary-master"], [x["id"] for x in spool(tmp) if x["to"] == "alpha"])
+
+
+@pytest.mark.parametrize("reset", [0, RESET])
+def test_f9_move_clear_move_in_one_window_is_two_loud_ids_and_two_tells(tmp_path, reset):
+    loud, tell = _move_clear_move(tmp_path, reset)
+    assert len(loud) == 2 and len(set(loud)) == 2 and len(tell) == 2 and len(set(tell)) == 2, (loud, tell)
+
+
+@pytest.mark.parametrize("reset", [0, RESET])
+def test_f9m_mutant_counter_dropped_is_red(tmp_path, reset):
+    script = _copy(tmp_path, "m", ('q[1], mem.get("cleared", {}).get(post, 0))', 'q[1])'))
+    loud, tell = _move_clear_move(tmp_path, reset, script)
+    assert len(set(loud)) == 1 and len(set(tell)) == 1, "the mutant must repeat the ids: f9 is RED on it"
