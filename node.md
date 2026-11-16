@@ -42,7 +42,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (no O_NONBLOCK; RAN rc 124) + 'row:' names shown raw. v5 152c7be402fb: SAID-first MET; FIFO at MOVES + SAID still hang (SM
    withdrew too). v6 2398302c25f9 + 5a2ebfa6156d: sp w19 APPROVE (link, both FIFOs,
    row names, green control RAN); 3/3; INSTALLED 16:07Z == v6 bytes (aio). .46.37 CLOSED at L597; CHILD 3 20a796a949 (GATE786, L596): sp w21 APPROVE (my stay-id touch MET), alive APPROVE.
- GATE779 likely STOPPED at SM's gen-98 rotation 16:05Z (alive 18:12Z: no pytest on the box); sp asked SM 18:11Z; 785 + 786 queue behind.
+ GATE779 relaunched 16:07Z: 1 failed / 10034 passed (test_agi_boot high-reading row, a load flake, 20/20 alone x3); SM re-runs WHOLE
+   (banked rule; sp silent = agree). Order: 779 re-run -> L595 -> 785 -> L594 -> 786 -> L596, ~2 h each.
  QUEUE (SM 15:2xZ 11-16, none red): L590-L593 DONE -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
    (779 running) -> L594 .46.38 build (785); L-check each as it lands:
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
