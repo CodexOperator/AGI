@@ -459,3 +459,44 @@ def test_f9m_mutant_counter_dropped_is_red(tmp_path, reset):
     script = _copy(tmp_path, "m", ('q[1], mem.get("cleared", {}).get(post, 0))', 'q[1])'))
     loud, tell = _move_clear_move(tmp_path, reset, script)
     assert len(set(loud)) == 1 and len(set(tell)) == 1, "the mutant must repeat the ids: f9 is RED on it"
+
+
+# ---------- f10 (SM + aio + sp 11-16): the words say what the HOST does, and the stay id counts clears ----------
+def test_f10_the_back_line_says_the_host_does_not_reapply(tmp_path):
+    _back_on_b_by_hand(tmp_path)
+    back = [l for l in said(tmp_path) if "is back on hub B by hand" in l]
+    assert len(back) == 1 and "does NOT re-apply" in back[0] and "re-applies" not in back[0] and "clear alpha" in back[0], back
+    doc = (BIN / "hub_move.py").read_text()
+    assert "is re-applied" not in doc and "re-applies the row" not in doc
+
+
+def test_f10m_mutant_old_back_wording_is_red(tmp_path):
+    script = _copy(tmp_path, "m", ("the host does NOT re-apply it; \"", "or the host re-applies it; \""))
+    _back_on_b_by_hand(tmp_path, script)
+    back = [l for l in said(tmp_path) if "is back on hub B by hand" in l]
+    assert back and "does NOT re-apply" not in back[0], "the mutant says the false line: f10 is RED on it"
+
+
+def _stay_after_clear(tmp, script=None):
+    """move B -> A, A hits quota (stay said), clear, move B -> A again, A hits quota with the SAME reset: the stay ids."""
+    _moved_once(tmp, script)
+    _on_a_quota_while_b_ok(tmp)
+    run(tmp, script, now=NOW + 100)
+    assert _clear(tmp, NOW + 110).returncode == 0
+    _state(tmp, [A_OK, f"B {OPUS} quota {RESET} {NOW + 120}"], written=NOW + 130)
+    _route(tmp, [f"alpha B {OPUS}"], written=NOW + 130)
+    run(tmp, script, now=NOW + 130)                                                          # the second real move
+    _on_a_quota_while_b_ok(tmp)
+    run(tmp, script, now=NOW + 200)                                                          # A in quota AGAIN, same reset: a second stay
+    return [x["id"] for x in spool(tmp) if x["to"] == "sanctuary-master" and "stays on hub" in x["text"]]
+
+
+def test_f10_the_stay_id_counts_clears(tmp_path):
+    ids = _stay_after_clear(tmp_path)
+    assert len(ids) == 2 and len(set(ids)) == 2, ids
+
+
+def test_f10m_mutant_stay_counter_dropped_is_red(tmp_path):
+    script = _copy(tmp_path, "m", ('model, q[1], mem.get("cleared", {}).get(post, 0), kind="stay")', 'model, q[1], kind="stay")'))
+    ids = _stay_after_clear(tmp_path, script)
+    assert len(set(ids)) < 2, "the mutant repeats the stay id: f10 is RED on it"
