@@ -38,7 +38,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM 11:5xZ 11-16), L-check each as it lands:
-   rtd clause ce418cc275 (1 line skills :104, GATE781 12:45Z; 3 APPROVE asked: sp w3 + aio given)
+   rtd clause ce418cc275 (1 line skills :104, GATE781 12:45Z; 3/3 APPROVE: sp w3, aio, alive 12:47Z)
    then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; the clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
  NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 an INSTALLED box whose carry.env or
