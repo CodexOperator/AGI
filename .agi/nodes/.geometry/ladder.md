@@ -107,7 +107,7 @@ The live chart is printed by ``hierarchy.py render`` from this same ``roles:``
 declaration — the duplicate body table is gone, not re-derived.
 
 L3 focus: the top three levels are fixed, tier-2 rows are dropped (the three
-advisors embody the visions and spawn the Fable directors directly), and the
+advisors embody the visions and spawn the directors directly, on sonnet since L579), and the
 tier-1 director runs at effort **max** (not xhigh). Season 1 is named
 `genesis` (`season_names`). The prime's mantle — **Belam** — is declared in
 `mantles`, never hardcoded in `brief.py`.
