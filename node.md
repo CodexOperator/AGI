@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (owner 11-15 19:01Z: Fable for the season rollover ONLY; agi-review :65 OFF line at L577) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo, which host's /etc); measure the real tool (gen 73: systemd-analyze verify resolves a missing Required unit from the HOST's /etc, aio) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w12), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
+| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w13), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line. The box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand (lcheck mis-reads R's tab path); a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh', count from it); a wrap: G belam, tree == land, p2 == land |
@@ -49,6 +49,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    b1a25b675b (PLAIN; GATE764; closes A24) · L578 goal .46.37 RE-CUT 95fa3593b3 (PLAIN; GATE766) · DG2 CLOSE goal .20.7 c451734ec6 (GATE767; my w29 APPROVE
    with alive's tie-in) · P7b (above).
  w11 03:33Z: DG1 MASKED v2 be965f3e35 APPROVE + NIT (in-root ABSOLUTE chain resolves on the HOST under readlink -f; rehearsal only) -> L582 after L581.
+ w12 03:48Z: alarm_spool ENGINE leaf (SM 03:47:03Z, DG1 mints: id 64 bits + skip prints) APPROVE + clause: already_sent's could-not-read -> False -> silent RE-send; tell it apart.
  NEXT TOUCHES named, not ours: DG1 masked() by readlink -f or size 0 (alive empty file, aio relative symlink); DG1 n7 under SYSTEMD_UNIT_PATH done at L576?
    (read it); research-then-design :104 one clause 'under L509, now OFF' (aio); alive's sweep widens agi-review :158 (carries my trap 22) + box n reword;
    TM's card :18 quotes a pre-L574 agi-project message; .46.37 builder DG2 engine / belam host.
@@ -58,6 +59,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L577 fa58b8b8c3 DG1 P7 FABLE OFF (tip b1a25b675b, plain; 3 M; bt 0/3; OWNER 0; no wrap; closes A24; 03:43Z 11-16)
 - L576 a2c8fce0c0 DG1 n7 ISOLATION + MASKED REFUSAL (tip 7c39df1d28, RULES; 3 M; bt 0/5; map == bytes agi-project 3863, agi-gate 731; wrap b1370d6663 OK; land 03:11Z 11-16, checked 03:1xZ)
 - L575 c61457cc36 DG1 RAM UNIT PER BOX (tip accb9e6800, RULES; 4 M; bt 0/4; map == bytes agi-project 3880, agi-gate 719; wrap 9482c61e59 OK; land 05:31Z, checked 15:05Z after the quota gap)
 - L574 e4dd5841bd DG1 agi.sh HOST TOUCH (tip dfd3d15b66, RULES; 6 M; bt 0/6; 'AGI_BOX:-encryption-town' 0; map == bytes 3880/703; wrap 3427b17423 OK; 02:31Z)
@@ -67,7 +69,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L568: rows in git (this card's versions to 11-14 16:0xZ).
 
 ## 🔴 Where it stops
-gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L576 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
+gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L577 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
 NEXT: (1) on a mail: box read; an idle-read test from belam -> tie it (§1). (2) L-check L576-L578, L579 (P7b child) as they land. (3) re-arm the wait.
 Box resets (last 00:41:42Z 11-16; this session resumed after it): `uptime -s` before ANY git write; a reset clears /tmp.
 
@@ -85,8 +87,7 @@ Box resets (last 00:41:42Z 11-16; this session resumed after it): `uptime -s` be
 ## §7 ATOMS (inbound owner/parent asks; one row per atom; closed when placed in a leaf, idea, decision or out; open > 1 lap = red)
 - A1-A23, A25-A27: CLOSED (rows in git, this card's versions to 11-15 21:0xZ). A25 = local-town's AGI_BOX read by TM (16:3xZ 11-14); A26 = hub B move;
   A27 = the FUEL FOLD (owner 16:2xZ 11-14): L569 + L570 + L571 + wrap, each checked here.
-- A24 OWNER ~02:12Z 11-12 (fable reserved for the season rollover; directors to sonnet): its SUSPENDED clauses never landed; CLOSES at L577 (P7 + child
-  b1a25b675b: research-then-design :28 'Fable ONLY for the season rollover', agi-review :65 'NO Fable consult ... OFF'). L-check L577, then close.
+- A24 CLOSED at L577 fa58b8b8c3 (03:43Z 11-16): research-then-design :28 'Fable ONLY for the season rollover', agi-review :65 'NO Fable consult ... OFF'; both read at the land.
 - A28 OWNER 11-15 items via SM [decision] 19:39:37Z, P1-P10. My w24: P7 MODIFY (oracle at agi-review :65 also live) -> 3/3; P7b (Fable out of the code,
   w26: A, sonnet directors, the hub serves fable-5-2) -> tip dd8aea4da0 OWED; P5 = goal .46.37 (w27, re-cut 95fa3593b3 w28 3/3: one move per post,
   file freshness, the moved post told in its own box, when the route takes effect) -> L578. P1 network / P2 Quo / P9 rank meters = design leaves
