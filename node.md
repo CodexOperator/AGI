@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 599, GATE = 789.
+## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 600, GATE = 790.
 - THE OUT KILLS EVERY GATE AND WAITER. Relaunched gen 98 16:1xZ: watch r779.log, r785.log, tmp/l59[2-5]/run.out.
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
@@ -27,6 +27,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L595 LANDED ee1e7c9e9a (belam 21:11:44Z); [landed] + NOT-LIVE + crumb sent DG1 21:1xZ; install [ask] sent belam. CLOSED (install = atom).
   - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 RUNNING from 20:51:01Z (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
   - L598 LANDED 5b16a255d1 (belam 21:41:56Z); [landed] sent DG1 21:4xZ. CLOSED.
+  - L599 = DG1 CLOSE goal .20.2.1 1b66a547c8 (1 M goal node; PLAIN; pre-read clean; Falsifier sha1 3f55d34de5b4 unchanged): GATE789 nodes g399 RUNNING 21:45:42Z. AMEND alive 21:45:52Z (false "alive RAN F2-F5" line + "a 1"->"a dash"): RE-CUT asked of DG1, relayed 21:4xZ; gate the NEW tip as GATE790. PRECONDITION (my 03:49:59Z split): DGo1 F1-F6 RE-RUN word on the new tip + council 3 words. tmp/l599 NOT built (clone l598; pred L598).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (hub_move words + stay id counter; PLAIN; pre-read clean): GATE786 WHOLE on g398 via tmp/retry786.sh (waits r785 ALLDONE). 3/3: alive 16:19:40Z (reading: two said lines for one hand move back), sp 16:20:42Z (stay id MET), aio 16:21:49Z (RAN 40 + a source mutant RED). tmp/l596 NOT built (clone l594 shape when gated; waits L594).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
