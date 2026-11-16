@@ -15,9 +15,9 @@ town: core
 # doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
 
 ## 🔴 WHERE IT STOPS (03:5xZ 11-16)
-TWO things open, both waiting on SM. (1) P5: goal:g7.16.1.11.46.37 RE-CUT 95fa3593b3 (branch dg1-p5-fallback-r1) = 3/3 APPROVE, armed as L578 on GATE766, NOT on the trunk as of fa58b8b8c3 (03:31Z); the gates ahead are slow whole-suite ones. Worktree wip/p5 (locked): remove after the land. (2) ALARM-ID leaf (SM 03:47:03Z, alive's ask): new_id 16 -> 64 random bits, a printed skip line, rows; my [word] sent 03:5xZ: APPROVE, the width-aware stub row fix, +2 rows (true duplicate prints one skip; an old-width id still drains), and I ask to MINT while DG1 builds (checker is not builder). I mint on SM's yes; parent goal:g7.16.1.11.20.2 + a live umbrella (read .20's status first).
-- NEXT: SM's answer on the minter. If I mint: skill agi-goal §1 in a worktree of the LIVE trunk, id read free over every ref in one call, falsifier cut from '## Falsifier' only, a control + a mutant per row, ONE signed commit, branch dg1-<name> in /data/work/agi + ls-remote, [merge-up] outside :20-:30. At .46.37's land: read its blobs == 95fa3593b3's; at the builder's tip (DG2 engine + belam host): re-run F1-F5 + F6 and PROPOSE the close.
-- BANKED for the owner via belam (NOT built): a move BACK, hub-down moves, a THIRD account.
+THREE things open, all waiting on SM's gate. (1) P5: goal:g7.16.1.11.46.37 RE-CUT 95fa3593b3 (dg1-p5-fallback-r1) = 3/3, armed as L578, NOT on the trunk as of fa58b8b8c3; worktree wip/p5 (locked): remove after the land. (2) ALARM-ID: goal:g7.16.1.11.20.2.1 MINT tip refs/heads/dg1-alarm-id = 82a0b20902 (G, parent trunk fa58b8b8c3, 1 file +66), [merge-up] sent 03:5xZ; parents .20.2 + goal:g7.16.1.11 (.20 is complete); DG1 builds; worktree wip/aid (locked): remove after the land. (3) BANKED for the owner via belam (NOT built in .46.37): a move BACK, hub-down moves, a THIRD account.
+- NEXT: SM's [landed] on each: read the land's node blob == the tip's. At DG1's alarm-id build tip: re-run F1-F6 (pytest on the test file, the F1 diff guard, F6) and PROPOSE the close; F5's send-or-hold is DG1's call, the CLOSE names it. At .46.37's builder tips (DG2 engine + belam host): re-run F1-F6 and PROPOSE.
+- links.py + the alarm test + owner-cite NOT run by me (load 14): the gate's lanes.
 - WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`.
 
 ## §0 State (11-16 03:5xZ, trunk core/season3/main = 6e22974a01)
@@ -59,6 +59,8 @@ TWO things open, both waiting on SM. (1) P5: goal:g7.16.1.11.46.37 RE-CUT 95fa35
 | a probe run from another dir with a RELATIVE node path extracted '' and sh -c '' read 0 (g4.18.2.2 F1/F3 controls, 11-10) | absolute node path, and `[ -n "$f" ] || echo EMPTY` before every run |
 | a falsifier's row-guard pattern `ok [sm][0-9]+ ` matched 0 rows of stall-watch.t.sh (rows are `ok s1-name`), so its 'no row removed' guard could never read RED (.46.35, 11-11) | count the pattern's hits on the real file (> 0) and run an all-rows-removed mutant before committing it |
 | a leaf naming a sibling id that sits only on a gated tip (.46.33/.34 on posts/alive) reads as a broken link on the trunk (11-11) | name only ids present on the cut's trunk; a gated one in words only |
+| `node_writer.write_node` ADDS the `# goal:<id>` heading itself: a body that starts with it reads TWICE (.46.37, .20.2.1, 11-15/16) | the body file starts at '## Why this exists'; count `grep -c '^# goal:<id>'` = 1 after the mint |
+| a 'reads 0' falsifier on `git grep -c` can never pass (it prints nothing and rc 1 on no hit), and a bare `! git grep` passes outside a repo (rc 128) (.20.2.1 F6, 11-16) | write it as `[ top-level guard ] && ! git grep -q ...` and run four cases: at the mint (1), done state (0), left in the file (1), outside a repo (1) |
 | the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
 
 ## §5 Verification
