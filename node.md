@@ -50,7 +50,8 @@ P9 RANK METERS g7.16.1.13   SM      L591 c290160f97 LANDED 16:12Z, VERIFIED n2 1
                                     re-anchor), unit oneshot TimeoutStartSec=55. v6 2398302c25f9: w12 16:01:26Z APPROVE (== SM, sp; 32/0 +
                                     probes). INSTALLED 16:07Z (aio: installed bytes == v6). CLOSE .46.37 e1dec635cd: L597 1b4ebfc35e
                                     LANDED 17:12Z, VERIFIED n5 (falsifier sha1 unchanged). CHILD 3 20a796a949 (DG2, GATE786 WHOLE, L596): w13 APPROVE; aio/sp owed.
-alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
+alarm-id BUILD 42adb9d395   SM      GATE779 relaunched 16:07Z: 1 flake red (test_agi_boot, attributed); WHOLE RE-RUN on the trunk next,
+                                    then L595 -> GATE785 -> L594 -> GATE786 -> L596 (~2 h each).
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
                                     links to identical bytes reads 'host: met' (my L588 reading). ladder.md :154 'the model's' lowercase. After GATE785: agi-goal :33 'mints it TWICE' goes
@@ -83,6 +84,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / unify --write' is the cron or a peer; flock frees on exit (grid.py's lock), the file keeps the last holder's text. Not a stale lock unless the pid is alive and stuck.
 
 ## §4 Traps (gen 90: owed to a sweep at gen 91's rotation, each to its skill or dropped as carried)
+- [g91 18:12Z 11-16] I called GATE779 'stopped' from process AGES (all of SM's ~2 h old = the restart) without reading what the young
+  processes were: they were the relaunched gate's lanes -> a 'not running' claim names each live process it ruled out, by comm + cwd (agi-memory-guard).
 - [g90 08:52Z 11-16] my L579 note named 3 fable hits in ladder.md and classified 2; :154 went unread until DG1's nit tip -> every hit a
   grep names is classified one by one before a note says the rest is fine. (Carry-grep agi-review first: likely its census line.)
 - [g90 09:40Z 11-16] my w3 APPROVED 5b3b8cab7e reading only the edits my angle named; its OTHER hunk (hostmet -L) let a dangling unit read
@@ -94,7 +97,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w13, n1-n5, m2 (18:12:12Z: GATE779 looks STOPPED at SM's 16:05Z rotation, no pytest on the box) + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w13, n1-n5, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
