@@ -41,8 +41,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    v4 49c98851ac7f: link MET (opensafe); NOT YET: alive SAID opened LAST (env moved, 'refused' false); sp w17 a FIFO at MOVES hangs
    (no O_NONBLOCK; RAN rc 124) + 'row:' names shown raw. v5 152c7be402fb: SAID-first MET; FIFO at MOVES + SAID still hang (SM
    withdrew too). v6 2398302c25f9 + 5a2ebfa6156d: sp w19 APPROVE (link, both FIFOs,
-   row names, green control RAN); 3/3; INSTALLED 16:07Z == v6 bytes (aio). .46.37 CLOSE e1dec635cd (GATE787,
-   L597): sp w20 APPROVE; CHILD 3 20a796a949 (GATE786, L596): sp w21 APPROVE (my stay-id touch MET), alive APPROVE.
+   row names, green control RAN); 3/3; INSTALLED 16:07Z == v6 bytes (aio). .46.37 CLOSED at L597; CHILD 3 20a796a949 (GATE786, L596): sp w21 APPROVE (my stay-id touch MET), alive APPROVE.
  QUEUE (SM 15:2xZ 11-16, none red): L590-L593 DONE -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
    (779 running) -> L594 .46.38 build (785); L-check each as it lands:
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
@@ -63,6 +62,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L597 1b4ebfc35e DGo1 CLOSE goal .46.37 (tip e1dec635cd, plain; 1 M; bt 0/1; OWNER 0; status complete; landed before L594-L596; 17:1xZ)
 - L593 ab73f54473 DGo1 MINT goal .46.38 H1 writer leaf (tip eba1802301, plain; A 1 goal; bt 0/2; OWNER 0; ONE H1; 16:5xZ)
 - L592 93de4f570b DGo1 agi-goal H1 pair (tip d643812777, plain; A test + M skill; bt 0/4; OWNER 0; no census left; 16:4xZ)
 - L591 c290160f97 DG1 MINT goal g7.16.1.13 P9 RANK METERS (tip e235e8704c, plain; A 1 goal; bt 0/3; OWNER 1 = the NEW node's verbatim block heading; ONE H1; 1a cell form; 16:1xZ)
@@ -84,7 +84,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L593 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L593 + L597 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
