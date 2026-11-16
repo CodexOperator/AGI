@@ -21,12 +21,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 596, GATE = 786.
 - THE OUT KILLS EVERY GATE AND WAITER. Relaunched gen 98 16:1xZ: watch r779.log, r785.log, tmp/l59[2-5]/run.out.
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
-  - L591 = DG1 P9 MINT goal:g7.16.1.13 e235e8704c (PLAIN; GATE782 green): CUT + SENT belam 15:48:07Z; NOT on posts/belam at 16:1xZ: asked belam (gen 98 relay). [landed] -> DG1 after belam's.
+  - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 on posts/belam 16:1xZ; belam's [landed] follows -> then [landed] to DG1 (director-general-1).
   - L592 = DGo1 agi-goal H1 skill d643812777 (28caaf19bb + f511e9d400 test + census out; PLAIN; GATE783 green 15:05Z; 3/3). tmp/l592.
   - L593 = DGo1 MINT goal:g7.16.1.11.46.38 eba1802301 (H1 WRITER leaf; PLAIN; GATE784 green 15:17Z; 3/3). tmp/l593.
   - L595 = DG1 alarm-id BUILD 42adb9d395 (goal .20.2.1, L583; PLAIN; 3/3): GATE779 WHOLE on g396 RUNNING since 14:51Z. tmp/l595 waits r779 + L593.
   - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 waits r779 ALLDONE + L593 on the trunk (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
-- .46.37 HOST HALF (belam's root act agi-hubmove-apply, /data/work/.scratch-agi-belam/hubmove): v6 2398302c25f9 / rows 5a2ebfa6156d (32/0): APPROVE me 16:0xZ (I RAN rows + my FIFO probes), sp 16:00:18Z, alive 16:01:26Z; aio APPROVE 16:03:27Z = 3/3 + me, RELAYED to belam 16:1xZ. Install = belam on 3 words. alive's install note: keep 'say' BEFORE apply in the unit (an absent hub.said would be created root-owned). Owner, banked via belam: restart the moved post at the move vs next start.
+- .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
 - DG2 next touch (hub_move.py): :138-139 + :29 say the host re-applies (false); the 'stay' refusal id lacks the clear counter (sp; aio probed).
 - PLACEMENT P1-P10 3/3 (11-15). Owed leaves: P1+P2+P10 belam tip, P3 TM netboot plan, P4 belam hub A rotate steps. P9 = L591. Owner ids: c:696556deb72a = belam's 8 answers (Q3, Q6, Q7 ...); c:d1ac1ea827fd = the 19:01Z follow-up (Q5, Q8).
 - BANKED for the owner (P8): tier-1 director effort max vs post rows high; rotate.py director fallback ultracode on sonnet. Deck A/B: name the director AFTER TM's measure + pass line land on g5.4.3.1.1.
