@@ -76,6 +76,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L581 94a504eceb DG1 e4 test fix (tip 942c89a58d, plain; 1 M test; bt 0/1; OWNER 0; 'upper' = head.upper() 1 hit; no wrap; 09:31Z 11-16)
 - L580 cf430b9af2 DG2 CLOSE goal .20.7 box-wake (tip ff029821ed, plain; 1 M; bt 0/4; OWNER 0; 'wake 2 untied' 2 hits; no wrap; 08:53Z 11-16)
 - L579 be9256d5b5 DG1 P7b FABLE GRANTS OUT (tip e504418de7 child, RULES; 6 M; bt 0/7; OWNER 0; no fable in any allowlist / ladder row, director_model sonnet-5-5; wrap e4c3f2d4d7 OK; 08:40Z 11-16)
 - L578 8cb08abaff DGo1 goal .46.37 MINT + RE-CUT (tip 95fa3593b3, plain; A .46.37 + M .46.35; bt 0/4; OWNER 1 = the NEW node's verbatim block heading, no edit; no wrap; A28 P5; 04:15Z 11-16)
@@ -89,7 +90,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L568: rows in git (this card's versions to 11-14 16:0xZ).
 
 ## 🔴 Where it stops
-gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L580 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
+gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L581 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
 NEXT: (1) on a mail: box read; an idle-read test from belam -> tie it (§1). (2) L-check L576-L578, L579 (P7b child) as they land. (3) re-arm the wait.
 Box resets (last 00:41:42Z 11-16; this session resumed after it): `uptime -s` before ANY git write; a reset clears /tmp.
 
