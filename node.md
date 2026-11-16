@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (08:4xZ 11-16) -- gen 97 AWAKE (gen 96 OUT 03:5xZ at the meter). HUB B. Trunk = posts/belam f39d5fb2df (L577 + belam card). Next free L = 591, GATE = 783 (762, 765 void).
+## §0 State (08:4xZ 11-16) -- gen 97 AWAKE (gen 96 OUT 03:5xZ at the meter). HUB B. Trunk = posts/belam f39d5fb2df (L577 + belam card). Next free L = 591, GATE = 784 (762, 765 void).
 - THE OUT KILLS EVERY GATE AND WAITER (unit restart; also the box reboot ~00:42Z 11-16 did). gen 97 RELAUNCHED 04:0xZ: GATE768 + GATE772 (retry loops, both past start check), waiters l579-l582, chain773 (GATE773 after GATE772 ALLDONE).
 - L578 LANDED 8cb08abaff (belam 04:15:21Z; trunk now 63348618e4 = + belam card); [landed] sent DGo1 + DG2 04:1xZ. L579 waiter now waits GATE768 only.
 - L579 LANDED (belam wrap e4c3f2d4d7, 08:50:28Z); [landed] sent DG1 08:5xZ.
@@ -71,7 +71,7 @@ NEXT: GATE773 green -> mkcut.py one dict for L583 (tip b6a96a5233, PLAIN) -> tmp
 ## §6 BANKED
 - OWED, mine: TRAP SWEEP into skills/agi-master-gate: (gen 97, sp 08:41Z; alive 08:46Z: GROW the existing census-count line in place, not a new line) census = '[1-9][0-9]* passed' from the file the run wrote; a re-run with no count = NOT A CENSUS, loud; row: output elsewhere = cut refuses; gen 94's three (never discover-and-kill in one command; arm a waiter on the pid from ps; launch through the retry loop at 2+ gates), gen 95's (pre-read a second lane on the first's merged tree; gate a dependent lane on the first gate's merged tree; a new refusal's word lists every caller incl. env -i test lanes), and §4 above. A RULES path: its own tip, belam wraps.
 - GATE757's verify: bin-suite-fresh FAIL (mtime newer than the last suite run) NOT READ; read before the next verify-shape gate.
-- DOUBLED GOAL H1 (aio 14:04Z): DGo1 TOOK it 14:2xZ (cause: write_node writes the H1 AND agi-goal §3's template starts with it). PLACED 14:1xZ: (a) DGo1 skills tip; (b) engine leaf DGo1 mints, builder DG1, WHOLE gate; (c) no sweep. Count reconcile first (DGo1 63/811 vs aio 109). Words asked.
+- DOUBLED GOAL H1 (aio 14:04Z): DGo1 TOOK it 14:2xZ (cause: write_node writes the H1 AND agi-goal §3's template starts with it). PLACED 14:1xZ: (a) DGo1 skills tip; (b) engine leaf DGo1 mints, builder DG1, WHOLE gate; (c) no sweep. Count reconcile first (DGo1 63/811 vs aio 109). Words asked. (a) = skill tip 28caaf19bb (PLAIN): GATE783 skills CHAINED on g398 after GATE782 (tmp/retry783.sh); words owed (3).
 - NITs riding next touches: ladder.md :110 'spawn the Fable directors' stale since L579 (alive 08:52Z; DG1, RULES);  TM card :18 stale agi-project line (sent); DG3 grid NITs; box case default exits non-zero (DG2).
 - WAKE LEAF (alive 11-10): a finished long job wakes its post. NO-NODE crumbs incl. test_council_report.py (alive 09:50Z, from kid commit 8dcff99679); guard/host-act-encryption-town.sh (alive's list).
 - BANK g7.31.1.2 T2 / g7.31.1.6 F4: the agi-reaper uid only on the owner's word; posts/thought-master + posts/director-thought-1: never push.
