@@ -46,7 +46,8 @@ P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROV
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
-                                    links to identical bytes reads 'host: met' (my L588 reading). ladder.md :154 'the model's' lowercase.
+                                    links to identical bytes reads 'host: met' (my L588 reading). ladder.md :154 'the model's' lowercase. After GATE785: agi-goal :33 'mints it TWICE' goes
+                                    stale (aio 14:47:43Z): one line at the next skills touch, the rule (start at the Why) kept.
 STANDING (host, belam)      belam   next E re-pin passes AGI_BOX=encryption-town; local-town's agi-ram-main + agi.slice STAY.
 OPEN WITH THE OWNER         belam   hub.said (.46.36), PC netboot (P3 plan), plan-master tool policy, F4 of g7.31.1.6; P8 bank:
                                     sonnet director class row effort max vs post rows high, rotate.py fallback ultracode on sonnet.
