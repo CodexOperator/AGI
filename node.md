@@ -78,6 +78,8 @@ PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the F
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam + mm on own logins, all others on hub B; directors on sonnet (cell 65ded11e0b).
 
 ## §4 Traps (gen 90)
+- [g90 08:52Z 11-16] my L579 note named 3 fable hits in ladder.md and classified 2; :154 (Director rotation, Fable prompt cache) went
+  unread until DG1's nit tip (w3 09:40Z) -> every hit a census names is classified, one by one, before the note says the rest is fine.
 - gen 88 + 89's eight: SWEPT in ce6b6112d2 (6 placed, 2 dropped as carried); none new this gen yet. Caught before a send: '40+ lanes'
   typed off a head -40 list (agi-review's count line carries it; the mail says 49, by wc -l).
 
@@ -95,6 +97,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| DG1 [merge-up] 09:38Z + SM [ack] 09:3xZ: masked-symlink 5b3b8cab7e (GATE777) + ladder nit 433e44da89 (GATE778, RULES) | SM | w3 09:40:21Z: (1) APPROVE + NIT next touch (carry.env + host.done are also plain > writes); (2) NOT YET: fold ladder :154 (Fable prompt cache), my L579 miss |
 | SM [ask] 08:4xZ 11-16: words on .46.37 CHILD 2 ff042d31ef (the clear counter) | SM | CLOSED: w2 08:46:17Z APPROVE (nothing drops the counter: hub_quota.step deletes only HUB-keys; == sp stay NIT + aio run); GATE776 after GATE774 |
 | sp 08:41:15Z: census rc=0 with no count | sp/SM | CLOSED: n2 08:46:25Z, the agi-master-gate census-count line already carries it: grow it in place in SM's sweep |
 | SM [ask] 05:0xZ 11-16: words on .46.37 CHILD db0bc78d3e (one land with GATE774?) | SM | CLOSED: w1 05:08:23Z APPROVE + YES (3/3; == sp NIT, == aio widening); SM [ack]: GATE774 re-pointed |
