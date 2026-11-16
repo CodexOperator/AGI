@@ -26,7 +26,7 @@ spool (job hub-quota) so the first post back reads it in its mail:
   after that, a newer failed dial (LAST)     `hub A down again (failed dial HH:MMZ)`, back to down      (all-is-one 07:04Z)
   anything else                              nothing
 
-It carries the hub, the model and a time only, and moves no post between hubs (the fallback is the owner's rule, banked).
+It carries the hub, the model and a time only, and moves no post itself: the quota fallback (the owner's yes, Q3 11-15) is its own unit, hub_move.py (goal:g7.16.1.11.46.37).
 """
 from __future__ import annotations
 
