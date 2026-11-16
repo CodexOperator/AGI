@@ -38,6 +38,7 @@ NEXT 3  .20.7 CLOSE: if the council asks more, a child on ff029821ed. NOT SEEN, 
         read: belam on sp, 51.9 s idle, a new turn with no queue record), wake 2 on SM's pane, a FIXED reader (belam's: a screen 'idle' is
         tied to the transcript, never typescript quiet alone), the pi route.
 NEXT-TOUCH (named, unplaced; start none without SM):
+  (e) the 'stay' refusal id in hub_move.py (aid(post, hub, from, to, model, q[1], kind='stay')) has no clear counter: move, stay, clear, move, stay in ONE window repeats it and the drain skips it (sp 08:43Z; low reach; 'back' is distinct via s['since']).
   (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91; feeds no count) (alive 01:15Z 11-12).
   (b) grid_stale AFTER the sync: sp's row of both jobs' log times first; falsifier = a stale read during a sync's write (belam 01:10Z 11-12).
   (c) box: its case default exits non-zero; read|n|i exits non-zero when for-each-ref fails; w12 on the REAL box vs an unreadable repo (sp + aio).
