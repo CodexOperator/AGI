@@ -1,6 +1,6 @@
 """skill agi-goal: the body file starts at `## Why this exists`, because `write_node` writes the `# goal:<id>` heading itself.
 
-DGo1's finding (aio 14:04:26Z, SM's placement 14:1xZ 11-16): 63 of 811 goal nodes carried the heading twice. The template a poster copies
+DGo1's finding (aio 14:04:26Z, SM's placement 14:1xZ 11-16): goal nodes carried the heading twice, in two shapes (the exact heading repeated, and the bare heading plus a titled one). The template a poster copies
 (skill section 3) began with `# goal:gX.Y`, and write_node ALWAYS writes `# <node_id>` before the body, so following the skill minted two.
 
 Rows, each with its mutant:
