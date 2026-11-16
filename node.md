@@ -37,7 +37,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- QUEUE (SM 15:2xZ 11-16, none red): lands L590 (776 re-cut, :31 window) -> L591 P9 -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
+ QUEUE (SM 15:2xZ 11-16, none red): L590 DONE -> L591 P9 -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
    (779 running) -> L594 .46.38 build (785); L-check each as it lands:
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
      fix RAN); child #2 e235e8704c APPROVE (sp w6 RAN 1a: 9 dropped = missing 9; alive) -> GATE782
@@ -57,6 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L590 f76ea09e4f DG2 .46.37 CHILD 2 clear counter (tip ff042d31ef, plain; 3 M; bt 0/3; OWNER 0; the move id gets the counter, 'stay' still a next touch; 15:4xZ)
 - L589 c2e765ea2e DG1 rtd clause :104 (tip ce418cc275, plain; 1 M skill; bt 0/1; OWNER 0; 3/3 given; 13:4xZ 11-16)
 - L588 9959f0278b DG1 MASKED SYMLINK 2 (tip ca2e63da93, plain; 2 M agi.sh + host-act test; bt 0/2; OWNER 0; carry.env + host.done in the refusal loop, AFTER hostmet (alive's (b) stands); 12:4xZ 11-16)
 - L587 e506847ebf DG2 .46.37 ENGINE + CHILD (tip db0bc78d3e, plain; 3 A + 3 M; bt 1/9 = the RFC 1918 fixture (b-7, 3/3); OWNER 0; 12:1xZ 11-16)
@@ -74,7 +75,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L589 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L590 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
