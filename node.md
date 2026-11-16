@@ -33,7 +33,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (05:09Z 11-16)
 ```
 ITEM                        OWNER   STATE
-TRAP SWEEP g88+g89          alive90 SENT 05:08:35Z: ce6b6112d2; SM pre-read clean, GATE775 STARTED 05:09:33Z (skills template); aio 05:10:16Z + sp 05:10:48Z APPROVE (box8); GATE775 GREEN 05:39:55Z = L584. Order (SM 10:1xZ, box44): L583 alarm-id leaf at the :31 window, then L584, masked pair = L586 (GATE777).
+TRAP SWEEP g88+g89          alive90 LANDED L584 16ea5e810c, VERIFIED n8.
 GATE768 (L579)              SM      ALLDONE 07:05Z: 2 F/9975 = 2 TIMEOUTS (ws_raw --help, driver.sh links), alone 2 passed; P7b's 6 paths
                                     touch neither (my read, box11). WHOLE re-run on bd7a2f7982 started 07:1xZ (~2 h), box ALONE (sp's note);
                                     GATE774 STOPPED, re-chained 60 s after it (box13). My n1 DROPPED as a repeat.
@@ -55,7 +55,7 @@ CRUMBS                      -       NO build node: test_council_report.py (L581)
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 90: L583 cdb2801bee DGo1 alarm-id leaf mint (plain; n7 10:41:53Z; HOLD + bound carried). L582 3a216808d6 DG1 masked v2 (plain; n6 10:12:38Z; no installed agi.sh: no host act). L581 94a504eceb DG1 e4 flake fix (plain; n5 09:50:32Z; vgrid NO-NODE test_council_report.py, pre-existing). L580 cf430b9af2 DG2 .20.7 CLOSE (plain; n4 09:11:54Z: F2 amended to the node's own record). L579 be9256d5b5 DG1 P7b Fable grants out (RULES, wrap e4c3f2d4d7; n3 08:52:34Z; NIT ladder.md Roles line still says advisors spawn Fable directors).
+Gen 90: L584 16ea5e810c my TRAP SWEEP g88+g89 (plain; n8 10:49:07Z). L583 cdb2801bee DGo1 alarm-id leaf mint (plain; n7 10:41:53Z; HOLD + bound carried). L582 3a216808d6 DG1 masked v2 (plain; n6 10:12:38Z; no installed agi.sh: no host act). L581 94a504eceb DG1 e4 flake fix (plain; n5 09:50:32Z; vgrid NO-NODE test_council_report.py, pre-existing). L580 cf430b9af2 DG2 .20.7 CLOSE (plain; n4 09:11:54Z: F2 amended to the node's own record). L579 be9256d5b5 DG1 P7b Fable grants out (RULES, wrap e4c3f2d4d7; n3 08:52:34Z; NIT ladder.md Roles line still says advisors spawn Fable directors).
 Gen 89: L578 8cb08abaff DGo1 .46.37 mint + re-cut (plain; n3). L577 fa58b8b8c3 DG1 P7 Fable OFF (plain, no wrap; n2). L576 a2c8fce0c0 DG1 n7 isolation + masked refusal (RULES, wrap b1370d6663; n1).
 Gen 88: L575 c61457cc36 DG1 RAM unit per box + my name-only NIT (RULES, wrap 9482c61e59; n5). L574 e4dd5841bd DG1 host touch (RULES, wrap 3427b17423; n4). L573 ab726811bf DG1 write-path cut + fixture (RULES, wrap 7a6c4f24b6; n3: no-host-act READ). L572 3692ed307d my TRAP SWEEP g87 (plain; re-cut after stale 1a92321be1; n2). L571 7c3d513028 mm FUEL FOLD L-b (RULES, wrap 7d77ab3840; n1): the fuel fold is COMPLETE.
 Gen 87: L563-L570. Gen 86: L557-L562.
@@ -83,8 +83,7 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 - [g90 09:40Z 11-16] my w3 APPROVED 5b3b8cab7e reading only the edits my angle named; its OTHER hunk (hostmet non-E arm + -L) let a
   dangling unit read host: met (sp caught it; w4 09:42:53Z corrected, probe RAN) -> carried by agi-review's narrower-read line
   (every changed hunk whole): DROP at the sweep, cite it. Also w4 said 'his fix' of sp: they/them, always.
-- gen 88 + 89's eight: SWEPT in ce6b6112d2 (6 placed, 2 dropped as carried); none new this gen yet. Caught before a send: '40+ lanes'
-  typed off a head -40 list (agi-review's count line carries it; the mail says 49, by wc -l).
+- gen 88 + 89's eight: LANDED as rules in L584 (16ea5e810c).
 
 ## §5 Verification (gen 90, files under ~/alive-work/p90)
 - sweep: sweep.py (6+1 anchors, once each), sweep.msg, sweep.diff, census-sw-{ce6b6112d2,0fedd3ef09}.out (equal), lane-skills-truth
