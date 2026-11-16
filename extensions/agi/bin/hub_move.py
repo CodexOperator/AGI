@@ -16,15 +16,18 @@ route row the post should have). stall_watch.sh and hub_quota.py `say` still act
          MOVE   a post routed to HUB, MODEL, whose (HUB, MODEL) line reads `quota`, while the OTHER hub's (MODEL) line reads `ok`
                 (an ok line of ANY age counts: an idle hub records nothing; only the FILE's `written` line must be fresh) and
                 that hub has no hub-wide down line, and the post has no standing move. ONE loud line to --said and the spool:
-                  post X (M) B -> A on quota (B until HH:MMZ); A ok as of MM-DD HH:MMZ, unconfirmed since
-                ONE standing line to --said:  post X on hub A since HH:MMZ, moved from B on quota
+                  post X (M) DECIDED B -> A on quota (B until HH:MMZ), pending the host step; A ok as of MM-DD HH:MMZ, unconfirmed since
+                ONE standing line to --said:  post X decided onto hub A at HH:MMZ, moved from B on quota, pending the host step
+                (DECIDED, never "on hub A since": the route changes only when the host step applies it; the host writes 'on hub A since')
                 ONE line to the moved post's OWN box (a spool line --to X), so a post waking on the new hub knows why.
          REFUSE the target is quota, down, or has no line for the model: NO MOVE, ONE said line per (hub, model, reset) cooldown
                 naming the posts held; and a post that already moved and now reads quota on its NEW hub: NO MOVE, ONE said line
                 naming the standing move (a move back by another name is the owner's, banked).
          OFF-HUB a post with no route row (or `direct`) is never moved and never unread: `NAME: off-hub, no move`.
          unread a missing, malformed or stale state or route file: nothing moved, nothing said, rc 1.
-  clear POST --memory F [--said F] [--moves F]      belam or the owner clears a post's standing move (the only way a post moves again)
+  clear POST --memory F [--said F] [--moves F]      belam or the owner clears a post's standing move (the only way a post moves again).
+         A move BACK is `clear X` THEN the route edit: --moves is rewritten whole from memory, so a hand edit without `clear` is re-applied.
+         A post seen on its `to` hub and later on its `from` hub with the standing move kept: ONE said line (not silence) naming `clear X`.
 
 Memory (this uid's own JSON): {"standing": {POST: {from, to, model, since, reset}}, "refused": {KEY: epoch}}. A line not delivered is
 decided and said again next run (memory is saved only after every line went out); the --moves file is rewritten whole from memory.
@@ -32,6 +35,7 @@ decided and said again next run (memory is saved only after every line went out)
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -45,6 +49,11 @@ import alarm_spool  # noqa: E402
 import hub_quota  # noqa: E402
 
 KEEP = 7 * 86400   # a refusal's memo is dropped after a week
+
+
+def aid(*parts, kind: str) -> str:
+    """A DETERMINISTIC alarm id from the DECISION (post, from, to, model, reset), never the wording: a replayed line is one id (goal .46.12)."""
+    return f"hm-{kind}-" + hashlib.sha1("|".join(str(p) for p in parts).encode()).hexdigest()[:16]
 
 
 def hhmm(epoch: int) -> str:
@@ -119,6 +128,16 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
             continue
         hub, model = hm
         s = standing.get(post)
+        if s is not None and hub == s["to"]:
+            s["seen"] = True                         # the route has shown the post on its NEW hub: the host step applied the move
+        elif s is not None and s.get("seen") and hub == s["from"]:      # moved back by a route edit WITHOUT `clear`: the host re-applies the row
+            key = f"standing {post} back {hub}"
+            if key not in refused:
+                refused[key] = now
+                out["refused"] += 1
+                out["said"].append((f"post {post} is back on hub {hub} by hand; standing move to {s['to']} kept: run hub_move.py clear {post}, "
+                                    f"or the host re-applies {s['to']} (a move with no quota behind it)", True, aid(post, s["from"], s["to"], s["since"], kind="back")))
+            continue
         q = trigger(state, hub, model)
         if q is None:
             continue
@@ -130,7 +149,7 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
                     out["refused"] += 1
                     out["said"].append((f"post {post} stays on hub {hub}: {hub} ({model}) out of quota until {until(q[1])}, but {post} "
                                         f"moved {s['from']} -> {s['to']} at {hhmm(s['since'])} (one automatic move per post): not moved back, "
-                                        f"belam or the owner clears it (hub_move.py clear {post})", True))
+                                        f"belam or the owner clears it (hub_move.py clear {post})", True, aid(post, hub, s["from"], s["to"], model, q[1], kind="stay")))
             continue                                 # the same cooldown seen again: no second move, nothing said
         others = [h for h in hubs if h != hub]
         if hub not in hubs or len(others) != 1:
@@ -144,11 +163,13 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
         ot = state[(other, model)]
         asof = mmdd(ot[1]) if ot[1] else "unknown"
         standing[post] = {"from": hub, "to": other, "model": model, "since": now, "reset": q[1]}
-        loud = f"post {post} ({model}) {hub} -> {other} on quota ({hub} until {until(q[1])}); {other} ok as of {asof}, unconfirmed since"
-        mine = f"post {post} on hub {other} since {hhmm(now)}, moved from {hub} on quota"
-        out["said"].append((loud, True))                 # the loud line: the said file AND the alarm spool
-        out["said"].append((mine, False))                # the standing line: the said file only, once
-        out["tell"].append((post, f"[hub-move] you are decided onto hub {other} ({model}), moved from {hub} on quota (until {until(q[1])}): "
+        loud = (f"post {post} ({model}) DECIDED {hub} -> {other} on quota ({hub} until {until(q[1])}), pending the host step; "
+                f"{other} ok as of {asof}, unconfirmed since")
+        mine = f"post {post} decided onto hub {other} at {hhmm(now)}, moved from {hub} on quota, pending the host step"
+        did = (post, hub, other, model, q[1])
+        out["said"].append((loud, True, aid(*did, kind="loud")))   # the loud line: the said file AND the alarm spool
+        out["said"].append((mine, False, None))          # the standing line: the said file only, once
+        out["tell"].append((post, aid(*did, kind="tell"), f"[hub-move] you are decided onto hub {other} ({model}), moved from {hub} on quota (until {until(q[1])}): "
                                   f"{mine}; belam's host step applies the route; the mover never moves you back"))
         out["moved"] += 1
         out["report"].append(loud)
@@ -158,7 +179,7 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
             continue
         refused[key] = now
         out["refused"] += 1
-        out["said"].append((f"hub {hub} ({model}) out of quota until {until(reset)}: no move for {', '.join(posts)}: {why}", True))
+        out["said"].append((f"hub {hub} ({model}) out of quota until {until(reset)}: no move for {', '.join(posts)}: {why}", True, aid(hub, model, reset, why, *posts, kind="held")))
     return out
 
 
@@ -175,10 +196,10 @@ def write_moves(path: Path, mem: dict) -> None:
     os.replace(tmp, path)
 
 
-def deliver(a, now: int, lines: list[tuple[str, bool]], tell: list[tuple[str, str]]) -> int:
+def deliver(a, now: int, lines: list[tuple], tell: list[tuple]) -> int:
     rc = 0
     stamp = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
-    for line, to_spool in lines:
+    for line, to_spool, lid in lines:
         if a.said is not None:
             try:
                 with open(a.said, "a") as fh:
@@ -187,13 +208,13 @@ def deliver(a, now: int, lines: list[tuple[str, bool]], tell: list[tuple[str, st
                 print(f"hub_move: said file {a.said} not written: {exc}", file=sys.stderr)
                 rc = 1
         if a.spool is not None and to_spool:
-            why = alarm_spool.append("hub-move", a.to, f"[quota] {line}", spool=a.spool, max_lines=a.max_lines, now=now)
+            why = alarm_spool.append("hub-move", a.to, f"[quota] {line}", spool=a.spool, max_lines=a.max_lines, now=now, alarm_id=lid)
             if why is not None:
                 print(f"hub_move: spool append FAILED ({why}): {line}", file=sys.stderr)
                 rc = 1
-    for post, text in tell:
+    for post, tid, text in tell:
         if a.spool is not None:
-            why = alarm_spool.append("hub-move", post, text, spool=a.spool, max_lines=a.max_lines, now=now)
+            why = alarm_spool.append("hub-move", post, text, spool=a.spool, max_lines=a.max_lines, now=now, alarm_id=tid)
             if why is not None:
                 print(f"hub_move: spool append to {post} FAILED ({why})", file=sys.stderr)
                 rc = 1
@@ -216,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--max-lines", type=int, default=500)
     p.add_argument("--max-age", type=int, default=180, help="a state or route file written longer ago than this is unread")
     p.add_argument("--now", type=int, default=None)
-    c = sub.add_parser("clear")
+    c = sub.add_parser("clear", help="clear X THEN edit the route back; a route edit alone is re-applied by the host from --moves")
     c.add_argument("post")
     c.add_argument("--memory", type=Path, required=True)
     c.add_argument("--said", type=Path, default=None)
@@ -237,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         mem["refused"] = {k: t for k, t in mem.get("refused", {}).items() if not k.startswith(f"standing {a.post} ")}
         line = f"post {a.post} standing move {s['from']} -> {s['to']} cleared"
         a.spool, a.to, a.max_lines = None, "", 0
-        rc = deliver(a, now, [(line, False)], [])
+        rc = deliver(a, now, [(line, False, None)], [])
         if rc == 0:
             hub_quota.save_mem(a.memory, mem)
             if a.moves is not None:

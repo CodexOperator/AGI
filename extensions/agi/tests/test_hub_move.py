@@ -119,10 +119,10 @@ def test_f1_a_quota_post_moves_to_the_other_hub_and_says_so_once(tmp_path):
     loud = moved_lines(tmp_path)
     assert len(loud) == 1, said(tmp_path)
     line = loud[0].split(" ", 1)[1]
-    assert line.startswith(f"post alpha ({OPUS}) B -> A on quota (B until ")
+    assert line.startswith(f"post alpha ({OPUS}) DECIDED B -> A on quota (B until ")
     assert re.search(r"A ok as of \d\d-\d\d \d\d:\d\dZ, unconfirmed since$", line), line      # the AGE of the target line it trusted
     assert "11-13 14:51Z" in line                                                           # A's T, days before `written` (11-15 20:28Z)
-    assert [l.split(" ", 1)[1] for l in standing_lines(tmp_path)] == ["post alpha on hub A since 20:28Z, moved from B on quota"]
+    assert [l.split(" ", 1)[1] for l in standing_lines(tmp_path)] == ["post alpha decided onto hub A at 20:28Z, moved from B on quota, pending the host step"]
     assert moves(tmp_path) == [f"alpha A {OPUS}"]                                          # beta (on A, ok) is untouched
     sp = spool(tmp_path)
     assert [(s["to"], s["text"].startswith("[quota] post alpha")) for s in sp if s["to"] == "sanctuary-master"] == [("sanctuary-master", True)]
@@ -130,8 +130,8 @@ def test_f1_a_quota_post_moves_to_the_other_hub_and_says_so_once(tmp_path):
 
 
 @pytest.mark.parametrize("name, edit", [
-    ("line-dropped", ('out["said"].append((loud, True))', "pass")),
-    ("age-dropped", ('; {other} ok as of {asof}, unconfirmed since"', '"')),
+    ("line-dropped", ('out["said"].append((loud, True, aid(*did, kind="loud")))', "pass")),
+    ("age-dropped", ('f"{other} ok as of {asof}, unconfirmed since")', 'f"{other}")')),
     ("per-line-age", ('        why = target_state(state, other, model)\n',
                       '        why = target_state(state, other, model)\n        if why == "ok" and now - state[(other, model)][1] > 180:\n            why = "stale"\n')),
 ])
@@ -278,7 +278,7 @@ def test_f5_clear_is_the_only_way_a_post_moves_again(tmp_path):
 @pytest.mark.parametrize("name, edit", [
     ("second-move", ("        s = standing.get(post)\n", "        s = None\n")),
     ("repeating-standing-line", ("            continue                                 # the same cooldown seen again: no second move, nothing said\n",
-                                 "            out[\"said\"].append((f\"post {post} on hub {s['to']} since {hhmm(s['since'])}, moved from {s['from']} on quota\", False))\n            continue\n")),
+                                 "            out[\"said\"].append((f\"post {post} decided onto hub {s['to']} at {hhmm(s['since'])}, moved from {s['from']} on quota\", False, None))\n            continue\n")),
 ])
 def test_f5m_bound_mutants_are_red(tmp_path, name, edit):
     script = _copy(tmp_path, "m", edit)
@@ -315,7 +315,7 @@ def test_f5m_mutant_a_move_back_after_the_first_hub_records_a_200_is_red(tmp_pat
 
 
 def test_f5m_mutant_the_moved_posts_own_box_line_dropped_is_red(tmp_path):
-    script = _copy(tmp_path, "m", ('out["tell"].append((post, f"[hub-move] you are decided onto hub', '_drop = ((post, f"[hub-move] you are decided onto hub'))
+    script = _copy(tmp_path, "m", ('out["tell"].append((post, aid(*did, kind="tell"), f"[hub-move] you are decided onto hub', '_drop = ((post, aid(*did, kind="tell"), f"[hub-move] you are decided onto hub'))
     _moved_once(tmp_path, script)
     assert [s for s in spool(tmp_path) if s["to"] == "alpha"] == [], "the mutant must drop the post's own line"
     t2 = tmp_path / "real"
@@ -362,3 +362,72 @@ def test_f6m_mutants_are_red():
     for p in f:
         gone = dict(f, **{p: f[p].replace(POINT, "g7.16.1.11.46.XX")})
         assert not _row6(gone), f"pointer missing from {p} must be RED"
+
+
+# ---------- f7 (child of 269cd97451, sp + alive 11-16): the decide-vs-apply seam ----------
+def test_f7_decide_with_no_apply_never_says_on_hub_since(tmp_path):
+    _moved_once(tmp_path)
+    assert not [l for l in said(tmp_path) if "on hub A since" in l]
+    assert any("pending the host step" in l for l in said(tmp_path))
+
+
+def test_f7m_mutant_old_standing_wording_is_red(tmp_path):
+    script = _copy(tmp_path, "m", ('mine = f"post {post} decided onto hub {other} at {hhmm(now)}, moved from {hub} on quota, pending the host step"',
+                                   'mine = f"post {post} on hub {other} since {hhmm(now)}, moved from {hub} on quota"'))
+    _moved_once(tmp_path, script)
+    assert any("on hub A since" in l for l in said(tmp_path))                                 # the mutant says it: f7 is RED on it
+
+
+def _back_on_b_by_hand(tmp, script=None):
+    _moved_once(tmp, script)
+    _state(tmp, [f"A {OPUS} ok {NOW + 90} {NOW + 90}", f"B {OPUS} ok {NOW + 90} {NOW + 90}"], written=NOW + 100)
+    _route(tmp, [f"alpha A {OPUS}"], written=NOW + 100)                                      # applied: seen on its `to` hub
+    run(tmp, script, now=NOW + 100)
+    _route(tmp, [f"alpha B {OPUS}"], written=NOW + 200)                                      # then moved back by a route edit, no `clear`
+    return run(tmp, script, now=NOW + 200)
+
+
+def test_f7_a_hand_move_back_without_clear_is_said_once_and_the_row_stays(tmp_path):
+    r = _back_on_b_by_hand(tmp_path)
+    assert r.returncode == 0, r.stderr
+    back = [l for l in said(tmp_path) if "is back on hub B by hand" in l]
+    assert len(back) == 1 and "hub_move.py clear alpha" in back[0], said(tmp_path)
+    assert moves(tmp_path) == [f"alpha A {OPUS}"]
+    run(tmp_path, now=NOW + 260)
+    assert len([l for l in said(tmp_path) if "is back on hub B by hand" in l]) == 1           # ONCE, not every run
+
+
+def test_f7_no_back_line_before_the_host_ever_applied(tmp_path):
+    _moved_once(tmp_path)
+    run(tmp_path, now=NOW + 60)                                                              # route still reads B: not seen on A, so not 'back'
+    assert not [l for l in said(tmp_path) if "by hand" in l]
+
+
+def test_f7m_mutant_silence_is_red(tmp_path):
+    script = _copy(tmp_path, "m", ('            key = f"standing {post} back {hub}"\n', '            continue\n            key = f"standing {post} back {hub}"\n'))
+    _back_on_b_by_hand(tmp_path, script)
+    assert not [l for l in said(tmp_path) if "is back on hub B by hand" in l]                 # the mutant is silent: f7 above is RED on it
+
+
+# ---------- f8 (all-is-one 11-16): a replayed decision keeps ONE alarm id ----------
+def test_f8_a_partial_delivery_replays_the_loud_line_under_one_id(tmp_path):
+    _state(tmp_path, [A_OK, B_QUOTA]); _route(tmp_path, [f"alpha B {OPUS}"])
+    (tmp_path / "spool").write_text("".join(json.dumps({"id": f"x{i}", "job": "j", "to": "z", "text": "t", "ts": 1}) + "\n" for i in range(4)))
+    r1 = run(tmp_path, extra=["--max-lines", "5"])                                           # the loud line fits (5), the tell is refused: rc 1, memory unsaved
+    assert r1.returncode == 1, r1.stdout
+    (tmp_path / "spool").write_text("".join(l + "\n" for l in (tmp_path / "spool").read_text().splitlines() if '"to": "z"' not in l))   # the drain
+    r2 = run(tmp_path, extra=["--max-lines", "5"])
+    assert r2.returncode == 0, r2.stderr
+    ids = [x["id"] for x in spool(tmp_path) if x["to"] == "sanctuary-master"]
+    assert len(ids) == 2 and len(set(ids)) == 1 and ids[0].startswith("hm-loud-"), ids      # two copies, ONE id: the drain sends it once
+
+
+def test_f8m_mutant_id_dropped_is_red(tmp_path):
+    script = _copy(tmp_path, "m", ("now=now, alarm_id=lid)", "now=now)"))
+    _state(tmp_path, [A_OK, B_QUOTA]); _route(tmp_path, [f"alpha B {OPUS}"])
+    (tmp_path / "spool").write_text("".join(json.dumps({"id": f"x{i}", "job": "j", "to": "z", "text": "t", "ts": 1}) + "\n" for i in range(4)))
+    run(tmp_path, script, extra=["--max-lines", "5"])
+    (tmp_path / "spool").write_text("".join(l + "\n" for l in (tmp_path / "spool").read_text().splitlines() if '"to": "z"' not in l))
+    run(tmp_path, script, extra=["--max-lines", "5"])
+    ids = [x["id"] for x in spool(tmp_path) if x["to"] == "sanctuary-master"]
+    assert len(set(ids)) != 1, "mutant still reads one id: f8 is RED on it"
