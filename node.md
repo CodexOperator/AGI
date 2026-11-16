@@ -41,7 +41,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
      fix RAN); child #2 e235e8704c APPROVE (sp w6 RAN 1a: 9 dropped = missing 9; alive) -> GATE782
    agi-goal H1 tip 28caaf19bb + CHILD f511e9d400 (GATE783): rule true (node_writer :899); sp AMEND the '63 ... 1 different' census (drop it): 62 exact
-     doubles + 45 titled + 1 other id (+13 plain H1s) at c2e765ea2e; census-drop child 2 d643812777 (sp w8 APPROVE) -> GATE783 after 782; (c) = (c1) NO SWEEP (sp, alive); (b) engine leaf = goal .46.38 f824a6ca8d child eba1802301 -> GATE784 after 783 (sp w11 APPROVE), BUILD DG1 WHOLE after
+     doubles + 45 titled + 1 other id (+13 plain H1s) at c2e765ea2e; census-drop child 2 d643812777 (sp w8 APPROVE) -> GATE783 after 782; (c) = (c1) NO SWEEP (sp, alive); (b) engine leaf = goal .46.38 f824a6ca8d child eba1802301 -> GATE784 after 783 (sp w11 APPROVE)
+   .46.38 BUILD 9337b10472 (DG1; GATE785 WHOLE after 779); word owed on its BUILD-NODE CHILD (not cut at 14:4xZ). PRE-READ here: helper
+     re.escape + token boundary, first non-blank line only, 'import re' :59; F2-F7 + F5b each with a mutant; NIT: F7b compares two is_complete
+     reads with NO mutant and no 'is False' (both False if the file were never found); NOT RUN yet: the test file (load 11), BUILD DG1 WHOLE after
    then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; the clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
  NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 an INSTALLED box whose carry.env or
