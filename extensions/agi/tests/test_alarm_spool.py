@@ -485,6 +485,36 @@ def test_without_the_reset_the_bound_would_dead_letter_across_a_recovery(seat, m
     assert _consecutive(seat, mut, monkeypatch) != (0, 1)
 
 
+def _alternating(seat, mod, monkeypatch):
+    """F5 (g) second case: --max-holds 2 --max-tries 5: U, R(send fails), U, R(send fails), U: the unreadable drains are never 2 IN A ROW, so the line is never dead-lettered."""
+    real = _hold_setup(seat, mod, monkeypatch)
+    kw = dict(max_tries=5, max_holds=2)
+    for step in ("U", "R", "U", "R", "U"):
+        if step == "U":
+            _unreadable(mod, monkeypatch, real, "rc")
+            mod.drain("sanctuary-master", box_bin=seat.box, **kw)
+        else:
+            monkeypatch.setattr(mod.subprocess, "run", real)
+            monkeypatch.setenv("BOX_FAIL", "boom")
+            mod.drain("sanctuary-master", box_bin=seat.box, **kw)
+            monkeypatch.delenv("BOX_FAIL")
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    return (len(dead.read_text().splitlines()) if dead.exists() else 0, len(seat.spool.read_text().splitlines()) if seat.spool.exists() else 0)
+
+
+def test_alternating_unreadable_and_readable_drains_never_dead_letter_the_line(seat, monkeypatch):
+    assert _alternating(seat, a, monkeypatch) == (0, 1)
+
+
+def test_a_bound_counting_across_episodes_dead_letters_it(seat, monkeypatch):
+    src = SRC.read_text()
+    old = '            if sent is False and rec.get("holds"):\n                rec["holds"] = 0 '
+    assert src.count(old) == 1
+    mut = _fresh(src.replace(old, '            if False:\n                rec["holds"] = 0 '))
+    assert _alternating(seat, mut, monkeypatch) == (1, 0)
+
+
 def test_the_cli_takes_an_optional_max_holds(seat):
     src = SRC.read_text()
     assert '"--max-holds", type=int, default=None' in src and 'max_holds=a.max_holds' in src
