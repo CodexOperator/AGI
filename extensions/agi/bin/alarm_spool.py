@@ -157,7 +157,8 @@ def _notice(notice_bin: Path, line: str) -> None:
 
 
 def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path = Path("/opt/agi/bin/box"),
-          notice_bin: Path | None = None, tree: Path | None = None) -> int:
+          notice_bin: Path | None = None, tree: Path | None = None, max_holds: int | None = None) -> int:
+    max_holds = max_tries if max_holds is None else max_holds      # --max-holds is OPTIONAL: absent = the same bound as --max-tries
     me = _uid_name()
     if me != f"agi-{seat}":
         print(f"alarm_spool: uid {me} cannot drain {seat}'s spool (the drain must run as agi-{seat}: its key signs)",
@@ -189,12 +190,14 @@ def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path
                 print(f"alarm_spool: unreadable spool line dropped: {raw[:80]!r}", file=sys.stderr)
                 continue
             sent = already_sent(tree, seat, rec["to"], rec["id"])
+            if sent is False and rec.get("holds"):
+                rec["holds"] = 0                             # the read recovered: the bound counts CONSECUTIVE unreadable drains, and a LATER episode prints its line again (sp 11-16)
             if sent is True:
                 print(f"alarm_spool: skipped {rec['id']}: already on {seat}'s out-ref")   # never silent: a true duplicate is one line, an id collision is SEEN
                 continue                                     # sent before a crash, never twice
             if isinstance(sent, str):                        # could not LOOK: HOLD (exactly-once stays true; the cost is one drain's delay), BOUNDED by its OWN counter (never the send tries: a held line must not reach [alarm-dead])
                 rec["holds"] = int(rec.get("holds", 0)) + 1
-                if rec["holds"] >= max_tries:
+                if rec["holds"] >= max_holds:
                     with spool.with_name(spool.name + ".dead").open("a") as dead:
                         dead.write(json.dumps(rec, separators=(",", ":")) + "\n")
                     print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable for {rec['holds']} drains ({sent}): moved to .dead UNVERIFIED", file=sys.stderr)
@@ -244,6 +247,7 @@ def main(argv: list[str] | None = None) -> int:
     ap_d = sub.add_parser("drain", help="sign + box-send every spooled line, as the sending seat")
     ap_d.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     ap_d.add_argument("--max-tries", type=int, required=True, help="failed passes before a line is dead-lettered to alarm.spool.dead")
+    ap_d.add_argument("--max-holds", type=int, default=None, help="drains a line may be HELD behind an unreadable out-ref before it moves to alarm.spool.dead as [alarm-unverified] (default: --max-tries)")
     ap_d.add_argument("--spool", type=Path, default=None)
     ap_d.add_argument("--box-bin", type=Path, default=Path("/opt/agi/bin/box"))
     ap_d.add_argument("--notice-bin", type=Path, default=None)
@@ -255,7 +259,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"alarm_spool: NOT appended: {why}", file=sys.stderr)
             return 3
         return 0
-    return drain(a.seat, max_tries=a.max_tries, spool=a.spool, box_bin=a.box_bin, notice_bin=a.notice_bin, tree=a.tree)
+    return drain(a.seat, max_tries=a.max_tries, max_holds=a.max_holds, spool=a.spool, box_bin=a.box_bin, notice_bin=a.notice_bin, tree=a.tree)
 
 
 if __name__ == "__main__":
