@@ -33,7 +33,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (14:14Z 11-16)
 ```
 ITEM                        OWNER   STATE
-H1 CHILD 2 d643812777 (DGo1) SM   w1 APPROVE (== sp, aio); GATE783 on it, after GATE782. (c) = (c1) NO SWEEP. Counts settled (sp 14:16:26Z):
+H1 CHILD 2 d643812777 (DGo1) SM   3/3 (w1 + sp 14:18 + aio 14:20:39Z); GATE783 on it, after GATE782. (c) = (c1) NO SWEEP. Counts settled (sp 14:16:26Z):
                                     62 exact + 45 titled own-id + 1 other id; census OUT of the skill (child 2).
 H1 (b) ENGINE leaf (DGo1)   DGo1    to mint; builder DG1; WHOLE gate (bin/); carries aio's titled-own-id row at a token
                                     boundary (my w1: the test's counter is EXACT, so that row needs the prefix form or it cannot go RED).
