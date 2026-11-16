@@ -47,6 +47,8 @@ L579-L583 + 2 builds        SM/belam verify each at its land: PLAIN = SM's 'LAND
 alarm-id BUILD (DG1)        DG1/SM  42adb9d395 = 3/3 (+ every half mutant-RUN red: width, hold-not-a-try, truthy-skip, max-holds); WHOLE
                                     gate after L583.
 masked next touch (DG1)     -       DONE: L586 + L588 (all four > writes refused through a symlink).
+P9 RANK METERS mint (DG1)   DG1     SM relay 13:4xZ (box72): words when cut; check Q7 quoted from meme-master 18:57:53Z + owner id
+                                    c:696556deb72a (SM correction box73), sp's 'name the progress count'.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 STANDING (host, belam)      belam   next E re-pin passes AGI_BOX=encryption-town; local-town's agi-ram-main + agi.slice STAY.
 OPEN WITH THE OWNER         belam   hub.said (.46.36), PC netboot (P3 plan), plan-master tool policy, F4 of g7.31.1.6; P8 bank:
