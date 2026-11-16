@@ -50,6 +50,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    with alive's tie-in) · P7b (above).
  w11 03:33Z: DG1 MASKED v2 be965f3e35 APPROVE + NIT (in-root ABSOLUTE chain resolves on the HOST under readlink -f; rehearsal only) -> L582 after L581.
  w12 03:48Z: alarm_spool ENGINE leaf (SM 03:47:03Z, DG1 mints: id 64 bits + skip prints) APPROVE + clause: already_sent's could-not-read -> False -> silent RE-send; tell it apart.
+   PLACED 3/3 (SM 03:49:59Z): DGo1 MINTS (rows incl. my clause; F5 token_hex(2) = 0), DG1 BUILDS -> word the mint, then the build.
  NEXT TOUCHES named, not ours: DG1 masked() by readlink -f or size 0 (alive empty file, aio relative symlink); DG1 n7 under SYSTEMD_UNIT_PATH done at L576?
    (read it); research-then-design :104 one clause 'under L509, now OFF' (aio); alive's sweep widens agi-review :158 (carries my trap 22) + box n reword;
    TM's card :18 quotes a pre-L574 agi-project message; .46.37 builder DG2 engine / belam host.
