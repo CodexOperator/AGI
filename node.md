@@ -43,13 +43,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    withdrew too). v6 2398302c25f9 + 5a2ebfa6156d: sp w19 APPROVE (link, both FIFOs,
    row names, green control RAN); 3/3; INSTALLED 16:07Z == v6 bytes (aio). .46.37 CLOSE e1dec635cd (GATE787,
    L597): sp w20 APPROVE; CHILD 3 20a796a949 (GATE786, L596): sp w21 APPROVE (my stay-id touch MET), alive APPROVE.
- QUEUE (SM 15:2xZ 11-16, none red): L590-L592 DONE -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
+ QUEUE (SM 15:2xZ 11-16, none red): L590-L593 DONE -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
    (779 running) -> L594 .46.38 build (785); L-check each as it lands:
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
      fix RAN); child #2 e235e8704c APPROVE (sp w6 RAN 1a: 9 dropped = missing 9; alive) -> GATE782
    agi-goal H1 tip 28caaf19bb + CHILD f511e9d400 (GATE783): rule true (node_writer :899); sp AMEND the '63 ... 1 different' census (drop it): 62 exact
      doubles + 45 titled + 1 other id (+13 plain H1s) at c2e765ea2e; census-drop child 2 d643812777 (sp w8 APPROVE) -> GATE783 after 782; (c) = (c1) NO SWEEP (sp, alive); (b) engine leaf = goal .46.38 f824a6ca8d child eba1802301 -> GATE784 after 783 (sp w11 APPROVE)
-   .46.38 BUILD 9337b10472 (DG1; GATE785 WHOLE after 779); tip = F7b CHILD 238da03c63 (3/3; aio RAN 17 passed + 3 source mutants each caught); GATE785 waits on 779 AND L593.
+   .46.38 BUILD 9337b10472 (DG1; GATE785 WHOLE after 779); tip = F7b CHILD 238da03c63 (3/3; aio RAN 17 passed + 3 source mutants each caught); GATE785 waits on 779 (L593 landed ab73f54473 = F8's <base>: run F8 on ab73f54473..<L594> at its L-check).
      After L-check: agi-goal :33 'mints it TWICE' goes stale once .46.38 lands (aio; next skills touch). PRE-READ here: helper
      re.escape + token boundary, first non-blank line only, 'import re' :59; F2-F7 + F5b each with a mutant; NIT: F7b compares two is_complete
      reads with NO mutant and no 'is False' (both False if the file were never found); NOT RUN yet: the test file (load 11), BUILD DG1 WHOLE after
@@ -63,6 +63,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L593 ab73f54473 DGo1 MINT goal .46.38 H1 writer leaf (tip eba1802301, plain; A 1 goal; bt 0/2; OWNER 0; ONE H1; 16:5xZ)
 - L592 93de4f570b DGo1 agi-goal H1 pair (tip d643812777, plain; A test + M skill; bt 0/4; OWNER 0; no census left; 16:4xZ)
 - L591 c290160f97 DG1 MINT goal g7.16.1.13 P9 RANK METERS (tip e235e8704c, plain; A 1 goal; bt 0/3; OWNER 1 = the NEW node's verbatim block heading; ONE H1; 1a cell form; 16:1xZ)
 - L590 f76ea09e4f DG2 .46.37 CHILD 2 clear counter (tip ff042d31ef, plain; 3 M; bt 0/3; OWNER 0; the move id gets the counter, 'stay' still a next touch; 15:4xZ)
@@ -83,7 +84,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L592 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L593 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
