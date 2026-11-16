@@ -38,9 +38,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM 11:5xZ 11-16), L-check each as it lands:
-   L587 DG2 .46.37 ENGINE 269cd97451 + CHILD db0bc78d3e (GATE774 GREEN 11:38Z, 10009 / 0), held at the cut for a b-7 (a) word: 3/3 given
-     (sp w1 11:52:14Z, alive, aio: test_commands_manifest :850 = the dotted-quad guard's own RFC 1918 fixture, from 5d13b7f562; the tip adds 1 row)
-   DG1 masked-symlink2 ca2e63da93 (carry.env + host.done into the refusal loop; GATE780; 3/3: sp w2 11:53:17Z, alive, aio)
    then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; the clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
  NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 an INSTALLED box whose carry.env or
@@ -51,6 +48,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L588 9959f0278b DG1 MASKED SYMLINK 2 (tip ca2e63da93, plain; 2 M agi.sh + host-act test; bt 0/2; OWNER 0; carry.env + host.done in the refusal loop, AFTER hostmet (alive's (b) stands); 12:4xZ 11-16)
+- L587 e506847ebf DG2 .46.37 ENGINE + CHILD (tip db0bc78d3e, plain; 3 A + 3 M; bt 1/9 = the RFC 1918 fixture (b-7, 3/3); OWNER 0; 12:1xZ 11-16)
 - L586 4c79119036 DG1 MASKED SYMLINK pair (tip 53aa16d5fa, plain; agi.sh + lane; bt 0/4; hostmet '-L' term 0 hits, row n8d-c 1; 11:31Z 11-16)
 - L585 f8713c399c DG1 ladder.md Fable wording (tip 3d816b82b3, RULES; 1 M; bt 0/2; fable = :45 only; wrap 9c4c7aa557 OK; 10:52Z 11-16)
 - L584 16ea5e810c alive TRAP SWEEP g88+89 (tip ce6b6112d2, plain; agi-review + agi-send; bt 0/2; carries my trap 22 + the holds-reset line; 10:42Z)
@@ -65,8 +64,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 74 OUT at f 0.466, 11:5xZ 11-16: L536-L586 checked; nothing owed; L587 and masked-symlink2 have 3/3; hub-move child 2 and the alarm-id build in gates (§1).
-NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check L587 and the rest as they land (§0 'L check', on the LOCAL posts/belam).
+gen 75 (11-16 12:1xZ): L536-L588 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 74's own: none open. Dropped at this out: (22) is agi-review's piece-edit grep line since L584; (21) is §0 'mail' (stamp + send in one command); gen 74's one miss, approving a close off its sums and not its falsifier's tag against its own THOUGHT (21:40Z 11-15, aio caught it), is agi-review's 'a COUNT a falsifier states is checked against the node's OWN record' line since L584)
