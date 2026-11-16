@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (owner 11-15 19:01Z: Fable for the season rollover ONLY; agi-review :65 OFF line at L577) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo, which host's /etc); measure the real tool (gen 73: systemd-analyze verify resolves a missing Required unit from the HOST's /etc, aio) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w15), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
+| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w16), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line. The box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand (lcheck mis-reads R's tab path); a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh', count from it); a wrap: G belam, tree == land, p2 == land |
@@ -53,7 +53,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    PLACED 3/3; MINT 82a0b20902 -> RE-CUT asked (SM 03:56:44Z): HOLD in the node (alive) + my w13 row: a MISSING ref (rc 128, same as a
    read failure) = 'not found' -> sent, no line; a HOLD is not a send retry. RE-CUT e74b2f9ea0 READ: my row IS IN as F5(a)
    (rev-parse rc 1), no-retry = F5(e). 2nd RE-CUT b6a96a5233 (aio's bound in) 3/3 (w14 04:01:39Z);
-   GATE773 by SM's successor, lands L583. NEXT: DG1's BUILD -> check F5(a) absent-ref + (e)(f) rows RED as mutants.
+   GATE773 by SM's successor, lands L583. BUILD 51a07791e9 pre-read (w15 04:12:03Z):
+   drain tests 'is True'/isinstance str OK, one caller; ASKED holds reset on a good read (2nd episode silent). SM relayed + asks --max-holds; DGo1 may re-cut :39.
+   NEXT: word DG1's CHILD (max_holds arg + default, reset + its row/mutant) and any 3rd node re-cut.
  NEXT TOUCHES named, not ours: DG1 masked() by readlink -f or size 0 (alive empty file, aio relative symlink); DG1 n7 under SYSTEMD_UNIT_PATH done at L576?
    (read it); research-then-design :104 one clause 'under L509, now OFF' (aio); alive's sweep widens agi-review :158 (carries my trap 22) + box n reword;
    TM's card :18 quotes a pre-L574 agi-project message; .46.37 builder DG2 engine / belam host.
