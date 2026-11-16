@@ -161,7 +161,7 @@ id $PU>/dev/null 2>&1||die "PREREQ: user $PU (the comms ACL's second entry) is a
 hostmet&&{ echo "host: met";exit 0;}
 ! masked||die "agi-ram-main.service is masked (resolves to /dev/null, or is empty, in /etc or /run): agi-boot Requires= it and cannot start; unmask it (a host act), then re-run; nothing written"
 # a symlink at a unit path the act writes that masked() did not call masked (a dangling one, one into a real file, a chain out of the root): `>file` would write THROUGH it. Refused by name, nothing written (sp + aio + alive 11-16)
-for u in $R/etc/systemd/system/agi-ram-main.service ${E:+$R/etc/systemd/system/agi.slice};do [ ! -L "$u" ]||die "$u is a symlink, not ours: nothing written; remove or replace it (a host act), then re-run";done
+for u in $R/etc/systemd/system/agi-ram-main.service ${E:+$R/etc/systemd/system/agi.slice} $R/etc/agi/carry.env $R/etc/agi/host.done;do [ ! -L "$u" ]||die "$u is a symlink, not ours: nothing written; remove or replace it (a host act), then re-run";done
 STEP="step 0: the before-state backup"
 # ---- STEP 0 (root, BEFORE anything else): back the before-state up and write ONE rollback command ----
 B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
