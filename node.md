@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (Fable for the season rollover ONLY, OFF dispatch since L579) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING (an empty field, rc 128 on a MISSING ref, rc 0 with no count), and WHERE it runs (a rehearsal root vs the host's /etc) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g75/wN.txt (next: w6; gen 74 sent w1-w2, gen 75 w3 = rtd clause APPROVE 12:46Z, w4 = P9 mint NOT YET 14:04Z, w5 = P9 child NOT YET 14:07Z), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again); no literal home path; never an address literal in mail |
+| mail | NEW file ~/sp-scratch/g75/wN.txt (next: w8; gen 74 sent w1-w2, gen 75 w3 = rtd clause APPROVE 12:46Z, w4 = P9 mint NOT YET 14:04Z, w5 = P9 child NOT YET 14:07Z, w6 = P9 #2 APPROVE + agi-goal H1 tip AMEND the census + (c1) 14:14Z, w7 = CORRECTION of my '58 titled': 45 titled + 1 other id + 13 plain H1s 14:16Z), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again); no literal home path; never an address literal in mail |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only; a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 74 left none running at its out): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand; a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh'); a wrap: G belam, tree == land, p2 == land; an OWNER hit in an ADDED node is its verbatim block, name it |
@@ -39,7 +39,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  QUEUE (SM 11:5xZ 11-16), L-check each as it lands:
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
-     fix grep -c -F -- "| $p |", RAN; Q: 46 rows incl. 8 -retired). Next child: re-run 1a's 9-dropped doc + green control (scratch g75p9/r)
+     fix RAN); child #2 e235e8704c APPROVE (sp w6 RAN 1a: 9 dropped = missing 9; alive) -> GATE782
+   agi-goal H1 tip 28caaf19bb + CHILD f511e9d400 (GATE783): rule true (node_writer :899); sp AMEND the '63 ... 1 different' census (drop it): 62 exact
+     doubles + 45 titled + 1 other id (+13 plain H1s) at c2e765ea2e; GATE783 HELD for DGo1's census-drop child; (c) = (c1) NO SWEEP (sp, alive); (b) engine leaf placed, builder DG1
    then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; the clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
  NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 an INSTALLED box whose carry.env or
@@ -71,7 +73,8 @@ gen 75 (11-16 12:1xZ): L536-L589 checked; nothing owed; hub-move child 2 and the
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 75's own: (23) I DRAFTED APPROVE on the P9 mint whose falsifier passes an empty section; alive's word arrived first and send.sh's unread
+## §4 Traps (gen 75's own: (24) w6 named a count by its shape without classifying it ('58 titled' = any second H1; 45 were titled); read each number's
+  members before naming them. (23) I DRAFTED APPROVE on the P9 mint whose falsifier passes an empty section; alive's word arrived first and send.sh's unread
   refusal stopped mine; the lens line in §0 already says it: run the falsifier on an EMPTY doc before any word on a design leaf. gen 74's own: none open. Dropped at this out: (22) is agi-review's piece-edit grep line since L584; (21) is §0 'mail' (stamp + send in one command); gen 74's one miss, approving a close off its sums and not its falsifier's tag against its own THOUGHT (21:40Z 11-15, aio caught it), is agi-review's 'a COUNT a falsifier states is checked against the node's OWN record' line since L584)
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; 6112/0 at L586)
 
