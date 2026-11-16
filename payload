@@ -144,7 +144,8 @@ projpiece(){ S agi-project|(cd $R$M&&AGI_BOX=$BOX GIT_CONFIG_COUNT=1 GIT_CONFIG_
 projmet(){ [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ]&&return 0
  e=$(mktemp -d)||return 1;U=$R/run/systemd/system
  projpiece $e >/dev/null 2>&1&&cmp -s $e/agi-users.conf $U/agi-users.conf&&[ "$(ls $e/multi-user.target.wants|grep '^agi-post@')" = "$(ls $U/multi-user.target.wants 2>/dev/null|grep '^agi-post@')" ];pr=$?;rm -rf $e;return $pr;}
-masked(){ for u in $R/etc/systemd/system/agi-ram-main.service $R/run/systemd/system/agi-ram-main.service;do [ -e "$u" ]||[ -L "$u" ]||continue;t=$(readlink -f "$u");[ "$t" = /dev/null ]||[ "$t" = $R/dev/null ]&&return 0;[ -f "$u" ]&&[ ! -s "$u" ]&&return 0;done;return 1;}   # a unit systemd reads as MASKED (council 11-15, aio + alive + sp RAN on systemd 255): a symlink that RESOLVES to /dev/null (relative or a chain too), or an EMPTY regular file, in /etc or the runtime /run; agi-boot.service Requires= it and cannot start, and `ramunit>file` would write INTO /dev/null; unmasking is a host act (belam), never this one
+hop(){ p=$1;n=0;while [ -L "$p" ]&&[ $n -lt 20 ];do l=$(readlink "$p");case $l in /*)p=$R$l;;*)p=$(dirname "$p")/$l;;esac;n=$((n+1));done;readlink -f "$p" 2>/dev/null||echo "$p";}   # follow a symlink chain INSIDE the root: each absolute hop is re-prefixed with $R (a rehearsal's /dev/null is $R/dev/null, never the real one), a relative hop counts from the link's dir
+masked(){ for u in $R/etc/systemd/system/agi-ram-main.service $R/run/systemd/system/agi-ram-main.service;do [ -e "$u" ]||[ -L "$u" ]||continue;t=$(hop "$u");[ "$t" = /dev/null ]||[ "$t" = $R/dev/null ]&&return 0;[ -f "$u" ]&&[ ! -s "$u" ]&&return 0;done;return 1;}   # a unit systemd reads as MASKED (council 11-15, aio + alive + sp RAN on systemd 255): a symlink that RESOLVES to /dev/null (relative or a chain too), or an EMPTY regular file, in /etc or the runtime /run; agi-boot.service Requires= it and cannot start, and `ramunit>file` would write INTO /dev/null; unmasking is a host act (belam), never this one
 hostmet(){ ! masked&&each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&{ [ -n "$E" ]||[ -e $R/etc/systemd/system/agi-ram-main.service ];}&&{ [ -z "$E" ]||{ ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ];};}&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
 tm(){ [ "$CF" = true ]||return 0;stp&&return 0;if [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
 # ---- preflight (nothing written yet) ----
@@ -159,6 +160,8 @@ id $PU>/dev/null 2>&1||die "PREREQ: user $PU (the comms ACL's second entry) is a
 [ -n "$SKIP_PREREQ" ]||! G show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b $BOX 'select(.box==$b and .engine.v==4)|.+.engine|select((.harness//"")|test("^pi"))'>/dev/null||{ [ -x $R/opt/agi/bin/pi ]||[ -x $R/usr/local/bin/pi ]||die "PREREQ: no pi at /opt/agi/bin/pi (agi-project exits 3 without it while a pi row has box $BOX): install it first, SKIP_PREREQ=1 to override";}
 hostmet&&{ echo "host: met";exit 0;}
 ! masked||die "agi-ram-main.service is masked (resolves to /dev/null, or is empty, in /etc or /run): agi-boot Requires= it and cannot start; unmask it (a host act), then re-run; nothing written"
+# a symlink at a unit path the act writes that masked() did not call masked (a dangling one, one into a real file, a chain out of the root): `>file` would write THROUGH it. Refused by name, nothing written (sp + aio + alive 11-16)
+for u in $R/etc/systemd/system/agi-ram-main.service ${E:+$R/etc/systemd/system/agi.slice};do [ ! -L "$u" ]||die "$u is a symlink, not ours: nothing written; remove or replace it (a host act), then re-run";done
 STEP="step 0: the before-state backup"
 # ---- STEP 0 (root, BEFORE anything else): back the before-state up and write ONE rollback command ----
 B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
@@ -187,7 +190,7 @@ carry_env>$R/etc/agi/carry.env||exit 1;chmod 644 $R/etc/agi/carry.env
 STEP="the units";[ -z "$E" ]||{ install -d -m 755 $OWN $R/mnt/agi-ram $R/mnt/agi-ram/state||exit 1
 ramunit>$R/etc/systemd/system/agi-ram-main.service||exit 1;chmod 644 $R/etc/systemd/system/agi-ram-main.service
 sliceunit>$R/etc/systemd/system/agi.slice||exit 1;chmod 644 $R/etc/systemd/system/agi.slice;}
-[ -n "$E" ]||[ -e $R/etc/systemd/system/agi-ram-main.service ]||{ standin>$R/etc/systemd/system/agi-ram-main.service||exit 1;chmod 644 $R/etc/systemd/system/agi-ram-main.service;echo "  stand-in agi-ram-main.service (this box had none)";}   # agi-boot.service Requires= it: a fresh non-E box would pass 'host: met' and fail at boot (sp 11-15); an existing one (local-town's) is never touched
+[ -n "$E" ]||[ -e $R/etc/systemd/system/agi-ram-main.service ]||[ -L $R/etc/systemd/system/agi-ram-main.service ]||{ standin>$R/etc/systemd/system/agi-ram-main.service||exit 1;chmod 644 $R/etc/systemd/system/agi-ram-main.service;echo "  stand-in agi-ram-main.service (this box had none)";}   # agi-boot.service Requires= it: a fresh non-E box would pass 'host: met' and fail at boot (sp 11-15); an existing one (local-town's) is never touched
 install -d -m 755 $OWN $R/var/lib/agi||exit 1
 STEP="the ACLs"
 # MAIN ACL: the post users (group agi) create refs, objects, logs and worktrees in MAIN's .git; L carries this, nothing in the repo made it
