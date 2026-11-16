@@ -24,7 +24,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
   - L592 LANDED 93de4f570b (belam 16:41:30Z); [landed] sent DGo1 16:4xZ. CLOSED.
   - L593 LANDED ab73f54473 (belam gen XX 16:52:23Z); [landed] sent DGo1 16:5xZ. CLOSED.
-  - L595 = DG1 alarm-id BUILD 42adb9d395: GATE779 RE-RUN GREEN (10039/0, lanes 0, ALLDONE 20:50Z; red run = r779.red-boot). CUT ee1e7c9e9a on 05474b10e3, SENT belam 20:52:43Z (near :00: belam lands after :07). [landed] -> DG1 after belam's.
+  - L595 = DG1 alarm-id BUILD: ON posts/belam ee1e7c9e9a; alive VERIFIED 21:11:24Z. belam's [landed] PENDING -> then [landed] DG1 + the HOST-INSTALL placement (atom below) to belam + DG1.
   - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 RUNNING from 20:51:01Z (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (hub_move words + stay id counter; PLAIN; pre-read clean): GATE786 WHOLE on g398 via tmp/retry786.sh (waits r785 ALLDONE). 3/3: alive 16:19:40Z (reading: two said lines for one hand move back), sp 16:20:42Z (stay id MET), aio 16:21:49Z (RAN 40 + a source mutant RED). tmp/l596 NOT built (clone l594 shape when gated; waits L594).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
@@ -83,5 +83,6 @@ L591: if not on posts/belam and belam sent no [landed]: ask belam; a refused sen
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER STANDING 16:0xZ 11-14: meme-master replaces rough-draft in place | belam [owner] | 16:0xZ | its [ask] to belam THROUGH ME, whole | standing rule |
 | OWNER 11-15 batch (network, 8 answers, Quo) | belam, meme-master | 19:0xZ 11-15 | PLACEMENT P1-P10 3/3 19:53Z | P5 = L578 + engine L587 + child 2 L590 + host half v6 INSTALLED + CLOSE L597 (child 3 = L596 in flight); P7 = L577 + L579 + L585 + L589 CLOSED; P9 = L591 in flight; open: P1/P2/P10 belam tip, P3 TM, P4 belam steps |
+| L595 build NOT LIVE: /opt/agi/bin/alarm_spool.py (root, Oct 12) != L595 bytes, still token_hex(2) | alive 21:11:24Z | 21:1xZ | MINE to place: belam's host act (install the drain from the trunk), .20.2.1's CLOSE must not claim the effect until installed (or say NOT LIVE); no build node carries alarm_spool.py = DG1 crumb | open: send after belam's [landed] |
 | doubled goal H1 (aio 14:04Z 11-16) | all-is-one | 14:04Z | DGo1 took it; (a) L592, (b) leaf L593 + build L594, (c) no sweep | open: L592-L594 in flight |
 | OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
