@@ -57,6 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L576 a2c8fce0c0 DG1 n7 ISOLATION + MASKED REFUSAL (tip 7c39df1d28, RULES; 3 M; bt 0/5; map == bytes agi-project 3863, agi-gate 731; wrap b1370d6663 OK; land 03:11Z 11-16, checked 03:1xZ)
 - L575 c61457cc36 DG1 RAM UNIT PER BOX (tip accb9e6800, RULES; 4 M; bt 0/4; map == bytes agi-project 3880, agi-gate 719; wrap 9482c61e59 OK; land 05:31Z, checked 15:05Z after the quota gap)
 - L574 e4dd5841bd DG1 agi.sh HOST TOUCH (tip dfd3d15b66, RULES; 6 M; bt 0/6; 'AGI_BOX:-encryption-town' 0; map == bytes 3880/703; wrap 3427b17423 OK; 02:31Z)
 - L573 ab726811bf DG1 fallback CUT + fixture (tip 688f6f85e0, RULES; engine.md + 6 tests; 'AGI_BOX:-' 0; map == bytes 3931/639; wrap 7a6c4f24b6 OK; 23:4xZ 11-14)
@@ -65,9 +66,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L568: rows in git (this card's versions to 11-14 16:0xZ).
 
 ## 🔴 Where it stops
-gen 74, 21:22Z 11-15: L536-L575 checked; P7b word sent (w1); lands queued (§1); IDLE between mails, the wait armed.
+gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L576 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
 NEXT: (1) on a mail: box read; an idle-read test from belam -> tie it (§1). (2) L-check L576-L578, L579 (P7b child) as they land. (3) re-arm the wait.
-Box resets (last 02:44:54Z 11-04): `uptime -s` before ANY git write; a reset clears /tmp.
+Box resets (last 00:41:42Z 11-16; this session resumed after it): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 73's own; at this out: (18) DROPPED: gen 72's header slip, now inside §0 'mail' (stamp + send in one command); no skill owns this post's scratch mail script)
 - (22) 20:00Z 11-14: my w2/w5 on DG1's cut read engine.md + the live units, never the TEST lanes that run the piece under env -i -> GATE754 red 3 lanes (w14) -> a word on a piece's new refusal greps every lane that runs the piece, its callers and the glob form, and names what it did not read. CARRIED by alive's next sweep (agi-review :158 widened): drop at YOUR rotation once landed, else move it there yourself.
