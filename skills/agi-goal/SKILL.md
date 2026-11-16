@@ -30,6 +30,7 @@ sed -n '1,60p' ../../../.agi/nodes/goal/<gX.Y.Z>.md               # read it back
 - `write_node` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `extra_fm`.
   A goal minted without them (the slug alone) has no `goal_id` — fixing that later is a renumber.
 - slug = lowercased `goal_id` (`G4.18.2` → `goal:g4.18.2`); `S4` → `goal:s4`.
+- `write_node` WRITES the `# goal:<id>` heading itself (`# {node_id}` before the body). Your `<body.md>` STARTS AT `## Why this exists`: a body that begins with the heading mints it TWICE (DGo1 on three mints 11-15/16; 63 of 811 goal nodes carry the doubled line, 62 identical and 1 with two different ones, read at e506847ebf). Count `grep -c '^# goal:<id>'` = 1 after the mint.
 - The mint writes the file and nothing else: run `links.py schema` + `links.py links`, then commit it (a post: the turn end commits it (agi-turn, goal:g7.16.1.11.46.30: you type no commit); MAIN (maintainer): by exact path, never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
 
 ## 2 · The schema (as at 2026-09-27)
@@ -52,7 +53,7 @@ round_commit: false  — a round's `cli.py done` never sweeps a goal node
 
 ## 3 · The body — fixed order (owner 09-23, goal:g5; a merge-up reviewer checks it)
 ```
-# goal:gX.Y
+(the `# goal:gX.Y` heading is written by write_node (§1): the body file starts at the next line)
 ## Why this exists      one paragraph PER PARENT EDGE: the parent + what it measured that made it a parent
 ## Target end-state     world-after claims, not tasks
 ## Invariants           always-true, or the graph is wrong
