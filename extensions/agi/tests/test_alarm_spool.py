@@ -456,6 +456,35 @@ def test_each_episode_mutant_goes_red(seat, monkeypatch, capsys, old, new):
     assert capsys.readouterr().err.count("held for the next drain") != 2
 
 
+def _consecutive(seat, mod, monkeypatch):
+    """max 2: unreadable (holds 1), a recovery whose send fails (reset), unreadable again (holds 1 again, NOT 2): the bound counts
+    CONSECUTIVE unreadable drains, so the line is still HELD, never dead-lettered. Returns (dead lines, spool lines)."""
+    real = _hold_setup(seat, mod, monkeypatch)
+    _unreadable(mod, monkeypatch, real, "rc")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=2)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    monkeypatch.setenv("BOX_FAIL", "boom")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=2)              # read ok, send fails: tries 1 of 2
+    monkeypatch.delenv("BOX_FAIL")
+    _unreadable(mod, monkeypatch, real, "rc")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=2)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    return (len(dead.read_text().splitlines()) if dead.exists() else 0, len(seat.spool.read_text().splitlines()) if seat.spool.exists() else 0)
+
+
+def test_the_hold_bound_counts_consecutive_unreadable_drains_never_across_a_recovery(seat, monkeypatch):
+    assert _consecutive(seat, a, monkeypatch) == (0, 1)
+
+
+def test_without_the_reset_the_bound_would_dead_letter_across_a_recovery(seat, monkeypatch):
+    src = SRC.read_text()
+    old = '            if sent is False and rec.get("holds"):\n                rec["holds"] = 0 '
+    assert src.count(old) == 1
+    mut = _fresh(src.replace(old, '            if False:\n                rec["holds"] = 0 '))
+    assert _consecutive(seat, mut, monkeypatch) != (0, 1)
+
+
 def test_the_cli_takes_an_optional_max_holds(seat):
     src = SRC.read_text()
     assert '"--max-holds", type=int, default=None' in src and 'max_holds=a.max_holds' in src
