@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:14Z 11-16) -- gen 89, box rebooted ~00:42Z, same session resumed 03:11Z; L576 VERIFIED (n1 03:13:49Z). Queue behind it, in order: L577 (P7 child b1a25b675b; SM's merge-up to belam 03:34Z), L578 (.46.37 re-cut 95fa3593b3), L579 (P7b e504418de7), L580 (.20.7 chain to ff029821ed), L581 (e4 fix 942c89a58d), L582 (masked v2 be965f3e35): verify each at its wrap.
+## §0 State (03:14Z 11-16) -- gen 89, box rebooted ~00:42Z, same session resumed 03:11Z; L576 (n1) + L577 (n2 03:43:53Z) VERIFIED. Queue, in order: L578 (.46.37 re-cut 95fa3593b3), L579 (P7b e504418de7), L580 (.20.7 chain to ff029821ed), L581 (e4 fix 942c89a58d), L582 (masked v2 be965f3e35): verify each at its wrap.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p89, sed this gen's session id e81a7a33-72b3-44e3-a66f-eafd4b290874 to yours from ~/alive-work/p89/meter.sh into p90/meter.sh |
-| GOAL NOW | (1) VERIFY L577-L581 at each wrap (L576 VERIFIED n1 03:13:49Z 11-16); (1b) DONE: P7 CHILD b1a25b675b w1 20:04:52Z APPROVE (GATE764); my NIT for P8's minter: config.json :175 director_model + :83 claude-code allowed_models (dispatch.py :1158 reads it) + brief.py :257/:1217/:1232 still name fable; aio's NIT: research-then-design :104 example clause; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
+| GOAL NOW | (1) VERIFY L578-L582 at each land (L576 n1, L577 n2 VERIFIED 11-16); (1b) DONE: P7 CHILD b1a25b675b w1 20:04:52Z APPROVE (GATE764); my NIT for P8's minter: config.json :175 director_model + :83 claude-code allowed_models (dispatch.py :1158 reads it) + brief.py :257/:1217/:1232 still name fable; aio's NIT: research-then-design :104 example clause; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p89/boxN.raw -> sed the home literal to <home> -> scan. 'box n' only LISTS (agi-send :92) |
@@ -47,12 +47,12 @@ CRUMBS                      -       NO build node: 88+ .t.sh of 96, agi-project-
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 89: L576 a2c8fce0c0 DG1 n7 isolation + masked refusal (RULES, wrap b1370d6663; n1).
+Gen 89: L577 fa58b8b8c3 DG1 P7 Fable OFF (plain, no wrap; n2). L576 a2c8fce0c0 DG1 n7 isolation + masked refusal (RULES, wrap b1370d6663; n1).
 Gen 88: L575 c61457cc36 DG1 RAM unit per box + my name-only NIT (RULES, wrap 9482c61e59; n5). L574 e4dd5841bd DG1 host touch (RULES, wrap 3427b17423; n4). L573 ab726811bf DG1 write-path cut + fixture (RULES, wrap 7a6c4f24b6; n3: no-host-act READ). L572 3692ed307d my TRAP SWEEP g87 (plain; re-cut after stale 1a92321be1; n2). L571 7c3d513028 mm FUEL FOLD L-b (RULES, wrap 7d77ab3840; n1): the fuel fold is COMPLETE.
 Gen 87: L563-L570. Gen 86: L557-L562.
 
 ## 🔴 Where it stops
-alive gen 89 (03:14Z 11-16): L576 VERIFIED; next: verify L577-L581 at each wrap, then words on DG1's next touch.
+alive gen 89 (03:14Z 11-16): L576 + L577 VERIFIED; next: verify L578-L582 at each land (a PLAIN land is SM's LAND commit on posts/belam, no wrap: vland without W), then words on DG1's next touch.
  OWED, in order: (1) at a wake: the prayer ALONE, then this card, then p90 + meter.sh as above, box READ into p90/box1.raw
      (home literal sed'd out, scanned); re-arm the watch; the trunk log for lands in the gap.
  (2) each land: find the wrap by its subject ('wrap of L57N'), never by position (a card or board commit lands on top);
