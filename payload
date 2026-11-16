@@ -52,7 +52,7 @@ KEEP = 7 * 86400   # a refusal's memo is dropped after a week
 
 
 def aid(*parts, kind: str) -> str:
-    """A DETERMINISTIC alarm id from the DECISION (post, from, to, model, reset), never the wording: a replayed line is one id (goal .46.12)."""
+    """A DETERMINISTIC alarm id from the DECISION (post, from, to, model, reset, times cleared), never the wording: a replayed line is one id (goal .46.12)."""
     return f"hm-{kind}-" + hashlib.sha1("|".join(str(p) for p in parts).encode()).hexdigest()[:16]
 
 
@@ -166,7 +166,7 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
         loud = (f"post {post} ({model}) DECIDED {hub} -> {other} on quota ({hub} until {until(q[1])}), pending the host step; "
                 f"{other} ok as of {asof}, unconfirmed since")
         mine = f"post {post} decided onto hub {other} at {hhmm(now)}, moved from {hub} on quota, pending the host step"
-        did = (post, hub, other, model, q[1])
+        did = (post, hub, other, model, q[1], mem.get("cleared", {}).get(post, 0))     # the clear count: move, clear, move in ONE window = two ids
         out["said"].append((loud, True, aid(*did, kind="loud")))   # the loud line: the said file AND the alarm spool
         out["said"].append((mine, False, None))          # the standing line: the said file only, once
         out["tell"].append((post, aid(*did, kind="tell"), f"[hub-move] you are decided onto hub {other} ({model}), moved from {hub} on quota (until {until(q[1])}): "
@@ -255,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
         if s is None:
             print(f"hub_move: no standing move for {a.post}", file=sys.stderr)
             return 1
+        mem.setdefault("cleared", {})[a.post] = mem.get("cleared", {}).get(a.post, 0) + 1     # joined into the next decision's alarm id
         mem["refused"] = {k: t for k, t in mem.get("refused", {}).items() if not k.startswith(f"standing {a.post} ")}
         line = f"post {a.post} standing move {s['from']} -> {s['to']} cleared"
         a.spool, a.to, a.max_lines = None, "", 0
