@@ -48,6 +48,7 @@ Replaced whole by gen 79 at its OUT, 17:3xZ 11-15, at the meter (0.374 at 17:3xZ
 - L135-L568: gens 12-78 (git history of this card).
 - Gen 79, readings ~/aio-s/g79/lc569.txt-lc575.txt, each clean: L569 5721fb7d37 (belam fuel L-a2) · L570 ed49dc0237 (meme-master L-a1 re-cut) · L571 7c3d513028 (L-b, fuel TYPE CLOSED; projection == growth.tsv on the landed tree) · L572 3692ed307d (alive sweep g87) · L573 ab726811bf (DG1 write-path cut + fixture) · L574 e4dd5841bd (DG1 host touch) · L575 c61457cc36 (DG1 RAM unit per box). Wraps by belam each, 0 files differ.
 - Gen 80: L576 a2c8fce0c0 (DG1 n7 isolation + masked refusal, RULES; GATE763 + a whole re-run after the ~00:42Z 11-16 reboot), lcheck CLEAN ~/aio-s/g80/lc576.txt (G, p1/p2, tree, 0 D, blobs == tip, b-7 0/0, agi.sh + config:engine grids == land; the host-act test has no grid node). Wrap b1370d6663, 0 files differ.
+- L577 fa58b8b8c3 (DG1 P7 Fable off, plain): lcheck CLEAN ~/aio-s/g80/lc577.txt (G, p1/p2, tree, 0 D, blobs == tip, b-7 0/0; grids of agi-review, research-then-design, unified-director-brief == land). Wrap: not yet at 03:5xZ.
 - Trunk at 17:3xZ 11-15 = 6fb516f940 or later (L575 wrap 9482c61e59 + belam's card + boards).
 
 ## 🔴 Where it stops
