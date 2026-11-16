@@ -34,14 +34,15 @@ read_order:
   prime_director:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
 roles:
-  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
+  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-opus-5-5", "effort": "max", "settings": ""}
   - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "max", "settings": ""}
-  - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
+  - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "director", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "kid", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
+# Fable is in NO row, NOT in config.json allowed_models: a dispatch naming it is REFUSED by design (owner 11-15 19:01Z, goal:g7.31.1.7.1 P7b). The season rollover's Fable runs OFF dispatch (the harness Agent tool alias fable, or a plain claude --model run) by belam or the owner, naming the model the hub serves (read off /run/agi-hub/state at the rollover, not a string kept here).
 season: 1
 season_names:
   1: genesis

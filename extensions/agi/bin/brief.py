@@ -245,7 +245,7 @@ _ADVISOR_AUDIENCE_RULE = (
     "Address the prime under the mantle as Belam."
 )
 
-#: The spawn primitive for the Fable-max director of a perpetual goal — the
+#: The spawn primitive for the director of a perpetual goal — the
 #: advisor's child tier (`l3w3-advisor`, l3-command-ladder-brief §1.9/2.1).
 #: Kept as documentation; `_advisor` spells it as real, runnable commands with
 #: the dispatch path, project root, iteration id and pinned goal substituted in
@@ -254,7 +254,7 @@ _ADVISOR_DIRECTOR_SPAWN = (
     "     python3 dispatch.py <project> <iter> --tier director --role director "
     "--ladder-tier 1 --target goal:<id> --detach\n"
     "     python3 rotate.py loop --role director\n"
-    "   The Fable-max director runs claude-fable-5-1 at max effort. Review "
+    "   The director runs claude-sonnet-5-5 at max effort. Review "
     "each director's rounds through your vision's lens; judge with season.py "
     "judge, never by editing its nodes."
 )
@@ -1120,7 +1120,7 @@ def _resolve_perpetual_goals(project_root: Path | None = None) -> list[tuple[str
     goal node, as (id, title) sorted by id.
 
     `hypothesis:l3w3-advisor-brief` addendum after L3.12 — an advisor spawns
-    the Fable-max director of a PERPETUAL goal, so the brief must name which
+    the director of a PERPETUAL goal, so the brief must name which
     goals are in that class. Read from the goal nodes' frontmatter, never
     retyped.
     """
@@ -1214,7 +1214,7 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         assignment = (
             f"3. Perpetual-goal assignment — you are PINNED to {goal}"
             f"{' — ' + goal_title if goal_title else ''}."
-            f"   Spawn and rotate its Fable-max director with:\n"
+            f"   Spawn and rotate its director with:\n"
             f"     python3 {dispatch_cmd} {root_arg} {iter_n} --tier director "
             f"--role director --ladder-tier 1 --target {goal} --detach\n"
             f"     python3 {rotate_cmd} loop --role director\n"
@@ -1229,7 +1229,7 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
             f"arrives in the standing room {_ADVISOR_QUORUM_ROOM}. READ THE ROOM "
             f"FIRST — `{send_cmd} read --room {_ADVISOR_QUORUM_ROOM} "
             f"--me {agent_id}` — before you spawn. To spawn and rotate its "
-            f"Fable-max director once the assignment is read:\n"
+            f"director once the assignment is read:\n"
             f"     python3 {dispatch_cmd} {root_arg} {iter_n} --tier director "
             f"--role director --ladder-tier 1 --target goal:<id> --detach\n"
             f"     python3 {rotate_cmd} loop --role director\n"
