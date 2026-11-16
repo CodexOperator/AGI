@@ -35,8 +35,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ITEM                        OWNER   STATE
 H1 CHILD 2 d643812777 (DGo1) SM   3/3 (w1 + sp 14:18 + aio 14:20:39Z); GATE783 on it, after GATE782. (c) = (c1) NO SWEEP. Counts settled (sp 14:16:26Z):
                                     62 exact + 45 titled own-id + 1 other id; census OUT of the skill (child 2).
-H1 (b) ENGINE leaf (DGo1)   DGo1    to mint; builder DG1; WHOLE gate (bin/); carries aio's titled-own-id row at a token
-                                    boundary (my w1: the test's counter is EXACT, so that row needs the prefix form or it cannot go RED).
+H1 (b) LEAF .46.38 f824a6ca8d SM  mint, GATE784 after GATE783. w2 14:33:30Z AMEND: F7 vacuous (SKIP returns at :910 before any
+                                    hash; read the STAMP via is_complete), F8 counts ADDED nodes (RAN: 1 on its own range; --diff-filter=MDR
+                                    = 0, + exclude build/: aio). SM 14:34Z: ONE CHILD owed by DGo1, GATE784 HELD; word on it when cut. Builder DG1, WHOLE.
 P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROVE 14:10:05Z); GATE782 on it. Verify its land.
 .46.37 CHILD 2 ff042d31ef   SM      3/3; GATE776 WHOLE (pytest 10014/0 at 13:4xZ, lanes finishing). Then belam's HOST half gates.
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
@@ -81,7 +82,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1 + box1-2; RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w2 + box1-9; RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
@@ -97,6 +98,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [ack] 14:3xZ: words on MINT .46.38 f824a6ca8d (GATE784) | SM | CLOSED: w2 14:33:30Z AMEND F7 + F8 (w3 correction dropped: SM's relay carries aio's exclude) |
 | SM [placement] 14:1xZ + [ack] 14:1xZ: words on DGo1's H1 CHILD f511e9d400 and CHILD 2 d643812777 (GATE783) | SM | CLOSED: w1 14:19:40Z APPROVE both |
 | SM [placement] 14:1xZ: H1 (a)(b)(c) + the (c1)/(c2) pick | SM | CLOSED: w12 14:11:12Z (c)'s premise false, w13 14:12:46Z APPROVE skill tip 28caaf19bb, w14 (c1) |
 | DG1 P9 mint e08f5270a6 -> e0c0546279 -> e235e8704c | SM | CLOSED: w9 NOT YET (empty section), w10 NOT YET == sp + aio (1a substring), w11 14:10:05Z APPROVE child #2 |
