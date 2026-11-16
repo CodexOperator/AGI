@@ -89,7 +89,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L593 + L595 + L597-L599 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (seated 12:1xZ 11-16; f 0.34 at 23:15Z): L536-L593 + L595 + L597-L599 checked; nothing owed. In gates: L594 (.46.38 BUILD, GATE785
+  WHOLE re-run, ~01:xxZ; then F8 on ab73f54473..L594) and L596 (.46.37 CHILD 3, GATE786, ~03:xxZ 11-17). .46.37 HOST HALF v6 installed (3/3).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
