@@ -125,7 +125,7 @@ put1(){ put $n $d $m $k;}
 pmet(){ S $n|cmp -s - $R$d&&[ "$(stat -c %a $R$d)" = $m ];}
 carry_env(){ printf 'AGI_BOX=%s\nAGI_HUB=\nAGI_REPO=%s\nAGI_TRUNK=%s\nGIT_CONFIG_VALUE_0=%s\n' $BOX $M $PIN $M;}
 ramunit(){ printf '%s\n' '# encryption-town ONLY: MAIN is a plain directory on the internal drive; this satisfies the pinned agi-boot.service Requires/After' '[Unit]' 'Description=encryption-town: no RAM disk, MAIN on the internal drive' '[Service]' 'Type=oneshot' 'RemainAfterExit=yes' 'ExecStart=/bin/true';}
-standin(){ printf '%s\n' '# stand-in written by agi.sh host on a box with no agi-ram-main.service of its own (never over an existing one): MAIN is a plain directory; this satisfies the pinned agi-boot.service Requires/After' '[Unit]' 'Description=stand-in: no RAM disk, MAIN on a plain directory' '[Service]' 'Type=oneshot' 'RemainAfterExit=yes' 'ExecStart=/bin/true';}
+standin(){ printf '%s\n' '# stand-in written by agi.sh host on a box with no agi-ram-main.service of its own (never over an existing one, a masked symlink counts): a fresh non-E box had no Requires= target and the act verify refused it (aio 11-15); MAIN is a plain directory' '[Unit]' 'Description=stand-in: no RAM disk, MAIN on a plain directory' '[Service]' 'Type=oneshot' 'RemainAfterExit=yes' 'ExecStart=/bin/true';}
 sliceunit(){ printf '%s\n' '# encryption-town: typed here (config:guard has no E line); 7.8 GB box' '[Slice]' "MemoryHigh=${E_MEM_HIGH:-5G}" "MemoryMax=${E_MEM_MAX:-6G}" 'ManagedOOMMemoryPressure=kill' "ManagedOOMMemoryPressureLimit=${E_OOM_LIMIT:-40%}";}
 acl1(){ getfacl -p "$1" 2>/dev/null|grep -qx "$2";}
 aclmet(){ for d in objects refs logs worktrees;do acl1 $R$M/.git/$d "group:$AG:rwx"&&acl1 $R$M/.git/$d "user:$PU:rwx"||return 1;done;for d in $R$M/.agi/sessions $R$M/.agi/sessions/inbox $R$M/.agi/comms;do acl1 $d "group:$AG:rwx"||return 1;done;acl1 $R$M/.agi/comms "user:$PU:rwx";}
@@ -144,7 +144,8 @@ projpiece(){ S agi-project|(cd $R$M&&AGI_BOX=$BOX GIT_CONFIG_COUNT=1 GIT_CONFIG_
 projmet(){ [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ]&&return 0
  e=$(mktemp -d)||return 1;U=$R/run/systemd/system
  projpiece $e >/dev/null 2>&1&&cmp -s $e/agi-users.conf $U/agi-users.conf&&[ "$(ls $e/multi-user.target.wants|grep '^agi-post@')" = "$(ls $U/multi-user.target.wants 2>/dev/null|grep '^agi-post@')" ];pr=$?;rm -rf $e;return $pr;}
-hostmet(){ each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&{ [ -n "$E" ]||[ -f $R/etc/systemd/system/agi-ram-main.service ];}&&{ [ -z "$E" ]||{ ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ];};}&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
+masked(){ [ -L $R/etc/systemd/system/agi-ram-main.service ]&&[ "$(readlink $R/etc/systemd/system/agi-ram-main.service)" = /dev/null ];}   # agi-boot.service Requires= this unit: a masked one cannot start, and `ramunit>file` would write INTO /dev/null; unmasking is a host act (belam), never this one
+hostmet(){ ! masked&&each pmet&&carry_env|cmp -s - $R/etc/agi/carry.env&&{ [ -n "$E" ]||[ -e $R/etc/systemd/system/agi-ram-main.service ];}&&{ [ -z "$E" ]||{ ramunit|cmp -s - $R/etc/systemd/system/agi-ram-main.service&&sliceunit|cmp -s - $R/etc/systemd/system/agi.slice&&[ -d $R/mnt/agi-ram/state ];};}&&[ -d $R/var/lib/agi ]&&[ "$(cat $R/etc/agi/host.done 2>/dev/null)" = $PIN ]&&unitsmet&&aclmet&&projmet;}
 tm(){ [ "$CF" = true ]||return 0;stp&&return 0;if [ -n "$R" ]&&[ -z "$AGI_HOST_UNITS" ];then echo "rehearsal: systemctl enable --now agi-carry-fetch.timer";else systemctl enable --now agi-carry-fetch.timer;fi;}
 # ---- preflight (nothing written yet) ----
 for c in git jq setfacl sed;do command -v $c>/dev/null||die "missing tool: $c";done
@@ -157,6 +158,7 @@ if [ "$1" = check ];then hostmet&&{ echo "host: met";exit 0;};echo "host: not me
 id $PU>/dev/null 2>&1||die "PREREQ: user $PU (the comms ACL's second entry) is absent: PRIME_USER=<user> to name another"
 [ -n "$SKIP_PREREQ" ]||! G show $PIN:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b $BOX 'select(.box==$b and .engine.v==4)|.+.engine|select((.harness//"")|test("^pi"))'>/dev/null||{ [ -x $R/opt/agi/bin/pi ]||[ -x $R/usr/local/bin/pi ]||die "PREREQ: no pi at /opt/agi/bin/pi (agi-project exits 3 without it while a pi row has box $BOX): install it first, SKIP_PREREQ=1 to override";}
 hostmet&&{ echo "host: met";exit 0;}
+! masked||die "agi-ram-main.service is masked (-> /dev/null): agi-boot Requires= it and cannot start; unmask it (a host act), then re-run; nothing written"
 STEP="step 0: the before-state backup"
 # ---- STEP 0 (root, BEFORE anything else): back the before-state up and write ONE rollback command ----
 B=$R/var/backups/agi-act-$(date -u +%Y%m%dT%H%M%SZ)
