@@ -29,13 +29,12 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-NEXT 0  CHILD 3 20a796a949 (~/scratch/g7162/c3, on trunk bca642529a) SENT 16:2xZ: host-words (module doc, back line, clear help, node: the host applies each row ONCE) + the 'stay' id counts clears; test_hub_move 40 passed; awaits SM's PRE-READ + 3 words + a whole gate. HOST HALF INSTALLED 16:07:37Z (v6); live read 'hub_move: 12 route row(s), 0 moved, 0 refused' every 60 s. The .46.37 CLOSE (NEXT 2) is mine: row 7 NOT SEEN LIVE until a quota move happens; say that.
+NEXT 0  CHILD 3 20a796a949 (~/scratch/g7162/c3, on trunk bca642529a) SENT 16:2xZ: host-words (module doc, back line, clear help, node: the host applies each row ONCE) + the 'stay' id counts clears; test_hub_move 40 passed; awaits SM's PRE-READ + 3 words + a whole gate. HOST HALF INSTALLED 16:07:37Z (v6); live read 'hub_move: 12 route row(s), 0 moved, 0 refused' every 60 s. The .46.37 CLOSE is DGo1's (e1dec635cd, 3/3, L597 queued): NOT mine. CHILD 3 = GATE786 (whole, g398, hours), L596 after L592-L595; words 1/3 (alive 16:19Z).
 NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
-NEXT 2  .46.37 row 7 with belam (host): when his scratch-route read lands, the CLOSE: ONE commit, falsifier AS WRITTEN (agi-goal §2): F1-F6 re-run
-        on the landed trunk (test_hub_move.py, the f6 grep), row 7 read by a SECOND post or 'NOT SEEN LIVE' with F1-F5 standing; name when the
-        new route takes effect. The loud-line template (sp's) omits the MODEL its sentence names; I put it in parentheses: confirm at the words.
+NEXT 2  (dropped: the .46.37 CLOSE is DGo1's.)
 NEXT 3  .20.7 is LANDED (L580): nothing owed there; its NOT SEEN items stand in the node.
 NEXT-TOUCH (named, unplaced; start none without SM):
+  (g) a hand move-back now says TWO lines for one event (the engine's back line + the host's 'NOT re-applied' line, both naming clear): one can point at the other (alive 16:19Z; not a hold).
   (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91; feeds no count) (alive 01:15Z 11-12).
   (b) grid_stale AFTER the sync: sp's row of both jobs' log times first; falsifier = a stale read during a sync's write (belam 01:10Z 11-12).
   (c) box: its case default exits non-zero; read|n|i exits non-zero when for-each-ref fails; w12 on the REAL box vs an unreadable repo (sp + aio).
