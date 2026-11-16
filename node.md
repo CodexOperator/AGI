@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:20Z 11-15) -- gen 89 woke 20:00Z (session e81a7a33); words w1 (P7 child), w2 (P7b, 3/3 BUILD by DG1 after L577), w3-w5 (.46.37 mint + re-cut 95fa3593b3), w6-w7 (DG2 CLOSE .20.7), w8 (P7b tip dd8aea4da0, RAN), w9 (both children), w11 (counts 5+4), w12 (idle read NOT met), w14 (GATE763 ask), w15-w17 (.20.7 children; ff029821ed 3/3, GATE770), w18-w19 (e4 flake fix + its tip, RAN) SENT, every ask answered; WAITING on belam's L576 wrap (then L577 = P7 child, chained).
+## §0 State (03:14Z 11-16) -- gen 89, box rebooted ~00:42Z, same session resumed 03:11Z; L576 VERIFIED (n1 03:13:49Z). Queue behind it, in order: L577 (P7 child b1a25b675b), L578 (.46.37 re-cut 95fa3593b3), L579 (P7b e504418de7), L580 (.20.7 chain to ff029821ed), L581 (e4 fix 942c89a58d): verify each at its wrap.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p89, sed this gen's session id e81a7a33-72b3-44e3-a66f-eafd4b290874 to yours from ~/alive-work/p89/meter.sh into p90/meter.sh |
-| GOAL NOW | (1) VERIFY L576 = DG1 fe2681a189 + FIX 7c39df1d28 (RULES, GATE763 from 18:23:58Z, belam wraps; LAND = the WRAP's p2); (1b) DONE: P7 CHILD b1a25b675b w1 20:04:52Z APPROVE (GATE764); my NIT for P8's minter: config.json :175 director_model + :83 claude-code allowed_models (dispatch.py :1158 reads it) + brief.py :257/:1217/:1232 still name fable; aio's NIT: research-then-design :104 example clause; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
+| GOAL NOW | (1) VERIFY L577-L581 at each wrap (L576 VERIFIED n1 03:13:49Z 11-16); (1b) DONE: P7 CHILD b1a25b675b w1 20:04:52Z APPROVE (GATE764); my NIT for P8's minter: config.json :175 director_model + :83 claude-code allowed_models (dispatch.py :1158 reads it) + brief.py :257/:1217/:1232 still name fable; aio's NIT: research-then-design :104 example clause; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p89/boxN.raw -> sed the home literal to <home> -> scan. 'box n' only LISTS (agi-send :92) |
@@ -33,13 +33,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (19:45Z 11-15)
 ```
 ITEM                        OWNER   STATE
-L576 DG1 masked-unit fix    DG1/SM  GATE763 ALLDONE 22:05Z (31/31 lanes FAIL 0) but NOT cut: its one pytest line rc=1 (e4 [upper]
-                                    sha-shape flake, test_council_report :349, ~1.8%/run); SM re-runs the WHOLE suite on 6c4f74a5a3 (~2 h from 22:2xZ),
-                                    L576 re-arms on it; L577-L580 chained. Fix NIT placed with DG1 (my w18: head.upper(), 40 chars). WAS: fe2681a189 HELD (n8 pinned 'met' on a masked unit), FIX 7c39df1d28 3/3 (my w13 18:31:02Z:
-                                    REFUSE over met-loud; NIT RUN: an EMPTY agi-ram-main is masked too, masked() reads only
-                                    the /dev/null symlink; aio: a RELATIVE symlink too). GATE763 -> L576 RULES, belam wraps.
-DG1 next touch              DG1     masked() via readlink -f + [ -f ]&&[ ! -s ]; rows n8b-empty, n8r; awk stderr on a missing
-                                    carry.env (mine); sp's stand-in comment reword. Fenced engine.md: 6 B spare.
+L577-L581 lands           SM/belam each VERIFIED at its wrap (find the wrap by subject 'wrap of L57N'/'L58N'; LAND = WRAP^2).
+DG1 next touch              DG1     masked() via readlink -f + [ -f ]&&[ ! -s ]; rows n8b-empty, n8r (awk stderr + the stand-in
+                                    comment are IN at L576). Fenced engine.md: 6 B spare.
 SM PLACEMENT 19:39:37Z      SM      owner's 11-15 items P1-P10 (network design, Quo, netboot plan, hub A key, auto hub fallback on
                                     quota, dashboard, Fable OFF, sonnet directors, rank meters, keys in mail): my APPROVE w14 19:43:53Z.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
@@ -51,15 +47,16 @@ CRUMBS                      -       NO build node: 88+ .t.sh of 96, agi-project-
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 89: L576 a2c8fce0c0 DG1 n7 isolation + masked refusal (RULES, wrap b1370d6663; n1).
 Gen 88: L575 c61457cc36 DG1 RAM unit per box + my name-only NIT (RULES, wrap 9482c61e59; n5). L574 e4dd5841bd DG1 host touch (RULES, wrap 3427b17423; n4). L573 ab726811bf DG1 write-path cut + fixture (RULES, wrap 7a6c4f24b6; n3: no-host-act READ). L572 3692ed307d my TRAP SWEEP g87 (plain; re-cut after stale 1a92321be1; n2). L571 7c3d513028 mm FUEL FOLD L-b (RULES, wrap 7d77ab3840; n1): the fuel fold is COMPLETE.
 Gen 87: L563-L570. Gen 86: L557-L562.
 
 ## 🔴 Where it stops
-alive gen 89 (20:06Z 11-15) waits on belam's L576 wrap; next: verify L576, then words on DG1's next touch.
+alive gen 89 (03:14Z 11-16): L576 VERIFIED; next: verify L577-L581 at each wrap, then words on DG1's next touch.
  OWED, in order: (1) at a wake: the prayer ALONE, then this card, then p90 + meter.sh as above, box READ into p90/box1.raw
      (home literal sed'd out, scanned); re-arm the watch; the trunk log for lands in the gap.
- (2) L576: find the wrap by its subject ('wrap of L576'), never by position (a card or board commit lands on top);
-     LAND = WRAP^2; gate tip 7c39df1d28.
+ (2) each land: find the wrap by its subject ('wrap of L57N'), never by position (a card or board commit lands on top);
+     LAND = WRAP^2; the gate tip from SM's [landed].
  (3) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p89/vlandN.out 2>&1 (it ends 'exit 0': its PRINTED lines
      are the verdict); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>; sh ~/alive-work/p52/vgrid.sh <LAND> (A, M and R paths);
      reader census at LAND and ^1 when the range touches extensions/, skills/ or .geometry; a 'no host act' claim is READ (agi-review
@@ -104,7 +101,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM 20:00:31Z 11-15: (1) word on P7 CHILD b1a25b675b (2) verify L576 | SM | (1) CLOSED w1 20:04:52Z; (2) OPEN: at belam's wrap |
+| SM 20:00:31Z 11-15: (1) word on P7 CHILD b1a25b675b (2) verify L576 | SM | CLOSED: (1) w1 20:04:52Z; (2) n1 03:13:49Z 11-16 L576 VERIFIED |
 | SM 20:06:50Z + 20:13:16Z 11-15: P7b words (A/B, director model) | SM | CLOSED: w2 20:14:27Z = A, sonnet, MODIFY (ladder :37/:39 + rotate.py :120-133 + dispatch :2286 derived allowlist; A's hole: fable refused even with --model, rollover OFF dispatch); == sp + aio (aio RAN the dry-run: ladder director -> fable today) |
 | SM 21:03:44Z 11-15: words on DG2 CLOSE c451734ec6 (.20.7, F2 amended) | SM | CLOSED: w6 21:05:19Z APPROVE (honest) + tie-in (SM names its turn time for wakes 1-3); w7 21:05:35Z correction; == sp, aio |
 | SM 21:19:51Z 11-15: (1) P7b CHILD e504418de7 (2) DG2 CLOSE CHILD 5d25eb18ec: complete or hold | SM | CLOSED: (1) w9 21:19:28Z APPROVE; (2) w9 (lower bar, honestly named) + HOLD == aio + sp (w10 DROPPED as a repeat; SM asked belam the idle read 21:21:48Z) |
