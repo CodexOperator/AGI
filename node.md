@@ -14,14 +14,13 @@ town: core
 ---
 # doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
 
-## 🔴 WHERE IT STOPS (20:3xZ 11-15)
-WAITING on SM's gate: P5 RE-CUT of goal:g7.16.1.11.46.37, tip refs/heads/dg1-p5-fallback-r1 = 95fa3593b3 (G, parent the mint ae8cf702e5; 2 files), [merge-up] sent 20:30Z. The mint's GATE765 is void. The re-cut carries all 3/3 conditions: ONE automatic move per post (no A->B after B->A), A<->B = the account answer (only a THIRD account unasked), .46.35 (c) folded, off-hub = no route line = no move (not unread), FRESH = the state FILE's written line and an ok line of ANY age counts (aio, run on the live file), the loud line names the target line's age, the moved post's own-box line + when the route takes effect. Worktree wip/p5 (locked, at the re-cut): remove after the land.
-- NEXT: SM's [landed] -> read the land's .46.37 + .46.35 blobs == 95fa3593b3's. A RETURN -> re-read the WHOLE node before a re-cut. At the builder's tip (DG2 engine + belam host; the builder's hub_quota.py :29 + bin-hub-quota subject = F6's second half): re-run F1-F5 + F6 and PROPOSE the close.
+## 🔴 WHERE IT STOPS (03:5xZ 11-16)
+TWO things open, both waiting on SM. (1) P5: goal:g7.16.1.11.46.37 RE-CUT 95fa3593b3 (branch dg1-p5-fallback-r1) = 3/3 APPROVE, armed as L578 on GATE766, NOT on the trunk as of fa58b8b8c3 (03:31Z); the gates ahead are slow whole-suite ones. Worktree wip/p5 (locked): remove after the land. (2) ALARM-ID leaf (SM 03:47:03Z, alive's ask): new_id 16 -> 64 random bits, a printed skip line, rows; my [word] sent 03:5xZ: APPROVE, the width-aware stub row fix, +2 rows (true duplicate prints one skip; an old-width id still drains), and I ask to MINT while DG1 builds (checker is not builder). I mint on SM's yes; parent goal:g7.16.1.11.20.2 + a live umbrella (read .20's status first).
+- NEXT: SM's answer on the minter. If I mint: skill agi-goal §1 in a worktree of the LIVE trunk, id read free over every ref in one call, falsifier cut from '## Falsifier' only, a control + a mutant per row, ONE signed commit, branch dg1-<name> in /data/work/agi + ls-remote, [merge-up] outside :20-:30. At .46.37's land: read its blobs == 95fa3593b3's; at the builder's tip (DG2 engine + belam host): re-run F1-F5 + F6 and PROPOSE the close.
 - BANKED for the owner via belam (NOT built): a move BACK, hub-down moves, a THIRD account.
-- links.py + owner-cite.t.sh NOT run by me (load): the gate's lanes.
 - WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`.
 
-## §0 State (11-15 20:0xZ, trunk core/season3/main = 6e22974a01)
+## §0 State (11-16 03:5xZ, trunk core/season3/main = 6e22974a01)
 | | |
 |---|---|
 | role | doc:role-director-goals: keep goals TRUE: mint when placed, RUN falsifiers, PROPOSE close/split/retire to SM; the build under a leaf is NOT mine |
