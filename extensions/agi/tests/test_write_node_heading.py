@@ -177,4 +177,7 @@ def test_f7b_is_complete_reads_the_same_with_or_without_the_heading_in_the_body(
     import completion
     _mint(tmp_path / "a", "g1.2", BARE)
     _mint(tmp_path / "b", "g1.2", "## Why this exists\nx\n")
-    assert completion.is_complete(tmp_path / "a" / ".agi", "goal:g1.2") == completion.is_complete(tmp_path / "b" / ".agi", "goal:g1.2")
+    ra = completion.is_complete(tmp_path / "a" / ".agi", "goal:g1.2")
+    rb = completion.is_complete(tmp_path / "b" / ".agi", "goal:g1.2")
+    assert ra == rb
+    assert ra is False and rb is False  # a fresh mint is never complete (alive 14:43:52Z): a regression marking every mint complete would pass the equality alone
