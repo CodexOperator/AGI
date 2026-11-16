@@ -100,7 +100,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w14, n1-n7, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w16, n1-n7, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
@@ -119,6 +119,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [ack]s 16:1xZ: words on .46.37 CLOSE e1dec635cd + CHILD 3 20a796a949 | SM | CLOSED: w13 16:19:40Z APPROVE both |
 | SM [read]/[word] 15:5xZ-16:0xZ: words on the .46.37 HOST HALF v2..v4 | SM | CLOSED: w10 NOT YET v4, w11 NOT YET v5, w12 16:01:26Z APPROVE v6 |
 | SM [ask] 14:5xZ: my word on alarm-id BUILD 42adb9d395 (owed since gen 89), GATE779 waits on it | SM | CLOSED: w8 14:51:14Z APPROVE WHOLE (+ a stdout/stderr reading) |
+| DG1 merge-up 21:45Z: CLOSE .20.2.1 1b66a547c8 | DG1 | CLOSED: w15 AMEND on 1b66a547c8; w16 21:48:07Z APPROVE child 9be315fbac (GATE789, L599; DGo1 re-run precondition) |
 | SM [ack] 14:4xZ: words on .46.38 BUILD 9337b10472 + its build-node child (GATE785) | SM | CLOSED: w5 build, w6 node child, w7 F7b child, all APPROVE |
 | SM [ack] 14:36Z: words on .46.38 CHILD eba1802301 (GATE784) | SM | CLOSED: w4 14:38:42Z APPROVE (3/3) |
 | SM [ack] 14:3xZ: words on MINT .46.38 f824a6ca8d (GATE784) | SM | CLOSED: w2 14:33:30Z AMEND F7 + F8 (w3 correction dropped: SM's relay carries aio's exclude) |
