@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:14Z 11-16) -- gen 89, box rebooted ~00:42Z, same session resumed 03:11Z; L576-L578 VERIFIED (n1-n3). Queue, in order: L579 (P7b e504418de7), L580 (.20.7 chain to ff029821ed), L581 (e4 fix 942c89a58d), L582 (masked v2 be965f3e35): verify each at its wrap.
+## §0 State (04:46Z 11-16) -- gen 89 ROTATES at f 0.435 (04:45Z), at a pause: every ask on me answered; L576-L578 VERIFIED (n1-n3). Gen 90's FIRST work: the OWED TRAP SWEEP (gen 88 + 89, §4), then verify L579-L583 + the alarm-id BUILD + the .46.37 engine half at each land.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p89, sed this gen's session id e81a7a33-72b3-44e3-a66f-eafd4b290874 to yours from ~/alive-work/p89/meter.sh into p90/meter.sh |
-| GOAL NOW | (1) VERIFY L579-L583 at each land (L576-L578 n1-n3 VERIFIED 11-16; L583 = alarm-id leaf 213590f492, then its BUILD 42adb9d395+ WHOLE); (1b) DONE: P7 CHILD b1a25b675b w1 20:04:52Z APPROVE (GATE764); my NIT for P8's minter: config.json :175 director_model + :83 claude-code allowed_models (dispatch.py :1158 reads it) + brief.py :257/:1217/:1232 still name fable; aio's NIT: research-then-design :104 example clause; (2) words on DG1's NEXT touch (masked() widening: empty file + relative/chain symlink, rows n8b/n8r; awk stderr; sp's comment reword); (3) the deck A/B atom (§7) when TM's measure lands; (4) words on each tip SM asks. |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318; its quota gap 05:36Z-15:00Z 11-15 held this session); f by hand: mkdir ~/alive-work/p90, sed this gen's session id e81a7a33-72b3-44e3-a66f-eafd4b290874 to yours from ~/alive-work/p89/meter.sh into p90/meter.sh |
+| GOAL NOW | (0) the OWED SWEEP: every §4 trap to its skill (agi-review mostly; one line trigger -> rule, incident), a PLAIN [merge-up] to SM, gen 87's L572 is the shape; (1) VERIFY each land in order: L579 (P7b e504418de7), L580 (.20.7 chain to ff029821ed), L581 (e4 942c89a58d), L582 (masked v2 be965f3e35), L583 (alarm-id leaf 213590f492), then the alarm-id BUILD (42adb9d395+, WHOLE gate) and the .46.37 ENGINE half 269cd97451 (GATE774); (2) words on DG2's ONE .46.37 child (three asks: sp clear-then-edit + row; mine 'decided' wording + row; aio decision-hash alarm_id + row), a precondition of belam's host-half gate; (3) words on DG1's next masked touch (refuse any non-masked symlink at the unit paths, rows n8d/n8x, sp's resolve-under-$R); (4) the deck A/B atom (§7) when TM's measure lands; (5) words on each tip SM asks. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p89/boxN.raw -> sed the home literal to <home> -> scan. 'box n' only LISTS (agi-send :92) |
@@ -30,20 +30,21 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
-## §1 Plan (19:45Z 11-15)
+## §1 Plan (04:46Z 11-16)
 ```
 ITEM                        OWNER   STATE
-L577-L581 lands           SM/belam each VERIFIED at its wrap (find the wrap by subject 'wrap of L57N'/'L58N'; LAND = WRAP^2).
-DG1 next touch              DG1     masked() via readlink -f + [ -f ]&&[ ! -s ]; rows n8b-empty, n8r (awk stderr + the stand-in
-                                    comment are IN at L576). Fenced engine.md: 6 B spare.
-SM PLACEMENT 19:39:37Z      SM      owner's 11-15 items P1-P10 (network design, Quo, netboot plan, hub A key, auto hub fallback on
-                                    quota, dashboard, Fable OFF, sonnet directors, rank meters, keys in mail): my APPROVE w14 19:43:53Z.
+OWED TRAP SWEEP g88+g89     alive90 FIRST: §4's 9 traps -> their skills (most to agi-review), plain merge-up; f must be < 0.41 for it.
+L579-L583 + 2 builds        SM/belam verify each at its land: PLAIN = SM's 'LAND N' commit on posts/belam (vland, no W); RULES = belam's
+                                    'wrap of LN' (LAND = WRAP^2). GATE768 (L579) in its whole re-run; GATE772 (L582), GATE773 (L583) chained.
+.46.37 child (DG2)          DG2     3 asks (sp, alive, aio); PRECONDITION of belam's host-half gate (decide not on the timer before it lands).
+alarm-id BUILD (DG1)        DG1/SM  42adb9d395 = 3/3 (+ every half mutant-RUN red: width, hold-not-a-try, truthy-skip, max-holds); WHOLE
+                                    gate after L583.
+masked next touch (DG1)     DG1     refuse any non-masked symlink at both unit paths (:188 E writes THROUGH one; :190 dangling); n8d, n8x.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 STANDING (host, belam)      belam   next E re-pin passes AGI_BOX=encryption-town; local-town's agi-ram-main + agi.slice STAY.
-test_p1_ab whole-suite      SM/DG3  VmHWM in the whole suite still NOT READ.
-OPEN WITH THE OWNER         belam   hub.said (.46.36), PC netboot (P3 plan), plan-master tool policy, F4 of g7.31.1.6.
-CRUMBS                      -       NO build node: 88+ .t.sh of 96, agi-project-harness.t.sh, test_agi_boot.py, media_html.py,
-                                    test_media_html.py, reds.py, test_p1_ab.py, guard/host-act-encryption-town.sh (NEW, a RULES path)
+OPEN WITH THE OWNER         belam   hub.said (.46.36), PC netboot (P3 plan), plan-master tool policy, F4 of g7.31.1.6; P8 bank:
+                                    sonnet director class row effort max vs post rows high, rotate.py fallback ultracode on sonnet.
+CRUMBS                      -       NO build node: host-act-encryption-town.t.sh (vgrid NO-NODE at L576), 88+ .t.sh, reds.py, others.
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
@@ -52,22 +53,23 @@ Gen 88: L575 c61457cc36 DG1 RAM unit per box + my name-only NIT (RULES, wrap 948
 Gen 87: L563-L570. Gen 86: L557-L562.
 
 ## 🔴 Where it stops
-alive gen 89 (03:14Z 11-16): L576-L578 VERIFIED; next: verify L579-L583 at each land (a PLAIN land is SM's LAND commit on posts/belam, no wrap: vland without W), then words on DG1's next touch.
- OWED, in order: (1) at a wake: the prayer ALONE, then this card, then p90 + meter.sh as above, box READ into p90/box1.raw
+alive gen 89 rotated at f 0.435 (04:46Z 11-16); next: the owed trap sweep, then verify L579-L583 at each land.
+ OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then p90 + meter.sh as above, box READ into p90/box1.raw
      (home literal sed'd out, scanned); re-arm the watch; the trunk log for lands in the gap.
- (2) each land: find the wrap by its subject ('wrap of L57N'), never by position (a card or board commit lands on top);
+ (1b) the SWEEP (§4) while f is low: a scratch worktree off posts/belam, one plain commit, a [merge-up] to SM with its census.
+ (2) each land: PLAIN = 'sanctuary-master: LAND N' on posts/belam (vland with no W); RULES = the wrap by its subject ('wrap of LN'), never by position (a card or board commit lands on top);
      LAND = WRAP^2; the gate tip from SM's [landed].
- (3) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p89/vlandN.out 2>&1 (it ends 'exit 0': its PRINTED lines
+ (3) Each land: sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p90/vlandN.out 2>&1 (it ends 'exit 0': its PRINTED lines
      are the verdict); python3 -I ~/alive-work/p58/objscan.py <LAND> <its ^1>; sh ~/alive-work/p52/vgrid.sh <LAND> (A, M and R paths);
      reader census at LAND and ^1 when the range touches extensions/, skills/ or .geometry; a 'no host act' claim is READ (agi-review
      :88: the installed copy, its callers); ONE [note] naming every lane not run.
  Runs: --basetemp under /data/scratch/alive; scratch worktrees there, removed after (none open now).
-Next command: cd ~/t; date -u; AGI_POST=alive box read > ~/alive-work/p89/boxN.raw; git log --first-parent --format='%h %an %<(70,trunc)%s' -8 refs/heads/posts/belam
+Next command: cd ~/t; date -u; AGI_POST=alive box read > ~/alive-work/p90/box1.raw; git log --first-parent --format='%h %an %<(70,trunc)%s' -8 refs/heads/posts/belam
 Meter by hand: past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE.
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam + mm on own logins, all others on hub B; directors on sonnet (cell 65ded11e0b).
 
-## §4 Traps (gen 88's three + gen 89's; ALL go to the sweep at gen 89's rotation)
+## §4 Traps (gen 88's + gen 89's: NOT swept at this rotation (f >= 0.41 forbids a multi-ref act): gen 90's FIRST work, every line to its skill)
 - [g89 21:05Z 11-15] my w6 listed my own wakes from memory and called 20:34:03Z 'already read'; box14 held SM's note (w7 corrected) -> a
   claim about my own mail is matched to the box file it names, never recalled. Owner: agi-review :62 (cite what a command printed).
 - [g89 04:12Z 11-16] I read alarm_spool's holds counter and dismissed the reset case ('a recovered line leaves the spool'); it stays when
@@ -88,11 +90,12 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
   agi-review :65, which L509 never touched, stayed live (sp + aio caught it; w15 corrected). A revert of a GRANT is read by
   grepping the granted thing (fable) over every skill, never by the granting land's diff -> sweep: carry-grep agi-review first.
 
-## §5 Verification (gen 89 so far: p89/w1-w19 (w10, w13 dropped) + box1-44, p7b-rows/dry/fable.out; gen 88 below, under ~/alive-work/p88)
-- words w1-w14, notes n1-n5, merge-up m1 (+ .out each); boxes box1-box62. Lands: vland571-575, obj571-575, vgrid571-575,
-  census571-575 (L and ^1); sweep lanes l-*.out, pyt.out, census-sw-*; dg1-pin-clean/mut.out, dg1ram-clean.out.
-- Lane fixes this gen (alive-work, not the repo): vgrid reads R paths (-M, AMR); vland ends 'exit 0'.
-- NOT RUN this gen: the whole suite, links (the gates' taken), any oracle, anything on local-town.
+## §5 Verification (gen 89, files under ~/alive-work/p89)
+- words w1-w27 (w10, w13 dropped; w24 re-used), notes n1-n3 (+ .out each); boxes box1-box79. Lands: vland576-578, obj576-577,
+  vgrid576-577, census576/577 (L and ^1), m2.out (masked v2 lane 146/0), p7b-rows/dry/fable.out.
+- RAN this gen (scratch worktrees under /data/scratch/alive, all removed): P7b dispatch --list-rows + dry-run; e4 -k upper + regex
+  mutant; masked v2 lane; alarm-id build 29 pass + width and hold-as-try mutants; test_hub_move 25 pass.
+- NOT RUN this gen: the whole suite, links (the gates' taken), any oracle, anything on local-town, the .46.37 host half.
 
 ## §6 BANKED
 | question | options | recommendation |
@@ -130,9 +133,9 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | older rows (gen 86-87, all CLOSED) | - | in git: grid.py diff doc:card-alive |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 88, 19:45Z 11-15: why THIS version differs. The red gen 87 left on itself is paid: the sweep went out first and landed
-(L572), and five lands (L571-L575) were verified, each 'no host act' claim READ against the installed copies rather than taken.
-The gen's own misses are one shape twice: a check that could not see its case (my w9 approve of a refusal whose test lanes I never
-named; my n7 mutant that never applied), and the council caught the rest by running the other spelling (an empty or relative-symlink
-mask, a host unit that satisfies a missing Required one). The card ends with every ask answered and L576 as the successor's first act.
+alive gen 89, 04:46Z 11-16: why THIS version differs. Three lands verified (L576-L578), and the gen's weight went into reading what a
+line CLAIMS against what happened: belam's 'idle' read of my own seat was mid-turn (w12, the hold not met); two 'load' flakes were
+fixed-rate bugs (e4 0.9%, alarm ids 1.2%, the second silently dropping a real alarm); hub_move says a move HAPPENED when it was only
+decided. Four misses of my own, each caught by a peer or a re-read, are on §4. The sweep is owed, not done: it is the successor's first
+act, while its meter is low, because a multi-ref act is not started past 0.41.
 <!-- THOUGHT:END -->
