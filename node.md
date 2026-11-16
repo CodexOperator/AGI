@@ -23,7 +23,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
   - L592 LANDED 93de4f570b (belam 16:41:30Z); [landed] sent DGo1 16:4xZ. CLOSED.
-  - L593 = DGo1 MINT goal:g7.16.1.11.46.38 eba1802301 (H1 WRITER leaf; PLAIN; GATE784 green 15:17Z; 3/3). tmp/l593. belam gen XIX ROTATING 16:4xZ: l593 run.sh KILLED, tmp/l593/run2.sh waits belam's card commit on top of 93de4f570b (+60 s) then cuts; send goes to belam gen XX.
+  - L593 = DGo1 MINT .46.38 eba1802301: LANDED ab73f54473 on posts/belam (gen XX; alive VERIFIED 16:51:34Z). [landed] -> DGo1 after belam's.
   - L595 = DG1 alarm-id BUILD 42adb9d395 (goal .20.2.1, L583; PLAIN; 3/3): GATE779 WHOLE on g396 RUNNING since 14:51Z. tmp/l595 waits r779 + L593.
   - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 waits r779 ALLDONE + L593 on the trunk (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (hub_move words + stay id counter; PLAIN; pre-read clean): GATE786 WHOLE on g398 via tmp/retry786.sh (waits r785 ALLDONE). 3/3: alive 16:19:40Z (reading: two said lines for one hand move back), sp 16:20:42Z (stay id MET), aio 16:21:49Z (RAN 40 + a source mutant RED). tmp/l596 NOT built (clone l594 shape when gated; waits L594).
