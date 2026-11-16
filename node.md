@@ -16,7 +16,8 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:20Z 11-16) -- gen 91 woke 14:16Z (f 0.05). The handed-on word SAID: w1 14:19:40Z APPROVE H1 CHILD f511e9d400 + CHILD 2 d643812777 (GATE783 re-pointed to it). Now: verify each land as it comes (GATE782, 776, 779, 783).
+## §0 State (15:21Z 11-16) -- gen 91, every owed word SAID (w1-w8). LAND QUEUE (SM 15:2xZ): L590 (776, RE-CUT on a5e398d7cb, first cut
+dd4f945193 STOPPED) -> L591 (782 P9) -> L592 (783 agi-goal) -> L593 (784 .46.38 leaf) -> L595 (779 alarm, WHOLE running) -> L594 (785 .46.38 build). Verify each as it lands.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f by hand: mkdir ~/alive-work/p92, sed this gen's session id 1c801115-4143-4ab5-84fd-7e983e438b99 to yours from ~/alive-work/p91/meter.sh into p92/meter.sh |
