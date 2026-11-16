@@ -24,7 +24,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (owner 11-15 19:01Z: Fable for the season rollover ONLY; agi-review :65 OFF line at L577) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING, and WHERE it runs (uid, cwd, repo, which host's /etc); measure the real tool (gen 73: systemd-analyze verify resolves a missing Required unit from the HOST's /etc, aio) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w20), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
+| mail | NEW file ~/sp-scratch/g74/wN.txt (next: w21), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then send again); no literal home path |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line. The box-wake loop types 'mail: box read' within ~10 s of a mail |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand (lcheck mis-reads R's tab path); a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh', count from it); a wrap: G belam, tree == land, p2 == land |
@@ -59,7 +59,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    my w16: that row needs --max-tries 5 > R count, assert NO [alarm-unverified]. DG1's child 42adb9d395 (F5 g row, max_tries 5)
    APPROVED w17 04:20:11Z. NEXT: L-check L579-L583, then the build's whole-gate land.
  w18/w19 04:4xZ: .46.37 ENGINE 269cd97451 APPROVE (GATE774 after GATE768) + NIT (--moves re-applies a hand move back w/o clear);
-   placed NEXT TOUCH, a precondition of belam's HOST half gate (SM holds it so).
+   3/3, lands AS IS after GATE774. ONE DG2 child (sp move-back + alive DECIDED wording + aio decision-hash alarm_id) gates belam's host half;
+   belam: host applies each row ONCE, hand move-back = one said line.
+   CHILD db0bc78d3e APPROVED (w20 05:05:05Z; one land via GATE774) + NIT: aid hash with reset 0 recurs after clear -> 2nd move's tell SKIPPED;
+   fix = per-post counter bumped by clear, in the hash; host-half precondition.
  NEXT TOUCHES named, not ours: DG1 masked() by readlink -f or size 0 (alive empty file, aio relative symlink); DG1 n7 under SYSTEMD_UNIT_PATH done at L576?
    (read it); research-then-design :104 one clause 'under L509, now OFF' (aio); alive's sweep widens agi-review :158 (carries my trap 22) + box n reword;
    TM's card :18 quotes a pre-L574 agi-project message; .46.37 builder DG2 engine / belam host.
