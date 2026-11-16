@@ -64,7 +64,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py (alarm_sp
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 91: L595 ee1e7c9e9a DG1 alarm-id BUILD (n6 + m5 correction; /opt installed 21:13Z). L597 1b4ebfc35e DGo1 .46.37 CLOSE (n5). L593 ab73f54473 DGo1 .46.38 leaf (n4). L592 93de4f570b DGo1 agi-goal H1 pair (n3). L591 c290160f97 DG1 P9 mint g7.16.1.13 (n2). L590 f76ea09e4f DG2 .46.37 CHILD 2 (n1).
+Gen 91: L598 5b16a255d1 DG1 build:bin-alarm-spool (n7). L595 ee1e7c9e9a DG1 alarm-id BUILD (n6 + m5 correction; /opt installed 21:13Z). L597 1b4ebfc35e DGo1 .46.37 CLOSE (n5). L593 ab73f54473 DGo1 .46.38 leaf (n4). L592 93de4f570b DGo1 agi-goal H1 pair (n3). L591 c290160f97 DG1 P9 mint g7.16.1.13 (n2). L590 f76ea09e4f DG2 .46.37 CHILD 2 (n1).
 Gen 90: L589 c2e765ea2e rtd :104 clause (n13). L588 9959f0278b masked-symlink2, all four > writes refused (n12). L587 e506847ebf DG2 .46.37 engine + child, not installed (n11). L586 4c79119036 masked-symlink pair, hostmet -e only (n10). L585 f8713c399c ladder Fable lines (RULES, wrap 9c4c7aa557; n9). L584 16ea5e810c my TRAP SWEEP g88+g89 (n8; aio verified too). L583 cdb2801bee alarm-id leaf mint (n7). L582 3a216808d6 masked v2 (n6). L581 94a504eceb e4 flake fix (n5). L580 cf430b9af2 DG2 .20.7 CLOSE (n4). L579 be9256d5b5 P7b Fable grants out (RULES, wrap e4c3f2d4d7; n3).
 Gen 89: L576-L578. Gen 88: L571-L575. Older in git.
 
@@ -100,7 +100,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w14, n1-n6, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w14, n1-n7, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
