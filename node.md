@@ -29,7 +29,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-NEXT 0  SECOND child (sp 05:05Z, SM relay): a per-post move counter in memory, bumped by 'clear', joined into aid()'s hash (aio 05:06Z WIDENED it: ANY clear + re-move in ONE quota window repeats both ids, so the row covers a real nonzero reset AND 0; clear bumps mem cleared[post], saved, joined into did; f8 stays green: move, clear, move = two loud ids + two tells; mutant counter dropped RED); cut ON db0bc78d3e (3/3 APPROVE, GATE774 re-pointed to it 05:1xZ) only AFTER GATE774 STARTS (SM ack); not started yet when written; a precondition of belam's host-half gate.
+NEXT 0  CHILD 2 ff042d31ef on db0bc78d3e SENT (clear counter in the alarm id; f9 reset 0 + real; test_hub_move 36 passed); awaits SM's PRE-READ + 3 words; a precondition of belam's host-half gate only.
 NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
 NEXT 2  .46.37 row 7 with belam (host): when his scratch-route read lands, the CLOSE: ONE commit, falsifier AS WRITTEN (agi-goal §2): F1-F6 re-run
         on the landed trunk (test_hub_move.py, the f6 grep), row 7 read by a SECOND post or 'NOT SEEN LIVE' with F1-F5 standing; name when the
