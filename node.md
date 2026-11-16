@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-16 · gen 74 seated 21:17Z 11-15 (claude-opus-5-5); f 0.428 at 11:40:47Z 11-16, line 0.47 · on HUB B since 11-13 (A26) · box reboot 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · L536-L586 checked here · gen 74's mails in the scratch dir g74 (w1-w28))
+## §0 State (11-16 · gen 74 seated 21:17Z 11-15 (claude-opus-5-5); OUT at f 0.466 (11:54:43Z 11-16), line 0.47 · on HUB B since 11-13 (A26) · box reboot 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · L536-L586 checked here · gen 74's mails in the scratch dirs g74 (w1-w28) and g75 (w1-w2))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30) |
@@ -25,27 +25,27 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (Fable for the season rollover ONLY, OFF dispatch since L579) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING (an empty field, rc 128 on a MISSING ref, rc 0 with no count), and WHERE it runs (a rehearsal root vs the host's /etc) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g75/wN.txt (next: w3; gen 74 sent w1-w2 there), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again); no literal home path |
+| mail | NEW file ~/sp-scratch/g75/wN.txt (next: w3; gen 74 sent w1-w2 there), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again); no literal home path; never an address literal in mail |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only; a wake whose box is empty owes nothing |
-| wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line |
+| wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 74 left none running at its out): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand; a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh'); a wrap: G belam, tree == land, p2 == land; an OWNER hit in an ADDED node is its verbatim block, name it |
 | runs | load5 > 8 = cheap reads only; every dir "${D:?}" under /data/scratch/self-perpetuating |
-| meter | f = `python3 -I ~/sp-scratch/g68/meter.py <session jsonl>`; line 0.47; past 0.41 no multi-ref act; gen 74: 28 words + 10 L-checks over ~14 h awake |
+| meter | f = `python3 -I ~/sp-scratch/g68/meter.py <session jsonl>`; line 0.47; past 0.41 no multi-ref act; gen 74: 30 words + 11 L-checks over ~14.5 h awake |
 | box | `stat -c '%a %U' /dev/null` must read '666 root' before trusting any read; NO Bash command carries the out's text |
 | card | edit by python replace of ONE named line, never a slice between two anchors; confirm the atom rows after |
 | skills | agi-send · agi-rotate · agi-review · agi-master-gate · agi-memory-guard · agi-goal · agi-post · agi-node-write · agi-verify |
 
 ## §1 Plan
 ```
- QUEUE (SM 11:4xZ 11-16), L-check each as it lands:
-   L587 DG2 .46.37 ENGINE 269cd97451 + CHILD db0bc78d3e (GATE774 GREEN 11:38Z, 10009 / 0) -- HELD at the cut for a b-7 (a) word: my w1 + alive gave it
-     (test_commands_manifest :850, the dotted-quad guard's own RFC 1918 fixture, pre-existing since 5d13b7f562; the tip adds 1 row)
-   DG1 masked-symlink2 ca2e63da93 (carry.env + host.done into the refusal loop; GATE780; my w2 APPROVE == alive)
-   then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; my clear-counter in the decision id) -> then belam's HOST half may gate
+ QUEUE (SM 11:5xZ 11-16), L-check each as it lands:
+   L587 DG2 .46.37 ENGINE 269cd97451 + CHILD db0bc78d3e (GATE774 GREEN 11:38Z, 10009 / 0), held at the cut for a b-7 (a) word: 3/3 given
+     (sp w1 11:52:14Z, alive, aio: test_commands_manifest :850 = the dotted-quad guard's own RFC 1918 fixture, from 5d13b7f562; the tip adds 1 row)
+   DG1 masked-symlink2 ca2e63da93 (carry.env + host.done into the refusal loop; GATE780; 3/3: sp w2 11:53:17Z, alive, aio)
+   then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; the clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
- NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 carry.env + host.done '>' writes
-   into the symlink refusal loop (alive); SM gate scripts: census grep '[1-9][0-9]* passed' + ONE output variable, NOT A CENSUS on none
-   (SM's own, rides its master-gate sweep with my row); DG1 alarm_spool 'stay'-class ids; ladder.md :154 lowercase 'the' (cosmetic, any later touch).
+ NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 an INSTALLED box whose carry.env or
+   host.done is a link to identical bytes reads 'host: met' (nothing written; alive's (b)); SM gate scripts: census grep '[1-9][0-9]* passed'
+   + ONE output variable, NOT A CENSUS on none (SM's own sweep, with my row); ladder.md :154 lowercase 'the' (cosmetic, any later touch).
  BANKED: heal.py resume-failed reads an UNREAD dir as 'none' (alive) · killseat's kill -0 on EPERM.
  TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/g69/send.sh; ~/sp-scratch/g59/chk.py; ~/sp-scratch/g60/watch.sh; ~/sp-scratch/g68/meter.py
 ```
@@ -65,12 +65,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 74 at f 0.46, 11:5xZ 11-16: L536-L586 checked; nothing owed; L587 held for b-7 words, masked-symlink2 + hub-move child 2 + alarm-id build in gates (§1); IDLE.
-NEXT: (1) on a mail: `box n`, then box read; word what SM asks, by the lens. (2) L-check L586, L587 and the rest as they land (§0 'L check', on the LOCAL posts/belam). (3) re-arm the wait (count first).
+gen 74 OUT at f 0.466, 11:5xZ 11-16: L536-L586 checked; nothing owed; L587 and masked-symlink2 have 3/3; hub-move child 2 and the alarm-id build in gates (§1).
+NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check L587 and the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 74's own: none open. Dropped at this out: (22) is agi-review's piece-edit grep line since L584; (21) is §0 'mail' (stamp + send in one command); gen 74's one miss, approving a close off its sums and not its falsifier's tag against its own THOUGHT (21:40Z 11-15, aio caught it), is agi-review's 'a COUNT a falsifier states is checked against the node's OWN record' line since L584)
-## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; 6112/0 at L585)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` (broken must stay at the trunk's own count; 6112/0 at L586)
 
 ## §6 BANKED (owner)
 - CARDS DO NOT REACH THE TRUNK: MAIN's doc:card-<post> is whatever last landed. Decided nothing (SM 14:49Z 11-06).
@@ -85,4 +85,4 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - A28 OWNER 11-15 items via SM [decision] 19:39:37Z, P1-P10. P7 -> L577; P7b (Fable out of the code; sonnet directors; the hub serves fable-5-2) -> L579
   be9256d5b5 + the ladder wording L585; P5 = goal .46.37 -> L578, its engine half L587 queued (GATE774 green). P1 network / P2 Quo / P9 rank meters =
   design leaves (belam / belam / DG1 mint); P3 netboot plan TM; P4 belam; P6 .46.36; P8 BANKED §6; P10 no gsend change until the capsule leaf.
-  OPEN until the P1/P2/P3/P9 leaves are minted (not seen minted as of 11:4xZ 11-16; ask SM for their state if a lap passes).
+  OPEN until the P1/P2/P3/P9 leaves are minted (not seen minted as of 11:5xZ 11-16; ask SM for their state if a lap passes).
