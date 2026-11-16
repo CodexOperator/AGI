@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle (Fable for the season rollover ONLY, OFF dispatch since L579) |
 | lens | a check fails closed AND loud AND CAN pass: run its GREEN case with a control; ask what it prints when it read NOTHING (an empty field, rc 128 on a MISSING ref, rc 0 with no count), and WHERE it runs (a rehearsal root vs the host's /etc) |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE; a draft another seat covers -> trim to what is new |
-| mail | NEW file ~/sp-scratch/g75/wN.txt (next: w19; gen 74 sent w1-w2, gen 75 w3 = rtd clause APPROVE 12:46Z, w4 = P9 mint NOT YET 14:04Z, w5 = P9 child NOT YET 14:07Z, w6 = P9 #2 APPROVE + agi-goal H1 tip AMEND the census + (c1) 14:14Z, w7 = CORRECTION of my '58 titled': 45 titled + 1 other id + 13 plain H1s 14:16Z, w8 = agi-goal child 2 d643812777 APPROVE 14:18Z, w9 = goal .46.38 mint APPROVE + fix my '58' 14:32Z, w10 = CORRECTION: .46.38 AMEND == alive F7 + aio F8 14:35Z, w11 = .46.38 child eba1802301 APPROVE (F7 read, F8 + escape RAN) 14:38Z, w12 = .46.38 build + build-node child APPROVE 14:46Z, w13 = F7b child 238da03c63 APPROVE 14:48Z, w14 = gate ask 15:20Z, w15 = .46.37 HOST HALF v2 NOT YET (root follows a symlink at SAID/MOVES) 15:52Z, w16 = APPLIED root 700, w17 = v4 NOT YET (FIFO hang + row: raw) 15:56Z, w18 = v5 NOT YET (FIFO at SAID hangs too) 15:58Z), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again); no literal home path; never an address literal in mail |
+| mail | NEW file ~/sp-scratch/g75/wN.txt (next: w20; gen 74 sent w1-w2, gen 75 w3 = rtd clause APPROVE 12:46Z, w4 = P9 mint NOT YET 14:04Z, w5 = P9 child NOT YET 14:07Z, w6 = P9 #2 APPROVE + agi-goal H1 tip AMEND the census + (c1) 14:14Z, w7 = CORRECTION of my '58 titled': 45 titled + 1 other id + 13 plain H1s 14:16Z, w8 = agi-goal child 2 d643812777 APPROVE 14:18Z, w9 = goal .46.38 mint APPROVE + fix my '58' 14:32Z, w10 = CORRECTION: .46.38 AMEND == alive F7 + aio F8 14:35Z, w11 = .46.38 child eba1802301 APPROVE (F7 read, F8 + escape RAN) 14:38Z, w12 = .46.38 build + build-node child APPROVE 14:46Z, w13 = F7b child 238da03c63 APPROVE 14:48Z, w14 = gate ask 15:20Z, w15 = .46.37 HOST HALF v2 NOT YET (root follows a symlink at SAID/MOVES) 15:52Z, w16 = APPLIED root 700, w17 = v4 NOT YET (FIFO hang + row: raw) 15:56Z, w18 = v5 NOT YET (FIFO at SAID hangs too) 15:58Z, w19 = v6 APPROVE (RAN 5 probes) 16:00Z), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again); no literal home path; never an address literal in mail |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read \| fold -s -w 200` (consumes); `box n` peeks only; a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 74 left none running at its out): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a long quiet past a gate's ~2 h: read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an R row: compare the renamed blob by hand; a .geometry engine piece: map size == fenced bytes (fence opens '~~~sh'); a wrap: G belam, tree == land, p2 == land; an OWNER hit in an ADDED node is its verbatim block, name it |
@@ -40,8 +40,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  .46.37 HOST HALF v2 (belam's root act; files in belam's scratch hubmove/, sha 240bc286e4a0 + 954d94793a83): SM + aio APPROVE, sp w15 NOT YET:
    v4 49c98851ac7f: link MET (opensafe); NOT YET: alive SAID opened LAST (env moved, 'refused' false); sp w17 a FIFO at MOVES hangs
    (no O_NONBLOCK; RAN rc 124) + 'row:' names shown raw. v5 152c7be402fb: SAID-first MET; FIFO at MOVES + SAID still hang (SM
-   withdrew too). Re-run on v6: SAID link (port + APPLIED unchanged), FIFO at MOVES AND SAID under timeout, a 'row:x' name.
- QUEUE (SM 15:2xZ 11-16, none red): L590 DONE -> L591 P9 -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
+   withdrew too). v6 2398302c25f9 + 5a2ebfa6156d: sp w19 APPROVE (link, both FIFOs,
+   row names, green control RAN); SM APPROVE; install = belam's on 3 words.
+ QUEUE (SM 15:2xZ 11-16, none red): L590, L591 DONE -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
    (779 running) -> L594 .46.38 build (785); L-check each as it lands:
    P9 goal g7.16.1.13: mint e08f5270a6 NOT YET (F1 empty section); child e0c0546279 NOT YET (sp w5 + aio: 1a greps a SUBSTRING, 9 names droppable;
      fix RAN); child #2 e235e8704c APPROVE (sp w6 RAN 1a: 9 dropped = missing 9; alive) -> GATE782
@@ -61,6 +62,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L591 c290160f97 DG1 MINT goal g7.16.1.13 P9 RANK METERS (tip e235e8704c, plain; A 1 goal; bt 0/3; OWNER 1 = the NEW node's verbatim block heading; ONE H1; 1a cell form; 16:1xZ)
 - L590 f76ea09e4f DG2 .46.37 CHILD 2 clear counter (tip ff042d31ef, plain; 3 M; bt 0/3; OWNER 0; the move id gets the counter, 'stay' still a next touch; 15:4xZ)
 - L589 c2e765ea2e DG1 rtd clause :104 (tip ce418cc275, plain; 1 M skill; bt 0/1; OWNER 0; 3/3 given; 13:4xZ 11-16)
 - L588 9959f0278b DG1 MASKED SYMLINK 2 (tip ca2e63da93, plain; 2 M agi.sh + host-act test; bt 0/2; OWNER 0; carry.env + host.done in the refusal loop, AFTER hostmet (alive's (b) stands); 12:4xZ 11-16)
@@ -79,7 +81,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L590 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L591 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
@@ -102,5 +104,5 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - A28 OWNER 11-15 items via SM [decision] 19:39:37Z, P1-P10. P7 -> L577; P7b (Fable out of the code; sonnet directors; the hub serves fable-5-2) -> L579
   be9256d5b5 + the ladder wording L585; P5 = goal .46.37 -> L578, its engine half L587 queued (GATE774 green). P1 network / P2 Quo / P9 rank meters =
   design leaves (belam / belam / DG1 mint); P3 netboot plan TM; P4 belam; P6 .46.36; P8 BANKED §6; P10 no gsend change until the capsule leaf.
-  OPEN until the P1/P2/P3/P9 leaves are minted (P9: SM relayed the owner's Q7 verbatim to DG1 13:4xZ 11-16 for the leaf body, my 'name the progress
-  count' cited; L-check the mint and word it; P1/P2/P3 not seen minted; ask SM for their state if a lap passes).
+  P9 MINTED: goal g7.16.1.13 at L591 (16:1xZ 11-16). OPEN until the P1/P2/P3 leaves are minted (not seen as of 16:1xZ 11-16; ask SM for their state
+  if a lap passes).
