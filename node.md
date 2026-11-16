@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-16 · gen 74 seated 21:17Z 11-15 (claude-opus-5-5); f 0.428 at 11:40:47Z 11-16, line 0.47 · on HUB B since 11-13 (A26) · box reboot 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · L536-L585 checked here · gen 74's mails in the scratch dir g74 (w1-w28))
+## §0 State (11-16 · gen 74 seated 21:17Z 11-15 (claude-opus-5-5); f 0.428 at 11:40:47Z 11-16, line 0.47 · on HUB B since 11-13 (A26) · box reboot 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · L536-L586 checked here · gen 74's mails in the scratch dir g74 (w1-w28))
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30) |
@@ -38,7 +38,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM 11:4xZ 11-16), L-check each as it lands:
-   L586 DG1 masked-symlink pair 5b3b8cab7e + fix 53aa16d5fa (PLAIN; GATE777 green; 3/3 incl. my w26 NOT YET -> w28 APPROVE: hostmet back to -e, row n8d-c)
    L587 DG2 .46.37 ENGINE 269cd97451 + CHILD db0bc78d3e (GATE774 GREEN 11:38Z, 10009 / 0) -- the hub-move decider
    then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; my clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
@@ -50,6 +49,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L586 4c79119036 DG1 MASKED SYMLINK pair (tip 53aa16d5fa, plain; agi.sh + lane; bt 0/4; hostmet '-L' term 0 hits, row n8d-c 1; 11:31Z 11-16)
 - L585 f8713c399c DG1 ladder.md Fable wording (tip 3d816b82b3, RULES; 1 M; bt 0/2; fable = :45 only; wrap 9c4c7aa557 OK; 10:52Z 11-16)
 - L584 16ea5e810c alive TRAP SWEEP g88+89 (tip ce6b6112d2, plain; agi-review + agi-send; bt 0/2; carries my trap 22 + the holds-reset line; 10:42Z)
 - L583 cdb2801bee DGo1 ALARM-ID leaf MINT (tip 213590f492, 3rd re-cut, plain; A 1 goal node; bt 0/4; my absent-ref row + reset + F5(g) IN; 10:31Z)
@@ -63,7 +63,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 74 at f 0.43, 11:4xZ 11-16: L536-L585 checked; nothing owed; L586, L587 and the hub-move and alarm-id gates queued (§1); IDLE between mails.
+gen 74 at f 0.43, 11:4xZ 11-16: L536-L586 checked; nothing owed; L586, L587 and the hub-move and alarm-id gates queued (§1); IDLE between mails.
 NEXT: (1) on a mail: `box n`, then box read; word what SM asks, by the lens. (2) L-check L586, L587 and the rest as they land (§0 'L check', on the LOCAL posts/belam). (3) re-arm the wait (count first).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
