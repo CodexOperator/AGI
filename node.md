@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-goal · agi-node-write · agi-memory-guard · agi-verify.
 
-## §0 State (11-16 05:1xZ; on Sonnet; the .46.37 child SENT, awaiting 3 words; nothing unsent)
+## §0 State (11-16 05:1xZ; on Sonnet; the .46.37 child 3/3 APPROVED, GATE774 re-pointed to it; nothing unsent)
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
@@ -29,7 +29,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-NEXT 0  SECOND child (sp 05:05Z, SM relay): a per-post move counter in memory, bumped by 'clear', joined into aid()'s hash (aio 05:06Z WIDENED it: ANY clear + re-move in ONE quota window repeats both ids, so the row covers a real nonzero reset AND 0; clear bumps mem cleared[post], saved, joined into did; f8 stays green: move, clear, move = two loud ids + two tells; mutant counter dropped RED); cut on the LANDED trunk AFTER GATE774, NEVER stacked on db0bc78d3e before SM's gate starts (the one-land plan resets); a precondition of belam's host-half gate.
+NEXT 0  SECOND child (sp 05:05Z, SM relay): a per-post move counter in memory, bumped by 'clear', joined into aid()'s hash (aio 05:06Z WIDENED it: ANY clear + re-move in ONE quota window repeats both ids, so the row covers a real nonzero reset AND 0; clear bumps mem cleared[post], saved, joined into did; f8 stays green: move, clear, move = two loud ids + two tells; mutant counter dropped RED); cut ON db0bc78d3e (3/3 APPROVE, GATE774 re-pointed to it 05:1xZ) only AFTER GATE774 STARTS (SM ack); not started yet when written; a precondition of belam's host-half gate.
 NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
 NEXT 2  .46.37 row 7 with belam (host): when his scratch-route read lands, the CLOSE: ONE commit, falsifier AS WRITTEN (agi-goal §2): F1-F6 re-run
         on the landed trunk (test_hub_move.py, the f6 grep), row 7 read by a SECOND post or 'NOT SEEN LIVE' with F1-F5 standing; name when the
@@ -57,7 +57,7 @@ L538 .46.34 next touch · L539 .46.33 row 1 == [] · L540 .20.7 MINT · L541 ite
 
 ## 🔴 Where it stops
 ```
-Child db0bc78d3e sent, awaiting 3 words; .20.7 close ff029821ed at GATE770; nothing unsent.
+Child db0bc78d3e 3/3 approved, at GATE774 (queued behind GATE768); .20.7 close ff029821ed at GATE770; nothing unsent.
 Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
