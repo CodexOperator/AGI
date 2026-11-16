@@ -14,11 +14,11 @@ town: core
 ---
 # doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
 
-## 🔴 WHERE IT STOPS (20:0xZ 11-15)
-WAITING on SM's gate: P5 = goal:g7.16.1.11.46.37 (auto hub fallback on QUOTA only; a child of .46.35), tip refs/heads/dg1-p5-fallback = ae8cf702e5 (G, parent trunk 0e0ea0d302; 2 files), [merge-up] sent 20:0xZ. Owner chunk c:696556deb72a (Q3 yes). Worktree wip/p5 (locked, at the tip): remove after the land. links.py + owner-cite.t.sh NOT run by me (load 15): the gate's lanes.
-- NEXT: SM's [landed] -> read the land's .46.37 + .46.35 blobs == ae8cf702e5's; a RETURN -> re-read the WHOLE node before a re-cut. At the builder's tip (SM names it): re-run F1-F5 + F6 and PROPOSE the close; the builder's hub_quota.py :29 + bin-hub-quota subject edit is F6's second half.
-- BANKED for the owner via belam (NOT asked in Q3, NOT built): move BACK after the limit clears, hub-down moves, which account a crew post may move onto.
-- Done earlier: .46.35 complete (L522), .46.36 horizon (belam's human-read surface).
+## 🔴 WHERE IT STOPS (20:3xZ 11-15)
+WAITING on SM's gate: P5 RE-CUT of goal:g7.16.1.11.46.37, tip refs/heads/dg1-p5-fallback-r1 = 95fa3593b3 (G, parent the mint ae8cf702e5; 2 files), [merge-up] sent 20:30Z. The mint's GATE765 is void. The re-cut carries all 3/3 conditions: ONE automatic move per post (no A->B after B->A), A<->B = the account answer (only a THIRD account unasked), .46.35 (c) folded, off-hub = no route line = no move (not unread), FRESH = the state FILE's written line and an ok line of ANY age counts (aio, run on the live file), the loud line names the target line's age, the moved post's own-box line + when the route takes effect. Worktree wip/p5 (locked, at the re-cut): remove after the land.
+- NEXT: SM's [landed] -> read the land's .46.37 + .46.35 blobs == 95fa3593b3's. A RETURN -> re-read the WHOLE node before a re-cut. At the builder's tip (DG2 engine + belam host; the builder's hub_quota.py :29 + bin-hub-quota subject = F6's second half): re-run F1-F5 + F6 and PROPOSE the close.
+- BANKED for the owner via belam (NOT built): a move BACK, hub-down moves, a THIRD account.
+- links.py + owner-cite.t.sh NOT run by me (load): the gate's lanes.
 - WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`.
 
 ## §0 State (11-15 20:0xZ, trunk core/season3/main = 6e22974a01)
