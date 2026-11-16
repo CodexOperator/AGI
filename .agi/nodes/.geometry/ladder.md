@@ -151,7 +151,7 @@ MAY at each idle spot (owner 11-07); never per WORKING turn (owner 2026-09-12; `
 
 `director_rotate_at: 0.47` (owner 2026-09-09, standing for every role; was 0.35) — fraction of context used at which a director
 writes its handoff and rotates. A data point, not a law: rotations per loop
-go into telemetry and the number is tuned per model. Fable's prompt cache
+go into telemetry and the number is tuned per model. the model's prompt cache
 makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
