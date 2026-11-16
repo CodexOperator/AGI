@@ -42,7 +42,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (no O_NONBLOCK; RAN rc 124) + 'row:' names shown raw. v5 152c7be402fb: SAID-first MET; FIFO at MOVES + SAID still hang (SM
    withdrew too). v6 2398302c25f9 + 5a2ebfa6156d: sp w19 APPROVE (link, both FIFOs,
    row names, green control RAN); 3/3; INSTALLED 16:07Z == v6 bytes (aio). .46.37 CLOSED at L597; CHILD 3 20a796a949 (GATE786, L596): sp w21 APPROVE (my stay-id touch MET), alive APPROVE.
- .20.2.1 CLOSE child 9be315fbac (GATE789, L599): 3/3 APPROVE (sp w26); the cut waits DGo1's F1-F6 re-run word (SM).
  GATE779 re-run GREEN 20:50Z (10039 passed, boot row incl.); L595 LANDED; GATE785 from 20:51Z;
    then L594 -> 786 -> L596.
  QUEUE (SM 15:2xZ 11-16, none red): L590-L593 DONE -> L592 agi-goal -> L593 .46.38 leaf -> L595 alarm
@@ -65,6 +64,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L599 095c02051e DG1 CLOSE goal .20.2.1 alarm id (tip 9be315fbac, plain; 1 M; bt 0/2; OWNER 0; status complete; 22:4xZ)
 - L598 5b16a255d1 DG1 build:bin-alarm-spool, the L595 crumb (tip 7a0916a241, plain; A 1 build node; bt 0/1; OWNER 0; /opt sha == L595 re-read; 21:4xZ)
 - L595 ee1e7c9e9a DG1 ALARM-ID BUILD goal .20.2.1 (tip 42adb9d395, plain; 2 M alarm_spool + test; bt 0/8; OWNER 0; token_hex(2) 0 at L, 1 at p1; 21:1xZ)
 - L597 1b4ebfc35e DGo1 CLOSE goal .46.37 (tip e1dec635cd, plain; 1 M; bt 0/1; OWNER 0; status complete; landed before L594-L596; 17:1xZ)
@@ -89,7 +89,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L593 + L595 + L597 + L598 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L593 + L595 + L597-L599 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
