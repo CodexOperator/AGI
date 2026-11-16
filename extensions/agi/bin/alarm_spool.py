@@ -192,8 +192,16 @@ def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path
             if sent is True:
                 print(f"alarm_spool: skipped {rec['id']}: already on {seat}'s out-ref")   # never silent: a true duplicate is one line, an id collision is SEEN
                 continue                                     # sent before a crash, never twice
-            if isinstance(sent, str):                            # could not LOOK: HOLD the line (exactly-once stays true; the cost is one drain's delay) and SAY so; NOT a send retry, so a held line never reaches .dead
-                print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable ({sent}): held for the next drain", file=sys.stderr)
+            if isinstance(sent, str):                        # could not LOOK: HOLD (exactly-once stays true; the cost is one drain's delay), BOUNDED by its OWN counter (never the send tries: a held line must not reach [alarm-dead])
+                rec["holds"] = int(rec.get("holds", 0)) + 1
+                if rec["holds"] >= max_tries:
+                    with spool.with_name(spool.name + ".dead").open("a") as dead:
+                        dead.write(json.dumps(rec, separators=(",", ":")) + "\n")
+                    print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable for {rec['holds']} drains ({sent}): moved to .dead UNVERIFIED", file=sys.stderr)
+                    _notice(notice_bin, f"[alarm-unverified] {rec['id']} {rec['job']} -> {rec['to']}: out-ref unreadable for {rec['holds']} drains, may or may not have been sent")
+                    continue
+                if rec["holds"] == 1:                        # ONE line per episode, not one per drain
+                    print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable ({sent}): held for the next drain", file=sys.stderr)
                 kept.append(json.dumps(rec, separators=(",", ":")))
                 continue
             why = _send(seat, rec, tree, box_bin)

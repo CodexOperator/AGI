@@ -334,30 +334,46 @@ def test_a_true_duplicate_is_skipped_with_one_visible_line(seat, capsys):
     assert out.count("alarm_spool: skipped ") == 1 and "already on sanctuary-master's out-ref" in out and len(_sent(seat)) == 1
 
 
-def test_an_unreadable_out_ref_holds_the_line_loudly_and_never_dead_letters_it(seat, monkeypatch, capsys):
-    """sp + alive 11-16: 'could not look' used to read as 'not sent' with no word (a SILENT duplicate). The ref EXISTS (one alarm already
-    sent) but its log fails: ONE loud line names the ref and the cause, the line stays in the spool, it is NOT counted as a send
-    retry (max_tries=1 would dead-letter a failed send at once), and the next drain with a readable log sends it once."""
-    a.append("j", "belam", "first", max_lines=10)
-    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=1) == 0
-    a.append("j", "belam", "second", max_lines=10)
-    real = a.subprocess.run
+def _held_bound(seat, mod, monkeypatch):
+    """an UNREADABLE out-ref (it exists, its log fails) for max_tries drains: never sent, ONE line, then ONE [alarm-unverified],
+    the line in .dead with tries unchanged. Returns what happened, for the real code and for each mutant."""
+    mod.append("j", "belam", "first", max_lines=10)
+    assert mod.drain("sanctuary-master", box_bin=seat.box, max_tries=3) == 0
+    mod.append("j", "belam", "second", max_lines=10)
+    real = mod.subprocess.run
     def failing(cmd, *k, **kw):
         if "log" in cmd:
             return types.SimpleNamespace(returncode=128, stdout="", stderr="fatal: bad object HEAD")
         return real(cmd, *k, **kw)
-    monkeypatch.setattr(a.subprocess, "run", failing)
-    capsys.readouterr()
+    monkeypatch.setattr(mod.subprocess, "run", failing)
+    seat.notice.unlink(missing_ok=True)
     for _ in range(3):
-        assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=1) == 0
-    err = capsys.readouterr().err
-    assert err.count("out-ref unreadable (refs/box/sanctuary-master/belam: git log rc 128") == 3 and "held for the next drain" in err
-    assert len(_sent(seat)) == 1 and len(seat.spool.read_text().splitlines()) == 1     # only the first was ever sent; the second is HELD
-    assert not (seat.home / "alarm.spool.dead").exists()
-    assert "tries" not in json.loads(seat.spool.read_text()) or json.loads(seat.spool.read_text())["tries"] == 0
-    monkeypatch.setattr(a.subprocess, "run", real)
-    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=1) == 0
-    assert len(_sent(seat)) == 2 and not seat.spool.exists()
+        mod.drain("sanctuary-master", box_bin=seat.box, max_tries=3)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    notes = seat.notice.read_text() if seat.notice.exists() else ""
+    d = [json.loads(l) for l in dead.read_text().splitlines()] if dead.exists() else []
+    return {"sent": len(_sent(seat)), "spool": seat.spool.exists() and len(seat.spool.read_text().splitlines()) or 0,
+            "dead": len(d), "tries": [x.get("tries", 0) for x in d], "unverified": notes.count("[alarm-unverified]"), "deadnote": notes.count("[alarm-dead]")}
+
+
+def test_an_unreadable_out_ref_is_held_then_bounded_into_dead_as_unverified_never_as_dead(seat, monkeypatch, capsys):
+    """sp + alive + aio 11-16: 'could not look' used to read as 'not sent' (a SILENT duplicate); now HOLD, loud ONCE per episode,
+    bounded by its own holds counter, ending in .dead with its OWN notice, tries untouched."""
+    got = _held_bound(seat, a, monkeypatch)
+    assert got == {"sent": 1, "spool": 0, "dead": 1, "tries": [0], "unverified": 1, "deadnote": 0}, got
+    assert capsys.readouterr().err.count("held for the next drain") == 1                 # one line per episode
+
+
+@pytest.mark.parametrize("old,new", [
+    ('                rec["holds"] = int(rec.get("holds", 0)) + 1\n', '                rec["holds"] = 0\n'),                       # an uncounted hold: the line stays in the spool for ever
+    ("[alarm-unverified]", "[alarm-dead]"),                                                                                  # a hold counted as a send try
+])
+def test_each_hold_mutant_goes_red(seat, monkeypatch, old, new):
+    src = SRC.read_text()
+    assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, new))
+    assert _held_bound(seat, mut, monkeypatch) != {"sent": 1, "spool": 0, "dead": 1, "tries": [0], "unverified": 1, "deadnote": 0}
 
 
 def test_an_out_ref_that_does_not_exist_yet_is_a_clean_no_not_unread(seat, capsys):
