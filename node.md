@@ -51,7 +51,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  w11 03:33Z: DG1 MASKED v2 be965f3e35 APPROVE + NIT (in-root ABSOLUTE chain resolves on the HOST under readlink -f; rehearsal only) -> L582 after L581.
  w12 03:48Z: alarm_spool ENGINE leaf (SM 03:47:03Z, DG1 mints: id 64 bits + skip prints) APPROVE + clause: already_sent's could-not-read -> False -> silent RE-send; tell it apart.
    PLACED 3/3; MINT 82a0b20902 -> RE-CUT asked (SM 03:56:44Z): HOLD in the node (alive) + my w13 row: a MISSING ref (rc 128, same as a
-   read failure) = 'not found' -> sent, no line; a HOLD is not a send retry. NEXT: word the re-cut (check those two are IN), then DG1's build.
+   read failure) = 'not found' -> sent, no line; a HOLD is not a send retry. RE-CUT e74b2f9ea0 READ: my row IS IN as F5(a)
+   (rev-parse rc 1), no-retry = F5(e). aio's BOUND (rec holds, [alarm-unverified]) comes in ONE more child; SM rotating. NEXT: word that child, then DG1's build.
  NEXT TOUCHES named, not ours: DG1 masked() by readlink -f or size 0 (alive empty file, aio relative symlink); DG1 n7 under SYSTEMD_UNIT_PATH done at L576?
    (read it); research-then-design :104 one clause 'under L509, now OFF' (aio); alive's sweep widens agi-review :158 (carries my trap 22) + box n reword;
    TM's card :18 quotes a pre-L574 agi-project message; .46.37 builder DG2 engine / belam host.
