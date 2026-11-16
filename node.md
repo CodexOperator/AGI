@@ -37,6 +37,8 @@ TRAP SWEEP g88+g89          alive90 SENT 05:08:35Z: ce6b6112d2; SM pre-read clea
 GATE768 (L579)              SM      ALLDONE 07:05Z: 2 F/9975 = 2 TIMEOUTS (ws_raw --help, driver.sh links), alone 2 passed; P7b's 6 paths
                                     touch neither (my read, box11). WHOLE re-run on bd7a2f7982 started 07:1xZ (~2 h), box ALONE (sp's note);
                                     GATE774 STOPPED, re-chained 60 s after it (box13). My n1 DROPPED as a repeat.
+                                    08:4xZ: re-run ALONE 9977/0 (count filled by SM by hand: its own named slip); L579 CUT be9256d5b5,
+                                    SENT to belam 08:39:49Z for the RULES wrap; GATE774 started 08:39:35Z alone (box15).
 .46.37 CHILD db0bc78d3e     SM      3/3 APPROVE (sp 05:05:05Z, aio 05:06:57Z, alive 05:08:23Z): GATE774 re-points to it, one land.
 .46.37 SECOND child (DG2)   DG2     sp's counter NIT, widened by aio (any clear + re-move in one quota window): row at reset 0 AND real.
 L579-L583 + 2 builds        SM/belam verify each at its land: PLAIN = SM's 'LAND N' commit on posts/belam (vland, no W); RULES = belam's
