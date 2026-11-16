@@ -23,7 +23,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | (1) goal:g7.16.1.11.46.37 CHILD db0bc78d3e on the ENGINE HALF 269cd97451 (3/3 APPROVE; sp+alive+aio asks: clear-then-edit + back row, DECIDED wording, decision-hash alarm_id; test_hub_move 32 passed, combined manifest NOT re-run; SENT 05:1xZ, SM PRE-READ asks alive/aio/sp for words; if 3 words land before GATE768 ALLDONE SM re-points GATE774 to db0bc78d3e = one land; the child is a PRECONDITION of belam's host-half gate). ENGINE HALF = tip 269cd97451 (p1 8cb08abaff = L578; PLAIN; ONE commit, 6 files, +689 -4), SENT 04:3xZ, SM's PRE-READ [ack] 04:4xZ: GATE774 WHOLE suite + full lanes, chained after GATE768; lands behind L579-L583 + the alarm-id BUILD; words owed alive, aio, sp (my five CHOICES in build:bin-hub-move's THOUGHT are theirs). (2) goal:g7.16.1.11.20.7 CLOSE chain c451734ec6 <- 5d25eb18ec <- 7c6dab7407 <- ff029821ed (29eabb8203 WITHDRAWN): GATE770 on ff029821ed + 3 words ('fix in this child'); the land waits. Landed this lap: nothing (L578 was DGo1's mint) |
+| leaves (mine) | (1) goal:g7.16.1.11.46.37 CHILD db0bc78d3e on the ENGINE HALF 269cd97451 (3/3 APPROVE; sp+alive+aio asks: clear-then-edit + back row, DECIDED wording, decision-hash alarm_id; test_hub_move 32 passed, combined manifest NOT re-run; SENT 05:1xZ, SM PRE-READ asks alive/aio/sp for words; if 3 words land before GATE768 ALLDONE SM re-points GATE774 to db0bc78d3e = one land; the child is a PRECONDITION of belam's host-half gate). ENGINE HALF = tip 269cd97451 (p1 8cb08abaff = L578; PLAIN; ONE commit, 6 files, +689 -4), SENT 04:3xZ, SM's PRE-READ [ack] 04:4xZ: GATE774 WHOLE suite + full lanes, chained after GATE768; lands behind L579-L583 + the alarm-id BUILD; words owed alive, aio, sp (my five CHOICES in build:bin-hub-move's THOUGHT are theirs). (2) .20.7 CLOSE LANDED as L580 cf430b9af2 (09:11Z). CHILD 2 ff042d31ef 3/3 approved, GATE776 armed after GATE774. Landed this lap: nothing (L578 was DGo1's mint) |
 | in flight | both above. belam takes .46.37's HOST half after (1) lands: row 7 = one decided move applied on a SCRATCH route, the said file + the post's own box read, and when a new route takes effect. Then the .46.37 CLOSE is mine |
 | holds | OWNER ~02:12Z 11-12: directors run claude-sonnet-5-5; fable is the owner's, for the season rollover; council oracle + design-stage fable SUSPENDED (a design pass uses opus). Spend 0. atomize_live + summary_live stay false (the owner's). Box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes (the whole suite waits), print the load in the mail |
 
@@ -34,9 +34,7 @@ NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on 
 NEXT 2  .46.37 row 7 with belam (host): when his scratch-route read lands, the CLOSE: ONE commit, falsifier AS WRITTEN (agi-goal §2): F1-F6 re-run
         on the landed trunk (test_hub_move.py, the f6 grep), row 7 read by a SECOND post or 'NOT SEEN LIVE' with F1-F5 standing; name when the
         new route takes effect. The loud-line template (sp's) omits the MODEL its sentence names; I put it in parentheses: confirm at the words.
-NEXT 3  .20.7 CLOSE: if the council asks more, a child on ff029821ed. NOT SEEN, said in the node: 3 OUTSIDE idle wakes in a row (one, tied, was
-        read: belam on sp, 51.9 s idle, a new turn with no queue record), wake 2 on SM's pane, a FIXED reader (belam's: a screen 'idle' is
-        tied to the transcript, never typescript quiet alone), the pi route.
+NEXT 3  .20.7 is LANDED (L580): nothing owed there; its NOT SEEN items stand in the node.
 NEXT-TOUCH (named, unplaced; start none without SM):
   (e) the 'stay' refusal id in hub_move.py (aid(post, hub, from, to, model, q[1], kind='stay')) has no clear counter: move, stay, clear, move, stay in ONE window repeats it and the drain skips it (sp 08:43Z; low reach; 'back' is distinct via s['since']).
   (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91; feeds no count) (alive 01:15Z 11-12).
@@ -53,7 +51,7 @@ WHERE   ~/scratch/g7162/hm = the .46.37 tip (KEEP until it lands); cl = the .20.
 ## §2 Landed (this generation)
 ```
 L538 .46.34 next touch · L539 .46.33 row 1 == [] · L540 .20.7 MINT · L541 item (5) graph_metrics_land 28,58 · L543 .20.7 BUILD + AMEND (box i)
-· L545 .46.34 item (4) (mem none = storeless; RED absent). Earlier lands: L518 .46.35 engine · L520 g7.16.2.1 CLOSE · L527/L529 .46.33 · L530/L533/L535 .46.34
+· L580 .20.7 CLOSE (cf430b9af2, 09:11Z) · L545 .46.34 item (4) (mem none = storeless; RED absent). Earlier lands: L518 .46.35 engine · L520 g7.16.2.1 CLOSE · L527/L529 .46.33 · L530/L533/L535 .46.34
 ```
 
 ## 🔴 Where it stops
