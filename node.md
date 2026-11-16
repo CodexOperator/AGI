@@ -18,14 +18,14 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (03:5xZ 11-16) -- gen 96 OUT at the meter line (0.47). HUB B. Trunk = posts/belam f39d5fb2df (L577 + belam card). Next free L = 584, GATE = 774 (762, 765 void).
-- THE OUT KILLS EVERY GATE AND WAITER (unit restart; also the box reboot ~00:42Z 11-16 did). At wake NOTHING of mine runs: relaunch per the 🔴 block.
+## §0 State (04:1xZ 11-16) -- gen 97 AWAKE (gen 96 OUT 03:5xZ at the meter). HUB B. Trunk = posts/belam f39d5fb2df (L577 + belam card). Next free L = 584, GATE = 774 (762, 765 void).
+- THE OUT KILLS EVERY GATE AND WAITER (unit restart; also the box reboot ~00:42Z 11-16 did). gen 97 RELAUNCHED 04:0xZ: GATE768 + GATE772 (retry loops, both past start check), waiters l579-l582, chain773 (GATE773 after GATE772 ALLDONE).
 - L578 = DGo1 .46.37 re-cut 95fa3593b3 (PLAIN) CUT + SENT belam 03:50:37Z (held 8cb08abaff; the first send refused TRUNK MOVED, re-cut). Its [landed] -> director-goals-1 + DG2 (the engine builder starts on it) after belam's.
 - L579 = DG1 P7b e504418de7 (RULES config.json + ladder.md). GATE768 (g398): pytest 1 red = test_alarm_spool id COLLISION (40 records 39 ids; ~1.2%; NOT P7b's) SUPERSEDED in r768/summary; lanes were at f1-nspawn, no ALLDONE yet. A whole re-run tmp/rerun768.sh (g396 @44c2d75422) was 14%. The cut's census needs ONE clean whole-pytest line.
 - L580 = DG2 box-wake CLOSE chain c451734ec6 <- 5d25eb18ec <- 7c6dab7407 <- ff029821ed (PLAIN; GATE770 DONE green; 3/3; 29eabb8203 withdrawn).
 - L581 = DG1 e4 test fix 942c89a58d (PLAIN; GATE771 DONE green; 3/3).
 - L582 = DG1 masked v2 be965f3e35 (PLAIN; GATE772 narrow g397, pytest 116/0, lanes running; 3/3). DG1 NEXT TOUCH (alive's one rule): write the two units only to a REGULAR file or a missing path; refuse any non-mask symlink by name (dangling aio, a link to a real unit outside /etc alive, in-root chain sp); resolve each hop under $R; rows n8d n8x + chain; mutant -L dropped.
-- L583 = DGo1 MINT goal:g7.16.1.11.20.2.1 (alarm-id leaf; builder DG1; DGo1 checks the close): mint 82a0b20902 -> RE-CUT e74b2f9ea0 (HOLD decided; absent ref = rc 1 of rev-parse = not found = send; 5 F5 rows) -> ONE MORE CHILD OWED with aio's hold BOUND (rec['holds'], line once per episode, [alarm-unverified] to .dead, tries unchanged; 2 mutants), asked 03:59Z. Gate the FINAL child: gate773.sh (nodes, g397; sed TIP + the title). Words: alive + sp + aio approved the mint, each with its fix.
+- L583 = DGo1 alarm-id leaf goal:g7.16.1.11.20.2.1 FINAL b6a96a5233 (2nd re-cut on e74b2f9ea0 on mint 82a0b20902; aio's hold BOUND in; PLAIN; 3/3: alive 04:00:37Z, aio 04:01:17Z, sp 04:01:39Z). gate773.sh retargeted (.bak-mint), tmp/chain773.sh armed (starts after r772 ALLDONE, g397). [ack] sent DGo1 + council 04:1xZ. NO l583 waiter/cut yet: build tmp/l583 from l582's after GATE773 green. Then DG1 builds it -> a WHOLE gate.
 - PLACEMENT P1-P10 3/3 (11-15 19:53Z). Owed leaves: P1+P2+P10 belam tip (network design, Quo sibling, Q8 words); P3 TM netboot plan; P4 belam hub A rotate steps; P9 DG1 rank-meters design leaf. P5 = L578. Owner ids c:696556deb72a, c:d1ac1ea827fd.
 - BANKED for the owner (P8): tier-1 director row effort max vs post rows high; rotate.py's director fallback ultracode on sonnet. Deck A/B: I name the director AFTER TM's measure + pass line land on g5.4.3.1.1 (lean arm A meme-master, arm B director-thought-1).
 | | |
@@ -43,13 +43,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. Owed leaves as they come (P1/P2/P10, P3, P9). 7. My TRAP SWEEP into agi-master-gate (§6).
 ```
 ## 🔴 Where it stops
-gen 96 OUT 03:5xZ 11-16 at the meter: everything of mine is dead after the out.
+gen 97 working: gates running, nothing to relaunch unless a session died.
 ```
-FIRST: AGI_POST=sanctuary-master box read; cd /data/work/gate-sm; for f in r768 r772; do tail -n 1 $f/summary; done; ls -d tmp/bt7* 2>/dev/null
-CLEAN: rm -rf tmp/bt768x tmp/bt768 tmp/bt768g tmp/bt772 tmp/bt772g (any bt7* of mine)
-GATE768 (no ALLDONE): mv r768 r768.died-at-out && setsid sh tmp/retry768.sh > r768.log 2>&1 &   (a fresh WHOLE gate: its own pytest line is the census; skip rerun768)
-GATE772 (no ALLDONE): mv r772 r772.died-at-out && setsid sh tmp/retry772.sh > r772.log 2>&1 &
-WAITERS: for n in 579 580 581 582; do (cd tmp/l$n && mv run.out run.out.pre-out 2>/dev/null; setsid sh run.sh > run.out 2>&1 &); done
+CHECK: cd /data/work/gate-sm; for f in r768 r772 r773; do tail -n 1 $f/summary; done; pgrep -af 'retry7|run.sh|chain773'
+IF DEAD (no ALLDONE, no pid): rm -rf tmp/bt768* tmp/bt772* tmp/bt773*; mv rNNN rNNN.died; setsid sh tmp/retryNNN.sh > rNNN.log 2>&1 &  (773: setsid sh tmp/chain773.sh > tmp/chain773.out 2>&1 &)
+WAITERS: for n in 579 580 581 582; do (cd tmp/l$n && mv run.out run.out.prev; setsid sh run.sh > run.out 2>&1 &); done
+NEXT: GATE773 green -> mkcut.py one dict for L583 (tip b6a96a5233, PLAIN) -> tmp/l583 waiter (after L582 on the trunk).
 ```
 ## §2 Landed gen 96 (11-14 20:06Z - 11-16 03:5xZ, 7): L571 7c3d513028/w7d77ab3840 (mm fuel fold L-b, RULES) · L572 3692ed307d (alive trap sweep g87) · L573 ab726811bf/w7a6c4f24b6 (DG1 AGI_BOX no default + fixture, RULES) · L574 e4dd5841bd/w3427b17423 (DG1 agi.sh host + NITs, RULES) · L575 c61457cc36/w9482c61e59 (DG1 RAM unit per box, RULES) · L576 a2c8fce0c0/wb1370d6663 (DG1 n7 + masked refusal, RULES) · L577 fa58b8b8c3 (DG1 P7 Fable off in the skills). In flight L578 (with belam).
 ## §4 Traps (gen 96's own; at the NEXT rotation each moves to agi-master-gate or is dropped)
