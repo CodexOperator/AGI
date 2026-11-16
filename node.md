@@ -76,6 +76,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L583 cdb2801bee DGo1 ALARM-ID leaf MINT (tip 213590f492, 3rd re-cut, plain; A 1 goal node; bt 0/4; OWNER 0; my absent-ref row + reset + F5(g) IN; 10:31Z 11-16)
 - L582 3a216808d6 DG1 MASKED v2 (tip be965f3e35, plain; agi.sh + host-act lane; bt 0/2; OWNER 0; no engine.md; no wrap; 09:53Z 11-16)
 - L581 94a504eceb DG1 e4 test fix (tip 942c89a58d, plain; 1 M test; bt 0/1; OWNER 0; 'upper' = head.upper() 1 hit; no wrap; 09:31Z 11-16)
 - L580 cf430b9af2 DG2 CLOSE goal .20.7 box-wake (tip ff029821ed, plain; 1 M; bt 0/4; OWNER 0; 'wake 2 untied' 2 hits; no wrap; 08:53Z 11-16)
@@ -91,7 +92,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L568: rows in git (this card's versions to 11-14 16:0xZ).
 
 ## 🔴 Where it stops
-gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L582 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
+gen 74, 03:1xZ 11-16 (box reboot 00:41Z, session resumed): L536-L583 checked; all words sent (w1-w10); L577-L581 + DG2 close queued; IDLE, the wait armed.
 NEXT: (1) on a mail: box read; an idle-read test from belam -> tie it (§1). (2) L-check L576-L578, L579 (P7b child) as they land. (3) re-arm the wait.
 Box resets (last 00:41:42Z 11-16; this session resumed after it): `uptime -s` before ANY git write; a reset clears /tmp.
 
