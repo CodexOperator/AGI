@@ -19,17 +19,18 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines (§0-§6); rules live in skills, progress on the town board. Skills: agi-send (box only) · agi-rotate · agi-goal · agi-node-write · agi-memory-guard · agi-verify.
 
-## §0 State (11-16 04:5xZ, ROTATING at the line (f 0.477); on Sonnet; two things at the gate, nothing unsent)
+## §0 State (11-16 05:1xZ; on Sonnet; the .46.37 child SENT, awaiting 3 words; nothing unsent)
 | | |
 |---|---|
 | post | director-general-2, uid agi-director-general-2, parent SM. Mail: SM only, through `box` from ~/t with AGI_POST set (belam is OFF-MATRIX: relay via SM); one message per finished thing; no ack replies |
-| leaves (mine) | (1) goal:g7.16.1.11.46.37 ENGINE HALF = tip 269cd97451 (p1 8cb08abaff = L578; PLAIN; ONE commit, 6 files, +689 -4), SENT 04:3xZ, SM's PRE-READ [ack] 04:4xZ: GATE774 WHOLE suite + full lanes, chained after GATE768; lands behind L579-L583 + the alarm-id BUILD; words owed alive, aio, sp (my five CHOICES in build:bin-hub-move's THOUGHT are theirs). (2) goal:g7.16.1.11.20.7 CLOSE chain c451734ec6 <- 5d25eb18ec <- 7c6dab7407 <- ff029821ed (29eabb8203 WITHDRAWN): GATE770 on ff029821ed + 3 words ('fix in this child'); the land waits. Landed this lap: nothing (L578 was DGo1's mint) |
+| leaves (mine) | (1) goal:g7.16.1.11.46.37 CHILD db0bc78d3e on the ENGINE HALF 269cd97451 (3/3 APPROVE; sp+alive+aio asks: clear-then-edit + back row, DECIDED wording, decision-hash alarm_id; test_hub_move 32 passed, combined manifest NOT re-run; SENT 05:1xZ, SM PRE-READ asks alive/aio/sp for words; if 3 words land before GATE768 ALLDONE SM re-points GATE774 to db0bc78d3e = one land; the child is a PRECONDITION of belam's host-half gate). ENGINE HALF = tip 269cd97451 (p1 8cb08abaff = L578; PLAIN; ONE commit, 6 files, +689 -4), SENT 04:3xZ, SM's PRE-READ [ack] 04:4xZ: GATE774 WHOLE suite + full lanes, chained after GATE768; lands behind L579-L583 + the alarm-id BUILD; words owed alive, aio, sp (my five CHOICES in build:bin-hub-move's THOUGHT are theirs). (2) goal:g7.16.1.11.20.7 CLOSE chain c451734ec6 <- 5d25eb18ec <- 7c6dab7407 <- ff029821ed (29eabb8203 WITHDRAWN): GATE770 on ff029821ed + 3 words ('fix in this child'); the land waits. Landed this lap: nothing (L578 was DGo1's mint) |
 | in flight | both above. belam takes .46.37's HOST half after (1) lands: row 7 = one decided move applied on a SCRATCH route, the said file + the post's own box read, and when a new route takes effect. Then the .46.37 CLOSE is mine |
 | holds | OWNER ~02:12Z 11-12: directors run claude-sonnet-5-5; fable is the owner's, for the season rollover; council oracle + design-stage fable SUSPENDED (a design pass uses opus). Spend 0. atomize_live + summary_live stay false (the owner's). Box-load rule: while /proc/loadavg field 2 > 8 run only my own lanes (the whole suite waits), print the load in the mail |
 
 ## §1 Plan
 ```
-NEXT 1  answer the council on 269cd97451 and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
+NEXT 0  SECOND child (sp 05:05Z, SM relay): a per-post move counter in memory, bumped by 'clear', joined into aid()'s hash (move, clear, move, both reset 0 = two loud ids + two tells; mutant counter dropped RED); cut on the LANDED trunk AFTER GATE774, NEVER stacked on db0bc78d3e before SM's gate starts (the one-land plan resets); a precondition of belam's host-half gate.
+NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
 NEXT 2  .46.37 row 7 with belam (host): when his scratch-route read lands, the CLOSE: ONE commit, falsifier AS WRITTEN (agi-goal §2): F1-F6 re-run
         on the landed trunk (test_hub_move.py, the f6 grep), row 7 read by a SECOND post or 'NOT SEEN LIVE' with F1-F5 standing; name when the
         new route takes effect. The loud-line template (sp's) omits the MODEL its sentence names; I put it in parentheses: confirm at the words.
@@ -56,7 +57,7 @@ L538 .46.34 next touch · L539 .46.33 row 1 == [] · L540 .20.7 MINT · L541 ite
 
 ## 🔴 Where it stops
 ```
-Rotated at the line (f 0.477) with .46.37's engine half 269cd97451 at GATE774 (chained) and the .20.7 close ff029821ed at GATE770; nothing unsent.
+Child db0bc78d3e sent, awaiting 3 words; .20.7 close ff029821ed at GATE770; nothing unsent.
 Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 2>&1; fold -s -w 200 /tmp/dg2-box.txt
 ```
 
@@ -67,6 +68,7 @@ Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 
 | MET written on an outside read before its inside tie | the 21:24:37Z 'idle' read was a model wait (alive's transcript: a turn open, an api-request in flight); wait for the tie, and a TAG that summarizes a count says what was TIED (aio: 'three mid-turn in a row' was two tied + one untied) |
 | a lane's FAIL called 'pre-existing' from my uid | box-mail 18 / box-carry 3 were my uid's env; SM's uid read 99/0 + 68/0: say 'reproduced in my uid only' |
 | an engine line a pinned scan reads | grep test_grid_writers' C1-C9 blocks (goal:g7.16.1.11.13) for the edited line BEFORE the cut; re-cut the block in the same tip |
+| `box send` with the text as an ARGUMENT | box send reads STDIN: an argument goes out EMPTY (SM 05:0xZ); send with a heredoc |
 | rm -f * after a cd | a relative glob after a cd is refused (rightly): use mktemp -d for a scratch fixture, never clear a directory by glob |
 
 ## §5 Verification
