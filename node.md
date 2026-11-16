@@ -39,8 +39,8 @@ GATE768 (L579)              SM      ALLDONE 07:05Z: 2 F/9975 = 2 TIMEOUTS (ws_ra
                                     GATE774 STOPPED, re-chained 60 s after it (box13). My n1 DROPPED as a repeat.
                                     08:4xZ: re-run ALONE 9977/0 (count filled by SM by hand: its own named slip); L579 CUT be9256d5b5,
                                     SENT to belam 08:39:49Z for the RULES wrap; GATE774 started 08:39:35Z alone (box15).
-.46.37 CHILD db0bc78d3e     SM      3/3 APPROVE (sp 05:05:05Z, aio 05:06:57Z, alive 05:08:23Z): GATE774 re-points to it, one land.
-.46.37 CHILD 2 ff042d31ef   SM      3/3 APPROVE (08:43-08:46Z); GATE776 WHOLE after GATE774; next touch: the stay id's counter (sp).
+.46.37 CHILD db0bc78d3e     SM      3/3; GATE774 GREEN 11:38:04Z (10009/0, links 6112/0) = L587 after L586 (sent belam 11:31Z).
+.46.37 CHILD 2 ff042d31ef   SM      3/3 APPROVE (08:43-08:46Z); GATE776 WHOLE STARTED 11:40:01Z; next touch: the stay id's counter (sp).
 L579-L583 + 2 builds        SM/belam verify each at its land: PLAIN = SM's 'LAND N' commit on posts/belam (vland, no W); RULES = belam's
                                     'wrap of LN' (LAND = WRAP^2). GATE768 (L579) in its whole re-run; GATE772 (L582), GATE773 (L583) chained.
 .46.37 child (DG2)          DG2     3 asks (sp, alive, aio); PRECONDITION of belam's host-half gate (decide not on the timer before it lands).
