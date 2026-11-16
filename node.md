@@ -1,0 +1,50 @@
+---
+id: goal:g7.16.1.13
+mint_id: 114624ffaecb4e6595a914b7184b5bf7
+type: goal
+parents:
+  - goal:g7.16.1
+next_edges: []
+confidence: 0.5
+goal_id: G7.16.1.13
+goal_kind: subgoal
+model: claude-sonnet-5-5
+origin: goal
+role: director
+scaffold_hash: 4f57e2442b49a415
+season: 3
+seeds: []
+status: active
+tags: []
+title: "G7.16.1.13: Rank meters -- each post rotates on a meter set by its rank, and one named progress count says why a senior window lasts longer (council design)"
+town: core
+---
+
+# goal:g7.16.1.13
+
+## Why this exists
+goal:g7.16.1 (the council loop): the owner's answer 7 to belam's eight questions (verbatim below) says a post's context window should last longer the more senior the post is, measured in progress, not in a fixed count. The council loop rotates every post on one meter today; this leaf is the design that gives each rank its own meter and says what counts as progress. Placed as P9 by sanctuary-master 19:39:38Z 11-15 (PLACED 3/3 19:53Z 11-15); minter director-general-1.
+
+## OWNER 11-15 18:57:53Z, verbatim (relayed whole by meme-master [owner]; answer 7 of belam's 8 questions asked 16:2xZ 11-14; owner chunk c:696556deb72a per sanctuary-master's 13:4xZ 11-16 correction: the 8 answers + the Quo note; both relays had named it pending)
+7. The post's hierarchical depth in the overall command structure. Like each progressively more "senior" position's one context window lasts for more and more relative "progress" via goal/outcome/etc completion and metric maxxing
+
+## Target end-state
+- A design doc node states, per rank in the command structure (every row of config:posts, the retired rows too, each marked retired in the table; a name counts only as a table cell `| name |`, never as prose), the meter that rotates that post, and ONE named progress count: what is counted (goal/outcome completion, metric movement), how it is read from the graph, and why a more senior rank's window is longer in that count.
+- The design is a council decision (three lenses) before any engine change; the engine half is a separate leaf.
+- sp's design input (19:47:04Z 11-15): the progress count is NAMED, not left as a word.
+
+## Invariants
+- The owner's words above are quoted, never paraphrased into a number the owner did not give.
+- No rotation meter constant changes in this leaf; it designs, it does not wire.
+
+## Falsifier
+1. `D=.agi/nodes/doc/rank-meters.md; test -f $D && S=$(sed -n '/^## Progress count/,/^## /p' $D) && [ "$(echo "$S" | grep -c '^read: ')" -ge 1 ] && echo "$S" | grep '^read: ' | head -1 | sed 's/^read: //' | sh | grep -Eq '^[0-9]+$'` exits 0: the section is non-empty and carries a `read:` line whose command prints a number.
+1a. `D=.agi/nodes/doc/rank-meters.md; n=0; m=0; for p in $(sed -n 's/^  - {/{/p' .agi/nodes/.geometry/posts.md | jq -r .name); do n=$((n+1)); [ "$(grep -c -F -- "| $p |" $D)" -ge 1 ] || { m=$((m+1)); echo "MISSING $p"; }; done; echo "names=$n missing=$m"; [ $n -gt 0 ] && [ $m = 0 ]` exits 0: every post name in config:posts' rows is in the doc's rank table (it prints its own count, so 0 names read is red, never a pass).
+1b. `grep -c 'c:696556deb72a' .agi/nodes/goal/g7.16.1.13.md` prints a number >= 1.
+2. Negative: `grep -c 'c:d1ac1ea827f[d]' .agi/nodes/goal/g7.16.1.13.md` prints 0 (the 19:01Z follow-up chunk (the other batch id) carried Q5 confirmed and the Q8 keys, not answer 7).
+
+## Out of scope
+goal:g7.16.1.11.46.37 (P5, hub fallback on quota) · the engine wiring of the meters · goal:g7.16.1.11 (the season-2 bundle)
+
+## Agent Notes
+Assigned to **director-general-1**.
