@@ -65,7 +65,7 @@ def spool_path() -> Path:
 
 
 def new_id(now: float) -> str:
-    return f"{int(now):08x}-{secrets.token_hex(2)}"
+    return f"{int(now):08x}-{secrets.token_hex(8)}"   # 64 random bits: 4 hex chars (the old width) collided ~1.2% per 40 same-second appends (GATE768, SM 11-16), and a collision made the drain SKIP the second alarm as 'sent before a crash'
 
 
 ID_OK = __import__("re").compile(r"^[A-Za-z0-9._-]{1,64}$")
@@ -116,14 +116,26 @@ def message(rec: dict) -> str:
     return f"[alarm {rec['job']}] {rec['text']}\n\nAlarm-job: {rec['job']}\nAlarm-id: {rec['id']}\n"
 
 
-def already_sent(tree: Path, seat: str, to: str, alarm_id: str) -> bool:
-    """True when the seat's OWN out-ref already carries this Alarm-id (a send whose unlink never ran)."""
+def already_sent(tree: Path, seat: str, to: str, alarm_id: str):
+    """True when the seat's OWN out-ref already carries this Alarm-id (a send whose unlink never ran); False when it was
+    READ and does not carry it, or the ref is ABSENT (rev-parse --verify --quiet exits 1: a seat's FIRST alarm to a reader,
+    NORMAL); a STRING (the reason) when it could not be read (the ref exists but the log fails, or an OSError / timeout):
+    the drain HOLDS that line, never takes 'could not look' for 'not sent' (sp + alive 11-16)."""
+    ref = f"refs/box/{seat}/{to}"
     try:
-        r = subprocess.run(["git", "-C", str(tree), "log", f"refs/box/{seat}/{to}", "-n", str(GIT_LOOKBACK),
-                            "--format=%B"], capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return r.returncode == 0 and f"Alarm-id: {alarm_id}" in r.stdout.splitlines()
+        v = subprocess.run(["git", "-C", str(tree), "rev-parse", "--verify", "--quiet", ref],
+                           capture_output=True, text=True, timeout=30)
+        if v.returncode == 1:
+            return False
+        if v.returncode != 0:
+            return f"{ref}: rev-parse rc {v.returncode}: {v.stderr.strip()[:100]}"
+        r = subprocess.run(["git", "-C", str(tree), "log", ref, "-n", str(GIT_LOOKBACK), "--format=%B"],
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return f"{ref}: {type(exc).__name__}: {exc}"[:160]
+    if r.returncode != 0:
+        return f"{ref}: git log rc {r.returncode}: {r.stderr.strip()[:100]}"
+    return f"Alarm-id: {alarm_id}" in r.stdout.splitlines()
 
 
 def _send(seat: str, rec: dict, tree: Path, box_bin: Path) -> str | None:
@@ -176,8 +188,14 @@ def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path
                 _notice(notice_bin, f"[alarm-spool-bad] {raw[:120]}")
                 print(f"alarm_spool: unreadable spool line dropped: {raw[:80]!r}", file=sys.stderr)
                 continue
-            if already_sent(tree, seat, rec["to"], rec["id"]):
+            sent = already_sent(tree, seat, rec["to"], rec["id"])
+            if sent is True:
+                print(f"alarm_spool: skipped {rec['id']}: already on {seat}'s out-ref")   # never silent: a true duplicate is one line, an id collision is SEEN
                 continue                                     # sent before a crash, never twice
+            if isinstance(sent, str):                            # could not LOOK: HOLD the line (exactly-once stays true; the cost is one drain's delay) and SAY so; NOT a send retry, so a held line never reaches .dead
+                print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable ({sent}): held for the next drain", file=sys.stderr)
+                kept.append(json.dumps(rec, separators=(",", ":")))
+                continue
             why = _send(seat, rec, tree, box_bin)
             if why is None:
                 print(f"alarm_spool: sent {rec['id']} [alarm {rec['job']}] -> {rec['to']}")

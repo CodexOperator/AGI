@@ -307,9 +307,78 @@ def _race_open(s, mod, monkeypatch):
     return _race(s, mod, monkeypatch, "open")
 
 
+def test_two_alarms_in_one_second_with_the_same_leading_random_bytes_are_both_sent(seat, monkeypatch, capsys):
+    """goal:g7.31.1.7.1 side leaf (SM 11-16, GATE768's red): new_id was whole seconds + 2 random bytes, so two alarms to one
+    reader in one second collided ~1.2% per 40 appends and the drain SKIPPED the second as 'sent before a crash'. The fake
+    token_hex gives both alarms the SAME first two bytes and different later ones: at the old width they collide, at 8 bytes they do not."""
+    n = iter(range(10, 99))
+    monkeypatch.setattr(a.secrets, "token_hex", lambda k: ("0102" + f"{next(n):02x}" * 6)[: 2 * k])
+    monkeypatch.setattr(a.time, "time", lambda: 1700000000.0)
+    a.append("j", "belam", "first alarm", max_lines=10)
+    a.append("j", "belam", "second alarm", max_lines=10)
+    ids = [json.loads(l)["id"] for l in seat.spool.read_text().splitlines()]
+    assert len(ids) == 2 and ids[0] != ids[1] and all(len(i) == 8 + 1 + 16 for i in ids), ids
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert len(_sent(seat)) == 2 and len(_refmsgs(seat)) == 2
+    assert "skipped" not in capsys.readouterr().out
+
+
+def test_a_true_duplicate_is_skipped_with_one_visible_line(seat, capsys):
+    a.append("j", "belam", "x", max_lines=10)
+    line = seat.spool.read_text()
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    capsys.readouterr()
+    seat.spool.write_text(line)                                 # the same id again (a crash replay)
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    out = capsys.readouterr().out
+    assert out.count("alarm_spool: skipped ") == 1 and "already on sanctuary-master's out-ref" in out and len(_sent(seat)) == 1
+
+
+def test_an_unreadable_out_ref_holds_the_line_loudly_and_never_dead_letters_it(seat, monkeypatch, capsys):
+    """sp + alive 11-16: 'could not look' used to read as 'not sent' with no word (a SILENT duplicate). The ref EXISTS (one alarm already
+    sent) but its log fails: ONE loud line names the ref and the cause, the line stays in the spool, it is NOT counted as a send
+    retry (max_tries=1 would dead-letter a failed send at once), and the next drain with a readable log sends it once."""
+    a.append("j", "belam", "first", max_lines=10)
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=1) == 0
+    a.append("j", "belam", "second", max_lines=10)
+    real = a.subprocess.run
+    def failing(cmd, *k, **kw):
+        if "log" in cmd:
+            return types.SimpleNamespace(returncode=128, stdout="", stderr="fatal: bad object HEAD")
+        return real(cmd, *k, **kw)
+    monkeypatch.setattr(a.subprocess, "run", failing)
+    capsys.readouterr()
+    for _ in range(3):
+        assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=1) == 0
+    err = capsys.readouterr().err
+    assert err.count("out-ref unreadable (refs/box/sanctuary-master/belam: git log rc 128") == 3 and "held for the next drain" in err
+    assert len(_sent(seat)) == 1 and len(seat.spool.read_text().splitlines()) == 1     # only the first was ever sent; the second is HELD
+    assert not (seat.home / "alarm.spool.dead").exists()
+    assert "tries" not in json.loads(seat.spool.read_text()) or json.loads(seat.spool.read_text())["tries"] == 0
+    monkeypatch.setattr(a.subprocess, "run", real)
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=1) == 0
+    assert len(_sent(seat)) == 2 and not seat.spool.exists()
+
+
+def test_an_out_ref_that_does_not_exist_yet_is_a_clean_no_not_unread(seat, capsys):
+    a.append("j", "belam", "x", max_lines=10)
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert "unread" not in capsys.readouterr().out and len(_sent(seat)) == 1
+
+
+def test_a_spool_line_with_an_old_width_id_still_drains(seat, capsys):
+    """a spool written before the width change (8 hex + 4 hex) drains beside a new-width line: every reader treats the id as opaque."""
+    a.append("j", "belam", "new width", max_lines=10)
+    old = json.dumps({"id": "6553f100-abcd", "job": "j", "to": "belam", "text": "old width", "tries": 0}, separators=(",", ":"))
+    with seat.spool.open("a") as f:
+        f.write(old + "\n")
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert len(_sent(seat)) == 2 and "skipped" not in capsys.readouterr().out
+
+
 @pytest.mark.parametrize("old,new,scenario,real", [
-    ('if already_sent(tree, seat, rec["to"], rec["id"]):', "if False:", _crash_then_rerun, 1),   # M1: a drain that re-sends a sent line
-    ('            kept.append(json.dumps(rec, separators=(",", ":")))\n', "            pass\n", _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
+    ('if sent is True:', "if False:", _crash_then_rerun, 1),   # M1: a drain that re-sends a sent line
+    ('            kept.append(json.dumps(rec, separators=(",", ":")))\n            print(f"alarm_spool: {rec[\'id\']} [alarm', '            pass\n            print(f"alarm_spool: {rec[\'id\']} [alarm', _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
     ('if rec["tries"] >= max_tries:', "if False:", _dead_after_three, 0),                # M4: retries for ever
     ("            if same:\n                return None\n", "            return None\n", _race_open, 1),   # M5: today's append, no check after the write = the line is lost
     ("    if me != f\"agi-{seat}\":", "    if False:", _other_uid, 0),                          # M3: any uid may drain (root signing as a seat)
