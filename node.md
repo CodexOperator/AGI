@@ -38,7 +38,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  QUEUE (SM 11:5xZ 11-16), L-check each as it lands:
-   rtd clause ce418cc275 (1 line skills :104, GATE781 12:45Z; 3/3 APPROVE: sp w3, aio, alive 12:47Z)
    then DG2 CHILD 2 ff042d31ef (GATE776 WHOLE, started 11:40Z; the clear-counter in the decision id) -> then belam's HOST half may gate
    then DG1 alarm-id BUILD 42adb9d395 (GATE779 WHOLE, after 776; implements goal .20.2.1 = L583)
  NEXT TOUCHES placed, not ours: DG2 'stay' refusal id lacks the clear counter (sp; aio probed: 1 id); DG1 an INSTALLED box whose carry.env or
@@ -49,6 +48,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L589 c2e765ea2e DG1 rtd clause :104 (tip ce418cc275, plain; 1 M skill; bt 0/1; OWNER 0; 3/3 given; 13:4xZ 11-16)
 - L588 9959f0278b DG1 MASKED SYMLINK 2 (tip ca2e63da93, plain; 2 M agi.sh + host-act test; bt 0/2; OWNER 0; carry.env + host.done in the refusal loop, AFTER hostmet (alive's (b) stands); 12:4xZ 11-16)
 - L587 e506847ebf DG2 .46.37 ENGINE + CHILD (tip db0bc78d3e, plain; 3 A + 3 M; bt 1/9 = the RFC 1918 fixture (b-7, 3/3); OWNER 0; 12:1xZ 11-16)
 - L586 4c79119036 DG1 MASKED SYMLINK pair (tip 53aa16d5fa, plain; agi.sh + lane; bt 0/4; hostmet '-L' term 0 hits, row n8d-c 1; 11:31Z 11-16)
@@ -65,7 +65,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (11-16 12:1xZ): L536-L588 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
+gen 75 (11-16 12:1xZ): L536-L589 checked; nothing owed; hub-move child 2 and the alarm-id build in gates (§1).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
