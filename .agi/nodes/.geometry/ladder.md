@@ -107,7 +107,7 @@ The live chart is printed by ``hierarchy.py render`` from this same ``roles:``
 declaration — the duplicate body table is gone, not re-derived.
 
 L3 focus: the top three levels are fixed, tier-2 rows are dropped (the three
-advisors embody the visions and spawn the Fable directors directly), and the
+advisors embody the visions and spawn the directors directly, on sonnet since L579), and the
 tier-1 director runs at effort **max** (not xhigh). Season 1 is named
 `genesis` (`season_names`). The prime's mantle — **Belam** — is declared in
 `mantles`, never hardcoded in `brief.py`.
@@ -151,7 +151,7 @@ MAY at each idle spot (owner 11-07); never per WORKING turn (owner 2026-09-12; `
 
 `director_rotate_at: 0.47` (owner 2026-09-09, standing for every role; was 0.35) — fraction of context used at which a director
 writes its handoff and rotates. A data point, not a law: rotations per loop
-go into telemetry and the number is tuned per model. Fable's prompt cache
+go into telemetry and the number is tuned per model. the model's prompt cache
 makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
