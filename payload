@@ -101,7 +101,7 @@ harness token count of each call (research and design sums apart), the versions 
 agents' own replies), every file that arrived late, and each guard verdict with its before-count.
 
 ## 7 · Worked example (meme-master, goal:g5.4.3.1, the class presentation deck, 11-10)
-Declared and run: 8 research kids (alias sonnet) + 4 design passes (alias fable) + 1 one-line version probe = 13 Agent
+Declared and run: 8 research kids (alias sonnet) + 4 design passes (alias fable, under the 11-10 exception, L509, now OFF: today's design alias is opus) + 1 one-line version probe = 13 Agent
 calls. Tokens: research 65,458 to 111,243 each, 697,817 in all; design 108,669 to 289,299 each, 845,293 in all;
 the probe 40,464. Wall time: research about 80 to 220 s each, design 330 to 1,350 s each. Two inputs reached a running
 design pass by follow-up message (one research file, the owner's decisions twice). Guard: 4 of 4 patches PASS, the
