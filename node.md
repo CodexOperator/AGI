@@ -100,7 +100,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| DG1 [merge-up] 09:38Z + SM [ack] 09:3xZ: masked-symlink 5b3b8cab7e (GATE777) + ladder nit 433e44da89 (GATE778, RULES) | SM | w3 09:40:21Z: (1) APPROVE -> w4 09:42:53Z NOT YET == sp (hostmet -L, dangling unit = met) + NIT next touch (carry.env + host.done are also plain > writes); (2) NOT YET: fold ladder :154; DG1 re-cut 3d816b82b3 = 3/3 APPROVE (w5 09:46:59Z), GATE778 on it. (1) waits DG1's child (drop -L, row n8d-c; aio's rehearsal caution) |
+| DG1 [merge-up] 09:38Z + SM [ack] 09:3xZ: masked-symlink 5b3b8cab7e (GATE777) + ladder nit 433e44da89 (GATE778, RULES) | SM | w3 09:40:21Z: (1) APPROVE -> w4 09:42:53Z NOT YET == sp (hostmet -L, dangling unit = met) + NIT next touch (carry.env + host.done are also plain > writes); (2) NOT YET: fold ladder :154; DG1 re-cut 3d816b82b3 = 3/3 APPROVE (w5 09:46:59Z), GATE778 on it. (1) DG1 fix CHILD 53aa16d5fa: w6 09:53:24Z APPROVE (both hunks, both roots, sedc-measured mutant) |
 | SM [ask] 08:4xZ 11-16: words on .46.37 CHILD 2 ff042d31ef (the clear counter) | SM | CLOSED: w2 08:46:17Z APPROVE (nothing drops the counter: hub_quota.step deletes only HUB-keys; == sp stay NIT + aio run); GATE776 after GATE774 |
 | sp 08:41:15Z: census rc=0 with no count | sp/SM | CLOSED: n2 08:46:25Z, the agi-master-gate census-count line already carries it: grow it in place in SM's sweep |
 | SM [ask] 05:0xZ 11-16: words on .46.37 CHILD db0bc78d3e (one land with GATE774?) | SM | CLOSED: w1 05:08:23Z APPROVE + YES (3/3; == sp NIT, == aio widening); SM [ack]: GATE774 re-pointed |
