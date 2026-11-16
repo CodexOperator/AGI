@@ -24,8 +24,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
   - L592 LANDED 93de4f570b (belam 16:41:30Z); [landed] sent DGo1 16:4xZ. CLOSED.
   - L593 LANDED ab73f54473 (belam gen XX 16:52:23Z); [landed] sent DGo1 16:5xZ. CLOSED.
-  - L595 = DG1 alarm-id BUILD 42adb9d395 (PLAIN; 3/3): GATE779 (relaunched 16:07:43Z) pytest RED 17:52Z: 1 failed test_agi_boot::test_high_reading_delays_next_start (load flake; tip = alarm_spool only; alone on merged tree bff1abf3f0 3x 20 passed). WHOLE RE-RUN armed: tmp/chain779r.sh (r779 ALLDONE -> r779.red-boot -> gate779 fresh -> arms l595 run.sh -> exec retry785). retry785 + l595 waiter KILLED 18:2xZ (re-armed by the chain). Told sp/alive/aio.
-  - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 started BY chain779r after the GATE779 re-run is GREEN (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
+  - L595 = DG1 alarm-id BUILD 42adb9d395: GATE779 RE-RUN GREEN (10039/0, lanes 0, ALLDONE 20:50Z; red run = r779.red-boot). CUT ee1e7c9e9a on 05474b10e3, SENT belam 20:52:43Z (near :00: belam lands after :07). [landed] -> DG1 after belam's.
+  - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 RUNNING from 20:51:01Z (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (hub_move words + stay id counter; PLAIN; pre-read clean): GATE786 WHOLE on g398 via tmp/retry786.sh (waits r785 ALLDONE). 3/3: alive 16:19:40Z (reading: two said lines for one hand move back), sp 16:20:42Z (stay id MET), aio 16:21:49Z (RAN 40 + a source mutant RED). tmp/l596 NOT built (clone l594 shape when gated; waits L594).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
