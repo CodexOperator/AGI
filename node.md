@@ -29,15 +29,13 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-NEXT 0  CHILD 2 ff042d31ef on db0bc78d3e SENT (clear counter in the alarm id; f9 reset 0 + real; test_hub_move 36 passed); awaits SM's PRE-READ + 3 words; a precondition of belam's host-half gate only.
+NEXT 0  CHILD 3 20a796a949 (~/scratch/g7162/c3, on trunk bca642529a) SENT 16:2xZ: host-words (module doc, back line, clear help, node: the host applies each row ONCE) + the 'stay' id counts clears; test_hub_move 40 passed; awaits SM's PRE-READ + 3 words + a whole gate. HOST HALF INSTALLED 16:07:37Z (v6); live read 'hub_move: 12 route row(s), 0 moved, 0 refused' every 60 s. The .46.37 CLOSE (NEXT 2) is mine: row 7 NOT SEEN LIVE until a quota move happens; say that.
 NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
 NEXT 2  .46.37 row 7 with belam (host): when his scratch-route read lands, the CLOSE: ONE commit, falsifier AS WRITTEN (agi-goal §2): F1-F6 re-run
         on the landed trunk (test_hub_move.py, the f6 grep), row 7 read by a SECOND post or 'NOT SEEN LIVE' with F1-F5 standing; name when the
         new route takes effect. The loud-line template (sp's) omits the MODEL its sentence names; I put it in parentheses: confirm at the words.
 NEXT 3  .20.7 is LANDED (L580): nothing owed there; its NOT SEEN items stand in the node.
 NEXT-TOUCH (named, unplaced; start none without SM):
-  (f) hub_move.py's back line (hand move-back, ~:138) AND the module doc ~:29 ('a hand edit without clear is re-applied': also false, aio 15:49Z) -- BOTH says 'or the host re-applies <to>': under belam's host half that is FALSE (SM 15:5xZ relaying belam): reword to 'the host does NOT re-apply it; run hub_move.py clear X to drop the standing move' + a row; fold with (e) in ONE child when SM places it. Also worth offering: decide could refuse a post name not matching ^[a-z0-9][a-z0-9-]*$ before it writes --moves (defense in depth for SM's privilege-boundary hold on the host half).
-  (e) the 'stay' refusal id in hub_move.py (aid(post, hub, from, to, model, q[1], kind='stay')) has no clear counter: move, stay, clear, move, stay in ONE window repeats it and the drain skips it (sp 08:43Z; low reach; 'back' is distinct via s['since']).
   (a) grid_stale's alarm text names a mislabelled anchor (grid_stale.py :82-91; feeds no count) (alive 01:15Z 11-12).
   (b) grid_stale AFTER the sync: sp's row of both jobs' log times first; falsifier = a stale read during a sync's write (belam 01:10Z 11-12).
   (c) box: its case default exits non-zero; read|n|i exits non-zero when for-each-ref fails; w12 on the REAL box vs an unreadable repo (sp + aio).
