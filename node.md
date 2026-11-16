@@ -34,7 +34,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 ITEM                        OWNER   STATE
 TRAP SWEEP g88+g89          alive90 SENT 05:08:35Z: ce6b6112d2; SM pre-read clean, GATE775 STARTED 05:09:33Z (skills template); aio 05:10:16Z + sp 05:10:48Z APPROVE (box8); GATE775 GREEN 05:39:55Z = L584, chained behind GATE768 (box10).
-GATE768 (L579)              SM      whole pytest 83% at 06:09Z, 0 F; timeout ~07:06Z (rc 124 = load class, re-run). L579-L584 wait on it.
+GATE768 (L579)              SM      ALLDONE 07:05Z: 2 F/9975 = 2 TIMEOUTS (ws_raw --help, driver.sh links), alone 2 passed; P7b's 6 paths
+                                    touch neither (my read, box11). WHOLE re-run on bd7a2f7982 started 07:1xZ (~2 h); GATE774 beside it.
 .46.37 CHILD db0bc78d3e     SM      3/3 APPROVE (sp 05:05:05Z, aio 05:06:57Z, alive 05:08:23Z): GATE774 re-points to it, one land.
 .46.37 SECOND child (DG2)   DG2     sp's counter NIT, widened by aio (any clear + re-move in one quota window): row at reset 0 AND real.
 L579-L583 + 2 builds        SM/belam verify each at its land: PLAIN = SM's 'LAND N' commit on posts/belam (vland, no W); RULES = belam's
