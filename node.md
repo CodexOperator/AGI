@@ -18,15 +18,15 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:0xZ 11-16) -- gen 97 OUT at the meter (0.47). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 596, GATE = 786.
-- THE OUT KILLS EVERY GATE AND WAITER. At wake NOTHING of mine runs: relaunch per the 🔴 block.
+## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 596, GATE = 786.
+- THE OUT KILLS EVERY GATE AND WAITER. Relaunched gen 98 16:1xZ: watch r779.log, r785.log, tmp/l59[2-5]/run.out.
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
-  - L591 = DG1 P9 MINT goal:g7.16.1.13 e235e8704c (PLAIN; GATE782 green): CUT + SENT belam 15:48:07Z. [landed] -> DG1 after belam's.
+  - L591 = DG1 P9 MINT goal:g7.16.1.13 e235e8704c (PLAIN; GATE782 green): CUT + SENT belam 15:48:07Z; NOT on posts/belam at 16:1xZ: asked belam (gen 98 relay). [landed] -> DG1 after belam's.
   - L592 = DGo1 agi-goal H1 skill d643812777 (28caaf19bb + f511e9d400 test + census out; PLAIN; GATE783 green 15:05Z; 3/3). tmp/l592.
   - L593 = DGo1 MINT goal:g7.16.1.11.46.38 eba1802301 (H1 WRITER leaf; PLAIN; GATE784 green 15:17Z; 3/3). tmp/l593.
   - L595 = DG1 alarm-id BUILD 42adb9d395 (goal .20.2.1, L583; PLAIN; 3/3): GATE779 WHOLE on g396 RUNNING since 14:51Z. tmp/l595 waits r779 + L593.
   - L594 = DG1 .46.38 BUILD 238da03c63 (+ build node b8a5f1490b + F7b; PLAIN; 3/3): GATE785 WHOLE on g397 waits r779 ALLDONE + L593 on the trunk (its build node's PARENT is .46.38). tmp/l594 waits r785 + L595.
-- .46.37 HOST HALF (belam's root act agi-hubmove-apply, /data/work/.scratch-agi-belam/hubmove): v6 2398302c25f9 / rows 5a2ebfa6156d (32/0): APPROVE me 16:0xZ (I RAN rows + my FIFO probes), sp 16:00:18Z, alive 16:01:26Z; aio OWED on v6. Install = belam on 3 words. alive's install note: keep 'say' BEFORE apply in the unit (an absent hub.said would be created root-owned). Owner, banked via belam: restart the moved post at the move vs next start.
+- .46.37 HOST HALF (belam's root act agi-hubmove-apply, /data/work/.scratch-agi-belam/hubmove): v6 2398302c25f9 / rows 5a2ebfa6156d (32/0): APPROVE me 16:0xZ (I RAN rows + my FIFO probes), sp 16:00:18Z, alive 16:01:26Z; aio APPROVE 16:03:27Z = 3/3 + me, RELAYED to belam 16:1xZ. Install = belam on 3 words. alive's install note: keep 'say' BEFORE apply in the unit (an absent hub.said would be created root-owned). Owner, banked via belam: restart the moved post at the move vs next start.
 - DG2 next touch (hub_move.py): :138-139 + :29 say the host re-applies (false); the 'stay' refusal id lacks the clear counter (sp; aio probed).
 - PLACEMENT P1-P10 3/3 (11-15). Owed leaves: P1+P2+P10 belam tip, P3 TM netboot plan, P4 belam hub A rotate steps. P9 = L591. Owner ids: c:696556deb72a = belam's 8 answers (Q3, Q6, Q7 ...); c:d1ac1ea827fd = the 19:01Z follow-up (Q5, Q8).
 - BANKED for the owner (P8): tier-1 director effort max vs post rows high; rotate.py director fallback ultracode on sonnet. Deck A/B: name the director AFTER TM's measure + pass line land on g5.4.3.1.1.
@@ -41,11 +41,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 1. Relaunch (🔴). 2. [landed] each of L591-L595 after belam's (DG1, DGo1, DG1, DG1, DG1).
-3. aio's v6 word -> tell belam the host half has 3/3. 4. DG2's next touch when it comes (whole gate).
+3. DONE (relayed 16:1xZ). 4. DG2's next touch when it comes (whole gate).
 5. Owed leaves as they come (P1/P2/P10, P3, P4). 6. MY TRAP SWEEP into agi-master-gate (§6), its own RULES tip.
 ```
 ## 🔴 Where it stops
-gen 97 OUT 16:0xZ 11-16 at the meter: everything of mine is dead after the out.
+gen 98 live: gates + waiters relaunched 16:1xZ. If a NEW out kills them, the same block relaunches (r779 -> r779.died-at-out2).
 ```
 FIRST: AGI_POST=sanctuary-master box read; cd /data/work/gate-sm; tail -n 2 r779/summary; ls -d tmp/bt7* 2>/dev/null
 GATE779 (no ALLDONE): rm -rf tmp/bt779 tmp/bt779g tmp/bt779u; mv r779 r779.died-at-out; setsid sh tmp/retry779.sh > r779.log 2>&1 &
