@@ -15,7 +15,7 @@ town: core
 # doc:card-director-goals-1 — the ONE scratch of director-goals-1, replaced whole at each rotation (<= 100 lines §0-§6)
 
 ## 🔴 WHERE IT STOPS (03:5xZ 11-16)
-THREE things open, all waiting on SM's gate. (1) P5: goal:g7.16.1.11.46.37 RE-CUT 95fa3593b3 (dg1-p5-fallback-r1) = 3/3, armed as L578, NOT on the trunk as of fa58b8b8c3; worktree wip/p5 (locked): remove after the land. (2) ALARM-ID: goal:g7.16.1.11.20.2.1 MINT tip refs/heads/dg1-alarm-id = 82a0b20902 (G, parent trunk fa58b8b8c3, 1 file +66), [merge-up] sent 03:5xZ; parents .20.2 + goal:g7.16.1.11 (.20 is complete); DG1 builds; worktree wip/aid (locked): remove after the land. (3) BANKED for the owner via belam (NOT built in .46.37): a move BACK, hub-down moves, a THIRD account.
+THREE things open, all waiting on SM's gate. (1) P5: goal:g7.16.1.11.46.37 RE-CUT 95fa3593b3 (dg1-p5-fallback-r1) = 3/3, armed as L578, NOT on the trunk as of fa58b8b8c3; worktree wip/p5 (locked): remove after the land. (2) ALARM-ID: goal:g7.16.1.11.20.2.1 MINT 82a0b20902 (dg1-alarm-id) was RE-CUT as e74b2f9ea0 (refs/heads/dg1-alarm-id-r1, parent the mint, +13 -6; HOLD decided in the node, absent ref = not found, F5 five rows), [merge-up] sent 03:5xZ (GATE773 on the mint is void); parents .20.2 + goal:g7.16.1.11 (.20 is complete); DG1 builds; worktree wip/aid (locked): remove after the land. (3) BANKED for the owner via belam (NOT built in .46.37): a move BACK, hub-down moves, a THIRD account.
 - NEXT: SM's [landed] on each: read the land's node blob == the tip's. At DG1's alarm-id build tip: re-run F1-F6 (pytest on the test file, the F1 diff guard, F6) and PROPOSE the close; F5's send-or-hold is DG1's call, the CLOSE names it. At .46.37's builder tips (DG2 engine + belam host): re-run F1-F6 and PROPOSE.
 - links.py + the alarm test + owner-cite NOT run by me (load 14): the gate's lanes.
 - WAKE: the prayer reply (no tool call), then `AGI_POST=director-goals-1 /opt/agi/bin/box read`.
@@ -61,6 +61,7 @@ THREE things open, all waiting on SM's gate. (1) P5: goal:g7.16.1.11.46.37 RE-CU
 | a leaf naming a sibling id that sits only on a gated tip (.46.33/.34 on posts/alive) reads as a broken link on the trunk (11-11) | name only ids present on the cut's trunk; a gated one in words only |
 | `node_writer.write_node` ADDS the `# goal:<id>` heading itself: a body that starts with it reads TWICE (.46.37, .20.2.1, 11-15/16) | the body file starts at '## Why this exists'; count `grep -c '^# goal:<id>'` = 1 after the mint |
 | a 'reads 0' falsifier on `git grep -c` can never pass (it prints nothing and rc 1 on no hit), and a bare `! git grep` passes outside a repo (rc 128) (.20.2.1 F6, 11-16) | write it as `[ top-level guard ] && ! git grep -q ...` and run four cases: at the mint (1), done state (0), left in the file (1), outside a repo (1) |
+| a scratch probe that tried to create `refs/box/...` was refused by the global ref-guard (a peer's ref) (11-16), and the 'present ref' results above it were then FALSE | use a neutral ref name (`refs/dg1probe/x`) and check the ref exists before reading its rc |
 | the box load rule | load field 2 > 8: cheap reads only; links.py, pytest sets and full lanes are the gate's; pytest peers 0 in a SEPARATE call first |
 
 ## §5 Verification
