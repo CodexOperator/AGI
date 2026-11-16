@@ -307,9 +307,249 @@ def _race_open(s, mod, monkeypatch):
     return _race(s, mod, monkeypatch, "open")
 
 
+def test_two_alarms_in_one_second_with_the_same_leading_random_bytes_are_both_sent(seat, monkeypatch, capsys):
+    """goal:g7.31.1.7.1 side leaf (SM 11-16, GATE768's red): new_id was whole seconds + 2 random bytes, so two alarms to one
+    reader in one second collided ~1.2% per 40 appends and the drain SKIPPED the second as 'sent before a crash'. The fake
+    token_hex gives both alarms the SAME first two bytes and different later ones: at the old width they collide, at 8 bytes they do not."""
+    n = iter(range(10, 99))
+    monkeypatch.setattr(a.secrets, "token_hex", lambda k: ("0102" + f"{next(n):02x}" * 6)[: 2 * k])
+    monkeypatch.setattr(a.time, "time", lambda: 1700000000.0)
+    a.append("j", "belam", "first alarm", max_lines=10)
+    a.append("j", "belam", "second alarm", max_lines=10)
+    ids = [json.loads(l)["id"] for l in seat.spool.read_text().splitlines()]
+    assert len(ids) == 2 and ids[0] != ids[1] and all(len(i) == 8 + 1 + 16 for i in ids), ids
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert len(_sent(seat)) == 2 and len(_refmsgs(seat)) == 2
+    assert "skipped" not in capsys.readouterr().out
+
+
+def test_a_true_duplicate_is_skipped_with_one_visible_line(seat, capsys):
+    a.append("j", "belam", "x", max_lines=10)
+    line = seat.spool.read_text()
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    capsys.readouterr()
+    seat.spool.write_text(line)                                 # the same id again (a crash replay)
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    out = capsys.readouterr().out
+    assert out.count("alarm_spool: skipped ") == 1 and "already on sanctuary-master's out-ref" in out and len(_sent(seat)) == 1
+
+
+def _held_bound(seat, mod, monkeypatch):
+    """an UNREADABLE out-ref (it exists, its log fails) for max_tries drains: never sent, ONE line, then ONE [alarm-unverified],
+    the line in .dead with tries unchanged. Returns what happened, for the real code and for each mutant."""
+    mod.append("j", "belam", "first", max_lines=10)
+    assert mod.drain("sanctuary-master", box_bin=seat.box, max_tries=3) == 0
+    mod.append("j", "belam", "second", max_lines=10)
+    real = mod.subprocess.run
+    def failing(cmd, *k, **kw):
+        if "log" in cmd:
+            return types.SimpleNamespace(returncode=128, stdout="", stderr="fatal: bad object HEAD")
+        return real(cmd, *k, **kw)
+    monkeypatch.setattr(mod.subprocess, "run", failing)
+    seat.notice.unlink(missing_ok=True)
+    for _ in range(3):
+        mod.drain("sanctuary-master", box_bin=seat.box, max_tries=3)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    notes = seat.notice.read_text() if seat.notice.exists() else ""
+    d = [json.loads(l) for l in dead.read_text().splitlines()] if dead.exists() else []
+    return {"sent": len(_sent(seat)), "spool": seat.spool.exists() and len(seat.spool.read_text().splitlines()) or 0,
+            "dead": len(d), "tries": [x.get("tries", 0) for x in d], "unverified": notes.count("[alarm-unverified]"), "deadnote": notes.count("[alarm-dead]")}
+
+
+def test_an_unreadable_out_ref_is_held_then_bounded_into_dead_as_unverified_never_as_dead(seat, monkeypatch, capsys):
+    """sp + alive + aio 11-16: 'could not look' used to read as 'not sent' (a SILENT duplicate); now HOLD, loud ONCE per episode,
+    bounded by its own holds counter, ending in .dead with its OWN notice, tries untouched."""
+    got = _held_bound(seat, a, monkeypatch)
+    assert got == {"sent": 1, "spool": 0, "dead": 1, "tries": [0], "unverified": 1, "deadnote": 0}, got
+    assert capsys.readouterr().err.count("held for the next drain") == 1                 # one line per episode
+
+
+def _held_with(seat, mod, monkeypatch, drains, **kw):
+    mod.append("j", "belam", "first", max_lines=10)
+    assert mod.drain("sanctuary-master", box_bin=seat.box, max_tries=9) == 0
+    mod.append("j", "belam", "second", max_lines=10)
+    real = mod.subprocess.run
+    monkeypatch.setattr(mod.subprocess, "run", lambda cmd, *k, **kw2: types.SimpleNamespace(returncode=128, stdout="", stderr="fatal: bad object") if "log" in cmd else real(cmd, *k, **kw2))
+    for _ in range(drains):
+        mod.drain("sanctuary-master", box_bin=seat.box, **kw)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    return (len(dead.read_text().splitlines()) if dead.exists() else 0, len(seat.spool.read_text().splitlines()) if seat.spool.exists() else 0)
+
+
+@pytest.mark.parametrize("drains,kw,want", [
+    (2, {"max_tries": 5, "max_holds": 2}, (1, 0)),     # --max-holds 2 with --max-tries 5: dead at 2 holds
+    (4, {"max_tries": 5}, (0, 1)),                     # only --max-tries: the same bound (5): still held after 4
+    (5, {"max_tries": 5}, (1, 0)),                     # ... and dead at 5
+])
+def test_max_holds_is_its_own_bound_and_defaults_to_max_tries(seat, monkeypatch, drains, kw, want):
+    """F5 (f) of the leaf."""
+    assert _held_with(seat, a, monkeypatch, drains, **kw) == want
+
+
+def _hold_setup(seat, mod, monkeypatch):
+    mod.append("j", "belam", "first", max_lines=10)
+    assert mod.drain("sanctuary-master", box_bin=seat.box, max_tries=9) == 0
+    mod.append("j", "belam", "second", max_lines=10)
+    return mod.subprocess.run
+
+
+def _unreadable(mod, monkeypatch, real, how):
+    def failing(cmd, *k, **kw):
+        if "log" in cmd:
+            if how == "oserror":
+                raise OSError("git: Input/output error")
+            if how == "timeout":
+                raise mod.subprocess.TimeoutExpired(cmd, 30)
+            return types.SimpleNamespace(returncode=128, stdout="", stderr="fatal: bad object HEAD")
+        return real(cmd, *k, **kw)
+    monkeypatch.setattr(mod.subprocess, "run", failing)
+
+
+@pytest.mark.parametrize("how,word", [("rc", "git log rc 128"), ("oserror", "OSError"), ("timeout", "TimeoutExpired")])
+def test_every_unreadable_cause_holds_and_names_itself(seat, monkeypatch, capsys, how, word):
+    """F5 (c): an OSError AND a timeout AND a non-zero git rc each HOLD (never a silent send) and the line names the cause."""
+    real = _hold_setup(seat, a, monkeypatch)
+    _unreadable(a, monkeypatch, real, how)
+    capsys.readouterr()
+    a.drain("sanctuary-master", box_bin=seat.box, max_tries=9)
+    err = capsys.readouterr().err
+    assert "out-ref unreadable" in err and word in err and "held for the next drain" in err, err
+    assert len(_sent(seat)) == 1 and len(seat.spool.read_text().splitlines()) == 1
+
+
+def _episodes(seat, mod, monkeypatch):
+    """two unreadable drains, a RECOVERY whose send fails, then unreadable again, then healthy: returns (the could-not-read lines, sends, spool lines)."""
+    real = _hold_setup(seat, mod, monkeypatch)
+    _unreadable(mod, monkeypatch, real, "rc")
+    for _ in range(2):
+        mod.drain("sanctuary-master", box_bin=seat.box, max_tries=9)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    monkeypatch.setenv("BOX_FAIL", "boom")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=9)              # the read works, the SEND fails: kept with tries 1
+    monkeypatch.delenv("BOX_FAIL")
+    _unreadable(mod, monkeypatch, real, "rc")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=9)              # a LATER unreadable episode
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=9)              # healthy: the held line goes ONCE
+    return len(_sent(seat)), (len(seat.spool.read_text().splitlines()) if seat.spool.exists() else 0)
+
+
+def test_the_could_not_read_line_prints_once_per_episode_the_bound_counts_consecutive_drains_and_recovery_sends_once(seat, monkeypatch, capsys):
+    capsys.readouterr()
+    got = _episodes(seat, a, monkeypatch)
+    assert got == (2, 0), got                                                   # the first alarm + the held one, exactly once each
+    assert capsys.readouterr().err.count("held for the next drain") == 2        # one line per EPISODE (2 episodes), not per drain
+
+
+@pytest.mark.parametrize("old,new", [
+    ('            if sent is False and rec.get("holds"):\n                rec["holds"] = 0 ', '            if False:\n                rec["holds"] = 0 '),                  # no reset: the second episode is SILENT
+    ('                if rec["holds"] == 1:  ', '                if True:  '),                                                             # a line every drain
+])
+def test_each_episode_mutant_goes_red(seat, monkeypatch, capsys, old, new):
+    src = SRC.read_text()
+    assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, new))
+    capsys.readouterr()
+    _episodes(seat, mut, monkeypatch)
+    assert capsys.readouterr().err.count("held for the next drain") != 2
+
+
+def _consecutive(seat, mod, monkeypatch):
+    """max 2: unreadable (holds 1), a recovery whose send fails (reset), unreadable again (holds 1 again, NOT 2): the bound counts
+    CONSECUTIVE unreadable drains, so the line is still HELD, never dead-lettered. Returns (dead lines, spool lines)."""
+    real = _hold_setup(seat, mod, monkeypatch)
+    _unreadable(mod, monkeypatch, real, "rc")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=2)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    monkeypatch.setenv("BOX_FAIL", "boom")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=2)              # read ok, send fails: tries 1 of 2
+    monkeypatch.delenv("BOX_FAIL")
+    _unreadable(mod, monkeypatch, real, "rc")
+    mod.drain("sanctuary-master", box_bin=seat.box, max_tries=2)
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    return (len(dead.read_text().splitlines()) if dead.exists() else 0, len(seat.spool.read_text().splitlines()) if seat.spool.exists() else 0)
+
+
+def test_the_hold_bound_counts_consecutive_unreadable_drains_never_across_a_recovery(seat, monkeypatch):
+    assert _consecutive(seat, a, monkeypatch) == (0, 1)
+
+
+def test_without_the_reset_the_bound_would_dead_letter_across_a_recovery(seat, monkeypatch):
+    src = SRC.read_text()
+    old = '            if sent is False and rec.get("holds"):\n                rec["holds"] = 0 '
+    assert src.count(old) == 1
+    mut = _fresh(src.replace(old, '            if False:\n                rec["holds"] = 0 '))
+    assert _consecutive(seat, mut, monkeypatch) != (0, 1)
+
+
+def _alternating(seat, mod, monkeypatch):
+    """F5 (g) second case: --max-holds 2 --max-tries 5: U, R(send fails), U, R(send fails), U: the unreadable drains are never 2 IN A ROW, so the line is never dead-lettered."""
+    real = _hold_setup(seat, mod, monkeypatch)
+    kw = dict(max_tries=5, max_holds=2)
+    for step in ("U", "R", "U", "R", "U"):
+        if step == "U":
+            _unreadable(mod, monkeypatch, real, "rc")
+            mod.drain("sanctuary-master", box_bin=seat.box, **kw)
+        else:
+            monkeypatch.setattr(mod.subprocess, "run", real)
+            monkeypatch.setenv("BOX_FAIL", "boom")
+            mod.drain("sanctuary-master", box_bin=seat.box, **kw)
+            monkeypatch.delenv("BOX_FAIL")
+    monkeypatch.setattr(mod.subprocess, "run", real)
+    dead = seat.home / "alarm.spool.dead"
+    return (len(dead.read_text().splitlines()) if dead.exists() else 0, len(seat.spool.read_text().splitlines()) if seat.spool.exists() else 0)
+
+
+def test_alternating_unreadable_and_readable_drains_never_dead_letter_the_line(seat, monkeypatch):
+    assert _alternating(seat, a, monkeypatch) == (0, 1)
+
+
+def test_a_bound_counting_across_episodes_dead_letters_it(seat, monkeypatch):
+    src = SRC.read_text()
+    old = '            if sent is False and rec.get("holds"):\n                rec["holds"] = 0 '
+    assert src.count(old) == 1
+    mut = _fresh(src.replace(old, '            if False:\n                rec["holds"] = 0 '))
+    assert _alternating(seat, mut, monkeypatch) == (1, 0)
+
+
+def test_the_cli_takes_an_optional_max_holds(seat):
+    src = SRC.read_text()
+    assert '"--max-holds", type=int, default=None' in src and 'max_holds=a.max_holds' in src
+
+
+@pytest.mark.parametrize("old,new", [
+    ('                rec["holds"] = int(rec.get("holds", 0)) + 1\n', '                rec["holds"] = 0\n'),                       # an uncounted hold: the line stays in the spool for ever
+    ('_notice(notice_bin, f"[alarm-unverified]', '_notice(notice_bin, f"[alarm-dead]'),                                                                                  # a hold counted as a send try
+])
+def test_each_hold_mutant_goes_red(seat, monkeypatch, old, new):
+    src = SRC.read_text()
+    assert src.count(old) == 1, old
+    mut = _fresh(src.replace(old, new))
+    assert _held_bound(seat, mut, monkeypatch) != {"sent": 1, "spool": 0, "dead": 1, "tries": [0], "unverified": 1, "deadnote": 0}
+
+
+def test_an_out_ref_that_does_not_exist_yet_is_a_clean_no_not_unread(seat, capsys):
+    a.append("j", "belam", "x", max_lines=10)
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert "unread" not in capsys.readouterr().out and len(_sent(seat)) == 1
+
+
+def test_a_spool_line_with_an_old_width_id_still_drains(seat, capsys):
+    """a spool written before the width change (8 hex + 4 hex) drains beside a new-width line: every reader treats the id as opaque."""
+    a.append("j", "belam", "new width", max_lines=10)
+    old = json.dumps({"id": "6553f100-abcd", "job": "j", "to": "belam", "text": "old width", "tries": 0}, separators=(",", ":"))
+    with seat.spool.open("a") as f:
+        f.write(old + "\n")
+    assert a.drain("sanctuary-master", box_bin=seat.box, max_tries=60) == 0
+    assert len(_sent(seat)) == 2 and "skipped" not in capsys.readouterr().out
+
+
 @pytest.mark.parametrize("old,new,scenario,real", [
-    ('if already_sent(tree, seat, rec["to"], rec["id"]):', "if False:", _crash_then_rerun, 1),   # M1: a drain that re-sends a sent line
-    ('            kept.append(json.dumps(rec, separators=(",", ":")))\n', "            pass\n", _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
+    ('if sent is True:', "if False:", _crash_then_rerun, 1),   # M1: a drain that re-sends a sent line
+    ('            kept.append(json.dumps(rec, separators=(",", ":")))\n            print(f"alarm_spool: {rec[\'id\']} [alarm', '            pass\n            print(f"alarm_spool: {rec[\'id\']} [alarm', _failed_then_fixed, 1),              # M2: a failed line is dropped, never retried
     ('if rec["tries"] >= max_tries:', "if False:", _dead_after_three, 0),                # M4: retries for ever
     ("            if same:\n                return None\n", "            return None\n", _race_open, 1),   # M5: today's append, no check after the write = the line is lost
     ("    if me != f\"agi-{seat}\":", "    if False:", _other_uid, 0),                          # M3: any uid may drain (root signing as a seat)

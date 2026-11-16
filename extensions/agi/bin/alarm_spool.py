@@ -65,7 +65,7 @@ def spool_path() -> Path:
 
 
 def new_id(now: float) -> str:
-    return f"{int(now):08x}-{secrets.token_hex(2)}"
+    return f"{int(now):08x}-{secrets.token_hex(8)}"   # 64 random bits: 4 hex chars (the old width) collided ~1.2% per 40 same-second appends (GATE768, SM 11-16), and a collision made the drain SKIP the second alarm as 'sent before a crash'
 
 
 ID_OK = __import__("re").compile(r"^[A-Za-z0-9._-]{1,64}$")
@@ -116,14 +116,26 @@ def message(rec: dict) -> str:
     return f"[alarm {rec['job']}] {rec['text']}\n\nAlarm-job: {rec['job']}\nAlarm-id: {rec['id']}\n"
 
 
-def already_sent(tree: Path, seat: str, to: str, alarm_id: str) -> bool:
-    """True when the seat's OWN out-ref already carries this Alarm-id (a send whose unlink never ran)."""
+def already_sent(tree: Path, seat: str, to: str, alarm_id: str):
+    """True when the seat's OWN out-ref already carries this Alarm-id (a send whose unlink never ran); False when it was
+    READ and does not carry it, or the ref is ABSENT (rev-parse --verify --quiet exits 1: a seat's FIRST alarm to a reader,
+    NORMAL); a STRING (the reason) when it could not be read (the ref exists but the log fails, or an OSError / timeout):
+    the drain HOLDS that line, never takes 'could not look' for 'not sent' (sp + alive 11-16)."""
+    ref = f"refs/box/{seat}/{to}"
     try:
-        r = subprocess.run(["git", "-C", str(tree), "log", f"refs/box/{seat}/{to}", "-n", str(GIT_LOOKBACK),
-                            "--format=%B"], capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return r.returncode == 0 and f"Alarm-id: {alarm_id}" in r.stdout.splitlines()
+        v = subprocess.run(["git", "-C", str(tree), "rev-parse", "--verify", "--quiet", ref],
+                           capture_output=True, text=True, timeout=30)
+        if v.returncode == 1:
+            return False
+        if v.returncode != 0:
+            return f"{ref}: rev-parse rc {v.returncode}: {v.stderr.strip()[:100]}"
+        r = subprocess.run(["git", "-C", str(tree), "log", ref, "-n", str(GIT_LOOKBACK), "--format=%B"],
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return f"{ref}: {type(exc).__name__}: {exc}"[:160]
+    if r.returncode != 0:
+        return f"{ref}: git log rc {r.returncode}: {r.stderr.strip()[:100]}"
+    return f"Alarm-id: {alarm_id}" in r.stdout.splitlines()
 
 
 def _send(seat: str, rec: dict, tree: Path, box_bin: Path) -> str | None:
@@ -145,7 +157,8 @@ def _notice(notice_bin: Path, line: str) -> None:
 
 
 def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path = Path("/opt/agi/bin/box"),
-          notice_bin: Path | None = None, tree: Path | None = None) -> int:
+          notice_bin: Path | None = None, tree: Path | None = None, max_holds: int | None = None) -> int:
+    max_holds = max_tries if max_holds is None else max_holds      # --max-holds is OPTIONAL: absent = the same bound as --max-tries
     me = _uid_name()
     if me != f"agi-{seat}":
         print(f"alarm_spool: uid {me} cannot drain {seat}'s spool (the drain must run as agi-{seat}: its key signs)",
@@ -176,8 +189,24 @@ def drain(seat: str, *, max_tries: int, spool: Path | None = None, box_bin: Path
                 _notice(notice_bin, f"[alarm-spool-bad] {raw[:120]}")
                 print(f"alarm_spool: unreadable spool line dropped: {raw[:80]!r}", file=sys.stderr)
                 continue
-            if already_sent(tree, seat, rec["to"], rec["id"]):
+            sent = already_sent(tree, seat, rec["to"], rec["id"])
+            if sent is False and rec.get("holds"):
+                rec["holds"] = 0                             # the read recovered: the bound counts CONSECUTIVE unreadable drains, and a LATER episode prints its line again (sp 11-16)
+            if sent is True:
+                print(f"alarm_spool: skipped {rec['id']}: already on {seat}'s out-ref")   # never silent: a true duplicate is one line, an id collision is SEEN
                 continue                                     # sent before a crash, never twice
+            if isinstance(sent, str):                        # could not LOOK: HOLD (exactly-once stays true; the cost is one drain's delay), BOUNDED by its OWN counter (never the send tries: a held line must not reach [alarm-dead])
+                rec["holds"] = int(rec.get("holds", 0)) + 1
+                if rec["holds"] >= max_holds:
+                    with spool.with_name(spool.name + ".dead").open("a") as dead:
+                        dead.write(json.dumps(rec, separators=(",", ":")) + "\n")
+                    print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable for {rec['holds']} drains ({sent}): moved to .dead UNVERIFIED", file=sys.stderr)
+                    _notice(notice_bin, f"[alarm-unverified] {rec['id']} {rec['job']} -> {rec['to']}: out-ref unreadable for {rec['holds']} drains, may or may not have been sent")
+                    continue
+                if rec["holds"] == 1:                        # ONE line per episode, not one per drain
+                    print(f"alarm_spool: alarm {rec['id']}: out-ref unreadable ({sent}): held for the next drain", file=sys.stderr)
+                kept.append(json.dumps(rec, separators=(",", ":")))
+                continue
             why = _send(seat, rec, tree, box_bin)
             if why is None:
                 print(f"alarm_spool: sent {rec['id']} [alarm {rec['job']}] -> {rec['to']}")
@@ -218,6 +247,7 @@ def main(argv: list[str] | None = None) -> int:
     ap_d = sub.add_parser("drain", help="sign + box-send every spooled line, as the sending seat")
     ap_d.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     ap_d.add_argument("--max-tries", type=int, required=True, help="failed passes before a line is dead-lettered to alarm.spool.dead")
+    ap_d.add_argument("--max-holds", type=int, default=None, help="drains a line may be HELD behind an unreadable out-ref before it moves to alarm.spool.dead as [alarm-unverified] (default: --max-tries)")
     ap_d.add_argument("--spool", type=Path, default=None)
     ap_d.add_argument("--box-bin", type=Path, default=Path("/opt/agi/bin/box"))
     ap_d.add_argument("--notice-bin", type=Path, default=None)
@@ -229,7 +259,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"alarm_spool: NOT appended: {why}", file=sys.stderr)
             return 3
         return 0
-    return drain(a.seat, max_tries=a.max_tries, spool=a.spool, box_bin=a.box_bin, notice_bin=a.notice_bin, tree=a.tree)
+    return drain(a.seat, max_tries=a.max_tries, max_holds=a.max_holds, spool=a.spool, box_bin=a.box_bin, notice_bin=a.notice_bin, tree=a.tree)
 
 
 if __name__ == "__main__":
