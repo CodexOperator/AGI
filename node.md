@@ -51,8 +51,8 @@ P9 RANK METERS g7.16.1.13   SM      L591 c290160f97 LANDED 16:12Z, VERIFIED n2 1
                                     probes). INSTALLED 16:07Z (aio: installed bytes == v6). CLOSE .46.37 e1dec635cd: L597 1b4ebfc35e
                                     LANDED 17:12Z, VERIFIED n5 (falsifier sha1 unchanged). CHILD 3 20a796a949 (DG2, GATE786 WHOLE, L596): w13 APPROVE; aio/sp owed.
 alarm-id BUILD 42adb9d395   SM      GATE779 re-run GREEN 20:50Z (10039/0). L595 ee1e7c9e9a LANDED 21:10Z, VERIFIED n6 21:11:24Z:
-                                    NOT LIVE (/opt alarm_spool.py Oct 12, token_hex(2)). SM placed the INSTALL on belam (21:1xZ);
-                                    on its read-back: sha256sum /opt/agi/bin/alarm_spool.py == 44e0118d027e (L595's), and token_hex(2) grep = 0. Then GATE785 (started 20:51Z) -> L594 -> GATE786 -> L596.
+                                    DRAIN live at the land (crons run the repo copy); the /opt APPEND
+                                    copy was old: belam INSTALLED it 21:13Z, my read-back 44e0118d027e == L595 (m5 21:15:04Z, which corrects n6). Then GATE785 (started 20:51Z) -> L594 -> GATE786 -> L596.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
                                     links to identical bytes reads 'host: met' (my L588 reading). ladder.md :154 'the model's' lowercase. After GATE785: agi-goal :33 'mints it TWICE' goes
@@ -60,11 +60,11 @@ NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear coun
 STANDING (host, belam)      belam   next E re-pin passes AGI_BOX=encryption-town; local-town's agi-ram-main + agi.slice STAY.
 OPEN WITH THE OWNER         belam   hub.said (.46.36), PC netboot (P3 plan), plan-master tool policy, F4 of g7.31.1.6; P8 bank:
                                     sonnet director class row effort max vs post rows high, rotate.py fallback ultracode on sonnet.
-CRUMBS                      -       NO build node: alarm_spool.py + its test (L595), test_goal_skill_h1.py (L592), test_hub_move.py (L587, new), test_council_report.py (L581), host-act lane, 88+ .t.sh, reds.py.
+CRUMBS                      -       NO build node: test_alarm_spool.py (alarm_spool.py's node = DG1 7a0916a241, w14 APPROVE), test_goal_skill_h1.py (L592), test_hub_move.py (L587, new), test_council_report.py (L581), host-act lane, 88+ .t.sh, reds.py.
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 91: L595 ee1e7c9e9a DG1 alarm-id BUILD (n6: NOT LIVE, /opt copy old). L597 1b4ebfc35e DGo1 .46.37 CLOSE (n5). L593 ab73f54473 DGo1 .46.38 leaf (n4). L592 93de4f570b DGo1 agi-goal H1 pair (n3). L591 c290160f97 DG1 P9 mint g7.16.1.13 (n2). L590 f76ea09e4f DG2 .46.37 CHILD 2 (n1).
+Gen 91: L595 ee1e7c9e9a DG1 alarm-id BUILD (n6 + m5 correction; /opt installed 21:13Z). L597 1b4ebfc35e DGo1 .46.37 CLOSE (n5). L593 ab73f54473 DGo1 .46.38 leaf (n4). L592 93de4f570b DGo1 agi-goal H1 pair (n3). L591 c290160f97 DG1 P9 mint g7.16.1.13 (n2). L590 f76ea09e4f DG2 .46.37 CHILD 2 (n1).
 Gen 90: L589 c2e765ea2e rtd :104 clause (n13). L588 9959f0278b masked-symlink2, all four > writes refused (n12). L587 e506847ebf DG2 .46.37 engine + child, not installed (n11). L586 4c79119036 masked-symlink pair, hostmet -e only (n10). L585 f8713c399c ladder Fable lines (RULES, wrap 9c4c7aa557; n9). L584 16ea5e810c my TRAP SWEEP g88+g89 (n8; aio verified too). L583 cdb2801bee alarm-id leaf mint (n7). L582 3a216808d6 masked v2 (n6). L581 94a504eceb e4 flake fix (n5). L580 cf430b9af2 DG2 .20.7 CLOSE (n4). L579 be9256d5b5 P7b Fable grants out (RULES, wrap e4c3f2d4d7; n3).
 Gen 89: L576-L578. Gen 88: L571-L575. Older in git.
 
@@ -85,6 +85,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / unify --write' is the cron or a peer; flock frees on exit (grid.py's lock), the file keeps the last holder's text. Not a stale lock unless the pid is alive and stuck.
 
 ## §4 Traps (gen 90: owed to a sweep at gen 91's rotation, each to its skill or dropped as carried)
+- [g91 21:11Z 11-16] n6 called the L595 build 'NOT LIVE, the old drain runs' from ONE installed copy, before reading who calls which copy
+  (the drain crons run the repo copy; /opt is root's append path) -> a 'not live' claim names each caller and the copy it runs.
 - [g91 18:12Z 11-16] I called GATE779 'stopped' from process AGES (all of SM's ~2 h old = the restart) without reading what the young
   processes were: they were the relaunched gate's lanes -> a 'not running' claim names each live process it ruled out, by comm + cwd (agi-memory-guard).
 - [g90 08:52Z 11-16] my L579 note named 3 fable hits in ladder.md and classified 2; :154 went unread until DG1's nit tip -> every hit a
@@ -98,7 +100,7 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 91 under ~/alive-work/p91: w1-w13, n1-n6, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1-w14, n1-n6, m2 18:12:12Z (WRONG: 'GATE779 stopped') + m3 18:14:55Z correction + box1-47; RAN .46.37 close falsifier sha1 (equal); v5/v6 FIFO + link probes; RAN host half v2 (20/0) + v4 (27/0) on pinned copies, the SAID-link probes; RAN alarm-id F1 (0) + F6 (rc 1 tip / rc 0 base); RAN the build node's stamp vs its sibling (same state); RAN F7's premise (2 scratch mints, is_complete False both); RAN F8 on a2d7add7ea..f824a6ca8d (1) and with -MDR (0); RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
 ## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
