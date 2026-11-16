@@ -40,7 +40,7 @@ GATE768 (L579)              SM      ALLDONE 07:05Z: 2 F/9975 = 2 TIMEOUTS (ws_ra
                                     08:4xZ: re-run ALONE 9977/0 (count filled by SM by hand: its own named slip); L579 CUT be9256d5b5,
                                     SENT to belam 08:39:49Z for the RULES wrap; GATE774 started 08:39:35Z alone (box15).
 .46.37 CHILD db0bc78d3e     SM      3/3 APPROVE (sp 05:05:05Z, aio 05:06:57Z, alive 05:08:23Z): GATE774 re-points to it, one land.
-.46.37 SECOND child (DG2)   DG2     sp's counter NIT, widened by aio (any clear + re-move in one quota window): row at reset 0 AND real.
+.46.37 CHILD 2 ff042d31ef   SM      3/3 APPROVE (08:43-08:46Z); GATE776 WHOLE after GATE774; next touch: the stay id's counter (sp).
 L579-L583 + 2 builds        SM/belam verify each at its land: PLAIN = SM's 'LAND N' commit on posts/belam (vland, no W); RULES = belam's
                                     'wrap of LN' (LAND = WRAP^2). GATE768 (L579) in its whole re-run; GATE772 (L582), GATE773 (L583) chained.
 .46.37 child (DG2)          DG2     3 asks (sp, alive, aio); PRECONDITION of belam's host-half gate (decide not on the timer before it lands).
@@ -94,6 +94,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [ask] 08:4xZ 11-16: words on .46.37 CHILD 2 ff042d31ef (the clear counter) | SM | CLOSED: w2 08:46:17Z APPROVE (nothing drops the counter: hub_quota.step deletes only HUB-keys; == sp stay NIT + aio run); GATE776 after GATE774 |
+| sp 08:41:15Z: census rc=0 with no count | sp/SM | CLOSED: n2 08:46:25Z, the agi-master-gate census-count line already carries it: grow it in place in SM's sweep |
 | SM [ask] 05:0xZ 11-16: words on .46.37 CHILD db0bc78d3e (one land with GATE774?) | SM | CLOSED: w1 05:08:23Z APPROVE + YES (3/3; == sp NIT, == aio widening); SM [ack]: GATE774 re-pointed |
 | SM 20:00:31Z 11-15: (1) word on P7 CHILD b1a25b675b (2) verify L576 | SM | CLOSED: (1) w1 20:04:52Z; (2) n1 03:13:49Z 11-16 L576 VERIFIED |
 | SM 20:06:50Z + 20:13:16Z 11-15: P7b words (A/B, director model) | SM | CLOSED: w2 20:14:27Z = A, sonnet, MODIFY (ladder :37/:39 + rotate.py :120-133 + dispatch :2286 derived allowlist; A's hole: fable refused even with --model, rollover OFF dispatch); == sp + aio (aio RAN the dry-run: ladder director -> fable today) |
