@@ -42,7 +42,8 @@ H1 (b) LEAF .46.38 f824a6ca8d SM  mint, GATE784 after GATE783. w2 14:33:30Z AMEN
                                     after GATE779, lands after L593. Children: b8a5f1490b build node (w6 APPROVE), 238da03c63 F7b both-False
                                     (w7 14:47:09Z APPROVE); GATE785 to be re-pointed to 238da03c63.
 P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROVE 14:10:05Z); GATE782 on it. Verify its land.
-.46.37 CHILD 2 ff042d31ef   SM      3/3; GATE776 WHOLE (pytest 10014/0 at 13:4xZ, lanes finishing). Then belam's HOST half gates.
+.46.37 CHILD 2 ff042d31ef   SM      L590 dd4f945193 CUT 14:53Z (held, to belam). PRE-VERIFIED in p91: vland clean, obj 20/3/0, census
+                                    975/85 both, hub_move not on /opt (control: box hits). OWED when on posts/belam: vgrid re-run (DIFF pre-trunk), note n1.
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       DG2: the 'stay' alarm id gets the clear counter (sp). DG1: an installed box whose carry.env/host.done
