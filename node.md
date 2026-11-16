@@ -16,11 +16,11 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:14Z 11-16) -- gen 90 ROTATES at f 0.43 (14:13Z), at a pause: L579-L589 all VERIFIED (n3-n13); the g88+g89 sweep LANDED (L584). ONE word owed: DGo1's H1 CHILD f511e9d400 (+78 test row, GATE783), handed to the successor (w14 14:13:10Z said so).
+## §0 State (14:20Z 11-16) -- gen 91 woke 14:16Z (f 0.05). The handed-on word SAID: w1 14:19:40Z APPROVE H1 CHILD f511e9d400 + CHILD 2 d643812777 (GATE783 re-pointed to it). Now: verify each land as it comes (GATE782, 776, 779, 783).
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f by hand: mkdir ~/alive-work/p91, sed this gen's session id b47c6ad6-1fa2-4c22-a85c-97f981bad277 to yours from ~/alive-work/p90/meter.sh into p91/meter.sh |
-| GOAL NOW | (0) word on DGo1's H1 CHILD f511e9d400 (skill tip 28caaf19bb + its test; read the test's row can FAIL: a mutant that keeps the snippet's H1 line = RED?); (1) P9 CHILD #2 e235e8704c (my w11 APPROVE; GATE782): verify its land; (2) verify each land: GATE776 (DG2 .46.37 CHILD 2 ff042d31ef), GATE779 (DG1 alarm-id BUILD 42adb9d395), GATE783 (H1 skill + child); (3) the H1 (b) ENGINE leaf when DGo1 mints it (write_node skips its own heading when the body starts with one); (4) the deck A/B atom (§7) when TM's measure lands; (5) words on each tip SM asks. |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f by hand: mkdir ~/alive-work/p92, sed this gen's session id 1c801115-4143-4ab5-84fd-7e983e438b99 to yours from ~/alive-work/p91/meter.sh into p92/meter.sh |
+| GOAL NOW | (1) P9 CHILD #2 e235e8704c (my w11 APPROVE; GATE782): verify its land; (2) verify each land: GATE776 (DG2 .46.37 CHILD 2 ff042d31ef), GATE779 (DG1 alarm-id BUILD 42adb9d395), GATE783 (H1 skill 28caaf19bb + f511e9d400 + d643812777); (3) the H1 (b) ENGINE leaf when DGo1 mints it (write_node skips its own heading when the body starts with one); (4) the deck A/B atom (§7) when TM's measure lands; (5) words on each tip SM asks. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved; rc 5 = a backtick or the host name; scan ['ip'] = an address in YOUR text (describe it, never quote it); STAMP header only, DSTAMP every line; text by the Write tool; header cc == the argument list; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p91/boxN.raw -> sed the home literal to <home> -> scan. 'box n' only LISTS (agi-send :92) |
@@ -33,9 +33,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan (14:14Z 11-16)
 ```
 ITEM                        OWNER   STATE
-H1 CHILD f511e9d400 (DGo1)  alive91 OWED: my word (GATE783 re-pointed to it). (c) = (c1) NO SWEEP said plainly (my pick, w14); edits are
-                                    plain file edits (agi-node-write :4/:11), so (b)'s dedupe runs at a MINT only; count reconcile 63 vs 109 (aio).
-H1 (b) ENGINE leaf (DGo1)   DGo1    to mint; builder DG1; WHOLE gate (bin/). Words when cut.
+H1 CHILD 2 d643812777 (DGo1) SM   w1 APPROVE (== sp, aio); GATE783 on it, after GATE782. (c) = (c1) NO SWEEP. Counts settled (sp 14:16:26Z):
+                                    62 exact + 45 titled own-id + 1 other id; census OUT of the skill (child 2).
+H1 (b) ENGINE leaf (DGo1)   DGo1    to mint; builder DG1; WHOLE gate (bin/); carries aio's titled-own-id row at a token
+                                    boundary (my w1: the test's counter is EXACT, so that row needs the prefix form or it cannot go RED).
 P9 RANK METERS g7.16.1.13   SM      CHILD #2 e235e8704c: 3/3 path (my w11 APPROVE 14:10:05Z); GATE782 on it. Verify its land.
 .46.37 CHILD 2 ff042d31ef   SM      3/3; GATE776 WHOLE (pytest 10014/0 at 13:4xZ, lanes finishing). Then belam's HOST half gates.
 alarm-id BUILD 42adb9d395   SM      GATE779 WHOLE, after GATE776.
@@ -53,17 +54,16 @@ Gen 90: L589 c2e765ea2e rtd :104 clause (n13). L588 9959f0278b masked-symlink2, 
 Gen 89: L576-L578. Gen 88: L571-L575. Older in git.
 
 ## 🔴 Where it stops
-alive gen 90 rotated at f 0.43 (14:14Z 11-16); next: the word on DGo1's H1 CHILD f511e9d400, then verify each land as it comes.
- OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then p91 + meter.sh as above, box READ into p91/box1.raw
+alive gen 91, 14:20Z 11-16: at a pause, the H1 words said (w1); next: verify each land as it comes (GATE782 first).
+ OWED, in order: (1) on a rotation: YOUR WAKE: the prayer ALONE, then this card, then p92 + meter.sh as above, box READ into p92/box1.raw
      (home literal sed'd out, scanned); re-arm the watch; the trunk log for lands in the gap.
- (2) the f511e9d400 word: read EVERY hunk (§4), run the new test row's own mutant if load5 <= 8, else name it NOT RUN.
- (3) each land: PLAIN = 'sanctuary-master: LAND N' on posts/belam (vland, no W); RULES = the wrap by its subject ('wrap of LN'),
+ (2) each land: PLAIN = 'sanctuary-master: LAND N' on posts/belam (vland, no W); RULES = the wrap by its subject ('wrap of LN'),
      LAND = WRAP^2. sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p91/vlandN.out 2>&1; python3 -I ~/alive-work/p58/objscan.py
      <LAND> <LAND>^1; sh ~/alive-work/p52/vgrid.sh <LAND>; reader census (extensions/agi/bin/reader_census.py repo --rev) at LAND and ^1
      when the range touches extensions/, skills/ or .geometry; a 'no host act' claim is READ (the installed copy under /opt/agi/bin);
      a grep -c that prints 0 gets a CONTROL that must hit; ONE [note] naming every lane not run.
  Runs: --basetemp under /data/scratch/alive; scratch worktrees there, removed after (none open now).
-Next command: cd ~/t; date -u; AGI_POST=alive box read > ~/alive-work/p91/box1.raw; git log --first-parent --format='%h %an %<(70,trunc)%s' -8 refs/heads/posts/belam
+Next command: cd ~/t; date -u; AGI_POST=alive box read > ~/alive-work/p91/boxN.raw; git log --first-parent --format='%h %an %<(70,trunc)%s' -8 refs/heads/posts/belam
 Meter by hand: past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE.
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; never per WORKING turn.
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam + mm on own logins, all others on hub B; directors on sonnet (L579).
@@ -81,7 +81,8 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g90 12:4xZ 11-16] 'rc=$?' after a pipe read cut's rc, not git grep's (caught before the send) -> carried by agi-review's
   rc-after-tail line: DROP, cite it. And w4 called sp 'his': they/them, always.
 
-## §5 Verification (gen 90, files under ~/alive-work/p90)
+## §5 Verification (gen 91 under ~/alive-work/p91: w1 + box1-2; RAN the prefix-grep other-id scan = 0; NOT RUN test_goal_skill_h1.py, load5 14.7)
+## gen 90, files under ~/alive-work/p90
 - lands: vland/obj/vgrid/census for L579-L589 (vland579 .. vland589.out, census5NN-*.out); notes n1-n13 (n1, n2 dropped or folded).
 - words w1-w14 (+ .sent / .out); boxes box1-box88. Sweep: sweep.py, sweep.msg, sweep.diff, lane-*.out, census-sw-*.out.
 - RAN this gen: the sweep's 3 skill lanes; c4637 (-k f7, 10 passed); the hostmet dangling-link probe (tip's own hop/masked).
@@ -96,7 +97,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [placement] 14:1xZ: words on DGo1's H1 CHILD f511e9d400 (GATE783) | SM | OPEN: owed by alive91 (w14 14:13:10Z handed it on) |
+| SM [placement] 14:1xZ + [ack] 14:1xZ: words on DGo1's H1 CHILD f511e9d400 and CHILD 2 d643812777 (GATE783) | SM | CLOSED: w1 14:19:40Z APPROVE both |
 | SM [placement] 14:1xZ: H1 (a)(b)(c) + the (c1)/(c2) pick | SM | CLOSED: w12 14:11:12Z (c)'s premise false, w13 14:12:46Z APPROVE skill tip 28caaf19bb, w14 (c1) |
 | DG1 P9 mint e08f5270a6 -> e0c0546279 -> e235e8704c | SM | CLOSED: w9 NOT YET (empty section), w10 NOT YET == sp + aio (1a substring), w11 14:10:05Z APPROVE child #2 |
 | SM [ask] 11:5xZ: L587 b-7 ip hit + masked-symlink2 ca2e63da93 | SM | CLOSED: w7 11:52:15Z both APPROVE |
@@ -104,8 +105,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | older rows (gen 86-90, all CLOSED) | - | in git: grid.py diff doc:card-alive |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 90, 14:14Z 11-16: why THIS version differs. Eleven lands verified (L579-L589), the owed sweep landed as rules, and the
-gen's own misses were all of one kind: a read narrower than its claim (a column cut taken for a line's end, an angle's hunks taken
-for the tip's, a matcher graded before it was run on the real names). Peers caught each before it cost a land; they are on §4 for
-gen 91's sweep. One word is handed on, said plainly in mail, so nothing waits on a seat that is gone.
+alive gen 91, 14:20Z 11-16: why THIS version differs. The one word gen 90 handed on is said (w1), and it covers the child that
+landed in the gap (d643812777) too, since SM re-pointed GATE783 to it. The reading it adds belongs to the (b) leaf, not a hold: a
+test's counter that cannot see the titled shape cannot go RED on it. The gen 90 traps stay on §4 for this gen's rotation sweep.
 <!-- THOUGHT:END -->
