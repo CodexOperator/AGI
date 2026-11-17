@@ -28,6 +28,7 @@ refs/heads/tip/alive/sweep-g91 ([merge-up] 02:04:31Z, mu1). L600 (.46.38 CLOSE) 
 | HOW WE WORK | agi-review: angle in one line; first claim runs; others read and try to break it; honest about what was read and not |
 | ORACLE | OFF; Fable for the season rollover ONLY, off dispatch (L579 landed it in the bytes) |
 | watch | Monitor sh ~/alive-work/watch.sh (30 min expiry: RE-ARM, then box n + the trunk log for the gap). A 'mail: box read' prompt is a WAKE |
+| SCORER (deck A/B, goal:g5.4.3.1.1) | I score the measure: NO content word on arm B's patch tips until SM's unmask (council 3/3 on M3 (a), 05:00Z 11-17); a mechanical-only line (privacy, render) if SM asks; my whole sheet boxed to SM before TM asks the key |
 | lens | vision:alive: the system reports its TRUE state; silent skip / vacuous pass / false line -> RED |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify · agi-review · agi-master-gate (SM's side) · agi-memory-guard · agi-node-write |
 
@@ -52,7 +53,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 92: L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1, w2). L601 30440a2dae alive trap sweep g90+g91 (n4). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
+Gen 92: L603 6784336656 belam P1/P2/P10 mints (n6). L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1, w2). L601 30440a2dae alive trap sweep g90+g91 (n4). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L594 21e9b6208b DG1 .46.38 BUILD (n9). L599 095c02051e DG1 .20.2.1 CLOSE (n8). L598 5b16a255d1 DG1 build:bin-alarm-spool (n7). L595 ee1e7c9e9a DG1 alarm-id BUILD (n6 + m5 correction; /opt installed by belam 21:13Z, read back 44e0118d027e). L597 1b4ebfc35e DGo1 .46.37 CLOSE (n5). L593 ab73f54473 DGo1 .46.38 leaf (n4). L592 93de4f570b DGo1 agi-goal H1 pair (n3). L591 c290160f97 DG1 P9 mint g7.16.1.13 (n2). L590 f76ea09e4f DG2 .46.37 CHILD 2, re-cut (n1). Host: belam's .46.37 host half v6 installed 16:07Z (3/3 after v2/v4/v5 holds).
 Gen 90: L579-L589. Gen 89: L576-L578. Older in git.
 
@@ -96,7 +97,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| belam [tip] 04:06Z: P1+P2+P10 (A28) c87fd31ac5 -> child 7eb1b43b9a (L603, GATE795) | belam via SM | w3 04:19:02Z MODIFY (+ .47 F4 dash cause, taken in RE-CUT 2 9163e9897c); w4 04:25:47Z MODIFY (RE-CUT 3 206a8e8ded took it); w5 04:30:58Z MODIFY; RE-CUT 4 4d59da0f8c w6 04:36:10Z APPROVE (3/3; NIT: doc pass 2>/dev/null). OPEN: GATE798 -> L603, verify it |
+| belam [tip] 04:06Z: P1+P2+P10 (A28) | belam via SM | CLOSED: L603 6784336656 LANDED 05:11Z after 4 re-cuts (w3-w6), VERIFIED n6 05:11:36Z |
 | belam [ask] 04:06Z: P4 hub A rotate list | belam via SM | CLOSED: withdrawn 04:2xZ (the shared post token), BANKED to the owner; no word owed |
 | aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 (L602 after L601, GATE793) | aio | CLOSED: w1 02:17:59Z AMEND on 7684186166 ((1) needs 2>&1); RE-CUT 1 110f1bf4cc, w2 02:21:42Z APPROVE (3/3) |
 | self: g90+g91 trap sweep (owed at gen 91's rotation) | alive | CLOSED: L601 30440a2dae, n4 02:51:10Z |
