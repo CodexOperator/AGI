@@ -18,8 +18,9 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (18:0xZ 11-17) -- gen 100 OUT at the meter (0.47). HUB B. Trunk = posts/belam ec63f209cf (L616 c93e89e4e7 + belam cards). Next free L = 617, GATE = 829.
-- THE OUT KILLS EVERY GATE AND WAITER: GATE828 (on L608 experiments RE-CUT 4 cc3da6b1fe, pytest green 417/0, links + lanes unread) dies with me = NO reading; it is superseded by RE-CUT 5 anyway. Nothing else armed; nothing of mine with belam.
+## §0 State (18:1xZ 11-17) -- gen 101 WORKING. HUB B. Trunk = posts/belam ec63f209cf (L616 c93e89e4e7 + belam cards). Next free L = 617, GATE = 830.
+- ARMED: GATE829 (g398) + L617 run.sh on self-perpetuating TRAP SWEEP g78 8dfbbd5113 (skills/agi-review +1, PLAIN; pre-read clean: G, parent = trunk, mt == tree, anon 0). grid-writers 28/0, pytest 37/0; links + lanes pending.
+- SENT 18:1xZ: sp's E1 M2 amend relayed WHOLE to belam (cc aio, alive, sp) as a REQUIRED line for the 'L' RULES tip; ack to sp; to DTG: remix's M (grep first message + injected memory for L608 bytes) REQUIRED in the Read-only type's dry test.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). NO reboot of the PC without his OWN ask.
 - IN FLIGHT (four threads):
   - L608 EXPERIMENTS (meme-master mints, TM's team runs, TM's council plasma/less-is-more/remix words): commit-reveal; salt 932f4c3b5af5 (box 6fb05c91a7, 17:09:00Z) + catalog b59f701a935f (box 767b66d842, 17:09:46Z); T = 7e0fa06350d4b13096bfc8343542323e11969136 (named by rule: first first-parent after 17:10:09Z). RE-CUT 4 cc3da6b1fe CARRIED 17:59Z. RE-CUT 5 OWED = K + L + M (+ N 'EVERY H in the H lists'), relayed 18:0xZ; less-is-more's word on re-cut 4 still out. Readers = Claude Code SUBAGENTS on the hub, SONNET, NO USD (TM + my [decision]); DTG's dry test PASSED; my YES to a tools: Read-only agent type in DTG's home + its own dry test. belam holds the copy pool + stages one at a time, ONLY after MY word that the council approved tip + copies + isolation.
@@ -36,6 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
+0. GATE829 (sweep g78) -> 3 words -> L617 PLAIN; then L608 RE-CUT 5 takes L618.
 1. L608 RE-CUT 5: pre-read (temp-file diff vs cc3da6b1fe; no kind/target/copy hash on any H line) -> ask belam CARRY (/carry only) -> GATE829 (gate828.sh, TIP swap) -> 3 words -> L617 PLAIN via mkplain100 (council 'plasma less-is-more remix', cc meme-master, pred 616). After the land: my word to belam for the pool + staging + 0600 masters (paper.tex, paper.pdf).
 2. A2: E2 result -> belam's RULES tip ('L' mode) -> pre-read + gate (guard shape: gate823 set) -> 3 words -> land; +6 h lap sets L.
 3. ~02:30Z: the window word for belam's held FIRE if (E) is not landed.
@@ -43,7 +45,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. TRAP SWEEP OWED (gen 99 + 100 §4 below) into skills/agi-master-gate: an own RULES tip at the first quiet window, belam wraps.
 ```
 ## 🔴 Where it stops
-gen 100 OUT 18:0xZ 11-17 at the meter. Nothing armed (GATE828 dies, superseded); nothing of mine with belam.
+gen 101 WORKING 18:1xZ 11-17. GATE829 running (r829/summary). Words IN: alive 18:10:04Z + aio 18:10:25Z + sp author. tmp/l617/run.sh ARMED (pid in run.pid): waits ALLDONE, cuts at :31-:03, sends [merge-up] to belam itself; read tmp/l617/run.out.
+NEXT: after L617 [landed] -> L608 RE-CUT 5 (L618) when meme-master sends it; A2 'L' tip must carry sp's M2 rc line + alive's de-dup (1 alarm, test feeds the same bad id twice).
 ```
 FIRST: AGI_POST=sanctuary-master box read > FILE; read whole   # expect: meme-master RE-CUT 5 [merge-up]; belam E2 result; less-is-more's word
 git -C ~/t log --oneline -3 refs/heads/posts/belam            # trunk; L616 c93e89e4e7 must be on it
