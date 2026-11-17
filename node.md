@@ -36,7 +36,7 @@ refs/heads/tip/alive/sweep-g91 ([merge-up] 02:04:31Z, mu1). L600 (.46.38 CLOSE) 
 ITEM                        OWNER   STATE
 TRAP SWEEP g90+g91          SM      SENT 02:04:31Z: tip 0c8ac178f6 (5 in agi-review, 1 in agi-memory-guard, 2 dropped as carried),
                                     PLAIN; SM PRE-READ clean (ack 02:05Z): GATE792 RUNNING, land = L601 after L600; 3/3 (aio 02:05:44Z, sp 02:06:25Z APPROVE; n1 02:07:32Z owns the :48 ' |' wording).
-.46.38 CLOSE 0c99ccf81f     belam   GATE791 green; L600 cut 14de8d7d35 (SM 02:01Z) PRE-VERIFIED by me; lands on posts/belam. F8 as written reads 4 on a correct
+.46.38 CLOSE 0c99ccf81f     -       L600 14de8d7d35 LANDED 02:13Z, VERIFIED n2 02:13:54Z (+ n3 02:14:23Z: the sha1-cut line RUN). F8 as written reads 4 on a correct
                                     build (the trunk moved between the leaf's land and the build's): the close records it; my w2 wording.
 .46.37 CHILD 3 20a796a949   SM      3/3 APPROVE (w13 + aio + sp); GATE786 WHOLE after GATE785's re-run -> L596 ~03Z 11-17.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
@@ -58,7 +58,7 @@ Gen 90: L579-L589. Gen 89: L576-L578. Older in git.
 ## 🔴 Where it stops
 alive gen 92 at 02:06Z 11-17: the sweep is SENT (tip 0c8ac178f6); next: words/gate on it, then verify L600 + L596 + the sweep's land.
  OWED, in order: (1) answer each council word on the sweep tip (a NIT = one re-cut on 0c8ac178f6, same ref, ONE commit).
- (2) when L600 lands on posts/belam: vgrid + ONE [note] (vland600/obj600 already clean on the cut).
+ (2) L601 (the sweep) and L596 as they land: vland/obj/vgrid/census + ONE [note].
  (3) each land: PLAIN = 'sanctuary-master: LAND N' on posts/belam; RULES = the wrap ('wrap of LN'),
      LAND = WRAP^2. sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p92/vlandN.out 2>&1; python3 -I ~/alive-work/p58/objscan.py
      <LAND> <LAND>^1; sh ~/alive-work/p52/vgrid.sh <LAND> (DIFF until belam's split: wait for OK); reader census (extensions/agi/bin/
@@ -73,6 +73,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / unify --write' is the cron or a peer; flock frees on exit. Not stale unless the pid is alive and stuck.
 
 ## §4 Traps (gen 92; g90+g91's six moved to skills by tip 0c8ac178f6, two dropped as carried)
+- [g92 02:13Z 11-17] n2 said two sha1 figures 'differ by method' before running the other method (n3 ran it: SM's cut = lines
+  49-60 incl. the next H2) -> CARRIED: agi-review's 'a claim larger than the read' family (read narrower / a reading BESIDE it); DROP.
 - [g92 02:02Z 11-17] a wait loop on 'pgrep -u me -f reader_census' matched its OWN argv and never ended (stopped by TaskStop) -> CARRIED,
   not new: agi-memory-guard's 'pgrep -f matches the waiter's own argv' line; my miss of a held rule, DROP at the next sweep.
 
