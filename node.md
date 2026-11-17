@@ -40,10 +40,12 @@ ITEM                        OWNER   STATE
 doc:town-network-design     alive93 RE-CUT 1 67ffa8cbc0 3/3 APPROVE 06:14Z; GATE803 -> L605: verify at land (nodes only).
  (goal .47)                         A further AMEND: edit p93/rtd/design-2.md, cut a CHILD of 67ffa8cbc0, re-run F1-F4 + controls.
 doc:quo-prime-channel L604  SM      RE-CUT 1 7ccdec2cc0 3/3 (aio, alive w10, sp author); GATE801 RUNNING -> L604: verify (nodes only).
-TM MEASURE bebebf6f3c       TM      3 AMEND (sp ties + blind-by-sight; aio M1 unit / M2 S9 / M3 gate-sight; mine: unpaired slides);
- (g5.4.3.1.1)                       views 3/3: M3 (a), DGo1's split for the running director. Word on TM's re-cut.
-TM P3 e2fe623d7f (g5.56)    TM      RETURNED by SM (doubled H1); sp + aio AMEND F1 (no script body) + F2 (prose; dpkg reads 0 on
-                                    Bazzite). My draft dropped as a repeat. Word on the re-cut.
+TM MEASURE f6c589e8d0       TM      RE-CUT 1 APPROVE w3 06:50:27Z (my (3) met; floor table RAN == leaf; NIT non-scoring seat list
+ (g5.4.3.1.1)                       vs SM 06:4xZ (B)). GATE805 -> L607: verify at land.
+TM P3 c9460a0f15 (g5.56)    TM      RE-CUT 1 APPROVE w3 as PLAN leaf; GATE804 -> L606: verify. Lines: owner pick cites 06:43Z with BOTH
+                                    sentences; the EXECUTE doc owns its reachability read (not .47's paused build).
+NETBOOT EXECUTE tonight     TM->bel doc:pc-netboot-plan: my w2 06:48:13Z MODIFY == sp (no hand on PC to undo) + A1 reachability READ +
+                                    boot-once + remote power path named; A2 SMART read + crew state copied off the NV3 first. Word the doc.
 NEXT TOUCHES (not gates)    -       agi-goal :33 'mints it TWICE' stale since L594. .48 F4's doc pass 2>/dev/null (an unreadable doc reads
                                     0) + sp's Bearer name, at the leaf's next version. Quo doc: 'a new owner message' -> 'an sms chunk'.
                                     FLAKES under load: test_agi_boot high-reading row, test_crons_log_cap stranded-writer row. DG2: two
@@ -107,6 +109,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| belam [owner] 06:4xZ: NETBOOT lab tonight (P3 g5.56 = EXECUTE, plan 3/3 first, tested way back, else BANK); meme-master leans on TM's team (SM coordinates); designs reviewed TOMORROW: PAUSE .47/.48 builds. Owner away till tomorrow | owner via belam | SM to place; my word: a netboot act runs only with a tested way back and a stop line, BANKED if not safe under every assumption. OPEN |
 | belam [owner] 06:28:19Z: tiny-model orchestra vs Sonnet research line | owner via belam | PLACED 3/3 by SM 06:34Z (my M1+M2 = AMEND 2, REQUIRED in item 1). TM mints g5.N AFTER its P3 + MEASURE re-cuts; then word TM's leaf (check every required line is in it). OPEN |
 | goal .47 doc:town-network-design | belam [brief] | RE-CUT 1 67ffa8cbc0 3/3 APPROVE 06:14Z; GATE803 -> L605: verify at land. OPEN |
 | sp [tip] 05:40:03Z doc:quo-prime-channel (L604) | sp | w9 AMEND -> RE-CUT 1 7ccdec2cc0 APPROVE w10 05:48:09Z (3/3; NIT 'new owner message'). OPEN: GATE801 -> L604, verify it |
