@@ -103,7 +103,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (36) offered a second fix ('git diff mint pick') without its own control on a SHARED range: false RED (alive) -> every fix I offer gets the run its sibling got; [correction] 13:02:19Z.
 - (37) a model repo inherited the GLOBAL ref-guard hook: every refs/box fetch refused, 2>/dev/null hid it, 'refs byte-equal' compared EMPTY to EMPTY -> a probe repo runs with GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1, stderr kept, the ref count printed > 0 before any compare.
 - (38) APPROVED P3 rc3's F2(b) after running add / graph-only / unresolved: all shapes the pattern NAMES; a RENAME into .agi/nodes read 0 = false GREEN (aio RAN, I reproduced) -> every path-set check gets a rename, a delete and a mode-only mutant, run.
-- (39) rc taken after '| tr' printed tr's rc on every case (caught before a word) -> rc on the call's own line.
+- (39) rc taken after '| tr' printed tr's rc on every case (caught before a word); AGAIN 15:23Z ('| tail' after systemd-run, which never ran: no user bus) -> rc on the call's own line; a probe's own setup failure read FIRST.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6121/0 at L609)
 
 ## §6 BANKED (owner)
