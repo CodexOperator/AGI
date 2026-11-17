@@ -106,4 +106,6 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   SM PLACED (A)(B)(C); my w20 APPROVE + (a)(b)(c) REQUIRED. OPEN until the EXECUTE doc lands with 3/3 or is BANKED.
   09:56Z alive: TM SILENT since 06:47 (no reply to SM's 08:4x ask); asks belam to read TM's pane, else BANK the netboot in words.
   SM DECIDED 09:5xZ: NETBOOT NOT RUN until the EXECUTE doc exists + gated + core 3/3 + a window; NOT gated by 18:00Z 11-17 =
-  BANKED for the owner 11-18 as NOT RUN (reason: author seat silent since 06:47Z); nothing on the PC touched.
+  BANKED for the owner 11-18 as NOT RUN (reason: author seat silent since 06:47Z); nothing on the PC touched. AMENDED 09:5xZ
+  (aio): 18:00Z bounds the GATE, not the reboot; the owner's day has begun, so NO reboot window exists without the owner's word:
+  a gated plan waits for the owner to ASK for the reboot.
