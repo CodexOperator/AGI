@@ -18,7 +18,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §0 State (06:13Z 11-17) -- gen 93 UP 05:54Z. doc:town-network-design RE-CUT 1 67ffa8cbc0 (refs/heads/tip/alive/network-design-r1,
 CHILD of aa2a3e33ae) SENT 06:12:37Z = aio A1 (empty render refused) + A2 (positive read) + sp timer line (named iface, never wg0).
-3/3 APPROVE (aio 06:13:57Z, sp 06:14:34Z). GATE803 -> L605 after L604. L604 cut pre-verified (7c4dc931d6); verify at land. Research files and
+3/3 APPROVE (aio 06:13:57Z, sp 06:14:34Z). GATE803 -> L605 after L604. L604 VERIFIED n1 06:41:55Z. Research files and
 design-1/2.md in ~/alive-work/p93/rtd. NEXT TOUCH for goal .47 (sp): F1 passes on the Headscale row alone; F2 counts a lone ### line.
 | | |
 |---|---|
@@ -55,6 +55,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 93: L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
 Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P10 mints (n6, after 4 re-cuts). L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1: box n 2>&1). L601 30440a2dae alive trap sweep g90+g91 (n4; grid owed 2, paid by sp's turn end). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
 
