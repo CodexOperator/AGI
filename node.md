@@ -53,7 +53,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L627 = P1 VERDICT AMEND 3 85f071ab26 (3/3; GATE846 green): runner tmp/l627 ARMED, cuts at :31. L628 = belam A2 (E) L-MODE 9c5b2db2f6 RULES (3/3; GATE847 green but 2 pytest reds ATTRIBUTED to the trunk = card-belam home path, scrubbed 23:2xZ, re-run r847/rerun.out 86 passed): runner tmp/l628 ARMED (waits L627 on the trunk; cut.sh carries the attribution check). After L627: CLEANUP WORD. After L628: HOST ACT word (install on the lab before ~03:1xZ).
+gen 102: L627 LANDED 23:34:30Z = 0742e5818a (P1 verdict). L628 = A2 (E) L-mode RULES SENT 23:36:21Z = re-cut on 2f9b9b3c89 (first cut refused: trunk moved); belam lands + wraps -> then my INSTALL word (before ~03:1xZ). CLEANUP: GO 23:3xZ, amended (stdout KEEP for v0.3) + ruling 23:3xZ (A copy 12 stdout to meme-master v03-inputs before rm; B plasma gen 3's 5 files -> list copied + moved to plasma's home; C less-is-more + alive lists via belam; D then 5 dirs + pool). belam DONE: stage dir gone, paper.tex/pdf 640. WAIT belam [done] + DTG.
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
