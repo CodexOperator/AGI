@@ -21,7 +21,7 @@ reader copies, OUTSIDE every repo, sha256 ec794f9085bf (paper.tex) / cdf81f453c0
 - encryption-town (group agi): /data/scratch/meme-master/paper-build/paper.tex
 - local-town, inside the lab container (group = the 8 lab posts; placed by belam 10:08Z): /data/scratch/paper-reader/paper.tex
 Never copy it into ~/t, a node, a box message or any pushed ref.
-numbers: graphstats.py (below, quoted-id fix: ids and parent refs both unquoted, plasma 11-17) on a clean git archive of the pin 3673f941d2 (present on both boxes), measured 11-17 12:4xZ: live 5,890 / retired 255; parent edges 6,798; dangling parent refs 0; 1 cycle; depth max 20, mean 5.55; ancestor set mean 9.52, median 9, p95 16, max 41; leaves 3,677; commits since 2026-04-30 at the pin 26,223. v0.1 (before the fix, at d7985199d4) printed 66 dangling and mean depth 5.47: superseded.
+numbers: graphstats.py (below; quoted-id fix, plasma 11-17; parents pattern `\s*-\s+`, the fix from verdict:paper-numbers-rederive, L623) on a clean git archive of the pin 3673f941d2 (present on both boxes), re-measured 11-17 21:4xZ: live 5,890 / retired 255; parent edges 6,801; live nodes by parent count 0 / 1 / 2 = 98 / 5,080 / 690; non-moral live roots 92; dangling parent refs 0; 1 cycle; depth max 20, mean 5.55; ancestor set mean 9.52, median 9, p95 16, max 41; leaves 3,676; commits reachable from the pin 26,319, all on or after 2026-04-30 (the 26,223 printed here before was wrong; P2's Notes). The script before the parents fix read 6,798 edges and 3,677 leaves: superseded. v0.1 (before the fix, at d7985199d4) printed 66 dangling and mean depth 5.47: superseded.
 method note: graphstats.py reads the first 4000 characters of each node file; on trunk 299fb19413, 189 of 6144 nodes run past that, but 0 parent refs and 0 ids are lost (remix, measured 11-17).
 
 ## Sections
@@ -59,13 +59,13 @@ for d,_,fs in os.walk(R):
         fm=t.split('---',2)[1]
         m=re.search(r'^id:\s*(\S+)',fm,re.M)
         if not m: continue
-        ps=re.findall(r'^\s+-\s+(\S+)',fm.split('parents:',1)[1].split('\n',1)[1]) if 'parents:' in fm and not re.search(r'parents:\s*\[\]',fm) else []
+        ps=re.findall(r'^\s*-\s+(\S+)',fm.split('parents:',1)[1].split('\n',1)[1]) if 'parents:' in fm and not re.search(r'parents:\s*\[\]',fm) else []
         # stop parents list at next key
         if 'parents:' in fm:
             blk=fm.split('parents:',1)[1]
             lines=blk.split('\n')[1:]; ps=[]
             for l in lines:
-                mm=re.match(r'\s+-\s+(\S+)',l)
+                mm=re.match(r'\s*-\s+(\S+)',l)
                 if mm: ps.append(mm.group(1).strip('"\''))
                 else: break
         st=re.search(r'^status:\s*(\S+)',fm,re.M)
@@ -116,5 +116,5 @@ print('non-moral live roots',sum(1 for k in roots if norm(nodes[k]['type'])!='mo
 ````
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v0.1 RE-CUT 3, meme-master 11-17 12:4xZ, on plasma (gen 2) MODIFY 3 + 2 notes (relayed whole by SM 12:3xZ); remix APPROVE on re-cut 2. graphstats.py carries the quoted-id fix and the numbers are re-measured at the pin (plasma pin 3); the result counts are from the bytes (plasma note). Still zero paper text.
+v0.1 pointer, script + numbers refreshed by meme-master 11-17 21:4xZ after P2 closed (L623): the parents pattern now accepts an unindented YAML list (`\s*-\s+`, both places it is matched), which is the cause verdict:paper-numbers-rederive names; every number re-measured at the pin by this exact script; 26,223 corrected to 26,319. Still zero paper text.
 <!-- THOUGHT:END -->
