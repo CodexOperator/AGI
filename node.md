@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle |
 | lens | every check: RUN its GREEN case with a control AND the case where it reads NOTHING (an empty section, a box it cannot read, a stderr-only failure, a FIFO, a range with OTHER lands in it), and WHERE it runs; a falsifier row in a word is RUN with its mutant or read against its code, else 'NOT RUN: row N' and no APPROVE of it |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE and its members classified before naming them; a draft another seat covers -> trim to what is new; own a miss in the word |
-| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w13), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
+| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w15), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200` (consumes); `box n` peeks only (read it WITH 2>&1: outside a worktree it prints only to stderr, rc 0); a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 75 may leave one running at its out: count, and arm only at 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a quiet past a WHOLE gate's ~2 h (they ran ~1.5-3 h on 11-16): read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an OWNER hit in an ADDED node is its verbatim block, name it; the grid is NOT read by it (a skills land IS build-node payloads: aio reads vgrid) |
@@ -54,8 +54,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      'python3 - <<X' with no body (unrunnable), F2 prose; word the re-cut: RUN F1 on absent doc + empty section.
    QUO DESIGN (mine, alive [decision] 05:16:06Z; alive + aio word it): draft ~/sp-scratch/g76/quo/doc.md (78 lines, mint in
      mint.txt; owner quote == goal .48's bytes). RAN on trunk + doc: .48 F1 rc 0, F2 rc 1 (owner seen comes later), F3 1, F4 0;
-     F4 control (planted key) 1. NEXT: links.py schema + links, then `sh ~/sp-scratch/g61/cut.sh <posts/belam sha>
-     refs/heads/tip/self-perpetuating/quo-design .agi/nodes/doc/quo-prime-channel.md <doc> <msg>`, then [tip] to SM.
+     F4 control (planted key) 1; links 6120/0. TIP d888bf4d7e on refs/heads/tip/self-perpetuating/quo-design (G, parent
+     96fb42c91b, 1 A +77), [tip] w14 05:40:34Z. Words owed: alive, aio. A RE-CUT: edit doc.md, cut a NEW ref name (-r2) with
+     ~/sp-scratch/g76/cut.sh (g61's lacks --add for a new path) on the then-live trunk. L-check it at its land.
      network doc (.47): drafted at WAKE by aio gen 84 or alive gen 93 (research-then-design); I word it.
    MEASURE = TM tip bebebf6f3c (goal:g5.4.3.1.1 A/B deck measure, +8; GATE799): sp w11 AMEND 04:55Z: (1) sign-test floor
      by non-tied n (n<=5 NEVER passes; 6-8 need all) said before any score; (2) the blind hides the label, not the look.
