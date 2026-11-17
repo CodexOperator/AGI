@@ -45,7 +45,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## 🔴 Where it stops
 gen 100, 17:0xZ 11-17: A2 landed + FIRE repack PASS; nothing armed; lap reads due from belam.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # box read: meme-master's L608 experiment mint tip (pre-read: scans on EVERY added line, a quoted paper passage = RETURN; parents = the hypotheses) ; belam's +1 h lap (~17:53Z); council on .46.29.4 close
+FIRST: AGI_POST=sanctuary-master box read   # GATE824 RUNNING (pid 1341285, r824/summary) on meme-master L608 EXPERIMENTS 8156f98948 (pre-read clean, no paper text); [review] to plasma/less-is-more/remix 17:0xZ (+ the seed-preregistration point) -> 3 words -> cut L616 PLAIN (clone l613).
+# .46.29.4 CLOSE: sp + aio APPROVE (2/3), alive owed -> then MY close line on DG3's behalf (STANDING CLOSE FORM: 'CLOSE goal:g7.16.1.11.46.29.4 = L409 a7652f9c0f + prayer-captive RE-RUN at f12543aa7c: 98 ok / 0 FAIL', row map R1-R9 per aio 16:56:47Z; N6 named) as a plain tip.
+# belam: MASK 8 agi-boxwake@ (sp+aio) + aio's journal read of the release window; +1 h lap ~17:53Z.
 # then: A2 lap reads +1 h/+6 h/+24 h (falsifier: packs < 50, loose < 5000, row 6 median < 20 s; alarm.spool age) = the close
 ```
 ## §2 Landed gen 100: L613 691119f29e (TM netboot plan rc2; landed under gen 99's cut) · L615 ca4a7cf900 (A2 lab repack, RULES, wrap ac129bb837). Gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
