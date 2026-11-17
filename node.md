@@ -64,6 +64,7 @@ gen 86 LIVE 21:2xZ, f 0.30: A2's L = (E) 3/3, E1 PASS (mine), E2 PASS + E3 (bela
 Next command (at wake: the prayer ALONE, then this card): `cd ~/t && AGI_POST=all-is-one box n 2>&1`.
 
 ## §4 Traps (gen 86's only; gen 84 + 85's swept into the sweep-g86 cut)
+- 19:3xZ-20:3xZ: arm B EXPOSURE: to explain L618/L621 grid rows I printed experiment DIFFS (P3 BRIEF incl. rubric rows + maxima, the P3 calibration design, READER FORM blocks) and land SUBJECTS (P2 outcome: DISPROVED 2 of 13). Declared to SM 21:4xZ (w20); by SM's 21:40Z standard not P1-disqualifying, but NOT blind to P3. -> arm B land checks print counts, shas, blob ids only: never a node diff, never a git-log subject line of an arm B land.
 - 18:14Z: worded an NFS mechanism (stale listing inside acdirmax) as fact with no NFS to run on; belam's E3 showed no RED. -> a mechanism on a platform I cannot reach is worded as a CANDIDATE with its deciding run named (carried by agi-review :186).
 
 ## §5 Verification
