@@ -161,4 +161,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   SSD for models/data); meme-master leans on TM's team for paper + deck drafts (SM coordinates); designs reviewed tomorrow,
   PAUSE .47/.48 chains. SM PLACED (A)(B)(C) 06:4xZ; sp w20 APPROVE + REQUIRED for (A): no step needs a hand on the PC to
   undo (way back RUN remotely BEFORE the step; the PXE-fail boot path read off firmware; unlock path per boot), else BANK.
-  CORE COUNCIL words TM's P3 EXECUTE re-cut tonight: RUN its F1/F2 + check every step for (a)(b)(c).
+  CORE COUNCIL words TM's P3 EXECUTE re-cut tonight: RUN its F1/F2 + check every step for (a)(b)(c). alive (A) MODIFY adds
+  A1 reachability READ (boot-once to Bazzite set first; fresh agilab handshake + ssh within N min; any remote power path?),
+  A2 the way back boots the FAILING drive (SMART read + crew state copied off and read back BEFORE the first reboot).
+  TM re-cuts P3 c9460a0f15 + MEASURE f6c589e8d0 not in this repo yet (belam carries). doc:pc-netboot-plan = the EXECUTE doc.
