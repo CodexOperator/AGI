@@ -19,7 +19,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (16:0xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 615, GATE = 822.
-- RUNNING: GATE822 (pid 864298, setsid; /data/work/gate-sm/gate822.sh, r822/summary) on merge-tree(691119f29e, A2 RE-CUT 3 1d9c5b2e38) in g398. 23d3c9ad56, f29c86d9d6, 19b87e0546 VOID. Re-cut 3 READ: R1/N1/N2/P1/(b3) MET, pre-read rows clean. [review] to council 16:1xZ asking words on 1d9c5b2e38 + the %i deviation (aio APPROVE 1/3 so far). Pre-read scratch: /data/work/gate-sm/tmp/a2pre/.
+- Nothing running. A2 RE-CUT 3 1d9c5b2e38: council 3/3 APPROVE (alive 16:09:27Z, sp 16:10:29Z; deviation 3/3 with aio 16:02:04Z) BUT GATE822 grid-writers RED 6/22 = census goal:g7.16.1.11.13 C7 +2 / C9 +1 (agi-lab-carry-in :7 :8). GATE822 KILLED, r822.returned. RETURNED 16:1xZ: RE-CUT 4 = same 11 files + the census node re-pinned. Then: narrow council word on the node delta + GATE823 (gate822.sh, TIP swap). Pre-read scratch: /data/work/gate-sm/tmp/a2pre/.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
@@ -43,10 +43,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. MY TRAP SWEEP of gen 99's §4 into skills/agi-master-gate at the next quiet window (RULES: own tip, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 100, 16:1xZ 11-17: GATE822 running on A2 RE-CUT 3 1d9c5b2e38; council words asked.
+gen 100, 16:1xZ 11-17: A2 re-cut 3 returned on the grid-writers census; waiting on belam's RE-CUT 4.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # ps -eo args | grep -c '^sh /data/work/gate-sm/gate822[.]sh' (1 = alive; 0 + no ALLDONE = re-arm after mv r822 r822.dead)
-# cat /data/work/gate-sm/r822/summary -> ALLDONE green -> 3 words on 1d9c5b2e38 -> cut L615 as RULES (clone the last RULES cut; mkcut + the 3 RULES edits)
+FIRST: AGI_POST=sanctuary-master box read   # RE-CUT 4: diff vs 1d9c5b2e38 = goal:g7.16.1.11.13 only (+msg); run test_grid_writers on merge-tree(trunk, re-cut 4) BEFORE the gate (28 passed)
+# -> gate823.sh = gate822.sh with NNN/TIP/-m swapped (asserted) -> narrow council word on the node -> cut L615 as RULES (clone the last RULES cut + the 3 RULES edits)
 ```
 ## §2 Landed gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
 ## §4 Traps (gen 99's own; sweep into skills/agi-master-gate at the next quiet window)
@@ -57,6 +57,7 @@ FIRST: AGI_POST=sanctuary-master box read   # ps -eo args | grep -c '^sh /data/w
 - a fetch with 'posts/belam:posts/belam' as destination into a g39x worktree of the SHARED repo writes the trunk ref (no harm today: equal) -> fetch tips by sha only, never name a trunk ref as a destination.
 - 'council words at send' misses a word sent as [correction]/[note] (L614: sp's APPROVE) -> read the box for every word, tell belam the missed one.
 - a script that greps the TRACKED tree for a forbidden pattern can match ITSELF once it is tracked (A2 lab-repack.sh:113, gen 100) -> at pre-read, run such a check on merge-tree(trunk, tip), not only the trunk.
+- a tip adding a script under extensions/ with a git fetch / push / refspec trips test_grid_writers' census (goal:g7.16.1.11.13 C1-C9) and needs the node re-cut IN the tip (A2 re-cut 3, GATE822, gen 100: found after 3 council rounds) -> run test_grid_writers on merge-tree(trunk, tip) AT PRE-READ for any tip adding files under extensions/ src/ .geometry.
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; a council land read (alive verifies each).
 ## §6 BANKED
 - FOR THE OWNER (11-18): (1) doc:draft-paper-v0's full text in the pushed graph, yes/no (L608 landed the POINTER only); (2) P4 hub key = the SHARED post token: A now / B leave / C at season-4 rollover (belam rec C); (3) restart a moved post at the move vs next start (belam's card); (4) NETBOOT PHASE B (the reboot) only on his own ask; 18:00Z line on belam's card.
@@ -71,7 +72,7 @@ FIRST: AGI_POST=sanctuary-master box read   # ps -eo args | grep -c '^sh /data/w
 | OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 LANDED 691119f29e; (B) paper route = L608 (pointer); (C) paused | open: PHASE A window |
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council) |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; A1 PASS; loops stopped, hand wake | open: probe RULES land; A2 tracked tip |
-| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; returned 23d3c9ad56; re-cuts 1-2 VOID; re-cut 3 1d9c5b2e38 all MET; GATE822 running | open: gate + 3 words + L615 |
+| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; re-cut 3 1d9c5b2e38 3/3 but census RED -> re-cut 4 asked | open: re-cut 4 + GATE823 + L615 |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review 11-18 |
