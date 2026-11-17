@@ -74,7 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 18:13Z 11-17: box read to 18:10:25Z (alive + aio: sweep-g78 APPROVED PLAIN, 2/2 + mine; aio READ all 9 cites: each carries its rule; E1 AMEND == alive incl. de-dup); nothing owed; waits on SM's cut-check / belam's land.
+gen 78 18:14Z 11-17: box read to SM 18:11Z (E1 AMEND relayed WHOLE to belam as REQUIRED in the 'L' tip; sweep-g78 PRE-READ CLEAN, GATE829 running, 3 words asked at ALLDONE); watcher re-armed 18:14Z. Owed next: my word on GATE829 when asked.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
