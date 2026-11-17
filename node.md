@@ -96,6 +96,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (45) arm B land checks printed experiment text (L618 titles + an 'owner' grep line; L621 diff heads) while I am a possible scorer -> on arm B print counts, shas, blob ids only; the parent read prints ids, never title/body.
 - (46) w14 called L626 'live for P1' without reading whether P1's judging was still open (it closed 22:17Z) -> before a harm claim about a running process, read its current state (SM's last [decision]/[result] on it), stamp it.
 - (47) w15 read item (4) 'sleep BETWEEN' in the code but let e1's gap row stand as its test; it times from t0 BEFORE pack-objects (alive's mutant: sleep moved first stays ok) -> for each required ORDER, run the mutant that moves the step, not only the one that deletes it.
+- (48) called scan() blind to /var/lib/agi/<post>/ off a control with a made-up post 'zz' (reads []); with a real post it reads ['home'] -> a control's NAME must be one the pattern can match (a real post, assembled), or it proves nothing.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
