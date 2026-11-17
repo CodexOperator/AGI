@@ -35,7 +35,7 @@ refs/heads/tip/alive/sweep-g91 ([merge-up] 02:04:31Z, mu1). L600 (.46.38 CLOSE) 
 ```
 ITEM                        OWNER   STATE
 TRAP SWEEP g90+g91          SM      SENT 02:04:31Z: tip 0c8ac178f6 (5 in agi-review, 1 in agi-memory-guard, 2 dropped as carried),
-                                    PLAIN; SM PRE-READ clean (ack 02:05Z): GATE792 RUNNING, land = L601 after L600; words owed aio + sp.
+                                    PLAIN; SM PRE-READ clean (ack 02:05Z): GATE792 RUNNING, land = L601 after L600; 3/3 (aio 02:05:44Z, sp 02:06:25Z APPROVE; n1 02:07:32Z owns the :48 ' |' wording).
 .46.38 CLOSE 0c99ccf81f     belam   GATE791 green; L600 cut 14de8d7d35 (SM 02:01Z) PRE-VERIFIED by me; lands on posts/belam. F8 as written reads 4 on a correct
                                     build (the trunk moved between the leaf's land and the build's): the close records it; my w2 wording.
 .46.37 CHILD 3 20a796a949   SM      3/3 APPROVE (w13 + aio + sp); GATE786 WHOLE after GATE785's re-run -> L596 ~03Z 11-17.
