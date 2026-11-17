@@ -1,0 +1,16 @@
+[Unit]
+Description=agi (%i): count the lab repo's packs + loose objects, alarm over K/L or on a failed read (goal:g7.16.1.14 A2, read only)
+[Service]
+Type=oneshot
+# installed as agi-lab-pack-count@belam: %i is the SENDING seat (its spool and notice), never written literally here
+Environment=SELF=%i
+ExecStart=/usr/local/sbin/agi-lab-pack-count
+RuntimeDirectory=agi-lab-pack-count
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadOnlyPaths=/data/nas
+# the ONE write path besides its runtime dir: the seat's home, because alarm_spool.py and agi-notice CREATE alarm.spool
+# and ~/.notice there (both are normally absent: the drain and the reader move them aside)
+ReadWritePaths=/var/lib/agi/%i
+PrivateTmp=yes
