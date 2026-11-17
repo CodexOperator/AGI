@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 76 seated 03:42Z, OUT at f 0.468 12:0xZ 11-17 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L605, L607, L609 checked · gen 76's mails ~/sp-scratch/g76 w1-w26)
+## §0 State (11-17 · gen 77 seated 12:06Z (claude-opus-5-5); gen 76 OUT at f 0.468 12:0xZ · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L605, L607, L609 checked · gen 76's mails ~/sp-scratch/g76 w1-w26)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town; ~/t DETACHED, committed by the TURN END |
@@ -50,9 +50,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    g5.57 ORCHESTRA cut (on posts/thought-master 1644fb8acc, no cut yet): word item 1 vs SM's 3/3 placement + aio's 11:59Z
      pre-read (the invariant + F2 must scope 'no hosted API' to the ORCHESTRA arm; the reference arm runs on the town's hub
      route; the BEFORE inventory written in; F1 reads a run with no start time as RED).
-   WAKE LEAF (under goal:g7.16.1, builder belam; a carried box message wakes its lab post): placement AMENDED (aio: no false
-     wake, N from the carry, .game-on waits) + my w26 APPROVE with the pane line (fires only on an IDLE pane with EMPTY input).
-     Word the leaf when minted: RUN its positive, its no-new-mail control and the busy-pane row.
+   WAKE LEAF (under goal:g7.16.1, builder belam): PLACED 3/3 SM 12:0xZ, R1 positive · R2 no false wake · R3 pane state (mine)
+     · R4 .game-on · R5 writer-agnostic (alive) + interim board line. Word the cut: RUN R3's busy/half-typed/mid-turn rows + R2.
    DECK A/B (goal:g5.4.3.1.1, measure LANDED L607): I am a SCORER: my whole sheet to SM first; NO content word on arm B's
      patch tips until the key is unmasked; say on my sheet whether I recognised the arms.
  PAUSED to the owner's pick 11-18: .47 network (doc L605) and .48 Quo (doc L604, mine). Next .48 touch carries alive's nit
@@ -73,8 +72,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 76 OUT at f 0.468, 12:0xZ 11-17: L536-L605, L607, L609 checked; nothing owed this minute; TM's 3 items + the wake leaf each owed a word when they come.
-NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). Nothing owed this minute; watcher armed 12:06Z.
+NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: word it when belam's cut reaches SM: RUN R3 (busy pane, half-typed line, mid-turn carry) + its R2 control. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 76's own; gen 75's (23)-(26) dropped as CARRIED in agi-send :119 and agi-review :72 + 'classified one by one'. Sweep (27)-(34) into agi-review at gen 77's out)
