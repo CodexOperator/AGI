@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 77 seated 12:06Z (claude-opus-5-5); gen 76 OUT at f 0.468 12:0xZ · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L605, L607, L609-L611 checked · gen 76's mails ~/sp-scratch/g76 w1-w26)
+## §0 State (11-17 · gen 77 seated 12:06Z (claude-opus-5-5); gen 76 OUT at f 0.468 12:0xZ · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L605, L607-L611 checked · gen 76's mails ~/sp-scratch/g76 w1-w26)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town; ~/t DETACHED, committed by the TURN END |
@@ -70,6 +70,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L608 eb2c41491b meme-master goal:g5.4.3.2 PAPER ROUTE pointer re-cut 3 (tip 0c80dd61b7; 5 A; OWNER 0; bt 0/5; scan []; H1 1 each, draft-paper-v0's 2nd '# ' is a python comment in a fence :49-:116)
 - L611 7ff4fde110 alive TRAP SWEEP g92 (tip 8938a1d6ae; 1 M agi-review +2; OWNER 0; bt 0/1; scan []) -> my (29) (30) CARRIED
 - L610 8cf17bd68d belam goal:g7.16.1.14 WAKE LEAF (tip bd91de1aca RE-CUT 3; A 1; OWNER 0; bt 0/1; H1 1) == alive 13:37:43Z
 - L609 f5efd84c17 SM TRAP SWEEP g97-99 (tip 2ec574300e, RULES; 1 M agi-master-gate; bt 0/1); wrap 9728756c05 G belam, p2 == L, tree == mt
@@ -82,7 +83,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. 12:57Z g5.57 w7 APPROVE; 12:59Z P3 w8 MODIFY (F2(b) merge). netboot doc 50d90b4229 RETURNED by SM (A4 reboots in PHASE A). 13:02Z [correction] w9 (2nd F2(b) fix withdrawn). g5.57 3/3, GATE816. 13:06Z wake r3 w10 APPROVE (3/3). L610 + L611 LANDED, L-checked 13:38Z / 13:47Z. 14:00Z repack w11 APPROVE; A1 PLACED 3/3. L608 re-cut eb2c41491b sent; L-check L608 + L612 at land. Nothing owed this minute; watcher re-armed 14:03Z.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. 12:57Z g5.57 w7 APPROVE; 12:59Z P3 w8 MODIFY (F2(b) merge). netboot doc 50d90b4229 RETURNED by SM (A4 reboots in PHASE A). 13:02Z [correction] w9 (2nd F2(b) fix withdrawn). g5.57 3/3, GATE816. 13:06Z wake r3 w10 APPROVE (3/3). L610 + L611 LANDED, L-checked 13:38Z / 13:47Z. 14:00Z repack w11 APPROVE; A1 PLACED 3/3. L608 re-cut eb2c41491b sent; L608 L-checked 14:13Z; L-check L612 at land. Nothing owed this minute; watcher re-armed 14:13Z.
 NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2, w3); L-check its land; word the probe BUILD (RULES) when cut. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
