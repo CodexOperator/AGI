@@ -23,6 +23,7 @@ Runs hypothesis:paper-proofs-hold. Runner: director-thought-goals (thought-maste
 - readers: one per result, none the drafter, each in a SEPARATE context; assignment by seeded draw.
 - PLANT: each reader's copy carries ONE planted error IN THAT READER'S OWN result, kind drawn by seed from {dropped hypothesis, flipped sign}; seed + sha256 of the planted copy + kind written HERE before the read; the plant is hidden from its reader.
 - FOUND = a finding that names the planted result AND the planted line. A reader who misses the plant has its "no finding" VOID.
+- FOUND counts only the reader's OWN finding, committed BEFORE any script / CAS output reaches that reader (plasma 17:1xZ). A plant only the script flags is a MISS for that reader (its no-finding VOID); the script still runs and is scored separately.
 - ARITHMETIC: every closed form and worked number re-checked by a committed script or CAS (not by eye); its output counts recorded here.
 - BRIEF to readers: judge the logic; every result that uses independence must state it as a hypothesis of that result.
 - seed: (to be written by the runner before the read)
