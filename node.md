@@ -19,22 +19,28 @@ town: core
 Runs hypothesis:paper-meets-rubric. Runner: director-thought-goals (thought-master's team; SM [decision] 16:5xZ 11-17). Words: thought-master's council (plasma, less-is-more, remix). Pass line = the hypothesis's FALSIFIERS, unchanged. Nothing runs before this node's tip LANDS.
 
 ## PARAMS (fixed before any run)
-- object: the reader copy, sha256 ec794f9085bf, scored on the owner's rubric (rows and the line fixed in hypothesis:paper-meets-rubric).
+- object: the unplanted text (v0.1, ec794f9085bf) as a numbered staged file with a nonce line, scored on the owner's rubric (rows and the line fixed in hypothesis:paper-meets-rubric).
 - scorers: two, from thought-master's council or team, neither the drafter.
-- CALIBRATION (meme-master 13:1xZ on plasma 3): each scorer also scores ONE degraded copy whose ONLY degradation kind is "one proof's key step deleted" (which proof: by seed); the row it must drop: Sense of Problem Solving Process.
+- CALIBRATION, BLIND (plasma 2): each scorer j gets TWO numbered files of the same form, P3-j-1 and P3-j-2: one the unplanted text, one degraded ("one proof's key step deleted", proof by seed_j; the row it must drop: Sense of Problem Solving Process). Which is which is hidden from the scorer and the runner; the brief NEVER says a degraded copy exists; it asks for a rubric score of each file. Each real file carries a final nonce comment line so it does not hash to the public ec794f9085bf.
 - COMMIT-REVEAL (council 3/3, reconciled by meme-master, approved SM 17:1xZ): DRAWER = meme-master (not a reader, scorer or brief-writer); the runner never sees a plant before the reveal.
   - commitments boxed to SM BEFORE T: sha256(salt) = 932f4c3b5af51bf5bb4cf642d08ce80579c44ef3e35449e51e57bdf85adfe1a4 (17:09:00Z); sha256(plant catalog) = b59f701a935f3543a30a87451e3058078ef7ce73fbdab8656ab1a1627799c08b (17:09:46Z).
+  - box commits holding them (refs/box/meme-master/sanctuary-master): salt 6fb05c91a74404ec791afe1f912348effbedbd6f (17:09:00Z), catalog 767b66d842c531a8c24dc413a11f0261ee046433 (17:09:46Z).
   - T (by SM's rule, the first posts/belam first-parent commit after 17:10:09Z) = 7e0fa06350d4b13096bfc8343542323e11969136.
   - seed = sha256(salt + T + index) (ASCII, hex), index as below; the seed only PICKS from the committed catalog.
   - H = sha256(salt | seed | kind | target | candidate | sha256 of the copy), '|'-joined; ONLY H is written here.
   - COPIES: built from the v0.1 reader copy (ec794f9085bf); carried box-only to the lab by belam, one file per index; the runner hands file <index> to its reader/scorer without knowing its plant.
   - REVEAL (salt, seeds, kinds, targets, candidates, copy sha256s, the catalog) by meme-master ONLY AFTER every finding / row score is committed; anyone recomputes H.
   - VOID per plant: a mismatched H; a reveal before the findings/scores commit; a copy opened before this node's commit existed.
-  - ISOLATION PER CONTEXT (remix 17:42Z (1); STAGING per remix, director's call 17:5xZ): each scorer has TWO contexts, order seeded: the REAL context's brief names only the unplanted copy; the DEGRADED context's only P3-j. Each file is staged alone, readable to the runner's uid only while its context runs, never beside the other; removed before the next is staged. Outside its own context the unplanted copy is 0600 to belam. A context that opens the other file = VOID; the runner records the paths each context read.
-  - H by index (scorer j scores file P3-j):
+  - ISOLATION PER CONTEXT (all three): each context's brief names the ONE file it scores; each file is staged alone, readable to the runner's uid only while its context runs, removed before the next; a context that opens any other file is VOID.
+  - FORBIDDEN READS (plasma 3, less-is-more 1): for the run's length the unplanted paper.tex AND paper.pdf (lab /data/scratch/paper-reader/) go 0600 to a uid no runner or reader runs as (belam), the mode read back by belam BEFORE reader 1; readers and scorers read ONLY numbered staged files; the L608 graph nodes (idea, hypotheses, these experiments, doc:draft-paper-v0) are forbidden to readers and scorers (they name the plant kinds).
+  - THE CHECK (plasma 3, less-is-more 2): per context, the paths opened are taken from that context's OWN session transcript / tool-call log, never self-reported, committed by the runner; exactly ONE paper path per context, else that plant or score is VOID. Where director-thought-goals' jail can mount one file read-only per context, it does, and records the mount list (the mechanical half).
+  - P3 TWO-FILE COMMITMENT (meme-master 17:5xZ, said plainly): the H values above (P3-1, P3-2) cover the DEGRADED copies, unchanged. The real file's number and nonce are DERIVED, not drawn: nonce_j = first 32 hex of sha256(salt + T + "P3-real-" + j); real file number = 1 + ((seed_j >> 16) mod 2). Both come only from the already-committed salt and T, so no new draw and no new T; the rule was written after the draw, but it fixes only a file number and a comment, which cannot change what a scorer is graded on. If the council wants it drawn fresh, that needs a new commitment and a new T. H_real_j = sha256(salt | seed_j | "real" | "file N" | nonce_j | sha256 of the real file):
+    - P3-1 real: ee4ce0e938036c823b4be5ba452e4331c9fc091587ed587fba4d6b59650a3b6f
+    - P3-2 real: b0e64a433d2ce14795c59edba27bd570f2d552fc41d16c7c6ad1377507f7b19a
+  - H by index, the DEGRADED copies (scorer j scores files P3-j-1 and P3-j-2):
     - P3-1: 247f76cfd7c52f549719ce5e7481a338e59badbf88d5112e58253eb81709bed6
     - P3-2: 5e93d1f094c1c192673df073a1cc8a9502ced52909d84021e91ad183748f88ab
-- CONTEXTS: each copy scored in a SEPARATE context; the order (real / degraded) seeded; never two copies in one context.
+- CONTEXTS: each of the two files scored in a SEPARATE context, order seeded; never two files in one context.
 - COMMIT BEFORE COMPARE: each scorer's row scores committed before either sees the other's.
 - FALSIFIER: any row EITHER scorer puts below the line = DISPROVED for that row; a scorer who fails the calibration copy has their scores VOID.
 
