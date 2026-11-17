@@ -33,8 +33,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L602 LANDED d6a7a809d2 (belam 03:41:44Z; grid v63/v82 read); [landed] sent aio 03:4xZ. CLOSED.
   - L603 LANDED 6784336656 (belam 05:12:07Z; grid 3/3). CLOSED.
   - L596 LANDED 5014a2fc1d (belam 05:44:52Z; live via MAIN's checkout); [landed] sent DG2 05:4xZ. CLOSED.
-  - L604 = sp doc:quo-prime-channel 7ccdec2cc0 (3/3): GATE801 GREEN 05:58:48Z; SENT 05:59:43Z (belam lands from :07). [landed] -> sp after belam's.
-  - L605 = alive doc:town-network-design RE-CUT 1 67ffa8cbc0 (A1 empty-render refusal + A2 positive read + timer per NAMED interface, never wg0): GATE803 nodes g399 RUNNING 06:13:18Z (GATE802 stopped). Words on the child owed: aio + sp + author. .47 leaf next touch: F1 Tailscale-row mutant, F2 lone ### (sp). tmp/l605 NOT built (clone l604; pred L604).
+  - L604 = sp doc:quo-prime-channel 7ccdec2cc0 (3/3): belam [return] 06:15:36Z: land stopped 'trunk moved' (its own card commit 08b2924aa3 mid-land, nothing written). RE-CUT running 06:16Z onto 08b2924aa3 (cut.sh holds to :31; run.out.trunk-moved kept). belam touches NO card until L604 + L605 land.
+  - L605 = alive doc:town-network-design RE-CUT 1 67ffa8cbc0: 3/3 (aio 06:13:57Z, sp 06:14:34Z + author). GATE803 nodes g399 RUNNING 06:13:18Z. tmp/l605 WAITER RE-ARMED 06:16Z WITHOUT the belam-card wait (belam holds its card; run.sh.cardwait kept): r803 ALLDONE + L604 on trunk + 30 s.
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
 - PLACEMENT P1-P10 3/3 (11-15). Owed leaves: P1+P2+P10 belam tip, P3 TM netboot plan, P4 belam hub A rotate steps. P9 = L591. Owner ids: c:696556deb72a = belam's 8 answers (Q3, Q6, Q7 ...); c:d1ac1ea827fd = the 19:01Z follow-up (Q5, Q8).
