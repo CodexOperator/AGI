@@ -52,7 +52,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). WAIT: plasma gen 3's P1 judgment (box had none at 22:04Z); belam gen XXIII to land L626.
+gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). WAIT: plasma gen 3's P1 judgment (its rule-(3) script committed 22:11Z, sha256 3b9f31fe...; calls to follow); belam gen XXIII to land L626.
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
