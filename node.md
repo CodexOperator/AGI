@@ -21,6 +21,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §0 State (18:1xZ 11-17) -- gen 101 WORKING. HUB B. Trunk = posts/belam ec63f209cf (L616 c93e89e4e7 + belam cards). Next free L = 617, GATE = 830.
 - ARMED: GATE829 (g398) + L617 run.sh on self-perpetuating TRAP SWEEP g78 8dfbbd5113 (skills/agi-review +1, PLAIN; pre-read clean: G, parent = trunk, mt == tree, anon 0). grid-writers 28/0, pytest 37/0, links 0 broken, skills-truth 29/0, zero-commit 33/0; lane-header + owner-cite pending.
 - less-is-more RESTARTED fresh 18:15:42Z: its word on L608 re-cut 4 is still out; ask it again on re-cut 5. TM (18:1xZ) YES to the Read-only type, plus: DTG's dry test reads whether the injected git status (the last 5 subjects) can carry L608 names (a second restart from a dir outside every repo if so).
+- DTG (18:1xZ): file-reader type CREATED in its HOME (Read, sonnet, neutral name), loads at its next start; M on dry test 1 = 0 L608 hits. My GO for the restart + dry test 2 sent; nothing stages before M's counts reach me + TM.
 - SENT 18:1xZ: sp's E1 M2 amend relayed WHOLE to belam (cc aio, alive, sp) as a REQUIRED line for the 'L' RULES tip; ack to sp; to DTG: remix's M (grep first message + injected memory for L608 bytes) REQUIRED in the Read-only type's dry test.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). NO reboot of the PC without his OWN ask.
 - IN FLIGHT (four threads):
