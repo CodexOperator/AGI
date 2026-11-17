@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L626 checked · gen 78's mails ~/sp-scratch/g78 w1-)
+## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L627 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -66,6 +66,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L627 0742e5818a SM meme-master P1 VERDICT + RESULTS amend 3 (tip 85f071ab26; 1 M + 1 A; mechanical; OWNER removed 0; scan [] HOME_PATH_RE 0; bt 0/2; grid == land 2/2)
 - L626 98de234d43 SM plasma TRAP SWEEP g1+2 (tip d1f248d497, PLAIN; agi-review +9 -0; OWNER 0; scan []; bt 0/1; grid v87 payload == land (alive skipped that row: w13 22:36:21Z))
 - L625 210f66826f SM meme-master doc:draft-paper-v0 refresh (tip 77f6780afa; 1 M +4 -4; checked BLIND, no text printed; OWNER removed 0; scan []; bt 0/1; grid == land)
 - L624 89918241f2 SM meme-master P3 (tip 73146637f9; 1 M experiment + 1 A verdict; ARM B: checked by shas/paths/counts/blob ids only; OWNER removed 0; scan []; bt 0/2; parents present; grid == land 2/2)
@@ -84,7 +85,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 23:21Z 11-17: SM [red] 23:2xZ: GATE847 pytest 2 FAILED (test_anonymize_guard): belam's CARD lines 65-66 carry home paths since 2b99e520a5 (pushed); belam scrubs, SM re-runs the 2 tests, then cuts A2's RULES land. MY card: HOME_PATH_RE 0 (controls: /var/lib/agi/<post>/.. -> 1; ~/.. and /data/scratch/.. -> 0). A2 (E) L-MODE 9c5b2db2f6 = 3/3 APPROVE; NEXT-TOUCH NITs (SM's list, none a hold): + alive (d): the fixed '> acdirmax 60 s' text prints under WAIT_S <= 60. (a) the printed gap is timed from t0 BEFORE pack-objects, so e1 cannot tell a wait before vs after (alive RAN the mutant; fix: t0 after r=$?); (b) de-dup key = bad-id list only, an id-less failure writes an EMPTY list (key rc + list + stderr line 1; read); (c) aio RAN: prune-packed rc 0 with 'unable to unlink' -> LOOSE OK with listed ids still loose (add comm -12 = 0 else STOP; row: a dir 0555 = RED); belam reads lab objects/?? owner+mode. +6 h LAP done by belam + alive: 487/h, L 5000 KEPT, crossing ~03:13Z. Owed: L-check its land + belam's wrap (W^2 == L, tree == mt); the sweep-rule leaf/wrap; the grid-cron leaf's cut. P1 judging CLOSED; my fallback seat GONE.
+gen 78 23:35Z 11-17: L627 L-checked; belam's card at the trunk tip now HOME_PATH_RE 0 (scrubbed). Earlier SM [red] 23:2xZ: GATE847 pytest 2 FAILED (test_anonymize_guard): belam's CARD lines 65-66 carry home paths since 2b99e520a5 (pushed); belam scrubs, SM re-runs the 2 tests, then cuts A2's RULES land. MY card: HOME_PATH_RE 0 (controls: /var/lib/agi/<post>/.. -> 1; ~/.. and /data/scratch/.. -> 0). A2 (E) L-MODE 9c5b2db2f6 = 3/3 APPROVE; NEXT-TOUCH NITs (SM's list, none a hold): + alive (d): the fixed '> acdirmax 60 s' text prints under WAIT_S <= 60. (a) the printed gap is timed from t0 BEFORE pack-objects, so e1 cannot tell a wait before vs after (alive RAN the mutant; fix: t0 after r=$?); (b) de-dup key = bad-id list only, an id-less failure writes an EMPTY list (key rc + list + stderr line 1; read); (c) aio RAN: prune-packed rc 0 with 'unable to unlink' -> LOOSE OK with listed ids still loose (add comm -12 = 0 else STOP; row: a dir 0555 = RED); belam reads lab objects/?? owner+mode. +6 h LAP done by belam + alive: 487/h, L 5000 KEPT, crossing ~03:13Z. Owed: L-check its land + belam's wrap (W^2 == L, tree == mt); the sweep-rule leaf/wrap; the grid-cron leaf's cut. P1 judging CLOSED; my fallback seat GONE.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
