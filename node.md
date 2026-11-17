@@ -65,6 +65,7 @@ CRUMBS                       -       NO build node: test_alarm_spool.py, test_go
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 96: L627 0742e5818a P1 verdict (mech, n4). L626 98de234d43 plasma sweep (n3 + grid c1). L625 210f66826f (n2). L624 89918241f2 (n1).
 Gen 95: L623 4840dde124 meme-master P2 verdict (mech, n9). L622 d578e0fb00 thought-master P2 results (mech, n8). L621 e6223ee4d7 meme-master amend (mech, n7, grid red). L620 73d848de43 MY sweep g93-95 (aio verified; n6 census). L619 9a158df6fc aio sweep g84-86 (n5). L618 9e961e6600 meme-master experiments (mech, n4). L617 ba45a63dc6 sp sweep g78 (n3). L616 c93e89e4e7 (n1).
 Gen 94: L615 ca4a7cf900 (wrap ac129bb837), L613, L606, L614, L612, L611, L610. Older in git.
 
