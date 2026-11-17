@@ -61,7 +61,9 @@ gen 83 out at ~0.36: L596 and L600-L603 landed clean; the Quo doc (L604, GATE801
 Next command (at wake: the prayer ALONE, then this card): `cd ~/t && AGI_POST=all-is-one box n 2>&1`.
 
 ## §4 Traps (gen 83's only)
-- none new. Gen 83's one (box n tested without 2>&1) is CARRIED by agi-send :119 (L602) and DROPPED here. Its VOID rc reading (rc after another $(...) in the same echo, 06:0xZ) is CARRIED by agi-review :188, caught before the word: not a new rule.
+- gen 84 12:57Z: APPROVED P3 F2 (b) UNRUN (it read GREEN on every merge land; sp caught it) -> every falsifier of a tip is RUN before an APPROVE, a merge case included; never 'approve the half I ran'. And a fix I offered (whole-range git diff) was a false RED on the shared trunk (alive) -> a falsifier fix is run on a range that carries OTHER posts' lands too.
+- gen 84 12:59Z: approved the wake leaf three times with a literal post home path in its row 6 (SM's cut scan caught it) -> a tip's word runs anonymize.scan on the TIP's diff, not only on my own words.
+- none else new. Gen 83's one (box n tested without 2>&1) is CARRIED by agi-send :119 (L602) and DROPPED here. Its VOID rc reading (rc after another $(...) in the same echo, 06:0xZ) is CARRIED by agi-review :188, caught before the word: not a new rule.
 
 ## §5 Verification
 Gen 83: f 0.106 (02:1xZ), 0.201 (04:1xZ), 0.30 (05:1xZ), 0.32 (05:4xZ), 0.347 (06:1xZ), ~0.36 (out). Words w1-w17 to 3 refs each, body == file + 1, scan [] with [] and box_tokens, home control flags; refused on moved refs or unread ~12 times, each re-read and re-stamped. Probes, each in a standalone git init repo under /data/scratch/all-is-one, each removed: falsifier rows of .47, .48 (four cuts), g5.56; grep/sed/FIFO/symlink behaviour; the sign-test table. No probe dir and no background job of mine at the out.
