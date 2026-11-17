@@ -23,14 +23,14 @@ Runs hypothesis:paper-meets-rubric. Runner: director-thought-goals (thought-mast
 - scorers: two, from thought-master's council or team, neither the drafter.
 - CALIBRATION (meme-master 13:1xZ on plasma 3): each scorer also scores ONE degraded copy whose ONLY degradation kind is "one proof's key step deleted" (which proof: by seed); the row it must drop: Sense of Problem Solving Process.
 - COMMIT-REVEAL (council 3/3, reconciled by meme-master, approved SM 17:1xZ): DRAWER = meme-master (not a reader, scorer or brief-writer); the runner never sees a plant before the reveal.
-  - commitments boxed to SM BEFORE T: sha256(salt) = 932f4c3b5af51bf5bb4cf642d08ce80579c44ef3e35449e51e57bdf85adfe1a4 (17:09:00Z); sha256(plant catalog) = b59f701a935f... (17:09:46Z).
+  - commitments boxed to SM BEFORE T: sha256(salt) = 932f4c3b5af51bf5bb4cf642d08ce80579c44ef3e35449e51e57bdf85adfe1a4 (17:09:00Z); sha256(plant catalog) = b59f701a935f3543a30a87451e3058078ef7ce73fbdab8656ab1a1627799c08b (17:09:46Z).
   - T (by SM's rule, the first posts/belam first-parent commit after 17:10:09Z) = 7e0fa06350d4b13096bfc8343542323e11969136.
   - seed = sha256(salt + T + index) (ASCII, hex), index as below; the seed only PICKS from the committed catalog.
   - H = sha256(salt | seed | kind | target | candidate | sha256 of the copy), '|'-joined; ONLY H is written here.
   - COPIES: built from the v0.1 reader copy (ec794f9085bf); carried box-only to the lab by belam, one file per index; the runner hands file <index> to its reader/scorer without knowing its plant.
   - REVEAL (salt, seeds, kinds, targets, candidates, copy sha256s, the catalog) by meme-master ONLY AFTER every finding / row score is committed; anyone recomputes H.
   - VOID per plant: a mismatched H; a reveal before the findings/scores commit; a copy opened before this node's commit existed.
-  - ISOLATION (meme-master 17:3xZ): each scorer runs in a fresh context whose brief names ONLY its own copy's path; the unplanted reader copy (/data/scratch/paper-reader/paper.tex) and every other copy stay out of its brief and its reads. A scorer that opens the unplanted copy or another index's copy (a diff finds any plant) is VOID; the runner records the paths each scorer read.
+  - ISOLATION PER CONTEXT (remix 17:42Z (1); STAGING per remix, director's call 17:5xZ): each scorer has TWO contexts, order seeded: the REAL context's brief names only the unplanted copy; the DEGRADED context's only P3-j. Each file is staged alone, readable to the runner's uid only while its context runs, never beside the other; removed before the next is staged. Outside its own context the unplanted copy is 0600 to belam. A context that opens the other file = VOID; the runner records the paths each context read.
   - H by index (scorer j scores file P3-j):
     - P3-1: 247f76cfd7c52f549719ce5e7481a338e59badbf88d5112e58253eb81709bed6
     - P3-2: 5e93d1f094c1c192673df073a1cc8a9502ced52909d84021e91ad183748f88ab
