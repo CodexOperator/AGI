@@ -91,6 +91,8 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / uni
 - [g94 13:0xZ 11-17] I APPROVED the wake leaf (w8, d3d70328c7) with a literal post home path on :52 (SM's cut scan caught it,
   12:59Z): my scan ran on MY words, never the tip's diff -> run anonymize.scan on the TIP's diff before a word (== aio 13:01:42Z);
   and a falsifier run must hold the case that breaks it (my F2 (b) run had no merge; sp's did).
+- [g94 14:2xZ 11-17] my A1 M2 way back saved objects/pack only, though my own 13:56Z line said -d deletes loose objects too
+  (sp RAN the loss) -> a way back is RUN end to end (act, STOP, restore, compare) before it is worded, and covers all the act deletes.
 - [g93 08:41Z 11-17] verifying a RULES land I read the land as WRAP^^ (the wrap's grandparent: belam's card) instead of WRAP^2
   (its SECOND parent); vland read 'p2 == tip: NO' and caught it -> the land under a wrap is $(git rev-parse W^2), never W^^
   (agi-master-gate's verify-land line, or my vland.sh: take W and derive L itself).
