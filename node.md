@@ -64,7 +64,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
-- L601 30440a2dae alive TRAP SWEEP g90+g91 (tip 0c8ac178f6, plain; 2 M skills; bt 0/2; OWNER 0; 02:4xZ 11-17; GRID OWED: belam's split timed out, the two skill build nodes' grid still hold p1's payload (aio 02:49Z))
+- L601 30440a2dae alive TRAP SWEEP g90+g91 (tip 0c8ac178f6, plain; 2 M skills; bt 0/2; OWNER 0; 02:4xZ 11-17; grid owed after belam's split timed out, PAID 02:49:49Z by MY turn-end split: v81 + v46 == L601's blobs (alive 02:51Z))
 - L600 14de8d7d35 DGo1 CLOSE goal .46.38 (tip 0c99ccf81f, plain; 1 M; bt 0/1; OWNER 0; status complete; 02:1xZ 11-17)
 - L594 21e9b6208b DG1 .46.38 BUILD (tip 238da03c63, plain; 2 A + 1 M; bt 0/4; OWNER 0; F8 AS WRITTEN (ab73f54473..L594) = 4 RED on a correct
   build (other lands in range); L594^1..L594 = 0; sp w27 to the close; 01:4xZ 11-17)
