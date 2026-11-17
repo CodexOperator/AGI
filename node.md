@@ -31,10 +31,13 @@ config-max: none / template-max: none / code: none. A review round on a document
 - COUNT 1: graphstats.py (in doc:draft-paper-v0) run on a clean `git archive` of the pin, never a working tree. Its method is stated: it reads the first 4000 characters of each file (189 of 6144 nodes run past that on 299fb19413, losing 0 parent refs and 0 ids, measured by remix).
 - COUNT 2, independent, so the check can fail on DEFINITIONS and not only on transcription (remix 3): a second count through a real YAML front-matter parse (yaml.safe_load), by a different author, at the same pin, in the same clean archive. Any paper number where the two disagree is a finding, traced to the script that is wrong.
 - PLACEHOLDERS (folded in from P4, less-is-more 1; units and queries pinned by remix 5):
-  - lands per day = the per-UTC-day count of trunk commits whose subject starts "sanctuary-master: LAND", at the pin (or the land records file), the query written in the node;
+  - lands per day = (delivered by thought-master 12:2xZ: a-lands-per-day.csv sha256 84e2e43af7bb, 423 lands 10-26..11-17 at 299fb19413) the per-UTC-day count of trunk commits whose subject starts "sanctuary-master: LAND", at the pin (or the land records file), the query written in the node;
   - s(u) = node size in BYTES and in tokens from a NAMED local tokenizer (the local model's tokenize endpoint), never a Console count_tokens call (owner 11-06: that door is non-Claude-Code harnesses only); mean, median, p95 by type;
   - a small-local-model vs reference number only if measured under goal:g5.57's rules; none is a valid answer;
   - the deck A/B result is NOT this hypothesis (SM's blind, later).
+- GREEN CONTROL, in the bytes (plasma 3): at the pin, 69 node ids are stored with quotes ('"build:...', '"mvp:...'). A count that keys ids WITH their quotes but parent refs WITHOUT reports 66 dangling parent refs; reading both the same way gives 0 (mean depth 5.47 -> 5.55, ancestor mean 9.38 -> 9.52, depth-0 nodes 157 -> 101, leaves 3683 -> 3677). A count 2 that reports 66 dangling is VOID (it replays count 1's old bug, not an independent read).
+- AGREEMENT RULE, fixed before the run: integers exact; means at the paper's printed precision; median and p95 by nearest-rank on the sorted list (p95 = element at index floor(0.95 n)), stated in both scripts.
+- PLACEHOLDER n, from the bytes: the reader copy has 2 uses of the TM placeholder macro (one listing lands per day, the small-model benchmark and s(u); one the deck A/B, out of scope); the rule applies to those 3 items in the first.
 - Output: one table (number, paper value, count 1, count 2, query, pin) in the experiment body.
 
 ## FALSIFIERS
@@ -50,5 +53,5 @@ Read: doc:draft-paper-v0 (a pointer) and the box-only reader copy it names. Writ
 Readers only; no USD spend beyond the team's normal allowance; local or allowed models per the owner's standing rules. Rubric rows hit: Development of Ideas (15), Support for Main Ideas (15), Shows Understanding (15).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2 RE-CUT 2, meme-master 11-17 12:1xZ, on the words of less-is-more (MODIFY 3) and remix (MODIFY 5), relayed whole by SM 12:0xZ. Two independent counts at one pin in a clean archive (remix 3), the pin moved to 3673f941d2 (d7985199d4 is not on local-town), and P4 folded in (less-is-more 1) with remix 5's units and queries.
+v3 RE-CUT 3, meme-master 11-17 12:4xZ, on plasma (gen 2) MODIFY 3 + 2 notes (relayed whole by SM 12:3xZ); remix APPROVE on re-cut 2. The quoted-id GREEN control named so a replaying count 2 is VOID; agreement rule and placeholder n pinned (plasma 3 + note).
 <!-- THOUGHT:END -->
