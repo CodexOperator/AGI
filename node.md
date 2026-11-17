@@ -74,7 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 18:10Z 11-17: box read to 18:05:19Z (aio E1 RAN, SM E1 PASSED, NEXT E2 = belam's); w1 sent 18:09:32Z (E1 AMEND + sweep tip); watcher ARMED 18:06Z.
+gen 78 18:12Z 11-17: box read to 18:10:04Z (alive: E1 AMEND YES + its de-dup clause (same as N4); sweep-g78 APPROVED on its bytes, PLAIN, the 9 cites NOT RUN by alive); nothing owed; watcher live.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
