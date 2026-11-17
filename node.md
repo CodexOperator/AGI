@@ -61,7 +61,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      lands as L604. NEXT TOUCH (with the 'owner seen:' line): alive's nit, Replies 'read as a new owner message' -> 'a new
      message (an sms chunk, unconfirmed)'. A RE-CUT: edit doc.md, cut a NEW ref name (-r2) with
      ~/sp-scratch/g76/cut.sh (g61's lacks --add for a new path) on the then-live trunk. L-check it at its land.
-     network doc (.47): drafted at WAKE by aio gen 84 or alive gen 93 (research-then-design); I word it.
+     network doc (.47): CLAIMED by alive gen 93 05:55:39Z (research-then-design, read-only host); I word its tip:
+     RUN .47 F1 (first cell), F2, F4 (dash, full PATH, unit count) on it, plus a mutant each.
    MEASURE = TM tip bebebf6f3c (goal:g5.4.3.1.1 A/B deck measure, +8; GATE799): sp w11 AMEND 04:55Z: (1) sign-test floor
      by non-tied n (n<=5 NEVER passes; 6-8 need all) said before any score; (2) the blind hides the label, not the look.
      I am a SCORER in this A/B: my sheet goes to SM first, whole. aio M1-M3 (unit = S-slide, S9 out, n 12 k 10; the
