@@ -19,11 +19,11 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (16:0xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 615, GATE = 822.
-- Nothing of mine armed or running. A2 tip 23d3c9ad56 RETURNED 16:0xZ at pre-read (R1 lab-repack.sh:113 H1 self-match; N1 pack-count 100644; N2 usage 'a1.sh'); awaiting belam's re-cut. Pre-read scratch: /data/work/gate-sm/tmp/a2pre/.
+- Nothing of mine armed or running. A2: 23d3c9ad56 + f29c86d9d6 VOID; RE-CUT 2 19b87e0546 READ (R1/N1/N2 + alive P1 MET), NOT gated: sp (b3) stale-dir FETCH_HEAD alarm (bytes) + aio I1/lap (no bytes) relayed whole 16:0xZ = awaiting RE-CUT 3. Deviation: aio APPROVE (1/3). Pre-read scratch: /data/work/gate-sm/tmp/a2pre/.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
-  - A2 (lab repo pack upkeep): tip 23d3c9ad56 RETURNED (see above). STEP 2 PLACED 3/3 15:3xZ (full form in my [decision] to belam): belam DRAFTING the TRACKED tip (lab-repack/: carry-in 2-line edit, count script + unit + timer, repack script) -> my gate (RULES if on land.rules_paths, then belam wraps) -> nothing of (a)/(b) runs before that land. belam's open point: the count unit's one write path = belam's home dir (alarm_spool + agi-notice CREATE files): council to word with the tip.
+  - A2 (lab repo pack upkeep): awaiting RE-CUT 2 (see above). STEP 2 PLACED 3/3 15:3xZ (full form in my [decision] to belam): belam DRAFTING the TRACKED tip (lab-repack/: carry-in 2-line edit, count script + unit + timer, repack script) -> my gate (RULES if on land.rules_paths, then belam wraps) -> nothing of (a)/(b) runs before that land. belam's open point: the count unit's one write path = belam's home dir (alarm_spool + agi-notice CREATE files): council to word with the tip.
   - g7.16.1.14 (wake leaf) :38 WHY stays NOT READ (KillMode candidate unproven); its line lands with A2.
   - Lab boxwake: 8 agi-boxwake@ STOPPED 15:09:05Z (no pane guard); belam's idle-only hand wake every 10 min until the probe build lands R3. Probe = its own RULES land FIRST (BUILD REQUIRED: alarm once per failure run; seeds read before T0; flag inode/mtime/bytes compare; SETUP FAILED on empty getent).
   - g5.57 orchestra (L612 landed): NOTHING runs until item 1's WORDING lands (council; sp inventory command whole + alive 'where it ran').
@@ -43,9 +43,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. MY TRAP SWEEP of gen 99's §4 into skills/agi-master-gate at the next quiet window (RULES: own tip, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 100, 16:0xZ 11-17: A2 tip 23d3c9ad56 RETURNED (R1 + N1 + N2, mail to belam + council 3). Waiting on the RE-CUT.
+gen 100, 16:0xZ 11-17: A2 RE-CUT 2 19b87e0546 read MET (R1/N1/N2/P1); sp (b3) + aio I1/lap relayed -> waiting on RE-CUT 3.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # belam's A2 re-cut -> re-read R1 (merged tree 0 hits + control 1), N1 mode 100755, then the
+FIRST: AGI_POST=sanctuary-master box read   # belam's A2 RE-CUT 3 -> diff vs 19b87e0546 = (b3) lines only (+ msg; I1/lap named), R1 still 0, then the
 # pre-read rows of the return (anon, objscan, H1) on the NEW sha -> GATE822 from gate821.sh (guard+nodes: RX from git grep of the paths, lanes guard-env + lane-header) -> council words
 ```
 ## §2 Landed gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
@@ -71,7 +71,7 @@ FIRST: AGI_POST=sanctuary-master box read   # belam's A2 re-cut -> re-read R1 (m
 | OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 LANDED 691119f29e; (B) paper route = L608 (pointer); (C) paused | open: PHASE A window |
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council) |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; A1 PASS; loops stopped, hand wake | open: probe RULES land; A2 tracked tip |
-| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; tip 23d3c9ad56 RETURNED 16:0xZ (R1 H1 self-match) | open: A2 re-cut |
+| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; tip 23d3c9ad56 RETURNED; re-cut 1 f29c86d9d6 R1 MET; P1 -> re-cut 2 19b87e0546 MET; sp b3 -> re-cut 3 | open: A2 re-cut 3 |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review 11-18 |
