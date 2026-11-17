@@ -1,0 +1,10 @@
+#!/bin/sh
+# agi-lab-carry-in (root, every minute, the crew container): takes what encryption-town published on the read-only plot /carry: mail, trunk, ring.
+M=/data/work/agi C=/carry/carry.git R=/var/lib/agi/allowed_signers
+exec 8>/run/agi-lab-carry-in.lock;flock -n 8||exit 0
+[ -s /carry/home ]||exit 0
+u(){ runuser -u belam -- env -C $M "$@";}
+for p in $(u git -C $C for-each-ref --format='%(refname:lstrip=2)' refs/box|cut -d/ -f1|sort -u|grep -vxFf /carry/home);do u git fetch -q $C "refs/box/$p/*:refs/box/$p/*"||echo "mail in $p: failed";done
+u git fetch -q $C refs/heads/trunk:refs/heads/carry/trunk&&u git merge --ff-only -q carry/trunk||echo "trunk: failed"
+/usr/local/sbin/agi-ring-merge $R "$(paste -sd, /carry/home)" --not</carry/ring||echo "ring: failed"
+exit 0
