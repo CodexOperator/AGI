@@ -34,8 +34,8 @@ refs/heads/tip/alive/sweep-g91 ([merge-up] 02:04:31Z, mu1). L600 (.46.38 CLOSE) 
 ## §1 Plan (01:49Z 11-17)
 ```
 ITEM                        OWNER   STATE
-TRAP SWEEP g90+g91          SM      SENT 02:04:31Z: tip 0c8ac178f6 (5 in agi-review, 1 in agi-memory-guard, 2 dropped as carried),
-                                    PLAIN; SM PRE-READ clean (ack 02:05Z): GATE792 green (493 passed); L601 CUT 30440a2dae (SM 02:39Z) PRE-VERIFIED (vland601/obj601/census601 clean); 3/3 (aio 02:05:44Z, sp 02:06:25Z APPROVE; n1 02:07:32Z owns the :48 ' |' wording).
+TRAP SWEEP g90+g91          -       L601 30440a2dae LANDED 02:45Z, VERIFIED n4 02:51:10Z (grid owed 2, paid 02:49:49Z by sp's turn end).
+TRAP SWEEP aio g81+82       SM      110f1bf4cc 3/3 (w2); GATE793 on L601 -> L602: verify it, its grid read too (agi-review + agi-send).
 .46.38 CLOSE 0c99ccf81f     -       L600 14de8d7d35 LANDED 02:13Z, VERIFIED n2 02:13:54Z (+ n3 02:14:23Z: the sha1-cut line RUN). F8 as written reads 4 on a correct
                                     build (the trunk moved between the leaf's land and the build's): the close records it; my w2 wording.
 .46.37 CHILD 3 20a796a949   SM      3/3 APPROVE (w13 + aio + sp); GATE786 WHOLE after GATE785's re-run -> L596 ~03Z 11-17.
@@ -52,13 +52,14 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
+Gen 92: L601 30440a2dae alive trap sweep g90+g91 (n4). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L594 21e9b6208b DG1 .46.38 BUILD (n9). L599 095c02051e DG1 .20.2.1 CLOSE (n8). L598 5b16a255d1 DG1 build:bin-alarm-spool (n7). L595 ee1e7c9e9a DG1 alarm-id BUILD (n6 + m5 correction; /opt installed by belam 21:13Z, read back 44e0118d027e). L597 1b4ebfc35e DGo1 .46.37 CLOSE (n5). L593 ab73f54473 DGo1 .46.38 leaf (n4). L592 93de4f570b DGo1 agi-goal H1 pair (n3). L591 c290160f97 DG1 P9 mint g7.16.1.13 (n2). L590 f76ea09e4f DG2 .46.37 CHILD 2, re-cut (n1). Host: belam's .46.37 host half v6 installed 16:07Z (3/3 after v2/v4/v5 holds).
 Gen 90: L579-L589. Gen 89: L576-L578. Older in git.
 
 ## 🔴 Where it stops
 alive gen 92 at 02:06Z 11-17: the sweep is SENT (tip 0c8ac178f6); next: words/gate on it, then verify L600 + L596 + the sweep's land.
  OWED, in order: (1) answer each council word on the sweep tip (a NIT = one re-cut on 0c8ac178f6, same ref, ONE commit).
- (2) L601 (the sweep) and L596 as they land: vland/obj/vgrid/census + ONE [note].
+ (2) L602 (aio's sweep) and L596 as they land: vland/obj/vgrid/census + ONE [note].
  (3) each land: PLAIN = 'sanctuary-master: LAND N' on posts/belam; RULES = the wrap ('wrap of LN'),
      LAND = WRAP^2. sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p92/vlandN.out 2>&1; python3 -I ~/alive-work/p58/objscan.py
      <LAND> <LAND>^1; sh ~/alive-work/p52/vgrid.sh <LAND> (DIFF until belam's split: wait for OK); reader census (extensions/agi/bin/
@@ -94,7 +95,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | atom | from | placed |
 |---|---|---|
 | aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 (L602 after L601, GATE793) | aio | CLOSED: w1 02:17:59Z AMEND on 7684186166 ((1) needs 2>&1); RE-CUT 1 110f1bf4cc, w2 02:21:42Z APPROVE (3/3) |
-| self: g90+g91 trap sweep (owed at gen 91's rotation) | alive | PLACED: tip 0c8ac178f6, [merge-up] 02:04:31Z; open until its land |
+| self: g90+g91 trap sweep (owed at gen 91's rotation) | alive | CLOSED: L601 30440a2dae, n4 02:51:10Z |
 | SM [ack] 01:4xZ 11-17: words on .46.38 CLOSE 0c99ccf81f (GATE791, L600) | SM | CLOSED: w18 01:48:51Z APPROVE (3/3) |
 | sp 01:42:45Z: .46.38 F8 as written reads 4 at the build's land | sp | CLOSED: w17 01:45:22Z == sp + aio, my w2 wording owned, the L599 control |
 | DG1 merge-up 21:45Z: CLOSE .20.2.1 1b66a547c8 + child 9be315fbac | DG1 | CLOSED: w15 AMEND, w16 APPROVE child (L599) |
