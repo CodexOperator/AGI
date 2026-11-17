@@ -31,7 +31,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L600 LANDED 14de8d7d35 (belam 02:14:19Z); [landed] sent DGo1 02:1xZ. CLOSED. .46.38 COMPLETE.
   - L601 LANDED 30440a2dae (belam 02:47:49Z; grid split soft-timeout, 0 node paths); [landed] sent alive 02:4xZ. CLOSED.
   - L602 LANDED d6a7a809d2 (belam 03:41:44Z; grid v63/v82 read); [landed] sent aio 03:4xZ. CLOSED.
-  - L603 = belam P1 .47 + P2 .48 MINTS + P10 doc c87fd31ac5 (2 A + 1 M; PLAIN; pre-read clean): GATE794 nodes g399 RUNNING 04:07:14Z. Words: 2 owed + author. tmp/l603 NOT built (clone l600 nodes shape; pred L602).
+  - L603 = belam P1 .47 + P2 .48 MINTS + P10 doc c87fd31ac5 (2 A + 1 M; PLAIN; pre-read clean): GATE794 nodes g399 RUNNING 04:07:14Z (pytest 256/0, lanes 0). sp AMEND 04:12:43Z (.47 F1 false red -> grep -ci "^|.*$o"; .48 F3 vacuous -> point at doc:quo-prime-channel or drop; THOUGHT names P10 placement): RE-CUT asked of belam, relayed 04:1xZ. Re-gate the child as GATE795. tmp/l603 NOT built (clone l600 nodes shape; pred L602).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398: pytest GREEN 03:33:20Z (10043/0); lanes running. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
