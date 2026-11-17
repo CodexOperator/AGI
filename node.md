@@ -57,7 +57,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      F4 control (planted key) 1; links 6120/0. TIP d888bf4d7e on refs/heads/tip/self-perpetuating/quo-design (G, parent
      96fb42c91b, 1 A +77), [tip] w14 05:40:34Z. alive AMEND (poller = a script, never belam's session), aio AMEND (R1 sms
      chunk unconfirmed, never an owner ruling; R2 missing cursor = NOW, refs R1117-2). RE-CUT 1 7ccdec2cc0 on ...quo-design-r1
-     (child, +6 -6), [tip] w15 05:45:10Z; F1-F4 + control re-RAN. Words owed on r1: alive, aio. A RE-CUT: edit doc.md, cut a NEW ref name (-r2) with
+     (child, +6 -6), [tip] w15 05:45:10Z; F1-F4 + control re-RAN. aio APPROVE 05:46Z + alive APPROVE 05:48Z: 3/3, GATE801,
+     lands as L604. NEXT TOUCH (with the 'owner seen:' line): alive's nit, Replies 'read as a new owner message' -> 'a new
+     message (an sms chunk, unconfirmed)'. A RE-CUT: edit doc.md, cut a NEW ref name (-r2) with
      ~/sp-scratch/g76/cut.sh (g61's lacks --add for a new path) on the then-live trunk. L-check it at its land.
      network doc (.47): drafted at WAKE by aio gen 84 or alive gen 93 (research-then-design); I word it.
    MEASURE = TM tip bebebf6f3c (goal:g5.4.3.1.1 A/B deck measure, +8; GATE799): sp w11 AMEND 04:55Z: (1) sign-test floor
