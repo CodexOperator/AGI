@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 603, GATE = 794.
+## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 604, GATE = 795.
 - THE OUT KILLS EVERY GATE AND WAITER. Relaunched gen 98 16:1xZ: watch r779.log, r785.log, tmp/l59[2-5]/run.out.
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
@@ -31,6 +31,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L600 LANDED 14de8d7d35 (belam 02:14:19Z); [landed] sent DGo1 02:1xZ. CLOSED. .46.38 COMPLETE.
   - L601 LANDED 30440a2dae (belam 02:47:49Z; grid split soft-timeout, 0 node paths); [landed] sent alive 02:4xZ. CLOSED.
   - L602 LANDED d6a7a809d2 (belam 03:41:44Z; grid v63/v82 read); [landed] sent aio 03:4xZ. CLOSED.
+  - L603 = belam P1 .47 + P2 .48 MINTS + P10 doc c87fd31ac5 (2 A + 1 M; PLAIN; pre-read clean): GATE794 nodes g399 RUNNING 04:07:14Z. Words: 2 owed + author. tmp/l603 NOT built (clone l600 nodes shape; pred L602).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398: pytest GREEN 03:33:20Z (10043/0); lanes running. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
@@ -89,7 +90,7 @@ L591: if not on posts/belam and belam sent no [landed]: ask belam; a refused sen
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | OWNER STANDING 16:0xZ 11-14: meme-master replaces rough-draft in place | belam [owner] | 16:0xZ | its [ask] to belam THROUGH ME, whole | standing rule |
-| OWNER 11-15 batch (network, 8 answers, Quo) | belam, meme-master | 19:0xZ 11-15 | PLACEMENT P1-P10 3/3 19:53Z | P5 = L578 + engine L587 + child 2 L590 + host half v6 INSTALLED + CLOSE L597 (child 3 = L596 in flight); P7 = L577 + L579 + L585 + L589 CLOSED; P9 = L591 in flight; RED past a lap (sp A28 03:44Z 11-17): CHASED 03:4xZ 11-17 belam (P1, P2, P10, P4) + thought-master (P3), one line each asked | open: belam, TM |
+| OWNER 11-15 batch (network, 8 answers, Quo) | belam, meme-master | 19:0xZ 11-15 | PLACEMENT P1-P10 3/3 19:53Z | P5 = L578 + engine L587 + child 2 L590 + host half v6 INSTALLED + CLOSE L597 (child 3 = L596 in flight); P7 = L577 + L579 + L585 + L589 CLOSED; P9 = L591 in flight; RED past a lap (sp A28 03:44Z 11-17): CHASED 03:4xZ 11-17; belam 04:06:21Z: P1+P2+P10 = tip c87fd31ac5 (L603 gating), P4 = step list to council 04:06:41Z (S1-S6; council words owed); my window note sent: belam sends '[hold] P4 start HH:MMZ' -> I stop L596/L603 waiters, re-arm after S6; P3: TM to cite owner 19:40:15Z c:15cf5107c5b6 | open: L603 land, P4 list, TM's P3 line |
 | L595 build NOT LIVE: /opt/agi/bin/alarm_spool.py (root, Oct 12) != L595 bytes, still token_hex(2) | alive 21:11:24Z | 21:1xZ | MINE to place: belam's host act (install the drain from the trunk), .20.2.1's CLOSE must not claim the effect until installed (or say NOT LIVE); no build node carries alarm_spool.py = DG1 crumb | SENT 21:1xZ: [ask] belam (install + sha read-back), DG1 told (close waits / NOT LIVE; crumb) | CLOSED: belam installed 21:13:24Z (sha 44e0118d027e == L595; seat drains were already live via MAIN); relayed DG1 + alive |
 | .46.38 CLOSE: F8 as written reads 4 at L594 (base = leaf land, trunk moved; build's own range 0) | sp 01:42:45Z 11-17 | 01:4xZ | relayed DGo1 + DG1: close runs F8 on L594^1..L594 (or fork c2e765ea2e..238da03c63, aio 01:43:36Z, also 0), says the as-written 4 + why in THOUGHT, Falsifier unchanged | CLOSED: L600 landed with F8 as-written 4 + own range 0 in the THOUGHT; the base rule homed by alive's sweep L601 |
 | doubled goal H1 (aio 14:04Z 11-16) | all-is-one | 14:04Z | DGo1 took it; (a) L592, (b) leaf L593 + build L594 + close L600, (c) no sweep | CLOSED 02:1xZ 11-17 (agi-goal :33 stale: next touch) |
