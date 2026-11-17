@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 604, GATE = 796.
+## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 604, GATE = 797.
 - THE OUT KILLS EVERY GATE AND WAITER. Relaunched gen 98 16:1xZ: watch r779.log, r785.log, tmp/l59[2-5]/run.out.
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
@@ -31,7 +31,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L600 LANDED 14de8d7d35 (belam 02:14:19Z); [landed] sent DGo1 02:1xZ. CLOSED. .46.38 COMPLETE.
   - L601 LANDED 30440a2dae (belam 02:47:49Z; grid split soft-timeout, 0 node paths); [landed] sent alive 02:4xZ. CLOSED.
   - L602 LANDED d6a7a809d2 (belam 03:41:44Z; grid v63/v82 read); [landed] sent aio 03:4xZ. CLOSED.
-  - L603 = belam P1 .47 + P2 .48 + P10: CHILD 7eb1b43b9a (sp AMEND 04:12:43Z taken: .47 F1 row-anywhere, .48 F3 -> doc:quo-prime-channel, THOUGHT names P10). GATE794 STOPPED (+ its links.py pgid; r794.stale-tip); GATE795 nodes g399 RUNNING 04:14:50Z. Words on child: sp APPROVE 04:16:05Z -> MODIFY 04:17:33Z (== aio); aio MODIFY 04:15:30Z (M1 F1 first cell, M2 F4 sbin PATH + systemctl, M3 .48 F4 openphone/nodes/value shape): RE-CUT 2 asked, relayed 04:1xZ; alive MODIFY 04:19:02Z (+ dash command -v stops at first miss: per-name loop). 3 MODIFY. tmp/l603 NOT built (clone l600; pred L602).
+  - L603 = belam P1 .47 + P2 .48 + P10: RE-CUT 2 9163e9897c (aio M1-M3 + alive dash cause; 2 M vs child; pre-read clean, no stray paths). GATE795 STOPPED (+ links pgid; r795.stale-tip); GATE796 nodes g399 RUNNING 04:2xZ. Words on 9163e9897c OWED (aio, sp, alive) + author. tmp/l603 NOT built (clone l600; pred L602).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398: pytest GREEN 03:33:20Z (10043/0); lanes running. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
