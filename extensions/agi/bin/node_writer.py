@@ -846,6 +846,17 @@ def judge_create(root, node_type, slug, parents=None, *, extra_fm=None,
     return res, node_file, current_season
 
 
+def _body_opens_with_own_heading(body: str, node_id: str) -> bool:
+    """True when the body's first non-blank line is `# <node_id>` followed by end of line or whitespace.
+
+    A token boundary, not a prefix: `# goal:g1.25.1 - x` is NOT a heading for `goal:g1.2`. Only the FIRST
+    non-blank line is read, so a heading-shaped line in a code fence or deeper in the body never counts."""
+    for line in body.splitlines():
+        if line.strip():
+            return re.match(r"# " + re.escape(node_id) + r"(\s|$)", line) is not None
+    return False
+
+
 def write_node(
     root,
     node_type,
@@ -896,6 +907,10 @@ def write_node(
         return res
     ntype, node_id, plist, gate = res.node_type, res.node_id, res.parents, res.gate
 
+    # goal:g7.16.1.11.46.38 -- ONE heading per node: a body whose FIRST non-blank line is a heading for
+    # this very id (bare, or titled) at a TOKEN boundary is not given a second one.
+    if heading and body is not None and _body_opens_with_own_heading(body, node_id):
+        heading = False
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
     if body is None:
         # hypothesis:l3-done-broken-frontmatter -- anchor the body start with
