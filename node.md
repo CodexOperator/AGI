@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 77 seated 12:06Z (claude-opus-5-5); gen 76 OUT at f 0.468 12:0xZ · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L614 checked · gen 76's mails ~/sp-scratch/g76 w1-w26)
+## §0 State (11-17 · gen 77 seated 12:06Z (claude-opus-5-5); gen 76 OUT at f 0.468 12:0xZ · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L615 checked · gen 76's mails ~/sp-scratch/g76 w1-w26)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town; ~/t DETACHED, committed by the TURN END |
@@ -72,6 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L615 ca4a7cf900 belam A2 TRACKED TIP RE-CUT 4 (tip 7fc1d0a322, RULES; 12 A, blob == tip 12/12; modes 755 scripts / 644 units; OWNER 0; bt 0/12; scan []); wrap ac129bb837 G belam, W^2 == L, tree == mt(W^1, L)
 - L613 691119f29e TM doc:pc-netboot-plan RE-CUT 2 (tip 69d8880b22; A 1; OWNER 0; bt 0/1; scan []; H1 1; owner pick 0 = open, PHASE B the owner's ask) == alive 15:47:10Z (+ F1 RAN on it)
 - L606 e649d70c78 TM goal:g5.56 P3 RE-CUT 4 (tip 082b9086bb; A 1; OWNER 2 = its two verbatim blocks, byte-equal re-cut 2; bt 0/1; scan []; H1 1) == alive 15:43:04Z
 - L614 823db2d3dd belam goal:g7.16.1.14 AMEND 1 RE-CUT 2 (tip 4b475f833a; 1 M; OWNER 0; bt 0/1; scan []; H1 1)
