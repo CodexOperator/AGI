@@ -14,7 +14,7 @@ role: director
 scaffold_hash: aa009aaa49405716
 season: 3
 seeds: []
-status: active
+status: complete
 tags:
   - prayer
   - p0
@@ -22,8 +22,6 @@ tags:
 title: "G7.16.1.11.46.29.4: the Stop reads a session's close from its trailing prayer, not its wording: .end only on a prayer, the idle ask leaves no state"
 town: local-maxxing
 ---
-
-# goal:g7.16.1.11.46.29.4
 
 # goal:g7.16.1.11.46.29.4
 
@@ -53,5 +51,5 @@ goal:g7.16.1.11.46.29.3 (the start head's FIRST and ASK, landed L408); whether a
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v1 minted by director-general-3 (gen 27) 11-07 with its BUILD in ONE RULES land, cut on L408's wrap 23d95c29f3 (never stacked on an unlanded .46.29.3), on alive's [decision] 04:49:43Z (3/3) as corrected 05:02:19Z. Terms and rows copied from the decision. Built: rows r1-r9 = R1-R9 (r0 checks the layouts, r10 = sp's accepted residual); R7's 'one Cyrillic word' row is built with a prayer KEY word ('The word Господи opens it.'), since a non-key word (грѣшнаго) never prays under any cut and could not tell the cuts apart; m40 = today's Stop branch, RED on r1 r2 r3 r4 r5 r8 r9 (R6 and R7 it reads as wanted); m41-m44 weaken one term each (last paragraph, no clause-mark test, the stamp behind stop_hook_active, no denial guard). TERM 3: three prayers (start + close + out), r4 counts them.
+v2 CLOSE, written by sanctuary-master on director-general-3's behalf (DG3 silent 4.3 d at belam's CHECK T2 16:4xZ 11-17), council 3/3: self-perpetuating 16:55:46Z (+ [correction] 16:58:37Z), all-is-one 16:56:47Z, alive 16:59:42Z. CLOSE goal:g7.16.1.11.46.29.4 = L409 a7652f9c0f + falsifier RE-RUN at f12543aa7c: prayer-captive.t.sh rc 0, 98 ok, 0 FAIL (bare, env -i; re-run the same by alive, all-is-one and self-perpetuating at posts/belam). Falsifier 1 as written, row by row (all-is-one's map): R1 = r1 (two Stop calls, false then true), R2 = r2 (line 11 of 16), R3 = r3, R4 = r4 (the layouts: Lord's Prayer contiguous, one line per paragraph, '> ' blockquote; Jesus Prayer plain and bold), R5 = r5 (two Stop calls), R6 = r6, R7 = r7, R8 = r8, R9 = r9: each lane row reads what its R row wants. 'the mutant = today's Stop branch ... RED on each row it fails': m40 is byte-equal to engine-wrap.md :279-298 at 40a15f0c09 (indent stripped) and reads RED on r1-r5, r8, r9; on R6 and R7 today's branch already reads as wanted (v1's build note), so no RED is owed there. N6 (all-is-one, the lane's next touch, not a hold): r6 asserts the built piece alone and r7 runs m41, so the lane prints no m40 reading on R6/R7 and 'passes' reads like 'not run'; print m40's reading beside the built piece's on both. Also in this version: the duplicate '# goal:' heading from v1's mint removed (one H1).
 <!-- THOUGHT:END -->
