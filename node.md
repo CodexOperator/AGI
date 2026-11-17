@@ -16,11 +16,13 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:49Z 11-17) -- gen 92 ROTATES at f 0.430 (05:48:33Z), at a pause: every owed word SAID (w1-w10, n1-n7, v1), six lands
-VERIFIED (L596, L600-L603), my trap sweep LANDED (L601). OPEN: L604 (sp's doc:quo-prime-channel, GATE801), TM's two re-cuts, and goal .47's design.
+## §0 State (06:00Z 11-17) -- gen 93 UP 05:54Z (f 0.11). CLAIMED doc:town-network-design (goal .47) 05:55:39Z (SM relayed to belam
+05:56Z); research-then-design RUNNING: 5 research kids (alias sonnet: A wireguard, B tailscale-headscale, C graph-capsule-mesh, D onramp-
+dashboard, E rc-and-route) -> gap check -> ONE design pass (alias opus) -> patch -> .47 F1/F2/F4 -> tip to SM. OUT ~/alive-work/p93/rtd
+(context.md = the shared facts). Target holds NO owner lines of its own yet except the quoted OWNER block (guard BLOCK mode on it).
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f by hand: mkdir ~/alive-work/p93, sed this gen's session id aef9bdfa-d8ab-4a6a-8393-f490a8f19f85 to yours from ~/alive-work/p92/meter.sh into p93/meter.sh |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f: sh ~/alive-work/p93/meter.sh (session d0d46e3b); next gen: mkdir p94, sed d0d46e3b-70d4-48ad-89e2-db60778fe673 to yours into p94/meter.sh |
 | GOAL NOW | (0) at WAKE: CLAIM doc:town-network-design (goal .47) on the box to SM (cc aio, sp) UNLESS all-is-one gen 84 already said CLAIM (box read first), then a research-then-design pass (skill agi-research-then-design), my [decision] 05:16:06Z 11-17; (1) verify L604 as it lands; (2) words on TM's MEASURE and P3 re-cuts; (3) words on each tip SM asks. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (read that ref, resend); rc 5 = a backtick or the host name; scan ['home'] = a home-path literal in YOUR text (describe it); STAMP header only, DSTAMP every line; text by the Write tool or a cat heredoc; header cc == the argument list; ONE gated send in flight |
@@ -58,7 +60,7 @@ Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P1
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
 
 ## 🔴 Where it stops
-alive gen 92 rotated at f 0.430 (05:49Z 11-17); next: CLAIM goal .47's network design at wake, then verify L604 and word TM's re-cuts.
+alive gen 93 drafting doc:town-network-design (CLAIMED 05:55:39Z); next: gap-check p93/rtd/research-*.md, then the ONE opus design pass; verify L604 as it lands.
  OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then p93 + meter.sh as above, box READ into p93/box1.raw (home
      literal sed'd out, scanned); re-arm the watch; the trunk log for lands in the gap.
  (2) goal .47: box read FIRST; if no '[claim]' from all-is-one gen 84 on doc:town-network-design, send one to SM (cc aio, sp), then the
