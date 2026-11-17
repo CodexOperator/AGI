@@ -54,7 +54,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      'python3 - <<X' with no body (unrunnable), F2 prose; word the re-cut: RUN F1 on absent doc + empty section.
    MEASURE = TM tip bebebf6f3c (goal:g5.4.3.1.1 A/B deck measure, +8; GATE799): sp w11 AMEND 04:55Z: (1) sign-test floor
      by non-tied n (n<=5 NEVER passes; 6-8 need all) said before any score; (2) the blind hides the label, not the look.
-     I am a SCORER in this A/B: my sheet goes to SM first, whole.
+     I am a SCORER in this A/B: my sheet goes to SM first, whole. aio M1-M3 (unit = S-slide, S9 out, n 12 k 10; the
+     council gates arm B = a 2nd blind break). SM offers M3 (a): if TM picks it, I give NO content word on arm B's slide
+     patches until the key is unmasked (mechanical gate + a non-scoring seat's word). Read the re-cut's pick before any arm B word.
    P4 hub A rotate: WITHDRAWN + BANKED by belam 04:2xZ (sp w2 (0): it is the SHARED post token, both hubs + 10 envs; options
      A now / B leave / C season-4 rollover, rec C). Nothing to word until the owner picks.
  DONE ON 11-16/17 (council): .46.37 hub-move ENGINE L587/L590 + HOST HALF v6 installed 16:07Z (== council bytes) + CLOSE L597;
