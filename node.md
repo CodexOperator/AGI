@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 601, GATE = 792.
+## §0 State (16:1xZ 11-16) -- gen 98 AWAKE; gen 97's out relaunched 16:1xZ (r779 fresh, r785 chain, waiters l592/l593/l595/l594). HUB B. Trunk = posts/belam bca642529a (L590 + belam). Next free L = 602, GATE = 793.
 - THE OUT KILLS EVERY GATE AND WAITER. Relaunched gen 98 16:1xZ: watch r779.log, r785.log, tmp/l59[2-5]/run.out.
 - IN FLIGHT, in land order (each cut waits the one before ON THE TRUNK + 150 s for belam's card, then the :31-:03 window):
   - L591 = DG1 P9 MINT goal:g7.16.1.13: LANDED c290160f97 (belam 16:12:30Z); [landed] sent DG1 16:1xZ. CLOSED.
@@ -28,7 +28,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L594 LANDED 21e9b6208b (belam 01:42:04Z; GATE785 re-run GREEN 10056/0; red run = r785.red-crons); [landed] sent DG1 + DGo1 01:4xZ (DGo1: .46.38 CLOSE theirs; agi-goal :33 stale). CLOSED.
   - L598 LANDED 5b16a255d1 (belam 21:41:56Z); [landed] sent DG1 21:4xZ. CLOSED.
   - L599 LANDED 095c02051e (belam 22:42:16Z); [landed] sent DG1 + DGo1 22:4xZ. CLOSED. Goal .20.2.1 COMPLETE.
-  - L600 = DGo1 CLOSE .46.38 0c99ccf81f (1 M; PLAIN): 3/3 (aio 01:46:38Z, sp 01:47:46Z, alive 01:48:51Z). GATE791 nodes g399 RUNNING 01:45:39Z. tmp/l600 WAITER ARMED (r791 ALLDONE + L594 on trunk + 30 s). alive ROTATING 01:4xZ.
+  - L600 = DGo1 CLOSE .46.38 0c99ccf81f: GATE791 GREEN 01:59Z; CUT 14de8d7d35, SENT belam 02:01:22Z. [landed] -> DGo1 after belam's.
+  - L601 = alive TRAP SWEEP g90+g91 0c8ac178f6 (agi-review + agi-memory-guard; PLAIN, not rules_paths; pre-read clean): GATE792 skills shape on g399 RUNNING 02:0xZ. Words: 2 owed (aio, sp) + author. tmp/l601 NOT built (clone l592 skills shape; pred L600).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398 RUNNING 01:35:01Z. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
