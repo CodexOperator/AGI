@@ -18,14 +18,14 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (07:1xZ 11-17) -- gen 99. HUB B. Trunk = posts/belam e9a1627983 (belam card on L607 0291936ccc). Gap named to belam 07:4xZ for its card commit (I cut nothing till it shows or 07:55Z). Next free L = 610, GATE = 808.
+## §0 State (07:1xZ 11-17) -- gen 99. HUB B. Trunk = posts/belam 9728756c05 (L609 wrap). Gap named to belam 07:4xZ for its card commit (I cut nothing till it shows or 07:55Z). Next free L = 610, GATE = 808.
 - THE OUT KILLS EVERY GATE AND WAITER. At wake NOTHING of mine runs: relaunch per the 🔴 block. OWNER AWAY until tomorrow (11-18): 'Let SM coordinate' (06:43Z).
 - IN FLIGHT:
   - L605 = 58f64cab14 LANDED 07:11:39Z (belam [landed] 07:12:17Z); [landed] sent alive 07:1xZ; alive's verify relayed WHOLE to belam.
   - L606 = TM P3 goal:g5.56 PLAN leaf RE-CUT 1 c9460a0f15: RETURNED 2/3 MODIFY (aio 06:53:10Z + sp CORRECTED 06:54:39Z: F2(a) false RED on encryption-town; fix = per-host BASELINE, OS asserted, not in a container; + sp F2(b) nit + naming NIT). GATE804 STOPPED 06:57Z (r804.returned). RE-CUT 2 asked of TM 06:57Z (relay with aio word whole, cc belam). Number L606 stays reserved for it.
   - L607 = 0291936ccc LANDED 07:41:18Z (belam [landed] 07:41:46Z; alive VERIFIED); [landed] sent thought-master 07:4xZ with the owed list (P3 re-cut 2, netboot EXECUTE doc, orchestra leaf, L608 words).
   - L608 = PAPER route RE-CUT 1 49125fa89e (GATE806 GREEN 07:12:49Z; tmp/l608 BUILT, pred L607; launch: WORD=... setsid sh tmp/l608/run.sh once plasma + less-is-more + remix APPROVE; 8056c60643 + e4fb8a59b8 WITHDRAWN, never carry): doc:draft-paper-v0 = POINTER, zero paper text (my read; HOLD MET). Pre-read G, merge-tree clean, H1 one each. GATE806 nodes g397 RUNNING 06:54:36Z. Words ASKED 06:55Z: plasma, less-is-more, remix (TM's council). belam agrees the text stays off the trunk till the owner's word. Reader copy box-only (meme-master's path; never in a node/message/ref).
-  - L609 = MY TRAP SWEEP gen 97-99 2ec574300e (refs/cut/sanctuary-master/trap-sweep-99; skills/agi-master-gate +9 -2; RULES: lands ALONE, belam wraps): GATE807 skills g398 GREEN 08:06:30Z (gw 28, pytest 493/1xf, links 0, 9 lanes FAIL 0). Words: alive APPROVE 07:45:20Z (carry grep RAN; NIT: the rc 124 drop is carried by :380 A2 + :313 (lane re-run on the gated merge) + :415 (SUPERSEDED prefix), NOT the :382 timeout line); aio APPROVE PLAIN 07:45:57Z, sp APPROVE 07:46:21Z: 3/3 (aio: no # in WORD = :403, never pgrep -f = :271 :366 :404 + memory-guard :46 :49, carried). tmp/l609 BUILT (from l607 + the L585 RULES WHAT line); run.sh waiter LIVE 07:4xZ: GATE807 done 08:06Z (past :03): cuts at 08:31, [merge-up] to belam, RULES wrap. L608 when armed chains on L609 (last ARMED L).
+  - L609 = 9728756c05 WRAPPED + LANDED 08:41:13Z (belam [landed] 08:41:47Z; grid split clean). Gap named to belam 08:4xZ.
 - OWNER 06:43Z PLACEMENT (stands; sp + alive (B)(C) APPROVE, (A) as required; aio owed): (A) NETBOOT: TM writes doc:pc-netboot-plan as an EXECUTE plan TONIGHT (not 11-19), REQUIRED: sp (a) remote way back RUN before each step (b) PXE fail lands on a working OS read off the boot order (c) unlock for every boot; alive A1 boot-once to Bazzite first + a POSITIVE reachability read (agilab handshake + ssh) within N min + name any remote power path or its cost; A2 SMART read + copy crew state off the failing drive, read back, before the first reboot; alive (a) 'owner pick:' cites the 06:43Z chunk with BOTH sentences; (b) the plan owns its reachability, waits on no .47 build. Core council words; then I NAME A WINDOW (never :14-:30 / :45-:00, no land in flight) and belam acts, reporting each step; else BANK for the owner. (B) paper + deck drafts: meme-master director of record mints; TM's council words; TM's team dispatches; I gate; belam lands; measure stays core council; arm B gate (a) + non-scoring word; DGo1 checks. (C) PAUSE .47/.48 chains until the owner reviews both design docs tomorrow.
 - ORCHESTRA line (owner 06:28Z): PLACED 3/3 06:3xZ, sent to TM: leaf under goal:g5 AFTER P3 + MEASURE; item 1 = the measure, council-worded first, with the required content in my 06:3xZ [decision] (models listed, task rule, no answer in reach, reference re-run, floor not a score, four-way split + sign-test floor, UNKNOWN cost, own-demand FAIL vs VOID). belam sends the chunk id.
 | | |
@@ -40,7 +40,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 1. Relaunch (🔴). 2. [landed] L605 -> alive after belam's. 3. Words + tmp/l606, tmp/l607 when 3/3 (pred chain L605 -> L606 -> L607).
 4. Paper: meme-master's answer to my [hold]; gate the 5 leaves (or the pointer re-cut). 5. Netboot: TM's EXECUTE doc -> gate -> core 3/3 -> I name the window -> belam acts; else BANK.
-6. Orchestra leaf mint (TM, after 3-4). 7. MY TRAP SWEEP into agi-master-gate (§6), its own RULES tip.
+6. Orchestra leaf mint (TM, after 3-4). 7. (DONE L609.)
 ```
 ## 🔴 Where it stops
 gen 99 live 06:5xZ 11-17: GATE805/806 running (chain L605 -> L607; L606 returned, re-cut 2 owed by TM; L608 on the trunk alone).
@@ -50,18 +50,12 @@ A gate without ALLDONE and no process in its g39x: rm -rf tmp/btNNN tmp/btNNNg; 
 L607: cat tmp/l607/run.out (waiter cuts :31; no process + no 'sent belam' = relaunch run.sh). L608: GATE806 ALLDONE + 3 words (plasma, less-is-more, remix) -> build tmp/l608 from l607 (pred L607).
 ```
 ## §2 Landed gen 98 (11-16 16:1xZ - 11-17 06:5xZ, 17): L591 c290160f97 · L592 93de4f570b · L593 ab73f54473 · L597 1b4ebfc35e · L595 ee1e7c9e9a · L598 5b16a255d1 · L599 095c02051e · L594 21e9b6208b · L600 14de8d7d35 · L601 30440a2dae · L602 d6a7a809d2 · L603 6784336656 · L596 5014a2fc1d · L604 3673f941d2 (+ goals .46.37, .46.38, .20.2.1 COMPLETE; owner P1/P2/P10 placed).
-## §4 Traps (gen 98's own; gen 97's are OWED to the skill, §6)
-- an attributed whole-pytest red (load flake: test_agi_boot L595, test_crons_log_cap L594) = a WHOLE re-run; stop the waiter AND retry first (both fire on the red ALLDONE), re-chain (tmp/chain779r.sh, chain785r.sh). A lane rc 124 at load = re-run THAT lane alone on the gated merge, prefix the red 'SUPERSEDED-LOAD', add the rerun line (tmp/rc786.sh).
-- stopping a gate kills TWO pgids: the gate's AND its timeout child (links.py, pytest run under their own); find them by cwd == g39x, never pgrep -f.
-- belam lands only at :07-:13 / :37-:39, and its own turn-end card commit mid-land stops the land 'trunk moved' (L604 06:14Z): two lands in a row = chain the 2nd on the 1st ON THE TRUNK, never on a belam card that may not come.
-- a skills range IS owed a grid split (skill files are build-node payloads): read grid.py versions + payload hash, never 'nothing owed' (L601).
-- the cut's 'council words at send' lists any word NAMING the tip id, words on other tips included: read it, not trust it.
-- a tip carried from a seat's own store (TM's NAS repo) may come from an engine BEHIND the trunk: read H1 count + body against the live writer (P3 doubled H1).
-- any tip putting the OWNER's private work (a class paper) into the graph PUBLISHES it on push: hold the text, bank for the owner, land a pointer.
+## §4 Traps
+- none open: gen 97-99 traps MOVED into skills/agi-master-gate by L609 9728756c05 (08:41Z 11-17; 7 new, 2 widened, 7 dropped as carried).
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0; belam's verify-land + links; a council land read.
 ## §6 BANKED
 - FOR THE OWNER (11-18): (1) doc:draft-paper-v0's full text in the pushed graph, yes/no (my [hold]); (2) P4 hub key = the SHARED post token: A now / B leave / C at season-4 rollover (belam rec C; on belam's card §6); (3) restart a moved post at the move vs next start (belam's card).
-- DONE as L609 tip (gen 99): TRAP SWEEP into skills/agi-master-gate, was: gen 97's §4 (sed dotted names; gsend from ~/t only; no '#' in WORD; 150 s belam card wait; never pgrep -f; one WHOLE at a time; root act = paths + order + TYPE; build node waits its parent's land) + gen 96/94/95 carried (census count from the file; attributed red = whole re-run; both pgids; rc 124 lane re-run; relay MET only after the seat's tie). OVERDUE: do it in the first quiet window.
+- DONE: TRAP SWEEP gen 97-99 = L609 9728756c05 (wrapped 08:41:13Z). Carrier record (alive + aio NIT): rc 124 lane re-run = :380 A2 + :313 + :415.
 - NITs riding next touches: agi-goal :33 'mints it TWICE' stale; ladder.md :154 lowercase; DG1 alarm row asserts 'unread' off STDOUT; .47 leaf F1 (hosted row renamed) + F2 (lone ###) (sp); doc:quo-prime-channel 'new owner MESSAGE' -> sms chunk (alive); DG2 two said lines on a hand move back; test_goal_skill_h1.py, test_alarm_spool.py, test_hub_move.py NO-NODE crumbs.
 - BANK g7.31.1.2 T2 / g7.31.1.6 F4: the agi-reaper uid only on the owner's word; posts/thought-master + posts/director-thought-1: never push.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
