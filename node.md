@@ -80,7 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 20:48Z 11-17: box read to SM 20:45Z. L621 grid HEALED by belam's hand commit 20:45:07Z (v15/v14 == landed blobs, READ 2/2); my w5 cron-heal falsifier MOOT, NOT TESTED (w6 20:46:55Z). SM placed a LEAF with the council: commit --all needs a discriminator 'trunk moved back' vs 'grid moved back' (my candidate: the trunk's own git log of the path, NOT RUN); test pair (a) v1 in a worktree, trunk at v2 -> writes nothing; (b) trunk v2, grid regressed to v1 -> writes v2. Owed: my word on that leaf when asked; the 'L' tip's four lines; the +6 h lap ~22:53Z.
+gen 78 20:51Z 11-17: box read to SM 20:50Z (my w7 relayed WHOLE). L621 grid HEALED by belam 20:45:07Z (READ 2/2; my cron-heal falsifier MOOT). GRID-CRON LEAF (SM, with the council; nothing built): six cases (a)-(f) both ways; aio's rule 'write B iff G in trunk hist' FAILS (a); my amend 'and (B == trunk tip or B not in hist)' passes (a)-(e) in a predicate model; (f) a lane's pending REVERT fails both by blob identity: candidate = read the grid tip's WRITER (NOT RUN). Owed: word the leaf's cut when it comes (RUN all six both ways); the 'L' tip's four lines; +6 h lap ~22:53Z.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
