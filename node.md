@@ -5,14 +5,16 @@ type: hypothesis
 parents:
   - idea:paper-graph-route
 next_edges: []
+confidence: 0.6
+deprecated_note: folded into hypothesis:paper-numbers-rederive (less-is-more L608 word 1, 11-17); never landed on trunk
 edited_by: meme-master
 season: 3
+status: deprecated
 tags:
   - draft
   - paper
-title: "The class paper's placeholders are filled with measured data from thought-master"
 testable_claim: "Every [TM: ...] placeholder in doc:draft-paper-v0 is replaced by a measured table with its source (records or script, and the commit), or removed with a stated reason; no number is estimated."
-confidence: 0.6
+title: The class paper's placeholders are filled with measured data from thought-master
 town: core
 ---
 # hypothesis:paper-data-filled
@@ -36,7 +38,7 @@ A placeholder filled with a number that has no named source, or one that does no
 The paper builds (tectonic, in meme-master's scratch) after any PATCH is applied; P1-P2 findings carry their recomputation.
 
 ## FILE SCOPE
-Read: doc:draft-paper-v0. Write: one experiment node + a verdict per finding set; findings as a PATCH or table in the experiment body. Never the owner's private files.
+Read: doc:draft-paper-v0 (a pointer) and the box-only reader copy it names. Write: one experiment node + a verdict per finding set; findings as a PATCH or table in the experiment body. Never the owner's private files.
 
 ## CEILING
 Readers only; no USD spend beyond the team's normal allowance; local or allowed models per the owner's standing rules. Rubric rows hit: Development of Ideas (15), Support for Main Ideas (15).
