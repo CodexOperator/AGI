@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle |
 | lens | every check: RUN its GREEN case with a control AND the case where it reads NOTHING (an empty section, a box it cannot read, a stderr-only failure, a FIFO, a range with OTHER lands in it), and WHERE it runs; a falsifier row in a word is RUN with its mutant or read against its code, else 'NOT RUN: row N' and no APPROVE of it |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE and its members classified before naming them; a draft another seat covers -> trim to what is new; own a miss in the word |
-| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w4), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
+| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w6), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200` (consumes); `box n` peeks only (read it WITH 2>&1: outside a worktree it prints only to stderr, rc 0); a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 75 may leave one running at its out: count, and arm only at 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a quiet past a WHOLE gate's ~2 h (they ran ~1.5-3 h on 11-16): read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an OWNER hit in an ADDED node is its verbatim block, name it; the grid is NOT read by it (a skills land IS build-node payloads: aio reads vgrid) |
@@ -43,7 +43,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    L-check L596 as it lands (§0). L602 LANDED 03:41Z 11-17 (§2; grid v82 agi-review / v63 agi-send paid at the land, alive read).
    L603 = belam P1+P2+P10 tip c87fd31ac5 (goal .47 network, .48 Quo, l5-owner-decisions P10 para; GATE794): sp w3 AMEND
      04:12:43Z: .47 F1 false RED on a correct row ('| Our own graph + capsule mesh |'), .48 F3 vacuous (its own file); SM asked
-     the RE-CUT; my question on :200 answered by SM (the placement; name it in THOUGHT). Word the re-cut: re-run F1 on that row.
+     the RE-CUT; my question on :200 answered by SM (the placement; name it in THOUGHT). CHILD 7eb1b43b9a (GATE795): sp w4
+     APPROVE 04:16Z -> w5 CORRECTION to MODIFY 04:17:33Z == aio M1 (.47 F1 first cell '^|[^|]*'), M2 (.47 F4 full PATH +
+     unit files), M3 (.48 F4 whole tree, quo|openphone, value shape; 4 RED rows). RE-CUT 2 owed by belam: word it, RUN mutants.
    P4 hub A rotate: WITHDRAWN + BANKED by belam 04:2xZ (sp w2 (0): it is the SHARED post token, both hubs + 10 envs; options
      A now / B leave / C season-4 rollover, rec C). Nothing to word until the owner picks.
  DONE ON 11-16/17 (council): .46.37 hub-move ENGINE L587/L590 + HOST HALF v6 installed 16:07Z (== council bytes) + CLOSE L597;
@@ -84,7 +86,10 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 
 ## §4 Traps (gen 76: (27) a bare 'grep' in MY shell is an ugrep shim (ugrep 7.8.4, --ignore-files); it reads an EMPTY -f
   pattern file as match-ALL and a BLANK pattern line as match-none, the reverse of /usr/bin/grep (GNU 3.11) (RAN 04:0xZ 11-17).
-  A grep claim about root's or another uid's run is measured with /usr/bin/grep by path. Sweep into agi-review at gen 77's rotation.)
+  A grep claim about root's or another uid's run is measured with /usr/bin/grep by path.
+  (28) APPROVED '.47 F4 nothing installed' off command -v under MY PATH, which has NO sbin dir, and .48 F4 off 3 mutants shaped to
+  its own regex (aio caught both 04:15:30Z; my correction w5). A negative is RUN under the PATH/uid it claims for, and its mutants
+  are spellings and places the pattern does NOT name. Sweep (27)+(28) into agi-review at gen 77's rotation.)
   gen 75's own (sweep them into agi-review at gen 76's out unless carried by L601/L602, which already hold most:
   (26) approved aio's 'U=$(box n)' rule off an EMPTY box only, never the box it CANNOT read (stderr-only, rc 0, U empty); my own
   sendw-g54 gate() had the same hole, FIXED 02:19Z 11-17 (2>&1). Carried by L602's agi-send :119.
