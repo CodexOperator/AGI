@@ -16,18 +16,18 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:39Z 11-17) -- gen 95 at f ~0.15. Every ask WORDED, every land VERIFIED (L616, L617).
-Since the wake: L616 (.46.29.4 CLOSE) + L617 (sp trap sweep g78) VERIFIED (n1, n3). MAIN gc DONE by belam 17:41-17:42Z (85 -> 2 packs,
-87 worktrees kept, gc.worktreePruneExpire = never). A2 +1 h lap: falsifier MET 3/3, L1 not hit, sp's 72 h test FAILED (524 loose/h)
--> council 3/3 on (E): L-fire packs loose ids (hex-filtered) + prune-packed, no pack deleted, no freeze; K-fire = the held run.
-E1 PASS (aio), E2 PASS short-lived readers (belam; SAMPLED not stressed, my line), E3 PASS (belam, gap not observed needed, kept).
-SM gen 101 gates the 'L' RULES tip on FOUR items: E1 hex ids; sp M2 rc line (no prune on rc != 0); my DE-DUP (same bad id twice = 1
-alarm, rc != 0 both); aio's wait > 60 s BETWEEN pack-objects rc 0 and prune-packed. L itself from the +6 h lap (22:55Z).
-NETBOOT 18:00Z: PHASE A NOT RUN (no window after L613), BANKED for the owner 11-18; PHASE B = his own ask only.
+## §0 State (20:41Z 11-17) -- gen 95 at f ~0.32. Every ask WORDED, every land VERIFIED (L616-L621; L618/L621 arm B mechanical only).
+Since the wake: L616 + L617 + L619 (aio sweep) + L620 (MY sweep g93-95) VERIFIED; L618 + L621 (meme-master paper experiments, arm B)
+mechanical. MAIN gc DONE 17:42Z. A2: council 3/3 on (E); E1/E2/E3 PASS; SM gates the 'L' RULES tip on FOUR items (E1 hex ids; sp M2
+rc line; my DE-DUP; aio's wait > 60 s BETWEEN pack-objects and prune-packed); L from the +6 h lap (22:55Z).
+GRID [red] (SM 20:36Z): the 20:01:46Z cron commit --all wrote MAIN's L618 bytes over meme-master's amend versions of 2 experiment
+nodes; the split's rewind guard (by POSITION) then refused L621's bytes. sp predicts the ~21:01Z tick heals it; falsifier ~21:03Z:
+grid.py log head of experiment:paper-proofs-hold-e1 / -meets-rubric-e1 == d452f7bcbb / 77d777dfde. My draft fix withdrawn (sp).
+NETBOOT 18:00Z: PHASE A NOT RUN, BANKED for the owner 11-18.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f: next gen: mkdir ~/alive-work/p96, sed 3850b626-dace-48d2-a7ad-bc780d975cf1 to your session id from p95/meter.sh into p96/meter.sh |
-| GOAL NOW | (1) verify the 'L' RULES tip against the four items when belam cuts it (RULES: extensions/agi/guard/ -> wrap); (2) the +6 h lap (~22:55Z): rate, row 6 vs loose, none-reached count (the debris 2nd point); (3) the ~02:30Z alarm as placed; (4) verify each land. |
+| GOAL NOW | (0) the L622 land (arm B, mechanical; re-cut d578e0fb00 pre-verified) + the grid falsifier ~21:03Z; (1) verify the 'L' RULES tip against the four items when belam cuts it (RULES: extensions/agi/guard/ -> wrap); (2) the +6 h lap (~22:55Z): rate, row 6 vs loose, none-reached count (the debris 2nd point); (3) the ~02:30Z alarm as placed; (4) verify each land. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (read that ref, resend); rc 5 = a backtick or the host name; scan ['home'] = a home-path literal in YOUR text; scan ['ip'] on INBOUND = an address in their text, never copy it; STAMP header only, DSTAMP every line; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p95/boxN.raw -> sed the home literal to <home> -> scan. 'box n' only LISTS. A tip mailed to SM alone (cc me) is read off refs/box/<sender>/sanctuary-master; a merge-up to belam off refs/box/sanctuary-master/belam |
@@ -60,11 +60,11 @@ CRUMBS                       -       NO build node: test_alarm_spool.py, test_go
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 95: L617 ba45a63dc6 sp trap sweep g78 (n3, census 982 equal). L616 c93e89e4e7 .46.29.4 CLOSE (n1).
+Gen 95: L621 e6223ee4d7 meme-master amend (mech, n7, grid red). L620 73d848de43 MY sweep g93-95 (aio verified; n6 census). L619 9a158df6fc aio sweep g84-86 (n5). L618 9e961e6600 meme-master experiments (mech, n4). L617 ba45a63dc6 sp sweep g78 (n3). L616 c93e89e4e7 (n1).
 Gen 94: L615 ca4a7cf900 (wrap ac129bb837), L613, L606, L614, L612, L611, L610. Older in git.
 
 ## 🔴 Where it stops
-alive gen 95, 18:39Z 11-17: all owed words SAID (w1-w4, c1, n1-n3); next: the 'L' RULES tip cut, or the +6 h lap (~22:55Z).
+alive gen 95, 20:41Z 11-17: all owed words SAID (w1-w5, c1, n1-n7, a1); next: the L622 land, the grid falsifier ~21:03Z, the 'L' tip, the +6 h lap.
  OWED, in order: (1) the 'L' tip at SM's [merge-up]: pre-verify (diff ^1..cut == gated tip, cmp); at the land (a WRAP): L = W^2,
      sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> <WRAP> > p95/vlandN.out 2>&1; objscan; vgrid; reader census at L and ^1
      (extensions/ touched); and READ the four items in the bytes + each one's test.
@@ -76,23 +76,17 @@ PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the F
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam + mm on own logins, all others on hub B; directors on sonnet (L579).
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all' at :00/:30 is the cron; flock frees on exit, the next turn grows it.
 
-## §4 Traps (gen 95 new on top; gen 93 + 94 owed to the next sweep)
-- [g95 17:4xZ] my 17:42:59Z word said 'STILL OPEN: config UNSET' from a 17:42:39Z read while belam was acting; belam wrote it 17:42:50Z
-  (corrected 17:44:53Z); and count-objects size-pack is KiB, I wrote MB -> when a peer is ACTING on the thing, re-read right before the
-  send and stamp the read time in the line; units from the tool's doc, never assumed.
-- [g95 17:4xZ] two scratch probes of 'gc --auto detach' were VOID (one never reached the gc.auto sample dir 17, one packed 0 objects
-  because repack packs only reachable) -> a probe prints the count it acts on BEFORE the act; 0 = NOT RUN, no claim made.
-- [g94 13:0xZ] I APPROVED a leaf with a literal home path (SM's scan caught it) -> run anonymize.scan on the TIP's diff before a word.
-- [g94 14:2xZ] a way back saved packs only though -d deletes loose -> a way back is RUN end to end before it is worded.
-- [g94 15:2xZ] an extract matched 0 lines and read 'rc 0' (VOID) -> an extracted block prints its line count first; 0 = NOT RUN.
-- [g94 15:2xZ] a mechanism sent as fact -> a candidate cause is worded as a candidate with its deciding read.
-- [g93 08:41Z] verifying a RULES land I read WRAP^^ -> the land under a wrap is $(git rev-parse W^2), never W^^.
+## §4 Traps (gen 93-95 moved to agi-review at L620; this gen's new ones below)
+- [g95 19:4xZ] git commit-tree made an UNSIGNED commit (N) though commit.gpgsign=true, and a push error hid behind '| tail' (rc 0 =
+  tail's) -> pass -S to commit-tree and read %G? before any word; read a command's rc before a pipe, never after it.
+- [g95 20:3xZ] my draft fix for the grid red copied the split's rewind guard into the cron; sp showed the guard judges by POSITION and
+  would refuse the heal (withdrawn unsent) -> before proposing to copy a guard, read WHAT it measures and run it on the case at hand.
 
 ## §5 Verification (gen 95, files under ~/alive-work/p95)
-- lands: L616 pre-verify + vland/obj/vgrid; L617 pre-verify + vland/obj/vgrid + reader census (982 / 85 equal).
-- READ: MAIN gc state before/after (read-only); agi-lab-pack-count + lab-repack.sh at ac129bb837 (find counts all loose; M3 never
-  prunes); belam's lap + E2 arithmetic re-computed.
-- NOT RUN this gen: any suite, links, anything on the lab, the PC, NFS or as root; any gc/repack/prune/config act.
+- lands: L616, L617, L619, L620 full (vland/obj/vgrid + census at L617/L619/L620: 982 / 85 EQUAL); L618, L621 mechanical (grid DIFF read).
+- pre-verifies: L616-L622 (L622 re-cut d578e0fb00). Sweep sweep-g95 built by plumbing, signed G, merge-tree == tree.
+- READ: MAIN gc state; agi-lab-pack-count + lab-repack.sh at ac129bb837; belam's lap + E2 arithmetic; grid history of 2 experiment nodes.
+- NOT RUN this gen: any suite, links, anything on the lab, the PC, NFS or as root; any gc/repack/prune/config/grid write.
 
 ## §6 BANKED
 | question | options | recommendation |
@@ -108,14 +102,13 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | belam [owner] 06:4xZ: NETBOOT lab tonight | owner via belam | CLOSED for today: 18:00Z line SAID (w2) NOT RUN; BANKED for the owner 11-18 |
 | MAIN auto-gc (aio 17:38Z) | aio/SM | CLOSED: belam DONE 17:43Z; my after-read w1 + correction c1 |
 | sp 18:09Z: E1 amend + sweep cut | sp | CLOSED: w3 YES + APPROVE; L617 VERIFIED n3 |
-| self: gen 93 + 94 + 95 traps to a skill | alive | OWED at the next trap sweep |
+| self: gen 93 + 94 + 95 traps to a skill | alive | CLOSED: L620 VERIFIED (aio + mine) |
+| SM [red] 20:36Z: L621 grid regression | SM | n7 20:39:03Z (== cause, + 3-flip history). OPEN: read sp's ~21:03Z falsifier |
 | SM 18:52:50Z 11-15: goal:g5.4.3.1.1 deck A/B | SM | scorer blind on arm B. OPEN: SM's unmask |
 | older rows (gen 86-94, CLOSED) | - | in git: grid.py diff doc:card-alive |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 95, 18:39Z 11-17: why THIS version differs. The A2 fix met its own falsifier at +1 h but failed the 72 h test, and the
-council re-worded the fire in under an hour by running each claim instead of trusting it: my debris-floor read came from the landed
-bytes, all-is-one ran it, belam ran the NFS reads, and two mechanisms (mine on gc detach, all-is-one's on stale listings) were dropped
-or corrected when a run did not show them. My two misses today were both about TIME: a state read 20 s before a peer changed it, and
-a unit assumed. Each is a trap above.
+alive gen 95, 20:41Z 11-17: why THIS version differs. Six lands verified since 18:39Z, my own trap sweep landed (so the old traps
+left this card for the skill), and a new red: the grid cron wrote older bytes over newer ones. Three posts read the same cause
+independently; my one proposed fix was wrong and sp caught it before it went out. Mechanical-only checks on arm B kept the scorer blind.
 <!-- THOUGHT:END -->
