@@ -16,9 +16,10 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:41Z 11-17) -- gen 93 UP 05:54Z, f 0.405. Lands VERIFIED: L604, L605 (MY doc:town-network-design, goal .47), L607,
-L609 (RULES, wrap 9728756c05). Owner away till 11-18; designs (.47/.48) PAUSED to his pick. OPEN: my gen 92 trap sweep tip
-21ac2cb09f (words + land), the wake leaf g7.16.1.14 (3/3, GATE811 -> verify), TM's P3 RE-CUT 2 / netboot EXECUTE doc / g5.57 RE-CUT 1.
+## §0 State (12:54Z 11-17) -- gen 93 ROTATES at f 0.430 (measured 12:53Z), at a pause: every owed word SAID. Lands VERIFIED: L604,
+L605 (MY doc:town-network-design, goal .47), L607, L609 (RULES). My gen 92 trap sweep RE-CUT 1 8938a1d6ae 3/3 (GATE813 -> L611).
+NEW AT ROTATION, unworded: thought-master's THREE cuts 12:5xZ (P3 RE-CUT 2 38222bcc6e; doc:pc-netboot-plan 50d90b4229 chained on it;
+g5.57 RE-CUT 1 a51981c1a6), belam to carry. Owner away till 11-18; .47/.48 PAUSED to his pick.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f: next gen: mkdir ~/alive-work/p94, sed d0d46e3b-70d4-48ad-89e2-db60778fe673 to your session id from p93/meter.sh into p94/meter.sh |
@@ -40,11 +41,13 @@ sweep-g92 RE-CUT 1 8938a1d6ae alive   SENT 12:44:04Z (agi-review +2: worktree li
 wake leaf g7.16.1.14        belam   RE-CUT 2 d3d70328c7 3/3 (my w8 12:38:14Z; my lines: failed read logged + alarm, probe lands first).
                                     GATE811 -> verify land. BUILD (probe, extensions/agi/guard = RULES, lands FIRST): REQUIRED alarm
                                     ONCE per failing run (aio+sp), seeds read before T0 (sp), flag inode/mtime/bytes (aio). Word it.
-TM P3 c9460a0f15 (g5.56)    TM      RETURNED 06:57Z; RE-CUT 2 owed (per-host baseline, OS asserted, no container; rev-parse; naming).
-NETBOOT EXECUTE             TM->bel doc:pc-netboot-plan NOT CUT. NOT RUN unless gated 3/3 by 18:00Z AND the owner's own ask; else
-                                    BANKED (reason: author seat silent / lab mail did not wake). REQUIRED: sp (a)(b)(c), my A1/A2, aio S1-S3.
-g5.57 orchestra             TM      9accf4e72c RETURNED pre-gate 12:2xZ (aio's 3 + sp's 4: scope :33/:46/:51 to the orchestra arm; side +
-                                    alpha; equivalence margin; F1 on ancestry; BEFORE inventory). Word RE-CUT 1: my M1/M2 still whole.
+TM P3 RE-CUT 2 38222bcc6e   TM      CUT 12:5xZ (refs/cut/thought-master/p3-recut2): baseline per host; PC baselines NOT READ (belam's first read pins them). WORD IT: read the bytes once carried.
+NETBOOT EXECUTE             TM->bel doc:pc-netboot-plan 50d90b4229 CUT (chained on P3 R2): PHASE A reads + copy /fast off the NV3, no
+                                    reboot; PHASE B reboot only on the OWNER's ask after 5 reads (SMART, boot order + one-time PXE, SSD
+                                    space, remote power path, initrd watchdog: SP5100 TCO 60 s seen). WORD IT: check my A1 (boot-once,
+                                    reachability READ from E, the power-path cost named) and A2 (SMART + copy read back) are whole.
+g5.57 orchestra RE-CUT 1     TM      a51981c1a6 CUT (supersedes 9accf4e72c): aio 3 + sp 4 taken. WORD IT: my M1 (four-way split + sign test on
+ a51981c1a6                         differing units; the set must hold reference fails) + M2 (unread cost UNKNOWN; lost run VOID) still whole.
 L608 paper route pointer    SM/TM   TM's council words (not mine: arm B blind to core scorers).
 NEXT TOUCHES (not gates)    -       agi-goal :33 'mints it TWICE' stale since L594. .48 F4's doc pass 2>/dev/null (an unreadable doc reads
                                     0) + sp's Bearer name, at the leaf's next version. Quo doc: 'a new owner message' -> 'an sms chunk'.
@@ -62,11 +65,12 @@ Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P1
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
 
 ## 🔴 Where it stops
-alive gen 93 at f 0.405 (12:41Z 11-17); next: words on aio + sp for my sweep-g92 tip, then each tip SM asks; verify each land.
+alive gen 93 rotated at f 0.430 (12:54Z 11-17); next: word TM's THREE cuts (P3 R2, the EXECUTE doc, g5.57 R1) as SM asks; verify L610 + L611.
  OWED, in order: (1) YOUR WAKE: the prayer ALONE, then this card, then p94 + meter.sh as above, box READ into p94/box1.raw (home
      literal sed'd out, scanned); re-arm the watch (sh ~/alive-work/watch.sh, 30 min); the trunk log for lands in the gap.
  (2) TM's tips as they come (P3 RE-CUT 2, the EXECUTE doc, g5.57 RE-CUT 1): read the BYTES once belam carries them (a tip that
      reads 'bad object' is not carried yet); the LAB mail-wake stall is live until the wake leaf builds (belam reads panes hourly).
+ (2b) the 18:00Z netboot line: PHASE B not gated by 18:00Z, or no owner ask = BANKED as NOT RUN, reason named; say so if silent.
  (3) each land: PLAIN = 'sanctuary-master: LAND N' on posts/belam; RULES = the wrap ('wrap of LN'), LAND = W^2 (SECOND parent).
      sh ~/alive-work/lanes/vland.sh <LAND> <gate tip> [<WRAP>] > p94/vlandN.out 2>&1; python3 -I ~/alive-work/p58/objscan.py <LAND> <LAND>^1;
      sh ~/alive-work/p52/vgrid.sh <LAND> (DIFF until the split: wait for OK; a skills path IS grid-versioned, as a build payload);
@@ -125,9 +129,9 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | older rows (gen 86-91, all CLOSED) | - | in git: grid.py diff doc:card-alive |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 92, 05:49Z 11-17: why THIS version differs. Six lands verified and my own trap sweep landed; the long lap was belam's A28
-tip, four re-cuts, each row RUN on the case where the design names nothing, the rule L602 placed. This gen's new misses are all one
-shape, a reading taken from an EMPTY input that looked like a result (a pruned worktree, an empty printf fixture, a diff filter that
-dropped every bullet): each was caught by a count printed beside it, which is why §4 asks for the count, not only the check. The
-network design is handed on, not started: drafting it through its rounds would cross the 0.47 line mid-step.
+alive gen 93, 12:54Z 11-17: why THIS version differs. The network design the owner asked for (goal .47) was drafted here by
+research-then-design (5 cheap research files, one opus pass, my read and four fixes), amended once on the peers' words, and landed as
+L605 for the owner's pick. The day's lesson was one shape seen three times: a lab post's mail was delivered and never read (a wake that
+failed silently), a card that said 'at the gate' after a return, an alarm that would have fired every minute; each was named so it
+cannot pass by being quiet. I rotate before TM's three new cuts, so a fresh head words them whole rather than a tired one in part.
 <!-- THOUGHT:END -->
