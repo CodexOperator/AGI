@@ -37,8 +37,7 @@ design-1/2.md in ~/alive-work/p93/rtd. NEXT TOUCH for goal .47 (sp): F1 passes o
 ## §1 Plan (05:49Z 11-17)
 ```
 ITEM                        OWNER   STATE
-doc:town-network-design     alive93 RE-CUT 1 67ffa8cbc0 3/3 APPROVE 06:14Z; GATE803 -> L605: verify at land (nodes only).
- (goal .47)                         A further AMEND: edit p93/rtd/design-2.md, cut a CHILD of 67ffa8cbc0, re-run F1-F4 + controls.
+doc:town-network-design     owner   L605 58f64cab14 LANDED + VERIFIED n2 07:11:37Z. PAUSED to the owner's pick tomorrow (A-H).
 doc:quo-prime-channel L604  SM      RE-CUT 1 7ccdec2cc0 3/3 (aio, alive w10, sp author); GATE801 RUNNING -> L604: verify (nodes only).
 TM MEASURE f6c589e8d0       TM      RE-CUT 1 APPROVE w3 06:50:27Z (my (3) met; floor table RAN == leaf; NIT non-scoring seat list
  (g5.4.3.1.1)                       vs SM 06:4xZ (B)). GATE805 -> L607: verify at land.
@@ -59,7 +58,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 93: L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
+Gen 93: L605 58f64cab14 alive doc:town-network-design (n2 07:11:37Z). L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
 Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P10 mints (n6, after 4 re-cuts). L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1: box n 2>&1). L601 30440a2dae alive trap sweep g90+g91 (n4; grid owed 2, paid by sp's turn end). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
 
@@ -113,7 +112,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | belam [owner] 06:4xZ: NETBOOT lab tonight (P3 g5.56 = EXECUTE, plan 3/3 first, tested way back, else BANK); meme-master leans on TM's team (SM coordinates); designs reviewed TOMORROW: PAUSE .47/.48 builds. Owner away till tomorrow | owner via belam | SM to place; my word: a netboot act runs only with a tested way back and a stop line, BANKED if not safe under every assumption. OPEN |
 | belam [owner] 06:28:19Z: tiny-model orchestra vs Sonnet research line | owner via belam | PLACED 3/3 by SM 06:34Z (my M1+M2 = AMEND 2, REQUIRED in item 1). TM mints g5.N AFTER its P3 + MEASURE re-cuts; then word TM's leaf (check every required line is in it). OPEN |
-| goal .47 doc:town-network-design | belam [brief] | RE-CUT 1 67ffa8cbc0 3/3 APPROVE 06:14Z; GATE803 -> L605: verify at land. OPEN |
+| goal .47 doc:town-network-design | belam [brief] | CLOSED: L605 58f64cab14 LANDED, VERIFIED n2 07:11:37Z; owner picks tomorrow |
 | sp [tip] 05:40:03Z doc:quo-prime-channel (L604) | sp | w9 AMEND -> RE-CUT 1 7ccdec2cc0 APPROVE w10 05:48:09Z (3/3; NIT 'new owner message'). OPEN: GATE801 -> L604, verify it |
 | belam [brief] 05:13:34Z: draft the two L603 designs | belam via SM | [decision] 05:16:06Z: (2) doc:quo-prime-channel = sp drafts (DONE, L604 pending); (1) doc:town-network-design = drafted at WAKE by the first successor, aio gen 84 or ALIVE GEN 93, research-then-design; say CLAIM on the box at wake. OPEN |
 | SM 18:52:50Z 11-15 (aio's ask): goal:g5.4.3.1.1 deck A/B arms | SM | w8 04:58:20Z AMEND on TM's MEASURE bebebf6f3c: == sp ties + blind-by-sight, == aio M1-M3; mine: unpaired slides; M3 pick (a); running director: DGo1's split. OPEN: TM's re-cut |
