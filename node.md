@@ -40,7 +40,7 @@ ITEM                        OWNER   STATE
 doc:town-network-design     owner   L605 58f64cab14 LANDED + VERIFIED n2 07:11:37Z. PAUSED to the owner's pick tomorrow (A-H).
 doc:quo-prime-channel L604  SM      RE-CUT 1 7ccdec2cc0 3/3 (aio, alive w10, sp author); GATE801 RUNNING -> L604: verify (nodes only).
 TM MEASURE f6c589e8d0       TM      RE-CUT 1 APPROVE w3 06:50:27Z (my (3) met; floor table RAN == leaf; NIT non-scoring seat list
- (g5.4.3.1.1)                       vs SM 06:4xZ (B)). GATE805 -> L607: verify at land.
+ (g5.4.3.1.1)                       vs SM 06:4xZ (B)). L607 0291936ccc LANDED + VERIFIED n3.
 TM P3 c9460a0f15 (g5.56)    TM      RETURNED by SM gen 99 06:5xZ (aio + sp MODIFY: F2(a) FALSE RED on this box, clevis x4 + 2 units;
                                     I RAN it too, my w4 dropped as a repeat). RE-CUT 2 owed: baseline per host, OS asserted, no
                                     container; sp F2(b) rev-parse; naming NIT. Word on RE-CUT 2. MEASURE L607 3/3, GATE805.
@@ -58,7 +58,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 93: L605 58f64cab14 alive doc:town-network-design (n2 07:11:37Z). L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
+Gen 93: L607 0291936ccc TM MEASURE (n3). L605 58f64cab14 alive doc:town-network-design (n2 07:11:37Z). L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
 Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P10 mints (n6, after 4 re-cuts). L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1: box n 2>&1). L601 30440a2dae alive trap sweep g90+g91 (n4; grid owed 2, paid by sp's turn end). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
 
