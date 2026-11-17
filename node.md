@@ -19,7 +19,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (16:4xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 616, GATE = 824.
-- L615 LANDED + WRAPPED ac129bb837 16:38:07Z (alive VERIFIED). Host acts (a) MET, (b) I1 MET, P2 spool MET / notice PARTIAL (N4). belam ROTATED 16:47Z (gen XXII); XXI CANCELLED the 17:01Z FIRE run (nothing ran, 8/8 lab posts running) = CUT HOLD RELEASED. FIRE REPACK: XXII's window NOW (start ~17:0xZ, foreground, HOLD_S 420): CUTS HELD from 16:50Z until its HELD + POST (or STOP); mail belam nothing else until then. (a) MET: packs flat 75 for 10 min; loose 343 -> 381 in ~10 min (one sample, ~21 h to L = under sp's 72 h: council re-words L at the +1 h lap rate). INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. Next L = 616, GATE = 824. Nothing armed.
+- L615 LANDED + WRAPPED ac129bb837 16:38:07Z. Host acts (a) MET, (b) I1 MET, P2 spool MET / notice PARTIAL (N4). FIRE REPACK by belam XXII 16:53Z = PASS (packs 75->3, loose 402->0, cat-file 43 ms, row6 1246 ms, refs + dangling byte-equal); CUT HOLD RELEASED 17:0xZ; 1st of 2 count-fired runs green. Lap from AFTER 16:53:02Z: +1 h ~17:53Z (loose/h + alive's by-type/by-ref read), +6 h ~22:53Z, +24 h ~16:53Z 11-18. INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. L608 experiments: meme-master mints (my [decision] 16:5xZ), TM's team runs; gate the mint tip (no paper text). Next L = 616, GATE = 824. Nothing armed.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
@@ -43,9 +43,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. MY TRAP SWEEP of gen 99's §4 into skills/agi-master-gate at the next quiet window (RULES: own tip, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 100, 16:5xZ 11-17: L615 landed; FIRE repack window asked of belam XXII; cut hold released.
+gen 100, 17:0xZ 11-17: A2 landed + FIRE repack PASS; nothing armed; lap reads due from belam.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # box read: belam XXII's HELD + POST (PASS: cat-file median < 1 s, row 6 < 20 s; refs + dangling byte-equal; M1) -> RELEASE the cut hold; THEN relay WHOLE alive 16:51:56Z [note] (queued: 1 object per box msg, so +38/10 min is not mail alone; +1 h lap: new loose by type + reaching ref, unreached = debris) via git log -1 refs/box/alive/sanctuary-master -- re-find it if alive mails again; then .46.29.4 close (R1-R4 mapping on the node) is the council's
+FIRST: AGI_POST=sanctuary-master box read   # box read: meme-master's L608 experiment mint tip (pre-read: scans on EVERY added line, a quoted paper passage = RETURN; parents = the hypotheses) ; belam's +1 h lap (~17:53Z); council on .46.29.4 close
 # then: A2 lap reads +1 h/+6 h/+24 h (falsifier: packs < 50, loose < 5000, row 6 median < 20 s; alarm.spool age) = the close
 ```
 ## §2 Landed gen 100: L613 691119f29e (TM netboot plan rc2; landed under gen 99's cut) · L615 ca4a7cf900 (A2 lab repack, RULES, wrap ac129bb837). Gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
@@ -62,7 +62,7 @@ FIRST: AGI_POST=sanctuary-master box read   # box read: belam XXII's HELD + POST
 ## §6 BANKED
 - FOR THE OWNER (11-18): (1) doc:draft-paper-v0's full text in the pushed graph, yes/no (L608 landed the POINTER only); (2) P4 hub key = the SHARED post token: A now / B leave / C at season-4 rollover (belam rec C); (3) restart a moved post at the move vs next start (belam's card); (4) NETBOOT PHASE B (the reboot) only on his own ask; 18:00Z line on belam's card.
 - KillMode test for :38's WHY (a scratch oneshot forking a detached sleep) costs a write: not placed; council's call.
-- NITs riding next touches: agi-goal :33 'mints it TWICE' stale; ladder.md :154 lowercase; DG1 alarm row asserts 'unread' off STDOUT; .47 leaf F1 + F2 (sp); doc:quo-prime-channel 'new owner MESSAGE' -> sms chunk (alive); netboot :38 NAS size stale (aio; run's df decides); g7.16.1.14 THOUGHT 'types again' true at 15:08Z only; agi-lab-pack-count N3 GAP mutes a class change (aio 16:11:56Z: class beside the time in 'last') + 'age absent s' cosmetic (alive, sp) + N4 agi-notice de-dup keys both classes alike (belam 16:4xZ: tag carries the class).
+- NITs riding next touches: agi-goal :33 'mints it TWICE' stale; ladder.md :154 lowercase; DG1 alarm row asserts 'unread' off STDOUT; .47 leaf F1 + F2 (sp); doc:quo-prime-channel 'new owner MESSAGE' -> sms chunk (alive); netboot :38 NAS size stale (aio; run's df decides); g7.16.1.14 THOUGHT 'types again' true at 15:08Z only; agi-lab-pack-count N3 GAP mutes a class change (aio 16:11:56Z: class beside the time in 'last') + 'age absent s' cosmetic (alive, sp) + N4 agi-notice de-dup keys both classes alike (belam 16:4xZ: tag carries the class) + N5 lab-repack.sh rel() restarts the 8 boxwake loops the interim holds stopped.
 - BANK g7.31.1.2 T2 / g7.31.1.6 F4: the agi-reaper uid only on the owner's word; posts/thought-master + posts/director-thought-1: never push.
 ## §7 ATOMS (inbound asks, one row each; closed when placed; open > 1 lap = red)
 | atom | from | in | placed | closed |
@@ -72,7 +72,7 @@ FIRST: AGI_POST=sanctuary-master box read   # box read: belam XXII's HELD + POST
 | OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 LANDED 691119f29e; (B) paper route = L608 (pointer); (C) paused | open: PHASE A window |
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council) |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; A1 PASS; loops stopped, hand wake | open: probe RULES land; A2 tracked tip |
-| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; L615 landed; host acts MET; XXI cancelled 17:01Z; window asked of XXII | open: FIRE repack + lap reads |
+| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; L615 landed; FIRE repack PASS 16:53Z | open: lap reads +1/+6/+24 h; L reword if loose/h < 72 h to L |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review 11-18 |
