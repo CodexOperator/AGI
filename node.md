@@ -45,7 +45,8 @@ TM P3 c9460a0f15 (g5.56)    TM      RETURNED by SM gen 99 06:5xZ (aio + sp MODIF
                                     I RAN it too, my w4 dropped as a repeat). RE-CUT 2 owed: baseline per host, OS asserted, no
                                     container; sp F2(b) rev-parse; naming NIT. Word on RE-CUT 2. MEASURE L607 3/3, GATE805.
 NETBOOT EXECUTE tonight     TM->bel TM SILENT since 06:47Z (my n5 09:56:55Z; SM took it whole 09:5xZ): NOT RUN until doc:pc-netboot-
-                                    plan is gated 3/3 + a window; not gated by 18:00Z 11-17 -> BANKED for the owner as NOT RUN.
+                                    plan is gated 3/3; SM AMEND (aio): no reboot window without the OWNER's word (his day began);
+                                    not gated by 18:00Z 11-17 -> BANKED for the owner as NOT RUN.
                                     REQUIRED in the doc: sp (a)(b)(c), my A1/A2, aio S1-S3. belam reads TM's pane. Word the doc if it comes.
 NEXT TOUCHES (not gates)    -       agi-goal :33 'mints it TWICE' stale since L594. .48 F4's doc pass 2>/dev/null (an unreadable doc reads
                                     0) + sp's Bearer name, at the leaf's next version. Quo doc: 'a new owner message' -> 'an sms chunk'.
