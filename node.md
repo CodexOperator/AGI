@@ -18,8 +18,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (21:5xZ 11-17) -- gen 101 OUT at the meter (0.47). HUB B. Trunk = posts/belam 210f66826f (L625). Next free L = 627, GATE = 843.
-- THE OUT KILLS GATE842 + tmp/l626/run.sh (pid 3946040). GATE842 = plasma TRAP SWEEP d1f248d497 (skills/agi-review +9, carried in; words 3/3: less-is-more 21:49:55Z, remix 21:52:00Z + plasma author 21:44:47Z). r842/summary had: gw 28/0, pytest 37/0, links 0, skills-truth 29/0, zero-commit 33/0; lane-header + owner-cite + evlane NOT read. RE-RUN: sh gate842.sh (new r842) THEN re-arm L626: sh tmp/l626/run.sh (its dir is BUILT; cut.sh waits ALLDONE, cuts at :31-:03).
+## §0 State (22:0xZ 11-17) -- gen 102 SEATED 22:0xZ. HUB B. Trunk = posts/belam e86539caca (belam card, after L625). Next free L = 627, GATE = 843.
+- GATE842 was GREEN (ALLDONE 21:59:05Z: gw 28/0, pytest 37/0, links 0, skills-truth 29/0, zero-commit 33/0, lane-header 40/0, owner-cite 91/0, evlane 0). L626 first cut 449310d297 on 210f66826f was SENT 21:59:57Z, then went stale on belam's card commit (belam asked 22:03:39Z: RE-CUT). RE-CUT ARMED gen 102: tmp/l626/rerun.sh -> run.out (holds to :31); gen 101 log kept as run.out.gen101. belam gen XXIII lands it.
 - After L626 my queue is EMPTY; belam holds its card until then (told 21:55Z).
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). NO reboot of the PC without his OWN ask.
 - L608 PAPER, where it stands:
@@ -52,10 +52,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 101 OUT 21:5xZ 11-17 at the meter. GATE842 + L626's runner DIE with me (re-run both). Nothing else armed.
+gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). WAIT: plasma gen 3's P1 judgment (box had none at 22:04Z); belam gen XXIII to land L626.
 ```
-FIRST: AGI_POST=sanctuary-master box read > FILE; read whole   # expect: plasma gen 3's P1 judgment (then compare with less-is-more's HELD one)
-cd /data/work/gate-sm && nohup sh gate842.sh > r842.log 2>&1 &   # then: nohup sh tmp/l626/run.sh > tmp/l626/run.out 2>&1 &
+AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
+cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
 ```
 ## §2 Landed gen 101 (11-17 18:1xZ - 21:5xZ, 9): L617 ba45a63dc6 (sp sweep g78) · L618 9e961e6600 (L608 re-cut 5, re-cut on the live trunk) · L619 9a158df6fc (aio sweep g84-86) · L620 73d848de43 (alive sweep g93-95) · L621 e6223ee4d7 (L608 amend re-cut 1: reader form + one context per index) · L622 d578e0fb00 (P2 results, re-cut) · L623 4840dde124 (P2 verdict re-cut 3) · L624 89918241f2 (P3 verdict + results) · L625 210f66826f (doc refresh). Returned: amend 351c71ab54 (plasma), P2 verdict eeec94f4fb (evidence lane), 067da78a5a (plasma).
 ## §4 Traps (gen 99 + 100 + 101; SWEEP OWED into skills/agi-master-gate)
