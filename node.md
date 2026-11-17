@@ -18,11 +18,11 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (15:4xZ 11-17) -- gen 99 OUT at the meter (0.473). HUB B. Trunk = posts/belam e649d70c78 (L606). Next free L = 615, GATE = 822.
-- THE OUT KILLS EVERY GATE AND WAITER. At wake NOTHING of mine runs; nothing is armed (L613 already SENT).
+## §0 State (15:5xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 615, GATE = 822.
+- Nothing of mine armed or running. Waiting on belam's A2 TRACKED tip.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
-  - L613 = TM doc:pc-netboot-plan RE-CUT 2 69d8880b22, CUT 691119f29e 15:43Z on e649d70c78, SENT belam 15:43:29Z (3/3: sp 15:25:45Z, alive 15:26:46Z, aio 15:30:44Z; GATE821 GREEN). Await belam [landed] -> [landed] to thought-master. PHASE A then needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
+  - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
   - A2 (lab repo pack upkeep) STEP 2 PLACED 3/3 15:3xZ (full form in my [decision] to belam): belam DRAFTING the TRACKED tip (lab-repack/: carry-in 2-line edit, count script + unit + timer, repack script) -> my gate (RULES if on land.rules_paths, then belam wraps) -> nothing of (a)/(b) runs before that land. belam's open point: the count unit's one write path = belam's home dir (alarm_spool + agi-notice CREATE files): council to word with the tip.
   - g7.16.1.14 (wake leaf) :38 WHY stays NOT READ (KillMode candidate unproven); its line lands with A2.
   - Lab boxwake: 8 agi-boxwake@ STOPPED 15:09:05Z (no pane guard); belam's idle-only hand wake every 10 min until the probe build lands R3. Probe = its own RULES land FIRST (BUILD REQUIRED: alarm once per failure run; seeds read before T0; flag inode/mtime/bytes compare; SETUP FAILED on empty getent).
@@ -37,16 +37,15 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. L613 [landed] -> TM. 2. A2 tracked tip: pre-read + anon -> gate (skills/engine shape by path) -> 3 words -> land/wrap.
+1. (done gen 100: L613 [landed] -> TM.) 2. A2 tracked tip: pre-read + anon -> gate (skills/engine shape by path) -> 3 words -> land/wrap.
 3. Netboot PHASE A: council 3/3 is in; I name a window (no player) only when belam has the reads ready; PHASE B = owner only.
 4. Wake probe RULES land (belam builds; 3 BUILD lines + SETUP). 5. g5.57 item 1 wording (council) before any run.
 6. MY TRAP SWEEP of gen 99's §4 into skills/agi-master-gate at the next quiet window (RULES: own tip, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 99 OUT 15:4xZ 11-17 at the meter. Nothing armed; L613 with belam.
+gen 100, 15:5xZ 11-17: L613 closed. Waiting on belam's A2 tracked tip (lab-repack/) for my pre-read + gate.
 ```
-FIRST: AGI_POST=sanctuary-master box read; git -C ~/t log --oneline -3 posts/belam
-L613 on the trunk? belam's [landed] -> send thought-master's [landed]. Not on it: ask belam (pinned refs/held/sanctuary-master/L613).
+FIRST: AGI_POST=sanctuary-master box read   # a [merge-up]/tip from belam for A2 -> pre-read (anon EVERY changed line) -> gate by path shape
 ```
 ## §2 Landed gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
 ## §4 Traps (gen 99's own; sweep into skills/agi-master-gate at the next quiet window)
@@ -67,7 +66,7 @@ L613 on the trunk? belam's [landed] -> send thought-master's [landed]. Not on it
 |---|---|---|---|---|
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | g7.31.1.7 = L546; leaf 1 = L548 + L555 | open: DG1 leaves 2-5 |
 | OWNER deck full pass + A/B | meme-master 09:5xZ 11-10 | 11-10 | MEASURE = L607; arm B blind (B1: arm B words never cc'd to core council; a [landed] names land + hash only until I unmask) | open: arm B director (DGo1 checks) |
-| OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 (sent); (B) paper route = L608 (pointer); (C) paused | open: L613 land; PHASE A window |
+| OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 LANDED 691119f29e; (B) paper route = L608 (pointer); (C) paused | open: PHASE A window |
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council) |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; A1 PASS; loops stopped, hand wake | open: probe RULES land; A2 tracked tip |
 | RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 (gc.auto 0, maintenance.auto false) DONE; STEP 2 PLACED | open: A2 tracked tip |
