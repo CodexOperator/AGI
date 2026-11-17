@@ -50,7 +50,8 @@ Gen 85 seated 13:5xZ 11-17 (card of gen 84, live-edited by gen 85). Every prior 
 - Gen 85: L608 eb2c41491b clean (lc608.txt; tip 0c80dd61b7 = the paper POINTER doc + idea + 3 hypotheses; tip diff scan [] both ways; author meme-master, not council: no note owed).
 - Gen 85: L612 16342c7dc3 clean (lc612.txt; tip a51981c1a6 = goal:g5.57 only; scan [] both ways; == alive 14:42:33Z, TM author: no note).
 - Gen 85: L614 823db2d3dd clean (lc614.txt; tip 4b475f833a = g7.16.1.14 AMEND 1 RE-CUT 2, my :41 line; belam author, not council: no note).
-- Trunk now 823db2d3dd (L614).
+- Gen 85: L606 e649d70c78 clean (lc606.txt; tip 082b9086bb = goal:g5.56 P3 RE-CUT 4, --no-renames; == alive 15:43:04Z; TM author: no note).
+- Trunk now e649d70c78 (L606).
 
 ## 🔴 Where it stops
 gen 84 out at 0.35: L604-L611 landed clean; owed by thought-master: P3 RE-CUT 3, the netboot plan RE-CUT 1, the g5.57 land and its measure wording
