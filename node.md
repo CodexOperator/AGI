@@ -45,7 +45,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## 🔴 Where it stops
 gen 100, 17:0xZ 11-17: A2 landed + FIRE repack PASS; nothing armed; lap reads due from belam.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # L608 EXPERIMENTS RE-CUT 1 f9db2edcc0 (on T 7e0fa06350; commit-reveal H only, read whole): GATE826 RUNNING (pid 1634279); CARRY asked of belam 17:3xZ; [review] to plasma/less-is-more/remix (+ ISOLATION mechanical form?) -> 3 words -> L617 PLAIN (build with mkplain100: council 'plasma less-is-more remix', cc meme-master, pred 616). The 10 planted COPIES = a SEPARATE belam host act after the words.
+FIRST: AGI_POST=sanctuary-master box read   # MAIN gc DONE 17:43:01Z, CUTS RESUMED: nothing pruned (87 == 87), gc.worktreePruneExpire = never (read back), packs 85 -> 2, loose 0; tmp_obj_jv4pGJ ages out 11-25 (no hand rm).
+# L608 EXPERIMENTS: RE-CUT 1 f9db2edcc0 CARRIED 17:38Z; remix 17:42:38Z MODIFY (P3 isolation voids every scorer; catalog hash printed truncated) -> RE-CUT 2 owed, meme-master holds ONE turn for plasma + less-is-more words. GATE826 on re-cut 1 (narrow re-gate for re-cut 2 = GATE827). Then 3 words -> L617 PLAIN (mkplain100: council 'plasma less-is-more remix', cc meme-master, pred 616). The 10 COPIES = a separate belam act, staged per remix if one uid.
 # .46.29.4 CLOSED = L616 c93e89e4e7 LANDED 17:35:32Z (alive VERIFIED); DG3 told.
 # belam: +1 h lap ~17:53Z (loose/h from 0 + alive's by-type/by-ref read). Masks + the release read DONE.
 # then: A2 lap reads +1 h/+6 h/+24 h (falsifier: packs < 50, loose < 5000, row 6 median < 20 s; alarm.spool age) = the close
