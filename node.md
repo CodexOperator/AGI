@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle |
 | lens | every check: RUN its GREEN case with a control AND the case where it reads NOTHING (an empty section, a box it cannot read, a stderr-only failure, a FIFO, a range with OTHER lands in it), and WHERE it runs; a falsifier row in a word is RUN with its mutant or read against its code, else 'NOT RUN: row N' and no APPROVE of it |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE and its members classified before naming them; a draft another seat covers -> trim to what is new; own a miss in the word |
-| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w12), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
+| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w13), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200` (consumes); `box n` peeks only (read it WITH 2>&1: outside a worktree it prints only to stderr, rc 0); a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 75 may leave one running at its out: count, and arm only at 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a quiet past a WHOLE gate's ~2 h (they ran ~1.5-3 h on 11-16): read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an OWNER hit in an ADDED node is its verbatim block, name it; the grid is NOT read by it (a skills land IS build-node payloads: aio reads vgrid) |
@@ -49,7 +49,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      only (false green: key 4+ lines below Quo in the design doc, -A3; false red: a SHA / mint_id beside Quo; fix [g-zG-Z] +
      the doc scanned whole), == aio; .47 F1/F4 met. RE-CUT 3 206a8e8ded: sp w8 MODIFY == aio (name branch prose false red)
      + both value classes. RE-CUT 4 4d59da0f8c: sp w9 APPROVE 04:34Z (both swapped; prose outside doc 0, key 1). GATE798.
-     L-check L603 at its land against 4d59da0f8c. Council 3/3 (alive's nit: doc pass 2>/dev/null hides an unreadable doc).
+     LANDED L603 6784336656, L-checked (§2). alive's nit (doc pass 2>/dev/null hides an unreadable doc): next .48 touch.
    P3 = TM tip e2fe623d7f (goal:g5.56 netboot plan), RETURNED by SM 04:5xZ (doubled H1); sp w10 AMEND pre-read 04:52Z: F1 is
      'python3 - <<X' with no body (unrunnable), F2 prose; word the re-cut: RUN F1 on absent doc + empty section.
    MEASURE = TM tip bebebf6f3c (goal:g5.4.3.1.1 A/B deck measure, +8; GATE799): sp w11 AMEND 04:55Z: (1) sign-test floor
@@ -73,6 +73,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L603 6784336656 belam P1+P2+P10 (tip 4d59da0f8c = RE-CUT 4, plain; 2 A goals .47 .48 + 1 M l5-owner-decisions; bt 0/10; OWNER 2 = the two NEW nodes' verbatim blocks; H1 1 each; 05:1xZ 11-17, gen 76)
 - L602 d6a7a809d2 aio TRAP SWEEP g81+g82 RE-CUT (tip 110f1bf4cc, plain; 2 M skills; bt 0/3; agi-send == tip; agi-review = the merge with L601, its land lines == the sweep's 6, L601's 10 as control differ; 03:4xZ 11-17, gen 76)
 - L601 30440a2dae alive TRAP SWEEP g90+g91 (tip 0c8ac178f6, plain; 2 M skills; bt 0/2; grid v81/v46 written by MY turn-end split 02:49:49Z; 02:4xZ 11-17)
 - L600 14de8d7d35 DGo1 CLOSE goal .46.38 (tip 0c99ccf81f, plain; 1 M; bt 0/1; status complete; 02:1xZ)
@@ -90,7 +91,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L586: rows in git (this card's versions to 11-16 12:1xZ).
 
 ## 🔴 Where it stops
-gen 76, 03:4xZ 11-17: L536-L602 checked; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
+gen 76, 05:1xZ 11-17: L536-L603 checked; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
 NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L596 as it lands.
 (4) A28: P1/P2/P10 = L603 re-cut pending (word it); P4 banked (belam); P3 = TM owes a tip or date. Close A28 when L603 lands + TM answers.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -131,4 +132,5 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - A28 OWNER 11-15 items via SM [decision] 19:39:37Z, P1-P10. P7 -> L577; P7b -> L579 be9256d5b5 + L585; P5 = goal .46.37 -> L578, engine L587 + L590,
   host half v6 installed 16:07Z 11-16, CLOSED L597; P9 = goal g7.16.1.13 MINTED L591. P1 network / P2 Quo = design leaves (belam); P3 netboot plan TM;
   P4 belam; P6 .46.36; P8 BANKED §6; P10 no gsend change until the capsule leaf.
-  OPEN until the P1/P2/P3 leaves are minted (none on posts/belam at 03:44Z 11-17, RAN: past a lap, a RED; ASKED SM g76 w1 03:44:39Z; SM [ask] 03:4xZ put it as a RED to belam (P1 P2 P4 P10) + TM (P3): one line each, tip / date / bank. 04:1xZ: P1/P2/P10 tip c87fd31ac5 (L603, re-cut asked); P4 BANKED by belam; P3 TM open).
+  OPEN until the P1/P2/P3 leaves are minted (none on posts/belam at 03:44Z 11-17, RAN: past a lap, a RED; ASKED SM g76 w1 03:44:39Z; SM [ask] 03:4xZ put it as a RED to belam (P1 P2 P4 P10) + TM (P3): one line each, tip / date / bank. 04:1xZ: P1/P2/P10 tip c87fd31ac5 (L603, re-cut asked); P4 BANKED by belam; P3 TM open). 05:1xZ: P1/P2/P10 LANDED L603;
+  P4 banked; P3 = TM tip e2fe623d7f returned (H1 + F1/F2): A28 closes when P3 lands.
