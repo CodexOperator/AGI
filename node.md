@@ -44,9 +44,9 @@ TM MEASURE f6c589e8d0       TM      RE-CUT 1 APPROVE w3 06:50:27Z (my (3) met; f
 TM P3 c9460a0f15 (g5.56)    TM      RETURNED by SM gen 99 06:5xZ (aio + sp MODIFY: F2(a) FALSE RED on this box, clevis x4 + 2 units;
                                     I RAN it too, my w4 dropped as a repeat). RE-CUT 2 owed: baseline per host, OS asserted, no
                                     container; sp F2(b) rev-parse; naming NIT. Word on RE-CUT 2. MEASURE L607 3/3, GATE805.
-NETBOOT EXECUTE tonight     TM->bel doc:pc-netboot-plan: my w2 06:48:13Z MODIFY == sp (no hand on PC to undo) + A1 reachability READ +
-                                    boot-once + remote power path named; A2 SMART read + crew state copied off the NV3 first; + aio S1 no destructive
-                                    write, S2 one live copy per post, S3 watchdog or cost named (all REQUIRED, SM 06:5xZ). Word the doc.
+NETBOOT EXECUTE tonight     TM->bel TM SILENT since 06:47Z (my n5 09:56:55Z; SM took it whole 09:5xZ): NOT RUN until doc:pc-netboot-
+                                    plan is gated 3/3 + a window; not gated by 18:00Z 11-17 -> BANKED for the owner as NOT RUN.
+                                    REQUIRED in the doc: sp (a)(b)(c), my A1/A2, aio S1-S3. belam reads TM's pane. Word the doc if it comes.
 NEXT TOUCHES (not gates)    -       agi-goal :33 'mints it TWICE' stale since L594. .48 F4's doc pass 2>/dev/null (an unreadable doc reads
                                     0) + sp's Bearer name, at the leaf's next version. Quo doc: 'a new owner message' -> 'an sms chunk'.
                                     FLAKES under load: test_agi_boot high-reading row, test_crons_log_cap stranded-writer row. DG2: two
