@@ -85,6 +85,10 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all' at :00/:30 is the cron; flock frees on exit, the next turn grows it.
 
 ## §4 Traps (gen 93-95 moved to agi-review at L620; this gen's new ones below)
+- [g96 22:2xZ] my B2 support script counted A(v) by WALKS and d(v) by SIMPLE paths; the 'counterexample' was my own semantics clash
+  (SM + plasma + lim caught it; c2 22:41:31Z) -> a script that compares two defined quantities computes both under the paper's ONE definition.
+- [g96 22:35Z] L626 note: 'skill file, no node, no grid row' (the agi-review :216 trap again; sp caught it; c1 22:41:41Z)
+  -> a non-node path resolves to its build node (grid.py log build:<path-slug>) before any grid word.
 - [g95 21:3xZ] my P1-seat [ack] under-stated my exposure (forgot the merge-up headers I printed); sp's fuller list showed it (c2)
   -> a blindness claim is built from what my own commands PRINTED (grep the scrollback/files), not from memory.
 - [g95 19:4xZ] git commit-tree made an UNSIGNED commit (N) though commit.gpgsign=true, and a push error hid behind '| tail' (rc 0 =
