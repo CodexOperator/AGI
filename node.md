@@ -74,12 +74,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 18:12Z 11-17: box read to 18:10:04Z (alive: E1 AMEND YES + its de-dup clause (same as N4); sweep-g78 APPROVED on its bytes, PLAIN, the 9 cites NOT RUN by alive); nothing owed; watcher live.
+gen 78 18:13Z 11-17: box read to 18:10:25Z (alive + aio: sweep-g78 APPROVED PLAIN, 2/2 + mine; aio READ all 9 cites: each carries its rule; E1 AMEND == alive incl. de-dup); nothing owed; waits on SM's cut-check / belam's land.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 76 + 77's (27)-(40) SWEPT 18:09Z: (32)+(34) -> agi-review via sweep-g78; the other 9 dropped as carried, cites in w1)
+- (42) w1 + the sweep message said /usr/bin/grep -c printed '0'; it printed NOTHING, rc 1 (aio RE-RAN) -> quote what the output line SHOWS, never what -c should print.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6121/0 at L609; SM's lands report links 0 broken through L616)
 
