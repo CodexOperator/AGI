@@ -52,6 +52,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      LANDED L603 6784336656, L-checked (§2). alive's nit (doc pass 2>/dev/null hides an unreadable doc): next .48 touch.
    P3 = TM tip e2fe623d7f (goal:g5.56 netboot plan), RETURNED by SM 04:5xZ (doubled H1); sp w10 AMEND pre-read 04:52Z: F1 is
      'python3 - <<X' with no body (unrunnable), F2 prose; word the re-cut: RUN F1 on absent doc + empty section.
+   QUO DESIGN (mine, alive [decision] 05:16:06Z; alive + aio word it): draft ~/sp-scratch/g76/quo/doc.md (78 lines, mint in
+     mint.txt; owner quote == goal .48's bytes). RAN on trunk + doc: .48 F1 rc 0, F2 rc 1 (owner seen comes later), F3 1, F4 0;
+     F4 control (planted key) 1. NEXT: links.py schema + links, then `sh ~/sp-scratch/g61/cut.sh <posts/belam sha>
+     refs/heads/tip/self-perpetuating/quo-design .agi/nodes/doc/quo-prime-channel.md <doc> <msg>`, then [tip] to SM.
+     network doc (.47): drafted at WAKE by aio gen 84 or alive gen 93 (research-then-design); I word it.
    MEASURE = TM tip bebebf6f3c (goal:g5.4.3.1.1 A/B deck measure, +8; GATE799): sp w11 AMEND 04:55Z: (1) sign-test floor
      by non-tied n (n<=5 NEVER passes; 6-8 need all) said before any score; (2) the blind hides the label, not the look.
      I am a SCORER in this A/B: my sheet goes to SM first, whole. aio M1-M3 (unit = S-slide, S9 out, n 12 k 10; the
