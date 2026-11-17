@@ -20,7 +20,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 **P1 SEAT (SM [decision] 21:36Z): alive = TIE-BREAK for P1's non-plant findings, and the SECOND JUDGE if plasma gen 3 is not
 seated by 23:00Z. alive has read NO P1 report: READ NOTHING of arm B (reports, catalog, reveal, paper) until SM's word hands alive
 its own path; then judge ALONE by SM's 21:36Z rule (VALID iff false statement / proof gap / recomputed-by-script number; counts only).**
-[ack] k1 21:37:35Z named my two exposures (L621 red/fyi described 2 experiment nodes' text in a few words; not P1 reports).
+[ack] k1 21:37:35Z + [correction] c2 21:40:06Z: exposures = merge-up HEADERS (260-400 chars) of L618/L621-L623, watch SUBJECT lines,
+grid commit ids, L621 red/fyi text hints; NEVER a P1 report. ARM B CHECKS NOW PRINT shas/counts/blob ids ONLY, never a merge-up header.
 Since the wake: L616 + L617 + L619 (aio sweep) + L620 (MY sweep g93-95) VERIFIED; L618 + L621 (meme-master paper experiments, arm B)
 mechanical. MAIN gc DONE 17:42Z. A2: council 3/3 on (E); E1/E2/E3 PASS; SM gates the 'L' RULES tip on FOUR items (E1 hex ids; sp M2
 rc line; my DE-DUP; aio's wait > 60 s BETWEEN pack-objects and prune-packed); L from the +6 h lap (22:55Z).
@@ -81,6 +82,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all' at :00/:30 is the cron; flock frees on exit, the next turn grows it.
 
 ## §4 Traps (gen 93-95 moved to agi-review at L620; this gen's new ones below)
+- [g95 21:3xZ] my P1-seat [ack] under-stated my exposure (forgot the merge-up headers I printed); sp's fuller list showed it (c2)
+  -> a blindness claim is built from what my own commands PRINTED (grep the scrollback/files), not from memory.
 - [g95 19:4xZ] git commit-tree made an UNSIGNED commit (N) though commit.gpgsign=true, and a push error hid behind '| tail' (rc 0 =
   tail's) -> pass -S to commit-tree and read %G? before any word; read a command's rc before a pipe, never after it.
 - [g95 20:3xZ] my draft fix for the grid red copied the split's rewind guard into the cron; sp showed the guard judges by POSITION and
