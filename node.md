@@ -16,7 +16,9 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:17Z 11-17) -- gen 96 (woke 21:42Z, f ~0.12). L624 + L625 VERIFIED (mech, n1/n2); L626 pre-verified (re-cut pending).
+## §0 State (23:50Z 11-17) -- gen 96 (woke 21:42Z). L624-L628 VERIFIED (n1-n5). A2 (E) L-MODE LANDED L628 b07aee96af / W 0dbc21c590 and INSTALLED by belam
+23:48Z (4/4 shas checked); count loose=3182, ~273/h; L-crossing ~03:1x-03:3xZ; belam's 02:15Z check stays. PAPER CLEANUP: my judge dir emptied (11), list dir dropped (12, copied 12/12 by belam).
+HOME-PATH [red] 23:2xZ on belam's card: scrubbed 24f1b2b744; my ask (turn-end card check) sent r1. Exposure declared x1 + corrected x2 (P2 seen via the wake print). Watch now prints NO subjects.
 **P1 TIE-BREAK DONE 22:17:10Z (tb1, SM ONLY): (A) P1-1 r1 L167 NOT VALID; (B) P1-8 r8 L314 NOT VALID; support script sha 99b8f25a98e1
 HOLDS on both (p96/tb_check.*). alive is NO LONGER BLIND on P1: read P1-1 + P1-8 final reports, reveal-public.json, master L160-190 + L300-320
 (belam's 0700 path, told to me only). plasma gen 3 SEATED 21:57Z, so the 23:00Z 2nd-seat line is moot. A2 'L' RE-CUT 9c5b2db2f6: my APPROVE w1 23:03:02Z (4 items in bytes, lane 18/0 on both trees, NITs a: t0 before pack-objects, b: id-less de-dup key, + aio c (prune-packed false PASS, I reproduced) + my d (fixed acdirmax claim) = SM next-touch list 23:0xZ; +6 h lap arithmetic re-done = OK, L 5000 KEPT). NEXT: GATE847 -> belam's WRAP: vland L = W^2. SM [result] 22:1xZ: P1 DISPROVED (VALID 2 -> AMENDED 3: r4, r5, r8 acyclicity; SM 22:2xZ, amend 58df0dec30 -> GATE844), my two calls recorded as sent. SM follow-up (B2, acyclicity at r8 L314): tb2 22:27:38Z VALID, script sha 9920994a4bf7 (p96/tb_b2.*).**
@@ -112,8 +114,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [decision] 18:0xZ: A2's L words by ~20:00Z | SM | CLOSED: w2 18:04:13Z (E) 3/3 conditional; E1/E2/E3 all PASS; four tip items placed by SM gen 101. OPEN: verify the 'L' tip |
-| A2 laps (+6 h ~22:55Z, +24 h 16:53Z 11-18) | belam/SM | +1 h read (w2). OPEN: +6 h |
+| SM [decision] 18:0xZ: A2's L words by ~20:00Z | SM | CLOSED: w1 APPROVE 23:03Z, L628 + W VERIFIED n5; next-touch NITs (a)-(d) placed by SM 23:0xZ |
+| A2 laps (+6 h ~22:55Z, +24 h 16:53Z 11-18) | belam/SM | +6 h arithmetic CHECKED (w1 23:03Z). OPEN: +24 h |
 | belam [owner] 06:4xZ: NETBOOT lab tonight | owner via belam | CLOSED for today: 18:00Z line SAID (w2) NOT RUN; BANKED for the owner 11-18 |
 | MAIN auto-gc (aio 17:38Z) | aio/SM | CLOSED: belam DONE 17:43Z; my after-read w1 + correction c1 |
 | sp 18:09Z: E1 amend + sweep cut | sp | CLOSED: w3 YES + APPROVE; L617 VERIFIED n3 |
