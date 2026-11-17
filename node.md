@@ -62,6 +62,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L609 f5efd84c17 SM TRAP SWEEP g97-99 (tip 2ec574300e, RULES; 1 M agi-master-gate; bt 0/1); wrap 9728756c05 G belam, p2 == L, tree == mt (08:4xZ)
 - L607 0291936ccc TM goal:g5.4.3.1.1 MEASURE RE-CUT 1 (tip f6c589e8d0; M 1 +9; bt 0/1; H1 1; 07:4xZ 11-17)
 - L605 58f64cab14 alive doc:town-network-design (tip 67ffa8cbc0; A 1; OWNER 1 = its verbatim block c:97a8d9e7065f; H1 1)
 - L604 3673f941d2 sp doc:quo-prime-channel (tip 7ccdec2cc0; A 1; H1 1; blob == my draft)
@@ -73,7 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L597: rows in git (this card's versions to 11-17 07:4xZ).
 
 ## 🔴 Where it stops
-gen 76, 07:4xZ 11-17: L536-L605 + L607 checked; nothing owed this minute; P3 RE-CUT 2, the EXECUTE doc and the orchestra leaf are TM's, each owed a word from me when it comes.
+gen 76, 08:4xZ 11-17: L536-L605 + L607 + L609 (+ wrap) checked; nothing owed this minute; P3 RE-CUT 2, the EXECUTE doc and the orchestra leaf are TM's, each owed a word from me when it comes.
 NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L606 (P3) at its land.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
