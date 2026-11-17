@@ -1,0 +1,56 @@
+---
+id: goal:g7.16.1.11.47
+mint_id: ec20a6b9611e4870a47ab1f785a57a8c
+type: goal
+parents:
+  - goal:g7.16.1.11
+next_edges: []
+confidence: 0.5
+goal_id: G7.16.1.11.47
+goal_kind: subgoal
+model: claude-opus-5-5
+origin: goal
+role: prime_director
+scaffold_hash: 815a2d89c7346ee7
+season: 3
+seeds: []
+status: active
+tags:
+  - network
+  - wireguard
+  - council-design
+title: "G7.16.1.11.47: the town's private network, designed by the council and picked by the owner: this box, local-town, the owner's phone and roaming laptop, the dashboard reachable from both, automated peer add / rotate and self-heal (owner 11-15, P1)"
+town: core
+---
+
+# goal:g7.16.1.11.47
+
+## Why this exists
+goal:g7.16.1.11 (the season bundle; its phone and roaming-key lines, 182-193): the owner asked for a phone route that stays silent unless the key is right. The town still has no phone or roaming laptop on its private network. Its one tunnel (wg agilab, this box to local-town) lost its address on 11-14 and was healed by hand. On 11-15 the owner asked the council to design the town's network as a whole, with no more piecemeal patches. sanctuary-master placed it as P1 (19:39:37Z 11-15, 3/3); belam mints it.
+
+## OWNER 11-15 19:00:36Z, verbatim (belam's pane; owner chunk c:97a8d9e7065f; relayed whole to sanctuary-master 19:01:48Z)
+"I was wondering if could also make it so that the wireguard connection is more flexible and automated, maybe transition to tailscale if needed or do our own graph-based+capsule-based solution potentially?
+
+I've been meaning to include my mobile device in it and also allow my other laptop to access it easily as it is also always on the move. But this way I have an easy time accessing the dashboard. I'm not really an expert in this though so I'd love for the council to come up with a nice bespoke solution that is the best fit for our needs considering all of our goals, visions, and morals"
+
+## Target end-state
+- A design doc node, doc:town-network-design, weighs the three options the owner named (WireGuard, automated · Tailscale or a self-hosted coordinator · our own graph + capsule mesh). It weighs them on the morals and on three stances the owner has stated: no third party that phones home unasked; silent unless the key is right; easy for a non-expert (a QR code on the phone, one app on the laptop).
+- The scope is this box, local-town, the owner's phone, the owner's roaming laptop, and the dashboard reachable from both. It covers automated peer add and key rotation, and self-heal: a lost tunnel address comes back without a hand restart.
+- Two loose ends from the same chunk are FOLDED INTO the design, not patched piecemeal. (Q1) A reconnect step for a Remote Control link already in '/rc failed' (belam's lean: every post the owner holds a link for, idle only, at most once per 30 min, logged). (Q2) Which path a post's Anthropic traffic takes: ip rule 30999, the tunnel's catch-all, shadows 31000/31001, so belam's traffic goes out wg0 today.
+- The design is a council decision (three lenses). The owner picks before any host changes; the builder is named by the design after the pick.
+
+## Invariants
+- No host, account or key changes in this leaf: it designs, it does not wire. Routing stays as found (Q2 HOLD) until the owner picks.
+- The owner's words above are quoted, never paraphrased into a pick the owner did not make.
+
+## Falsifier
+1. `D=.agi/nodes/doc/town-network-design.md; test -f $D && S=$(sed -n '/^## Options/,/^## /p' $D) && for o in WireGuard Tailscale capsule; do [ "$(echo "$S" | grep -ci "^|[^|]*$o")" -ge 1 ] || { echo "MISSING $o"; exit 1; }; done` exits 0: each option is named in the FIRST cell of its own row (RE-CUT 2, aio M1 + sp: a row led by other words, "| Our own graph + capsule mesh |", passes; ONE row naming all three in later cells, "| WireGuard | picked; Tailscale and a capsule mesh not weighed |", reads MISSING; an empty section reads red).
+2. `D=.agi/nodes/doc/town-network-design.md; for h in '## Remote Control reconnect' '## Anthropic route'; do [ "$(sed -n "/^$h/,/^## /p" $D | grep -cv '^## \|^$')" -ge 1 ] || { echo "EMPTY $h"; exit 1; }; done` exits 0: Q1 and Q2 each have a non-empty section.
+3. `grep -Eq '^owner pick: c:[0-9a-f]{12}' .agi/nodes/doc/town-network-design.md` exits 0: the owner's pick is cited by its chunk id.
+4. Negative: `P=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; for b in tailscale tailscaled headscale; do PATH=$P command -v $b; done; n=$(systemctl list-unit-files --no-legend 'tailscaled*' 'headscale*' 2>/dev/null | wc -l); [ "$n" = 0 ] || echo "units $n"` prints nothing on this box until the owner's pick is cited (3): no option was installed ahead of the pick. (RE-CUT 2: the full PATH, since a post's PATH has no sbin dir (aio M2); one name per command -v, since dash stops at the first missing name (alive); plus the unit-file count.)
+
+## Out of scope
+goal:g7.16.1.11.46.36 (the dashboard as hub.said surface) · the Quo channel (the sibling leaf) · the PC netboot plan (thought-master's P3) · the hub A key rotation (P4, belam's step list)
+
+## Agent Notes
+Assigned to **belam**.
