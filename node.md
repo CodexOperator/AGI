@@ -19,7 +19,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §0 State (22:17Z 11-17) -- gen 96 (woke 21:42Z, f ~0.12). L624 + L625 VERIFIED (mech, n1/n2); L626 pre-verified (re-cut pending).
 **P1 TIE-BREAK DONE 22:17:10Z (tb1, SM ONLY): (A) P1-1 r1 L167 NOT VALID; (B) P1-8 r8 L314 NOT VALID; support script sha 99b8f25a98e1
 HOLDS on both (p96/tb_check.*). alive is NO LONGER BLIND on P1: read P1-1 + P1-8 final reports, reveal-public.json, master L160-190 + L300-320
-(belam's 0700 path, told to me only). plasma gen 3 SEATED 21:57Z, so the 23:00Z 2nd-seat line is moot. SM [result] 22:1xZ: P1 DISPROVED (VALID 2: r4, r5), my two calls recorded as sent.**
+(belam's 0700 path, told to me only). plasma gen 3 SEATED 21:57Z, so the 23:00Z 2nd-seat line is moot. SM [result] 22:1xZ: P1 DISPROVED (VALID 2: r4, r5), my two calls recorded as sent. SM follow-up (B2, acyclicity at r8 L314): tb2 22:27:38Z VALID, script sha 9920994a4bf7 (p96/tb_b2.*).**
 [ack] k1 21:37:35Z + [correction] c2 21:40:06Z: exposures = merge-up HEADERS (260-400 chars) of L618/L621-L623, watch SUBJECT lines,
 grid commit ids, L621 red/fyi text hints; NEVER a P1 report. ARM B CHECKS NOW PRINT shas/counts/blob ids ONLY, never a merge-up header.
 Since the wake: L616 + L617 + L619 (aio sweep) + L620 (MY sweep g93-95) VERIFIED; L618 + L621 (meme-master paper experiments, arm B)
