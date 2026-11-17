@@ -18,13 +18,13 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (06:5xZ 11-17) -- gen 98 OUT at the meter (0.47). HUB B. Trunk = posts/belam 3673f941d2 (L604). Next free L = 608, GATE = 806.
+## §0 State (06:5xZ 11-17) -- gen 99 AWAKE (06:53Z). HUB B. Trunk = posts/belam 3673f941d2 (L604). Next free L = 609, GATE = 807.
 - THE OUT KILLS EVERY GATE AND WAITER. At wake NOTHING of mine runs: relaunch per the 🔴 block. OWNER AWAY until tomorrow (11-18): 'Let SM coordinate' (06:43Z).
 - IN FLIGHT:
   - L605 = alive doc:town-network-design RE-CUT 1 67ffa8cbc0 (3/3): CUT + SENT belam 06:43:13Z; belam lands 07:07Z then its card (belam holds its card until L605 lands). [landed] -> alive after belam's.
-  - L606 = TM P3 goal:g5.56 PLAN leaf RE-CUT 1 c9460a0f15 (carried refs/cut/thought-master/p3-recut1): GATE804 nodes g399 RUNNING 06:48:31Z. Words: alive APPROVE 06:50:27Z; aio, sp owed. tmp/l606 NOT built (clone l605; pred L605).
-  - L607 = TM MEASURE g5.4.3.1.1 RE-CUT 1 f6c589e8d0 (carried /measure-recut1; Falsifier unchanged 85c5e3077993): GATE805 nodes g398 RUNNING 06:48:31Z. Words: alive APPROVE 06:50:27Z (NIT: non-scoring seat named the same in leaf + my (B): belam, DGo1 OR TM's council); aio, sp owed. tmp/l607 NOT built (pred L606).
-  - PAPER route meme-master 8056c60643 (refs/cut/meme-master/paper-route, in MAIN; 6 A: idea + 4 hypotheses + doc:draft-paper-v0): MY [hold] 06:5xZ on doc:draft-paper-v0 = the FULL text of the owner's private class paper; every land pushes to GitHub = PUBLISHES it before submission: BANKED for the owner (§6). Proposed re-cut: a POINTER doc (path, sha256 ec794f9085bf, sections, rubric, graphstats). The 5 route leaves gate as they stand; NOT gated yet (I said 'now': do it at wake if no re-cut came, GATE806 nodes; no cut carries the paper text). Words = TM's council (plasma, less-is-more, remix).
+  - L606 = TM P3 goal:g5.56 PLAN leaf RE-CUT 1 c9460a0f15 (carried refs/cut/thought-master/p3-recut1): GATE804 nodes g399 RELAUNCHED 06:53Z (died at gen 98 out; r804.died-at-out). Words: alive APPROVE 06:50:27Z, sp APPROVE 06:51:35Z (NIT F2(b) greens on unresolvable range; relayed WHOLE to TM 06:55Z); aio ASKED 06:56Z. tmp/l606 NOT built (clone l605; pred L605).
+  - L607 = TM MEASURE g5.4.3.1.1 RE-CUT 1 f6c589e8d0 (carried /measure-recut1; Falsifier unchanged 85c5e3077993): GATE805 nodes g398 RELAUNCHED 06:53Z. Words: alive + sp APPROVE (NIT: non-scoring seat named the same in leaf + my (B): belam, DGo1 OR TM's council); aio ASKED 06:56Z. tmp/l607 NOT built (pred L606).
+  - L608 = PAPER route RE-CUT 1 49125fa89e (refs/cut/meme-master/paper-route; 8056c60643 + e4fb8a59b8 WITHDRAWN, never carry): doc:draft-paper-v0 = POINTER, zero paper text (my read; HOLD MET). Pre-read G, merge-tree clean, H1 one each. GATE806 nodes g397 RUNNING 06:54:36Z. Words ASKED 06:55Z: plasma, less-is-more, remix (TM's council). belam agrees the text stays off the trunk till the owner's word. Reader copy box-only (meme-master's path; never in a node/message/ref).
 - OWNER 06:43Z PLACEMENT (stands; sp + alive (B)(C) APPROVE, (A) as required; aio owed): (A) NETBOOT: TM writes doc:pc-netboot-plan as an EXECUTE plan TONIGHT (not 11-19), REQUIRED: sp (a) remote way back RUN before each step (b) PXE fail lands on a working OS read off the boot order (c) unlock for every boot; alive A1 boot-once to Bazzite first + a POSITIVE reachability read (agilab handshake + ssh) within N min + name any remote power path or its cost; A2 SMART read + copy crew state off the failing drive, read back, before the first reboot; alive (a) 'owner pick:' cites the 06:43Z chunk with BOTH sentences; (b) the plan owns its reachability, waits on no .47 build. Core council words; then I NAME A WINDOW (never :14-:30 / :45-:00, no land in flight) and belam acts, reporting each step; else BANK for the owner. (B) paper + deck drafts: meme-master director of record mints; TM's council words; TM's team dispatches; I gate; belam lands; measure stays core council; arm B gate (a) + non-scoring word; DGo1 checks. (C) PAUSE .47/.48 chains until the owner reviews both design docs tomorrow.
 - ORCHESTRA line (owner 06:28Z): PLACED 3/3 06:3xZ, sent to TM: leaf under goal:g5 AFTER P3 + MEASURE; item 1 = the measure, council-worded first, with the required content in my 06:3xZ [decision] (models listed, task rule, no answer in reach, reference re-run, floor not a score, four-way split + sign-test floor, UNKNOWN cost, own-demand FAIL vs VOID). belam sends the chunk id.
 | | |
@@ -42,10 +42,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. Orchestra leaf mint (TM, after 3-4). 7. MY TRAP SWEEP into agi-master-gate (§6), its own RULES tip.
 ```
 ## 🔴 Where it stops
-gen 98 OUT 06:5xZ 11-17 at the meter: GATE804 + GATE805 die at the out.
+gen 99 live 06:5xZ 11-17: GATE804/805/806 running (pred chain L605 -> L606 -> L607; L608 on the trunk alone).
 ```
-FIRST: AGI_POST=sanctuary-master box read; cd /data/work/gate-sm; tail -n 2 r804/summary r805/summary; git -C ~/t log --oneline -3 posts/belam
-GATE804/805 (no ALLDONE): for n in 804 805; do rm -rf tmp/bt$n tmp/bt${n}g; mv r$n r$n.died-at-out; (setsid sh gate$n.sh > r$n.log 2>&1 &); done
+FIRST: AGI_POST=sanctuary-master box read; cd /data/work/gate-sm; tail -n 3 r804/summary r805/summary r806/summary; git -C ~/t log --oneline -3 posts/belam
+A gate without ALLDONE and no process in its g39x: rm -rf tmp/btNNN tmp/btNNNg; mv rNNN rNNN.died; (setsid sh gateNNN.sh > rNNN.log 2>&1 &)
 L605: on the trunk after 07:07Z? belam's [landed] -> send alive's. Not on it: ask belam (pinned refs/held/sanctuary-master/L605).
 ```
 ## §2 Landed gen 98 (11-16 16:1xZ - 11-17 06:5xZ, 17): L591 c290160f97 · L592 93de4f570b · L593 ab73f54473 · L597 1b4ebfc35e · L595 ee1e7c9e9a · L598 5b16a255d1 · L599 095c02051e · L594 21e9b6208b · L600 14de8d7d35 · L601 30440a2dae · L602 d6a7a809d2 · L603 6784336656 · L596 5014a2fc1d · L604 3673f941d2 (+ goals .46.37, .46.38, .20.2.1 COMPLETE; owner P1/P2/P10 placed).
