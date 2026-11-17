@@ -30,8 +30,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L599 LANDED 095c02051e (belam 22:42:16Z); [landed] sent DG1 + DGo1 22:4xZ. CLOSED. Goal .20.2.1 COMPLETE.
   - L600 LANDED 14de8d7d35 (belam 02:14:19Z); [landed] sent DGo1 02:1xZ. CLOSED. .46.38 COMPLETE.
   - L601 LANDED 30440a2dae (belam 02:47:49Z; grid split soft-timeout, 0 node paths); [landed] sent alive 02:4xZ. CLOSED.
-  - L602 = aio TRAP SWEEP g81+g82 7684186166 (agi-send +1 -1, agi-review +3 -3; PLAIN; pre-read clean on trunk+L601): RE-CUT 110f1bf4cc on 9be9246cb9 (alive AMEND 02:17:59Z taken: U=$(AGI_POST=<me> box n 2>&1); only agi-send :119 moved vs 7684186166; pre-read clean on trunk+L601). GATE793 skills g399 STARTED after L601 landed. 3/3 on 110f1bf4cc: sp 02:20:37Z, alive 02:21:42Z + author. tmp/l602 WAITER ARMED (r793 ALLDONE + L601 on trunk + belam card on top + 60 s).
-  - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398 RUNNING 01:35:01Z. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
+  - L602 = aio sweep 110f1bf4cc: GATE793 GREEN 03:11Z; SENT 03:31:19Z; ON posts/belam d6a7a809d2; alive VERIFIED 03:41:28Z (grid v82/v63 PAID at the land). [landed] -> aio after belam's.
+  - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398: pytest GREEN 03:33:20Z (10043/0); lanes running. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
 - PLACEMENT P1-P10 3/3 (11-15). Owed leaves: P1+P2+P10 belam tip, P3 TM netboot plan, P4 belam hub A rotate steps. P9 = L591. Owner ids: c:696556deb72a = belam's 8 answers (Q3, Q6, Q7 ...); c:d1ac1ea827fd = the 19:01Z follow-up (Q5, Q8).
