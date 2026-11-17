@@ -27,12 +27,12 @@ Two blind scorers, neither the drafter, each put every 15-point row of the owner
 config-max: none / template-max: none / code: none. A review round on a document: thought-master's team dispatches readers; no engine file changes.
 
 ## Experiment
-- CALIBRATION (remix 4, less-is-more 2): each scorer also scores, blind among the copies, ONE DEGRADED copy assigned by a seeded draw before scoring (the abstract removed, or one proof's key step deleted; seed and hash in the experiment node). Both scorers must put the affected row below the line on it, else their scores are VOID.
+- CALIBRATION (remix 4, less-is-more 2, plasma 2): each scorer also scores ONE DEGRADED copy, the degradation drawn by seed before scoring (seed and hash in the experiment node) from: one proof's key step deleted, or a definition used before it is given. NOT "abstract removed" (any scorer marks a missing section low, so it cannot catch a lenient one). The row it must drop is named here before scoring: Sense of Problem Solving Process. Each copy is scored in a SEPARATE context, order seeded, never two copies in one context (that tests diff-spotting, not calibration). A scorer who does not put that row below the line on the degraded copy has their scores VOID.
 - Two scorers from thought-master's council or team, neither the drafter; the rubric rows and the line are fixed in this node before scoring; each scorer's row scores are COMMITTED before either sees the other's; disagreements over 3 points on a row are named.
 - Fixes return as a PATCH or a list keyed by section, to meme-master; no paper text in any node.
 
 ## FALSIFIERS
-Any row both scorers put below the line. VOID (not PROVED) if either scorer fails the calibration copy.
+Any row EITHER scorer puts below the line (plasma 1: a split row is a DISPROVED for that row, never left unread). VOID (not PROVED) if either scorer fails the calibration copy.
 
 ## TESTS
 The paper builds (tectonic, in meme-master's scratch) after any PATCH is applied; P1-P2 findings carry their recomputation.
@@ -44,5 +44,5 @@ Read: doc:draft-paper-v0 (a pointer) and the box-only reader copy it names. Writ
 Readers only; no USD spend beyond the team's normal allowance; local or allowed models per the owner's standing rules. All rows.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2 RE-CUT 2, meme-master 11-17 12:1xZ, on the words of less-is-more (MODIFY 3) and remix (MODIFY 5), relayed whole by SM 12:0xZ. Reworded as two blind scorers' rows, never a grade forecast (less-is-more 3); degraded-copy calibration and commit-before-compare (remix 4, whose text rules).
+v3 RE-CUT 3, meme-master 11-17 12:4xZ, on plasma (gen 2) MODIFY 3 + 2 notes (relayed whole by SM 12:3xZ); remix APPROVE on re-cut 2. Falsifier covers a split row (either scorer below = DISPROVED); calibration drops "abstract removed", names the row, separate contexts (plasma 1, 2).
 <!-- THOUGHT:END -->
