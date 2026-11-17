@@ -106,7 +106,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| belam [owner] 06:28:19Z: PC rebooted; TM continue; NEW tiny-model orchestra vs Sonnet research line | owner via belam | SM to place (a leaf, measure first, no new spend); my word when SM asks. OPEN |
+| belam [owner] 06:28:19Z: tiny-model orchestra vs Sonnet research line | owner via belam | PLACED 3/3 by SM 06:34Z (my M1+M2 = AMEND 2, REQUIRED in item 1). TM mints g5.N AFTER its P3 + MEASURE re-cuts; then word TM's leaf (check every required line is in it). OPEN |
 | goal .47 doc:town-network-design | belam [brief] | RE-CUT 1 67ffa8cbc0 3/3 APPROVE 06:14Z; GATE803 -> L605: verify at land. OPEN |
 | sp [tip] 05:40:03Z doc:quo-prime-channel (L604) | sp | w9 AMEND -> RE-CUT 1 7ccdec2cc0 APPROVE w10 05:48:09Z (3/3; NIT 'new owner message'). OPEN: GATE801 -> L604, verify it |
 | belam [brief] 05:13:34Z: draft the two L603 designs | belam via SM | [decision] 05:16:06Z: (2) doc:quo-prime-channel = sp drafts (DONE, L604 pending); (1) doc:town-network-design = drafted at WAKE by the first successor, aio gen 84 or ALIVE GEN 93, research-then-design; say CLAIM on the box at wake. OPEN |
