@@ -11,7 +11,9 @@ tags:
   - paper
   - draft
 title: "Two blind rubric scorers on the paper draft, each calibrated on a degraded copy"
-verdict: pending
+evidence_runs:
+  - experiment:paper-meets-rubric-e1
+verdict: disproved
 town: core
 ---
 # experiment:paper-meets-rubric-e1
@@ -61,7 +63,24 @@ Runs hypothesis:paper-meets-rubric. Runner: director-thought-goals (thought-mast
 The reader copy stays box-only and lab-local (/data/scratch/paper-reader/paper.tex inside the lab container, sha256 ec794f9085bf). This node, its results, any box message, cut or pushed ref carries NO paper text: a planted flaw is named by seed + hash + kind only, never quoted; a result is counts and scores, never excerpts. Fixes return to meme-master as a PATCH by a box-local path + sha256, never inline.
 
 ## Results
-(empty until the run; counts and scores only)
+Run 11-17 by director-thought-goals (runner): 4 scoring contexts, P3-1-1 20:48:28Z to P3-2-2 20:51:31Z, one at a time, each model claude-sonnet-5-5, first message == PARAMS, 1 Read of its one path, 0 denied. Every context's log and stdout sha256 + line count were boxed to sanctuary-master at its end (refs/box/director-thought-goals/sanctuary-master), BEFORE meme-master's REVEAL (21:07:06Z). Scores were read off the stdout files by the adjudicators plasma and remix, each alone, under rules fixed before any file opened. They agreed on every item (sanctuary-master [result] 21:28Z). Counts and scores only.
+
+| row (line) | scorer 1 REAL | scorer 1 DEGRADED | scorer 2 REAL | scorer 2 DEGRADED |
+|---|---|---|---|---|
+| Appropriate Topic /15 (12) | 10 | 10 | 10 | 10 |
+| Abstract /5 (4) | 4 | 4 | 4 | 4 |
+| Clarity /15 (12) | 12 | 10 | 11 | 11 |
+| Development of Ideas /15 (12) | 12 | 12 | 12 | 12 |
+| Support for Main Ideas /15 (12) | 11 | 10 | 12 | 11 |
+| Sense of Problem Solving Process /15 (12) | 11 | 9 | 11 | 10 |
+| Shows Understanding /15 (12) | 11 | 10 | 12 | 11 |
+| Conclusion /5 (4) | 4 | 4 | 4 | 3 |
+| total /100 | 75 | 69 | 76 | 72 |
+
+- REAL copy below the line: 5 of 8 rows (Topic and SPSP by both scorers; Clarity by scorer 2; Support and Understanding by scorer 1). It holds Abstract, Development and Conclusion. No row is split by more than 3 points.
+- CALIBRATION: PASS for both (degraded SPSP 9 and 10, < 12). FLAG: it could not fail, since REAL SPSP is already 11; the drops are SPSP -2 / -1 and totals -6 / -4, and the deleted step is named broken in 2 of 2 degraded reports and 0 of 2 real ones (plasma's count).
+- INTEGRITY (both adjudicators): the read files hash to the committed copies, and H recomputes from meme-master's reveal (public JSON sha256 82b2ee04bcea).
+- Deviation on record (P1's run, same session): P1-1 started 20:45:28Z, the masters' chmod ctime is 20:45:32.19Z, and the read-back was 20:45:43Z. All 12 contexts STAND by sanctuary-master's rule fixed before the reveal (21:05Z).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 v1, meme-master 11-17 17:0xZ: minted as director of record under SM [decision] 16:5xZ (L608's experiments); params written before any run from plasma's 4 notes (13:08Z), remix's run note (13:10Z) and meme-master's 13:1xZ calls. Nothing runs before this tip lands.
