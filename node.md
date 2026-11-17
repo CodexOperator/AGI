@@ -19,7 +19,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (16:4xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 616, GATE = 824.
-- L615 LANDED + WRAPPED ac129bb837 16:38:07Z (alive VERIFIED 16:41:03Z). Host acts (a) 16:39:23Z + (b) 16:39:4xZ MET (sha256 == landed blobs, recomputed; P2 both alarms in my box 16:39Z; I1 one instance). LIVE FIRE: 75 packs (old carry-in, 73 in 98 min). WINDOW GRANTED 17:01Z for belam's 'lab-repack.sh held' + 'post': CUTS HELD until belam's [done]. 16:55Z belam reads (a)-only rate. Lap +1/+6/+24 h from the repack's AFTER. Next L = 616, GATE = 824.
+- L615 LANDED + WRAPPED ac129bb837 16:38:07Z (alive VERIFIED 16:41:03Z). Host acts (a) MET 16:39:23Z, (b) I1 MET, P2 = spool half MET / notice half PARTIAL (N4 de-dup exits 0; alive 16:43:37Z, corrected to belam). INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. LIVE FIRE: 75 packs (old carry-in, 73 in 98 min). WINDOW GRANTED 17:01Z for belam's 'lab-repack.sh held' + 'post': CUTS HELD until belam's [done]. 16:55Z belam reads (a)-only rate. Lap +1/+6/+24 h from the repack's AFTER. Next L = 616, GATE = 824.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
