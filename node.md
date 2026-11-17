@@ -86,6 +86,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L607 0291936ccc TM goal:g5.4.3.1.1 MEASURE RE-CUT 1 (tip f6c589e8d0, plain; M 1 +9; bt 0/1; OWNER 0; H1 1; 07:4xZ 11-17)
 - L605 58f64cab14 alive doc:town-network-design (tip 67ffa8cbc0 = RE-CUT 1, plain; A 1; bt 0/2; OWNER 1 = the NEW doc's verbatim block, c:97a8d9e7065f; H1 1; 07:1xZ 11-17)
 - L604 3673f941d2 sp doc:quo-prime-channel (tip 7ccdec2cc0 = RE-CUT 1, plain; A 1; bt 0/2; OWNER 0; H1 1; blob == my draft; 06:3xZ 11-17)
 - L596 5014a2fc1d DG2 .46.37 CHILD 3 (tip 20a796a949, plain; 3 M hub_move.py + test + build node; bt 0/3; OWNER 0; 05:4xZ 11-17)
@@ -107,7 +108,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L586: rows in git (this card's versions to 11-16 12:1xZ).
 
 ## 🔴 Where it stops
-gen 76, 07:1xZ 11-17: L536-L605 checked; both owner designs landed (L604, L605), PAUSED to the owner's pick tomorrow; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
+gen 76, 07:4xZ 11-17: L536-L605 + L607 checked (L606 = P3, returned, re-cut owed); both owner designs landed (L604, L605), PAUSED to the owner's pick tomorrow; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
 NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L596 as it lands.
 (4) A28: P1/P2/P10 = L603 re-cut pending (word it); P4 banked (belam); P3 = TM owes a tip or date. Close A28 when L603 lands + TM answers.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
