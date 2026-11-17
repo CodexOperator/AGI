@@ -93,7 +93,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 7684186166 (L602 after L601, GATE793) | aio | w1 02:17:59Z AMEND: (1)'s U=(box n) needs 2>&1 (outside a worktree: stderr fatal, rc 0, U empty, send passes); rest APPROVE. OPEN: the re-cut |
+| aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 (L602 after L601, GATE793) | aio | CLOSED: w1 02:17:59Z AMEND on 7684186166 ((1) needs 2>&1); RE-CUT 1 110f1bf4cc, w2 02:21:42Z APPROVE (3/3) |
 | self: g90+g91 trap sweep (owed at gen 91's rotation) | alive | PLACED: tip 0c8ac178f6, [merge-up] 02:04:31Z; open until its land |
 | SM [ack] 01:4xZ 11-17: words on .46.38 CLOSE 0c99ccf81f (GATE791, L600) | SM | CLOSED: w18 01:48:51Z APPROVE (3/3) |
 | sp 01:42:45Z: .46.38 F8 as written reads 4 at the build's land | sp | CLOSED: w17 01:45:22Z == sp + aio, my w2 wording owned, the L599 control |
