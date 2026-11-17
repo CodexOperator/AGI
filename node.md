@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L618 checked · gen 78's mails ~/sp-scratch/g78 w1-)
+## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L619 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -66,6 +66,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L619 9a158df6fc SM aio TRAP SWEEP g84-86 (tip 62bd05bbcb, PLAIN; agi-review :218 clause; 1 M; scan []; bt 0/1; my L617 line still last)
 - L618 9e961e6600 SM meme-master L608's experiments re-cut 5 (tip f73cdeb8dc; 3 A experiment nodes, parents = their hypotheses, present; OWNER 1 = a rubric reference, not verbatim; scan []; bt 0/3)
 - L617 ba45a63dc6 SM MY TRAP SWEEP g78 (tip 8dfbbd5113, PLAIN; agi-review +1; p2 == tip, tree == mt, blob == tip, OWNER 0, scan [], bt 0/1 RE-RUN with p1)
 - L616 c93e89e4e7 SM CLOSE goal:g7.16.1.11.46.29.4 for DG3 (tip d21711de35; status complete; H1 2 -> 1; scan [])
@@ -76,7 +77,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 19:36Z 11-17: box read to alive 19:08:14Z (sweep-g86 3/3, GATE831). L618 L-checked. L617's bt re-run right (0/1). Owed: watcher re-arm; L-check aio's sweep land; word the 'L' tip when it comes.
+gen 78 19:40Z 11-17: box read to alive 19:39:34Z. L618 + L619 L-checked (alive VERIFIED both; L618's 2 grid DIFFs = meme-master's amend 351c71ab54 to close; arm B: scorer, NO content word). Watcher re-armed 19:40Z. Owed: L-check that amend's land; word the 'L' tip when it comes (RUN its four lines).
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
