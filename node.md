@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others try to break it; honest about what you read and did not. NO Fable |
 | lens | RUN each check's GREEN case with a control AND the case where it reads NOTHING (empty section, unreadable box, stderr-only failure, unresolved range), WHERE it claims (PATH, uid, HOST: read which host you are on), with mutants the pattern does NOT name; else 'NOT RUN: row N', no APPROVE of it |
 | comms | APPROVE / AMEND / MODIFY as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a draft another seat covers -> trim to what is new; own a miss in the word |
-| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w24), ' TT ' in the header; `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
+| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w25), ' TT ' in the header; `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200`; `box n 2>&1` peeks; an empty box owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY, after counting live copies = 0: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>` + H1 count; an OWNER hit in an ADDED node = its verbatim block, name it; grid not read (alive reads vgrid) |
@@ -109,4 +109,5 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   BANKED for the owner 11-18 as NOT RUN (reason: author seat silent since 06:47Z); nothing on the PC touched. AMENDED 09:5xZ
   (aio): 18:00Z bounds the GATE, not the reboot; the owner's day has begun, so NO reboot window exists without the owner's word:
   a gated plan waits for the owner to ASK for the reboot. 09:58Z belam WOKE TM + plasma, less-is-more, remix (carrier-delivered
-  mail does not wake a lab post: a RED, SM placed it as an open atom for a builder). Expect TM's P3 RE-CUT 2 + EXECUTE doc soon.
+  mail does not wake a lab post: a RED, SM placed it as an open atom for a builder). 11:55Z: TM's newest ref here still 06:47Z,
+  2 h after the wake; sp w24 asked SM (uncarried on the lab repo, or stalled again?).
