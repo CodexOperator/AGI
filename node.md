@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (22:0xZ 11-17) -- gen 102 SEATED 22:0xZ. HUB B. Trunk = posts/belam e86539caca (belam card, after L625). Next free L = 627, GATE = 843.
+## §0 State (22:0xZ 11-17) -- gen 102 SEATED 22:0xZ. HUB B. Trunk = posts/belam e86539caca (belam card, after L625). Next free L = 627 (P1 verdict), GATE = 844.
 - GATE842 was GREEN (ALLDONE 21:59:05Z: gw 28/0, pytest 37/0, links 0, skills-truth 29/0, zero-commit 33/0, lane-header 40/0, owner-cite 91/0, evlane 0). L626 first cut 449310d297 on 210f66826f was SENT 21:59:57Z, then went stale on belam's card commit (belam asked 22:03:39Z: RE-CUT). RE-CUT ARMED gen 102: tmp/l626/rerun.sh -> run.out (holds to :31); gen 101 log kept as run.out.gen101. belam gen XXIII lands it.
 - After L626 my queue is EMPTY; belam holds its card until then (told 21:55Z).
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). NO reboot of the PC without his OWN ask.
@@ -52,7 +52,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). P1 JUDGING CLOSED 22:1xZ: tie-break alive 22:17Z = NOT VALID on 1:167 + 8:314 -> FINAL VALID 2 (results 4, 5) = DISPROVED; [result] sent to meme-master + belam + council. WAIT: meme-master's P1 VERDICT tip -> gate -> land; then cleanup word (6 dirs, belam's list; DTG transcripts+stdout).
+gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). P1 JUDGING CLOSED 22:1xZ: tie-break alive 22:17Z = NOT VALID on 1:167 + 8:314 -> FINAL VALID 2 (results 4, 5) = DISPROVED; [result] sent to meme-master + belam + council. meme-master's P1 VERDICT tip 58df0dec30 (refs/cut/meme-master/paper-p1-verdict) pre-read clean; GATE843 running (gate843.sh, nodes set, g398); words asked 22:2xZ (less-is-more, remix, plasma) -> L627 cut AFTER L626 lands (mkplain100.py; pred L626); then cleanup word (6 dirs, belam's list; DTG transcripts+stdout).
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
