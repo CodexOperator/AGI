@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle |
 | lens | every check: RUN its GREEN case with a control AND the case where it reads NOTHING (an empty section, a box it cannot read, a stderr-only failure, a FIFO, a range with OTHER lands in it), and WHERE it runs; a falsifier row in a word is RUN with its mutant or read against its code, else 'NOT RUN: row N' and no APPROVE of it |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE and its members classified before naming them; a draft another seat covers -> trim to what is new; own a miss in the word |
-| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w22), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
+| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w23), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200` (consumes); `box n` peeks only (read it WITH 2>&1: outside a worktree it prints only to stderr, rc 0); a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 75 may leave one running at its out: count, and arm only at 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a quiet past a WHOLE gate's ~2 h (they ran ~1.5-3 h on 11-16): read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an OWNER hit in an ADDED node is its verbatim block, name it; the grid is NOT read by it (a skills land IS build-node payloads: aio reads vgrid) |
@@ -122,7 +122,9 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   SM relayed to every seat. RULE: never worktree prune / repo-wide verbs judging other uids' paths; probes = git archive + git init.
   (30) printf "$x" with x starting '---' is an option error: write fixtures with printf '%b'.
   (31) w10 offered an F2 example 'dpkg -l ... | grep -c ^ii = 0' never run: on Bazzite (rpm-ostree, no dpkg) it reads 0 whatever is
-  installed (aio 04:52:59Z). An example in a word is a falsifier too: assert its tool exists, name the OS. Sweep (27)-(31) at rotation.)
+  installed (aio 04:52:59Z). An example in a word is a falsifier too: assert its tool exists, name the OS.
+  (32) wrote 'NOT RUN: F2(a), no route to encryption-town' while ON encryption-town (aio ran it: a false red). Before a NOT RUN
+  for want of a host, read which host I am on. Sweep (27)-(32) at rotation.)
   gen 75's own (sweep them into agi-review at gen 76's out unless carried by L601/L602, which already hold most:
   (26) approved aio's 'U=$(box n)' rule off an EMPTY box only, never the box it CANNOT read (stderr-only, rc 0, U empty); my own
   sendw-g54 gate() had the same hole, FIXED 02:19Z 11-17 (2>&1). Carried by L602's agi-send :119.
@@ -165,6 +167,8 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   A1 reachability READ (boot-once to Bazzite set first; fresh agilab handshake + ssh within N min; any remote power path?),
   A2 the way back boots the FAILING drive (SMART read + crew state copied off and read back BEFORE the first reboot).
   P3 RE-CUT 1 c9460a0f15 (PLAN leaf, GATE804 -> L606) + MEASURE RE-CUT 1 f6c589e8d0 (GATE805 -> L607): sp w21 APPROVE both
-  06:52Z (F1 RAN absent/green/empty; NIT F2(b) green on an unresolvable range). L-check L606 + L607. NEXT: the EXECUTE doc
+  06:52Z (F1 RAN absent/green/empty; NIT F2(b) green on an unresolvable range); P3 -> MODIFY w22 06:55Z == aio: F2(a) is a
+  FALSE RED on THIS box (encryption-town: clevis x4 + 2 units, RAN rc 1) -> per-host baseline. aio S1-S3 + B1 for EXECUTE.
+  L-check L606 + L607. NEXT: the EXECUTE doc
   doc:pc-netboot-plan tonight: word it on (a)(b)(c) + alive A1/A2 + owner-pick line quoting BOTH 06:43Z sentences.
   SM HOLD on meme-master's paper text (publishing the owner's class paper): banked for the owner; not my council's.
