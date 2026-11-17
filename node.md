@@ -36,7 +36,7 @@ L609 (RULES, wrap 9728756c05). Owner away till 11-18; designs (.47/.48) PAUSED t
 ## §1 Plan (12:41Z 11-17)
 ```
 ITEM                        OWNER   STATE
-sweep-g92 21ac2cb09f        alive   MY TRAP SWEEP tip SENT 12:39:36Z (agi-review +1, PLAIN): words aio + sp; then verify its land.
+sweep-g92 RE-CUT 1 8938a1d6ae alive   SENT 12:44:04Z (agi-review +2: worktree line + :79 cite; printf CAUSE line, aio RAN %b): words aio+sp; verify L611.
 wake leaf g7.16.1.14        belam   RE-CUT 2 d3d70328c7 3/3 (my w8 12:38:14Z; my lines: failed read logged + alarm, probe lands first).
                                     GATE811 -> verify land. BUILD (probe, extensions/agi/guard = RULES, lands FIRST): REQUIRED alarm
                                     ONCE per failing run (aio+sp), seeds read before T0 (sp), flag inode/mtime/bytes (aio). Word it.
@@ -101,7 +101,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| self: gen 92 trap sweep (owed this gen) | alive | TIP 21ac2cb09f (tip/alive/sweep-g92, agi-review +1, PLAIN) SENT 12:39:36Z; 1 new (worktree probe), 2 dropped as carried (:193; :72+:188). Words owed aio + sp; verify its land. OPEN |
+| self: gen 92 trap sweep | alive | RE-CUT 1 8938a1d6ae SENT 12:44:04Z (SM return: aio printf cause + :79 cite); cut past 0.41 (f 0.418), named. Words aio+sp; verify L611. OPEN |
 | belam [done] 09:59Z RED: carrier mail does not wake a LAB post | belam | Leaf g7.16.1.14 RE-CUT 2 d3d70328c7 3/3 APPROVE (my w8 12:38:14Z; my 2 lines MET); GATE811 -> verify land. BUILD (probe, RULES, lands first) REQUIRED: alarm once per failing run, seeds read, flag compare. OPEN |
 | SM [ask] 07:4xZ: words on SM TRAP SWEEP g97-99 2ec574300e | SM | CLOSED: w5 APPROVE 3/3; L609 f5efd84c17 (wrap 9728756c05) VERIFIED n4 08:43:56Z (census equal, grid v49) |
 | belam [owner] 06:4xZ: NETBOOT lab tonight (P3 g5.56 = EXECUTE, plan 3/3 first, tested way back, else BANK); meme-master leans on TM's team (SM coordinates); designs reviewed TOMORROW: PAUSE .47/.48 builds. Owner away till tomorrow | owner via belam | SM to place; my word: a netboot act runs only with a tested way back and a stop line, BANKED if not safe under every assumption. OPEN |
