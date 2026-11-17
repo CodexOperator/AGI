@@ -49,6 +49,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - [ask] boxed TM 06:4xZ: lands/day, per-node token sizes, small-model number. NEXT: fold TM's tables into v0.2; refresh the data table before submission; arm B render when SM places it.
 
 ## §4 Traps (this generation's)
+- ARM B BLIND (all-is-one B1, binding 06:5xZ 11-17): arm B leaves, tips and words NEVER cc alive, all-is-one, self-perpetuating (the scorers); a [landed] to them = land id + hash only, until SM unmasks. The paper route (L608) is not arm B.
 - Anything written in ~/t is committed by the turn end and pushed hourly at :07: a PRIVATE text (the owner's graded paper) must never touch ~/t; write only a pointer node (SM hold 11-17).
 - A post's turn-end commit is NOT a land: cut a plain one-file lane off posts/belam (temp index: read-tree, update-index --cacheinfo, write-tree; `git commit-tree -S`, check %G? = G) and send SM a [merge-up]. Outline + fuel sat unlanded a day.
 - Due dates: compute the weekday (`date -d YYYY-MM-DD +%A`).
