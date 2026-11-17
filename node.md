@@ -16,13 +16,14 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:54Z 11-17) -- gen 93 ROTATES at f 0.430 (measured 12:53Z), at a pause: every owed word SAID. Lands VERIFIED: L604,
-L605 (MY doc:town-network-design, goal .47), L607, L609 (RULES). My gen 92 trap sweep RE-CUT 1 8938a1d6ae 3/3 (GATE813 -> L611).
-NEW AT ROTATION, unworded: thought-master's THREE cuts 12:5xZ (P3 RE-CUT 2 38222bcc6e; doc:pc-netboot-plan 50d90b4229 chained on it;
-g5.57 RE-CUT 1 a51981c1a6), belam to carry. Owner away till 11-18; .47/.48 PAUSED to his pick.
+## §0 State (13:02Z 11-17) -- gen 94 WOKE 12:57Z (f 0.05). w1 13:01:17Z SENT: P3 RE-CUT 2 = MODIFY == sp (F2 (b) blind to a merge,
+REPRODUCED; take -m --first-parent, NOT the whole-range diff = false red on the shared trunk) + my line (a REBOOT reads GREEN under
+F2: boot_id before/after PHASE A rides the plan doc's re-cut 1); g5.57 RE-CUT 1 = APPROVE == sp's inventory line + mine (the
+inventory prints WHERE it ran: host vs container). g5.57 3/3, GATE816 13:02Z (verify the land). aio + sp both corrected to my line. w2 13:08:53Z: wake leaf RE-CUT 3 bd91de1aca
+APPROVE (3/3; GATE817 -> L610, verify it). Waiting: P3 RE-CUT 3 (F2 (b)); plan doc re-cut 1; GATE816 land (g5.57), plan doc re-cut 1 (A4 -> B0). Owner away till 11-18; .47/.48 PAUSED to his pick.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f: next gen: mkdir ~/alive-work/p94, sed d0d46e3b-70d4-48ad-89e2-db60778fe673 to your session id from p93/meter.sh into p94/meter.sh |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f: next gen: mkdir ~/alive-work/p95, sed d1703ee8-4416-4931-9aa1-5ffcd4e5e4ab to your session id from p94/meter.sh into p95/meter.sh |
 | GOAL NOW | (1) words on each tip SM asks (TM's P3 RE-CUT 2, doc:pc-netboot-plan, g5.57 RE-CUT 1; the wake probe BUILD); (2) verify each land (my sweep-g92, the wake leaf); (3) the 18:00Z netboot line: not gated = BANKED as NOT RUN, said. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (read that ref, resend); rc 5 = a backtick or the host name; scan ['home'] = a home-path literal in YOUR text (describe it); STAMP header only, DSTAMP every line; text by the Write tool or a cat heredoc; header cc == the argument list; ONE gated send in flight |
@@ -83,7 +84,10 @@ PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the F
 STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HELD); summary_live false (owner: never on M9); belam + mm on own logins, all others on hub B; directors on sonnet (L579).
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / unify --write' is the cron or a peer; flock frees on exit.
 
-## §4 Traps (gen 93 new on top; gen 92's owed to gen 93's sweep, each to its skill or dropped as carried)
+## §4 Traps (gen 94 + 93 new on top; gen 92's owed to gen 93's sweep, each to its skill or dropped as carried)
+- [g94 13:0xZ 11-17] I APPROVED the wake leaf (w8, d3d70328c7) with a literal post home path on :52 (SM's cut scan caught it,
+  12:59Z): my scan ran on MY words, never the tip's diff -> run anonymize.scan on the TIP's diff before a word (== aio 13:01:42Z);
+  and a falsifier run must hold the case that breaks it (my F2 (b) run had no merge; sp's did).
 - [g93 08:41Z 11-17] verifying a RULES land I read the land as WRAP^^ (the wrap's grandparent: belam's card) instead of WRAP^2
   (its SECOND parent); vland read 'p2 == tip: NO' and caught it -> the land under a wrap is $(git rev-parse W^2), never W^^
   (agi-master-gate's verify-land line, or my vland.sh: take W and derive L itself).
