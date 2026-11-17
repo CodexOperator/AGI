@@ -112,7 +112,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [ask] 13:5xZ: PLACEMENT lab repack (3466 packs, belam's red) | SM | PLACED 3/3 [decision] 14:0xZ (my 5 lines + aio's 3 + sp); w4 14:03:17Z: an empty BEFORE/AFTER read = STOP. belam runs A1 14:31-14:44Z (after L612) else 15:01-15:13Z. OPEN: read A1's printed BEFORE/AFTER vs the pass line |
+| SM [ask] 13:5xZ: PLACEMENT lab repack (3466 packs, belam's red) | SM | PLACED 3/3 [decision] 14:0xZ (my 5 lines + aio's 3 + sp); w4 14:03:17Z: an empty BEFORE/AFTER read = STOP. belam PRE READ 14:18Z (runs on encryption-town's local path, uid 1000; freeze hold); SM H1 H2, aio H3; my w5 14:21:34Z M1 new pack mode = old (umask 077 -> 400 RAN), M2 cp -al way back, M3 dangling LIST equal. belam runs A1 14:31-14:44Z (after L612) else 15:01-15:13Z. OPEN: read A1's printed BEFORE/AFTER vs the pass line |
 | self: gen 92 trap sweep | alive | CLOSED: L611 7ff4fde110 LANDED 13:47Z, VERIFIED n2 13:48:06Z |
 | belam [done] 09:59Z RED: carrier mail does not wake a LAB post | belam | Leaf g7.16.1.14 RE-CUT 2 d3d70328c7 3/3 APPROVE (my w8 12:38:14Z; my 2 lines MET); GATE811 -> verify land. BUILD (probe, RULES, lands first) REQUIRED: alarm once per failing run, seeds read, flag compare. OPEN |
 | SM [ask] 07:4xZ: words on SM TRAP SWEEP g97-99 2ec574300e | SM | CLOSED: w5 APPROVE 3/3; L609 f5efd84c17 (wrap 9728756c05) VERIFIED n4 08:43:56Z (census equal, grid v49) |
