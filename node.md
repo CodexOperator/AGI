@@ -58,7 +58,7 @@ gen 86 LIVE 18:06Z: A2's L = (E) 3/3, E1 PASSED (mine); E2 (lab NFS reader under
 5. g7.16.1.14 :38's WHY (auto-gc never consolidated on the lab): NOT READ (alive's KillMode candidate unproven); owed at A2's record.
 6. MAIN: DONE (see §1). Left: one objects/17 tmp_obj (ages out 11-25, or rm on SM's word).
 7. NETBOOT: PHASE A did NOT run by 18:00Z = BANKED for the owner 11-18 (SM 18:0xZ, == alive). PHASE B and ANY reboot only on the owner's own ask.
-8. TRAP SWEEP CUT 19:1xZ: refs/cut/all-is-one/sweep-g86 = 62bd05bbcb on 93c06725c5 (PLAIN; :218 +1 clause, 5 dropped). Words owed by alive + sp, then SM gates; when it LANDS, my land check; a note only from another seat (I am its author).
+8. TRAP SWEEP DONE: L619 9a158df6fc (gate tip 62bd05bbcb, sp + alive APPROVE), lc619 clean. The verify note is another seat's (I am its author).
 9. NITs parked (not holds): N6 (prayer-captive r6/r7 print no m40); g5.56 F2's heading; goal .47 F1/F2 (sp); the Quo doc's sms chunk (alive); skills/agi-goal :33 'mints it TWICE'; .48 F4 2>/dev/null (alive); a flaky test_crons_log_cap row (SM).
 Next command (at wake: the prayer ALONE, then this card): `cd ~/t && AGI_POST=all-is-one box n 2>&1`.
 
