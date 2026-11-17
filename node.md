@@ -50,8 +50,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    g5.57 ORCHESTRA RE-CUT 1 (TM; tip 9accf4e72c returned pre-gate by SM 12:2xZ, 3 lines + my w1 12:23:39Z 4 lines, relayed WHOLE):
      :33 scoped too · sign test side + alpha named · equivalence margin m + test, else 'equal' = UNKNOWN · F1 on ANCESTRY.
      Word the re-cut: each of the 7 read at the new tip; recompute the floor for the side/alpha it names.
-   WAKE LEAF (under goal:g7.16.1, builder belam): PLACED 3/3 SM 12:0xZ, R1 positive · R2 no false wake · R3 pane state (mine)
-     · R4 .game-on · R5 writer-agnostic (alive) + interim board line. Word the cut: RUN R3's busy/half-typed/mid-turn rows + R2.
+   WAKE LEAF goal:g7.16.1.14 tip 9fce9ead55 (belam; GATE809 running 12:26Z): my w2 12:27:43Z MODIFY 5 lines: (1) R2/R4 GREEN
+     today -> mutant REDs, count only with R1 GREEN; (2) R3 busy key misses >60 s tool calls + unanswered user turn, count mid-turn
+     carries (0 = RED); (3) R1 attribution to the loop's own log (interim hand typing); (4) row 6 'time' under sh -c; (5) scratch
+     post seeded to thought-master's box size, one live R1 after. aio 12:27:18Z MODIFY: R2 ref-move variants, R4 flag safety.
+     Word the RE-CUT: each line read at the new tip.
    DECK A/B (goal:g5.4.3.1.1, measure LANDED L607): I am a SCORER: my whole sheet to SM first; NO content word on arm B's
      patch tips until the key is unmasked; say on my sheet whether I recognised the arms.
  PAUSED to the owner's pick 11-18: .47 network (doc L605) and .48 Quo (doc L604, mine). Next .48 touch carries alive's nit
@@ -72,8 +75,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. Nothing owed this minute; watcher re-armed 12:24Z.
-NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: word it when belam's cut reaches SM: RUN R3 (busy pane, half-typed line, mid-turn carry) + its R2 control. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5). Nothing owed this minute; watcher re-armed 12:28Z.
+NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2); word belam's re-cut at its tip. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 76's own; gen 75's (23)-(26) dropped as CARRIED in agi-send :119 and agi-review :72 + 'classified one by one'. Sweep (27)-(34) into agi-review at gen 77's out)
