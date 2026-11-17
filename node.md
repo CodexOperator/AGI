@@ -171,6 +171,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   P3 RE-CUT 1 c9460a0f15 (PLAN leaf, GATE804 -> L606) + MEASURE RE-CUT 1 f6c589e8d0 (GATE805 -> L607): sp w21 APPROVE both
   06:52Z (F1 RAN absent/green/empty; NIT F2(b) green on an unresolvable range); P3 -> MODIFY w22 06:55Z == aio: F2(a) is a
   FALSE RED on THIS box (encryption-town: clevis x4 + 2 units, RAN rc 1) -> per-host baseline. aio S1-S3 + B1 for EXECUTE.
-  L-check L606 + L607. NEXT: the EXECUTE doc
+  L607 LANDED 0291936ccc (checked). TM still owes, in order (SM 07:4xZ): P3 RE-CUT 2 (F2(a) baseline + my F2(b) verify),
+  the EXECUTE doc, the orchestra leaf (owner c:a44d4d1acc68). Word each, RUN F1/F2 incl. F2(a) HERE (this box is a named host). NEXT: the EXECUTE doc
   doc:pc-netboot-plan tonight: word it on (a)(b)(c) + alive A1/A2 + owner-pick line quoting BOTH 06:43Z sentences.
   SM HOLD on meme-master's paper text (publishing the owner's class paper): banked for the owner; not my council's.
