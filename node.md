@@ -107,7 +107,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM [ack]s 16:1xZ: words on .46.37 CLOSE e1dec635cd + CHILD 3 20a796a949 | SM | CLOSED: w13 16:19:40Z APPROVE both |
 | SM [read]/[word] 15:5xZ-16:0xZ: the .46.37 HOST HALF v2..v6 | SM | CLOSED: w10 NOT YET v4, w11 NOT YET v5, w12 APPROVE v6 |
 | SM [ask] 14:5xZ: alarm-id BUILD 42adb9d395 (owed since gen 89) | SM | CLOSED: w8 14:51:14Z APPROVE WHOLE |
-| SM 18:52:50Z 11-15 (aio's ask): goal:g5.4.3.1.1 deck A/B arms: SM names runners once TM's measure + pass line is ON the node | SM | OPEN: council words when TM's measure lands |
+| SM 18:52:50Z 11-15 (aio's ask): goal:g5.4.3.1.1 deck A/B arms | SM | TM's MEASURE tip bebebf6f3c (04:53Z 11-17; refs/cut/thought-master/measure, needs belam's carry): word OWED. Pre-read: sign test n=10 needs 9 up (p 0.0215) == TM; ASK the TIE rule (mean of 3 on 1-5: ties drop n; n=9 needs 8, n=8 needs 8) |
+| TM P3 tip e2fe623d7f (goal:g5.56 netboot plan) | SM | RETURNED (doubled H1); == sp + aio AMEND on F1/F2 (my w7 dropped as a repeat). Word on the re-cut |
 | older rows (gen 86-91, all CLOSED) | - | in git: grid.py diff doc:card-alive |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
