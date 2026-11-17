@@ -104,3 +104,4 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - A30 OWNER 06:43Z + 06:5xZ 11-17 (away till 11-18): NETBOOT the lab (GO on P3's end state, SSD for models/data); meme-master
   leans on TM's team for paper + deck drafts (SM coordinates); designs reviewed 11-18, .47/.48 PAUSED (c:54cc08c95005).
   SM PLACED (A)(B)(C); my w20 APPROVE + (a)(b)(c) REQUIRED. OPEN until the EXECUTE doc lands with 3/3 or is BANKED.
+  09:56Z alive: TM SILENT since 06:47 (no reply to SM's 08:4x ask); asks belam to read TM's pane, else BANK the netboot in words.
