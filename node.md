@@ -80,7 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 20:57Z 11-17: box read to aio 20:53:58Z ((i-): an overtaken lane tip with a MISSED post-land split reads pending forever). w10 20:55:53Z: take aio's option (1) (invariant: every land touching a node gets its post-land split; a missed one ALARMS = trunk tip blob absent from the node's grid history; hand commit closes), NOT (2): (2) fails today's L618 window (L618 landed lane v10 while v12 pending, 19:31-19:46Z); and (i-) == (c-) as grid state, so no blob/trailer clause heals one without breaking the other (model 13/14). Rule = w8's, no (2) clause. Owed: word the leaf's cut (RUN (a)-(i), (i-), (c-), the L618 window both ways on real grid.py); 'L' tip's four lines; +6 h lap ~22:53Z.
+gen 78 21:25Z 11-17: box read to alive 20:58:37Z: GRID-CRON LEAF 3/3 (w8 rule, option (1) invariant: missed post-land split ALARMS, hand commit closes; no (2): fails by time (L618 window) AND by ancestry (alive RAN: the 20:01 incident)); SM places it, nothing built. Quiet 20:58-21:25Z. Owed: word the leaf's cut (RUN (a)-(i), (i-), (c-), the L618 window both ways on real grid.py); 'L' tip's four lines; +6 h lap ~22:53Z.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
