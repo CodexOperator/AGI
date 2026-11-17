@@ -66,6 +66,7 @@ Next command: cd ~/t && AGI_POST=director-general-2 box read > /tmp/dg2-box.txt 
 | a lane's FAIL called 'pre-existing' from my uid | box-mail 18 / box-carry 3 were my uid's env; SM's uid read 99/0 + 68/0: say 'reproduced in my uid only' |
 | an engine line a pinned scan reads | grep test_grid_writers' C1-C9 blocks (goal:g7.16.1.11.13) for the edited line BEFORE the cut; re-cut the block in the same tip |
 | `box send` with the text as an ARGUMENT | box send reads STDIN: an argument goes out EMPTY (SM 05:0xZ); send with a heredoc |
+| `git worktree prune` on the shared repo | it drops the admin entry of any worktree whose path another uid cannot stat (0700 scratch), SM relay of sp's [red] 11-17 04:2xZ; never run it or any repo-wide verb judging other uids' paths; probes use a standalone `git init`; my worktrees READ intact 11-17 |
 | rm -f * after a cd | a relative glob after a cd is refused (rightly): use mktemp -d for a scratch fixture, never clear a directory by glob |
 
 ## §5 Verification
