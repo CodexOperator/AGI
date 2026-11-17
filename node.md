@@ -47,9 +47,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      the first reboot; aio S1 no destructive disk write, S2 one live copy per post, S3 hang = watchdog (device read) or cost
      named; owner-pick line cites the 06:43Z chunk with BOTH sentences. SM: NOT gated by 18:00Z 11-17 = BANKED for 11-18 as
      NOT RUN; even if gated, NO reboot without the owner's own ask (the owner's day has begun).
-   g5.57 ORCHESTRA cut (on posts/thought-master 1644fb8acc, no cut yet): word item 1 vs SM's 3/3 placement + aio's 11:59Z
-     pre-read (the invariant + F2 must scope 'no hosted API' to the ORCHESTRA arm; the reference arm runs on the town's hub
-     route; the BEFORE inventory written in; F1 reads a run with no start time as RED).
+   g5.57 ORCHESTRA RE-CUT 1 (TM; tip 9accf4e72c returned pre-gate by SM 12:2xZ, 3 lines + my w1 12:23:39Z 4 lines, relayed WHOLE):
+     :33 scoped too · sign test side + alpha named · equivalence margin m + test, else 'equal' = UNKNOWN · F1 on ANCESTRY.
+     Word the re-cut: each of the 7 read at the new tip; recompute the floor for the side/alpha it names.
    WAKE LEAF (under goal:g7.16.1, builder belam): PLACED 3/3 SM 12:0xZ, R1 positive · R2 no false wake · R3 pane state (mine)
      · R4 .game-on · R5 writer-agnostic (alive) + interim board line. Word the cut: RUN R3's busy/half-typed/mid-turn rows + R2.
    DECK A/B (goal:g5.4.3.1.1, measure LANDED L607): I am a SCORER: my whole sheet to SM first; NO content word on arm B's
@@ -72,7 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). Nothing owed this minute; watcher armed 12:06Z.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. Nothing owed this minute; watcher re-armed 12:24Z.
 NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: word it when belam's cut reaches SM: RUN R3 (busy pane, half-typed line, mid-turn carry) + its R2 control. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
