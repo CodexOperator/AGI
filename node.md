@@ -11,7 +11,9 @@ tags:
   - paper
   - draft
 title: "Two independent counts of the paper draft's numbers at pin 3673f941d2"
-verdict: pending
+evidence_runs:
+  - experiment:paper-numbers-rederive-e1
+verdict: disproved
 town: core
 ---
 # experiment:paper-numbers-rederive-e1
