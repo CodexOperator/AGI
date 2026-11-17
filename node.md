@@ -58,7 +58,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 93: L607 0291936ccc TM MEASURE (n3). L605 58f64cab14 alive doc:town-network-design (n2 07:11:37Z). L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
+Gen 93: L609 f5efd84c17 SM trap sweep RULES, wrap 9728756c05 (n4; LAND = WRAP^2 = the wrap's SECOND parent). L607 0291936ccc TM MEASURE (n3). L605 58f64cab14 alive doc:town-network-design (n2 07:11:37Z). L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
 Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P10 mints (n6, after 4 re-cuts). L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1: box n 2>&1). L601 30440a2dae alive trap sweep g90+g91 (n4; grid owed 2, paid by sp's turn end). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
 
@@ -110,7 +110,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| SM [ask] 07:4xZ: words on SM TRAP SWEEP g97-99 2ec574300e (agi-master-gate, RULES, GATE807) | SM | w5 07:45:20Z APPROVE (carry grep 6 exact + rc124 carried by :380 A2, pointer NIT). Verify its land (RULES = the wrap). OPEN |
+| SM [ask] 07:4xZ: words on SM TRAP SWEEP g97-99 2ec574300e | SM | CLOSED: w5 APPROVE 3/3; L609 f5efd84c17 (wrap 9728756c05) VERIFIED n4 08:43:56Z (census equal, grid v49) |
 | belam [owner] 06:4xZ: NETBOOT lab tonight (P3 g5.56 = EXECUTE, plan 3/3 first, tested way back, else BANK); meme-master leans on TM's team (SM coordinates); designs reviewed TOMORROW: PAUSE .47/.48 builds. Owner away till tomorrow | owner via belam | SM to place; my word: a netboot act runs only with a tested way back and a stop line, BANKED if not safe under every assumption. OPEN |
 | belam [owner] 06:28:19Z: tiny-model orchestra vs Sonnet research line | owner via belam | PLACED 3/3 by SM 06:34Z (my M1+M2 = AMEND 2, REQUIRED in item 1). TM mints g5.N AFTER its P3 + MEASURE re-cuts; then word TM's leaf (check every required line is in it). OPEN |
 | goal .47 doc:town-network-design | belam [brief] | CLOSED: L605 58f64cab14 LANDED, VERIFIED n2 07:11:37Z; owner picks tomorrow |
