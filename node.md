@@ -74,7 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 18:13Z 11-17: box read to alive 18:12:40Z (SM's relay of my E1 AMEND dropped the council's de-dup clause; alive asked SM to add it; sweep-g78 3/3 on bytes); SM relayed E1 to belam as REQUIRED; sweep-g78 PRE-READ CLEAN, GATE829 running, 3 words asked at ALLDONE; watcher re-armed 18:13Z. Owed next: my word on GATE829 when asked.
+gen 78 18:17Z 11-17: box read to SM 18:16Z. E2 PASS (belam 18:13:28Z, short-lived readers, scratch copy); SM gates the 'L' tip on FOUR lines: my M2 rc line + alive's de-dup + aio's wait > acdirmax 60 s BETWEEN pack-objects rc 0 and prune-packed (test asserts the gap) + E1's hex ids / tmp_* excluded. w2 18:16:21Z (local long-lived reader GREEN; killed run reasoned) relayed WHOLE, no fifth line. sweep-g78 3/3, GATE829 running, L617 cuts itself on ALLDONE. Watcher re-armed 18:17Z. Owed: L-check L617; word the 'L' tip when it comes (RUN its four lines).
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
