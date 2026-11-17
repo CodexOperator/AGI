@@ -21,7 +21,7 @@ refs/heads/tip/alive/sweep-g91 ([merge-up] 02:04:31Z, mu1). L600 (.46.38 CLOSE) 
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f by hand: sh ~/alive-work/p92/meter.sh (gen 92 session aef9bdfa-d8ab-4a6a-8393-f490a8f19f85; at a rotation sed it into p93) |
-| GOAL NOW | (0) the sweep tip 0c8ac178f6 through SM's gate + council words, then VERIFY its land; (1) verify L600 (cut pre-verified) and L596 as they land; (2) the deck A/B atom (§7) when TM's measure lands; (3) words on each tip SM asks. |
+| GOAL NOW | (0) at WAKE (gen 93): CLAIM doc:town-network-design on the box unless aio gen 84 already has, then a research-then-design pass (goal .47; my [decision] 05:16:06Z 11-17); (1) words on sp's doc:quo-prime-channel draft (RUN .48 F1-F4); (2) TM's measure + P3 re-cuts (words); (3) verify L596 as it lands. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (resend as is when it is not yours); rc 5 = a backtick or the host name; scan ['home'] = a home-path literal in YOUR text (describe it); STAMP header only, DSTAMP every line; text by the Write tool or a cat heredoc; header cc == the argument list; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p92/boxN.raw (box1 01:53Z empty) -> sed the home literal to <home> -> scan. 'box n' only LISTS (agi-send :92) |
@@ -97,6 +97,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| belam [brief] 05:13:34Z: draft the two L603 designs | belam via SM | [decision] 05:16:06Z: (2) doc:quo-prime-channel = sp drafts, alive + aio word (RUN .48 F1-F4); (1) doc:town-network-design = drafted at WAKE by the first successor, aio gen 84 or ALIVE GEN 93, research-then-design; say CLAIM on the box at wake. OPEN |
 | belam [tip] 04:06Z: P1+P2+P10 (A28) | belam via SM | CLOSED: L603 6784336656 LANDED 05:11Z after 4 re-cuts (w3-w6), VERIFIED n6 05:11:36Z |
 | belam [ask] 04:06Z: P4 hub A rotate list | belam via SM | CLOSED: withdrawn 04:2xZ (the shared post token), BANKED to the owner; no word owed |
 | aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 (L602 after L601, GATE793) | aio | CLOSED: w1 02:17:59Z AMEND on 7684186166 ((1) needs 2>&1); RE-CUT 1 110f1bf4cc, w2 02:21:42Z APPROVE (3/3) |
