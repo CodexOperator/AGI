@@ -5,6 +5,7 @@
 # self-firing). Run as agi-belam on encryption-town (sudo -n for root and uid 1000):
 #   lab-repack.sh pre | held | post        (held = the bounded hold, HOLD_S, default 600 s; post = the timings + PASS line)
 #   A1_H=<scratch repo owned by uid 1000> A1_D=<log dir> lab-repack.sh rehearse   (the core alone, no hold, no lab)
+#   lab-repack.sh loose    (the L-FIRE, (E): pack every loose object by id, NO pack deleted, NO hold, NO freeze)
 # After A1: a unit wait reads 'inactive' or 'failed' EXACTLY, never 'is-active -q' (which reads 'activating' as stopped).
 set -u
 H=${A1_H:-/data/nas/lab/data/work/agi}            # the server-local path of the lab repo (export /data/nas -> lab /data)
@@ -12,7 +13,10 @@ D=${A1_D:-/data/scratch/belam/a1}; mkdir -p $D
 POSTS="director-thought-1 director-thought-goals director-thought-review director-thought-science less-is-more plasma remix thought-master"
 now(){ date -u +%TZ; }
 stop(){ echo "STOP $(now): $*"; [ -e ${D:-/nonexistent}/ran ] && [ ! -e $D/ok ] && [ "${INNER:-}" ] && { restore; touch $D/restored; }; exit 3; }
-G(){ sudo -n -u belam git -c safe.directory=$H -C $H "$@"; }        # uid 1000 = the owner of every pack
+# AS_OWNER / SU: how git and find reach the repo; the defaults are the lab's (uid 1000 owns every pack; root reads the
+# export). The loose lane test sets both EMPTY to run on a scratch repo as itself; no lab run ever sets them.
+AS_OWNER=${AS_OWNER-sudo -n -u belam}; SU=${SU-sudo -n}
+G(){ $AS_OWNER git -c safe.directory=$H -C $H "$@"; }        # uid 1000 = the owner of every pack
 L(){ b=$(printf '%s\n' "$1" | base64 -w0); (cd /data/play/shael-rig && sudo -n -u belam ./rig ssh "sudo -n /usr/local/sbin/agi-lab exec sh -c 'echo $b | base64 -d | sh'"); }
 # read NAME CMD...: stdout -> $D/NAME, stderr -> $D/NAME.err; prints lines; STOP on 0 lines or stderr
 rd(){ n=$1; shift; "$@" >$D/$n 2>$D/$n.err; r=$?; c=$(wc -l <$D/$n); echo "read $n: rc=$r lines=$c stderr=$(wc -c <$D/$n.err)B"
@@ -135,5 +139,53 @@ post)
   b=$(med cat-file <$D/tim.before); a=$(med cat-file <$D/tim.after); rb=$(med row6 <$D/tim.before); ra=$(med row6 <$D/tim.after)
   echo "PASS LINE: cat-file median ${b}ms -> ${a}ms (< 1000?) ; row6 median ${rb}ms -> ${ra}ms (< 20000?)"
   [ "$a" -lt 1000 ] && [ "$ra" -lt 20000 ] && echo "A1 PASS" || echo "A1 NOT PASS: packs dropped but time did not = the cause is NOT the packs (B gets worded)" ;;
-*) echo "usage: lab-repack.sh pre|held|post|rehearse"; exit 2;;
+loose)  # the L-FIRE, (E) (council 3/3 18:05Z 11-17: sp's (E), E1 all-is-one + sp's amend, E2/E3 belam, alive's de-dup):
+  # pack EVERY loose object by id into ONE new pack, wait past the lab client's acdirmax, then prune-packed.
+  # No pack is deleted, so no hold and no freeze: a lab reader never meets a removed pack (the H3 premise), only a
+  # removed loose file, which git re-finds in the new pack (E2: 0 of 14340 short reads; E3: a long-lived reader, 0
+  # missing with and without the gap, ONE lab sample each; the mid-file ESTALE case SAMPLED (~2 reads in prune's 47 ms),
+  # not stressed). Debris (unreachable loose) is packed too, not pruned: it waits for a K-fire, as A2 stands.
+  #   (1) ids = 2-hex dir + 38-hex name ONLY (E1: the raw objects/??/* glob feeds tmp_obj_* and pack-objects
+  #       dies rc 128 'expected object ID, got garbage', writing NO pack)
+  #   (2) pack-objects' rc read on its own line: rc != 0 = NO prune-packed, ONE alarm naming the bad id(s) from its
+  #       stderr, exit 4 (sp M2: one 0-byte or corrupt loose file fails the WHOLE pack, every run, until moved aside;
+  #       moving it is a K-fire or owner act, never this one's)
+  #   (3) that alarm is DE-DUPLICATED across runs (alive): the bad-id list is kept in $LSTATE; the same list alarms
+  #       once, a different one alarms again; a green run clears it
+  #   (4) the wait goes BETWEEN pack-objects rc 0 and prune-packed (all-is-one): WAIT_S > the client's acdirmax (60 s:
+  #       NFSv3, no ac* option, read on the lab client 11-17); kept although E3 did not show it needed (1 sample)
+  echo "== LOOSE $(now)"
+  W=${WAIT_S:-75}; LSTATE=${LSTATE:-$D/loose.bad}
+  lalarm(){ m="[lab-pack] lab-repack.sh loose $(date -u +%H:%MZ) -> ${TO:-sanctuary-master} (and belam's notice): $1. Path $H. Moving a bad loose file aside is a K-fire or owner act."
+    if [ -n "${LALARM:-}" ]; then printf '%s\n' "$m" | sh -c "$LALARM"; return $?; fi
+    python3 ${AS:-/opt/agi/bin/alarm_spool.py} append --job lab-pack-loose --to ${TO:-sanctuary-master} --text "$m" --max-lines 500 --spool ${STORES:-/var/lib/agi}/belam/alarm.spool && { [ -x ~/bin/agi-notice ] && ~/bin/agi-notice add "$m" || echo "$m" >> ~/.notice; }; }
+  ids=$D/loose.ids
+  $SU find $H/.git/objects -mindepth 2 -maxdepth 2 -path '*/objects/[0-9a-f][0-9a-f]/*' -printf '%h%f\n' 2>$D/loose.find.err | sed 's#.*/objects/##' | grep -E '^[0-9a-f]{40}$' | sort > $ids
+  [ -s $D/loose.find.err ] && { head -3 $D/loose.find.err; stop "loose ids NOT READ (find stderr)"; }
+  n=$(wc -l <$ids); echo "loose ids (2-hex dir + 38-hex name; tmp_* never listed): $n"
+  [ "$n" -gt 0 ] || { rm -f $LSTATE; echo "== LOOSE OK $(now): nothing loose"; exit 0; }
+  $SU find $H/.git/objects/pack -maxdepth 1 -name '*.pack' -printf '%i %f\n' | sort > $D/loose.packs.before
+  t0=$(date +%s); (umask 0002; G pack-objects -q $H/.git/objects/pack/pack < $ids) > $D/loose.pack 2>$D/loose.err
+  r=$?
+  echo "pack-objects rc=$r new=$(cat $D/loose.pack) stderr=$(wc -c <$D/loose.err)B $(now)"
+  if [ $r != 0 ]; then
+    grep -o -E '[0-9a-f]{40}' $D/loose.err | sort -u > $D/loose.bad.now
+    echo "NO prune-packed. bad id(s) from stderr: $(wc -l <$D/loose.bad.now): $(head -5 $D/loose.bad.now | tr '\n' ' ')"; head -3 $D/loose.err
+    if [ -f $LSTATE ] && cmp -s $D/loose.bad.now $LSTATE; then echo "alarm: the same bad-id list already alarmed (de-dup, $LSTATE): none sent"
+    else lalarm "L-FIRE FAILED: pack-objects rc $r, NO prune-packed, $n loose kept; bad id(s): $(head -5 $D/loose.bad.now | tr '\n' ' ')$(head -c 200 $D/loose.err | tr '\n' ' ')" && cp $D/loose.bad.now $LSTATE && echo "alarm: sent once (state $LSTATE)" || echo "alarm: DELIVERY FAILED (state not written: the next run alarms again)"; fi
+    echo "STOP $(now): pack-objects rc $r"; exit 4; fi
+  echo "wait ${W} s (> the lab client's acdirmax 60 s) between pack-objects rc 0 and prune-packed"; sleep $W
+  t1=$(date +%s); G prune-packed; rp=$?; echo "prune-packed rc=$rp; gap $((t1-t0)) s (>= ${W}) $(now)"; [ $rp = 0 ] || stop "prune-packed rc $rp"
+  la=$($SU find $H/.git/objects -mindepth 2 -maxdepth 2 -path '*/objects/[0-9a-f][0-9a-f]/*' ! -name 'tmp_*' | grep -c -E '/[0-9a-f]{38}$')
+  $SU find $H/.git/objects/pack -maxdepth 1 -name '*.pack' -printf '%i %f\n' | sort > $D/loose.packs.after
+  kept=$(comm -12 $D/loose.packs.before $D/loose.packs.after | wc -l); before=$(wc -l <$D/loose.packs.before)
+  # NOT refs byte-equal: the lab posts are NOT frozen, so their commits move refs during the wait. Instead every
+  # listed id must still read after the prune (from the new pack): 'missing' = an object lost = STOP.
+  G cat-file --batch-check < $ids > $D/loose.check 2>$D/loose.check.err; rc=$?
+  ms=$(grep -c ' missing$' $D/loose.check); ok=$(grep -c -v ' missing$' $D/loose.check)
+  echo "AFTER: loose $la (listed $n; a later write may add some), old packs kept by inode $kept of $before, packs now $(wc -l <$D/loose.packs.after); listed ids read back $ok of $n, missing $ms (rc $rc)"
+  [ "$kept" = "$before" ] || stop "an old pack is GONE (the L-fire never deletes a pack)"
+  [ $rc = 0 ] && [ "$ms" = 0 ] && [ "$ok" = "$n" ] && [ ! -s $D/loose.check.err ] || { head -3 $D/loose.check.err; stop "a listed id does not read back"; }
+  rm -f $LSTATE; echo "== LOOSE OK $(now)" ;;
+*) echo "usage: lab-repack.sh pre|held|post|rehearse|loose"; exit 2;;
 esac
