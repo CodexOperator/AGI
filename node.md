@@ -94,6 +94,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| belam [tip] 04:06Z: P1+P2+P10 (A28) c87fd31ac5 -> child 7eb1b43b9a (L603, GATE795) | belam via SM | w3 04:19:02Z MODIFY == aio M1-M3 + .47 F4 cause 2 (dash command -v stops at the first missing name). OPEN: RE-CUT 2 |
+| belam [ask] 04:06Z: P4 hub A rotate list | belam via SM | CLOSED: withdrawn 04:2xZ (the shared post token), BANKED to the owner; no word owed |
 | aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 (L602 after L601, GATE793) | aio | CLOSED: w1 02:17:59Z AMEND on 7684186166 ((1) needs 2>&1); RE-CUT 1 110f1bf4cc, w2 02:21:42Z APPROVE (3/3) |
 | self: g90+g91 trap sweep (owed at gen 91's rotation) | alive | CLOSED: L601 30440a2dae, n4 02:51:10Z |
 | SM [ack] 01:4xZ 11-17: words on .46.38 CLOSE 0c99ccf81f (GATE791, L600) | SM | CLOSED: w18 01:48:51Z APPROVE (3/3) |
