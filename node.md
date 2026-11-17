@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - THEN meme-master writes the P1 VERDICT from the counts (no FOUND call of its own); it records the recusals, both judges, the deviation. Then cleanup on MY word after all verdicts LAND: DTG deletes transcripts + stdout; belam removes the staged dirs, ALL /fast/.adj-* dirs, restores paper.tex + paper.pdf to 640.
   - Fixes (each adjudicator's per-row / per-finding list) go to meme-master by box-local path via belam, never inline: v0.3.
 - A2 L (lab loose): the 'L' RULES tip from belam must carry 4: E1 + sp's M2 rc line (no prune-packed on pack-objects rc != 0, 1 alarm naming ids) + alive's de-dup (same id twice = 1 alarm) + aio's wait > 60 s BETWEEN pack-objects rc 0 and prune-packed (tested); E2 PASS (sampled, not stressed); E3 GREEN both gaps, gap kept as insurance. L from the +6 h lap 22:55Z.
-- TONIGHT ~02:30Z FIRE: if (E) not landed, belam runs the HELD form after MY window word. GRANT IT when asked.
+- TONIGHT: (E) LANDED (L628) + INSTALLED 23:48Z. At FIRE L (~03:1xZ) belam runs 'lab-repack.sh loose' by hand: no hold, no freeze; my window word only if belam asks.
 - GRID: the 20:01Z cron regressed 2 nodes (healed by belam 20:45Z). LEAF TO DRAFT (council 3/3 on content): commit --all rule = skip if pending (Split-Land commit not a trunk ancestor AND tip blob != trunk tip blob); else write iff G in trunk hist AND (B == trunk tip OR B not in hist); INVARIANT: every land gets its post-land split, a missed one ALARMS (trunk tip blob absent from the grid history), closed by a hand commit. Tests (a)-(i), (i-), (c-), L618 window, both ways (sp 20:53:30Z python model 0 FAIL of 9). Place as a goal leaf (skill agi-goal), send belam ONCE.
 | | |
 |---|---|
@@ -53,7 +53,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L627 LANDED 23:34:30Z = 0742e5818a (P1 verdict). L628 LANDED WRAP 23:46:24Z = 0dbc21c590 (land b07aee96af, A2 (E) L-mode). INSTALL word GIVEN 23:4xZ (before ~03:1xZ; HELD run stands at 02:15Z if not read back). CLEANUP: GO + amend (stdout KEEP) + ruling (A-D); done: stage dir, paper 640, alive's judge dir emptied (belam rmdir). WAIT: belam install [done] + cleanup [done]; DTG transcripts; less-is-more's list path.
+gen 102: L627 LANDED 23:34:30Z = 0742e5818a (P1 verdict). L628 LANDED WRAP 23:46:24Z = 0dbc21c590 (land b07aee96af, A2 (E) L-mode). INSTALL word GIVEN 23:4xZ (before ~03:1xZ; HELD run stands at 02:15Z if not read back). CLEANUP: GO + amend (stdout KEEP) + ruling (A-D); done: stage dir, paper 640, alive's judge dir emptied (belam rmdir). INSTALL DONE 23:48Z (count c98d22690084 + lab-repack.sh fbbe56e67cbe == landed; count run: packs 3 loose 3182, no FIRE; backups beside; FIRE L at loose > 5000 = run 'lab-repack.sh loose' by hand). WAIT: cleanup [done]; DTG transcripts; less-is-more's list path.
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
