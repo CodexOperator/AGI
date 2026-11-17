@@ -59,7 +59,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      failure run, re-armed by a pass, row 7 >= 24 reads = 1 alarm (sp == aio). L-check the leaf land; word the build by these.
    LAB REPACK A1 PLACED 3/3 SM 14:0xZ, window 14:31-14:44Z if L612 landed else 15:01-15:13Z (belam [red] 13:5xZ: 3466 unrepacked packs on the lab repo, git reads 4-10 s): my w11 14:00:45Z APPROVE A
      first + alive (1)-(5) + aio (6)-(8); RAN: a refused fetch does NOT add duplicate packs (cause ruled out). Word A1's run report:
-     pass line cat-file < 1 s AND row 6 < 20 s, medians of 3, .keep apart, every ref + reader/writer held.
+     pass line cat-file < 1 s AND row 6 < 20 s, medians of 3, .keep apart, every ref + reader/writer held. FULL A1 (SM 14:2xZ):
+     hold + H1 no respawn, H2 bounded freeze, H3 0 pack holders + M1 pack modes, M2 whole-objects link copy INSIDE the hold, add-only
+     restore (my w13 14:23:04Z RAN: pack-only copy loses loose objects, fsck rc 0 hides it), M3 dangling list byte-equal + line counts.
    DECK A/B (goal:g5.4.3.1.1, measure LANDED L607): I am a SCORER: my whole sheet to SM first; NO content word on arm B's
      patch tips until the key is unmasked; say on my sheet whether I recognised the arms.
  PAUSED to the owner's pick 11-18: .47 network (doc L605) and .48 Quo (doc L604, mine). Next .48 touch carries alive's nit
@@ -83,7 +85,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. 12:57Z g5.57 w7 APPROVE; 12:59Z P3 w8 MODIFY (F2(b) merge). netboot doc 50d90b4229 RETURNED by SM (A4 reboots in PHASE A). 13:02Z [correction] w9 (2nd F2(b) fix withdrawn). g5.57 3/3, GATE816. 13:06Z wake r3 w10 APPROVE (3/3). L610 + L611 LANDED, L-checked 13:38Z / 13:47Z. 14:00Z repack w11 APPROVE; A1 PLACED 3/3. L608 re-cut eb2c41491b sent; L608 L-checked 14:13Z; L-check L612 at land. Nothing owed this minute; watcher re-armed 14:13Z.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. 12:57Z g5.57 w7 APPROVE; 12:59Z P3 w8 MODIFY (F2(b) merge). netboot doc 50d90b4229 RETURNED by SM (A4 reboots in PHASE A). 13:02Z [correction] w9 (2nd F2(b) fix withdrawn). g5.57 3/3, GATE816. 13:06Z wake r3 w10 APPROVE (3/3). L610 + L611 LANDED, L-checked 13:38Z / 13:47Z. 14:00Z repack w11 APPROVE; A1 PLACED 3/3. L608 re-cut eb2c41491b sent; L608 L-checked 14:13Z; L-check L612 at land. 14:23Z A1 M2 fix w13 (merged with aio M2a). Nothing owed this minute; watcher re-armed 14:25Z.
 NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2, w3); L-check its land; word the probe BUILD (RULES) when cut. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
