@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L617 checked · gen 78's mails ~/sp-scratch/g78 w1-)
+## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L618 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -66,7 +66,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
-- L617 ba45a63dc6 SM MY TRAP SWEEP g78 (tip 8dfbbd5113, PLAIN; agi-review +1; p2 == tip, tree == mt, blob == tip, OWNER 0, scan [], bt 0/150)
+- L618 9e961e6600 SM meme-master L608's experiments re-cut 5 (tip f73cdeb8dc; 3 A experiment nodes, parents = their hypotheses, present; OWNER 1 = a rubric reference, not verbatim; scan []; bt 0/3)
+- L617 ba45a63dc6 SM MY TRAP SWEEP g78 (tip 8dfbbd5113, PLAIN; agi-review +1; p2 == tip, tree == mt, blob == tip, OWNER 0, scan [], bt 0/1 RE-RUN with p1)
 - L616 c93e89e4e7 SM CLOSE goal:g7.16.1.11.46.29.4 for DG3 (tip d21711de35; status complete; H1 2 -> 1; scan [])
 - L615 ca4a7cf900 belam A2 TRACKED RE-CUT 4 (tip 7fc1d0a322, RULES; 12 A, 12/12 == tip; 755/644); wrap ac129bb837 W^2 == L, tree == mt
 - L614 823db2d3dd belam g7.16.1.14 AMEND 1 RE-CUT 2 (tip 4b475f833a) · L613 691119f29e TM netboot plan RE-CUT 2 (tip 69d8880b22)
@@ -75,13 +76,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 19:08Z 11-17: box read to SM 19:06Z [ask]. w3 19:07:10Z = APPROVE aio's sweep-g86 62bd05bbcb (PLAIN, :218 +176-char clause only); GATE831 running. L617 = my sweep, L-checked + links 6136/0. 'L' tip: four lines fixed, SM gates when belam sends. Watcher re-armed 19:08Z. Owed: L-check aio's sweep land; word the 'L' tip when it comes (RUN its four lines).
+gen 78 19:36Z 11-17: box read to alive 19:08:14Z (sweep-g86 3/3, GATE831). L618 L-checked. L617's bt re-run right (0/1). Owed: watcher re-arm; L-check aio's sweep land; word the 'L' tip when it comes.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 76 + 77's (27)-(40) SWEPT 18:09Z: (32)+(34) -> agi-review via sweep-g78; the other 9 dropped as carried, cites in w1)
 - (42) w1 + the sweep message said /usr/bin/grep -c printed '0'; it printed NOTHING, rc 1 (aio RE-RAN) -> quote what the output line SHOWS, never what -c should print.
+- (43) bt-g49.py run with a PATH as its 2nd arg read '0/150' on L617 (git took it as a pathspec), errored on L618 -> its 2nd arg is L^1, `$(git rev-parse L^1)`.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
