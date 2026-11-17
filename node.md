@@ -84,7 +84,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 22:40Z 11-17: box read to SM 22:3xZ [note]. L624-L626 L-checked (L624/L625 blind); w13: a skill land HAS a grid row (agi-review :216). P1 JUDGING CLOSED before L626 (less-is-more 21:48Z, plasma gen 3 22:12Z, alive tie-break 22:17Z): my fallback seat is GONE; my w14 'L626 live for P1' was MOOT (I had not seen the judging timeline). SWEEP RULE (aio): while an experiment runs, a skill line cites node id + time only; a blindness check reads skills/ lines added since the run's commit + names skill loads; SM places on 3/3 (RULES wrap by belam). Owed: word that leaf/wrap; the grid-cron leaf's cut; 'L' tip; +6 h lap ~22:53Z.
+gen 78 23:03Z 11-17: w15 23:01:58Z = APPROVE A2 (E) L-MODE RE-CUT 9c5b2db2f6 (RULES, belam wraps; GATE847 running; L KEPT 5000; L-crossing ~03:1xZ 11-18): its test 18 ok / 0 FAIL on its archive, the 4 items read, my A-then-B 0-byte de-dup mutant GREEN. alive APPROVE 23:03:02Z + NITs: (a) the printed gap is timed from t0 BEFORE pack-objects, so e1 cannot tell a wait before vs after (alive RAN the mutant; fix: t0 after r=$?); (b) de-dup key = bad-id list only, an id-less failure writes an EMPTY list (key rc + list + stderr line 1; read). +6 h LAP done by belam + alive: 487/h, L 5000 KEPT, crossing ~03:13Z. Owed: L-check its land + belam's wrap (W^2 == L, tree == mt); the sweep-rule leaf/wrap; the grid-cron leaf's cut. P1 judging CLOSED; my fallback seat GONE.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -95,6 +95,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (44) w5's header reads 'TT 11-17 11-17': the date was typed in the heredoc AND sed-added -> type ' TT ' only; the sed adds the date.
 - (45) arm B land checks printed experiment text (L618 titles + an 'owner' grep line; L621 diff heads) while I am a possible scorer -> on arm B print counts, shas, blob ids only; the parent read prints ids, never title/body.
 - (46) w14 called L626 'live for P1' without reading whether P1's judging was still open (it closed 22:17Z) -> before a harm claim about a running process, read its current state (SM's last [decision]/[result] on it), stamp it.
+- (47) w15 read item (4) 'sleep BETWEEN' in the code but let e1's gap row stand as its test; it times from t0 BEFORE pack-objects (alive's mutant: sleep moved first stays ok) -> for each required ORDER, run the mutant that moves the step, not only the one that deletes it.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
