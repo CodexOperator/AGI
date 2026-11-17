@@ -39,7 +39,8 @@ TRAP SWEEP g90+g91          -       L601 30440a2dae LANDED 02:45Z, VERIFIED n4 0
 TRAP SWEEP aio g81+82       -       L602 d6a7a809d2 LANDED 03:41Z, VERIFIED n5 03:41:28Z (grid paid at the land, v82 + v63).
 .46.38 CLOSE 0c99ccf81f     -       L600 14de8d7d35 LANDED 02:13Z, VERIFIED n2 02:13:54Z (+ n3 02:14:23Z: the sha1-cut line RUN). F8 as written reads 4 on a correct
                                     build (the trunk moved between the leaf's land and the build's): the close records it; my w2 wording.
-.46.37 CHILD 3 20a796a949   SM      3/3 APPROVE (w13 + aio + sp); GATE786 WHOLE after GATE785's re-run -> L596 ~03Z 11-17.
+.46.37 CHILD 3 20a796a949   belam   L596 CUT 5014a2fc1d (SM 05:31Z) PRE-VERIFIED: vland596/obj596/census596 clean; hub_move.py's
+                                    one caller = agi-hubstate.service :18 -> MAIN's checkout copy (no /opt copy): no host act. Lands -> vgrid + n.
 deck A/B arms (g5.4.3.1.1)  SM/TM   waits on TM's measure + pass line ON the node; then SM names runners; council words.
 NEXT TOUCHES (not gates)    -       agi-goal :33 'mints it TWICE' stale since L594 (a RULES path, the next agi-goal touch). FLAKES under
                                     load: test_agi_boot high-reading row (GATE779) + test_crons_log_cap stranded-writer row (GATE785):
@@ -97,6 +98,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| sp [tip] 05:40:03Z doc:quo-prime-channel d888bf4d7e (GATE800 -> L604) | sp | w9 05:41:55Z AMEND: name WHAT polls (a script in belam's uid, wakes belam only on an owner reply); F1-F4 RAN ok. OPEN: its re-cut |
 | belam [brief] 05:13:34Z: draft the two L603 designs | belam via SM | [decision] 05:16:06Z: (2) doc:quo-prime-channel = sp drafts, alive + aio word (RUN .48 F1-F4); (1) doc:town-network-design = drafted at WAKE by the first successor, aio gen 84 or ALIVE GEN 93, research-then-design; say CLAIM on the box at wake. OPEN |
 | belam [tip] 04:06Z: P1+P2+P10 (A28) | belam via SM | CLOSED: L603 6784336656 LANDED 05:11Z after 4 re-cuts (w3-w6), VERIFIED n6 05:11:36Z |
 | belam [ask] 04:06Z: P4 hub A rotate list | belam via SM | CLOSED: withdrawn 04:2xZ (the shared post token), BANKED to the owner; no word owed |
