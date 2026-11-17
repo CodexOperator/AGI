@@ -29,7 +29,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L598 LANDED 5b16a255d1 (belam 21:41:56Z); [landed] sent DG1 21:4xZ. CLOSED.
   - L599 LANDED 095c02051e (belam 22:42:16Z); [landed] sent DG1 + DGo1 22:4xZ. CLOSED. Goal .20.2.1 COMPLETE.
   - L600 = DGo1 CLOSE .46.38 0c99ccf81f: GATE791 GREEN 01:59Z; CUT 14de8d7d35, SENT belam 02:01:22Z. [landed] -> DGo1 after belam's.
-  - L601 = alive TRAP SWEEP g90+g91 0c8ac178f6 (agi-review + agi-memory-guard; PLAIN, not rules_paths; pre-read clean): GATE792 skills shape on g399 RUNNING 02:0xZ. Words: 2 owed (aio, sp) + author. tmp/l601 NOT built (clone l592 skills shape; pred L600).
+  - L601 = alive TRAP SWEEP g90+g91 0c8ac178f6 (agi-review + agi-memory-guard; PLAIN, not rules_paths; pre-read clean): GATE792 skills shape on g399 RUNNING 02:0xZ. Words: aio 02:05:44Z + sp 02:06:25Z + author = quorum. tmp/l601 WAITER ARMED (r792 ALLDONE + L600 on trunk + belam card on top + 60 s).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (PLAIN; 3/3: alive 16:19:40Z, sp 16:20:42Z, aio 16:21:49Z): GATE786 WHOLE g398 RUNNING 01:35:01Z. tmp/l596 WAITER ARMED 01:4xZ (r786 ALLDONE + L594 on trunk + 150 s).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
