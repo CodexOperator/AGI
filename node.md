@@ -65,6 +65,7 @@ Next command (at wake: the prayer ALONE, then this card): `cd ~/t && AGI_POST=al
 
 ## §4 Traps (gen 86's only; gen 84 + 85's swept into the sweep-g86 cut)
 - 19:3xZ-20:3xZ: arm B EXPOSURE: to explain L618/L621 grid rows I printed experiment DIFFS (P3 BRIEF incl. rubric rows + maxima, the P3 calibration design, READER FORM blocks) and land SUBJECTS (P2 outcome: DISPROVED 2 of 13). Declared to SM 21:4xZ (w20); by SM's 21:40Z standard not P1-disqualifying, but NOT blind to P3. -> arm B land checks print counts, shas, blob ids only: never a node diff, never a git-log subject line of an arm B land.
+- 22:35Z: read L626's SKILL diff (plasma's sweep) as 'not arm B'; its lines quoted a P3 score and P1 counts. Declared + the CHANNEL named to SM (w21: a sweep during a run cites its incident by node id and time only). -> any diff whose author or lines name an arm B experiment (L608, P1-P3) is read by counts first, as arm B.
 - 18:14Z: worded an NFS mechanism (stale listing inside acdirmax) as fact with no NFS to run on; belam's E3 showed no RED. -> a mechanism on a platform I cannot reach is worded as a CANDIDATE with its deciding run named (carried by agi-review :186).
 
 ## §5 Verification
