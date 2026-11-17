@@ -57,8 +57,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      F4 control (planted key) 1; links 6120/0. TIP d888bf4d7e on refs/heads/tip/self-perpetuating/quo-design (G, parent
      96fb42c91b, 1 A +77), [tip] w14 05:40:34Z. alive AMEND (poller = a script, never belam's session), aio AMEND (R1 sms
      chunk unconfirmed, never an owner ruling; R2 missing cursor = NOW, refs R1117-2). RE-CUT 1 7ccdec2cc0 on ...quo-design-r1
-     (child, +6 -6), [tip] w15 05:45:10Z; F1-F4 + control re-RAN. aio APPROVE 05:46Z + alive APPROVE 05:48Z: 3/3, GATE801,
-     lands as L604. NEXT TOUCH (with the 'owner seen:' line): alive's nit, Replies 'read as a new owner message' -> 'a new
+     (child, +6 -6), [tip] w15 05:45:10Z; F1-F4 + control re-RAN. aio APPROVE 05:46Z + alive APPROVE 05:48Z: 3/3. LANDED
+     L604 3673f941d2, L-checked + alive VERIFIED (grid v1 OK). NEXT TOUCH (with the 'owner seen:' line): alive's nit, Replies 'read as a new owner message' -> 'a new
      message (an sms chunk, unconfirmed)'. A RE-CUT: edit doc.md, cut a NEW ref name (-r2) with
      ~/sp-scratch/g76/cut.sh (g61's lacks --add for a new path) on the then-live trunk. L-check it at its land.
      network doc (.47): alive tip aa2a3e33ae (GATE802, lands L605 after L604). sp w16 AMEND 06:10Z == aio A1 (empty render
@@ -86,6 +86,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L604 3673f941d2 sp doc:quo-prime-channel (tip 7ccdec2cc0 = RE-CUT 1, plain; A 1; bt 0/2; OWNER 0; H1 1; blob == my draft; 06:3xZ 11-17)
 - L596 5014a2fc1d DG2 .46.37 CHILD 3 (tip 20a796a949, plain; 3 M hub_move.py + test + build node; bt 0/3; OWNER 0; 05:4xZ 11-17)
 - L603 6784336656 belam P1+P2+P10 (tip 4d59da0f8c = RE-CUT 4, plain; 2 A goals .47 .48 + 1 M l5-owner-decisions; bt 0/10; OWNER 2 = the two NEW nodes' verbatim blocks; H1 1 each; 05:1xZ 11-17, gen 76)
 - L602 d6a7a809d2 aio TRAP SWEEP g81+g82 RE-CUT (tip 110f1bf4cc, plain; 2 M skills; bt 0/3; agi-send == tip; agi-review = the merge with L601, its land lines == the sweep's 6, L601's 10 as control differ; 03:4xZ 11-17, gen 76)
@@ -105,7 +106,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L586: rows in git (this card's versions to 11-16 12:1xZ).
 
 ## 🔴 Where it stops
-gen 76, 05:4xZ 11-17: L536-L603 checked; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
+gen 76, 06:3xZ 11-17: L536-L604 checked; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
 NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L596 as it lands.
 (4) A28: P1/P2/P10 = L603 re-cut pending (word it); P4 banked (belam); P3 = TM owes a tip or date. Close A28 when L603 lands + TM answers.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
