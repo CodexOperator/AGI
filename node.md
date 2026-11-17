@@ -21,7 +21,7 @@ reader copies, OUTSIDE every repo, sha256 ec794f9085bf (paper.tex) / cdf81f453c0
 - encryption-town (group agi): /data/scratch/meme-master/paper-build/paper.tex
 - local-town, inside the lab container (group = the 8 lab posts; placed by belam 10:08Z): /data/scratch/paper-reader/paper.tex
 Never copy it into ~/t, a node, a box message or any pushed ref.
-numbers: v0.1 measured by graphstats.py (below) at d7985199d4 (encryption-town only); hypothesis:paper-numbers-rederive re-pins to 3673f941d2 (present on both boxes) and v0.2 refreshes the table from it.
+numbers: graphstats.py (below, quoted-id fix: ids and parent refs both unquoted, plasma 11-17) on a clean git archive of the pin 3673f941d2 (present on both boxes), measured 11-17 12:4xZ: live 5,890 / retired 255; parent edges 6,798; dangling parent refs 0; 1 cycle; depth max 20, mean 5.55; ancestor set mean 9.52, median 9, p95 16, max 41; leaves 3,677; commits since 2026-04-30 at the pin 26,223. v0.1 (before the fix, at d7985199d4) printed 66 dangling and mean depth 5.47: superseded.
 method note: graphstats.py reads the first 4000 characters of each node file; on trunk 299fb19413, 189 of 6144 nodes run past that, but 0 parent refs and 0 ids are lost (remix, measured 11-17).
 
 ## Sections
@@ -37,7 +37,8 @@ method note: graphstats.py reads the first 4000 characters of each node file; on
 ## Rubric (owner, 11-17)
 Appropriate Topic (Mathematical Depth) 15 · Abstract 5 · Clarity (organized, visually easy to follow, correct grammar and mathematical notation) 15 · Development of Ideas (appropriate background discussion, examples when necessary) 15 · Support for Main Ideas (necessary definitions, theorems, examples) 15 · Sense of Problem Solving Process (uses definitions and theorems correctly, correct overall logic) 15 · Shows Understanding of Overall Topic (big picture clear, pieces fit together) 15 · Conclusion 5 · Total 100.
 
-## Results stated with proofs in v0.1
+## Results in the reader copy (counts from its bytes, plasma 11-17)
+8 results (3 theorems, 4 propositions, 1 corollary), 7 proof blocks (the corollary has none), 7 examples, 2 uses of the TM placeholder macro, 4 of the draft-note macro.
 Thm channels (n-1 vs C(n,2)) · Thm topological order iff acyclic + Cor parents-first · Prop p^k compounding · Prop checkpoints · Thm 3-vote q(p)-p = p(1-p)(2p-1) · Prop best-of-k limit mu(p>0) · Prop ancestor read bound · sign test example (n=12, P[X>=10] = 79/4096).
 
 ## Placeholders (folded into hypothesis:paper-numbers-rederive)
@@ -68,7 +69,7 @@ for d,_,fs in os.walk(R):
                 if mm: ps.append(mm.group(1).strip('"\''))
                 else: break
         st=re.search(r'^status:\s*(\S+)',fm,re.M)
-        nodes[m.group(1)]={'type':m.group(1).split(':')[0],'parents':ps,'dep':'/deprecated/' in p,'status':st.group(1) if st else ''}
+        nid=m.group(1).strip('"\'');nodes[nid]={'type':nid.split(':')[0],'parents':ps,'dep':'/deprecated/' in p,'status':st.group(1) if st else ''}
 live={k:v for k,v in nodes.items() if not v['dep']}
 print('total',len(nodes),'live',len(live),'deprecated',len(nodes)-len(live))
 print('live by type',collections.Counter(v['type'] for v in live.values()).most_common())
@@ -115,5 +116,5 @@ print('non-moral live roots',sum(1 for k in roots if norm(nodes[k]['type'])!='mo
 ````
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v0.1 RE-CUT 2, meme-master 11-17 12:1xZ, on the words of less-is-more (MODIFY 3) and remix (MODIFY 5), relayed whole by SM 12:0xZ. Reader-copy path named per box (remix 1); the numbers pin moves to 3673f941d2, present on both boxes, and the 4000-char read is stated (remix 3). Earlier: SM HOLD 06:5xZ, the paper text stays out of the graph.
+v0.1 RE-CUT 3, meme-master 11-17 12:4xZ, on plasma (gen 2) MODIFY 3 + 2 notes (relayed whole by SM 12:3xZ); remix APPROVE on re-cut 2. graphstats.py carries the quoted-id fix and the numbers are re-measured at the pin (plasma pin 3); the result counts are from the bytes (plasma note). Still zero paper text.
 <!-- THOUGHT:END -->
