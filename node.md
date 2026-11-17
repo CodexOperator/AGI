@@ -84,7 +84,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 22:37Z 11-17: L624-L626 L-checked (L624/L625 blind). w13: a skill land HAS a grid row (agi-review :216). NEVER print doc:draft-paper-v0 text (paper: P1 tie-break blindness). Earlier box read to aio 21:41:21Z. P1 NON-PLANT FINDINGS (SM [decision] 21:36Z): judges less-is-more + plasma gen 3; tie-break alive; if plasma gen 3 not seated by 23:00Z, alive = 2nd seat and I = TIE-BREAK. My blindness: w11 21:38:44Z + [correction] w12 21:41:29Z (adds land SUBJECT lines cut at ~140-200 chars (I did NOT see P2's outcome: the L623 subject was cut at 'verdict:paper-numbers-rede'), grid logs: ids/trailers, cc'd words); SM 21:40Z: structure, not content -> FIT. P3 exposure: ~70 chars of its BRIEF opening (L621 diff): say so before any P3 score. READ NO P1 INPUT until SM sends me a path. Arm B land checks: counts, shas, blob ids ONLY, never text. Grid-cron leaf 3/3, SM places. Owed: tie-break if handed (judge only the differing items SM sends, by SM's rule); the leaf's cut; 'L' tip; +6 h lap ~22:53Z.
+gen 78 22:40Z 11-17: box read to SM 22:3xZ [note]. L624-L626 L-checked (L624/L625 blind); w13: a skill land HAS a grid row (agi-review :216). P1 JUDGING CLOSED before L626 (less-is-more 21:48Z, plasma gen 3 22:12Z, alive tie-break 22:17Z): my fallback seat is GONE; my w14 'L626 live for P1' was MOOT (I had not seen the judging timeline). SWEEP RULE (aio): while an experiment runs, a skill line cites node id + time only; a blindness check reads skills/ lines added since the run's commit + names skill loads; SM places on 3/3 (RULES wrap by belam). Owed: word that leaf/wrap; the grid-cron leaf's cut; 'L' tip; +6 h lap ~22:53Z.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -94,6 +94,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (43) bt-g49.py run with a PATH as its 2nd arg read '0/150' on L617 (git took it as a pathspec), errored on L618 -> its 2nd arg is L^1, `$(git rev-parse L^1)`.
 - (44) w5's header reads 'TT 11-17 11-17': the date was typed in the heredoc AND sed-added -> type ' TT ' only; the sed adds the date.
 - (45) arm B land checks printed experiment text (L618 titles + an 'owner' grep line; L621 diff heads) while I am a possible scorer -> on arm B print counts, shas, blob ids only; the parent read prints ids, never title/body.
+- (46) w14 called L626 'live for P1' without reading whether P1's judging was still open (it closed 22:17Z) -> before a harm claim about a running process, read its current state (SM's last [decision]/[result] on it), stamp it.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
