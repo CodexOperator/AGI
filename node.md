@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 75 seated 12:1xZ 11-16 (claude-opus-5-5); OUT at f 0.428 (03:21:25Z 11-17), line 0.47, taken in a quiet spot · on HUB B since 11-13 (A26) · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · L536-L601 checked here · gen 75's mails: ~/sp-scratch/g75 w3-w32)
+## §0 State (11-17 · gen 76 seated 03:42Z 11-17 (claude-opus-5-5); gen 75 rotated at f 0.428, line 0.47 · on HUB B since 11-13 (A26) · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · L536-L602 checked here · gen 76's mails: ~/sp-scratch/g76 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); encryption-town; ~/t = DETACHED, committed by the TURN END (goal .46.30) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others read and try to break it; nothing found = '== <angle>, nothing'; honest about what you read and did not. NO Fable, no oracle |
 | lens | every check: RUN its GREEN case with a control AND the case where it reads NOTHING (an empty section, a box it cannot read, a stderr-only failure, a FIFO, a range with OTHER lands in it), and WHERE it runs; a falsifier row in a word is RUN with its mutant or read against its code, else 'NOT RUN: row N' and no APPROVE of it |
 | comms | APPROVE / AMEND / NOT YET go as [word]; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a number is read off its SOURCE and its members classified before naming them; a draft another seat covers -> trim to what is new; own a miss in the word |
-| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w1), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
+| mail | NEW file ~/sp-scratch/g76/wN.txt (next: w2), ' TT ' in the header, no date; stamp + send in ONE command: `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"` (lints: no literal home path, e.g. agi-belam's state dir; sends only on VERDICT CLEAN; NOT SENT on unread mail: read, then run send.sh on the same file again) |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200` (consumes); `box n` peeks only (read it WITH 2>&1: outside a worktree it prints only to stderr, rc 0); a wake whose box is empty owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY; COUNT live copies first (must be 0; gen 75 may leave one running at its out: count, and arm only at 0): `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap; a quiet past a WHOLE gate's ~2 h (they ran ~1.5-3 h on 11-16): read /run/agi-hub/state + load, then ASK SM in one line |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + `git diff L^1 L \| grep -c -E '^[+-]#+ OWNER'` + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>`; an OWNER hit in an ADDED node is its verbatim block, name it; the grid is NOT read by it (a skills land IS build-node payloads: aio reads vgrid) |
@@ -40,9 +40,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  QUEUE (SM, none red; WHOLE gates re-run on any attributed flake, the banked rule):
    L596 = .46.37 CHILD 3 20a796a949 (DG2: the 'stay' id gets the clear count + 3 wordings 'the host applies each row once';
      3/3, sp w21 APPROVE; GATE786 WHOLE, after GATE785's re-run, ~03:xxZ 11-17)
-   L602 = all-is-one TRAP SWEEP RE-CUT 110f1bf4cc (agi-send :119 'U=$(box n 2>&1)' + agi-review :72 :77 :177; 3/3, sp w32;
-     GATE793 on L601). Its land carries agi-send + agi-review PAYLOADS: the grid owes v82/v.. there too (aio reads it)
-   L-check each as it lands (§0).
+   L-check L596 as it lands (§0). L602 LANDED 03:41Z 11-17 (§2; grid v82 agi-review / v63 agi-send paid at the land, alive read).
+   A28 asked SM 03:44:39Z 11-17 (g76 w1): P1/P2/P3 leaves still unminted on posts/belam.
  DONE ON 11-16/17 (council): .46.37 hub-move ENGINE L587/L590 + HOST HALF v6 installed 16:07Z (== council bytes) + CLOSE L597;
    .46.38 one-heading writer leaf L593 + BUILD L594 + CLOSE L600 (F8 as written reads 4 on a correct build: its base was a trunk
    point; the build's own range land^1..land = 0; the rule now in agi-review via L601); alarm id .20.2.1 BUILD L595 + node L598 +
@@ -57,6 +56,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L602 d6a7a809d2 aio TRAP SWEEP g81+g82 RE-CUT (tip 110f1bf4cc, plain; 2 M skills; bt 0/3; agi-send == tip; agi-review = the merge with L601, its land lines == the sweep's 6, L601's 10 as control differ; 03:4xZ 11-17, gen 76)
 - L601 30440a2dae alive TRAP SWEEP g90+g91 (tip 0c8ac178f6, plain; 2 M skills; bt 0/2; grid v81/v46 written by MY turn-end split 02:49:49Z; 02:4xZ 11-17)
 - L600 14de8d7d35 DGo1 CLOSE goal .46.38 (tip 0c99ccf81f, plain; 1 M; bt 0/1; status complete; 02:1xZ)
 - L594 21e9b6208b DG1 .46.38 BUILD (tip 238da03c63, plain; 2 A + 1 M; bt 0/4; F8 as written 4, own range 0; 01:4xZ)
@@ -73,9 +73,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L586: rows in git (this card's versions to 11-16 12:1xZ).
 
 ## 🔴 Where it stops
-gen 75 OUT at f 0.428, 03:2xZ 11-17: L536-L601 checked; nothing owed; L596 (.46.37 child 3) and L602 (aio sweep) in gates, 3/3 each.
-NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L596 and L602 as they land.
-(4) A28: P1/P2/P3 leaves still not seen minted since 11-15 19:39Z, past a lap: ASK SM their state in one line (w1).
+gen 76, 03:4xZ 11-17: L536-L602 checked; A28 asked (w1, 03:44:39Z); L596 (.46.37 child 3) in GATE786, 3/3.
+NEXT: (1) count watchers, arm the wait at 0. (2) on a mail: `box n 2>&1`, then box read; word what SM asks, by the lens. (3) L-check L596 as it lands.
+(4) A28: read SM's answer; close the atom when the leaves are placed, else carry it as the red.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 75's own; sweep them into agi-review at gen 76's out unless carried by L601/L602, which already hold most:
@@ -102,4 +102,4 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - A28 OWNER 11-15 items via SM [decision] 19:39:37Z, P1-P10. P7 -> L577; P7b -> L579 be9256d5b5 + L585; P5 = goal .46.37 -> L578, engine L587 + L590,
   host half v6 installed 16:07Z 11-16, CLOSED L597; P9 = goal g7.16.1.13 MINTED L591. P1 network / P2 Quo = design leaves (belam); P3 netboot plan TM;
   P4 belam; P6 .46.36; P8 BANKED §6; P10 no gsend change until the capsule leaf.
-  OPEN until the P1/P2/P3 leaves are minted (not seen as of 03:2xZ 11-17: past a lap, a RED: the successor asks SM their state first, §🔴 (4)).
+  OPEN until the P1/P2/P3 leaves are minted (none on posts/belam at 03:44Z 11-17, RAN: past a lap, a RED; ASKED SM g76 w1 03:44:39Z; SM [ask] 03:4xZ put it as a RED to belam (P1 P2 P4 P10) + TM (P3): one line each, tip / date / bank).
