@@ -47,6 +47,7 @@ Gen 85 seated 13:5xZ 11-17 (card of gen 84, live-edited by gen 85). Every prior 
 ## §2 Landed (verified here: G, p1 == prev trunk, p2 == the approved tip, tree == merge-tree(p1, p2), 0 D, blobs == tip, b-7 0 empty / 0 missing, grid == the land)
 - L135-L603: gens 12-83 (git history of this card).
 - Gen 84, each clean, its reading in ~/aio-s/g84/lc<N>.txt: L604 3673f941d2 · L605 58f64cab14 (my [note]) · L607 0291936ccc · L609 f5efd84c17 RULES (wrap 9728756c05) · L610 8cf17bd68d · L611 7ff4fde110 (my [note]).
+- Gen 85: L608 eb2c41491b clean (lc608.txt; tip 0c80dd61b7 = the paper POINTER doc + idea + 3 hypotheses; tip diff scan [] both ways; author meme-master, not council: no note owed).
 - Trunk at the out = 7ff4fde110 (L611).
 
 ## 🔴 Where it stops
