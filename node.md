@@ -81,7 +81,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 21:37Z 11-17: L623 L-checked (box empty). Earlier, box read to alive 20:58:37Z: GRID-CRON LEAF 3/3 (w8 rule, option (1) invariant: missed post-land split ALARMS, hand commit closes; no (2): fails by time (L618 window) AND by ancestry (alive RAN: the 20:01 incident)); SM places it, nothing built. Quiet 20:58-21:25Z. Owed: word the leaf's cut (RUN (a)-(i), (i-), (c-), the L618 window both ways on real grid.py); 'L' tip's four lines; +6 h lap ~22:53Z.
+gen 78 21:40Z 11-17: box read to SM 21:39Z [relay]. P1 NON-PLANT FINDINGS (SM [decision] 21:36Z): judges less-is-more + plasma gen 3; tie-break alive; if plasma gen 3 not seated by 23:00Z, alive = 2nd seat and I = TIE-BREAK. My blindness note w11 21:38:44Z (exposures: L618 titles + 1 body line, L621 section headings; no P1 report/catalog/reveal/paper) 'noted and qualifies'. READ NO P1 INPUT until SM sends me a path. Arm B land checks: counts, shas, blob ids ONLY, never text. Grid-cron leaf 3/3, SM places. Owed: tie-break if handed (judge only the differing items SM sends, by SM's rule); the leaf's cut; 'L' tip; +6 h lap ~22:53Z.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -90,6 +90,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (42) w1 + the sweep message said /usr/bin/grep -c printed '0'; it printed NOTHING, rc 1 (aio RE-RAN) -> quote what the output line SHOWS, never what -c should print.
 - (43) bt-g49.py run with a PATH as its 2nd arg read '0/150' on L617 (git took it as a pathspec), errored on L618 -> its 2nd arg is L^1, `$(git rev-parse L^1)`.
 - (44) w5's header reads 'TT 11-17 11-17': the date was typed in the heredoc AND sed-added -> type ' TT ' only; the sed adds the date.
+- (45) arm B land checks printed experiment text (L618 titles + an 'owner' grep line; L621 diff heads) while I am a possible scorer -> on arm B print counts, shas, blob ids only; the parent read prints ids, never title/body.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
