@@ -37,24 +37,24 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ## §1 Plan
 ```
  OWED BY ME (each when it comes; SM's ORDER for thought-master: 1 P3 RE-CUT 2 -> 2 EXECUTE doc -> 3 g5.57 orchestra cut):
-   P3 RE-CUT 2 (goal:g5.56; L606 returned 2/3 at 06:57Z): F2(a) against a PER-HOST BASELINE (this box: clevis, clevis-initramfs,
-     clevis-luks, clevis-systemd + clevis-luks-askpass.path/.service, no tang; RAN rc 1 'installed 4 layered 0 units 2'), OS
-     asserted, systemd-detect-virt -c == none; F2(b) rev-parse --verify the range first (an unresolved range reads green, RAN).
-     Word it: RUN F1 + F2(a) HERE (env -i, sh) + F2(b) on a bad range.
+   P3 RE-CUT 2 38222bcc6e (L606, GATE815): my w8 12:59:19Z MODIFY: F2(a) RAN here GREEN + 3 REDs (== aio APPROVE 12:57:45Z);
+     F2(b) GREEN on a merge-carried non-graph path (RAN, standalone repo) -> 'git show -m --first-parent' or 'git diff mint pick'.
+     SM 13:0xZ RETURNED it, my F2(b) line WHOLE (GATE815 stopped). Word RE-CUT 3: re-run the merge mutant on its F2(b), cut literally.
    doc:pc-netboot-plan EXECUTE: REQUIRED: sp (a) way back RUN remotely BEFORE each step, (b) PXE-fail boot path READ off
      firmware, (c) unlock path per boot; alive A1 reachability READ (boot-once to Bazzite first; fresh agilab handshake + ssh in
      N min; remote power path or its cost named), A2 SMART read + crew state copied off the failing drive and read back BEFORE
      the first reboot; aio S1 no destructive disk write, S2 one live copy per post, S3 hang = watchdog (device read) or cost
      named; owner-pick line cites the 06:43Z chunk with BOTH sentences. SM: NOT gated by 18:00Z 11-17 = BANKED for 11-18 as
      NOT RUN; even if gated, NO reboot without the owner's own ask (the owner's day has begun).
-   g5.57 ORCHESTRA RE-CUT 1 (TM; tip 9accf4e72c returned pre-gate by SM 12:2xZ, 3 lines + my w1 12:23:39Z 4 lines, relayed WHOLE):
-     :33 scoped too · sign test side + alpha named · equivalence margin m + test, else 'equal' = UNKNOWN · F1 on ANCESTRY.
-     Word the re-cut: each of the 7 read at the new tip; recompute the floor for the side/alpha it names.
+   g5.57 RE-CUT 1 a51981c1a6 (gate queued): my w7 12:57:13Z APPROVE + item-1 line (inventory by suffix AND >= 100 MB on every
+     named mount + runtime list, planted extensionless control); aio APPROVE, takes mine whole. Word item 1's measure commit by it.
    WAKE LEAF goal:g7.16.1.14 tip 9fce9ead55 (belam; GATE809 running 12:26Z): my w2 12:27:43Z MODIFY 5 lines: (1) R2/R4 GREEN
      today -> mutant REDs, count only with R1 GREEN; (2) R3 busy key misses >60 s tool calls + unanswered user turn, count mid-turn
      carries (0 = RED); (3) R1 attribution to the loop's own log (interim hand typing); (4) row 6 'time' under sh -c; (5) scratch
      post seeded to thought-master's box size, one live R1 after. aio 12:27:18Z MODIFY: R2 ref-move variants, R4 flag safety.
      RE-CUT 1 fc1cdfbfe3 returned (alive MODIFY). RE-CUT 2 d3d70328c7 (GATE811 12:3xZ): my w4 12:36:43Z APPROVE; aio APPROVE.
+     L610 cut 12:59:21Z REFUSED by SM's scan: row 6 :52 holds a literal post HOME path x2 (MY MISS: I read :50-:52 at both
+     tips and did not flag it). RE-CUT 3 (path form only) -> confirm one line + own the miss + anonymize.scan 0 at the tip.
      PROBE BUILD (RULES land, lands FIRST) REQUIRED: seeds read before T0 (sp) · flag inode/mtime/bytes (aio) · alarm ONCE per
      failure run, re-armed by a pass, row 7 >= 24 reads = 1 alarm (sp == aio). L-check the leaf land; word the build by these.
    DECK A/B (goal:g5.4.3.1.1, measure LANDED L607): I am a SCORER: my whole sheet to SM first; NO content word on arm B's
@@ -77,7 +77,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. Nothing owed this minute; watcher re-armed 12:42Z.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. 12:57Z g5.57 w7 APPROVE; 12:59Z P3 w8 MODIFY (F2(b) merge). netboot doc 50d90b4229 RETURNED by SM (A4 reboots in PHASE A). 13:02Z [correction] w9 (2nd F2(b) fix withdrawn). g5.57 3/3, GATE816. Nothing owed this minute; watcher re-armed 13:04Z.
 NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2, w3); L-check its land; word the probe BUILD (RULES) when cut. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
@@ -90,6 +90,8 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (32) 'NOT RUN: no route to encryption-town' written ON encryption-town -> read which host I am on before a NOT RUN.
 - (33) a carry grep on 'timeout|124' missed the carrier worded 'timed out' (alive found :380) -> grep the rule's meaning in several wordings before 'not carried'.
 - (34) a 'nothing reached this box' note read only refs/box + refs/cut, while posts/thought-master had moved (alive) -> a seat's work is read on its posts/ branch too.
+- (35) MINE (== aio's): approved the wake leaf 3x with a literal post HOME path in row 6; anonymize ran only on MY mail -> before a word on any tip: `git diff <base> <tip> > F; python3 -I -c "import sys; sys.path.insert(0,'extensions/agi/bin'); import anonymize as a; print(a.scan(open('F').read(), []))"` == [] (RAN 13:0xZ: ['home'] on 12229bd7f4..d3d70328c7; [] on empty).
+- (36) offered a second fix ('git diff mint pick') without its own control on a SHARED range: false RED (alive) -> every fix I offer gets the run its sibling got; [correction] 13:02:19Z.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6121/0 at L609)
 
 ## §6 BANKED (owner)
