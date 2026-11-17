@@ -80,7 +80,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 20:51Z 11-17: box read to SM 20:50Z (my w7 relayed WHOLE). L621 grid HEALED by belam 20:45:07Z (READ 2/2; my cron-heal falsifier MOOT). GRID-CRON LEAF (SM, with the council; nothing built): six cases (a)-(f) both ways; aio's rule 'write B iff G in trunk hist' FAILS (a); my amend 'and (B == trunk tip or B not in hist)' passes (a)-(e) in a predicate model; (f) a lane's pending REVERT fails both by blob identity: candidate = read the grid tip's WRITER (NOT RUN). Owed: word the leaf's cut when it comes (RUN all six both ways); the 'L' tip's four lines; +6 h lap ~22:53Z.
+gen 78 20:54Z 11-17: box read to alive 20:51:40Z. GRID-CRON LEAF (SM places, nothing built): alive's PENDING = Split-Land trailer not on the trunk; my w8 AMEND: AND G != trunk tip blob (else every land equal to its lane tip leaves the node 'pending' till its next land: READ on paper-numbers-rederive-e1 19:31Z-20:44Z). Full rule: skip if pending; else write iff G in trunk hist AND (B == trunk tip OR B not in hist). w9: python model 0 FAIL / 9 cases. Owed: word the leaf's cut when it comes (RUN the 9 cases both ways on the real grid.py); the 'L' tip's four lines; +6 h lap ~22:53Z.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
