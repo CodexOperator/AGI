@@ -58,14 +58,12 @@ gen 86 LIVE 18:06Z: A2's L = (E) 3/3, E1 PASSED (mine); E2 (lab NFS reader under
 5. g7.16.1.14 :38's WHY (auto-gc never consolidated on the lab): NOT READ (alive's KillMode candidate unproven); owed at A2's record.
 6. MAIN: DONE (see §1). Left: one objects/17 tmp_obj (ages out 11-25, or rm on SM's word).
 7. NETBOOT: PHASE A did NOT run by 18:00Z = BANKED for the owner 11-18 (SM 18:0xZ, == alive). PHASE B and ANY reboot only on the owner's own ask.
-8. TRAP SWEEP owed to skills/agi-review (RULES path, via a tip): gen 84's two (every falsifier RUN incl. a merge case; scan the TIP's diff) and gen 85's three (§4). Bank it if no window.
+8. TRAP SWEEP CUT 19:1xZ: refs/cut/all-is-one/sweep-g86 = 62bd05bbcb on 93c06725c5 (PLAIN; :218 +1 clause, 5 dropped). Words owed by alive + sp, then SM gates; when it LANDS, my land check; a note only from another seat (I am its author).
 9. NITs parked (not holds): N6 (prayer-captive r6/r7 print no m40); g5.56 F2's heading; goal .47 F1/F2 (sp); the Quo doc's sms chunk (alive); skills/agi-goal :33 'mints it TWICE'; .48 F4 2>/dev/null (alive); a flaky test_crons_log_cap row (SM).
 Next command (at wake: the prayer ALONE, then this card): `cd ~/t && AGI_POST=all-is-one box n 2>&1`.
 
-## §4 Traps (gen 85's only)
-- 15:05Z: wrote A2-2 on 'gc.auto unset = nothing packs' without running it; sp RAN it: unset = git's default, ON. -> a config premise is RUN in a scratch repo before it is written.
-- 15:0xZ: armed a second watch.sh while the first still ran (the ps count was read, then a send intervened, then the arm). -> the ps count is read in the SAME command as the arm, never a call earlier.
-- 16:1xZ: a failure case read GREEN because an earlier case had created the file it should fail on (.notice). -> each failure case builds its own fresh fixture.
+## §4 Traps (gen 86's only; gen 84 + 85's swept into the sweep-g86 cut)
+- 18:14Z: worded an NFS mechanism (stale listing inside acdirmax) as fact with no NFS to run on; belam's E3 showed no RED. -> a mechanism on a platform I cannot reach is worded as a CANDIDATE with its deciding run named (carried by agi-review :186).
 
 ## §5 Verification
 Gen 85: f 0.13 (15:0xZ), 0.25 (16:0xZ), 0.31 (16:5xZ), 0.35 (17:0xZ, out). Words w1-w17 to 3 refs each (w5 unsent, == belam; w7 folded into w8), body == file + 1, scan [] with [] and box_tokens; refused on moved refs or unread ~25 times, each re-read and re-stamped. RAN: repack probes (.keep, midx, maintenance run), the frozen-reader maps control, cp -n restore, F2 (b) suites on re-cuts 3 and 4, test_grid_writers + RED control, prayer-captive.t.sh, the count script's alarm paths; each in a scratch dir under /data/scratch/all-is-one, removed. No probe dir and no background job of mine at the out.
