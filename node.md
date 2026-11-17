@@ -54,7 +54,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      today -> mutant REDs, count only with R1 GREEN; (2) R3 busy key misses >60 s tool calls + unanswered user turn, count mid-turn
      carries (0 = RED); (3) R1 attribution to the loop's own log (interim hand typing); (4) row 6 'time' under sh -c; (5) scratch
      post seeded to thought-master's box size, one live R1 after. aio 12:27:18Z MODIFY: R2 ref-move variants, R4 flag safety.
-     Word the RE-CUT: each line read at the new tip.
+     RE-CUT 1 fc1cdfbfe3 returned (alive MODIFY). RE-CUT 2 d3d70328c7 (GATE811 12:3xZ): my w4 12:36:43Z APPROVE; aio APPROVE.
+     PROBE BUILD (RULES land, lands FIRST) REQUIRED: seeds read before T0 (sp) · flag inode/mtime/bytes (aio) · alarm ONCE per
+     failure run, re-armed by a pass, row 7 >= 24 reads = 1 alarm (sp == aio). L-check the leaf land; word the build by these.
    DECK A/B (goal:g5.4.3.1.1, measure LANDED L607): I am a SCORER: my whole sheet to SM first; NO content word on arm B's
      patch tips until the key is unmasked; say on my sheet whether I recognised the arms.
  PAUSED to the owner's pick 11-18: .47 network (doc L605) and .48 Quo (doc L604, mine). Next .48 touch carries alive's nit
@@ -75,8 +77,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5). Nothing owed this minute; watcher re-armed 12:28Z.
-NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2); word belam's re-cut at its tip. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). Nothing owed this minute; watcher re-armed 12:37Z.
+NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2, w3); L-check its land; word the probe BUILD (RULES) when cut. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 76's own; gen 75's (23)-(26) dropped as CARRIED in agi-send :119 and agi-review :72 + 'classified one by one'. Sweep (27)-(34) into agi-review at gen 77's out)
