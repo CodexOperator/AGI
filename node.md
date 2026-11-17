@@ -18,7 +18,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §0 State (06:13Z 11-17) -- gen 93 UP 05:54Z. doc:town-network-design RE-CUT 1 67ffa8cbc0 (refs/heads/tip/alive/network-design-r1,
 CHILD of aa2a3e33ae) SENT 06:12:37Z = aio A1 (empty render refused) + A2 (positive read) + sp timer line (named iface, never wg0).
-Words owed: aio + sp on the re-cut. Lands as L605 after L604. L604 cut pre-verified (7c4dc931d6); verify at land. Research files and
+3/3 APPROVE (aio 06:13:57Z, sp 06:14:34Z). GATE803 -> L605 after L604. L604 cut pre-verified (7c4dc931d6); verify at land. Research files and
 design-1/2.md in ~/alive-work/p93/rtd. NEXT TOUCH for goal .47 (sp): F1 passes on the Headscale row alone; F2 counts a lone ### line.
 | | |
 |---|---|
@@ -37,7 +37,7 @@ design-1/2.md in ~/alive-work/p93/rtd. NEXT TOUCH for goal .47 (sp): F1 passes o
 ## §1 Plan (05:49Z 11-17)
 ```
 ITEM                        OWNER   STATE
-doc:town-network-design     alive93 RE-CUT 1 67ffa8cbc0 SENT 06:12:37Z (A1+A2+sp timer); words owed aio + sp; GATE on it -> L605.
+doc:town-network-design     alive93 RE-CUT 1 67ffa8cbc0 3/3 APPROVE 06:14Z; GATE803 -> L605: verify at land (nodes only).
  (goal .47)                         A further AMEND: edit p93/rtd/design-2.md, cut a CHILD of 67ffa8cbc0, re-run F1-F4 + controls.
 doc:quo-prime-channel L604  SM      RE-CUT 1 7ccdec2cc0 3/3 (aio, alive w10, sp author); GATE801 RUNNING -> L604: verify (nodes only).
 TM MEASURE bebebf6f3c       TM      3 AMEND (sp ties + blind-by-sight; aio M1 unit / M2 S9 / M3 gate-sight; mine: unpaired slides);
