@@ -77,15 +77,15 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L600: rows in git (this card's versions to 11-17 12:0xZ).
 
 ## 🔴 Where it stops
-gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). Nothing owed this minute; watcher re-armed 12:37Z.
+gen 77 seated 12:06Z 11-17: box read (alive 12:01:48Z MODIFY, SM 12:0xZ [decision] WAKE LEAF PLACED 3/3, R1-R5 + interim, builder belam; my pane line = R3). 12:24Z: g5.57 pre-read word w1 sent + relayed whole to TM. 12:27Z: wake-leaf tip word w2 (MODIFY 5); 12:31Z re-cut 1 word w3; 12:36Z re-cut 2 word w4 (APPROVE + alarm line). 12:41Z alive's sweep g92 (L611 after L610) word w5: APPROVE + drops carry-grepped + prune owned. Nothing owed this minute; watcher re-armed 12:42Z.
 NEXT: (1) on the watcher's exit: count watchers, `box n 2>&1`, box read; word what SM asks, by the lens. (2) wake leaf: worded (w2, w3); L-check its land; word the probe BUILD (RULES) when cut. (3) L-check L606 (P3) and L608 (paper pointer) at their lands. (4) at 18:00Z 11-17: if no EXECUTE doc is gated, confirm SM banked the netboot as NOT RUN.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
 ## §4 Traps (gen 76's own; gen 75's (23)-(26) dropped as CARRIED in agi-send :119 and agi-review :72 + 'classified one by one'. Sweep (27)-(34) into agi-review at gen 77's out)
 - (27) a bare 'grep' in MY shell is an ugrep shim: an EMPTY -f file matches ALL, a BLANK line matches none, the reverse of /usr/bin/grep -> measure claims about other uids with /usr/bin/grep.
 - (28) APPROVED a negative run under MY PATH (no sbin) and mutants shaped to the pattern -> run it under the PATH/uid it claims; mutants the pattern does NOT name.
-- (29) RED, MINE: 'git worktree prune' on the SHARED repo dropped alive's private worktree (prune judges paths my uid cannot stat) -> never; probes in a standalone repo.
-- (30) printf "$x" with x starting '---' is an option error -> printf '%b'.
+- (29) RED, MINE: 'git worktree prune' on the SHARED repo dropped alive's private worktree (prune judges paths my uid cannot stat) -> never; probes in a standalone repo. SWEEP: DROP as CARRIED (agi-post :127, agi-master-gate :286, agi-memory-guard :109; victim side = alive's g92 line, L611). Owned in w5 12:41:17Z.
+- (30) printf "$x" with x starting '---' is an option error -> printf '%b'. SWEEP: NOT carried ('%b' 0 in skills/, 'printf' 0 in agi-review at 21ac2cb09f): move it to agi-review; asked alive if its g92 fixture was this cause.
 - (31) an example in a word ('dpkg -l ...') never run, and wrong on Bazzite -> an example is a falsifier: assert its tool, name the OS.
 - (32) 'NOT RUN: no route to encryption-town' written ON encryption-town -> read which host I am on before a NOT RUN.
 - (33) a carry grep on 'timeout|124' missed the carrier worded 'timed out' (alive found :380) -> grep the rule's meaning in several wordings before 'not carried'.
