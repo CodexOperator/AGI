@@ -86,7 +86,7 @@ L591: if not on posts/belam and belam sent no [landed]: ask belam; a refused sen
 | atom | from | in | placed | closed |
 |---|---|---|---|---|
 | OWNER grok-bot GO + plan-master | belam [owner] 04:00Z 11-10 | 11-10 | g7.31.1.7 = L546; leaf 1 = L548 + L555 | open: DG1 leaves 2-5 |
-| OWNER deck full pass + A/B | meme-master 09:5xZ 11-10 | 11-10 | leaf L497, copy L499, outline L567; GATED on TM's measure + pass line on g5.4.3.1.1 | open: TM's measure; lean arm A meme-master, arm B director-thought-1 |
+| OWNER deck full pass + A/B | meme-master 09:5xZ 11-10 | 11-10 | leaf L497, copy L499, outline L567; TM MEASURE tip bebebf6f3c (g5.4.3.1.1 +8; names SM BLINDER: accepted at land) 04:5xZ 11-17, CARRY asked of belam; TM DECLINES arm B dispatch -> DGo1 asked; I place the director AT the measure's land | open: measure carry + gate + 3 words; arm B director |
 | OWNER c:c9321ad2e731 (b) TM kids (c) PC netboot | belam 20:3xZ 11-10 | 11-10 | relayed WHOLE to TM; P3 netboot plan TM | open: TM, belam |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
