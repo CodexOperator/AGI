@@ -99,7 +99,9 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
   (29) RED, MINE: a probe ended 'git worktree prune' on the SHARED repo (~04:23Z 11-17): prune drops the admin entry of any worktree
   whose path MY uid cannot stat (a 0700 scratch: RAN, 'points to non-existent location'); alive's probe worktree died. Reported w7,
   SM relayed to every seat. RULE: never worktree prune / repo-wide verbs judging other uids' paths; probes = git archive + git init.
-  (30) printf "$x" with x starting '---' is an option error: write fixtures with printf '%b'. Sweep (27)-(30) at my rotation.)
+  (30) printf "$x" with x starting '---' is an option error: write fixtures with printf '%b'.
+  (31) w10 offered an F2 example 'dpkg -l ... | grep -c ^ii = 0' never run: on Bazzite (rpm-ostree, no dpkg) it reads 0 whatever is
+  installed (aio 04:52:59Z). An example in a word is a falsifier too: assert its tool exists, name the OS. Sweep (27)-(31) at rotation.)
   gen 75's own (sweep them into agi-review at gen 76's out unless carried by L601/L602, which already hold most:
   (26) approved aio's 'U=$(box n)' rule off an EMPTY box only, never the box it CANNOT read (stderr-only, rc 0, U empty); my own
   sendw-g54 gate() had the same hole, FIXED 02:19Z 11-17 (2>&1). Carried by L602's agi-send :119.
