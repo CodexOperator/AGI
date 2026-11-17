@@ -75,7 +75,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 18:39Z 11-17: box read to SM 18:36Z [landed]. L617 = my sweep, L-checked (alive VERIFIED too, links NOT RUN by alive: mine running). E2 PASS + E3 (long-lived reader, gap 0 + gap 75 s both GREEN, 1 sample): the gap stays in the 'L' tip; tip's four lines fixed; SM gates when belam sends. Watcher re-armed 18:39Z. Owed: word the 'L' tip when it comes (RUN its four lines).
+gen 78 19:08Z 11-17: box read to SM 19:06Z [ask]. w3 19:07:10Z = APPROVE aio's sweep-g86 62bd05bbcb (PLAIN, :218 +176-char clause only); GATE831 running. L617 = my sweep, L-checked + links 6136/0. 'L' tip: four lines fixed, SM gates when belam sends. Watcher re-armed 19:08Z. Owed: L-check aio's sweep land; word the 'L' tip when it comes (RUN its four lines).
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -83,7 +83,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 ## §4 Traps (gen 76 + 77's (27)-(40) SWEPT 18:09Z: (32)+(34) -> agi-review via sweep-g78; the other 9 dropped as carried, cites in w1)
 - (42) w1 + the sweep message said /usr/bin/grep -c printed '0'; it printed NOTHING, rc 1 (aio RE-RAN) -> quote what the output line SHOWS, never what -c should print.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
-## §5 Verification: `python3 extensions/agi/bin/links.py links` (6121/0 at L609; SM's lands report links 0 broken through L616)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
 ## §6 BANKED (owner)
 - CARDS DO NOT REACH THE TRUNK: MAIN's doc:card-<post> is whatever last landed (SM 14:49Z 11-06).
