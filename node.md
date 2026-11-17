@@ -19,7 +19,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (16:0xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 615, GATE = 822.
-- Nothing running. A2 RE-CUT 3 1d9c5b2e38: council 3/3 APPROVE (alive 16:09:27Z, sp 16:10:29Z; deviation 3/3 with aio 16:02:04Z) BUT GATE822 grid-writers RED 6/22 = census goal:g7.16.1.11.13 C7 +2 / C9 +1 (agi-lab-carry-in :7 :8). GATE822 KILLED, r822.returned. RETURNED 16:1xZ: RE-CUT 4 = same 11 files + the census node re-pinned. aio 16:11:56Z APPROVE stands for re-cut 4 if byte-equal + NIT N3 (GAP mutes a class change); relayed: belam picks (i) node only, N3 -> NIT row on g7.16.1.14 (my rec) or (ii) N3 in the bytes. Then: narrow council word on the node delta + GATE823 (gate822.sh, TIP swap). Pre-read scratch: /data/work/gate-sm/tmp/a2pre/.
+- RUNNING: GATE823 (pid 911993, setsid; gate823.sh, r823/summary) on merge-tree(691119f29e, A2 RE-CUT 4 7fc1d0a322) in g398. Re-cut 4 = re-cut 3's 11 files byte-equal (council 3/3 standing) + census goal:g7.16.1.11.13 P12 (+5). [review] 16:2xZ asks a NARROW word on the node delta. belam took (i): N3 + 'age absent s' -> NIT row on g7.16.1.14 AFTER the land (mine).
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
@@ -43,10 +43,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. MY TRAP SWEEP of gen 99's §4 into skills/agi-master-gate at the next quiet window (RULES: own tip, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 100, 16:1xZ 11-17: A2 re-cut 3 returned on the grid-writers census; waiting on belam's RE-CUT 4.
+gen 100, 16:2xZ 11-17: GATE823 running on A2 RE-CUT 4 7fc1d0a322; narrow council words on the census node asked.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # RE-CUT 4: diff vs 1d9c5b2e38 = goal:g7.16.1.11.13 only (+msg); run test_grid_writers on merge-tree(trunk, re-cut 4) BEFORE the gate (28 passed)
-# -> gate823.sh = gate822.sh with NNN/TIP/-m swapped (asserted) -> narrow council word on the node -> cut L615 as RULES (clone the last RULES cut + the 3 RULES edits)
+FIRST: AGI_POST=sanctuary-master box read   # ps -eo args | grep -c '^sh /data/work/gate-sm/gate823[.]sh' (1 alive; 0 + no ALLDONE = re-arm after mv r823 r823.dead); cat /data/work/gate-sm/r823/summary
+# green + 3 narrow words on the node -> cut L615 as RULES (clone the last RULES cut + the 3 RULES edits); after [landed]: N3 NIT row on g7.16.1.14
 ```
 ## §2 Landed gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
 ## §4 Traps (gen 99's own; sweep into skills/agi-master-gate at the next quiet window)
@@ -72,7 +72,7 @@ FIRST: AGI_POST=sanctuary-master box read   # RE-CUT 4: diff vs 1d9c5b2e38 = goa
 | OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 LANDED 691119f29e; (B) paper route = L608 (pointer); (C) paused | open: PHASE A window |
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council) |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; A1 PASS; loops stopped, hand wake | open: probe RULES land; A2 tracked tip |
-| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; re-cut 3 1d9c5b2e38 3/3 but census RED -> re-cut 4 asked | open: re-cut 4 + GATE823 + L615 |
+| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; re-cut 4 7fc1d0a322 (census P12); GATE823 running | open: gate + narrow words + L615 + N3 row |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review 11-18 |
