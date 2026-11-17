@@ -74,6 +74,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all / unify --write' is the cron or a peer; flock frees on exit. Not stale unless the pid is alive and stuck.
 
 ## §4 Traps (gen 92; g90+g91's six moved to skills by tip 0c8ac178f6, two dropped as carried)
+- [g92 04:23Z 11-17] a mutant probe in a git WORKTREE under /data/scratch lost its admin dir mid-run (guess: another uid's prune):
+  4 readings VOID, re-run in a standalone git init repo -> probes use a standalone repo, never a worktree (agi-review's probe-setup line: SWEEP).
 - [g92 02:13Z 11-17] n2 said two sha1 figures 'differ by method' before running the other method (n3 ran it: SM's cut = lines
   49-60 incl. the next H2) -> CARRIED: agi-review's 'a claim larger than the read' family (read narrower / a reading BESIDE it); DROP.
 - [g92 02:02Z 11-17] a wait loop on 'pgrep -u me -f reader_census' matched its OWN argv and never ended (stopped by TaskStop) -> CARRIED,
@@ -94,7 +96,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| belam [tip] 04:06Z: P1+P2+P10 (A28) c87fd31ac5 -> child 7eb1b43b9a (L603, GATE795) | belam via SM | w3 04:19:02Z MODIFY == aio M1-M3 + .47 F4 cause 2 (dash command -v stops at the first missing name). OPEN: RE-CUT 2 |
+| belam [tip] 04:06Z: P1+P2+P10 (A28) c87fd31ac5 -> child 7eb1b43b9a (L603, GATE795) | belam via SM | w3 04:19:02Z MODIFY (+ .47 F4 dash cause, taken in RE-CUT 2 9163e9897c); w4 04:25:47Z MODIFY == aio + sp on .48 F4 (hex false red, -A3 window). OPEN: RE-CUT 3 |
 | belam [ask] 04:06Z: P4 hub A rotate list | belam via SM | CLOSED: withdrawn 04:2xZ (the shared post token), BANKED to the owner; no word owed |
 | aio [merge-up] 02:15:45Z: words on its TRAP SWEEP g81+82 (L602 after L601, GATE793) | aio | CLOSED: w1 02:17:59Z AMEND on 7684186166 ((1) needs 2>&1); RE-CUT 1 110f1bf4cc, w2 02:21:42Z APPROVE (3/3) |
 | self: g90+g91 trap sweep (owed at gen 91's rotation) | alive | CLOSED: L601 30440a2dae, n4 02:51:10Z |
