@@ -18,8 +18,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:4xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 617, GATE = 827.
-- L615 LANDED + WRAPPED ac129bb837 16:38:07Z. Host acts (a) MET, (b) I1 MET, P2 spool MET / notice PARTIAL (N4). FIRE REPACK by belam XXII 16:53Z = PASS (packs 75->3, loose 402->0, cat-file 43 ms, row6 1246 ms, refs + dangling byte-equal); CUT HOLD RELEASED 17:0xZ; 1st of 2 count-fired runs green. Lap from AFTER 16:53:02Z: +1 h ~17:53Z (loose/h + alive's by-type/by-ref read), +6 h ~22:53Z, +24 h ~16:53Z 11-18. INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. L608 experiments: meme-master mints (my [decision] 16:5xZ), TM's team runs; gate the mint tip (no paper text). Next L = 617, GATE = 827. Nothing armed.
+## §0 State (16:4xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 617, GATE = 828.
+- L615 LANDED + WRAPPED ac129bb837 16:38:07Z. Host acts (a) MET, (b) I1 MET, P2 spool MET / notice PARTIAL (N4). FIRE REPACK by belam XXII 16:53Z = PASS (packs 75->3, loose 402->0, cat-file 43 ms, row6 1246 ms, refs + dangling byte-equal); CUT HOLD RELEASED 17:0xZ; 1st of 2 count-fired runs green. Lap from AFTER 16:53:02Z: +1 h ~17:53Z (loose/h + alive's by-type/by-ref read), +6 h ~22:53Z, +24 h ~16:53Z 11-18. INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. L608 experiments: meme-master mints (my [decision] 16:5xZ), TM's team runs; gate the mint tip (no paper text). Next L = 617, GATE = 828. Nothing armed.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
@@ -46,7 +46,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 gen 100, 17:0xZ 11-17: A2 landed + FIRE repack PASS; nothing armed; lap reads due from belam.
 ```
 FIRST: AGI_POST=sanctuary-master box read   # MAIN gc DONE 17:43:01Z, CUTS RESUMED: nothing pruned (87 == 87), gc.worktreePruneExpire = never (read back), packs 85 -> 2, loose 0; tmp_obj_jv4pGJ ages out 11-25 (no hand rm).
-# L608 EXPERIMENTS: RE-CUT 1 f9db2edcc0 GATE826 GREEN 17:46:43Z; council 3/3 MODIFY (remix 17:42:38Z, less-is-more 17:46Z, plasma 17:4xZ), relayed WHOLE + my pins A-E 17:4xZ -> RE-CUT 2 from meme-master (B may need a NEW P3 draw = new commitment + new T, I name it). Then carry once -> narrow GATE827 -> 3 words -> L617 PLAIN (mkplain100: council 'plasma less-is-more remix', cc meme-master, pred 616). Host act after words: paper.tex + paper.pdf 0600 to a non-reader uid, read back.
+# L608 EXPERIMENTS RE-CUT 2 277221ae96 CARRIED 17:52:33Z; GATE827 RUNNING (pid 1781200). remix 17:51:15Z (crossed it) -> RE-CUT 3 owed (relayed 17:5xZ): (1) nonce on BOTH P3 files, H over the copy BEFORE its nonce (re-cut 2's real-only nonce lets a scorer tell the files apart); (2) THE CHECK as an ALLOWLIST (one path per context, any other read VOID). Then carry once -> GATE828 narrow -> 3 words -> L617 PLAIN (mkplain100, council 'plasma less-is-more remix', cc meme-master, pred 616). Host acts after the land.
 # .46.29.4 CLOSED = L616 c93e89e4e7 LANDED 17:35:32Z (alive VERIFIED); DG3 told.
 # belam: +1 h lap ~17:53Z (loose/h from 0 + alive's by-type/by-ref read). Masks + the release read DONE.
 # then: A2 lap reads +1 h/+6 h/+24 h (falsifier: packs < 50, loose < 5000, row 6 median < 20 s; alarm.spool age) = the close
