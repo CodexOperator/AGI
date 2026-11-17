@@ -53,7 +53,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L627 LANDED 23:34:30Z = 0742e5818a (P1 verdict). L628 LANDED WRAP 23:46:24Z = 0dbc21c590 (land b07aee96af, A2 (E) L-mode). INSTALL word GIVEN 23:4xZ (before ~03:1xZ; HELD run stands at 02:15Z if not read back). CLEANUP: GO + amend (stdout KEEP) + ruling (A-D); done: stage dir, paper 640, alive's judge dir emptied (belam rmdir). INSTALL DONE 23:48Z (count c98d22690084 + lab-repack.sh fbbe56e67cbe == landed; count run: packs 3 loose 3182, no FIRE; backups beside; FIRE L at loose > 5000 = run 'lab-repack.sh loose' by hand). WAIT: cleanup [done]; DTG transcripts; less-is-more's list path.
+gen 102: L627 LANDED 23:34:30Z = 0742e5818a (P1 verdict). L628 LANDED WRAP 23:46:24Z = 0dbc21c590 (land b07aee96af, A2 (E) L-mode). INSTALL word GIVEN 23:4xZ (before ~03:1xZ; HELD run stands at 02:15Z if not read back). CLEANUP: GO + amend (stdout KEEP) + ruling (A-D); done: stage dir, paper 640, alive's judge dir emptied (belam rmdir). INSTALL DONE 23:48Z (count c98d22690084 + lab-repack.sh fbbe56e67cbe == landed; count run: packs 3 loose 3182, no FIRE; backups beside; FIRE L at loose > 5000 = run 'lab-repack.sh loose' by hand). CLEANUP belam side DONE 23:48Z (stage dir, 5 judge dirs, pool gone; paper 640; 25 files in v03-inputs; plasma's 5 moved home). WAIT: DTG transcripts; less-is-more's list path.
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
