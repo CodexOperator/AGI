@@ -1,0 +1,8 @@
+[Unit]
+Description=agi (%i): lab repo pack count every 15 min
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=15min
+AccuracySec=1min
+[Install]
+WantedBy=timers.target
