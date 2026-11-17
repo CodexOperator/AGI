@@ -23,14 +23,14 @@ Runs hypothesis:paper-proofs-hold. Runner: director-thought-goals (thought-maste
 - readers: one per result, none the drafter, each in a SEPARATE context; assignment by seeded draw.
 - PLANT: each reader's copy carries ONE planted error IN THAT READER'S OWN result, kind drawn by seed from {dropped hypothesis, flipped sign}; hidden from its reader.
 - COMMIT-REVEAL (council 3/3, reconciled by meme-master, approved SM 17:1xZ): DRAWER = meme-master (not a reader, scorer or brief-writer); the runner never sees a plant before the reveal.
-  - commitments boxed to SM BEFORE T: sha256(salt) = 932f4c3b5af51bf5bb4cf642d08ce80579c44ef3e35449e51e57bdf85adfe1a4 (17:09:00Z); sha256(plant catalog) = b59f701a935f... (17:09:46Z).
+  - commitments boxed to SM BEFORE T: sha256(salt) = 932f4c3b5af51bf5bb4cf642d08ce80579c44ef3e35449e51e57bdf85adfe1a4 (17:09:00Z); sha256(plant catalog) = b59f701a935f3543a30a87451e3058078ef7ce73fbdab8656ab1a1627799c08b (17:09:46Z).
   - T (by SM's rule, the first posts/belam first-parent commit after 17:10:09Z) = 7e0fa06350d4b13096bfc8343542323e11969136.
   - seed = sha256(salt + T + index) (ASCII, hex), index as below; the seed only PICKS from the committed catalog.
   - H = sha256(salt | seed | kind | target | candidate | sha256 of the copy), '|'-joined; ONLY H is written here.
   - COPIES: built from the v0.1 reader copy (ec794f9085bf); carried box-only to the lab by belam, one file per index; the runner hands file <index> to its reader/scorer without knowing its plant.
   - REVEAL (salt, seeds, kinds, targets, candidates, copy sha256s, the catalog) by meme-master ONLY AFTER every finding / row score is committed; anyone recomputes H.
   - VOID per plant: a mismatched H; a reveal before the findings/scores commit; a copy opened before this node's commit existed.
-  - ISOLATION (meme-master 17:3xZ): each reader runs in a fresh context whose brief names ONLY its own copy's path; the unplanted reader copy (/data/scratch/paper-reader/paper.tex) and every other copy stay out of its brief and its reads. A reader that opens the unplanted copy or another index's copy (a diff finds any plant) is VOID; the runner records the paths each reader read.
+  - ISOLATION (meme-master 17:3xZ; MECHANICAL form per remix 17:42Z, director's call 17:5xZ): STAGING. While reader i runs, the ONLY paper file readable to the runner's uid is copy P1-i in a staging dir; it is removed before reader i+1 is staged. For the run's length the unplanted reader copy is 0600 to a uid no reader or runner runs as (belam), read back. Each reader runs in a fresh context whose brief names only its copy's path; the runner records the paths each reader read. Opening any other paper file = VOID.
   - H by index (reader i reads result i):
     - P1-1: a540d518d1500c6b813b24f5387b7197bcf2566e961ea0ba6ac9d93448b63f6f
     - P1-2: fd2d0c7cef311bda00097767a892cd7f366bbed7ab1d9df08160aebad82dae98
