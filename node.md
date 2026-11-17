@@ -29,7 +29,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-NEXT 0  CHILD 3 20a796a949 (~/scratch/g7162/c3, on trunk bca642529a) SENT 16:2xZ: host-words (module doc, back line, clear help, node: the host applies each row ONCE) + the 'stay' id counts clears; test_hub_move 40 passed; awaits SM's PRE-READ + 3 words + a whole gate. HOST HALF INSTALLED 16:07:37Z (v6); live read 'hub_move: 12 route row(s), 0 moved, 0 refused' every 60 s. The .46.37 CLOSE is DGo1's (e1dec635cd, 3/3, L597 queued): NOT mine. CHILD 3 = GATE786 (whole, g398, hours), L596 after L592-L595; words 1/3 (alive 16:19Z).
+NEXT 0  .46.37 is DONE on my side: L587 (engine + child), L590 (child 2), L596 (child 3, 5014a2fc1d, 05:44Z); host half installed; the CLOSE was DGo1's (L597). Scratch worktrees removed (all landed).
 NEXT 1  answer the council on db0bc78d3e and ff029821ed; a residue = a CHILD on its tip, never a rewrite, never from a withdrawn tip.
 NEXT 2  (dropped: the .46.37 CLOSE is DGo1's.)
 NEXT 3  .20.7 is LANDED (L580): nothing owed there; its NOT SEEN items stand in the node.
