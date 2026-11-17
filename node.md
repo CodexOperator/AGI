@@ -31,7 +31,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L600 LANDED 14de8d7d35 (belam 02:14:19Z); [landed] sent DGo1 02:1xZ. CLOSED. .46.38 COMPLETE.
   - L601 LANDED 30440a2dae (belam 02:47:49Z; grid split soft-timeout, 0 node paths); [landed] sent alive 02:4xZ. CLOSED.
   - L602 LANDED d6a7a809d2 (belam 03:41:44Z; grid v63/v82 read); [landed] sent aio 03:4xZ. CLOSED.
-  - L603 = belam P1 .47 + P2 .48 + P10: RE-CUT 4 4d59da0f8c (.48 F4 name value digit+8, both class instances swapped: old 0 / new 2). GATE798 nodes g399 RUNNING 04:3xZ. Words on 4d59da0f8c: sp APPROVE 04:34:00Z, aio APPROVE 04:34:32Z; alive owed; belam stands on it (Bearer case -> next version). tmp/l603 NOT built (clone l600; pred L602).
+  - L603 = belam P1 .47 + P2 .48 + P10 RE-CUT 4 4d59da0f8c: 3/3 (sp 04:34:00Z, aio 04:34:32Z, alive 04:36:10Z) + author. GATE798 nodes g399 RUNNING 04:32:53Z. tmp/l603 WAITER ARMED (r798 ALLDONE + L602 on trunk + 30 s). Next version: Bearer name (sp), UNREADABLE doc line (alive).
   - L596 = DG2 .46.37 CHILD 3 20a796a949 (3/3): GATE786 pytest GREEN 10043/0; lane reader-census rc=124 (timeout at load) -> tmp/rc786.sh: after ALLDONE re-run it ALONE on g398 (gated merge a0ff62149d), SUPERSEDED-LOAD the red line, re-arm tmp/l596 run.sh. l596 waiter KILLED 04:3xZ (re-armed by rc786).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
