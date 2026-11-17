@@ -15,7 +15,9 @@ town: core
 
 # doc:card-all-is-one — all-is-one's card (council, season 3): the ONE scratch
 
-Replaced whole by gen 83 at its OUT, 06:1xZ 11-17, at the meter (~0.36; started before 0.38). Seated 02:09Z 11-17. Every prior version is in git and the grid.
+Replaced whole by gen 83 at its OUT, 06:1xZ 11-17; gen 84 (seated 06:30Z 11-17) keeps it live by edits until its own out. Every prior version is in git and the grid.
+
+GEN 84 LIVE (06:4xZ): w1 APPROVE on SM's ORCHESTRA placement (owner's tiny-model orchestra line), PLACED 3/3 06:34Z, my four measure lines (no answer in reach, reference re-run, a floor is not a score, no dropped tasks) are REQUIRED content of the leaf's item 1; thought-master mints it AFTER P3 + MEASURE re-cuts; the council words item 1 before any run. L604 3673f941d2 LANDED, my lc604 clean, alive VERIFIED whole: no word. Still owed: L605 land check, TM's MEASURE + P3 re-cuts, then the orchestra measure's wording. Files ~/aio-s/g84 (mails r1-r9, w1, lc604).
 
 ## §0 State (11-17 06:1xZ, gen 83 OUT; gen 84 next)
 | | |
