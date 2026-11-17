@@ -19,7 +19,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 ## §0 State (16:4xZ 11-17) -- gen 100 seated. HUB B. Trunk = posts/belam 691119f29e (L613). Next free L = 616, GATE = 824.
-- L615 LANDED + WRAPPED ac129bb837 16:38:07Z (alive VERIFIED 16:41:03Z). Host acts (a) MET 16:39:23Z, (b) I1 MET, P2 = spool half MET / notice half PARTIAL (N4 de-dup exits 0; alive 16:43:37Z, corrected to belam). INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. LIVE FIRE: 75 packs (old carry-in, 73 in 98 min). WINDOW GRANTED 17:01Z for belam's 'lab-repack.sh held' + 'post': CUTS HELD until belam's [done]. 16:55Z belam reads (a)-only rate. Lap +1/+6/+24 h from the repack's AFTER. Next L = 616, GATE = 824.
+- L615 LANDED + WRAPPED ac129bb837 16:38:07Z (alive VERIFIED). Host acts (a) MET, (b) I1 MET, P2 spool MET / notice PARTIAL (N4). belam ROTATED 16:47Z (gen XXII); XXI CANCELLED the 17:01Z FIRE run (nothing ran, 8/8 lab posts running) = CUT HOLD RELEASED. LIVE FIRE (75 packs > 50) UNANSWERED: asked XXII for a foreground window 16:5xZ (one note: + sp loose-rate projection, aio MAIN gc.log, CHECK answers). INTERIM: relay to belam any [alarm lab-pack-count] whose class differs from the last. Next L = 616, GATE = 824. Nothing armed.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). His day has begun: NO reboot of the PC without his OWN ask.
 - IN FLIGHT:
   - L613 LANDED 691119f29e 15:47:02Z (alive VERIFIED 15:47:10Z); [landed] -> thought-master SENT 15:5xZ (gen 100). Netboot PHASE A needs 3/3 (have) + MY WINDOW (never :14-:30 / :45-:00, no land in flight) + no player; PHASE B (reboot) ONLY on the owner's own ask; not gated-and-asked by 18:00Z = BANKED 11-18 (belam card §6).
@@ -43,9 +43,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. MY TRAP SWEEP of gen 99's §4 into skills/agi-master-gate at the next quiet window (RULES: own tip, belam wraps).
 ```
 ## 🔴 Where it stops
-gen 100, 16:4xZ 11-17: L615 landed, host acts MET; CUTS HELD for belam's 17:01Z repack window.
+gen 100, 16:5xZ 11-17: L615 landed; FIRE repack window asked of belam XXII; cut hold released.
 ```
-FIRST: AGI_POST=sanctuary-master box read   # box read: belam's 16:55Z (a)-only count, then the 17:01Z [done] (HELD + POST PASS/NOT PASS, or STOP) -> release the cut hold
+FIRST: AGI_POST=sanctuary-master box read   # box read: belam XXII's window for the FIRE repack (hold cuts on its word) + its (a)-only count; council word on closing .46.29.4 (prayer-captive 98/0 at f12543aa7c)
 # then: A2 lap reads +1 h/+6 h/+24 h (falsifier: packs < 50, loose < 5000, row 6 median < 20 s; alarm.spool age) = the close
 ```
 ## §2 Landed gen 100: L613 691119f29e (TM netboot plan rc2; landed under gen 99's cut) · L615 ca4a7cf900 (A2 lab repack, RULES, wrap ac129bb837). Gen 99 (11-17 06:5xZ - 15:4xZ, 9): L605 58f64cab14 · L607 0291936ccc · L609 9728756c05 (my trap sweep, RULES) · L610 8cf17bd68d (wake leaf, squashed rc3) · L611 7ff4fde110 (alive sweep g92) · L608 eb2c41491b (paper route pointer rc3) · L612 16342c7dc3 (g5.57 orchestra) · L614 823db2d3dd (wake amend 1) · L606 e649d70c78 (P3 rc4). Lab A1 repack PASS 15:02Z (3497 packs -> 2; cat-file 8.1 s -> 56 ms; row 6 rc 0 6.2 s).
@@ -72,7 +72,7 @@ FIRST: AGI_POST=sanctuary-master box read   # box read: belam's 16:55Z (a)-only 
 | OWNER 06:43Z 11-17 (A) netboot (B) paper + deck drafts (C) pause .47/.48 | belam + meme-master | 06:4xZ | (A) P3 = L606, plan = L613 LANDED 691119f29e; (B) paper route = L608 (pointer); (C) paused | open: PHASE A window |
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council) |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; A1 PASS; loops stopped, hand wake | open: probe RULES land; A2 tracked tip |
-| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; L615 landed; host acts MET; FIRE repack 17:01Z (window granted) | open: repack [done] + lap reads |
+| RED lab repo 3497 packs (git 4-10 s) | belam 13:5xZ 11-17 | 13:5xZ | A1 RAN PASS 15:02Z; A2 STEP 0 DONE; STEP 2 PLACED; L615 landed; host acts MET; XXI cancelled 17:01Z; window asked of XXII | open: FIRE repack + lap reads |
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review 11-18 |
