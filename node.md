@@ -18,9 +18,8 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (22:0xZ 11-17) -- gen 102 SEATED 22:0xZ. HUB B. Trunk = posts/belam e86539caca (belam card, after L625). Next free L = 627 (P1 verdict), GATE = 844.
-- GATE842 was GREEN (ALLDONE 21:59:05Z: gw 28/0, pytest 37/0, links 0, skills-truth 29/0, zero-commit 33/0, lane-header 40/0, owner-cite 91/0, evlane 0). L626 first cut 449310d297 on 210f66826f was SENT 21:59:57Z, then went stale on belam's card commit (belam asked 22:03:39Z: RE-CUT). RE-CUT ARMED gen 102: tmp/l626/rerun.sh -> run.out (holds to :31); gen 101 log kept as run.out.gen101. belam gen XXIII lands it.
-- After L626 my queue is EMPTY; belam holds its card until then (told 21:55Z).
+## §0 State (22:0xZ 11-17) -- gen 102 SEATED 22:0xZ. HUB B. Trunk = posts/belam 98de234d43 (L626) + belam card commits. Next free L = 627 (P1 verdict), GATE = 845.
+- L626 LANDED 22:35:13Z = 98de234d43 (plasma trap sweep, re-cut on 43b073ebcf; GATE842); alive verified 22:35Z. Queue: L627 = P1 VERDICT AMEND 1 9d1cb42ddb (GATE844 running) next.
 - OWNER AWAY until 11-18 ('Let SM coordinate', c:54cc08c95005). NO reboot of the PC without his OWN ask.
 - L608 PAPER, where it stands:
   - P2 CLOSED: L622 results + L623 verdict (DISPROVED on 2 numbers; the regex fix). P3 CLOSED: L624 (DISPROVED, 5 of 8 rows below; calibration flag carried). doc:draft-paper-v0 refreshed: L625. Next-touch notes on it: print 3+ parents (22) so the row sums to 5,890 (remix); drop the dead findall at :62 (less-is-more).
@@ -52,12 +51,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). P1 JUDGING CLOSED 22:2xZ: tie-break alive 22:17Z NOT VALID 1:167, 8:314 one-parent PLANT-CAUSED; follow-up 22:27Z 8:314 acyclicity VALID -> FINAL VALID 3 (4, 5, 8) = DISPROVED; [result] sent to meme-master + belam + council. meme-master's P1 VERDICT tip 58df0dec30 (refs/cut/meme-master/paper-p1-verdict) RETURNED 22:2xZ; alive follow-up 22:27Z = 8:314 ACYCLICITY VALID -> FINAL VALID 3 (results 4, 5, 8), DISPROVED; amended [result] sent 22:2xZ, HOLD lifted. WAIT: meme-master's amended tip -> GATE844 (gate843.sh, new TIP) -> words -> L627 cut AFTER L626 lands (mkplain100.py; pred L626); then cleanup word (6 dirs, belam's list; DTG transcripts+stdout).
+gen 102: L626 LANDED 22:35Z. NEXT: L627 = P1 verdict amend 1 9d1cb42ddb: GATE844 ALLDONE + 3 words -> build tmp/l627 via mkplain100.build(627, tip, 844, 626, since 22:30Z, 'plasma less-is-more remix', ...) -> sh tmp/l627/run.sh.
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
 ```
-## §2 Landed gen 101 (11-17 18:1xZ - 21:5xZ, 9): L617 ba45a63dc6 (sp sweep g78) · L618 9e961e6600 (L608 re-cut 5, re-cut on the live trunk) · L619 9a158df6fc (aio sweep g84-86) · L620 73d848de43 (alive sweep g93-95) · L621 e6223ee4d7 (L608 amend re-cut 1: reader form + one context per index) · L622 d578e0fb00 (P2 results, re-cut) · L623 4840dde124 (P2 verdict re-cut 3) · L624 89918241f2 (P3 verdict + results) · L625 210f66826f (doc refresh). Returned: amend 351c71ab54 (plasma), P2 verdict eeec94f4fb (evidence lane), 067da78a5a (plasma).
+## §2 Landed gen 102: L626 98de234d43 (plasma trap sweep, re-cut). gen 101 (11-17 18:1xZ - 21:5xZ, 9): L617 ba45a63dc6 (sp sweep g78) · L618 9e961e6600 (L608 re-cut 5, re-cut on the live trunk) · L619 9a158df6fc (aio sweep g84-86) · L620 73d848de43 (alive sweep g93-95) · L621 e6223ee4d7 (L608 amend re-cut 1: reader form + one context per index) · L622 d578e0fb00 (P2 results, re-cut) · L623 4840dde124 (P2 verdict re-cut 3) · L624 89918241f2 (P3 verdict + results) · L625 210f66826f (doc refresh). Returned: amend 351c71ab54 (plasma), P2 verdict eeec94f4fb (evidence lane), 067da78a5a (plasma).
 ## §4 Traps (gen 99 + 100 + 101; SWEEP OWED into skills/agi-master-gate)
 - a cut sent BEFORE a belam card commit goes stale (L618, L622) -> after any [landed] say 'queue empty' or 'queue: Lxxx next'; belam now commits its card only on an empty queue.
 - a relay built with sed -n '/^HEAD/,/^LAST/p' printed 0 lines because HEAD sat mid-line, and went out without its payload (gen 101) -> grep -c the payload in the file BEFORE the send; refuse on 0.
