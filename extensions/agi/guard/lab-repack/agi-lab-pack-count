@@ -1,0 +1,37 @@
+#!/bin/sh
+# agi-lab-pack-count (root, every 15 min, encryption-town, READ ONLY): goal:g7.16.1.14 A2 (b), sanctuary-master
+# [decision] 15:3xZ 11-17, 3/3 (self-perpetuating 15:28:49Z + 15:30:29Z, all-is-one 15:30:44Z, alive 15:32:36Z).
+# The lab repo's bytes live on this box (the export the lab mounts). On 11-17 they held 3497 packs: every object read
+# in the lab cost 4-10 s and the box-wake key never fit its 20 s bound, until ONE geometric repack (A1, 15:01Z) took
+# a read from 8.1 s to 56 ms. This counts packs and loose objects with find only (no git, no hold, no write to the
+# repo), logs both with the path and its uid every run, and ALARMS:
+#   FIRE      packs > K or loose > L: run lab-repack.sh held + post BY HAND (ALARM-ONLY until two count-fired runs
+#             read green with a person reading each; then the council words whether it fires by itself)
+#   NOT READ  packs == 0 or any find stderr (b1): a count that cannot be read is never "under the limit"
+# The alarm goes to sanctuary-master through belam's spool (root never signs: belam's own drain signs and sends it)
+# and to belam as ONE ~/.notice line (a seat cannot mail itself). It repeats at most once per GAP s while it holds.
+H=${H:-/data/nas/lab/data/work/agi/.git/objects};K=${K:-50};L=${L:-5000};GAP=${GAP:-3600};F=${F:-1800}
+SELF=${SELF:-belam};TO=${TO:-sanctuary-master};AS=${AS:-/opt/agi/bin/alarm_spool.py};STORES=${STORES:-/var/lib/agi}
+S=${RUNTIME_DIRECTORY:-/run/agi-lab-pack-count};mkdir -p "$S";now=$(date +%s);e=$S/find.err;: >"$e"
+p=$(find "$H/pack" -maxdepth 1 -name '*.pack' 2>>"$e" | wc -l)
+l=$(find "$H" -mindepth 2 -maxdepth 2 -path "$H/[0-9a-f][0-9a-f]/*" 2>>"$e" | wc -l)
+er=$(head -c 300 "$e" | tr '\n' ' ')
+# (b3, self-perpetuating 16:02:34Z) a VALID but STALE path reads 'under the limit' forever (e.g. an old export after a
+# storage move). The carry-in's fetch rewrites FETCH_HEAD every minute even with nothing new, so FETCH_HEAD older than
+# F s (or absent) = NOT READ: stale path or carry-in stopped. Its age is logged every run.
+fh=$(stat -c %Y "$H/../FETCH_HEAD" 2>/dev/null);fa=$([ -n "$fh" ] && echo $((now-fh)) || echo absent)
+logger -t agi-lab-pack-count "packs=$p loose=$l K=$K L=$L path=$H uid=$(id -un) fetch_head_age=$fa F=$F${er:+ stderr=$er}"
+if [ -n "$er" ] || [ "$p" = 0 ];then why="NOT READ (packs=$p; find stderr: ${er:-none})"
+elif [ "$fa" = absent ] || [ "$fa" -gt "$F" ];then why="NOT READ: stale path or carry-in stopped (FETCH_HEAD age $fa s, F=$F s; packs=$p loose=$l)"
+elif [ "$p" -gt "$K" ] || [ "$l" -gt "$L" ];then why="FIRE: packs=$p (K=$K) loose=$l (L=$L): run lab-repack.sh held + post by hand (A2 is alarm-only)"
+else rm -f "$S/last";exit 0;fi
+last=$(cat "$S/last" 2>/dev/null||echo 0);[ $((now-last)) -ge "$GAP" ]||exit 0
+m="[lab-pack] agi-lab-pack-count $(date -u +%H:%MZ) -> $TO (and belam's notice): $why. Path $H, read as $(id -un). An alarm unanswered for a lap is a red (goal:g7.16.1.14 A2)."
+# P1 (alive 16:00:37Z): a LOST alarm exits NON-ZERO, so the unit reads FAILED ('systemctl --failed', any heal pass), and
+# the journal names which delivery failed. BOTH count: the spool is sanctuary-master's copy, the notice is belam's.
+sp=ok;no=ok
+runuser -u "agi-$SELF" -- python3 "$AS" append --job lab-pack-count --to "$TO" --text "$m" --max-lines 500 --spool "$STORES/$SELF/alarm.spool" 2>"$S/spool.err"||sp="FAILED rc $? ($(head -c 200 "$S/spool.err"|tr '\n' ' '))"
+runuser -u "agi-$SELF" -- env HOME="$STORES/$SELF" sh -c '[ -x ~/bin/agi-notice ] && exec ~/bin/agi-notice add "$0" || echo "$0" >> ~/.notice' "$m" >/dev/null 2>"$S/notice.err"||no="FAILED rc $? ($(head -c 200 "$S/notice.err"|tr '\n' ' '))"
+logger -t agi-lab-pack-count "alarm delivery: spool to $TO $sp; notice to $SELF $no: $why"
+[ "$sp" = ok ]&&[ "$no" = ok ]||exit 1
+echo "$now" >"$S/last";exit 0
