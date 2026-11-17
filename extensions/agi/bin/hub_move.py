@@ -26,7 +26,7 @@ route row the post should have). stall_watch.sh and hub_quota.py `say` still act
          OFF-HUB a post with no route row (or `direct`) is never moved and never unread: `NAME: off-hub, no move`.
          unread a missing, malformed or stale state or route file: nothing moved, nothing said, rc 1.
   clear POST --memory F [--said F] [--moves F]      belam or the owner clears a post's standing move (the only way a post moves again).
-         A move BACK is `clear X` THEN the route edit: --moves is rewritten whole from memory, so a hand edit without `clear` is re-applied.
+         A move BACK is `clear X` THEN the route edit: the host applies each --moves row ONCE and never re-applies it, so a hand edit without `clear` leaves a standing move that stays in memory: the post is never auto-moved again and the old row stays listed.
          A post seen on its `to` hub and later on its `from` hub with the standing move kept: ONE said line (not silence) naming `clear X`.
 
 Memory (this uid's own JSON): {"standing": {POST: {from, to, model, since, reset}}, "refused": {KEY: epoch}}. A line not delivered is
@@ -130,13 +130,13 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
         s = standing.get(post)
         if s is not None and hub == s["to"]:
             s["seen"] = True                         # the route has shown the post on its NEW hub: the host step applied the move
-        elif s is not None and s.get("seen") and hub == s["from"]:      # moved back by a route edit WITHOUT `clear`: the host re-applies the row
+        elif s is not None and s.get("seen") and hub == s["from"]:      # moved back by a route edit WITHOUT `clear`: the host does NOT re-apply it (each row once)
             key = f"standing {post} back {hub}"
             if key not in refused:
                 refused[key] = now
                 out["refused"] += 1
-                out["said"].append((f"post {post} is back on hub {hub} by hand; standing move to {s['to']} kept: run hub_move.py clear {post}, "
-                                    f"or the host re-applies {s['to']} (a move with no quota behind it)", True, aid(post, s["from"], s["to"], s["since"], kind="back")))
+                out["said"].append((f"post {post} is back on hub {hub} by hand; standing move to {s['to']} kept: the host does NOT re-apply it; "
+                                    f"run hub_move.py clear {post} to drop the standing move", True, aid(post, s["from"], s["to"], s["since"], kind="back")))
             continue
         q = trigger(state, hub, model)
         if q is None:
@@ -149,7 +149,7 @@ def decide(state: dict, route: dict, mem: dict, now: int, hubs: list[str]) -> di
                     out["refused"] += 1
                     out["said"].append((f"post {post} stays on hub {hub}: {hub} ({model}) out of quota until {until(q[1])}, but {post} "
                                         f"moved {s['from']} -> {s['to']} at {hhmm(s['since'])} (one automatic move per post): not moved back, "
-                                        f"belam or the owner clears it (hub_move.py clear {post})", True, aid(post, hub, s["from"], s["to"], model, q[1], kind="stay")))
+                                        f"belam or the owner clears it (hub_move.py clear {post})", True, aid(post, hub, s["from"], s["to"], model, q[1], mem.get("cleared", {}).get(post, 0), kind="stay")))
             continue                                 # the same cooldown seen again: no second move, nothing said
         others = [h for h in hubs if h != hub]
         if hub not in hubs or len(others) != 1:
@@ -237,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--max-lines", type=int, default=500)
     p.add_argument("--max-age", type=int, default=180, help="a state or route file written longer ago than this is unread")
     p.add_argument("--now", type=int, default=None)
-    c = sub.add_parser("clear", help="clear X THEN edit the route back; a route edit alone is re-applied by the host from --moves")
+    c = sub.add_parser("clear", help="drop a standing move (belam or the owner): the move back is the route edit, the host does NOT re-apply a row it applied once")
     c.add_argument("post")
     c.add_argument("--memory", type=Path, required=True)
     c.add_argument("--said", type=Path, default=None)
