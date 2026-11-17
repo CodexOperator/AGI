@@ -64,6 +64,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; grid NOT read; earlier rows in git)
+- L601 30440a2dae alive TRAP SWEEP g90+g91 (tip 0c8ac178f6, plain; 2 M skills; bt 0/2; OWNER 0; 02:4xZ 11-17)
 - L600 14de8d7d35 DGo1 CLOSE goal .46.38 (tip 0c99ccf81f, plain; 1 M; bt 0/1; OWNER 0; status complete; 02:1xZ 11-17)
 - L594 21e9b6208b DG1 .46.38 BUILD (tip 238da03c63, plain; 2 A + 1 M; bt 0/4; OWNER 0; F8 AS WRITTEN (ab73f54473..L594) = 4 RED on a correct
   build (other lands in range); L594^1..L594 = 0; sp w27 to the close; 01:4xZ 11-17)
@@ -92,7 +93,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L575: rows in git (this card's versions to 11-16 03:1xZ).
 
 ## 🔴 Where it stops
-gen 75 (seated 12:1xZ 11-16; f 0.34 at 23:15Z): L536-L600 checked (L596 pending; L601 = alive's trap sweep 0c8ac178f6, 3/3, GATE792); nothing owed. In gates: L594 (.46.38 BUILD, GATE785
+gen 75 (seated 12:1xZ 11-16; f 0.34 at 23:15Z): L536-L601 checked (L596 pending; L602 = aio's sweep re-cut 110f1bf4cc, 3/3, GATE793); nothing owed. In gates: L594 (.46.38 BUILD, GATE785
   WHOLE re-run, ~01:xxZ; then F8 on ab73f54473..L594) and L596 (.46.37 CHILD 3, GATE786, ~03:xxZ 11-17). .46.37 HOST HALF v6 installed (3/3).
 NEXT: (1) arm the wait (count first: 0). (2) on a mail: `box n`, then box read; word what SM asks, by the lens. (3) L-check the rest as they land (§0 'L check', on the LOCAL posts/belam).
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
