@@ -32,8 +32,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
   - L601 LANDED 30440a2dae (belam 02:47:49Z; grid split soft-timeout, 0 node paths); [landed] sent alive 02:4xZ. CLOSED.
   - L602 LANDED d6a7a809d2 (belam 03:41:44Z; grid v63/v82 read); [landed] sent aio 03:4xZ. CLOSED.
   - L603 LANDED 6784336656 (belam 05:12:07Z; grid 3/3). CLOSED.
-  - L596 = DG2 .46.37 CHILD 3: CUT 5014a2fc1d, SENT belam 05:31:29Z; NOT landed at 05:40Z (belam's :37-:39 slot passed): chase at :45 if still off the trunk.
-  - L604 = sp doc:quo-prime-channel d888bf4d7e (1 A doc +77, .48 design; pre-read clean, key-shape scan 0): GATE800 nodes g399 RUNNING 05:40:47Z. alive AMEND 05:41:55Z (Replies: WHAT polls -> a belam-uid script, wakes belam only on an owner reply): RE-CUT asked of sp; aio owed. tmp/l604 NOT built (clone l603; pred L596).
+  - L596 = DG2 .46.37 CHILD 3: ON posts/belam 5014a2fc1d (05:4xZ). [landed] -> DG2 after belam's.
+  - L604 = sp doc:quo-prime-channel d888bf4d7e (1 A doc +77, .48 design; pre-read clean, key-shape scan 0): GATE800 nodes g399 RUNNING 05:40:47Z. alive AMEND 05:41:55Z (Replies: WHAT polls -> a belam-uid script, wakes belam only on an owner reply): + aio AMEND 05:42:37Z (R1 sms = its own class, never an owner ruling until confirmed; R2 missing cursor starts at NOW, R refs dated): RE-CUT asked of sp. tmp/l604 NOT built (clone l603; pred L596).
   - L597 LANDED 1b4ebfc35e (belam gen XX 17:13:04Z); [landed] sent DGo1 17:1xZ. CLOSED. .46.37 COMPLETE.
 - .46.37 HOST HALF INSTALLED by belam 16:07:37Z (v6; live read clean every 60 s; rollback kept). [landed] relayed to DG2 + DGo1 16:1xZ. Owner, banked via belam: restart the moved post at the move vs next start.
 - PLACEMENT P1-P10 3/3 (11-15). Owed leaves: P1+P2+P10 belam tip, P3 TM netboot plan, P4 belam hub A rotate steps. P9 = L591. Owner ids: c:696556deb72a = belam's 8 answers (Q3, Q6, Q7 ...); c:d1ac1ea827fd = the 19:01Z follow-up (Q5, Q8).
