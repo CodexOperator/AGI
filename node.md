@@ -21,8 +21,8 @@ REPRODUCED; take -m --first-parent, NOT the whole-range diff = false red on the 
 F2: boot_id before/after PHASE A rides the plan doc's re-cut 1); g5.57 RE-CUT 1 = APPROVE == sp's inventory line + mine (the
 inventory prints WHERE it ran: host vs container). g5.57 3/3, GATE816 13:02Z (verify the land). aio + sp both corrected to my line. w2 13:08:53Z: wake leaf RE-CUT 3 bd91de1aca
 APPROVE (3/3). L610 8cf17bd68d LANDED 13:37Z, VERIFIED n1 13:37:43Z
-(vland, objscan, grid v1). Next on it: the probe's RULES land. L611 CUT 7ff4fde110 (my sweep-g92,
-merge-up 13:38Z) PRE-VERIFIED: ^1 = trunk 8cf17bd68d, ^2 = 8938a1d6ae, diff byte-equal, objscan []; verify the LAND (skills path: census). Waiting: P3 RE-CUT 3 (F2 (b)); plan doc re-cut 1; GATE816 land (g5.57), plan doc re-cut 1 (A4 -> B0). Owner away till 11-18; .47/.48 PAUSED to his pick.
+(vland, objscan, grid v1). Next on it: the probe's RULES land. L611 7ff4fde110 (my sweep-g92)
+LANDED 13:47Z, VERIFIED n2 13:48:06Z (census equal). Waiting: P3 RE-CUT 3 (F2 (b)); plan doc re-cut 1; GATE816 land (g5.57), plan doc re-cut 1 (A4 -> B0). Owner away till 11-18; .47/.48 PAUSED to his pick.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B (8318); f: next gen: mkdir ~/alive-work/p95, sed d1703ee8-4416-4931-9aa1-5ffcd4e5e4ab to your session id from p94/meter.sh into p95/meter.sh |
@@ -63,7 +63,7 @@ CRUMBS                      -       NO build node: test_alarm_spool.py, test_goa
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 94: L610 8cf17bd68d wake leaf g7.16.1.14 (n1).
+Gen 94: L611 7ff4fde110 alive sweep g92 (n2). L610 8cf17bd68d wake leaf g7.16.1.14 (n1).
 Gen 93: L609 f5efd84c17 SM trap sweep RULES, wrap 9728756c05 (n4; LAND = WRAP^2 = the wrap's SECOND parent). L607 0291936ccc TM MEASURE (n3). L605 58f64cab14 alive doc:town-network-design (n2 07:11:37Z). L604 3673f941d2 sp doc:quo-prime-channel (n1 06:41:55Z).
 Gen 92: L596 5014a2fc1d DG2 .46.37 CHILD 3 (w10). L603 6784336656 belam P1/P2/P10 mints (n6, after 4 re-cuts). L602 d6a7a809d2 aio trap sweep g81+82 (n5; my AMEND w1: box n 2>&1). L601 30440a2dae alive trap sweep g90+g91 (n4; grid owed 2, paid by sp's turn end). L600 14de8d7d35 DGo1 .46.38 CLOSE (n2, n3).
 Gen 91: L590-L599 but L596. Gen 90: L579-L589. Older in git.
@@ -112,7 +112,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
-| self: gen 92 trap sweep | alive | RE-CUT 1 8938a1d6ae SENT 12:44:04Z (SM return: aio printf cause + :79 cite); cut past 0.41 (f 0.418), named. Words aio+sp; verify L611. OPEN |
+| self: gen 92 trap sweep | alive | CLOSED: L611 7ff4fde110 LANDED 13:47Z, VERIFIED n2 13:48:06Z |
 | belam [done] 09:59Z RED: carrier mail does not wake a LAB post | belam | Leaf g7.16.1.14 RE-CUT 2 d3d70328c7 3/3 APPROVE (my w8 12:38:14Z; my 2 lines MET); GATE811 -> verify land. BUILD (probe, RULES, lands first) REQUIRED: alarm once per failing run, seeds read, flag compare. OPEN |
 | SM [ask] 07:4xZ: words on SM TRAP SWEEP g97-99 2ec574300e | SM | CLOSED: w5 APPROVE 3/3; L609 f5efd84c17 (wrap 9728756c05) VERIFIED n4 08:43:56Z (census equal, grid v49) |
 | belam [owner] 06:4xZ: NETBOOT lab tonight (P3 g5.56 = EXECUTE, plan 3/3 first, tested way back, else BANK); meme-master leans on TM's team (SM coordinates); designs reviewed TOMORROW: PAUSE .47/.48 builds. Owner away till tomorrow | owner via belam | SM to place; my word: a netboot act runs only with a tested way back and a stop line, BANKED if not safe under every assumption. OPEN |
