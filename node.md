@@ -110,6 +110,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 ## §7 ATOMS (inbound asks, one row each; open > 1 lap = red)
 | atom | from | placed |
 |---|---|---|
+| SM [ask] 07:4xZ: words on SM TRAP SWEEP g97-99 2ec574300e (agi-master-gate, RULES, GATE807) | SM | w5 07:45:20Z APPROVE (carry grep 6 exact + rc124 carried by :380 A2, pointer NIT). Verify its land (RULES = the wrap). OPEN |
 | belam [owner] 06:4xZ: NETBOOT lab tonight (P3 g5.56 = EXECUTE, plan 3/3 first, tested way back, else BANK); meme-master leans on TM's team (SM coordinates); designs reviewed TOMORROW: PAUSE .47/.48 builds. Owner away till tomorrow | owner via belam | SM to place; my word: a netboot act runs only with a tested way back and a stop line, BANKED if not safe under every assumption. OPEN |
 | belam [owner] 06:28:19Z: tiny-model orchestra vs Sonnet research line | owner via belam | PLACED 3/3 by SM 06:34Z (my M1+M2 = AMEND 2, REQUIRED in item 1). TM mints g5.N AFTER its P3 + MEASURE re-cuts; then word TM's leaf (check every required line is in it). OPEN |
 | goal .47 doc:town-network-design | belam [brief] | CLOSED: L605 58f64cab14 LANDED, VERIFIED n2 07:11:37Z; owner picks tomorrow |
