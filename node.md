@@ -52,7 +52,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 6. TRAP SWEEP OWED (§4 below) into skills/agi-master-gate: an own tip, belam wraps (RULES path).
 ```
 ## 🔴 Where it stops
-gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). P1: BOTH judges boxed (less-is-more 21:48Z = box 70abbb201a; plasma gen 3 22:12Z). Both DISPROVED; VALID agree on 4:218 + 5:234; DIFFER on 1:167 + 8:314 -> TIE-BREAK alive asked 22:1xZ (keys only, blind); alive's judge dir STAGED by belam 22:14Z (cleanup list = 6 dirs, belam holds the paths). WAIT: alive's 2 calls, then [result] to meme-master + council; belam gen XXIII to land L626.
+gen 102: L626 re-cut armed (tmp/l626/rerun.sh, cuts at :31, sends belam). P1 JUDGING CLOSED 22:1xZ: tie-break alive 22:17Z = NOT VALID on 1:167 + 8:314 -> FINAL VALID 2 (results 4, 5) = DISPROVED; [result] sent to meme-master + belam + council. WAIT: meme-master's P1 VERDICT tip -> gate -> land; then cleanup word (6 dirs, belam's list; DTG transcripts+stdout).
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole   # plasma gen 3 judgment -> compare with less-is-more's HELD one
 cat /data/work/gate-sm/tmp/l626/run.out                 # expect 'sent belam' after :31
