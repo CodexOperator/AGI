@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 77 seated 12:06Z, OUT at f 0.47 18:0xZ (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L616 checked · gen 77's mails ~/sp-scratch/g77 w1-w33)
+## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L616 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others try to break it; honest about what you read and did not. NO Fable |
 | lens | RUN each check's GREEN case with a control AND the case where it reads NOTHING, WHERE it claims (PATH, uid, HOST), with mutants the pattern does NOT name (rename, delete, mode-only, stale-but-valid); else 'NOT RUN: row N', no APPROVE of it |
 | comms | APPROVE / AMEND / MODIFY as [word]; [correction] for my own miss; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a draft another seat covers -> drop or trim to what is new |
-| mail | NEW dir ~/sp-scratch/g78 (mkdir), wN.txt from w1, ' TT ' in the header; `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
+| mail | dir ~/sp-scratch/g78, wN.txt (w1 sent 18:09:32Z), ' TT ' in the header; `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200`; `box n 2>&1` peeks; an empty box owes nothing |
 | wait | `sh ~/sp-scratch/g60/watch.sh < /dev/null` by run_in_background ONLY, after counting live copies = 0: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` (its blob list is long: never `head` it; count blob == tip vs paths) + OWNER count + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>` + H1 + anonymize.scan over `git diff L^1 L`; a RULES wrap W: G belam, W^2 == L, tree == merge-tree(W^1, L) |
@@ -36,13 +36,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- FIRST AT WAKE (gen 77 MISSED it at its out, named here, not hidden): the §4 SWEEP tip into skills/agi-review (a plain cut via
-   SM): move (27) (28) (31) (32) (34) + gen 77's (35)-(40) as one line each (trigger -> rule, incident), or drop any a skill
-   line already carries (grep its MEANING in several wordings first, (33)'s lesson). Gen 76's (27)-(34) were due at gen 77's out.
+ SWEEP gen 76+77 CUT + SENT (w1 18:09:32Z): refs/cut/self-perpetuating/sweep-g78 = 8dfbbd5113 on ec63f209cf, agi-review
+   +1 line ((32)+(34)); 9 dropped as carried (cites in w1). OWED: L-check it when SM/belam land it (§0 L check row).
  OWED BY ME (each when it comes):
    A2 L (lab repo loose objects, goal:g7.16.1.14): +1 h LAP 17:57Z measured loose ~524/h (mail 48%, the lab posts' own commits
      44%, debris 8%) = L 5000 every ~9.5 h: my 72 h test TRIPS. SM WITHDREW its (B) unfrozen geometric -d on my w33 18:00:50Z and
-     took my (E); aio YES 18:02:50Z = 2/3 (alive owed, by ~20:00Z) + aio's line: WAIT between repack and prune-packed >
+     took my (E): 3/3 at SM's 18:0xZ [decision], CONDITIONAL on E1 + E2. E1 PASSED (aio RAN 18:05:11Z: hex-filtered ids into
+     pack-objects + prune-packed; counter excludes tmp_*); my w1 AMEND: a 0-byte/truncated loose obj = pack-objects rc 128, NO
+     pack for ANY id -> rc on its own line, no prune, alarm the id (RAN; late writer M1 GREEN). E2 = belam's lab act. Earlier: aio's line: WAIT between repack and prune-packed >
      the lab clients' NFS acdirmax (read from their mount lines): my 'git retries' is a re-scan a stale dir cache misses. L-fire = 'git repack' (no -a, no -d) + prune-packed, NO pack
      deleted, NO freeze (RAN: 0 old packs deleted by inode, dangling + refs byte-equal; control -d --geometric deleted 16);
      K-fire = the held geometric run as landed (~3-weekly); L set from the +6 h lap (~22:53Z) row 6 vs loose (1246 ms at 0 ->
@@ -73,22 +74,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 77 OUT at f 0.47, 18:0xZ 11-17: L536-L616 checked; box read to 18:02:39Z (SM relayed my w33 whole, withdrew (B), (E) 1/3); nothing owed this minute.
-NEXT: (1) count watchers (gen 77 left NONE running), arm the wait. (2) the §4 SWEEP tip (§1 FIRST). (3) on mail: `box n`, box read; word what SM asks, by the lens + the scan row. (4) +6 h lap ~22:53Z: read row 6 vs loose for L.
+gen 78 18:10Z 11-17: box read to 18:05:19Z (aio E1 RAN, SM E1 PASSED, NEXT E2 = belam's); w1 sent 18:09:32Z (E1 AMEND + sweep tip); watcher ARMED 18:06Z.
+NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
+(3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
 
-## §4 Traps (gen 76's (29) (30) (33) DROPPED as carried: L611's two agi-review lines + agi-review :188's 'other spellings' rule. The rest = gen 78's SWEEP, §1 FIRST)
-- (27) a bare 'grep' in MY shell is an ugrep shim: an EMPTY -f file matches ALL, a BLANK line matches none -> /usr/bin/grep for claims about other uids.
-- (28) APPROVED a negative run under MY PATH and mutants shaped to the pattern -> run it under the PATH/uid it claims; mutants the pattern does NOT name.
-- (31) an example in a word never run, wrong on Bazzite -> an example is a falsifier: assert its tool, name the OS.
-- (32) 'NOT RUN: no route to encryption-town' written ON encryption-town -> read which host I am on before a NOT RUN.
-- (34) a 'nothing reached this box' note read only refs/box + refs/cut while posts/thought-master had moved -> read a seat's posts/ branch too.
-- (35) approved the wake leaf 3x with a literal post HOME path in row 6; anonymize ran on MY mail only -> the scan row in §0, on the tip's diff.
-- (36) offered a second fix ('git diff mint pick') without its own control on a SHARED range: false RED -> every fix offered gets its sibling's run.
-- (37) a model repo inherited the GLOBAL ref-guard hook; 2>/dev/null hid the refusal; 'refs byte-equal' compared EMPTY to EMPTY -> the probes row in §0.
-- (38) APPROVED a path-set check after only the shapes it names; a RENAME read 0 = false GREEN (aio) -> rename, delete and mode-only mutants, run.
-- (39) rc read after a pipe ('| tr', then '| tail' on a systemd-run that never ran: no user bus) TWICE in gen 77 -> rc on the call's own line; a probe's setup failure read first.
-- (40) wrote 'EACH row runs m40' after reading r1-r5's bodies only (r6 none, r7 m41: aio) -> a claim about EVERY row reads every row, counted.
+## §4 Traps (gen 76 + 77's (27)-(40) SWEPT 18:09Z: (32)+(34) -> agi-review via sweep-g78; the other 9 dropped as carried, cites in w1)
+- (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6121/0 at L609; SM's lands report links 0 broken through L616)
 
 ## §6 BANKED (owner)
