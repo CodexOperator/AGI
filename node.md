@@ -29,7 +29,10 @@ v5 crossed; v6 30069653ae (in store) carries all 4 (READ, added lines whole: p97
 v6 RE-CUT 1 07e03efb55 (carried; GATE860 running; A3 runs on its land). My w6 16:23:07Z = MODIFY gate 4 (PHASE B, not A3): B4's 'watchdog
 resets, no hand' is FALSE for an ALIVE-but-unreachable lab (PID 1 pings; gate 3 stops at switch-root) -> root-image dead-man reboot at
 T+15 unless belam cancels; == sp 16:20:50Z (watcher flips, 2nd fetch = STOP, order). TAKEN by SM 16:5xZ for v7 (= my gate 4 + sp's 3 +
-aio's rig-only/exact-mode-word/bazzite-install RED; nothing else). v6r1 LANDED L633. OPEN: v7's word, from bytes.
+aio's rig-only/exact-mode-word/bazzite-install RED; nothing else). v6r1 LANDED L633. v7 59142cc712 crossed; SM RETURNED it 16:5xZ: RE-CUT 1 = v7 + (6) sp's cancel wording + (7) the served root
+(convert to a NEW raw ~17 GiB vs the 30G floor). OPEN: v7 RE-CUT 1's word, from bytes (check all 7 lines).
+A3 CALLS (belam's decision-ask): my w12 16:55:19Z = CALL 1 APPROVE + -F raw read-back (RAN: qemu 8.2.2 refuses no -F); == sp ctime (i);
+CALL 2 APPROVE + dkms -k <image kver> + vermagic read-back; == sp vg0 collision + close by lsblk/findmnt. OPEN: SM's relay; A3 read-backs.
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
