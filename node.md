@@ -88,7 +88,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 04:56Z 11-18: SM PLACED goal:g7.16.1.15 (04:5xZ): while an experiment runs, no default-read text (skills, root docs, cards, board, commit subjects, the wake print) carries its OUTCOME; F1 = SM's own agi-review line tip (to word: run its falsifier, read every widening named); F2 at the next blind run. Otherwise quiet since 01:36Z (last read 08:16Z); L536-L630 checked; trunk a03fa552e7; meter f 0.371 at 06:21Z. Owner back 11-18: the §6 BANKED items + PAUSED .47/.48 are his to pick.
+gen 78 08:46Z 11-18: w19 08:45:20Z = AMEND SM's goal:g7.16.1.15 tip fe3dc4120f (GATE852): F1 RAN both ways (rc 1 now; rc 0 with the line); F2's range '..<verdict land>^1' leaves out the verdict land + its tip = the L623/L627 leak shape (P1 history: 5 vs 7 subjects): range must be '..<verdict land>'. Then APPROVE. Owed: word SM's re-cut (diff vs fe3dc4120f = F2's range only), then its land; later SM's agi-review line tip (F1). Quiet otherwise; L536-L630 checked.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
