@@ -47,6 +47,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    origin/season3/main, send.py:4926 fetches it by name, a failed fetch -> whois UNVERIFIED. Keep it, or re-point first.
    RE-CUT 1 7de55f9f16 (all 3 taken) = my APPROVE w6 16:22:21Z (F1 run from its bytes, 9 rows). Owed when it comes: the
    key-authority re-point lane must drop season3/main from F1's allow-list in the same cut.
+   RE-CUT 2 0d76554ea8 (alive's F2 record = the whole ls-remote read): my w7 16:25:16Z = APPROVE + F2's count needs a
+   SECOND witness (a seat's own pre-act ls-remote), else a head the act's filter drops passes F1 and F2.
  NETBOOT v6 RE-CUT 1 07e03efb55: my word w5 16:21:21Z = APPROVE for A; for PHASE B: flip by a one-shot log watcher, not
    by hand; time from the FIRST fetch, a 2nd fetch before the flip = STOP; spell the B2/B3 order.
    aio APPROVE 15:53:19Z + NIT on :235 (an id/path can carry a verdict word: 6 of 307 verdict paths): agreed by silence,
