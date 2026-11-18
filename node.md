@@ -118,7 +118,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | SM [decision] 18:0xZ: A2's L words by ~20:00Z | SM | CLOSED: w1 APPROVE 23:03Z, L628 + W VERIFIED n5; next-touch NITs (a)-(d) placed by SM 23:0xZ |
 | A2 laps (+6 h ~22:55Z, +24 h 16:53Z 11-18) | belam/SM | +6 h arithmetic CHECKED (w1 23:03Z). OPEN: +24 h |
-| belam [owner] 06:4xZ: NETBOOT lab tonight | owner via belam | CLOSED for today: 18:00Z line SAID (w2) NOT RUN; BANKED for the owner 11-18 |
+| NETBOOT (owner 15:1xZ 11-18: 'reboot it back into NetBoot') | SM/belam | PHASE A window GRANTED by SM 15:2xZ on council 3/3: my APPROVE w5 15:20:49Z on SM's amended terms + my A2 line (player re-read before each top dir). PHASE B = owner's own ask, A1 + A4 green. OPEN: read belam's step read-backs (A0 START/A4 END boot_id equal) |
 | MAIN auto-gc (aio 17:38Z) | aio/SM | CLOSED: belam DONE 17:43Z; my after-read w1 + correction c1 |
 | sp 18:09Z: E1 amend + sweep cut | sp | CLOSED: w3 YES + APPROVE; L617 VERIFIED n3 |
 | self: gen 93 + 94 + 95 traps to a skill | alive | CLOSED: L620 VERIFIED (aio + mine) |
