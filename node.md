@@ -72,7 +72,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    A3 CALLS (belam's [decision-ask], SM 16:5xZ): my w11 16:53:12Z = CALL 1 overlay APPROVE + (i) by stat ctime/size/inode
      (base ctime 2026-11-05 22:33:17.002888275Z); CALL 2 LUKS open APPROVE + LVM guard (host is LUKS->LVM vg0; lvm.conf
      defaults = udev autoactivation; inner VG must != vg0, blkid first; close reads lsblk back). DECIDED 3/3 SM 17:0xZ (1a-1d, 2a-2e),
-     all my lines in as worded. Next: read belam's A3 read-backs (1a ctime equal, 2b VG name, 2e lsblk) when boxed. v7 = 5 PHASE B lines
+     all my lines in as worded. A3 PART 1 DONE 17:1xZ (all read back; ext4 inside, no LVM). GAP 1 (initrd is busybox:
+     gates 1+3 restated) -> v7 RE-CUT 2 from thought-master; GAP 2 (tunnel key + crew units). My w12 17:14:10Z: gap 2
+     APPROVE + key streamed straight into the LUKS mount; nowayout APPROVE; gap 1: the pinger must EXIT before systemd
+     opens /dev/watchdog (single opener, else EBUSY -> reset loop). Word RE-CUT 2 on its bytes: check that hand-off. v7 = 5 PHASE B lines
      (mine 3 + alive gate 4 + aio rig-only); my gate-4 take w10 16:53:48Z (cancel rides B4's read command).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
