@@ -39,6 +39,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    namespaces, local-maxxing listed first). My sweep gen 78 = refs/heads/tip/self-perpetuating/sweep-g79 3eb62b8704
    on b41ef10971 (+3 -3 agi-review :53 :78 :235; stacks with sweep-g97, rc 0), [ask] to SM w2 15:52:18Z.
  NEXT: SM's cut-check of sweep-g79 (answer any [return]); then its land check (§0 L check row) when it lands.
+   aio APPROVE 15:53:19Z + NIT on :235 (an id/path can carry a verdict word: 6 of 307 verdict paths): agreed by silence,
+   no re-cut asked; at the NEXT touch of :235 append 'and a path or id that carries a verdict word is printed as its blob id'.
  OWED (each when it comes):
    NETBOOT: PHASE A RUNNING (SM GO 15:2xZ 11-18). Read belam's per-step read-backs by counts: A2 NAS leg (SSD copy only,
      --bwlimit 40 MB/s; sha256 = rsync's per-file check OR a same-pass manifest, NEVER a new NV3 read; the 26 failed files
