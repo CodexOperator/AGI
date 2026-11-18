@@ -30,7 +30,7 @@ goal:g5.4 (the season review and rollover, end to end): belam's inventory of ori
 
 ## Target end-state
 - STANDING RULE: origin's refs/heads holds only what must be a branch: master (the GitHub default; seal.yml runs there), the current season's trunk (today core/season3/main), and season3/main while config:key-authority reads it (authority_ref: origin/season3/main; send.py's authority read fetches it by name on every send-verify and whois, and a failed fetch leaves every caller UNVERIFIED; self-perpetuating 16:18:21Z 11-18). Re-pointing key-authority is its own cut and the council's call; season3/main is archived only after it. Everything else lives under refs/agi/* (hidden from GitHub's branch list, never lost).
-- Every head moved off refs/heads today is first pushed to refs/agi/archive/heads/<name> at its own sha and read back equal; its delete uses --force-with-lease=<name>:<sha>, so a head that moved meanwhile is refused, never lost.
+- Every head moved off refs/heads today is first pushed to refs/agi/archive/heads/<name> at its own sha, never forced (a name already archived at another sha = refuse, never overwrite the older archive), and read back equal; its delete uses --force-with-lease=<name>:<sha>, so a head that moved meanwhile is refused, never lost.
 - posts/belam stops reappearing as a head: whatever pushes it writes refs/agi/posts/belam instead (its own lane, after the act). F1 reads green only once that lane has landed and posts/belam is archived; the leaf closes on both.
 - A season rollover that adds a head names it here, with why it must be a branch, or archives it in the same act.
 
@@ -42,7 +42,7 @@ goal:g5.4 (the season review and rollover, end to end): belam's inventory of ori
 ## Falsifier
 1. Run at the repo's top level; exits 0 only when origin's heads are master + the trunk (+ season3/main while key-authority reads it) alone, refusing an empty read (a failed ls-remote reads no heads, a vacuous pass) and a read with the trunk gone (self-perpetuating 16:18:21Z: without the trunk conjunct, 'master only' read rc 0):
    `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ] && h=$(git ls-remote --heads origin) && printf '%s\n' "$h" | grep -q 'refs/heads/master$' && printf '%s\n' "$h" | grep -q 'refs/heads/core/season3/main$' && [ "$(printf '%s\n' "$h" | awk '{print $2}' | sed 's#^refs/heads/##' | grep -cvxE 'master|core/season3/main|season3/main')" = 0 ]`
-2. Negative, nothing lost: for each line `<name> <sha>` of the act's before-record (quoted whole in this leaf's close THOUGHT), `git ls-remote origin refs/agi/archive/heads/<name>` prints that sha; 0 lines missing.
+2. Negative, nothing lost: the before-record IS the whole `git ls-remote --heads origin` output at the act's start (F1's own read), its line count printed beside it (26 at alive's read 16:17Z 11-18), quoted whole in this leaf's close THOUGHT; for EVERY line of it except master, the trunk, season3/main and posts/belam, `git ls-remote origin refs/agi/archive/heads/<name>` prints that line's sha; 0 missing; a record whose line count differs from the printed count = RED (alive 16:22:56Z: a record the act writes itself lets a head left out of it, then deleted, pass with 0 missing).
 
 ## Out of scope
 goal:g19 (retired: the L5 tidy pass). The engine's local branch SPELLINGS in branches.py and the frozen test fixture strings (local refs, not origin heads). Another box's fetch of a town head by name (local-town, lab): read by the council before the act, never assumed.
