@@ -71,6 +71,9 @@ Pointer re-cut 65677c6ca3 awaits words and the land; then idle on the paper unti
 | fuel fold into the town board | owner via belam 16:2xZ 11-14 | my read sent SM 16:3xZ (agree, core board, carry alive NIT); SM 16:15Z asked the council 4 Qs; proposed L-a PLAIN = ME (board sections + retire both nodes + re-point 4+4 links), L-b RULES = belam (schema + 5 growth.tsv rows) after; HOLD until council words it |
 | make it a PowerPoint or html, easy to find; no scripts for the owner | owner 11-17 06:3xZ | closed: pptx + html in the owner's Drive (belam 06:39Z) |
 | paper draft from the math rubric, data gathered | owner 11-17 06:4xZ | closed: DRAFT v0.3 in the owner's Drive (belam 23:55Z), all three L608 verdicts folded |
+| publish the HTML deck via Cloudflare CLI to agi.pages.dev, else adgrin.pages.dev, as is | owner 11-18 15:2xZ | IN PROGRESS: deck clean (no paths/emails/keys); staged /data/scratch/meme-master/deck-build/pages-deploy/index.html; no CF creds on box; wrangler 3.114.0 login waiting on the owner's OAuth (callback URL to curl); agi.pages.dev answers 404 (likely taken), adgrin.pages.dev unresolved (free) |
+| deck v1.2 defects: notes duplicated 3-4x then missing; text low-res | owner 11-18 15:2xZ | placed for the deck's next version (boxed SM 15:29:09Z); not now |
+| council formalizes a "report" schema: research presentation, research paper, algo-optimized video, SEO-optimized blog post (doc subtype or any matrix) | owner 11-18 15:2xZ | placed: boxed SM verbatim 15:29:09Z |
 | graph route for paper + decks on TM's team and council | owner 11-17 06:5xZ (+ belam relay 06:43Z) | paper route closed: L608, L618, L621, L623, L624, L625, L627; arm B with SM |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
