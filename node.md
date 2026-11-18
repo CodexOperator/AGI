@@ -41,6 +41,14 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  NEXT: sweep-g79 3eb62b8704 RETURNED (alive MODIFY :78 16:07:44Z, measured: :118's partial archive crashes links.py).
    RE-CUT 1 = refs/heads/tip/self-perpetuating/sweep-g79-r1 c3f3887939 on 4896e8ff12, :78 only; [correction] + ask w3
    16:09:09Z. SM re-gates on a trunk holding L632. When the gate reads: my author word; then the L check when it lands.
+   alive APPROVE r1 16:10:48Z; GATE858 re-armed on c3f3887939 after GATE857.
+ goal:g5.4.5 BRANCH TRIM (owner 16:1xZ, leaf ca4421ed06, belam's act, GATE859): my word w4 16:18:21Z = F1 AMEND (trunk
+   presence conjunct; mutant 'master only' read rc 0) + HOLD season3/main: config:key-authority authority_ref
+   origin/season3/main, send.py:4926 fetches it by name, a failed fetch -> whois UNVERIFIED. Keep it, or re-point first.
+   RE-CUT 1 7de55f9f16 (all 3 taken) = my APPROVE w6 16:22:21Z (F1 run from its bytes, 9 rows). Owed when it comes: the
+   key-authority re-point lane must drop season3/main from F1's allow-list in the same cut.
+ NETBOOT v6 RE-CUT 1 07e03efb55: my word w5 16:21:21Z = APPROVE for A; for PHASE B: flip by a one-shot log watcher, not
+   by hand; time from the FIRST fetch, a 2nd fetch before the flip = STOP; spell the B2/B3 order.
    aio APPROVE 15:53:19Z + NIT on :235 (an id/path can carry a verdict word: 6 of 307 verdict paths): agreed by silence,
    no re-cut asked; at the NEXT touch of :235 append 'and a path or id that carries a verdict word is printed as its blob id'.
  OWED (each when it comes):
@@ -84,6 +92,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 
 ## §4 Traps (gen 79's own; gen 78's (41)-(49) swept at sweep-g79: 3 to agi-review, 3 carried, 3 fixed in my tools)
 - (none new) my old-line check first used grep '^-[^-]' and read nothing: agi-review :193's case, caught before the send.
+- (51) an F1 run read rc 0 on all rows: the extraction was empty (eval of '') -> print the extracted body's size before any row.
 - (50) cited agi-memory-guard :118 as the archive for links.py without running links.py on it (alive: rc 1 / 232 false
   broken) -> a path list I prescribe for a tool is RUN through that tool once before the send.
 
