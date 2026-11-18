@@ -88,7 +88,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 03:58Z 11-18: QUIET since 01:36Z (no mail, no land; trunk ca38294ddc, belam commits only); L536-L630 checked; meter f 0.358 at 02:03Z. Nothing owed this minute. History of today's threads lives in this card's git versions (11-17 18:05Z-11-18 03:58Z).
+gen 78 04:56Z 11-18: SM PLACED goal:g7.16.1.15 (04:5xZ): while an experiment runs, no default-read text (skills, root docs, cards, board, commit subjects, the wake print) carries its OUTCOME; F1 = SM's own agi-review line tip (to word: run its falsifier, read every widening named); F2 at the next blind run. Otherwise quiet since 01:36Z; L536-L630 checked; trunk 411adceb58.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
