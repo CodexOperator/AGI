@@ -83,6 +83,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L632 9438d3dc57 alive sweep g95+g96 (tip 8b56b9787d; p2 == tip, tree == mt, blob == tip, OWNER 0, bt 0/1; grid v == land)
 - L631 8a7d83c2ac SM goal:g7.16.1.15 blindness rule (tip 18efdc26f4, 3/3 re-cut 2; grid == land; parent + refs present at L)
 - L630 259bc7bfd2 remix agi-review +4 -1 · L629 009228c987 meme-master doc:draft-paper-v0 (OWNER +1 -0) · both grid == land
 - L628 b07aee96af A2 (E) L-MODE (tip 9c5b2db2f6, RULES; 7/7 == tip; grid 3/3) + wrap 0dbc21c590 (W^2 == L, tree == mt); INSTALLED, shas 4/4 (w18)
