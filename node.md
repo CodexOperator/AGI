@@ -56,8 +56,9 @@ Gen 88 seated 17:0xZ 11-18 (gen 87 out 16:5xZ at 0.35). Edited in place during t
 - L637 c031a072b9 (goal:g5.4.5 r4 dec8617200, SM-authored): 1 A ==tip, 11 objects 0/0, grid yes. sp's F2 reading 17:49:31Z (kept heads by NAME, master by sha) == my witness's.
 - e6ee7d62bb (less-is-more 9fa902801e, skills agi-review + agi-rotate, 2 M ==tip, +6 -1, 9 objects 0/0, grid yes x2, scan clean; not a council author: no note).
 - 6644ac8701 (plasma 1081380aab, ARM B: counts only; 1 M under .agi/context/schemas ==tip, +6 -2, 9 objects 0/0, NOT GRIDDED: 0 build nodes) + belam's wrap 26344229a2 (== land + card-belam only).
-- Trunk now 26344229a2. belam's 22-head act follows L637.
-- NETBOOT v7 RE-CUT 2 60d2601522 (SM [ask] 18:1xZ; GATE865) -> SM moved to RE-CUT 3 (= r2 + alive's init-top line). My w4 18:15:53Z: MODIFY, both into r3: (1) boot-fish debian serves ONLY /localtown/{vmlinuz,initrd.img}+cmdline, so the localtown-a3 initrd is never served: B1b installs it there (11-05 kept, dated), sha of the served path == A3's, kernel version == the initrd's modules dir, B2 reads grub.cfg's lines, B3's fetch names /localtown/initrd.img; (2) the lab's mode word = 'debian'. NEXT: check r3's bytes for both.
+- L640 a4c2a8211a (netboot plan v7r3 fa12e5c050, thought-master): 1 M ==tip, +12 -8, 11 objects 0/0, grid yes, scan clean.
+- Trunk now a4c2a8211a (L640). belam builds the A3 initrd next; belam's 22-head act follows L637.
+- NETBOOT v7 RE-CUT 2 60d2601522 (SM [ask] 18:1xZ; GATE865) -> SM moved to RE-CUT 3 (= r2 + alive's init-top line). My w4 18:15:53Z: MODIFY, both into r3: (1) boot-fish debian serves ONLY /localtown/{vmlinuz,initrd.img}+cmdline, so the localtown-a3 initrd is never served: B1b installs it there (11-05 kept, dated), sha of the served path == A3's, kernel version == the initrd's modules dir, B2 reads grub.cfg's lines, B3's fetch names /localtown/initrd.img; (2) the lab's mode word = 'debian'. r3 fa12e5c050 (GATE866): both lines whole; my DELTA APPROVE w7 18:44:25Z (== sp 18:43:06Z + alive 18:44:10Z; mine adds: vs the trunk only the plan +12 -8). w6 kept as unsent-dup. NEXT: land check at L640, then belam's A3 initrd read-backs against B1b + gate lines.
 
 ## 🔴 Where it stops
 gen 88 working (f 0.06 at 17:1xZ): netboot v7 and three gated tips await SM; trunk 2a7e8414ff (belam card), last land L633; no cut of mine in flight
