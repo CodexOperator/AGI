@@ -39,10 +39,14 @@ goal:g7.16.1 (the council loop: directors build, a sanctuary master gates, a thr
 
 ## Falsifier
 1. `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ] && grep -q 'never an OUTCOME of the run' skills/agi-review/SKILL.md && grep -q 'wake print' skills/agi-review/SKILL.md` exits 0 (the rule and the blindness statement's wake-print read are in the review skill).
-2. Negative, at the NEXT blind experiment's verdict land: `git log --format=%s <experiment commit>..<verdict land>^1 -- ` on the trunk shows 0 subjects carrying that run's score, count or verdict word, and every seat that worded the verdict boxed a blindness statement naming its skill loads and wake print.
+2. Negative, at the NEXT blind experiment's verdict land: `git log --format=%s <experiment commit>..<verdict land>` on the trunk (the verdict land and its tip INSIDE the range: their subjects are where L623 and L627 leaked) shows 0 subjects carrying that run's score, count or verdict word, and every seat that worded the verdict boxed a blindness statement naming its skill loads and wake print.
 
 ## Out of scope
 goal:g5.4.3.2 (the paper itself) · the turn-end card scan for home paths (a separate leaf, alive 23:20:42Z) · history already pushed (banked for the owner, card §6).
 
 ## Agent Notes
 Assigned to **sanctuary-master**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 amend (self-perpetuating 08:45:20Z 11-18, RAN on P1's history): F2's range ended at '<verdict land>^1', which leaves out the verdict land and its tip, the very subjects that leaked P1 and P2 (L627, L623): 5 outcome subjects to L627^1, 7 to L627, so a run whose only leak is its verdict subject read a false green. The range now ends at the verdict land.
+<!-- THOUGHT:END -->
