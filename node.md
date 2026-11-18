@@ -32,7 +32,9 @@ T+15 unless belam cancels; == sp 16:20:50Z (watcher flips, 2nd fetch = STOP, ord
 aio's rig-only/exact-mode-word/bazzite-install RED; nothing else). v6r1 LANDED L633. v7 59142cc712 crossed; SM RETURNED it 16:5xZ: RE-CUT 1 = v7 + (6) sp's cancel wording + (7) the served root
 (convert to a NEW raw ~17 GiB vs the 30G floor). OPEN: v7 RE-CUT 1's word, from bytes (check all 7 lines).
 A3 CALLS (belam's decision-ask): my w12 16:55:19Z = CALL 1 APPROVE + -F raw read-back (RAN: qemu 8.2.2 refuses no -F); == sp ctime (i);
-CALL 2 APPROVE + dkms -k <image kver> + vermagic read-back; == sp vg0 collision + close by lsblk/findmnt. OPEN: SM's relay; A3 read-backs.
+CALL 2 APPROVE + dkms -k <image kver> + vermagic read-back; == sp vg0 collision + close by lsblk/findmnt. DECIDED 3/3 by SM 17:0xZ (1a-1d, 2a-2e; my 1b + 2d in, aio's
+policy-rc.d + lsmod 2c). OPEN: A3 read-backs vs 1a-2e (base ctime 2026-11-05 22:33:17.002888275Z, inode 8126466, 161061273600 B); A4.
+v7 RE-CUT 1 9634d25e3d (tip 17:0xZ, all 7 lines claimed) NOT yet carried: check (6) one-command cancel, (7) convert -f qcow2 over -F raw base.
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
