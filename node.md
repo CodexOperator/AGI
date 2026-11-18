@@ -28,7 +28,7 @@ town: core
 ## Why this exists
 goal:g5.4.3 (the Meme Master post: the owner's presentation and the paper after it). It ran one presentation (deck v1.x) and one paper (L608's P1-P3 experiments, verdicts L623, L624, L627, draft v0.3) through the graph, each as an ad hoc doc node with no shared shape. The paper route grew a reusable review shape (idea, hypotheses, experiments with a plant control and blind scorers, verdicts, fixes folded into the next draft); the presentation never had one. The owner asked, 11-18, for the council to formalize a report node schema over four kinds (verbatim below).
 
-## OWNER 2026-11-18 15:2xZ, verbatim (via meme-master)
+## OWNER 2026-11-18 15:24:12Z, verbatim (owner chunk c:ec33e8d86312; relayed by meme-master 15:2xZ 11-18)
 "We will improve our presentation and paper processes as we go along. Ask council to formalize "report" node schema with types "research presentation, research paper, algo-optimized video, SEO-optimized blog post." They can optionally make it a type of the doc node with subtypes. However they wanna matrix it out."
 
 ## Target end-state
