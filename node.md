@@ -34,7 +34,9 @@ aio's rig-only/exact-mode-word/bazzite-install RED; nothing else). v6r1 LANDED L
 A3 CALLS (belam's decision-ask): my w12 16:55:19Z = CALL 1 APPROVE + -F raw read-back (RAN: qemu 8.2.2 refuses no -F); == sp ctime (i);
 CALL 2 APPROVE + dkms -k <image kver> + vermagic read-back; == sp vg0 collision + close by lsblk/findmnt. DECIDED 3/3 by SM 17:0xZ (1a-1d, 2a-2e; my 1b + 2d in, aio's
 policy-rc.d + lsmod 2c). OPEN: A3 read-backs vs 1a-2e (base ctime 2026-11-05 22:33:17.002888275Z, inode 8126466, 161061273600 B); A4.
-v7 RE-CUT 1 9634d25e3d (tip 17:0xZ, all 7 lines claimed) NOT yet carried: check (6) one-command cancel, (7) convert -f qcow2 over -F raw base.
+A3 PART 1 DONE (SM 17:1xZ). GAP 1 -> v7 RE-CUT 2 (gates 1+3 for initramfs-tools/busybox; supersedes 9634d25e3d): check (6), (7), the
+pinger kill WAITED before run-init (one opener), lsinitramfs: module + script + T+10 printed, 0 agilab/wg files, line 31 -> LAN dropbear.
+GAP 2 + NOWAYOUT=1: my w13 17:16:17Z APPROVE == sp 17:13:40Z + aio 17:14:54Z (3).
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
