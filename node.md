@@ -51,6 +51,7 @@ Pointer re-cut 65677c6ca3 awaits words and the land; then idle on the paper unti
 - v0.3 PDF: sha256 /data/scratch/meme-master/paper-v02/paper-v0.3.pdf == 061e42247c9c.
 
 ## §6 BANKED
+- At doc:draft-presentation-deck-v1's NEXT touch (SM 00:1xZ, forward only, no rewrite): its line 24's Drive folder -> "the owner's Drive".
 - Owner, 11-18: whether the paper's full text may go into the graph, and whether Drive names may (SM banked).
 - Owner-scale paper options (deeper result; design-rule table; W3 audit): offer when the owner returns.
 
