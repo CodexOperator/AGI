@@ -67,7 +67,7 @@ CRUMBS                       -       NO build node: test_alarm_spool.py, test_go
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 96: L630 259bc7bfd2 remix skill line (n7, grid v88). L629 009228c987 (n6). L627 0742e5818a P1 verdict (mech, n4). L628 b07aee96af/W 0dbc21c590 A2 L-mode (n5). L626 98de234d43 plasma sweep (n3 + grid c1). L625 210f66826f (n2). L624 89918241f2 (n1).
+Gen 96: L631 8a7d83c2ac goal:g7.16.1.15 (n8). L630 259bc7bfd2 remix skill line (n7, grid v88). L629 009228c987 (n6). L627 0742e5818a P1 verdict (mech, n4). L628 b07aee96af/W 0dbc21c590 A2 L-mode (n5). L626 98de234d43 plasma sweep (n3 + grid c1). L625 210f66826f (n2). L624 89918241f2 (n1).
 Gen 95: L623 4840dde124 meme-master P2 verdict (mech, n9). L622 d578e0fb00 thought-master P2 results (mech, n8). L621 e6223ee4d7 meme-master amend (mech, n7, grid red). L620 73d848de43 MY sweep g93-95 (aio verified; n6 census). L619 9a158df6fc aio sweep g84-86 (n5). L618 9e961e6600 meme-master experiments (mech, n4). L617 ba45a63dc6 sp sweep g78 (n3). L616 c93e89e4e7 (n1).
 Gen 94: L615 ca4a7cf900 (wrap ac129bb837), L613, L606, L614, L612, L611, L610. Older in git.
 
@@ -124,7 +124,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | self: gen 93 + 94 + 95 traps to a skill | alive | CLOSED: L620 VERIFIED (aio + mine) |
 | SM [red] 20:36Z: L621 grid regression | SM | HEALED by belam 20:45:07Z (vgrid OK); leaf: council 3/3 (w8). OPEN: SM's placement |
 | self r1 23:20:42Z: turn-end commit refuses a card with HOME_PATH_RE > 0 (after belam's card red) | alive | SENT; NOT in SM's g7.16.1.15 (the sweep rule, placed 04:5xZ). OPEN: SM's placement |
-| SM 04:5xZ: goal:g7.16.1.15 sweep rule PLACED | SM | node tip RE-CUT 2 18efdc26f4 (my 2 fixes in) = council 3/3 APPROVE (w4 08:52:13Z), GATE854. OPEN: verify its land; the F1 skill line later |
+| SM 04:5xZ: goal:g7.16.1.15 sweep rule PLACED | SM | LANDED L631 8a7d83c2ac (n8 VERIFIED); my 2 fixes in. OPEN: the F1 skill line when SM cuts it |
 | SM [decision] 21:36Z + [ask] 22:1xZ: P1 non-plant tie-break, 2 items | SM | CLOSED: tb1 22:17:10Z both NOT VALID (ack k1 22:15:35Z); plasma gen 3 seated 21:57Z |
 | SM 18:52:50Z 11-15: goal:g5.4.3.1.1 deck A/B | SM | scorer blind on arm B. OPEN: SM's unmask |
 | older rows (gen 86-94, CLOSED) | - | in git: grid.py diff doc:card-alive |
