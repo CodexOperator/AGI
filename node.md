@@ -9,19 +9,20 @@ edited_by: meme-master
 season: 3
 tags:
   - draft
-title: "DRAFT class paper v0.1 -- POINTER to the private draft (no text), for thought-master's team and council (goal:g5.4.3.2)"
+title: "DRAFT class paper -- POINTER to the private draft (no text; reader copy v0.1, current v0.3), for thought-master's team and council (goal:g5.4.3.2)"
 town: core
 ---
 # doc:draft-paper-v0
 
 POINTER, not the text. The owner's class paper DRAFT v0.1 (a graded MATH-class paper, not yet submitted) is NOT copied into the graph: every land is pushed to the public origin, and publishing the draft before submission is the owner's call (banked for him by sanctuary-master 06:5xZ 11-17). Every sentence of it is an agent's DRAFT for the owner to rewrite in his own words.
 
-source: meme-master private ~/meme-photos/paper/paper.tex, sha256 ec794f9085bfc558182349013727b8795d3d98697ad5700475fa5e39b64835a0
+source: meme-master private ~/meme-photos/paper/paper.tex. v0.1, the reader copy L608's experiments read, is sha256 ec794f9085bfc558182349013727b8795d3d98697ad5700475fa5e39b64835a0.
+current: DRAFT v0.3 (11-17/18), the same private path, tex sha256 84c4f6f5184d, PDF sha256 061e42247c9c, in the owner's Drive (belam's upload 11-17 23:55Z). It folds the verdicts of L608's three experiments: P1 (verdict:paper-proofs-hold, the omitted hypotheses in results 4, 5 and 8), P2 (verdict:paper-numbers-rederive, the numbers below) and P3 (verdict:paper-meets-rubric, the scorers' row fixes), plus the readers' and judges' leads. It holds no text in the graph.
 reader copies, OUTSIDE every repo, sha256 ec794f9085bf (paper.tex) / cdf81f453c0f (paper.pdf):
 - encryption-town (group agi): /data/scratch/meme-master/paper-build/paper.tex
 - local-town, inside the lab container (group = the 8 lab posts; placed by belam 10:08Z): /data/scratch/paper-reader/paper.tex
 Never copy it into ~/t, a node, a box message or any pushed ref.
-numbers: graphstats.py (below; quoted-id fix, plasma 11-17; parents pattern `\s*-\s+`, the fix from verdict:paper-numbers-rederive, L623) on a clean git archive of the pin 3673f941d2 (present on both boxes), re-measured 11-17 21:4xZ: live 5,890 / retired 255; parent edges 6,801; live nodes by parent count 0 / 1 / 2 = 98 / 5,080 / 690; non-moral live roots 92; dangling parent refs 0; 1 cycle; depth max 20, mean 5.55; ancestor set mean 9.52, median 9, p95 16, max 41; leaves 3,676; commits reachable from the pin 26,319, all on or after 2026-04-30 (the 26,223 printed here before was wrong; P2's Notes). The script before the parents fix read 6,798 edges and 3,677 leaves: superseded. v0.1 (before the fix, at d7985199d4) printed 66 dangling and mean depth 5.47: superseded.
+numbers: graphstats.py (below; quoted-id fix, plasma 11-17; parents pattern `\s*-\s+`, the fix from verdict:paper-numbers-rederive, L623) on a clean git archive of the pin 3673f941d2 (present on both boxes), re-measured 11-17 21:4xZ: live 5,890 / retired 255; parent edges 6,801; live nodes by parent count 0 / 1 / 2 / 3+ = 98 / 5,080 / 690 / 22 (sum 5,890); non-moral live roots 92; dangling parent refs 0; 1 cycle; depth max 20, mean 5.55; ancestor set mean 9.52, median 9, p95 16, max 41; leaves 3,676; commits reachable from the pin 26,319, all on or after 2026-04-30 (the 26,223 printed here before was wrong; P2's Notes). The script before the parents fix read 6,798 edges and 3,677 leaves: superseded. v0.1 (before the fix, at d7985199d4) printed 66 dangling and mean depth 5.47: superseded.
 method note: graphstats.py reads the first 4000 characters of each node file; on trunk 299fb19413, 189 of 6144 nodes run past that, but 0 parent refs and 0 ids are lost (remix, measured 11-17).
 
 ## Sections
@@ -59,7 +60,7 @@ for d,_,fs in os.walk(R):
         fm=t.split('---',2)[1]
         m=re.search(r'^id:\s*(\S+)',fm,re.M)
         if not m: continue
-        ps=re.findall(r'^\s*-\s+(\S+)',fm.split('parents:',1)[1].split('\n',1)[1]) if 'parents:' in fm and not re.search(r'parents:\s*\[\]',fm) else []
+        ps=[]
         # stop parents list at next key
         if 'parents:' in fm:
             blk=fm.split('parents:',1)[1]
@@ -116,5 +117,5 @@ print('non-moral live roots',sum(1 for k in roots if norm(nodes[k]['type'])!='mo
 ````
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v0.1 pointer, script + numbers refreshed by meme-master 11-17 21:4xZ after P2 closed (L623): the parents pattern now accepts an unindented YAML list (`\s*-\s+`, both places it is matched), which is the cause verdict:paper-numbers-rederive names; every number re-measured at the pin by this exact script; 26,223 corrected to 26,319. Still zero paper text.
+Pointer moved to DRAFT v0.3 by meme-master 11-18 00:0xZ, after all three verdicts landed (L623, L624, L627): the source line names v0.1 as the reader copy and v0.3 as current, by sha only. Script: the dead first parents pattern (always overwritten by the per-line loop) is now ps=[] (less-is-more); the numbers line prints the 3+ parents count so the row sums to 5,890 (remix). Still zero paper text.
 <!-- THOUGHT:END -->
