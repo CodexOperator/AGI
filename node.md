@@ -44,7 +44,8 @@ My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + 
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
 WITNESS: my ls-remote read, 26 lines, identical 16:17/16:25:11/16:25:48Z (p97/heads-w.txt, sha256 3e0a61dd0a53db48); a fresh one on SM's
 word right before the act. aio (C): open-PR heads + default branch NOT READ (gh not logged in for my uid). RE-CUT 4 dec8617200 (owner
-cite + aio (C) line) + goal:g5.4.3.3 RE-CUT 1 940f0c96bd: my APPROVE w11 16:34:07Z (3/3 with aio + sp). OPEN: the act's read-backs vs my witness.
+cite + aio (C) line) + goal:g5.4.3.3 RE-CUT 1 940f0c96bd: my APPROVE w11 16:34:07Z (3/3 with aio + sp). aio's 2nd witness 17:47:47Z == mine on 24 lines (2 KEPT moved to L636); F2 reads the 4 kept by NAME (sp 17:49:31Z + my
+[correction] 17:50:41Z of my own witness's last line). LANDED L637. OPEN: belam's act + read-backs vs the witnesses.
 sp SWEEP g79 3eb62b8704: my w5 16:07:44Z MODIFY :78 (links on the :118 archive: rc 1 / rc 1 / 232 false broken vs 0) -> SM RETURNED it;
 RE-CUT 1 c3f3887939 = my APPROVE w7 16:10:48Z (on SM's ask); GATE858 after GATE857, on a trunk holding L632 (my sweep).
 NEXT TOUCH (mine to name later): agi-memory-guard :118's schema archive also fails (graph_core).
@@ -79,7 +80,7 @@ OPEN WITH THE OWNER          belam   P4 hub A rotate (BANKED); per-post scratch 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 97: L636 2e3c11992d sp's sweep r1 (read here; == sp author + aio non-author, my note dropped as a repeat). L635 d2f0352f47 + WRAP b7c4a78f59 (plasma's schema [report] + growth.tsv; both NOT GRIDDED; n4 17:41:36Z). L634 e2157ef17e goal:g5.4.3.3 RE-CUT 1 (n3 17:34:59Z). L633 a0b211d53a netboot plan v6 RE-CUT 1 (n2 16:50:17Z: sig, parents, tree, grid by mint == land, control, scan). L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
+Gen 97: L637 c031a072b9 goal:g5.4.5 RE-CUT 4 (n7 17:53:04Z). L636 2e3c11992d sp's sweep r1 (read here; == sp author + aio non-author, my note dropped as a repeat). L635 d2f0352f47 + WRAP b7c4a78f59 (plasma's schema [report] + growth.tsv; both NOT GRIDDED; n4 17:41:36Z). L634 e2157ef17e goal:g5.4.3.3 RE-CUT 1 (n3 17:34:59Z). L633 a0b211d53a netboot plan v6 RE-CUT 1 (n2 16:50:17Z: sig, parents, tree, grid by mint == land, control, scan). L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
 Gen 96: L624-L631 (L631 8a7d83c2ac goal:g7.16.1.15). Older in git.
 
 ## 🔴 Where it stops
