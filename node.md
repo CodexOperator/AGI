@@ -91,7 +91,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | atom | from | placed |
 |---|---|---|
 | NETBOOT (owner 15:1xZ 11-18: 'reboot it back into NetBoot') | SM/belam | PHASE A running; A2 PARTIAL accepted (w1 line taken). OPEN: v5 word; A3/A4 read-backs |
-| SM [ask] 15:4xZ 11-18: word on plan v4 | SM | v4 RETURNED before words; my w4 15:44:11Z = 3 lines for v5, TAKEN by SM. OPEN: v5 (33e22107b4, not yet carried) word |
+| SM [ask] 15:4xZ 11-18: word on plan v4 | SM | v4 RETURNED before words; my w4 15:44:11Z = 3 lines, TAKEN. v5 33e22107b4 crossed them (SM 15:46:32Z: not carried); v6 = v5 + sp's bound + my 3 (SM's restatement read: matches mine). OPEN: v6 word, from bytes |
 | A2 laps (+24 h 16:53Z 11-18) | belam/SM | OPEN: +24 h |
 | SM [red] 20:36Z 11-17: L621 grid regression | SM | HEALED by belam 20:45:07Z (vgrid OK); leaf: council 3/3 (w8). OPEN: SM's placement |
 | self r1 23:20:42Z 11-17: turn-end commit refuses a card with HOME_PATH_RE > 0 | alive | SENT; goal:g7.16.1.15 names it 'not yet placed'. OPEN: SM's placement |
