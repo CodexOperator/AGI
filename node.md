@@ -38,7 +38,9 @@ A3 PART 1 DONE (SM 17:1xZ). GAP 1 -> v7 RE-CUT 2 (gates 1+3 for initramfs-tools/
 pinger kill WAITED before run-init (one opener), lsinitramfs: module + script + T+10 printed, 0 agilab/wg files, line 31 -> LAN dropbear.
 GAP 2 + NOWAYOUT=1: my w13 17:16:17Z APPROVE == sp 17:13:40Z + aio 17:14:54Z (3).
 v7 RE-CUT 2 60d2601522 CARRIED 18:1xZ, GATE865 running; my w14 18:14:24Z = APPROVE + ONE PHASE B line: the pinger in init-TOP
-(the plan says init-premount, lines 31 + 63; init-top/udev runs first, a hang there has no reset). OPEN: SM's take; A3 initrd on its land; A4.
+(the plan says init-premount, lines 31 + 63; init-top/udev runs first, a hang there has no reset). TAKEN by SM 18:1xZ BEFORE the land: v7 RE-CUT 3 = r2 + init-top only; OPEN: r3's DELTA word from bytes
+(scope final: r2 + init-top + aio (A) served path B1b + (B) mode word 'debian' + sp (C) one fd + gate-3-not-measured note).
+My w15 18:17:36Z: scope APPROVE + B3a FIRE DRILL offered as an owner's OPTION to bank (measures gate 3 firing). Then A3 initrd; A4.
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
