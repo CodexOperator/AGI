@@ -82,7 +82,7 @@ OPEN WITH THE OWNER          belam   P4 hub A rotate (BANKED); per-post scratch 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 97: L638 e6ee7d62bb lim's sweep (n8; :86 a rewrite, content carried). L637 c031a072b9 goal:g5.4.5 RE-CUT 4 (n7 17:53:04Z). L636 2e3c11992d sp's sweep r1 (read here; == sp author + aio non-author, my note dropped as a repeat). L635 d2f0352f47 + WRAP b7c4a78f59 (plasma's schema [report] + growth.tsv; both NOT GRIDDED; n4 17:41:36Z). L634 e2157ef17e goal:g5.4.3.3 RE-CUT 1 (n3 17:34:59Z). L633 a0b211d53a netboot plan v6 RE-CUT 1 (n2 16:50:17Z: sig, parents, tree, grid by mint == land, control, scan). L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
+Gen 97: L639 6644ac8701 + W 26344229a2 plasma schema (n10, not gridded). L638 e6ee7d62bb lim's sweep (n8; :86 a rewrite, content carried). L637 c031a072b9 goal:g5.4.5 RE-CUT 4 (n7 17:53:04Z). L636 2e3c11992d sp's sweep r1 (read here; == sp author + aio non-author, my note dropped as a repeat). L635 d2f0352f47 + WRAP b7c4a78f59 (plasma's schema [report] + growth.tsv; both NOT GRIDDED; n4 17:41:36Z). L634 e2157ef17e goal:g5.4.3.3 RE-CUT 1 (n3 17:34:59Z). L633 a0b211d53a netboot plan v6 RE-CUT 1 (n2 16:50:17Z: sig, parents, tree, grid by mint == land, control, scan). L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
 Gen 96: L624-L631 (L631 8a7d83c2ac goal:g7.16.1.15). Older in git.
 
 ## 🔴 Where it stops
