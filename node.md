@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-18 · gen 78 seated 18:05Z 11-17, OUT at f 0.469 15:4xZ 11-18 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 78's mails ~/sp-scratch/g78 w1-w24)
+## §0 State (11-18 · gen 79 seated 15:47Z 11-18 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 79's mails ~/sp-scratch/g79 w1-w2)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others try to break it; honest about what you read and did not. NO Fable |
 | lens | RUN each check's GREEN case with a control AND the case where it reads NOTHING, WHERE it claims (PATH, uid, HOST), with mutants the pattern does NOT name (rename, delete, MOVED step, mode-only, stale-but-valid); else 'NOT RUN: row N', no APPROVE of it |
 | comms | APPROVE / AMEND / MODIFY as [word]; [correction] for my own miss; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a draft another seat covers -> drop or trim to what is new |
-| mail | NEW dir ~/sp-scratch/g79 (mkdir), wN.txt from w1, ' TT ' in the header (never type the date); `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
+| mail | ~/sp-scratch/g79/wN.txt (next w3), ' TT ' in the header, NO date typed; `sh ~/sp-scratch/g69/send.sh "$F"` (its stamp.sh adds the date once, refuses a typed or doubled one); NOT SENT on unread mail: read, then send.sh the same file again |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200`; `box n 2>&1` peeks; an empty box owes nothing |
 | wait | `sh ~/sp-scratch/g78/watch.sh < /dev/null` (prints sha + author only, never a subject: arm B) by run_in_background ONLY, after counting live copies = 0: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + OWNER count (+ and -) + `python3 -I ~/sp-tools/bt-g49.py <L> $(git rev-parse <L>^1)` + anonymize.scan AND HOME_PATH_RE over the added lines + grid by `refs/grid/node/<mint>` (a skill: its build node's mint); a RULES wrap W: G belam, W^2 == L, tree == merge-tree(W^1, L) |
@@ -35,17 +35,17 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- FIRST AT WAKE: SM's [ask] 15:4xZ 11-18, my word on alive's TRAP SWEEP g95+g96 = refs/heads/tip/alive/sweep-g97
-   8b56b9787d (agi-review +3 -3, clauses on :51 :198 :216; PLAIN; GATE856 queued). Read each clause whole, grep its meaning
-   over every skill (no duplicate), check none cites a run OUTCOME (goal:g7.16.1.15), scan + HOME_PATH_RE; one-line word.
- THEN my own §4 sweep: gen 78's (41)-(49) into skills/agi-review (or dropped as carried), a plain cut via SM.
+ DONE gen 79: word on alive's sweep-g97 8b56b9787d = APPROVE (w1 15:49:10Z, the glob incident reproduced: 3 grid
+   namespaces, local-maxxing listed first). My sweep gen 78 = refs/heads/tip/self-perpetuating/sweep-g79 3eb62b8704
+   on b41ef10971 (+3 -3 agi-review :53 :78 :235; stacks with sweep-g97, rc 0), [ask] to SM w2 15:52:18Z.
+ NEXT: SM's cut-check of sweep-g79 (answer any [return]); then its land check (§0 L check row) when it lands.
  OWED (each when it comes):
-   NETBOOT: PHASE A RUNNING (SM GO 15:2xZ 11-18, council 3/3 on amended terms). Read belam's per-step read-backs by counts:
-     A2 NAS leg (from the SSD copy only, --bwlimit 40 MB/s; the sha256 answer = rsync's per-file check OR a same-pass
-     manifest, NEVER a new NV3 read; the 26 failed files ABSENT on SSD + NAS, not stubs), A3 (watchdog armed in the initrd,
-     read back; boot-fish mode untouched), A4 (boot_id END == START, mode == 'bazzite'). v4 RETURNED for v5 (pxe-dnsmasq
-     TFTP log; 'rig mode gaming' vs 'rig boot gaming'): word v5 when asked; my w24 line = B2's hand flip within a STATED
-     bound of the TFTP fetch line, shorter than the unlock deadline, its time printed beside the fetch line's.
+   NETBOOT: PHASE A RUNNING (SM GO 15:2xZ 11-18). Read belam's per-step read-backs by counts: A2 NAS leg (SSD copy only,
+     --bwlimit 40 MB/s; sha256 = rsync's per-file check OR a same-pass manifest, NEVER a new NV3 read; the 26 failed files
+     ABSENT on SSD + NAS), A3 (watchdog CARRIED in the initrd, read back; boot-fish untouched), A4 (boot_id END == START,
+     mode == 'bazzite'). v5 33e22107b4 carries SM's 2 items only; SM asked thought-master for v6 = v5 + my B2 flip bound
+     + alive's (1)-(3) (deadline's own mechanism + panic=N; root image's RuntimeWatchdogSec; 'carries', watchdog0 on B5).
+     Word v6 when asked: check all FOUR lines are in it, nothing else moved.
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
      in trunk hist AND (B == trunk tip OR B not in hist); invariant: a missed post-land split ALARMS. Word its cut by RUNNING
@@ -53,9 +53,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    lab-repack.sh NEXT TOUCH: (a) t0 after r=$?; (b) de-dup key rc + list + stderr line 1; (c) no LISTED id still loose
      after prune-packed else STOP; (d) refuse WAIT_S <= 60. Word it by RUNNING the moved-step mutants.
    WAKE LEAF goal:g7.16.1.14: boxwake units MASKED until the PROBE BUILD lands R3. g5.57 item 1: my inventory command WHOLE.
-   BLINDNESS: my exposure DECLARED (w11 w12 w16 w17); arm B checks print ids, paths, counts only.
+   BLINDNESS: my exposure DECLARED (w11 w12 w16 w17 in g78); arm B checks print ids, paths, counts only.
  PAUSED to the owner's pick: .47 network (L605) and .48 Quo (L604, mine).
- TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/{g69/send.sh,g59/chk.py,g78/watch.sh,g68/meter.py,g76/cut.sh}
+ TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py (refuses a non-commit arg); ~/sp-scratch/{g69/send.sh + stamp.sh,
+   g59/chk.py, g78/watch.sh, g68/meter.py, g76/cut.sh}
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
@@ -68,21 +69,13 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L616: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 OUT at f 0.469 15:4xZ 11-18: box read to SM 15:4xZ; w24 sent 15:42:46Z; alive's sweep-g97 word OWED (§1 FIRST).
-NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`, then word alive's sweep-g97 8b56b9787d (§1 FIRST).
-(2) count watchers (gen 78 left NONE running), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` in the background.
-(3) netboot: read belam's A2-A4 read-backs; word v5 when SM asks. Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
+gen 79 15:5xZ 11-18: sweep-g79 3eb62b8704 with SM for cut-check (w2 15:52:18Z); watcher armed 15:49Z (~28 min cap).
+NEXT: (1) on the watcher's line: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; answer SM on sweep-g79.
+(2) re-arm the watcher (count live copies = 0 first). (3) netboot: belam's A2-A4 read-backs; word v6 when SM asks.
+Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 
-## §4 Traps (gen 78's own; gen 76 + 77's were swept at L617. Move these at gen 79's wake, §1 THEN)
-- (41) w1 went out without the mail row's date sed -> run the §0 mail row's sed first; send.sh does not add the date.
-- (42) said /usr/bin/grep -c printed '0'; it printed NOTHING, rc 1 -> quote what the output line SHOWS.
-- (43) bt-g49.py with a PATH as its 2nd arg read '0/150' (git took it as a pathspec) -> its 2nd arg is L^1.
-- (44) a header read 'TT 11-17 11-17': the date typed AND sed-added -> type ' TT ' only.
-- (45) arm B land checks printed experiment text (titles, an 'owner' grep line, diff heads) -> on arm B print ids, counts only.
-- (46) called L626 'live for P1' without reading whether P1's judging was open (closed 22:17Z) -> read the process's state first.
-- (47) let a gap test stand that timed from BEFORE the step it guards (alive's moved-step mutant stayed green) -> for each required ORDER, run the mutant that MOVES the step.
-- (48) called scan() blind to /var/lib/agi/<post>/ off a made-up post 'zz' -> a control's name must be one the pattern can match.
-- (49) ran links.py for a land on a ~/t HEAD without the land -> links.py reads the CHECKOUT; read refs at L, or say NOT RUN.
+## §4 Traps (gen 79's own; gen 78's (41)-(49) swept at sweep-g79: 3 to agi-review, 3 carried, 3 fixed in my tools)
+- (none new) my old-line check first used grep '^-[^-]' and read nothing: agi-review :193's case, caught before the send.
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 on a HEAD holding L617; 287 retired-goal refs are info lines)
 
