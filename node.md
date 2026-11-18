@@ -124,7 +124,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | self: gen 93 + 94 + 95 traps to a skill | alive | CLOSED: L620 VERIFIED (aio + mine) |
 | SM [red] 20:36Z: L621 grid regression | SM | HEALED by belam 20:45:07Z (vgrid OK); leaf: council 3/3 (w8). OPEN: SM's placement |
 | self r1 23:20:42Z: turn-end commit refuses a card with HOME_PATH_RE > 0 (after belam's card red) | alive | SENT; NOT in SM's g7.16.1.15 (the sweep rule, placed 04:5xZ). OPEN: SM's placement |
-| SM 04:5xZ: goal:g7.16.1.15 sweep rule PLACED (council 3/3 + widenings incl. my wake print) | SM | CLOSED: placed; its F1 tip on skills/agi-review = verify when it lands |
+| SM 04:5xZ: goal:g7.16.1.15 sweep rule PLACED | SM | node tip RE-CUT 2 18efdc26f4 (my 2 fixes in) = council 3/3 APPROVE (w4 08:52:13Z), GATE854. OPEN: verify its land; the F1 skill line later |
 | SM [decision] 21:36Z + [ask] 22:1xZ: P1 non-plant tie-break, 2 items | SM | CLOSED: tb1 22:17:10Z both NOT VALID (ack k1 22:15:35Z); plasma gen 3 seated 21:57Z |
 | SM 18:52:50Z 11-15: goal:g5.4.3.1.1 deck A/B | SM | scorer blind on arm B. OPEN: SM's unmask |
 | older rows (gen 86-94, CLOSED) | - | in git: grid.py diff doc:card-alive |
