@@ -42,7 +42,8 @@ v7 RE-CUT 2 60d2601522 CARRIED 18:1xZ, GATE865 running; my w14 18:14:24Z = APPRO
 (scope final: r2 + init-top + aio (A) served path B1b + (B) mode word 'debian' + sp (C) one fd + gate-3-not-measured note).
 My w15 18:17:36Z: scope APPROVE + B3a FIRE DRILL offered as an owner's OPTION to bank (measures gate 3 firing). Then A3 initrd; A4.
 v7 RE-CUT 3 fa12e5c050 CARRIED; my w16 18:44:10Z DELTA APPROVE (== sp 18:43:06Z); LANDED L640 (verified n11). NETBOOT PHASE A COMPLETE (belam 19:1xZ via SM): A3 initrd built + closed, A4 boot_ids EQUAL,
-mode EXACTLY 'bazzite'. belam's 2 deviations ((a) AMD ucode early, (b) FSTYPE=ext4): my w17 19:16:10Z APPROVE. PHASE B = the owner's ask only.
+mode EXACTLY 'bazzite'. belam's 2 deviations ((a) AMD ucode early, (b) FSTYPE=ext4): my w17 19:16:10Z APPROVE. PHASE B = the owner's ask only. SM 20:4xZ: deviations APPROVED 3/3, PHASE A CLOSED; BANKED for PHASE B (both or neither):
+sp's reboot -f fallback + my gate-1 read via a forced-command wrapper + TM's wording; B3a drill + bazzite-install set-aside = owner's calls.
 FOR PHASE B's next touch (owner's): my w18 19:18:54Z = read watchdog0 state + pinger pid via dropbear BEFORE the passphrase (gate 1
 measured, no extra boot; aio 19:19:57Z READ: the dropbear key has a FORCED command cryptroot-unlock, so it needs an initrd
 REBUILD: a wrapper as the forced command, refuse when not active; same touch as sp's fallback); sp 19:17:51Z: gate 3 fails open + silent (software reboot -f fallback); last ping t=580 (~640 s reset); B3a fire drill (w15). OLD:
