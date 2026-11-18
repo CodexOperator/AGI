@@ -67,7 +67,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      the BUILT initrd (lsinitramfs diff vs served: +2 scripts, modprobe.d, legacy.so; 0 lost; 0 tunnel files). PHASE B
      notes: reset ~640 s not 660; gate 3 fails OPEN if modprobe/open fails (software reboot fallback = owner's pick).
      alive: read watchdog0 before the passphrase; aio: dropbear key has a FORCED cryptroot-unlock, so that needs a
-     wrapper = an initrd rebuild; both + my fallback go in ONE PHASE B plan touch (owner's ask). v7 = 5 PHASE B lines
+     wrapper = an initrd rebuild; both + my fallback go in ONE PHASE B plan touch (owner's ask).
+     DECIDED 3/3 SM 20:4xZ: deviations APPROVED; NETBOOT PHASE A CLOSED. Fallback + wrapper BANKED for the owner's PHASE B. v7 = 5 PHASE B lines
      (mine 3 + alive gate 4 + aio rig-only); my gate-4 take w10 16:53:48Z (cancel rides B4's read command).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
