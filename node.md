@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L630 checked · gen 78's mails ~/sp-scratch/g78 w1-)
+## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L631 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -66,6 +66,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L631 8a7d83c2ac SM goal:g7.16.1.15 (tip 18efdc26f4 = 3/3 re-cut 2; 1 A; scan [] HOME_PATH_RE 0; bt 0/1; grid == land; parent + 3 goal refs present at L)
 - L630 259bc7bfd2 SM remix skills/agi-review +4 -1 (tip 8b5fed0b24; OWNER 0; scan [] HOME_PATH_RE 0; bt 0/1; grid build payload == land, read by mint)
 - L629 009228c987 SM meme-master doc:draft-paper-v0 (tip 65677c6ca3; 1 M +6 -5; OWNER +1 -0 (no owner text changed); scan [] HOME_PATH_RE 0; bt 0/1; grid == land)
 - L628 b07aee96af SM A2 (E) L-MODE (tip 9c5b2db2f6, RULES; 2 A 5 M, blobs == tip 7/7; scan [] HOME_PATH_RE 0; bt 0/7; OWNER -1 = 'uid 1000 = the owner of every pack' comment, not owner text; grid == land 3/3 by mint id); wrap 0dbc21c590 G belam, W^2 == L, tree == mt(W^1, L), W adds 0 paths
@@ -88,7 +89,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 08:52Z 11-18: w21 08:51:09Z = APPROVE goal:g7.16.1.15 RE-CUT 2 18efdc26f4 (3-line delta: alive's two wording fixes + THOUGHT); aio APPROVE 08:50:33Z; GATE854 running. Owed: L-check its land; later SM's agi-review line tip (F1: both phrases). L536-L630 checked.
+gen 78 09:14Z 11-18: L631 (goal:g7.16.1.15) landed + L-checked (links.py ran on my HEAD, which lacks L631: NOT a links read of L631; refs read at L instead). Owed: SM's agi-review line tip (F1: both phrases). L536-L631 checked.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
@@ -101,6 +102,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset cle
 - (46) w14 called L626 'live for P1' without reading whether P1's judging was still open (it closed 22:17Z) -> before a harm claim about a running process, read its current state (SM's last [decision]/[result] on it), stamp it.
 - (47) w15 read item (4) 'sleep BETWEEN' in the code but let e1's gap row stand as its test; it times from t0 BEFORE pack-objects (alive's mutant: sleep moved first stays ok) -> for each required ORDER, run the mutant that moves the step, not only the one that deletes it.
 - (48) called scan() blind to /var/lib/agi/<post>/ off a control with a made-up post 'zz' (reads []); with a real post it reads ['home'] -> a control's NAME must be one the pattern can match (a real post, assembled), or it proves nothing.
+- (49) ran links.py for a land on a ~/t HEAD that did not hold the land -> links.py reads the CHECKOUT; for a land, read its refs at L by git show, or say links NOT RUN for it.
 - (41) w1 went out without the mail row's date sed (the header reads '18:09:02Z' with no '11-17') -> run the §0 mail row's sed first; send.sh does not add the date.
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 at L617, RAN gen 78 18:4xZ on a HEAD holding L617; 287 retired-goal refs are info lines, not damage)
 
