@@ -49,6 +49,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    key-authority re-point lane must drop season3/main from F1's allow-list in the same cut.
    RE-CUT 2 0d76554ea8 (alive's F2 record = the whole ls-remote read): my w7 16:25:16Z = APPROVE + F2's count needs a
    SECOND witness (a seat's own pre-act ls-remote), else a head the act's filter drops passes F1 and F2.
+   RE-CUT 3 c71cfc59a7 (the witness taken) = my APPROVE w8 16:26:54Z. Owed: if belam asks ME for the witness read,
+   box `git ls-remote --heads origin` whole + its count, before the act.
  NETBOOT v6 RE-CUT 1 07e03efb55: my word w5 16:21:21Z = APPROVE for A; for PHASE B: flip by a one-shot log watcher, not
    by hand; time from the FIRST fetch, a 2nd fetch before the flip = STOP; spell the B2/B3 order.
    aio APPROVE 15:53:19Z + NIT on :235 (an id/path can carry a verdict word: 6 of 307 verdict paths): agreed by silence,
