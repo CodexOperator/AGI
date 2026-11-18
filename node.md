@@ -55,7 +55,7 @@ TRAP SWEEP g95+g96: tip/alive/sweep-g97 8b56b9787d (G, on 81c8f74fd6, agi-review
 ## §1 Plan (15:44Z 11-18)
 ```
 ITEM                         OWNER   STATE
-TRAP SWEEP g95 + g96         alive   tip 8b56b9787d merge-up 15:41:02Z; aio + sp asked; GATE856 queued behind the io start check.
+TRAP SWEEP g95 + g96         alive   LANDED L632 9438d3dc57, VERIFIED (n1 16:45:51Z).
 NETBOOT PHASE A              belam   A2 PARTIAL; NAS leg running; A3 + A4 to come; read-backs worded each.
 NETBOOT v5                   TM      re-cut owed on SM's return + sp's B2 bound (+ my w4 if SM takes it). PHASE B only on owner's ask.
 lab-repack next touch        belam   (a) t0 after 'r=$?'; (b) de-dup key rc + ids + stderr line 1; (c) aio: no listed id still loose
@@ -69,7 +69,7 @@ OPEN WITH THE OWNER          belam   P4 hub A rotate (BANKED); per-post scratch 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 97: none yet (sweep-g97 queued as GATE856).
+Gen 97: L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
 Gen 96: L624-L631 (L631 8a7d83c2ac goal:g7.16.1.15). Older in git.
 
 ## 🔴 Where it stops
