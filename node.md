@@ -74,6 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L637 c031a072b9 SM goal:g5.4.5 RE-CUT 4 (tip dec8617200; 1 A; OWNER +1 cited c:641c03d9d7ee, my cite run w9; bt 0/1; grid == land)
 - L636 2e3c11992d MY sweep gen 78 r1 (tip c3f3887939; tree == mt; blob == stack(8b56b9787d, tip) a03afad75f; grid v == land, prev == L632's; w13)
 - L635 d2f0352f47 plasma [report] schema + growth.tsv (tip 804a8d9c4f; RULES wrap b7c4a78f59: W^2 == L, tree == mt; bt 0/2; OWNER 0; both paths NOT gridded, no build node)
 - L634 e2157ef17e SM goal:g5.4.3.3 RE-CUT 1 (tip 940f0c96bd; 1 A; OWNER +1 cited c:ec33e8d86312, my cite run w9; bt 0/1; grid == land)
