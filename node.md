@@ -25,7 +25,12 @@ PLAN v4 ec2d77a1f4 RETURNED by SM before any word (pxe-http -> pxe-dnsmasq TFTP 
 B2 flip-bound line TAKEN. My w4 15:44:11Z: THREE lines for the same v5 (UNLOCK deadline has no mechanism since v3's timer unit was
 dropped, PID 1 pings at a waiting prompt; root image's RuntimeWatchdogSec too; B5 reads watchdog0 state=active): TAKEN AS WRITTEN by
 SM 15:4xZ ('v5 = SM's 2 + sp's bound + alive's 3'). TM's v5 tip 15:45Z = 33e22107b4, claims SM's TWO items ONLY (cut before the takes?):
-NOT in this store, /carry absent on this box: read it when belam carries it; check the 4 taken lines from BYTES (grep panic=, root image, carries, watchdog0 state, bound).
+v5 crossed; v6 30069653ae (in store) carries all 4 (READ, added lines whole: p97/v6-added.txt); SM returned v6 for one word;
+v6 RE-CUT 1 07e03efb55 (tip 16:1xZ) NOT yet carried. My word DRAFTED p97/w6 = MODIFY gate 4: B4's 'watchdog resets, no hand' is FALSE
+for an ALIVE-but-unreachable lab (PID 1 pings; gate 3 stops at switch-root) -> root-image dead-man reboot at T+15 unless belam cancels.
+Fill RCUT_READ after reading r1's delta; send on SM's ask (or once carried).
+sp SWEEP g79 3eb62b8704: my w5 16:07:44Z MODIFY :78 (links on the :118 archive: rc 1 / rc 1 / 232 false broken vs 0) -> SM RETURNED it.
+NEXT TOUCH (mine to name later): agi-memory-guard :118's schema archive also fails (graph_core).
 TRAP SWEEP g95+g96: tip/alive/sweep-g97 8b56b9787d (G, on 81c8f74fd6, agi-review +3 -3) merge-up 15:41:02Z; APPROVE aio 15:45:39Z + sp 15:49:10Z (sp: origin-snap is a 2nd stale namespace the glob hits; rule covers it); GATE856 queued.
 | | |
 |---|---|
