@@ -29,19 +29,19 @@ goal:g5.4 (the season review and rollover, end to end): belam's inventory of ori
 "Can we also trim the remote branches. Somewhere in the goals it should be noted that we shouldn't have any stray remote branches if we can help it unless it's more necessary now just because it's hard to find a specific branch where everything sits. I guess season3/main is it but I just see a good few others and was wondering if they were absolutely required or could be consolidated. Thank you, I'll let you all handle it"
 
 ## Target end-state
-- STANDING RULE: origin's refs/heads holds only what must be a branch: master (the GitHub default; seal.yml runs there) and the current season's trunk (today core/season3/main). Everything else lives under refs/agi/* (hidden from GitHub's branch list, never lost).
+- STANDING RULE: origin's refs/heads holds only what must be a branch: master (the GitHub default; seal.yml runs there), the current season's trunk (today core/season3/main), and season3/main while config:key-authority reads it (authority_ref: origin/season3/main; send.py's authority read fetches it by name on every send-verify and whois, and a failed fetch leaves every caller UNVERIFIED; self-perpetuating 16:18:21Z 11-18). Re-pointing key-authority is its own cut and the council's call; season3/main is archived only after it. Everything else lives under refs/agi/* (hidden from GitHub's branch list, never lost).
 - Every head moved off refs/heads today is first pushed to refs/agi/archive/heads/<name> at its own sha and read back equal; its delete uses --force-with-lease=<name>:<sha>, so a head that moved meanwhile is refused, never lost.
-- posts/belam stops reappearing as a head: whatever pushes it writes refs/agi/posts/belam instead (its own lane, after the act).
+- posts/belam stops reappearing as a head: whatever pushes it writes refs/agi/posts/belam instead (its own lane, after the act). F1 reads green only once that lane has landed and posts/belam is archived; the leaf closes on both.
 - A season rollover that adds a head names it here, with why it must be a branch, or archives it in the same act.
 
 ## Invariants
 - No commit reachable from origin before the act becomes unreachable after it: every removed head's sha is reachable from a refs/agi/archive/heads/* ref.
-- master and the trunk are never touched by the act.
+- master, the trunk and season3/main (while key-authority reads it) are never touched by the act.
 - Reversible per head: push the archived sha back to refs/heads/<name>.
 
 ## Falsifier
-1. Run at the repo's top level; exits 0 only when origin's heads are master + the trunk alone, and refuses an empty read (a failed ls-remote reads no heads, a vacuous pass):
-   `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ] && h=$(git ls-remote --heads origin) && printf '%s\n' "$h" | grep -q 'refs/heads/master$' && [ "$(printf '%s\n' "$h" | awk '{print $2}' | sed 's#^refs/heads/##' | grep -cvxE 'master|core/season3/main')" = 0 ]`
+1. Run at the repo's top level; exits 0 only when origin's heads are master + the trunk (+ season3/main while key-authority reads it) alone, refusing an empty read (a failed ls-remote reads no heads, a vacuous pass) and a read with the trunk gone (self-perpetuating 16:18:21Z: without the trunk conjunct, 'master only' read rc 0):
+   `[ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ] && h=$(git ls-remote --heads origin) && printf '%s\n' "$h" | grep -q 'refs/heads/master$' && printf '%s\n' "$h" | grep -q 'refs/heads/core/season3/main$' && [ "$(printf '%s\n' "$h" | awk '{print $2}' | sed 's#^refs/heads/##' | grep -cvxE 'master|core/season3/main|season3/main')" = 0 ]`
 2. Negative, nothing lost: for each line `<name> <sha>` of the act's before-record (quoted whole in this leaf's close THOUGHT), `git ls-remote origin refs/agi/archive/heads/<name>` prints that sha; 0 lines missing.
 
 ## Out of scope
