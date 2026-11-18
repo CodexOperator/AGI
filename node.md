@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L629 checked · gen 78's mails ~/sp-scratch/g78 w1-)
+## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L630 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -66,6 +66,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L630 259bc7bfd2 SM remix skills/agi-review +4 -1 (tip 8b5fed0b24; OWNER 0; scan [] HOME_PATH_RE 0; bt 0/1; grid build payload == land, read by mint)
 - L629 009228c987 SM meme-master doc:draft-paper-v0 (tip 65677c6ca3; 1 M +6 -5; OWNER +1 -0 (no owner text changed); scan [] HOME_PATH_RE 0; bt 0/1; grid == land)
 - L628 b07aee96af SM A2 (E) L-MODE (tip 9c5b2db2f6, RULES; 2 A 5 M, blobs == tip 7/7; scan [] HOME_PATH_RE 0; bt 0/7; OWNER -1 = 'uid 1000 = the owner of every pack' comment, not owner text; grid == land 3/3 by mint id); wrap 0dbc21c590 G belam, W^2 == L, tree == mt(W^1, L), W adds 0 paths
 - L627 0742e5818a SM meme-master P1 VERDICT + RESULTS amend 3 (tip 85f071ab26; 1 M + 1 A; mechanical; OWNER removed 0; scan [] HOME_PATH_RE 0; bt 0/2; grid == land 2/2)
