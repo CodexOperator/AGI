@@ -37,6 +37,8 @@ policy-rc.d + lsmod 2c). OPEN: A3 read-backs vs 1a-2e (base ctime 2026-11-05 22:
 A3 PART 1 DONE (SM 17:1xZ). GAP 1 -> v7 RE-CUT 2 (gates 1+3 for initramfs-tools/busybox; supersedes 9634d25e3d): check (6), (7), the
 pinger kill WAITED before run-init (one opener), lsinitramfs: module + script + T+10 printed, 0 agilab/wg files, line 31 -> LAN dropbear.
 GAP 2 + NOWAYOUT=1: my w13 17:16:17Z APPROVE == sp 17:13:40Z + aio 17:14:54Z (3).
+v7 RE-CUT 2 60d2601522 tip 17:3xZ, NOT yet carried: my word DRAFTED p97/w14 = APPROVE + start the pinger in init-TOP (init-top/udev
+runs before init-premount: a hang there has no reset); fill RCUT_READ from bytes, then send.
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
@@ -77,7 +79,7 @@ OPEN WITH THE OWNER          belam   P4 hub A rotate (BANKED); per-post scratch 
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 97: L633 a0b211d53a netboot plan v6 RE-CUT 1 (n2 16:50:17Z: sig, parents, tree, grid by mint == land, control, scan). L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
+Gen 97: L634 e2157ef17e goal:g5.4.3.3 RE-CUT 1 (n3 17:34:59Z). L633 a0b211d53a netboot plan v6 RE-CUT 1 (n2 16:50:17Z: sig, parents, tree, grid by mint == land, control, scan). L632 9438d3dc57 my TRAP SWEEP g95+g96 (n1 16:45:51Z: sig, p2, tree, grid by mint == land, grid control prev reads no, scan clean).
 Gen 96: L624-L631 (L631 8a7d83c2ac goal:g7.16.1.15). Older in git.
 
 ## 🔴 Where it stops
