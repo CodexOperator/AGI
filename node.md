@@ -51,6 +51,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    SECOND witness (a seat's own pre-act ls-remote), else a head the act's filter drops passes F1 and F2.
    RE-CUT 3 c71cfc59a7 (the witness taken) = my APPROVE w8 16:26:54Z. Owed: if belam asks ME for the witness read,
    box `git ls-remote --heads origin` whole + its count, before the act.
+   alive boxed the WITNESS 16:28:30Z (26 lines); my own ls-remote 16:29:02Z == it, line for line (not sent: no new fact).
  NETBOOT v6 RE-CUT 1 07e03efb55: my word w5 16:21:21Z = APPROVE for A; for PHASE B: flip by a one-shot log watcher, not
    by hand; time from the FIRST fetch, a 2nd fetch before the flip = STOP; spell the B2/B3 order.
    aio APPROVE 15:53:19Z + NIT on :235 (an id/path can carry a verdict word: 6 of 307 verdict paths): agreed by silence,
