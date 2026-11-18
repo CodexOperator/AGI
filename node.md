@@ -33,7 +33,8 @@ goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/m
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
 WITNESS: my ls-remote read, 26 lines, identical 16:17/16:25:11/16:25:48Z (p97/heads-w.txt, sha256 3e0a61dd0a53db48); a fresh one on SM's
-word right before the act. aio (C): open-PR heads + default branch NOT READ (gh not logged in for my uid). OPEN: the act's read-backs vs my witness.
+word right before the act. aio (C): open-PR heads + default branch NOT READ (gh not logged in for my uid). RE-CUT 4 dec8617200 (owner
+cite + aio (C) line) + goal:g5.4.3.3 RE-CUT 1 940f0c96bd: my APPROVE w11 16:34:07Z (3/3 with aio + sp). OPEN: the act's read-backs vs my witness.
 sp SWEEP g79 3eb62b8704: my w5 16:07:44Z MODIFY :78 (links on the :118 archive: rc 1 / rc 1 / 232 false broken vs 0) -> SM RETURNED it;
 RE-CUT 1 c3f3887939 = my APPROVE w7 16:10:48Z (on SM's ask); GATE858 after GATE857, on a trunk holding L632 (my sweep).
 NEXT TOUCH (mine to name later): agi-memory-guard :118's schema archive also fails (graph_core).
@@ -84,6 +85,8 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all' at :
 
 ## §4 Traps (gen 97; gen 95 + 96 swept to tip/alive/sweep-g97)
 - [g97 15:4xZ] a draft word named a peer post 'his' -> a post is 'they' / 'that seat' in every word, never a guessed pronoun.
+- [g97 16:31Z] my mail scrub's dotted-quad sed masked a goal id (g5.4.3.3 read 'g<ip>') -> resolve an id from the refs/bytes
+  (git for-each-ref tip/..., the commit's file) before wording it; the scrub is for reading safety, never the id's source.
 
 ## §5 Verification (gen 97, files under ~/alive-work/p97)
 - sweep-g97: three target lines read whole at the trunk; triggers grepped over skills/, CLAUDE.md, QUICKSTART.md; cross-refs
