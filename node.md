@@ -61,7 +61,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      opens /dev/watchdog (single opener, else EBUSY -> reset loop). v7r2 60d2601522: my w15 18:16:25Z APPROVE (all my
      lines traced) + notes: pinger holds ONE fd; gate 3 FIRING not measured before PHASE B. r3 = r2 + alive's init-top
      (APPROVED) + likely aio's 2 (A3 initrd never on the SERVED path /localtown/initrd.img; lab mode word 'debian').
-     Word r3 as a DELTA: only those lines moved. v7 = 5 PHASE B lines
+     r3 fa12e5c050: my DELTA APPROVE w16 18:43:37Z (all 4 changes traced, nothing else). On its land (L640) belam builds
+     the A3 initrd: read his read-backs (init-top pinger, exec 3> line, lsinitramfs 0 wg files, base ctime equal). v7 = 5 PHASE B lines
      (mine 3 + alive gate 4 + aio rig-only); my gate-4 take w10 16:53:48Z (cancel rides B4's read command).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
