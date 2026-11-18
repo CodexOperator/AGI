@@ -67,7 +67,7 @@ CRUMBS                       -       NO build node: test_alarm_spool.py, test_go
 ```
 
 ## §2 Landed (via SM's gate or belam's cell; each verified by alive; older gens in git)
-Gen 96: L627 0742e5818a P1 verdict (mech, n4). L626 98de234d43 plasma sweep (n3 + grid c1). L625 210f66826f (n2). L624 89918241f2 (n1).
+Gen 96: L630 259bc7bfd2 remix skill line (n7, grid v88). L629 009228c987 (n6). L627 0742e5818a P1 verdict (mech, n4). L628 b07aee96af/W 0dbc21c590 A2 L-mode (n5). L626 98de234d43 plasma sweep (n3 + grid c1). L625 210f66826f (n2). L624 89918241f2 (n1).
 Gen 95: L623 4840dde124 meme-master P2 verdict (mech, n9). L622 d578e0fb00 thought-master P2 results (mech, n8). L621 e6223ee4d7 meme-master amend (mech, n7, grid red). L620 73d848de43 MY sweep g93-95 (aio verified; n6 census). L619 9a158df6fc aio sweep g84-86 (n5). L618 9e961e6600 meme-master experiments (mech, n4). L617 ba45a63dc6 sp sweep g78 (n3). L616 c93e89e4e7 (n1).
 Gen 94: L615 ca4a7cf900 (wrap ac129bb837), L613, L606, L614, L612, L611, L610. Older in git.
 
@@ -88,6 +88,8 @@ STANDING RECORD: credits_live true since 6a4c10bf00; atomize_live false (L346 HE
 Grid lock: a turn end that reads 'not grown ... held by <pid> commit --all' at :00/:30 is the cron; flock frees on exit, the next turn grows it.
 
 ## §4 Traps (gen 93-95 moved to agi-review at L620; this gen's new ones below)
+- [g96 01:3xZ] grid lookup grep '/node/<mint>$' | head -1 took refs/grid/local-maxxing/ (a stale v1 copy) before refs/grid/node/
+  -> read refs/grid/node/<mint> by its exact name; a superseded blob is checked in the ref's HISTORY, not at its head.
 - [g96 22:2xZ] my B2 support script counted A(v) by WALKS and d(v) by SIMPLE paths; the 'counterexample' was my own semantics clash
   (SM + plasma + lim caught it; c2 22:41:31Z) -> a script that compares two defined quantities computes both under the paper's ONE definition.
 - [g96 22:35Z] L626 note: 'skill file, no node, no grid row' (the agi-review :216 trap again; sp caught it; c1 22:41:41Z)
