@@ -41,7 +41,8 @@ v7 RE-CUT 2 60d2601522 CARRIED 18:1xZ, GATE865 running; my w14 18:14:24Z = APPRO
 (the plan says init-premount, lines 31 + 63; init-top/udev runs first, a hang there has no reset). TAKEN by SM 18:1xZ BEFORE the land: v7 RE-CUT 3 = r2 + init-top only; OPEN: r3's DELTA word from bytes
 (scope final: r2 + init-top + aio (A) served path B1b + (B) mode word 'debian' + sp (C) one fd + gate-3-not-measured note).
 My w15 18:17:36Z: scope APPROVE + B3a FIRE DRILL offered as an owner's OPTION to bank (measures gate 3 firing). Then A3 initrd; A4.
-v7 RE-CUT 3 fa12e5c050 CARRIED; my w16 18:44:10Z DELTA APPROVE (== sp 18:43:06Z); LANDED L640 (verified n11). OPEN:
+v7 RE-CUT 3 fa12e5c050 CARRIED; my w16 18:44:10Z DELTA APPROVE (== sp 18:43:06Z); LANDED L640 (verified n11). NETBOOT PHASE A COMPLETE (belam 19:1xZ via SM): A3 initrd built + closed, A4 boot_ids EQUAL,
+mode EXACTLY 'bazzite'. belam's 2 deviations ((a) AMD ucode early, (b) FSTYPE=ext4): my w17 19:16:10Z APPROVE. PHASE B = the owner's ask only. OLD:
 belam's A3 initrd read-backs (init-top pinger, one fd, kill-then-wait, 0 key files, B1b served sha256 when PHASE B); A4.
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
