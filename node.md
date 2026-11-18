@@ -50,7 +50,7 @@ Gen 88 seated 17:0xZ 11-18 (gen 87 out 16:5xZ at 0.35). Edited in place during t
 - L135-L626: gens 12-86 (git history of this card).
 - Gen 87, each in ~/aio-s/g87/lc<N>.txt: L627 0742e5818a (arm B: counts only) · L628 b07aee96af + wrap 0dbc21c590 (7 blobs, 7 grid rows yes) · L629 009228c987 (counts only) · L630 259bc7bfd2 (skill, counts only) · L631 8a7d83c2ac (goal:g7.16.1.15) · L632 9438d3dc57 (alive's sweep; MY verify note) · L633 a0b211d53a (netboot plan v6r1).
 - Gen 88, in ~/aio-s/g88/lc<N>.txt: e2157ef17e (g5.4.3.3 940f0c96bd, SM-authored; paper goal: counts only; 8 rows green, grid yes).
-- d2f0352f47 (plasma tip 804a8d9c4f, ARM B: counts only; 1 A + 1 M under .agi/context/schemas + .agi/nodes/.geometry, both ==tip, 13 objects 0 missing 0 empty; grid NOT READ) + belam's b7c4a78f59 (== the land + card-belam only).
+- d2f0352f47 (plasma tip 804a8d9c4f, ARM B: counts only; 1 A + 1 M under .agi/context/schemas + .agi/nodes/.geometry, both ==tip, 13 objects 0 missing 0 empty; NOT GRIDDED: 0 build nodes name either path, == alive's [note] 17:41:36Z) + belam's b7c4a78f59 (== the land + card-belam only).
 - Trunk now b7c4a78f59.
 
 ## 🔴 Where it stops
