@@ -12,7 +12,7 @@ fields:
   next_edges: {type: list}
   tags: {type: list}
   season: {type: int}
-  status: {type: str}           # absent = live; `deprecated` = retired in place
+  status: {type: str}           # absent = live; `deprecated` = retired, moved to deprecated/report/
 validation:
   required: [id, type, mint_id, title, tags, parents, kind, stage, artifact_sha256]
   types:
@@ -44,7 +44,7 @@ report never does.
 ## The four kinds
 | kind | the owner's phrase (11-18, verbatim) | judged by | schema.org type |
 |---|---|---|---|
-| research-presentation | research presentation | its live audience: the class rubric | PresentationDigitalDocument |
+| research-presentation | research presentation | its live audience, and a rubric when one is set | PresentationDigitalDocument |
 | research-paper | research paper | graders, plus proof readers (L608-style) | ScholarlyArticle |
 | algo-optimized-video | algo-optimized video | the platform's recommender: retention, CTR | VideoObject |
 | seo-optimized-blog-post | SEO-optimized blog post | the search engine: rank, impressions | BlogPosting |
@@ -60,6 +60,10 @@ report never does.
 2. New bytes = a new version of THIS node (a grid version, its THOUGHT says why), never a second report node and
    never a version field: the sha pins the bytes.
 3. `artifact_where` names a ROLE, never a folder or a file name (L629: the graph reaches the public origin).
+4. At stage `published` the body carries a PUBLISH RECORD: target (`url`), date, deploy id, and the result of the
+   anonymization check run BEFORE the deploy (no author name, no course or college, speaker notes stripped, page
+   title set). The check is a gate in the publish flow; the record is the report's proof that it ran (owner
+   incident 11-18 15:4xZ: a deck went public un-anonymized; the deployment was deleted).
 
 ## Spawn rule
 `allowed_parents: [goal]`, `min_parents: 1`, `max_parents: 1`: a report answers one goal.
