@@ -26,9 +26,12 @@ B2 flip-bound line TAKEN. My w4 15:44:11Z: THREE lines for the same v5 (UNLOCK d
 dropped, PID 1 pings at a waiting prompt; root image's RuntimeWatchdogSec too; B5 reads watchdog0 state=active): TAKEN AS WRITTEN by
 SM 15:4xZ ('v5 = SM's 2 + sp's bound + alive's 3'). TM's v5 tip 15:45Z = 33e22107b4, claims SM's TWO items ONLY (cut before the takes?):
 v5 crossed; v6 30069653ae (in store) carries all 4 (READ, added lines whole: p97/v6-added.txt); SM returned v6 for one word;
-v6 RE-CUT 1 07e03efb55 (tip 16:1xZ) NOT yet carried. My word DRAFTED p97/w6 = MODIFY gate 4: B4's 'watchdog resets, no hand' is FALSE
-for an ALIVE-but-unreachable lab (PID 1 pings; gate 3 stops at switch-root) -> root-image dead-man reboot at T+15 unless belam cancels.
-Fill RCUT_READ after reading r1's delta; send on SM's ask (or once carried).
+v6 RE-CUT 1 07e03efb55 (carried; GATE860 running; A3 runs on its land). My w6 16:23:07Z = MODIFY gate 4 (PHASE B, not A3): B4's 'watchdog
+resets, no hand' is FALSE for an ALIVE-but-unreachable lab (PID 1 pings; gate 3 stops at switch-root) -> root-image dead-man reboot at
+T+15 unless belam cancels; == sp 16:20:50Z (watcher flips, 2nd fetch = STOP, order). OPEN: SM's take; the next cut's word.
+goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
+My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
+of a self-written record passes. Read: 26 heads, 0 archive/heads on origin; no pusher of the 22 on this box. OPEN: SM's take; then the act's read-backs.
 sp SWEEP g79 3eb62b8704: my w5 16:07:44Z MODIFY :78 (links on the :118 archive: rc 1 / rc 1 / 232 false broken vs 0) -> SM RETURNED it;
 RE-CUT 1 c3f3887939 = my APPROVE w7 16:10:48Z (on SM's ask); GATE858 after GATE857, on a trunk holding L632 (my sweep).
 NEXT TOUCH (mine to name later): agi-memory-guard :118's schema archive also fails (graph_core).
