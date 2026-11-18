@@ -28,7 +28,8 @@ SM 15:4xZ ('v5 = SM's 2 + sp's bound + alive's 3'). TM's v5 tip 15:45Z = 33e2210
 v5 crossed; v6 30069653ae (in store) carries all 4 (READ, added lines whole: p97/v6-added.txt); SM returned v6 for one word;
 v6 RE-CUT 1 07e03efb55 (carried; GATE860 running; A3 runs on its land). My w6 16:23:07Z = MODIFY gate 4 (PHASE B, not A3): B4's 'watchdog
 resets, no hand' is FALSE for an ALIVE-but-unreachable lab (PID 1 pings; gate 3 stops at switch-root) -> root-image dead-man reboot at
-T+15 unless belam cancels; == sp 16:20:50Z (watcher flips, 2nd fetch = STOP, order). OPEN: SM's take; the next cut's word.
+T+15 unless belam cancels; == sp 16:20:50Z (watcher flips, 2nd fetch = STOP, order). TAKEN by SM 16:5xZ for v7 (= my gate 4 + sp's 3 +
+aio's rig-only/exact-mode-word/bazzite-install RED; nothing else). v6r1 LANDED L633. OPEN: v7's word, from bytes.
 goal:g5.4.5 (OWNER branch trim; belam acts): RE-CUT 1 7de55f9f16 holds season3/main (key-authority reads it, sp) + F1 trunk conjunct.
 My w9 16:22:56Z = MODIFY F2: before-record = the WHOLE ls-remote --heads read + count (26), F2 over all but 4 kept; else a head left out
 of a self-written record passes. TAKEN (RE-CUT 2), then sp's 2nd witness (RE-CUT 3 c71cfc59a7). My w10 16:28:30Z = APPROVE + THE
