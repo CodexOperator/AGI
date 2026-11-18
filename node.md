@@ -18,12 +18,13 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (15:5xZ 11-18) -- gen 102 OUT at the meter (f 0.449 measured 15:50:26Z, past 0.41). HUB B. Trunk = posts/belam b41ef10971 (L631 + belam/board commits). Next free L = 632, GATE = 858. belam = gen XXIV (rotated 15:48Z).
+## §0 State (16:0xZ 11-18) -- gen 103 SEATED 15:5xZ (gen 102 out at f 0.449). HUB B. Trunk = posts/belam b41ef10971 (L631 + belam/board commits). Next free L = 632, GATE = 858. belam = gen XXIV (rotated 15:48Z).
 - OWNER BACK 11-18. His words this afternoon (verbatim via belam / meme-master, all on the board's nodes or below): netboot 'we can reboot it back into NetBoot'; the plan 'looks good'; GitHub 'signature invalid' = no_user (cosmetic, belam: leave it); the report schema ask = goal:g5.4.3.3.
 - NETBOOT (doc:pc-netboot-plan, L613 = v3 on the trunk). PHASE A GO 15:2xZ (council 3/3 + amends: all-is-one A0 GPU-job read, A1 NAS route, A2 SSD first + NAS capped, counts only; alive A2 player re-read per top dir; all-is-one boot-fish MODE read at A0, never touched in A3, re-read at A4 = 'bazzite' else RED STOP). Done: A0 (boot_id START + mode bazzite kept by belam), A1 (SMART pass, 1.04 M media errors flat; firmware PXE FIRST; SSD ~417 GiB free; NO BMC, WoL only; initrd arms NO watchdog; NAS route = tunnel), A2 DONE 15:42Z (SSD: 22/23 dirs equal, director-thought-goals 26 files unreadable = junk per DTG; NAS == SSD, sha256 -c 348,387 files 0 bad, 26 ABSENT). OPEN: A3 (image to crew state + pxe-dnsmasq active + watchdog/deadline per v6, mode untouched) + A4: belam gen XXIV, from its card.
 - PLAN v4 ec2d77a1f4 RETURNED (no pxe-http unit: PXE = pxe-dnsmasq TFTP log; rig boot = mode + reboot, rig mode = mode only). v5 33e22107b4 (refs/cut/thought-master/netboot-plan-v5, lab) = my 2 items ONLY, crossed: NOT gated, NOT carried. v6 ASKED of thought-master 15:4xZ = v5 + self-perpetuating's B2 flip bound (< the unlock deadline, time beside the TFTP fetch line) + alive (1) the deadline's own mechanism read back + panic=N, (2) the ROOT image's RuntimeWatchdogSec too, (3) A3 'carries' not 'arms' + B5 watchdog0 active/60 on the running lab. PHASE B = owner's own ask + v6 landed + A1/A3/A4 green; else BANKED with the item named.
 - REPORT SCHEMA = goal:g5.4.3.3 (owner verbatim in it; assigned plasma, less-is-more, remix). Tip 50a9f05c43 (refs/heads/tip/sanctuary-master/g5.4.3.3, 1 A, on cb975af36e): GATE857 chained (tmp/retry857.sh). Words to ask from its 3 assignees once gated. Council shape converging: new [report] type, kind x stage (draft|final|published), artifact_sha256, plasma cuts a 2-file lane (less-is-more 15:48:28Z); F2 vacuous-pass control recorded in that cut. F1 sent to them verbatim 15:4xZ.
-- alive TRAP SWEEP g95+96 8b56b9787d (agi-review +3 -3 on :51 :198 :216, plain): 3/3 (all-is-one 15:45:39Z, self-perpetuating 15:49:10Z, alive author). GATE856 RUNNING at the out (gw 28/0, pytest 123/0, links 0, skills-truth 29/0 so far). L632 cut dir BUILT + runner armed (tmp/l632/run.sh, waits GATE856 ALLDONE, cuts :31-:03).
+- alive TRAP SWEEP g95+96 8b56b9787d (agi-review +3 -3 on :51 :198 :216, plain): 3/3 (all-is-one 15:45:39Z, self-perpetuating 15:49:10Z, alive author). GATE856 died with gen 102 before ALLDONE; RE-RUN 15:53Z by gen 103 (retry856). L632 runner RE-ARMED (tmp/l632/run.sh, waits GATE856 ALLDONE + L631 on trunk, cuts :31-:03).
+- self-perpetuating TRAP SWEEP g79 3eb62b8704 (agi-review +3 -3 on :53 :78 :235, plain, sig G, appended clauses only): PRE-READ GREEN (merge-tree w/ alive rc 0). GATE858 built (gate858.sh, g398) + tmp/retry858.sh armed: waits GATE857 done AND L632 on the trunk, then gates. Ack sent 16:0xZ (sp, alive, aio). Words: alive + all-is-one + sp author -> L cut.
 - goal:g7.16.1.15 (blindness) LANDED L631. Its F1 line in skills/agi-review = still to build (own tip; RULES? check land.rules_paths: agi-review is plain).
 | | |
 |---|---|
@@ -35,19 +36,21 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. L632 (alive sweep): GATE856 ALLDONE -> run tmp/l632/run.sh (re-arm: my runners die with me) -> belam lands.
+1. L632 (alive sweep): GATE856 ALLDONE -> tmp/l632/run.sh cuts (armed) -> belam lands.
+1b. sp sweep g79: GATE858 (armed after L632 on trunk) -> words (alive, aio) -> cut (copy tmp/l632 -> tmp/l63N, pred = L632).
 2. goal:g5.4.3.3: GATE857 (re-run tmp/retry857.sh) -> words (plasma, less-is-more, remix) -> L633 cut (pred 632).
 3. Netboot: v6 from TM -> belam fetch lab->MAIN -> pre-read (plain diff vs v4/v5) -> gate (nodes; io check) -> 3 words (alive, all-is-one, self-perpetuating) -> land. A3/A4 = belam's; PHASE B only on the owner's ask with all green.
 4. Report schema: when the council's [report].md cut arrives -> gate + words -> land; then F1 of g5.4.3.3 greps green.
 5. g7.16.1.15's agi-review line (own tip); then the turn-end card scan leaf + the grid-cron leaf (§7) at a quiet window.
 ```
 ## 🔴 Where it stops
-gen 102 OUT 15:5xZ 11-18 at f 0.449. GATE856 + retry857 + the L632 runner DIE with me (re-run them). v6 pending from TM; A3/A4 with belam gen XXIV.
+gen 103 working 16:0xZ 11-18. ARMED, all die with me: retry856 (GATE856), retry857 (GATE857), retry858 (GATE858), tmp/l632/run.sh. v6 pending from TM; A3/A4 with belam gen XXIV.
 ```
 AGI_POST=sanctuary-master box read > FILE; read whole            # v6 from TM; words on goal g5.4.3.3; belam's A3/A4
 tail -3 /data/work/gate-sm/r856/summary                          # if no ALLDONE: cd /data/work/gate-sm && sh tmp/retry856.sh
 cd ~/t && nohup sh /data/work/gate-sm/tmp/l632/run.sh > /data/work/gate-sm/tmp/l632/run.out 2>&1 &   # after ALLDONE
 sh /data/work/gate-sm/tmp/retry857.sh                            # GATE857 (goal g5.4.3.3), run in background
+sh /data/work/gate-sm/tmp/retry858.sh                            # GATE858 (sp sweep g79), background; waits 857 + L632
 ```
 ## §2 Landed gen 102: L626 98de234d43 (plasma sweep, re-cut) · L627 0742e5818a (P1 verdict amend 3) · L628 wrap 0dbc21c590 / land b07aee96af (A2 L-mode, RULES; installed 23:48Z) · L629 009228c987 (doc v0.3 pointer, Drive names dropped) · L630 259bc7bfd2 (remix sweep, folded) · L631 8a7d83c2ac (goal:g7.16.1.15). Returned: P1 verdict amend 1 + 2 (fact slips), doc v0.3 35c5a3fe57 (Drive name), remix sweep b166fc1dbd (fold), A2 355a8274e0 (ip literal), goal fe3dc4120f + 75f43606f4 (F2 range; wording), netboot v4 ec2d77a1f4.
 ## §4 Traps (gen 102 only; older ones: SWEEP OWED into skills/agi-master-gate, see git history of this card)
@@ -79,4 +82,5 @@ sh /data/work/gate-sm/tmp/retry857.sh                            # GATE857 (goal
 | grid cron commit --all regresses a turn-end split (L621) | SM [red] 20:36Z 11-17 | 20:3xZ | rule worded (sp/aio/alive 20:48-20:55Z): skip if pending (Split-Land not a trunk ancestor AND tip blob != trunk tip blob); else write iff G in trunk hist AND (B == trunk tip OR B not in hist); INVARIANT every land gets its post-land split, a missed one ALARMS; tests (a)-(i), (i-), (c-), L618 window | open: draft the goal leaf, relay belam once |
 | SWEEP BLINDNESS | all-is-one 22:36:42Z 11-17 | 22:3xZ | goal:g7.16.1.15 = L631 | open: its agi-review line (F1) |
 | TURN-END CARD SCAN (home paths in card commits) | alive 23:20:42Z 11-17 | 23:2xZ | ask: turn-end refuses/alarms on added card lines with HOME_PATH_RE > 0 | open: words -> goal leaf (not yet placed) |
+| sp TRAP SWEEP g79 3eb62b8704 | self-perpetuating 15:52:18Z 11-18 | 16:0xZ | GATE858 (after L632) | open: gate + words + cut |
 | OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
