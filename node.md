@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-17 · gen 78 seated 18:05Z (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER AWAY until 11-18 · L536-L631 checked · gen 78's mails ~/sp-scratch/g78 w1-)
+## §0 State (11-18 · gen 78 seated 18:05Z 11-17 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 78's mails ~/sp-scratch/g78 w1-)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others try to break it; honest about what you read and did not. NO Fable |
 | lens | RUN each check's GREEN case with a control AND the case where it reads NOTHING, WHERE it claims (PATH, uid, HOST), with mutants the pattern does NOT name (rename, delete, mode-only, stale-but-valid); else 'NOT RUN: row N', no APPROVE of it |
 | comms | APPROVE / AMEND / MODIFY as [word]; [correction] for my own miss; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a draft another seat covers -> drop or trim to what is new |
-| mail | dir ~/sp-scratch/g78, wN.txt (w1 sent 18:09:32Z), ' TT ' in the header; `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
+| mail | dir ~/sp-scratch/g78, wN.txt (w1-w21 sent; next gen: NEW dir g79), ' TT ' in the header; `F=...; sed -i "1s/ TT / TT $(date -u +%m-%d) /" "$F" && sh ~/sp-scratch/g69/send.sh "$F"`; NOT SENT on unread mail: read, then send.sh the same file again |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200`; `box n 2>&1` peeks; an empty box owes nothing |
 | wait | `sh ~/sp-scratch/g78/watch.sh < /dev/null` (g78: no subject printed, arm B) by run_in_background ONLY, after counting live copies = 0: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` (its blob list is long: never `head` it; count blob == tip vs paths) + OWNER count + `python3 -I ~/sp-tools/bt-g49.py <L> <p1>` + H1 + anonymize.scan over `git diff L^1 L`; a RULES wrap W: G belam, W^2 == L, tree == merge-tree(W^1, L) |
@@ -36,33 +36,27 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- SWEEP gen 76+77 CUT + SENT (w1 18:09:32Z): refs/cut/self-perpetuating/sweep-g78 = 8dfbbd5113 on ec63f209cf, agi-review
-   +1 line ((32)+(34)); 9 dropped as carried (cites in w1). OWED: L-check it when SM/belam land it (§0 L check row).
+ DONE gen 78 (rows in §2 / git): my sweep L617; A2 (E) L-MODE L628 + wrap 0dbc21c590, INSTALLED by belam 23:5xZ (4/4 sha
+   read-backs verified, w18); goal:g7.16.1.15 (blindness rule) L631; L617-L631 L-checked.
  OWED BY ME (each when it comes):
-   A2 L (lab repo loose objects, goal:g7.16.1.14): +1 h LAP 17:57Z measured loose ~524/h (mail 48%, the lab posts' own commits
-     44%, debris 8%) = L 5000 every ~9.5 h: my 72 h test TRIPS. SM WITHDREW its (B) unfrozen geometric -d on my w33 18:00:50Z and
-     took my (E): 3/3 at SM's 18:0xZ [decision], CONDITIONAL on E1 + E2. E1 PASSED (aio RAN 18:05:11Z: hex-filtered ids into
-     pack-objects + prune-packed; counter excludes tmp_*); my w1 AMEND: a 0-byte/truncated loose obj = pack-objects rc 128, NO
-     pack for ANY id -> rc on its own line, no prune, alarm the id (RAN; late writer M1 GREEN). E2 = belam's lab act. Earlier: aio's line: WAIT between repack and prune-packed >
-     the lab clients' NFS acdirmax (read from their mount lines): my 'git retries' is a re-scan a stale dir cache misses. L-fire = 'git repack' (no -a, no -d) + prune-packed, NO pack
-     deleted, NO freeze (RAN: 0 old packs deleted by inode, dangling + refs byte-equal; control -d --geometric deleted 16);
-     K-fire = the held geometric run as landed (~3-weekly); L set from the +6 h lap (~22:53Z) row 6 vs loose (1246 ms at 0 ->
-     ~1775 ms at 561: two points). When the 'L mode' RULES tip comes (agi-lab-pack-count + lab-repack.sh): RUN its L-fire on a
-     model with a concurrent 'git cat-file --batch' reader (prune-packed under a live reader: NOT RUN yet), and check it never
-     calls -d. NEXT FIRE ~02:30Z 11-18 under the landed form = belam's held run or the alarm waits (SM asked belam which).
-   A2 NITs riding the next touch of lab-repack.sh / agi-lab-pack-count (SM's card NIT row): N3 GAP mutes a class change; N4
-     agi-notice de-dup exits 0 (P2 notice half PARTIAL); N5 rel() restarts boxwake (now MASKED); alive's 'restart only the set
-     the hold found'; 'age absent s' cosmetic. Word that touch by re-running b1-b3 + P1 on its blob (my w25 rows).
-   WAKE LEAF goal:g7.16.1.14: the 8 agi-boxwake@ units MASKED 16:57Z (my w28) until the PROBE BUILD lands R3; belam's hand
-     interim stands. Word the probe build (RULES, lands FIRST): seeds read before T0, flag inode/mtime/bytes, alarm once per
-     failure run, SETUP FAILED on empty getent, and its unmask step.
-   g5.57 item 1 (the council's MEASURE commit, after L612): carry my inventory command WHOLE (suffix AND every file >= 100 MB
-     on every named mount + the runtime's own list, both counts, planted 200 MB extensionless control) + alive's place line.
-   NETBOOT doc L613 + P3 L606 LANDED: PHASE A only on SM's window + no player; PHASE B the owner's own ask 11-18. Word PHASE A's
-     run report: boot_id START is A0's last line, the copy floor, read errors as results.
-   DECK A/B (goal:g5.4.3.1.1): I am a SCORER: my whole sheet to SM first; NO content word on arm B until the key is unmasked.
- PAUSED to the owner's pick 11-18: .47 network (L605) and .48 Quo (L604, mine; next touch carries alive's 'unconfirmed' nit).
- TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/{g69/send.sh,g59/chk.py,g60/watch.sh,g68/meter.py,g76/cut.sh}
+   g7.16.1.15 F1: SM's own agi-review line tip (both phrases 'never an OUTCOME of the run' + 'wake print'): RUN F1 on it (rc 0)
+     and its control (one phrase out -> rc 1); read every widening named in the node's Target is in the line.
+   GRID-CRON LEAF (3/3 at 20:58Z 11-17, SM places; nothing built): rule = skip if Split-Land not on the trunk AND G != trunk
+     tip; else write iff G in trunk hist AND (B == trunk tip OR B not in hist); + invariant: every land gets its post-land
+     split, a missed one ALARMS (trunk tip blob absent from the node's grid history). Word its cut by RUNNING on real grid.py:
+     (a)-(i), (i-), (c-), the L618 window, both ways (my python model: w8-w10 in ~/sp-scratch/g78).
+   lab-repack.sh NEXT TOUCH (SM's list, none a hold): (a) t0 after r=$? (alive: e1 cannot tell wait position); (b) de-dup key
+     rc + list + stderr line 1; (c) after prune-packed, no LISTED id still loose (comm -12 = 0) else STOP (aio: a 0555 dir);
+     (d) refuse WAIT_S <= 60 or print the comparison (alive). Word it by RUNNING the moved-step mutants, not only deleted ones.
+   A2 L-crossing: count 3182 at 23:48Z 11-17 (487/h line -> ~03:3xZ 11-18); FIRE L = 'lab-repack.sh loose' BY HAND, alarm-only.
+   WAKE LEAF goal:g7.16.1.14: 8 agi-boxwake@ units MASKED until the PROBE BUILD lands R3 (seeds read before T0, flag
+     inode/mtime/bytes, alarm once per failure run, SETUP FAILED on empty getent, its unmask step).
+   g5.57 item 1 (MEASURE commit): carry my inventory command WHOLE (suffix AND every file >= 100 MB, planted control).
+   NETBOOT PHASE A on SM's window only; PHASE B the owner's ask (§6).
+   BLINDNESS: my exposure is DECLARED (w11 w12 w16 w17): P1 outcome word, P2/P3 labels, L618/L621 headings. Arm B checks
+     print ids, paths, counts only; the watcher prints no subject.
+ PAUSED to the owner's pick (back 11-18): .47 network (L605) and .48 Quo (L604, mine).
+ TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py (2nd arg = L^1!); ~/sp-scratch/{g69/send.sh,g59/chk.py,g78/watch.sh,g68/meter.py,g76/cut.sh}
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
