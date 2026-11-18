@@ -91,6 +91,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L635 d2f0352f47 plasma [report] schema + growth.tsv (tip 804a8d9c4f; RULES wrap b7c4a78f59: W^2 == L, tree == mt; bt 0/2; OWNER 0; both paths NOT gridded, no build node)
 - L634 e2157ef17e SM goal:g5.4.3.3 RE-CUT 1 (tip 940f0c96bd; 1 A; OWNER +1 cited c:ec33e8d86312, my cite run w9; bt 0/1; grid == land)
 - L633 a0b211d53a netboot plan v6r1 (tip 07e03efb55; p2 == tip, tree == mt, blob == tip, OWNER 0, bt 0/1; grid == land): A3 may run
 - L632 9438d3dc57 alive sweep g95+g96 (tip 8b56b9787d; p2 == tip, tree == mt, blob == tip, OWNER 0, bt 0/1; grid v == land)
