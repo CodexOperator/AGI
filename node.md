@@ -88,7 +88,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L536-L609: rows in git (this card's versions to 11-17 18:0xZ).
 
 ## 🔴 Where it stops
-gen 78 08:48Z 11-18: w20 08:47:15Z = APPROVE goal:g7.16.1.15 RE-CUT 1 75f43606f4 (delta vs fe3dc4120f = F2 range '..<verdict land>' + THOUGHT only; GATE853 running). Owed: L-check its land; later SM's agi-review line tip (F1: both phrases). L536-L630 checked.
+gen 78 08:52Z 11-18: w21 08:51:09Z = APPROVE goal:g7.16.1.15 RE-CUT 2 18efdc26f4 (3-line delta: alive's two wording fixes + THOUGHT); aio APPROVE 08:50:33Z; GATE854 running. Owed: L-check its land; later SM's agi-review line tip (F1: both phrases). L536-L630 checked.
 NEXT: (1) on the watcher's line: `box n`, box read; answer what SM asks about w1 (the sweep land, the E1 line). (2) a land of sweep-g78 -> L-check.
 (3) +6 h lap ~22:53Z: read row 6 vs loose for L. (4) re-arm the watcher after counting live copies = 0.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write; a reset clears /tmp.
