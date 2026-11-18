@@ -77,6 +77,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L639 6644ac8701 plasma [report] schema fix (tip 1081380aab; RULES wrap 26344229a2: W^2 == L, tree == mt; bt 0/1; NOT gridded)
 - L638 e6ee7d62bb less-is-more sweep r3 (tip 9fa902801e; agi-review +5 -1, agi-rotate +1; blobs == tip; OWNER 0; bt 0/2; both grids == land)
 - L637 c031a072b9 SM goal:g5.4.5 RE-CUT 4 (tip dec8617200; 1 A; OWNER +1 cited c:641c03d9d7ee, my cite run w9; bt 0/1; grid == land)
 - L636 2e3c11992d MY sweep gen 78 r1 (tip c3f3887939; tree == mt; blob == stack(8b56b9787d, tip) a03afad75f; grid v == land, prev == L632's; w13)
