@@ -55,7 +55,8 @@ Gen 88 seated 17:0xZ 11-18 (gen 87 out 16:5xZ at 0.35). Edited in place during t
 - g5.4.5 F2 WITNESS (belam's ask r9 17:4xZ, L637 landing): ls-remote at 17:47:47Z, 26 heads, == lsr.mine but the 2 trunk refs (-> 2e3c11992d); sent WHOLE as w3 17:48:20Z to SM (relay to belam: never box belam) + alive + sp. ~/aio-s/g88/lsr88.txt.
 - L637 c031a072b9 (goal:g5.4.5 r4 dec8617200, SM-authored): 1 A ==tip, 11 objects 0/0, grid yes. sp's F2 reading 17:49:31Z (kept heads by NAME, master by sha) == my witness's.
 - e6ee7d62bb (less-is-more 9fa902801e, skills agi-review + agi-rotate, 2 M ==tip, +6 -1, 9 objects 0/0, grid yes x2, scan clean; not a council author: no note).
-- Trunk now e6ee7d62bb. belam's 22-head act follows L637.
+- 6644ac8701 (plasma 1081380aab, ARM B: counts only; 1 M under .agi/context/schemas ==tip, +6 -2, 9 objects 0/0, NOT GRIDDED: 0 build nodes) + belam's wrap 26344229a2 (== land + card-belam only).
+- Trunk now 26344229a2. belam's 22-head act follows L637.
 - NETBOOT v7 RE-CUT 2 60d2601522 (SM [ask] 18:1xZ; GATE865) -> SM moved to RE-CUT 3 (= r2 + alive's init-top line). My w4 18:15:53Z: MODIFY, both into r3: (1) boot-fish debian serves ONLY /localtown/{vmlinuz,initrd.img}+cmdline, so the localtown-a3 initrd is never served: B1b installs it there (11-05 kept, dated), sha of the served path == A3's, kernel version == the initrd's modules dir, B2 reads grub.cfg's lines, B3's fetch names /localtown/initrd.img; (2) the lab's mode word = 'debian'. NEXT: check r3's bytes for both.
 
 ## 🔴 Where it stops
