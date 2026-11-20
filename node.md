@@ -16,7 +16,8 @@ town: core
 meme-master · engine v4 post · claude-opus-5-5 · director under keep, sanctuary-master (SM) its route up · town core · goal:g5.4.3 (.1 presentation, .1.1 arm B, .2 paper)
 Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi-send, agi-node-write, agi-rotate, agi-memory-guard, agi-goal, agi-research-then-design.
 
-## §0 State (gen 4, 11-18 00:1xZ; f 0.29 at 23:49Z)
+## §0 State (gen 4, 11-20 04:4xZ)
+- PAPER REVIEW, BACKWARD half = MINE (belam [owner] 03:5xZ 11-20; owner chunk in belam's store, agi-mem find 'backward-facing'). The FORWARD half is the owner's own oracle session, not ours. Shape agreed with belam 04:1xZ: per section BUILT / INTENDED / MEASURED / GAP, a plain-words 'what we show' line first, light math; then the owner rewrites with me one sub-section at a time. Source: the owner's annotated v0.3 guide in the owner's Drive (red = reviewer notes). Study (what agents actually read): less-is-more owns, plasma counts blind, remix adjudicates; per-post runs, aggregate rows only (transcripts are 0700 per post; a whole-town reader is BANKED with the owner by belam). Pilot (mine, 5 sessions): turn-1 ctx ~56k tok; 2-13 node files, 0.3-0.8% of the graph's bytes; ancestors read 0-3 of 10. Script /data/scratch/meme-master/read-study/readstudy.py (sha 4cccf5c72dfb). F3: 685 reproduces; council vote recorded in 476 (69%), mention only in 70, none in 131, SM-placed in 8. F4: 62 mail pairs at the pin (tree 19, complete 190). Both boxed to belam + SM 04:4xZ; belam reconciled F3 (685 stands) + accepted F4 04:5xZ. TABLE v1 (abstract + §5) box-local /data/scratch/meme-master/paper-v02/backward-table.md sha 88cb5feee4be, summary boxed 05:0xZ: topo order unused; 7% of experiments have a verdict node; 432/438 recorded votes 3/3. Files paper-v02/lands-h.txt, lands-class2.txt, box-pairs.txt.
 - OWNER RULES: never hand the owner a task; say what WE do next (owner 11-17 06:3xZ). Owner writes every final word; drafts marked DRAFT; no new Drive folders; Google Drive = owner's PERSONAL account. NEW (SM 00:1xZ, remix): the graph, this card included, never names the owner's Drive folder path or a Drive file name (publish call banked with the owner); say "the owner's Drive" + a sha.
 - DECK v1.2 DONE: pptx + html in the owner's Drive (belam 11-17 06:39Z, md5 ok). Slides route DEAD (connector refuses createVideo). Sources /data/scratch/meme-master/deck-build/gslides.
 - PAPER (goal:g5.4.3.2, MATH-class rubric ~/meme-photos/paper/rubric-paper.pdf): DRAFT v0.3 DONE. Private source ~/meme-photos/paper/paper.tex (tex sha 84c4f6f5184d); PDF 061e42247c9c in the owner's Drive (belam 23:55Z via the connector; v0.2.2 trashed, recoverable 30 d). Build dir /data/scratch/meme-master/paper-v02 (tectonic at ../toolchain/tectonic/tectonic, XDG_CACHE_HOME=../toolchain/tectonic-cache; load5 < 8). Backups there: paper-pre-v03.tex, paper-pre-scorers.tex, paper-pre-lim.tex, paper-v0.2.2-backup.tex. NEVER overwrite /data/scratch/meme-master/paper-build/paper.tex (the v0.1 READER COPY ec794f9085bf).
@@ -27,7 +28,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - OPEN: DOC v0.3 POINTER RE-CUT 1 = 65677c6ca3 (G) on 34620f9066, ref refs/cut/meme-master/paper-doc-v03, [merge-up] 00:10:44Z (Drive folder + file name dropped; 3/3 approved substance on 35c5a3fe57). FYI sent SM: the folder name is already in 4 trunk nodes + my card's history; never rewrite history; SM places any forward scrub.
 
 ## §1 Plan
-- next: (1) the pointer re-cut's words + land; nothing else of mine on the paper until the owner rewrites it or picks an owner-scale option; (2) arm B (goal:g5.4.3.1.1) render when SM places it (TM's team runs it; ARM B BLIND, §4); the deck A/B result fills the paper's last placeholder (the sign test's pending result).
+- next: (0) the table's §1-4 rows (v1 = abstract + §5 done), box-local, for the owner; (1) the pointer re-cut's words + land; nothing else of mine on the paper until the owner rewrites it or picks an owner-scale option; (2) arm B (goal:g5.4.3.1.1) render when SM places it (TM's team runs it; ARM B BLIND, §4); the deck A/B result fills the paper's last placeholder (the sign test's pending result).
 - blocked: nothing of mine.
 
 ## §2 Landed
@@ -35,7 +36,7 @@ Role: doc:role-meme-master + doc:unified-director-brief + this card. Skills: agi
 - 11-17: L608 paper route (eb2c41491b); L618 paper experiments (9e961e6600); L621 experiments amend (e6223ee4d7); L623 P2 verdict (4840dde124); L624 P3 verdict + results (89918241f2); L625 doc refresh (210f66826f); L627 P1 verdict + results (0742e5818a).
 
 ## 🔴 Where it stops
-Pointer re-cut 65677c6ca3 awaits words and the land; then idle on the paper until the owner acts or arm B is placed. Mail: `AGI_BOX=encryption-town AGI_POST=meme-master box read` from ~/t.
+Backward-half table: §1-4 rows next (box-local, never on the trunk). Pointer re-cut 65677c6ca3 still awaits words and the land. Mail: `AGI_BOX=encryption-town AGI_POST=meme-master box read` from ~/t.
 
 ## §4 Traps (this generation's)
 - A cut is built on the LIVE trunk with a temp index (read-tree trunk, update-index the blobs, write-tree, commit-tree -S), never by editing ~/t's older copy of a landed node: ~/t's turn-end split once gridded a pre-amend file over a newer grid tip (the L621 regression).
@@ -43,6 +44,7 @@ Pointer re-cut 65677c6ca3 awaits words and the land; then idle on the paper unti
 - Write a council member's corrected sentence VERBATIM and apply every return point in BOTH nodes; three P1 amends came from wording, not logic.
 - A statement can hold while its proof uses an unstated hypothesis: say which (P1 result 8).
 - Check a script's numbering convention before calling a mismatch: verify_reveal's 2 BADs were my 0-based vs the reveal's 1-based "proof N".
+- Box mail paraphrases a paper claim and never quotes it: the F3 mail at 04:4xZ 11-20 quoted one v0.3 sentence (the council-review line). Never rewrite it; don't repeat it.
 - No owner pronoun anywhere (the paper said "his"; now "their").
 
 ## §5 Verification
@@ -77,7 +79,9 @@ Pointer re-cut 65677c6ca3 awaits words and the land; then idle on the paper unti
 | deck v1.2 defects: notes duplicated 3-4x then missing; text low-res | owner 11-18 15:2xZ | placed for the deck's next version (boxed SM 15:29:09Z); not now |
 | council formalizes a "report" schema: research presentation, research paper, algo-optimized video, SEO-optimized blog post (doc subtype or any matrix) | owner 11-18 15:2xZ | placed: boxed SM verbatim 15:29:09Z; SM placed goal:g5.4.3.3 15:3xZ, assigned plasma + less-is-more + remix (lands with SM's next goal land); my 10-field write-up boxed to plasma 15:55:13Z (incl. a publish + anonymization-check field) |
 | graph route for paper + decks on TM's team and council | owner 11-17 06:5xZ (+ belam relay 06:43Z) | paper route closed: L608, L618, L621, L623, L624, L625, L627; arm B with SM |
+| paper review, BACKWARD half: document what we built as it stands, incl. what it can't do yet; intended vs actual; how much of the graph an agent reads | owner via belam [owner] 03:5xZ 11-20 | placed: plan boxed belam + SM 04:0xZ, ack'd by belam 04:1xZ; F3/F4 done 04:4xZ; table v1 (abstract + §5) done 05:0xZ; §1-4 rows OPEN (mine) |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+11-20 04:4xZ: the owner opened the backward-facing paper review, and its first numbers already contradict v0.3. Agents read the card and their working set, not their ancestors; about 30% of lands carry no council vote in the commit message; and mail runs on 62 pairs, not a tree. Those gaps ARE the paper's honest spine.
 gen 4, 11-18 00:1xZ: the paper route closed. The reveal held at 90/90; the adjudicators found 8 of 8 plants; all three experiments came back DISPROVED, and their fixes, with every reader's, judge's and scorer's leads, became DRAFT v0.3 in the owner's Drive. Card rewritten whole to drop the Drive folder and file names (SM/remix 00:1xZ) and to move this generation's lessons into §4.
 <!-- THOUGHT:END -->
