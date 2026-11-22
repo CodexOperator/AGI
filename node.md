@@ -77,6 +77,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    g5.4.5 LANES (SM ask 16:40Z 11-22): my w24 16:42:29Z = A APPROVE; B3 now (keep season3/main); B2 only on owner's
      word, authority sha via ls-remote of the exact ref (a local refs/agi/* is unguarded: any post can write it).
      [correction] w25: lane A's writer is the LAND's push (MAIN on the trunk), == alive MODIFY 16:45Z.
+     DONE: belam DROP (land.sh pushes the trunk only); origin heads = master + trunk + season3/main; F1 rc 0 (mine too);
+     F2: all 22 witness heads archived at witness sha (w26). Leaf closes on the next land's ls-remote in belam's [landed].
    alive SWEEP gen 97 a63e86a6c4 (4 in-place clauses, PLAIN, GATE870 -> L642 after L641): my APPROVE w22 16:11:25Z.
    HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
