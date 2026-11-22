@@ -70,6 +70,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      wrapper = an initrd rebuild; both + my fallback go in ONE PHASE B plan touch (owner's ask).
      DECIDED 3/3 SM 20:4xZ: deviations APPROVED; NETBOOT PHASE A CLOSED. Fallback + wrapper BANKED for the owner's PHASE B. v7 = 5 PHASE B lines
      (mine 3 + alive gate 4 + aio rig-only); my gate-4 take w10 16:53:48Z (cancel rides B4's read command).
+   SM SWEEP OWED 832dede697 (11-22, agi-master-gate +11, RULES: belam wraps, GATE867): my w18 15:35:31Z = MODIFY one
+     line (diff-filter = agi-review :193, whose remedy is the hunk awk, not a header filter); 10 APPROVE.
+   HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
      in trunk hist AND (B == trunk tip OR B not in hist); invariant: a missed post-land split ALARMS. Word its cut by RUNNING
