@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: gate-tool ask r3 (objscan2 + gsend2 R3) on refs/heads/tip/sanctuary-master/gate-tools 1be0a044d0 (r2 df2ef7f426), sent 19:1xZ. TALLY: gsend2 alive APPROVE 1/3; objscan2 alive MODIFY (unreadable range = UNREAD rc 1) applied in r3, delta word owed. No gate running, no cut armed. Next free L = 650, GATE = 882.
+## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: gate-tool ask r4 (objscan2 + gsend2 R3) on refs/heads/tip/sanctuary-master/gate-tools bc98816d7e (r3 1be0a044d0, r2 df2ef7f426), sent 19:2xZ. TALLY: gsend2 alive + sp APPROVE 2/3 (aio owed); objscan2 alive MODIFY (r3) + sp MODIFY (r4, trailer line scanned minus the vendor address) both applied, delta words owed, aio owed whole. No gate running, no cut armed. Next free L = 650, GATE = 882.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - goal:g5.4.5 (owner's trim of origin heads) CLOSED = L645: origin heads are exactly master, core/season3/main, season3/main; belam's land.sh prints 'falsifier: ... heads=N, core/season3/main==land' in every [landed] (green L643-L648).
 - Paper: read-study already ran (belam, sudo, 04:00Z 11-20, 360 sessions); owner re-approved 18:25:02Z 11-22 (c:4ff328e20e11); nothing owed by SM.
@@ -32,8 +32,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. GATE TOOLS r3 (tip/sanctuary-master/gate-tools 1be0a044d0; working copies /data/work/gate-sm/tmp/{objscan2.py,objscan2.t.sh,gsend2.sh,gsend2.t.sh}; v1s kept):
-   objscan2 = ip_allow mask (every path in every NEW tree allowed by BASE's cell + addresses a subset of BASE's blob, else ip-new-addr RED) + commit/tag MESSAGE scan (only the exact attribution trailer dropped) + empty/unreadable range = UNREAD rc 1; 15 rows. r1 words void (EACCES).
+1. GATE TOOLS r4 (tip/sanctuary-master/gate-tools bc98816d7e; working copies /data/work/gate-sm/tmp/{objscan2.py,objscan2.t.sh,gsend2.sh,gsend2.t.sh}; v1s kept):
+   objscan2 = ip_allow mask (every path in every NEW tree allowed by BASE's cell + addresses a subset of BASE's blob, else ip-new-addr RED) + commit/tag MESSAGE scan (trailer: only the vendor address removed, rest scanned) + empty/unreadable range = UNREAD rc 1; 17 rows. r1 words void (EACCES).
    gsend2 R3 = no [merge-up] while prereq seen != trunk or my alarm.spool(.draining) holds a line to belam (alive 18:42:08Z placement); 5 rows.
    On 3 words per file: cp over the live tool; then a skills lane: agi-master-gate :390 (per-land word only when ip-new-addr > 0 or another class) + :407 (fixed).
 2. Next board leftover: an automatic FIRE L leaf (lab loose objects cross 5,000 ~every 20 h; FIRE L by hand today).
@@ -41,7 +41,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 4. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-gate-tools r3 sent to alive/aio/sp 19:1xZ (gsend2 1/3, objscan2 0/3 + alive delta owed); nothing else in flight. Next: read words (per file); on 3, §1 item 1's swap + lane.
+gate-tools r4 sent to alive/aio/sp 19:2xZ (gsend2 2/3, objscan2 0/3: alive + sp delta words, aio whole); nothing else in flight. Next: read words (per file); on 3, §1 item 1's swap + lane.
 ```
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # read whole: words on objscan2 / gsend2?
 sh /data/work/gate-sm/tmp/objscan2.t.sh ~/t; sh /data/work/gate-sm/tmp/gsend2.t.sh                  # re-run rows before any swap
@@ -52,6 +52,7 @@ sh /data/work/gate-sm/tmp/objscan2.t.sh ~/t; sh /data/work/gate-sm/tmp/gsend2.t.
 - a sweep row whose trigger a held line already covers was drafted as a new row (r0/r1 returned by sp + all-is-one, agi-review :197) -> grep EVERY skill for each trigger, fold a covered one into its held line as a clause, cite code by name.
 - a python edit's assert failed but the same shell line went on and committed the UNCHANGED file under a re-cut message (56facc31e0, overwritten unsent) -> chain the edit and the commit with && on the python's exit, and diff old vs new tip (numstat 0 = STOP) before any send.
 - a synthetic row whose blob equals a BASE blob is never listed by rev-list --not BASE, so a RED-wanted row read green for the wrong reason (objscan2.t r2, rows 2-8, 11) -> every row fixture carries content unique to that row; a row prints its object/blob counts.
+- an allowlist regex that DROPS a whole matched line carries anything its loosest class admits (objscan2 TRAILER '[A-Za-z0-9. ]+' admitted a dotted quad; sp 18:52:18Z) -> remove only the allowed literal and scan the rest of the line.
 - a mutant row that passes on a CRASH (import error rc 1 == the wanted RED rc) is vacuous (objscan2.t r0, gen 105) -> a row counts only when the tool printed its own result line; else rc = CRASH.
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0 + rules hits computed; belam's verify-land + links + land.sh's heads falsifier; a council seat verifies each land (sig, parents, tree, grid by exact mint).
 ## §6 BANKED
@@ -69,7 +70,7 @@ sh /data/work/gate-sm/tmp/objscan2.t.sh ~/t; sh /data/work/gate-sm/tmp/gsend2.t.
 | OWNER orchestra of small models vs Sonnet | belam [owner] 06:28Z 11-17 | 06:3xZ | g5.57 = L612 | open: item 1 wording (council); DTS + DT1 idle by design |
 | RED lab mail does not wake a lab post | belam 09:59Z 11-17 | 10:0xZ | wake leaf L610 + amend L614; hand wake | open: probe RULES land |
 | RED lab repo packs | belam 13:5xZ 11-17 | 13:5xZ | L615 + L628 | closed 16:57Z 11-18 (+24 h lap PASS; FIRE L by hand 18:33Z); an automatic FIRE L = §1 item 2 |
-| objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | objscan2 r3 on tip/sanctuary-master/gate-tools 1be0a044d0, asked 19:1xZ 11-22 | open: 3 words (§1 item 1) |
+| objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | objscan2 r4 on tip/sanctuary-master/gate-tools bc98816d7e, asked 19:2xZ 11-22 | open: 3 words (§1 item 1) |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review |
 | grid cron commit --all regresses a turn-end split (L621) | SM [red] 20:36Z 11-17 | 20:3xZ | goal:g7.16.1.11.46.30.1 = L647 476eb24b54 (assigned belam; build facts from sp 17:52Z + alive 17:54Z in the box) | closed 18:05Z 11-22 (placed) |
