@@ -42,8 +42,9 @@ goal:g5.4.5 (branch trim): L637 RE-CUT 4 landed; belam's act not yet seen; witne
 ## §1 Plan (16:10Z 11-22)
 ```
 ITEM                         OWNER   STATE
-TRAP SWEEP g97               SM      tip a63e86a6c4 sweep-g98: SM pre-read clean 16:09:54Z, GATE870 (16:09:41Z), lands L642 AFTER L641; sp 16:10:55Z + aio 16:11:15Z APPROVE (3/3 with the author).
+TRAP SWEEP g97               -       DONE: L642 2dd9a2bb4e verified (n2). Worktree p98/tip may be removed (git worktree remove).
 SWEEP OWED ce83fc5d1a        -       DONE: L641 + WRAP 512c3a6d19 verified (n1).
+g5.4.5 TWO LANES design      SM      SM [ask] 16:40:57Z; my w2 16:45:28Z: A MODIFY (origin posts/belam is pushed BY THE LAND, same second as the trunk; MAIN sits on core/season3/main, so branch_push already pushes only the trunk) + falsifier = ls-remote after a real land; B3 (== sp + aio).
 g5.4.5 branch trim           belam   the act + its before-record; F2 vs both witnesses; open PRs + default branch read by belam.
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
 lab-repack next touch        belam   (a)-(d) as placed 11-17 (t0 after r=$?; de-dup key; aio loose-id stop; WAIT_S > 60).
@@ -54,15 +55,15 @@ NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-
 ```
 
 ## §2 Landed (each verified by alive; older gens in git)
-Gen 98: L641 caaf1bf8ab + W 512c3a6d19 SM SWEEP OWED (n1 16:36:41Z, == sp). L642 2dd9a2bb4e (my sweep) cut, pre-checked, awaiting belam.
+Gen 98: L641 caaf1bf8ab + W 512c3a6d19 SM SWEEP OWED (n1 16:36:41Z, == sp). L642 2dd9a2bb4e my TRAP SWEEP g97 (n2 16:44:03Z, == aio + grid control).
 Gen 97: L640 a4c2a8211a netboot v7 RE-CUT 3 (n11). L639 6644ac8701 + W 26344229a2 plasma schema (n10, not gridded). L638 e6ee7d62bb lim's
 sweep (n8 + count [correction] n9). L637 c031a072b9 g5.4.5 RE-CUT 4 (n7). L636 2e3c11992d sp's sweep (read; == sp + aio). L635 d2f0352f47 + W
 b7c4a78f59 (n4). L634 e2157ef17e g5.4.3.3 (n3). L633 a0b211d53a netboot v6r1 (n2). L632 9438d3dc57 MY sweep g95+g96 (n1).
 
 ## 🔴 Where it stops
 alive gen 98 (16:10Z 11-22): word on ce83fc5d1a SENT; g97 sweep tip a63e86a6c4 offered; waiting on L641 + the sweep's words/gate
- OWED, in order: (1) DONE (L641 verified, n1).
- (2) L642 2dd9a2bb4e (my sweep, PLAIN, no wrap): verify on the trunk + grid by exact mint for the 3 skill build nodes.
+ OWED, in order: (1) DONE (L641 n1, L642 n2).
+ (2) g5.4.5 lanes: answer SM's placement of my w2 lane-A MODIFY; any tip it cuts: word on its bytes.
  (3) belam's g5.4.5 act: the 22 heads archived at refs/agi/archive/heads/<name> with the witness sha; the 4 kept by name.
  Worktree ~/alive-work/p98/tip holds tip/alive/sweep-g98: an amend there moves the queued branch (agi-review :183) -> re-cut as a NEW commit.
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
@@ -93,7 +94,8 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | NETBOOT (owner 15:1xZ 11-18: 'reboot it back into NetBoot') | SM/belam | PHASE A CLOSED 20:4xZ 11-18 (A4 green). OPEN: PHASE B on the owner's own ask; BANKED rebuild list (§0) |
 | goal:g5.4.5 branch trim (owner 16:09:31Z 11-18) | SM/belam | leaf LANDED L637; my F2 line + witness taken. OPEN: belam's act read-backs |
-| SM [review] 15:33Z 11-22: SWEEP OWED | SM | r2 ce83fc5d1a 3/3 APPROVE (mine 16:06:20Z, asked by SM 16:05:18Z). OPEN: L641 land |
+| SM [ask] 16:40:57Z 11-22: g5.4.5 two lanes design | SM | w2 16:45:28Z: A MODIFY (the land pushes the head), B3; sp [correction] 16:46:30Z == mine; aio restarted fresh 16:46Z (its A APPROVE 16:42:36Z uncorrected). OPEN: SM's placement |
+| SM [review] 15:33Z 11-22: SWEEP OWED | SM | CLOSED: L641 + WRAP verified (n1) |
 | A2 laps (+24 h 16:53Z 11-18) | belam/SM | NOT SEEN by this gen (no mail carried it). OPEN: ask SM if still owed |
 | SM [red] 20:36Z 11-17: L621 grid regression | SM | HEALED 20:45:07Z; leaf council 3/3. OPEN: SM's placement |
 | self r1 23:20:42Z 11-17: turn-end commit refuses a card with HOME_PATH_RE > 0 | alive | SENT; 'not yet placed'. OPEN: SM's placement |
