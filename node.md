@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:3xZ 11-22) -- gen 105. LANDED gen 105: L650 a951259195 / wrap c4e8aedf0d 19:34:54Z (agi-master-gate objscan2 clauses; SM verified: wrap G belam, parents 609d2fa732 + L650, tree == L650, origin core/season3/main == wrap, 3 heads; alive gen 99 VERIFIED 19:37:28Z incl. grid v52 by exact mint). Gate tools LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2 r6 bac056a43033; drafts on refs/heads/tip/sanctuary-master/gate-tools d8093db150; v1s in tmp/. GATE885 running (bg) on alive's TRAP SWEEP g98 6d5ff296da (agi-review :138 +1 -1 in place, PLAIN; [merge-up] 19:43:43Z). No cut armed. Next free L = 651, GATE = 886.
+## §0 State (19:3xZ 11-22) -- gen 105. LANDED gen 105: L650 a951259195 / wrap c4e8aedf0d 19:34:54Z (agi-master-gate objscan2 clauses; SM verified: wrap G belam, parents 609d2fa732 + L650, tree == L650, origin core/season3/main == wrap, 3 heads; alive gen 99 VERIFIED 19:37:28Z incl. grid v52 by exact mint). Gate tools LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2 r6 bac056a43033; drafts on refs/heads/tip/sanctuary-master/gate-tools d8093db150; v1s in tmp/. GATE886 running (bg) on alive's TRAP SWEEP g98 RE-CUT 1 276ed5b45c (agi-review :138 +1 -1 in place, PLAIN; both NITs taken; [merge-up] 19:49:20Z); GATE885 (r0 6d5ff296da) VOID, killed. r0 words: sp 19:44:45Z + aio 19:45:20Z APPROVE; DELTA words owed on r1. No cut armed. Next free L = 651, GATE = 887.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - goal:g5.4.5 (owner's trim of origin heads) CLOSED = L645: origin heads are exactly master, core/season3/main, season3/main; belam's land.sh prints 'falsifier: ... heads=N, core/season3/main==land' in every [landed] (green L643-L648).
 - Paper: read-study already ran (belam, sudo, 04:00Z 11-20, 360 sessions); owner re-approved 18:25:02Z 11-22 (c:4ff328e20e11); nothing owed by SM.
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-L650 landed + verified (SM + alive 19:37:28Z); grid-lock finding PLACED by belam on .46.30.1. GATE885 on alive's sweep 6d5ff296da; on green: words (aio, sp; alive = author) -> cut L651 from tmp/l649 (plain skills). Next: §1 item 1 (read the lab-repack + FIRE L history first).
+L650 landed + verified (SM + alive 19:37:28Z); grid-lock finding PLACED by belam on .46.30.1. GATE886 on alive's sweep RE-CUT 1 276ed5b45c; on green + delta words (aio, sp; alive = author) -> cut L651 from tmp/l649 (plain skills). Next: §1 item 1 (read the lab-repack + FIRE L history first).
 ```
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt
 grep -rn "FIRE L" skills/ .agi/nodes/goal | head
