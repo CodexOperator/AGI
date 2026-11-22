@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: (a) GATE882 GREEN 19:09:41Z (gw 28, pytest 142/1x, links 6148/0, 5 lanes FAIL 0, ev 0; objscan rc 0, anon [], 1 RULES hit), words asked 19:1xZ, on tip/sanctuary-master/amg-objscan2 50be3294b0 (agi-master-gate +3 -3 in place: :372 / :390 / :407; RULES: skills/agi-master-gate/ is on land.rules_paths -> cut from tmp/l643, belam wraps); on green: 3 words, cut L650. LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d (18:5xZ); gsend.sh = gsend2 r6 bac056a43033 (19:0xZ; sp 19:00:16Z, alive 19:01:19Z, aio 19:02:15Z); v1s in tmp/. No gate running, no cut armed. Next free L = 650, GATE = 882.
+## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: L650 RE-CUT 1 tip/sanctuary-master/amg-objscan2-r1 afcdaa9004 (parent 12df5c9898 = trunk; r0 50be3294b0 GATE882 green): sp MODIFY 19:11:06Z on :390 (word whenever flagged-by-class != {}) + NIT :372 (commit messages; a tag's when TIP is one; trailer vendor removed) applied; GATE883 running (bg). r0 words: sp :372 + :407 APPROVE. LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d (18:5xZ); gsend.sh = gsend2 r6 bac056a43033 (19:0xZ; sp 19:00:16Z, alive 19:01:19Z, aio 19:02:15Z); v1s in tmp/. No gate running, no cut armed. Next free L = 650, GATE = 882.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - goal:g5.4.5 (owner's trim of origin heads) CLOSED = L645: origin heads are exactly master, core/season3/main, season3/main; belam's land.sh prints 'falsifier: ... heads=N, core/season3/main==land' in every [landed] (green L643-L648).
 - Paper: read-study already ran (belam, sudo, 04:00Z 11-20, 360 sessions); owner re-approved 18:25:02Z 11-22 (c:4ff328e20e11); nothing owed by SM.
@@ -32,12 +32,12 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. L650 = agi-master-gate objscan2 clauses (tip 50be3294b0, RULES): GATE882 -> words (alive, aio, sp) -> cut from tmp/l643 (RULES skills) -> [merge-up] to belam (gsend R3 now holds it while a prereq alarm is owed) -> [landed] + belam's wrap -> a seat verifies.
+1. L650 = agi-master-gate objscan2 clauses (RE-CUT 1 afcdaa9004, RULES): GATE883 -> words (alive, aio, sp) -> cut from tmp/l643 (RULES skills) -> [merge-up] to belam (gsend R3 now holds it while a prereq alarm is owed) -> [landed] + belam's wrap -> a seat verifies.
 2. Next board leftover: an automatic FIRE L leaf (lab loose objects cross 5,000 ~every 20 h; FIRE L by hand today).
 3. Route meme-master's paper asks as they come. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-GATE882 green on 50be3294b0, words asked 19:1xZ; gate tools all live. Next: 3 words -> cut L650 from tmp/l643 (RULES skills).
+GATE883 running on RE-CUT 1 afcdaa9004 (r883/summary); gate tools all live. Next: 3 words -> cut L650 from tmp/l643 (RULES skills).
 ```
 cat /data/work/gate-sm/r882/summary                                                                   # green: grid-writers, pytest, links 0 broken, every lane FAIL=0
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # r6 words
@@ -50,6 +50,7 @@ AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch
 - a synthetic row whose blob equals a BASE blob is never listed by rev-list --not BASE, so a RED-wanted row read green for the wrong reason (objscan2.t r2, rows 2-8, 11) -> every row fixture carries content unique to that row; a row prints its object/blob counts.
 - an allowlist regex that DROPS a whole matched line carries anything its loosest class admits (objscan2 TRAILER '[A-Za-z0-9. ]+' admitted a dotted quad; sp 18:52:18Z) -> remove only the allowed literal and scan the rest of the line.
 - a row named for clause X that another clause reds first never tests X (objscan2 rows 4 + 7 passed startswith / tip-config mutants; aio 18:54:14Z) -> run one tool mutant per clause and read that the row NAMED for it is the one that fails.
+- a clause summarizing a tool's RED cases from its counters ('only ip-new-addr > 0 or another class') missed rows that red with both counters 0 (rows 3, 7, 11; sp 19:11:06Z) -> state the condition by the tool's own verdict field (flagged-by-class != {}), and read the tool's real output lines for each row before writing the clause.
 - a mutant row that passes on a CRASH (import error rc 1 == the wanted RED rc) is vacuous (objscan2.t r0, gen 105) -> a row counts only when the tool printed its own result line; else rc = CRASH.
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0 + rules hits computed; belam's verify-land + links + land.sh's heads falsifier; a council seat verifies each land (sig, parents, tree, grid by exact mint).
 ## §6 BANKED
