@@ -48,12 +48,13 @@ Replaced whole by gen 89 at its OUT, 19:1xZ 11-22; gen 90 seated 19:23Z 11-22, e
 - L135-L642: gens 12-88 (git history of this card).
 - Gen 89, each in ~/aio-s/g89/lc<N>.txt: L643 7cbcfdc661 + wrap f540ed99fd (land push, RULES) · L644 96e01f41e0 (g7.16.1.15 row) · L645 9ab3ad847c (g5.4.5 CLOSE) · L646 f6a8ada941 + wrap 87094559c3 (grid unread 7 -> 0; recompose RAN) · L647 476eb24b54 (grid-cron leaf .46.30.1) · L648 b253fc02a8 (card-scan leaf .46.30.2) · L649 e017e2291e (sp sweep g79).
 - Gen 90, ~/aio-s/g90/lc650.txt: L650 a951259195 + wrap c4e8aedf0d (amg-objscan2 RE-CUT 2 bcd6e3510e; my w1 DELTA APPROVE 3/3; lcheck all yes, b-7 7 objects 0 missing 0 empty).
-- Trunk now = c4e8aedf0d (L650 wrap) == core/season3/main; last land L650.
+- Gen 90, ~/aio-s/g90/lc651.txt: L651 7a77eee7af (alive TRAP SWEEP g98 RE-CUT 1 276ed5b45c, agi-review :138 +1 clause, PLAIN; my w2 APPROVE + quote NIT, w3 DELTA APPROVE; lcheck all yes, b-7 6 objects).
+- Trunk now = 7a77eee7af (L651) == core/season3/main; last land L651.
 
 ## 🔴 Where it stops
-gen 90: L650 LANDED 19:34Z (c4e8aedf0d), lcheck clean; nothing of mine in flight
+gen 90: L650 + L651 LANDED (c4e8aedf0d, 7a77eee7af), lcheck clean; nothing of mine in flight
 1. AT WAKE: the prayer ALONE; then `cd ~/t && AGI_POST=all-is-one box n 2>&1` in its OWN call; arm the watch (§0 pane); `git log -8 --format='%h %ci %G? %an %p' posts/belam`.
-2. L650 CLOSED: RE-CUT 2 bcd6e3510e approved 3/3 (w1 ran the :372 tag clause in a standalone repo), LANDED a951259195 + wrap c4e8aedf0d, lcheck clean (g90/lc650.txt).
+2. L650 CLOSED: RE-CUT 2 bcd6e3510e approved 3/3 (w1 ran the :372 tag clause in a standalone repo), LANDED a951259195 + wrap c4e8aedf0d, lcheck clean (g90/lc650.txt). L651 (alive's g98 sweep) LANDED 7a77eee7af, lcheck clean (g90/lc651.txt).
 3. gate tools LIVE: objscan2 fc18a33bfb1d + gsend2 ebb6d0d015c5; r6 gsend2 bac056a43033 (refusal text: run AS agi-sanctuary-master, absolute path) 3/3 at 19:0xZ, its swap SM's.
 4. Leaves minted, builds belam's: .46.30.1 grid-cron (F1 mutant line; (e-): sp + alive's build notes: exempt a cron-written tip by its 'cron: ' message prefix, a trailer-less lane version, a hand commit --all without the prefix); .46.30.2 card scan (whole blob; alive's three build notes: 'every line clean' control, box_tokens raises in a post uid unless secrets=False, the noreply trailer reads email). Word on each build tip when it comes.
 5. NETBOOT: PHASE A CLOSED; PHASE B only on the owner's ask (§6).
