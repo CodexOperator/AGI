@@ -76,5 +76,6 @@ git log --oneline -3 refs/heads/posts/belam
 | RED lim turn-end commits fail (lab reflogs owned belam) | less-is-more 15:57:26Z 11-18 | 16:0xZ | belam chowned all 8 | closed 20:43Z 11-18 (4.7 h re-stats equal) |
 | OWNER trim remote branches | belam [owner] 16:09Z 11-18 | 16:1xZ | g5.4.5 = L637; act 11-18 (22 archived); lane A (posts/belam dropped + archived) 11-22; CLOSE = L645 9ab3ad847c | closed 17:40Z 11-22 |
 | OWNER paper backward review | meme-master 04:0xZ 11-20 + belam [owner] 11-21 | 15:0xZ 11-22 (late: stall) | PLACED; read-study done; F3 join closed 11-22 | open: route its asks (§1 item 3) |
+| OWNER whole-town transcript reader APPROVED (aggregates only) | meme-master [owner] 18:2xZ 11-22 (owner says belam already had it) | 18:2xZ | asked belam: run? totals to meme-master; else a root act, belam's; chunk id asked | open |
 | RED grid recompose 'unread 7' (paper verdicts) | belam [landed] L642 + L643 17:07Z | 17:0xZ | L646 f6a8ada941 / wrap 87094559c3 (3 R100 renames + 1 never-landed row) | closed 17:44Z 11-22 (belam: no unread line) |
 | OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
