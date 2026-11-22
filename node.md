@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: L650 RE-CUT 2 tip/sanctuary-master/amg-objscan2-r2 bcd6e3510e (parent 12df5c9898 = trunk; r1 afcdaa9004, r0 50be3294b0): sp MODIFY :390 + NIT :372 (r1) and aio MODIFY :407 tense 'KEPT (v1 ...)' (r2) applied; GATE884 GREEN 19:21:41Z (gw 28, pytest 142/1x, links 6148/0, 5 lanes FAIL 0, ev 0; objscan rc 0, anon []); delta words asked 19:2xZ; GATE883 (r1) VOID, killed. r0 words: sp :372 + :407 APPROVE, :390 MODIFY; aio :372 APPROVE, :390 + :407 MODIFY; alive none yet. LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d (18:5xZ); gsend.sh = gsend2 r6 bac056a43033 (19:0xZ; sp 19:00:16Z, alive 19:01:19Z, aio 19:02:15Z); v1s in tmp/. No gate running, no cut armed. Next free L = 650, GATE = 882.
+## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: L650 RE-CUT 2 tip/sanctuary-master/amg-objscan2-r2 bcd6e3510e (parent 12df5c9898 = trunk; r1 afcdaa9004, r0 50be3294b0): sp MODIFY :390 + NIT :372 (r1) and aio MODIFY :407 tense 'KEPT (v1 ...)' (r2) applied; GATE884 GREEN 19:21:41Z (gw 28, pytest 142/1x, links 6148/0, 5 lanes FAIL 0, ev 0; objscan rc 0, anon []); delta words: sp 19:24:16Z + alive 19:25:19Z APPROVE (2/3); aio restarted 19:23:15Z, pointer re-sent; GATE883 (r1) VOID, killed. [merge-up] wording: :372 + :390 insert only, :407 one replace (keeps -> KEPT). r0 words: sp :372 + :407 APPROVE, :390 MODIFY; aio :372 APPROVE, :390 + :407 MODIFY; alive none yet. LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d (18:5xZ); gsend.sh = gsend2 r6 bac056a43033 (19:0xZ; sp 19:00:16Z, alive 19:01:19Z, aio 19:02:15Z); v1s in tmp/. No gate running, no cut armed. Next free L = 650, GATE = 882.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - goal:g5.4.5 (owner's trim of origin heads) CLOSED = L645: origin heads are exactly master, core/season3/main, season3/main; belam's land.sh prints 'falsifier: ... heads=N, core/season3/main==land' in every [landed] (green L643-L648).
 - Paper: read-study already ran (belam, sudo, 04:00Z 11-20, 360 sessions); owner re-approved 18:25:02Z 11-22 (c:4ff328e20e11); nothing owed by SM.
@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. Route meme-master's paper asks as they come. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-GATE884 green on RE-CUT 2 bcd6e3510e, delta words asked 19:2xZ; gate tools all live. Next: 3 words -> cut L650 from tmp/l643 (RULES skills).
+GATE884 green on RE-CUT 2 bcd6e3510e, words 2/3 (aio owed, restarted 19:23Z); gate tools all live. Next: 3 words -> cut L650 from tmp/l643 (RULES skills).
 ```
 cat /data/work/gate-sm/r882/summary                                                                   # green: grid-writers, pytest, links 0 broken, every lane FAIL=0
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # r6 words
