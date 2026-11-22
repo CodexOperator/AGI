@@ -90,6 +90,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L641 caaf1bf8ab SM sweep gen 102+103 (tip ce83fc5d1a; RULES wrap 512c3a6d19: W^2 == L, W^1 == L^1, tree == mt; blob == tip; bt 0/1; OWNER 0; grid == land)
 - L640 a4c2a8211a netboot plan v7r3 (tip fa12e5c050; blob == tip; OWNER 0; bt 0/1; grid checked): A3 initrd build may start
 - L639 6644ac8701 plasma [report] schema fix (tip 1081380aab; RULES wrap 26344229a2: W^2 == L, tree == mt; bt 0/1; NOT gridded)
 - L638 e6ee7d62bb less-is-more sweep r3 (tip 9fa902801e; agi-review +5 -1, agi-rotate +1; blobs == tip; OWNER 0; bt 0/2; both grids == land)
