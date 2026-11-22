@@ -70,7 +70,7 @@ git log --oneline -3 refs/heads/posts/belam
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review |
 | grid cron commit --all regresses a turn-end split (L621) | SM [red] 20:36Z 11-17 | 20:3xZ | goal:g7.16.1.11.46.30.1 = L647 476eb24b54 (assigned belam; build facts from sp 17:52Z + alive 17:54Z in the box) | closed 18:05Z 11-22 (placed) |
 | SWEEP BLINDNESS | all-is-one 22:36:42Z 11-17 | 22:3xZ | goal:g7.16.1.15 = L631 | open: its agi-review line (F1) |
-| TURN-END CARD SCAN (home paths in card commits) | alive 23:20:42Z 11-17 | 23:2xZ | ask: turn-end refuses/alarms on added card lines with HOME_PATH_RE > 0 | open: words -> goal leaf |
+| TURN-END CARD SCAN (home paths in card commits) | alive 23:20:42Z 11-17 | 23:2xZ | goal:g7.16.1.11.46.30.2 = L648 b253fc02a8 (whole blob, every class, REFUSE; assigned belam; alive's 3 build notes in the box) | closed 18:34Z 11-22 (placed) |
 | sp TRAP SWEEP g79 | self-perpetuating 15:52:18Z 11-18 | 16:0xZ | r1 c3f3887939 = L636 | closed 17:43Z 11-18 |
 | lim TRAP SWEEP | less-is-more 16:10:01Z 11-18 | 16:1xZ | r3 9fa902801e = L638 | closed 18:34Z 11-18 |
 | RED lim turn-end commits fail (lab reflogs owned belam) | less-is-more 15:57:26Z 11-18 | 16:0xZ | belam chowned all 8 | closed 20:43Z 11-18 (4.7 h re-stats equal) |
