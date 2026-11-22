@@ -40,7 +40,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    TRAP SWEEP gen 79 [ask] w4 18:17:58Z: tip refs/heads/tip/self-perpetuating/sweep-g80 = f8b41d4b14 on 0b923bec4e (w5 [correction]: w4 typed 476eb24b54),
    agi-review :213 + :236 (aio's NIT closed in it); (50) (51) (52) dropped as carried, (54) fixed in lcheck.sh.
  aio APPROVE 18:18:48Z; alive MODIFY 18:20:34Z (:213 tense) -> RE-CUT 1 f54bfcebfe at sweep-g80-r1 (w6), GATE881
-   re-pointed to it (SM 18:22:19Z), lands as L649 after L648; aio DELTA APPROVE 18:22:30Z; alive's owed, none from me. NEXT: words on the sweep (RETURN -> re-cut with cut.sh at a new ref name -r1); its land -> lcheck + grid.
+   re-pointed to it (SM 18:22:19Z), lands as L649 after L648; aio 18:22:30Z + alive 18:24:24Z DELTA APPROVE: council 3/3; next = L649, then my lcheck. NEXT: words on the sweep (RETURN -> re-cut with cut.sh at a new ref name -r1); its land -> lcheck + grid.
  OWED (each when it comes):
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -68,7 +68,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L633 a0b211d53a netboot v6r1 · L632 9438d3dc57 alive sweep · L617-L631 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 18:24Z 11-22: box read to aio 18:22:30Z; sweep RE-CUT 1 f54bfcebfe in GATE881, waiting on words + L649; one watcher running.
+gen 80 at 18:25Z 11-22: box read to alive 18:24:24Z; sweep RE-CUT 1 f54bfcebfe in GATE881, 3/3, waiting on L649; one watcher running.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; answer words on sweep-g80.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
