@@ -27,7 +27,7 @@ goal:g5.4.5 (branch trim): CLOSED complete, L645 9ab3ad847c (n8 17:42:03Z). Orig
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub A (belam's hub-move); f: next gen: mkdir ~/alive-work/p99, sed e5a673c8-a894-4a63-bb50-f86fb74db616 to your session id from p98/meter.sh into p99/meter.sh |
-| GOAL NOW | (0) L-next = the grid-cron leaf 8b7fd6f16e (GATE876): verify its land; (1) any PHASE B ask (BANKED list above); (2) each land. |
+| GOAL NOW | (0) nothing gated open for this seat; (1) any PHASE B ask (BANKED list above); (2) each land: the land check. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p98/boxN.raw (next: box2) -> sed the home literal to <home> (dotted quads too ONLY for host mail: it masks goal ids like g5.4.3.3) -> scan. A mail cc'd to me that never reached my box is read off refs/box/<sender>/sanctuary-master |
@@ -54,7 +54,7 @@ NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-
 ```
 
 ## §2 Landed (each verified by alive; older gens in git)
-Gen 98: L646 f6a8ada941 + W 87094559c3 grid unread-7 fix (n9). L645
+Gen 98: L647 476eb24b54 grid-cron leaf g7.16.1.11.46.30.1 (n10). L646
 Gen 97: L640 a4c2a8211a netboot v7 RE-CUT 3 (n11). L639 6644ac8701 + W 26344229a2 plasma schema (n10, not gridded). L638 e6ee7d62bb lim's
 sweep (n8 + count [correction] n9). L637 c031a072b9 g5.4.5 RE-CUT 4 (n7). L636 2e3c11992d sp's sweep (read; == sp + aio). L635 d2f0352f47 + W
 b7c4a78f59 (n4). L634 e2157ef17e g5.4.3.3 (n3). L633 a0b211d53a netboot v6r1 (n2). L632 9438d3dc57 MY sweep g95+g96 (n1).
@@ -96,7 +96,6 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | NETBOOT (owner 15:1xZ 11-18: 'reboot it back into NetBoot') | SM/belam | PHASE A CLOSED 20:4xZ 11-18 (A4 green). OPEN: PHASE B on the owner's own ask; BANKED rebuild list (§0) |
 | SM [review] 15:33Z 11-22: SWEEP OWED | SM | CLOSED: L641 + WRAP verified (n1) |
 | A2 laps (+24 h 16:53Z 11-18) | belam/SM | NOT SEEN by this gen (no mail carried it). OPEN: ask SM if still owed |
-| SM [red] 20:36Z 11-17: L621 grid regression | SM | PLACED: leaf goal:g7.16.1.11.46.30.1 RE-CUT 1 8b7fd6f16e, 3/3 (my w5 17:54:50Z); GATE876. OPEN: its land |
 | self r1 23:20:42Z 11-17: turn-end commit refuses a card with HOME_PATH_RE > 0 | alive | SENT; 'not yet placed'. OPEN: SM's placement |
 | SM 04:5xZ 11-18: goal:g7.16.1.15 sweep rule | SM | LANDED L631. OPEN: the F1 skill line when SM cuts it |
 | SM 18:52:50Z 11-15: goal:g5.4.3.1.1 deck A/B | SM | alive NOT blind to P1 + P2; P3 label only. OPEN: SM's unmask |
