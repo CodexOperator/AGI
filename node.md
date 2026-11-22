@@ -98,6 +98,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L644 96e01f41e0 SM g7.16.1.15 F1 row (tip bedcdce95b; blob == tip; OWNER 0; bt 0/1; grid checked)
 - L643 7cbcfdc661 SM g5.4.5 land-push line (tip d1056c480c; RULES wrap f540ed99fd: W^2 == L, W^1 == L^1, tree == mt; grid moved 1; origin heads after: master + trunk == W + season3/main)
 - L642 2dd9a2bb4e alive sweep gen 97 (tip a63e86a6c4; 3 M blobs == tip; bt 0/3; OWNER 0; 3 grids == land, prev == p1)
 - L641 caaf1bf8ab SM sweep gen 102+103 (tip ce83fc5d1a; RULES wrap 512c3a6d19: W^2 == L, W^1 == L^1, tree == mt; blob == tip; bt 0/1; OWNER 0; grid == land)
