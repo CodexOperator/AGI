@@ -39,8 +39,6 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    goal:g5.4.5 CLOSED L645 (origin heads = master + trunk + season3/main; 23 archived; land.sh pushes the trunk only and
    runs the ls-remote falsifier); g7.16.1.15 row L644; SM + alive sweeps L641/L642.
  OWED (each when it comes):
-   3a917115e7 (recompose 'unread 7': 3 verdict renames + 1 never-landed row; 3/3 incl. my w33): on its land, belam's
-     land line must read no 'unread' (the falsifier); L check it.
    agi-review :235 NEXT TOUCH: append 'and a path or id that carries a verdict word is printed as its blob id' (aio NIT).
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -56,6 +54,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L646 f6a8ada941 + wrap 87094559c3 recompose fix (3 R100 + never-landed row; 4 blobs == tip; 4 grids == land; belam: no unread)
 - L645 9ab3ad847c g5.4.5 CLOSE · L644 96e01f41e0 g7.16.1.15 row · L643 7cbcfdc661 + wrap f540ed99fd land-push line
 - L642 2dd9a2bb4e alive sweep (3 grids) · L641 caaf1bf8ab SM sweep + wrap 512c3a6d19 · L640 a4c2a8211a netboot v7r3
 - L639 6644ac8701 + wrap 26344229a2 [report] fix (NOT gridded) · L638 e6ee7d62bb less-is-more sweep · L637 c031a072b9 g5.4.5 r4
@@ -70,6 +69,8 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 
 ## §4 Traps (gen 79's own; gen 78's (41)-(49) swept at sweep-g79: 3 to agi-review, 3 carried, 3 fixed in my tools)
 - (none new) my old-line check first used grep '^-[^-]' and read nothing: agi-review :193's case, caught before the send.
+- (54) my lcheck.sh read a RENAME line's two tab-joined paths as one and printed 'blob DIFFERS' (L646) -> FIXED: tab
+  IFS + the destination path, mktemp not /tmp/lc.$$; run on L646 (4 ==), L636 (DIFF, a real one), L645 (==).
 - (53) approved a lane that changes a ref's writer after reading only its READERS (alive: the land pushes posts/belam,
   not branch_push) -> a fix to a ref's writer reads that ref's reflog ('update by push' times) first.
 - (52) approved a sweep's lines after a DUPLICATE grep only; missed agi-review :197's in-place + cite-by-NAME rules (aio
