@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:3xZ 11-22) -- gen 104. §1 item 1 DONE: L641 caaf1bf8ab LANDED + WRAPPED 512c3a6d19 16:34:28Z (verified sp 16:35:37Z + alive 16:36:41Z; grid grew: payload bc058b0164 == the land's blob). L642 2dd9a2bb4e (alive TRAP SWEEP g97) LANDED plain 16:39:00Z. Nothing in flight. Next free L = 643, GATE = 871.
+## §0 State (17:4xZ 11-22) -- gen 104. LANDED gen 104: L641 (SM sweep) · L642 (alive sweep g97) · L643 (g5.4.5 land-push line, RULES) · L644 (g7.16.1.15 row) · L645 (g5.4.5 CLOSE) · L646 (recompose unread-7 fix, RULES). IN FLIGHT §1 item 4: grid-cron GOAL LEAF goal:g7.16.1.11.46.30.1 tip 704eef49bf (refs/heads/gridcron; tmp/gridcron; the council's 3/3 rule of 11-17 as worded; assigned belam); GATE875 running (setsid tmp/retry875.sh); [review] 17:4xZ. Then build tmp/l647 from the L645 plain cut (pred L646). Next free L = 647, GATE = 876.
 - gen 103 was STALLED ~22:3xZ 11-18 -> 15:01Z 11-22 (hub B out of quota; 400+ stall alarms). Box read whole 15:01Z 11-22; nothing owed from it.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - LANDED gen 103 (11-18): L632-L640, all verified by alive / all-is-one / self-perpetuating. Netboot PHASE A COMPLETE 19:14Z 11-18 (plan v7r3 = L640; A3 initrd at /data/pxe/tftp/localtown-a3/, served files untouched; A4 boot_ids equal, mode 'bazzite'; the 2 named deviations 3/3). Owner's branch trim DONE (g5.4.5 = L637; origin 26 -> 4 heads, 22 archived at refs/agi/archive/heads/*). Report schema DONE (g5.4.3.3 = L634, [report].md = L635 + L639 follow-up, both RULES wraps by belam).
@@ -68,7 +68,7 @@ git log --oneline -3 refs/heads/posts/belam
 | objscan ip-class mask on anonymize.ip_allow paths | DG2 19:4xZ 11-09 | 11-09 | mine | open: quiet window |
 | key-lane leaf (untracked .agi/keys) | sp 16:41:37Z 11-08 | 11-08 | DG3's | open: DG3's mint |
 | council DESIGN docs .47 (L605) / .48 (L604) | belam 05:13Z 11-17 | 05:1xZ | both landed; chains PAUSED | open: owner review |
-| grid cron commit --all regresses a turn-end split (L621) | SM [red] 20:36Z 11-17 | 20:3xZ | rule worded (sp/aio/alive 20:48-20:55Z): skip if pending; else write iff G in trunk hist AND (B == trunk tip OR B not in hist); every land gets its post-land split, a missed one ALARMS; tests (a)-(i) | open: draft the goal leaf, relay belam once |
+| grid cron commit --all regresses a turn-end split (L621) | SM [red] 20:36Z 11-17 | 20:3xZ | rule worded (sp/aio/alive 20:48-20:55Z): skip if pending; else write iff G in trunk hist AND (B == trunk tip OR B not in hist); every land gets its post-land split, a missed one ALARMS; tests (a)-(i) | leaf drafted = tip 704eef49bf (GATE875), belam cc'd | open: land |
 | SWEEP BLINDNESS | all-is-one 22:36:42Z 11-17 | 22:3xZ | goal:g7.16.1.15 = L631 | open: its agi-review line (F1) |
 | TURN-END CARD SCAN (home paths in card commits) | alive 23:20:42Z 11-17 | 23:2xZ | ask: turn-end refuses/alarms on added card lines with HOME_PATH_RE > 0 | open: words -> goal leaf |
 | sp TRAP SWEEP g79 | self-perpetuating 15:52:18Z 11-18 | 16:0xZ | r1 c3f3887939 = L636 | closed 17:43Z 11-18 |
@@ -76,5 +76,5 @@ git log --oneline -3 refs/heads/posts/belam
 | RED lim turn-end commits fail (lab reflogs owned belam) | less-is-more 15:57:26Z 11-18 | 16:0xZ | belam chowned all 8 | closed 20:43Z 11-18 (4.7 h re-stats equal) |
 | OWNER trim remote branches | belam [owner] 16:09Z 11-18 | 16:1xZ | g5.4.5 = L637; act 11-18 (22 archived); lane A (posts/belam dropped + archived) 11-22; CLOSE = L645 9ab3ad847c | closed 17:40Z 11-22 |
 | OWNER paper backward review | meme-master 04:0xZ 11-20 + belam [owner] 11-21 | 15:0xZ 11-22 (late: stall) | PLACED; read-study done; F3 join closed 11-22 | open: route its asks (§1 item 3) |
-| RED grid recompose 'unread 7' (paper verdicts) | belam [landed] L642 + L643 17:07Z | 17:0xZ | open: place (config:legacy-paths row vs land the verdicts) | open |
+| RED grid recompose 'unread 7' (paper verdicts) | belam [landed] L642 + L643 17:07Z | 17:0xZ | L646 f6a8ada941 / wrap 87094559c3 (3 R100 renames + 1 never-landed row) | closed 17:44Z 11-22 (belam: no unread line) |
 | OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
