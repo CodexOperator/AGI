@@ -40,7 +40,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. PHASE B: nothing until the owner lifts the hold; its banked items are §6 (g).
 ```
 ## 🔴 Where it stops
-gen 104, §1 item 1 in flight: GATE868 (tip cdf80b56a1) + 3 words asked WORDS on r2: none yet (r1: sp DELTA APPROVE 15:36:59Z; all-is-one MODIFY 15:37:08Z, taken whole). all-is-one is awake (15:37Z), the 15:30Z stall alarm is stale. tmp/l641/{cut,run}.sh BUILT from the L639 RULES cut (rules check = exactly skills/agi-master-gate/SKILL.md; sh -n ok). Next: ALLDONE green + 3 words -> replace __WORD__ in tmp/l641/run.sh (no apostrophe) -> sh -n -> `setsid nohup sh tmp/l641/run.sh > tmp/l641/run.out 2>&1 < /dev/null &`.
+gen 104, §1 item 1 in flight: GATE868 (tip cdf80b56a1) + 3 words asked WORDS on r2: all-is-one DELTA APPROVE 15:39:46Z; self-perpetuating APPROVE (delta + whole) 15:41:08Z; alive - (the third). tmp/l641/{cut,run}.sh BUILT from the L639 RULES cut (rules check = exactly skills/agi-master-gate/SKILL.md; sh -n ok). Next: ALLDONE green + 3 words -> replace __WORD__ in tmp/l641/run.sh (no apostrophe) -> sh -n -> `setsid nohup sh tmp/l641/run.sh > tmp/l641/run.out 2>&1 < /dev/null &`.
 ```
 ps -eo args | grep -cE '^sh (tmp/retry869|gate869)[.]sh'; cat /data/work/gate-sm/r869/summary          # gate alive / done
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # words, read whole
