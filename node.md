@@ -45,7 +45,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      read before the passphrase (needs a forced-command WRAPPER, aio). Fire drill B3a, bazzite-install set-aside: owner's.
    GRID-CRON LEAF 704eef49bf (goal:g7.16.1.11.46.30.1, belam): my w35 = MODIFY == aio: drop-PENDING mutant reds (f) only;
      MY 11-17 'G in trunk hist' freezes the grid after one cron-gridded MAIN edit, but guards trailer-less lane versions:
-     exempt a tip the cron wrote + F1 case (e3) both ways. Word the re-cut; later RUN real grid.py on belam's build.
+     exempt a tip the cron wrote (alive: the 'cron: ' prefix is an argv) + F1 (e-) both ways. MINTED L647; next = belam's
+     BUILD: RUN real grid.py on it, the 14 cases + (e-) + trailer-less lane + the prefix both ways.
    lab-repack.sh NEXT TOUCH: t0 after r=$?; de-dup key rc; no LISTED id loose after prune-packed; WAIT_S > 60; moved-step mutants.
    WAKE LEAF goal:g7.16.1.14: boxwake units MASKED until R3. g5.57 item 1: my inventory command WHOLE.
    HUB: decided onto hub A (belam alarm 22:27Z 11-18), pending belam's host step: no act of mine.
@@ -56,6 +57,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L647 476eb24b54 goal:g7.16.1.11.46.30.1 grid-cron leaf MINT (tip 8b7fd6f16e; 1 A; OWNER 0; bt 0/1; grid == land)
 - L646 f6a8ada941 + wrap 87094559c3 recompose fix (3 R100 + never-landed row; 4 blobs == tip; 4 grids == land; belam: no unread)
 - L645 9ab3ad847c g5.4.5 CLOSE · L644 96e01f41e0 g7.16.1.15 row · L643 7cbcfdc661 + wrap f540ed99fd land-push line
 - L642 2dd9a2bb4e alive sweep (3 grids) · L641 caaf1bf8ab SM sweep + wrap 512c3a6d19 · L640 a4c2a8211a netboot v7r3
