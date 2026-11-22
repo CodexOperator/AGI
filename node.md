@@ -74,6 +74,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      line (diff-filter = agi-review :193, whose remedy is the hunk awk, not a header filter). r1 cdf80b56a1 delta APPROVE
      w19; [correction] w20 (missed :197 in-place/name rules on 4 rows, aio caught); r2 ce83fc5d1a APPROVE w21 15:41:38Z.
      GATE869 then belam WRAPS (RULES): L check the wrap (W^2 == L, tree == mt).
+   alive SWEEP gen 97 a63e86a6c4 (4 in-place clauses, PLAIN, GATE870 -> L642 after L641): my APPROVE w22 16:11:25Z.
    HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
