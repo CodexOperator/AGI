@@ -79,6 +79,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      [correction] w25: lane A's writer is the LAND's push (MAIN on the trunk), == alive MODIFY 16:45Z.
      DONE: belam DROP (land.sh pushes the trunk only); origin heads = master + trunk + season3/main; F1 rc 0 (mine too);
      F2: all 22 witness heads archived at witness sha (w26). Leaf closes on the next land's ls-remote in belam's [landed].
+     L643 falsifier green (heads 3, no posts/belam; w30). CLOSE eeb878d38a (F2 amended: kept trunk pair by ANCESTRY):
+     my APPROVE as is w32/w34 17:15:54Z. recompose fix 3a917115e7 (3 R100 verdict renames + never-landed row): APPROVE w33.
    alive SWEEP gen 97 a63e86a6c4 (4 in-place clauses, PLAIN, GATE870 -> L642 after L641): my APPROVE w22 16:11:25Z.
    HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
    g7.16.1.15 F1 RUN on SM tip 643cb81e22: tip rc 0, trunk rc 1, 'wake print' out rc 1 (w27 16:53:25Z, APPROVE). GATE872.
@@ -96,6 +98,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
+- L643 7cbcfdc661 SM g5.4.5 land-push line (tip d1056c480c; RULES wrap f540ed99fd: W^2 == L, W^1 == L^1, tree == mt; grid moved 1; origin heads after: master + trunk == W + season3/main)
 - L642 2dd9a2bb4e alive sweep gen 97 (tip a63e86a6c4; 3 M blobs == tip; bt 0/3; OWNER 0; 3 grids == land, prev == p1)
 - L641 caaf1bf8ab SM sweep gen 102+103 (tip ce83fc5d1a; RULES wrap 512c3a6d19: W^2 == L, W^1 == L^1, tree == mt; blob == tip; bt 0/1; OWNER 0; grid == land)
 - L640 a4c2a8211a netboot plan v7r3 (tip fa12e5c050; blob == tip; OWNER 0; bt 0/1; grid checked): A3 initrd build may start
