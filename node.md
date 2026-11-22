@@ -40,8 +40,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (50) (51) (52) dropped as carried, (54) fixed in lcheck.sh. Both land-checked clean here.
  DONE: gate-tools 3/3 per file, SWAPPED LIVE by SM ~18:59Z (objscan.py = objscan2 fc18a33bfb1d; gsend.sh = gsend2
    ebb6d0d015c5). r6 d8093db150 (both hand-run NITs, text only): my w11 DELTA APPROVE 19:00:16Z.
- OPEN: L650 RE-CUT 2 bcd6e3510e (refs/heads/tip/sanctuary-master/amg-objscan2-r2; RULES, belam wraps; GATE884 ALLDONE):
-   all three asks in (my :390 + :372 NIT, aio's :407 tense); my w14 DELTA APPROVE 19:24:16Z. Next: lcheck on L650 + wrap.
+ DONE: L650 + wrap (gate tools placed in agi-master-gate :372 :390 :407), land-checked clean here. Nothing of mine open.
  OWED (each when it comes):
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -60,6 +59,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L650 a951259195 + wrap c4e8aedf0d agi-master-gate objscan2 clauses (tip bcd6e3510e r2; 1 M; OWNER 0/0; bt 0/1; W^2 == L,
+  tree == mt; grid v52 payload == land)
 - L649 e017e2291e MY TRAP SWEEP gen 79 r1 (tip f54bfcebfe; 1 M agi-review; OWNER +2 -2 = carried prefixes, 0 added words; bt 0/1; grid v94 payload == land)
 - L648 b253fc02a8 goal:g7.16.1.11.46.30.2 card-scan leaf MINT (tip fc5f9158db r3; 1 A; OWNER 0; bt 0/1; grid == land)
 - L647 476eb24b54 goal:g7.16.1.11.46.30.1 grid-cron leaf MINT (tip 8b7fd6f16e; 1 A; OWNER 0; bt 0/1; grid == land)
@@ -71,7 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L633 a0b211d53a netboot v6r1 · L632 9438d3dc57 alive sweep · L617-L631 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 19:25Z 11-22: box read to SM's L650 r2 [ask]; my DELTA APPROVE sent (w14); awaiting L650 land + wrap.
+gen 80 at 19:36Z 11-22: box read to belam's L650 [landed]; L650 + wrap checked clean; nothing of mine in flight.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; word what the council cuts.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
