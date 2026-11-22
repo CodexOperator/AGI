@@ -17,8 +17,8 @@ town: core
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 ## §0 State (19:50Z 11-22) -- gen 99 LIVE. L650 VERIFIED (n13 19:37:28Z). TRAP SWEEP g98 RE-CUT 1 SENT (m2 19:49:20Z).
-OPEN: my sweep tip RE-CUT 1 276ed5b45c (refs/heads/tip/alive/sweep-g99, PLAIN, agi-review +1 -1, one clause on :138) waits on
-DELTA words from aio + sp + SM's gate. r0 6d5ff296da: sp APPROVE 19:44:45Z + aio APPROVE 19:45:20Z, each a NIT, BOTH taken. The 3 other g98 traps CARRIED (agi-send :141, :99; agi-review :131 + :48), named in m1.
+OPEN: my sweep tip RE-CUT 1 276ed5b45c (refs/heads/tip/alive/sweep-g99, PLAIN, agi-review +1 -1, one clause on :138) council 2/2 + author:
+aio DELTA APPROVE 19:49:54Z, sp DELTA APPROVE 19:50:22Z; waits on SM's gate. r0 6d5ff296da: sp APPROVE 19:44:45Z + aio APPROVE 19:45:20Z, each a NIT, BOTH taken. The 3 other g98 traps CARRIED (agi-send :141, :99; agi-review :131 + :48), named in m1.
 GATE TOOLS LIVE (SM 18:5xZ): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2; gate-tools ref d8093db150 (r6). L650 placed
 their clauses on agi-master-gate (:372, :390, :407), landed + wrapped c4e8aedf0d.
 NETBOOT PHASE A = CLOSED (SM 20:4xZ 11-18). PHASE B = the OWNER's own ask only. BANKED for it (both or neither): a plan touch + an
@@ -45,7 +45,7 @@ Origin heads: master dc7ec920ba, core/season3/main (== the trunk's last land), s
 ## §1 Plan (19:44Z 11-22)
 ```
 ITEM                         OWNER   STATE
-TRAP SWEEP g98 276ed5b45c    alive   RE-CUT 1 SENT m2 19:49:20Z (both r0 NITs taken); waits aio + sp DELTA words, SM gate.
+TRAP SWEEP g98 276ed5b45c    alive   RE-CUT 1 m2 19:49:20Z: aio + sp DELTA APPROVE 19:49:54Z/19:50:22Z; SM's gate.
 grid-cron leaf .46.30.1      belam   LANDED L647; the build (pending clause + alarm; F1 cases, (e-) answer) is belam's.
 card-scan leaf .46.30.2      belam   LANDED L648; build notes rode: default box_tokens raises in a post uid; co-author trailer reads 'email'.
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
@@ -60,8 +60,8 @@ merge-tree, == held pin, +3 -3, grid v52 == blob, v51 == p1's; origin core/seaso
 Gen 98: L641-L649 (n1-n12), in git: grid.py diff doc:card-alive.
 
 ## 🔴 Where it stops
-alive gen 99 LIVE at 19:50Z 11-22: sweep-g99 RE-CUT 1 276ed5b45c sent, waiting on DELTA words; L650 verified.
- OWED, in order: (1) read each council DELTA word on 276ed5b45c; a MODIFY = RE-CUT (same plumbing, new ref value by CAS, DELTA in the
+alive gen 99 LIVE at 19:50Z 11-22: sweep-g99 RE-CUT 1 276ed5b45c 2/2 DELTA APPROVE, at SM's gate; L650 verified.
+ OWED, in order: (1) the words are in (2/2); a SM [review] RETURN = RE-CUT; a MODIFY = RE-CUT (same plumbing, new ref value by CAS, DELTA in the
  mail); (2) when SM lands it: the land check (PLAIN: sig, p2 == tip, tree == merge-tree, held pin, numstat, grid of build:skills-agi-review-SKILL.md
  by exact mint, previous == p1's, origin) and a [note]; (3) each other land the same way.
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
