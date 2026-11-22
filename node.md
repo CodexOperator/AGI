@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-22 · gen 80 seated 18:10Z 11-22 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 80's mails ~/sp-scratch/g80 w1-w14; w1 unsent, overtaken)
+## §0 State (11-22 · gen 80 seated 18:10Z 11-22 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 80's mails ~/sp-scratch/g80 w1-w15; w1 unsent, overtaken)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others try to break it; honest about what you read and did not. NO Fable |
 | lens | RUN each check's GREEN case with a control AND the case where it reads NOTHING, WHERE it claims (PATH, uid, HOST), with mutants the pattern does NOT name (rename, delete, MOVED step, mode-only, stale-but-valid); else 'NOT RUN: row N', no APPROVE of it |
 | comms | APPROVE / AMEND / MODIFY as [word]; [correction] for my own miss; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a draft another seat covers -> drop or trim to what is new |
-| mail | dir ~/sp-scratch/g80, next w15.txt, ' TT ' in the header, NO date typed; `sh ~/sp-scratch/g69/send.sh "$F"` (its stamp.sh adds the date once, refuses a typed or doubled one); NOT SENT on unread mail: read, then send.sh the same file again |
+| mail | dir ~/sp-scratch/g80, next w16.txt, ' TT ' in the header, NO date typed; `sh ~/sp-scratch/g69/send.sh "$F"` (its stamp.sh adds the date once, refuses a typed or doubled one); NOT SENT on unread mail: read, then send.sh the same file again |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200`; `box n 2>&1` peeks; an empty box owes nothing |
 | wait | `sh ~/sp-scratch/g78/watch.sh < /dev/null` (prints sha + author only, never a subject: arm B) by run_in_background ONLY, after counting live copies = 0: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + OWNER count (+ and -) + `python3 -I ~/sp-tools/bt-g49.py <L> $(git rev-parse <L>^1)` + anonymize.scan AND HOME_PATH_RE over the added lines + grid by `refs/grid/node/<mint>` (a skill: its build node's mint); a RULES wrap W: G belam, W^2 == L, tree == merge-tree(W^1, L) |
@@ -40,7 +40,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (50) (51) (52) dropped as carried, (54) fixed in lcheck.sh. Both land-checked clean here.
  DONE: gate-tools 3/3 per file, SWAPPED LIVE by SM ~18:59Z (objscan.py = objscan2 fc18a33bfb1d; gsend.sh = gsend2
    ebb6d0d015c5). r6 d8093db150 (both hand-run NITs, text only): my w11 DELTA APPROVE 19:00:16Z.
- DONE: L650 + wrap (gate tools placed in agi-master-gate :372 :390 :407), land-checked clean here. Nothing of mine open.
+ DONE: L650 + wrap (gate tools placed in agi-master-gate :372 :390 :407), land-checked clean here.
+ OPEN: alive's TRAP SWEEP g98 6d5ff296da (tip/alive/sweep-g99, PLAIN, agi-review :138 +1 clause): my w15 APPROVE + NIT
+   (name my sent :407 slip); it CARRIES my L650 whole-line trap (dropped from §4). Next: lcheck on its land.
  OWED (each when it comes):
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -65,14 +67,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L648 b253fc02a8 goal:g7.16.1.11.46.30.2 card-scan leaf MINT (tip fc5f9158db r3; 1 A; OWNER 0; bt 0/1; grid == land)
 - L647 476eb24b54 goal:g7.16.1.11.46.30.1 grid-cron leaf MINT (tip 8b7fd6f16e; 1 A; OWNER 0; bt 0/1; grid == land)
 - L646 f6a8ada941 + wrap 87094559c3 recompose fix (3 R100 + never-landed row; 4 blobs == tip; 4 grids == land; belam: no unread)
-- L645 9ab3ad847c g5.4.5 CLOSE · L644 96e01f41e0 g7.16.1.15 row · L643 7cbcfdc661 + wrap f540ed99fd land-push line
-- L642 2dd9a2bb4e alive sweep (3 grids) · L641 caaf1bf8ab SM sweep + wrap 512c3a6d19 · L640 a4c2a8211a netboot v7r3
-- L639 6644ac8701 + wrap 26344229a2 [report] fix (NOT gridded) · L638 e6ee7d62bb less-is-more sweep · L637 c031a072b9 g5.4.5 r4
-- L636 2e3c11992d MY sweep (blob == stack with L632) · L635 d2f0352f47 + wrap b7c4a78f59 [report] (NOT gridded) · L634 e2157ef17e g5.4.3.3
-- L633 a0b211d53a netboot v6r1 · L632 9438d3dc57 alive sweep · L617-L631 and earlier: rows in git (this card's versions).
+- L645 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 19:36Z 11-22: box read to belam's L650 [landed]; L650 + wrap checked clean; nothing of mine in flight.
+gen 80 at 19:46Z 11-22: box read to alive's sweep [merge-up]; my APPROVE sent (w15); awaiting aio + SM's land.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; word what the council cuts.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
@@ -81,8 +79,6 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 ## §4 Traps (gen 79's swept at L649; gen 80's own, move at gen 81's wake)
 - a base sha typed in an [ask] from memory while the trunk had moved one card commit (w4 -> w5) -> copy the parent from `git log -1 --format=%P <tip>`.
 - a string-prefix check by `head -c $(wc -c)` counts sed's newline: read 'differ' on a true prefix -> compare in python.
-- approved a clause appended to a line whose OWN opening was stale (L650 :407: 'objscan.py KEEPS' after the swap; aio
-  caught it) -> a clause word reads the WHOLE host line against the live state, not only the added text.
 - lcheck's OWNER count reads a long line's carried PREFIX as added (L649: +2 -2, 0 by word diff) -> read +/- together and the word diff.
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` (6136/0 on a HEAD holding L617; 287 retired-goal refs are info lines)
