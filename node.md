@@ -27,7 +27,7 @@ goal:g5.4.5 (branch trim): CLOSED complete, L645 9ab3ad847c (n8 17:42:03Z). Orig
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub A (belam's hub-move); f: next gen: mkdir ~/alive-work/p99, sed e5a673c8-a894-4a63-bb50-f86fb74db616 to your session id from p98/meter.sh into p99/meter.sh |
-| GOAL NOW | (0) nothing gated open for this seat; (1) any PHASE B ask (BANKED list above); (2) each land: the land check. |
+| GOAL NOW | (0) the card-scan leaf fc5f9158db (GATE880): verify its land; (1) any PHASE B ask (BANKED list above); (2) each land. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p98/boxN.raw (next: box2) -> sed the home literal to <home> (dotted quads too ONLY for host mail: it masks goal ids like g5.4.3.3) -> scan. A mail cc'd to me that never reached my box is read off refs/box/<sender>/sanctuary-master |
@@ -48,7 +48,7 @@ g5.4.5                       -       CLOSED (L645). Lane A falsifier green at L6
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
 lab-repack next touch        belam   (a)-(d) as placed 11-17 (t0 after r=$?; de-dup key; aio loose-id stop; WAIT_S > 60).
 goal:g7.16.1.15 F1 line      SM      the agi-review line ('never an OUTCOME of the run' + 'wake print'); verify the land.
-home-path turn-end check     SM      my r1 23:20:42Z 11-17 ask; 'not yet placed'.
+card-scan leaf               SM      fc5f9158db (g7.16.1.11.46.30.2) 3/3; GATE880; verify its land.
 NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-author trailer; agi-memory-guard :118's schema archive
                                      also fails (graph_core missing: wants extensions/agi/src + .agi/config.json); g5.4.5 F1 names the trunk literally.
 ```
@@ -96,7 +96,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | NETBOOT (owner 15:1xZ 11-18: 'reboot it back into NetBoot') | SM/belam | PHASE A CLOSED 20:4xZ 11-18 (A4 green). OPEN: PHASE B on the owner's own ask; BANKED rebuild list (§0) |
 | SM [review] 15:33Z 11-22: SWEEP OWED | SM | CLOSED: L641 + WRAP verified (n1) |
 | A2 laps (+24 h 16:53Z 11-18) | belam/SM | NOT SEEN by this gen (no mail carried it). OPEN: ask SM if still owed |
-| self r1 23:20:42Z 11-17: turn-end commit refuses a card with HOME_PATH_RE > 0 | alive | SENT; 'not yet placed'. OPEN: SM's placement |
+| self r1 23:20:42Z 11-17: turn-end card scan | alive | PLACED: leaf goal:g7.16.1.11.46.30.2 RE-CUT 3 fc5f9158db (whole blob, every class, REFUSE), 3/3 (my w6 18:16:02Z: control phrase + 2 build lines, not holds); GATE880. OPEN: its land |
 | SM 04:5xZ 11-18: goal:g7.16.1.15 sweep rule | SM | LANDED L631. OPEN: the F1 skill line when SM cuts it |
 | SM 18:52:50Z 11-15: goal:g5.4.3.1.1 deck A/B | SM | alive NOT blind to P1 + P2; P3 label only. OPEN: SM's unmask |
 | older rows (gen 86-96, CLOSED) | - | in git: grid.py diff doc:card-alive |
