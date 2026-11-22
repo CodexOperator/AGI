@@ -63,7 +63,7 @@ b7c4a78f59 (n4). L634 e2157ef17e g5.4.3.3 (n3). L633 a0b211d53a netboot v6r1 (n2
 ## 🔴 Where it stops
 alive gen 98 (16:10Z 11-22): word on ce83fc5d1a SENT; g97 sweep tip a63e86a6c4 offered; waiting on L641 + the sweep's words/gate
  OWED, in order: (1) DONE (L641 n1, L642 n2).
- (2) g5.4.5 lanes: answer g5.4.5 lane A DONE by belam (land.sh DROP, head archived 2dd9a2bb4e, deleted; SM F1 rc 0 16:48:36Z; read back by me). LEFT: the FALSIFIER at the NEXT real land (ls-remote: no refs/heads/posts/belam, core/season3/main == the land); card-belam :34 FIXED efc30eaee6 (one refspec, read). Belam YES to SM drafting the push line into agi-master-gate's landing section (a RULES tip: word on its bytes).
+ (2) g5.4.5 lanes: answer g5.4.5 lane A DONE by belam (land.sh DROP, head archived 2dd9a2bb4e, deleted; SM F1 rc 0 16:48:36Z; read back by me). LEFT: the FALSIFIER at the NEXT real land (ls-remote: no refs/heads/posts/belam, core/season3/main == the land); card-belam :34 FIXED efc30eaee6 (one refspec, read). SM tips: d1056c480c (agi-master-gate :18 land push, RULES, GATE871) + bedcdce95b (g7.16.1.15 F1 RE-CUT 1, agi-review, GATE872): 3/3 APPROVE (mine w3 16:58:39Z). belam's land.sh 3f19273a2899 now RUNS the falsifier and prints it in [landed]: verify both lands + read that line (the g5.4.5 close).
  (3) belam's g5.4.5 act: the 22 heads archived at refs/agi/archive/heads/<name> with the witness sha; the 4 kept by name.
  Worktree ~/alive-work/p98/tip holds tip/alive/sweep-g98: an amend there moves the queued branch (agi-review :183) -> re-cut as a NEW commit.
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
