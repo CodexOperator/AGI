@@ -76,6 +76,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      GATE869 then belam WRAPS (RULES): L check the wrap (W^2 == L, tree == mt).
    g5.4.5 LANES (SM ask 16:40Z 11-22): my w24 16:42:29Z = A APPROVE; B3 now (keep season3/main); B2 only on owner's
      word, authority sha via ls-remote of the exact ref (a local refs/agi/* is unguarded: any post can write it).
+     [correction] w25: lane A's writer is the LAND's push (MAIN on the trunk), == alive MODIFY 16:45Z.
    alive SWEEP gen 97 a63e86a6c4 (4 in-place clauses, PLAIN, GATE870 -> L642 after L641): my APPROVE w22 16:11:25Z.
    HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
    g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
@@ -120,6 +121,8 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 
 ## §4 Traps (gen 79's own; gen 78's (41)-(49) swept at sweep-g79: 3 to agi-review, 3 carried, 3 fixed in my tools)
 - (none new) my old-line check first used grep '^-[^-]' and read nothing: agi-review :193's case, caught before the send.
+- (53) approved a lane that changes a ref's writer after reading only its READERS (alive: the land pushes posts/belam,
+  not branch_push) -> a fix to a ref's writer reads that ref's reflog ('update by push' times) first.
 - (52) approved a sweep's lines after a DUPLICATE grep only; missed agi-review :197's in-place + cite-by-NAME rules (aio
   15:37Z 11-22) -> a sweep review runs :197's two rules on every new row, beside the duplicate grep.
 - (51) an F1 run read rc 0 on all rows: the extraction was empty (eval of '') -> print the extracted body's size before any row.
