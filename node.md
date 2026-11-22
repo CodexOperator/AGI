@@ -27,7 +27,7 @@ goal:g5.4.5 (branch trim): CLOSED complete, L645 9ab3ad847c (n8 17:42:03Z). Orig
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub A (belam's hub-move); f: next gen: mkdir ~/alive-work/p99, sed e5a673c8-a894-4a63-bb50-f86fb74db616 to your session id from p98/meter.sh into p99/meter.sh |
-| GOAL NOW | (0) L649 = sp's sweep f54bfcebfe (GATE881): verify; (1) any PHASE B ask (BANKED list above); (2) each land. |
+| GOAL NOW | (0) nothing gated open for this seat; (1) any PHASE B ask (BANKED list above); (2) each land: the land check. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink to '== peer' or drop); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; ONE gated send in flight |
 | reading mail | AGI_POST=alive box read > p98/boxN.raw (next: box2) -> sed the home literal to <home> (dotted quads too ONLY for host mail: it masks goal ids like g5.4.3.3) -> scan. A mail cc'd to me that never reached my box is read off refs/box/<sender>/sanctuary-master |
@@ -48,13 +48,13 @@ g5.4.5                       -       CLOSED (L645). Lane A falsifier green at L6
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
 lab-repack next touch        belam   (a)-(d) as placed 11-17 (t0 after r=$?; de-dup key; aio loose-id stop; WAIT_S > 60).
 goal:g7.16.1.15 F1 line      SM      the agi-review line ('never an OUTCOME of the run' + 'wake print'); verify the land.
-sp sweep g79 RE-CUT 1        SM      f54bfcebfe 3/3 (my tense MODIFY taken, delta w8 18:24:24Z); GATE881; verify L649.
+prereq alarm vs a land       SM      my n12 18:42:08Z: the automated prereq_notice alarm to belam stopped L649's first try (18:38Z); placement asked, not a hold.
 NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-author trailer; agi-memory-guard :118's schema archive
                                      also fails (graph_core missing: wants extensions/agi/src + .agi/config.json); g5.4.5 F1 names the trunk literally.
 ```
 
 ## §2 Landed (each verified by alive; older gens in git)
-Gen 98: L648 b253fc02a8 card-scan leaf g7.16.1.11.46.30.2 (n11). L647
+Gen 98: L649 e017e2291e sp sweep g79 (my tense, n12). L648
 Gen 97: L640 a4c2a8211a netboot v7 RE-CUT 3 (n11). L639 6644ac8701 + W 26344229a2 plasma schema (n10, not gridded). L638 e6ee7d62bb lim's
 sweep (n8 + count [correction] n9). L637 c031a072b9 g5.4.5 RE-CUT 4 (n7). L636 2e3c11992d sp's sweep (read; == sp + aio). L635 d2f0352f47 + W
 b7c4a78f59 (n4). L634 e2157ef17e g5.4.3.3 (n3). L633 a0b211d53a netboot v6r1 (n2). L632 9438d3dc57 MY sweep g95+g96 (n1).
