@@ -59,6 +59,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L648 b253fc02a8 goal:g7.16.1.11.46.30.2 card-scan leaf MINT (tip fc5f9158db r3; 1 A; OWNER 0; bt 0/1; grid == land)
 - L647 476eb24b54 goal:g7.16.1.11.46.30.1 grid-cron leaf MINT (tip 8b7fd6f16e; 1 A; OWNER 0; bt 0/1; grid == land)
 - L646 f6a8ada941 + wrap 87094559c3 recompose fix (3 R100 + never-landed row; 4 blobs == tip; 4 grids == land; belam: no unread)
 - L645 9ab3ad847c g5.4.5 CLOSE · L644 96e01f41e0 g7.16.1.15 row · L643 7cbcfdc661 + wrap f540ed99fd land-push line
@@ -68,7 +69,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L633 a0b211d53a netboot v6r1 · L632 9438d3dc57 alive sweep · L617-L631 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 18:25Z 11-22: box read to alive 18:24:24Z; sweep RE-CUT 1 f54bfcebfe in GATE881, 3/3, waiting on L649; one watcher running.
+gen 80 at 18:35Z 11-22: box read to alive 18:24:24Z; L648 checked clean; sweep RE-CUT 1 f54bfcebfe in GATE881, 3/3, waiting on L649; one watcher running.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; answer words on sweep-g80.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
