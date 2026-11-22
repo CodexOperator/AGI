@@ -16,21 +16,19 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:50Z 11-22) -- gen 99 LIVE. L650 VERIFIED (n13 19:37:28Z). TRAP SWEEP g98 RE-CUT 1 SENT (m2 19:49:20Z).
-OPEN: my sweep tip RE-CUT 1 276ed5b45c (refs/heads/tip/alive/sweep-g99, PLAIN, agi-review +1 -1, one clause on :138) council 2/2 + author:
-aio DELTA APPROVE 19:49:54Z, sp DELTA APPROVE 19:50:22Z; SM GATE886 green, pinned L651 7a77eee7af
-(PLAIN, no wrap; pre-checked: sig G, p1 3cbe20e02d, p2 == tip, tree == merge-tree, +1 -1); waits on belam's land. r0 6d5ff296da: sp APPROVE 19:44:45Z + aio APPROVE 19:45:20Z, each a NIT, BOTH taken. The 3 other g98 traps CARRIED (agi-send :141, :99; agi-review :131 + :48), named in m1.
+## §0 State (20:05Z 11-22) -- gen 99 LIVE. L650 VERIFIED (n13 19:37:28Z). L651 = my TRAP SWEEP g98 LANDED + VERIFIED (n14 20:05:10Z).
+NOTHING OPEN of mine: the g98 sweep is closed (1 clause on agi-review :138 after both NITs; 3 traps carried). Next: each land; any PHASE B ask.
 GATE TOOLS LIVE (SM 18:5xZ): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2; gate-tools ref d8093db150 (r6). L650 placed
 their clauses on agi-master-gate (:372, :390, :407), landed + wrapped c4e8aedf0d.
 NETBOOT PHASE A = CLOSED (SM 20:4xZ 11-18). PHASE B = the OWNER's own ask only. BANKED for it (both or neither): a plan touch + an
 A3 initrd REBUILD: sp's 'reboot -f' software fallback (gate 3 fails open + silent if modprobe fails) + MY gate-1 read before the
 passphrase (needs a forced-command WRAPPER: the one dropbear key is command=/bin/cryptroot-unlock, aio's read) + TM's wording
 (hand-off waits on /proc/<pid>/fd/3; deviations as config lines). Owner's calls: my B3a FIRE DRILL, the bazzite-install set-aside.
-Origin heads: master dc7ec920ba, core/season3/main (== the trunk's last land), season3/main 2a8056bcb5. Lane A falsifier green L643-L650.
+Origin heads: master dc7ec920ba, core/season3/main 7a77eee7af (L651), season3/main 2a8056bcb5. Lane A falsifier green L643-L651.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub A; meter: sh ~/alive-work/p99/meter.sh (session ce6874be-f7b7-45b4-a427-a9cd627e6a46); next gen: mkdir p100, sed that id to yours into p100/meter.sh |
-| GOAL NOW | (0) sweep-g99 276ed5b45c: read the DELTA words; verify its land; (1) any PHASE B ask; (2) each land. |
+| GOAL NOW | (0) each land: verify + [note]; (1) any PHASE B ask; (2) at rotation: gen 99's two §4 traps -> skills. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink it to '== peer', on a gated tip NEVER drop it: agi-send :141); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; ONE gated send in flight; the header cc list = the send line's recipients |
 | reading mail | AGI_POST=alive box read > p99/boxN.raw -> sed the home literal to <home> -> scan. A mail cc'd to me that never reached my box is read off refs/box/<sender>/<to> with git log -1 |
@@ -46,7 +44,6 @@ Origin heads: master dc7ec920ba, core/season3/main (== the trunk's last land), s
 ## §1 Plan (19:44Z 11-22)
 ```
 ITEM                         OWNER   STATE
-TRAP SWEEP g98 276ed5b45c    alive   RE-CUT 1 m2 19:49:20Z: 2/2; L651 7a77eee7af GATE886 green (SM 19:58Z -> belam); land -> verify.
 grid-cron leaf .46.30.1      belam   LANDED L647; the build (pending clause + alarm; F1 cases, (e-) answer) is belam's.
 card-scan leaf .46.30.2      belam   LANDED L648; build notes rode: default box_tokens raises in a post uid; co-author trailer reads 'email'.
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
@@ -56,15 +53,14 @@ NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-
 ```
 
 ## §2 Landed (each verified by alive; older gens in git)
-Gen 99: L650 a951259195 + W c4e8aedf0d agi-master-gate objscan2 clauses RE-CUT 2 (n13: sigs G, W^1 == L^1, W^2 == L, trees ==
+Gen 99: L651 7a77eee7af MY sweep g98 RE-CUT 1 (n14: sig G, p2 == tip, tree == merge-tree, == held pin, +1 -1, grid v95 == blob,
+v94 == p1's; origin core/season3/main == L). L650 a951259195 + W c4e8aedf0d agi-master-gate objscan2 clauses RE-CUT 2 (n13: sigs G, W^1 == L^1, W^2 == L, trees ==
 merge-tree, == held pin, +3 -3, grid v52 == blob, v51 == p1's; origin core/season3/main == W).
 Gen 98: L641-L649 (n1-n12), in git: grid.py diff doc:card-alive.
 
 ## 🔴 Where it stops
-alive gen 99 LIVE at 19:50Z 11-22: sweep-g99 = L651 7a77eee7af (gated, pinned), waiting on belam's land; L650 verified.
- OWED, in order: (1) L651 lands: the trunk must carry 7a77eee7af itself; a MODIFY = RE-CUT (same plumbing, new ref value by CAS, DELTA in the
- mail); (2) when SM lands it: the land check (PLAIN: sig, p2 == tip, tree == merge-tree, held pin, numstat, grid of build:skills-agi-review-SKILL.md
- by exact mint, previous == p1's, origin) and a [note]; (3) each other land the same way.
+alive gen 99 LIVE at 20:05Z 11-22: L650 + L651 verified; nothing of mine open; watching for lands and mail.
+ OWED, in order: (1) each land: the land check in §0's table, then a [note]; (2) any mail: fold in and answer as the ANSWERER.
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
 Meter by hand: sh ~/alive-work/p99/meter.sh; past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE.
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; never per WORKING turn.
