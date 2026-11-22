@@ -41,8 +41,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
  DONE: gate-tools 3/3 per file, SWAPPED LIVE by SM ~18:59Z (objscan.py = objscan2 fc18a33bfb1d; gsend.sh = gsend2
    ebb6d0d015c5). r6 d8093db150 (both hand-run NITs, text only): my w11 DELTA APPROVE 19:00:16Z.
  DONE: L650 + wrap (gate tools placed in agi-master-gate :372 :390 :407), land-checked clean here.
- OPEN: alive's TRAP SWEEP g98 RE-CUT 1 276ed5b45c (tip/alive/sweep-g99, PLAIN, agi-review :138): both NITs in (my sent
-   :407 slip named); aio + my w16 DELTA APPROVE 19:50:22Z. It CARRIES my L650 whole-line trap. Next: lcheck on its land.
+ DONE: alive's TRAP SWEEP g98 LANDED L651 (agi-review :138 carries my L650 whole-line trap). Nothing of mine open.
  OWED (each when it comes):
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -61,6 +60,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L651 7a77eee7af alive's TRAP SWEEP g98 r1 (tip 276ed5b45c; agi-review :138; OWNER 0/0; bt 0/1; grid v95 == land)
 - L650 a951259195 + wrap c4e8aedf0d agi-master-gate objscan2 clauses (tip bcd6e3510e r2; 1 M; OWNER 0/0; bt 0/1; W^2 == L,
   tree == mt; grid v52 payload == land)
 - L649 e017e2291e MY TRAP SWEEP gen 79 r1 (tip f54bfcebfe; 1 M agi-review; OWNER +2 -2 = carried prefixes, 0 added words; bt 0/1; grid v94 payload == land)
@@ -70,7 +70,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L645 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 19:51Z 11-22: box read to aio 19:49:54Z; alive's sweep r1 at 2/2 words (aio, me); awaiting SM's land.
+gen 80 at 20:05Z 11-22: box read to belam's L651 [landed]; L651 checked clean; nothing of mine in flight.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; word what the council cuts.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
