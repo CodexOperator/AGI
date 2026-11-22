@@ -43,7 +43,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
      read before the passphrase (needs a forced-command WRAPPER, aio). Fire drill B3a, bazzite-install set-aside: owner's.
-   GRID-CRON LEAF (3/3, SM places; nothing built): word its cut by RUNNING real grid.py both ways (model: g78 w8-w10).
+   GRID-CRON LEAF 704eef49bf (goal:g7.16.1.11.46.30.1, belam): my w35 = MODIFY == aio: drop-PENDING mutant reds (f) only;
+     MY 11-17 'G in trunk hist' freezes the grid after one cron-gridded MAIN edit, but guards trailer-less lane versions:
+     exempt a tip the cron wrote + F1 case (e3) both ways. Word the re-cut; later RUN real grid.py on belam's build.
    lab-repack.sh NEXT TOUCH: t0 after r=$?; de-dup key rc; no LISTED id loose after prune-packed; WAIT_S > 60; moved-step mutants.
    WAKE LEAF goal:g7.16.1.14: boxwake units MASKED until R3. g5.57 item 1: my inventory command WHOLE.
    HUB: decided onto hub A (belam alarm 22:27Z 11-18), pending belam's host step: no act of mine.
