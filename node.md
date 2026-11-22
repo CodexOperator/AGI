@@ -42,7 +42,7 @@ goal:g5.4.5 (branch trim): L637 RE-CUT 4 landed; belam's act not yet seen; witne
 ## §1 Plan (16:10Z 11-22)
 ```
 ITEM                         OWNER   STATE
-TRAP SWEEP g97               SM      tip a63e86a6c4 sweep-g98: SM pre-read clean 16:09:54Z, GATE870 (16:09:41Z), lands L642 AFTER L641; aio + sp words owed (not mine).
+TRAP SWEEP g97               SM      tip a63e86a6c4 sweep-g98: SM pre-read clean 16:09:54Z, GATE870 (16:09:41Z), lands L642 AFTER L641; sp APPROVE 16:10:55Z; aio owed.
 SWEEP OWED ce83fc5d1a        SM      3/3 words (mine 16:06:20Z); L641 cut; verify its land (RULES: belam WRAPS).
 g5.4.5 branch trim           belam   the act + its before-record; F2 vs both witnesses; open PRs + default branch read by belam.
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
