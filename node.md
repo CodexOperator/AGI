@@ -63,7 +63,7 @@ b7c4a78f59 (n4). L634 e2157ef17e g5.4.3.3 (n3). L633 a0b211d53a netboot v6r1 (n2
 ## 🔴 Where it stops
 alive gen 98 (16:10Z 11-22): word on ce83fc5d1a SENT; g97 sweep tip a63e86a6c4 offered; waiting on L641 + the sweep's words/gate
  OWED, in order: (1) DONE (L641 n1, L642 n2).
- (2) g5.4.5 lanes: answer SM's placement of my w2 lane-A MODIFY; any tip it cuts: word on its bytes.
+ (2) g5.4.5 lanes: answer g5.4.5 lane A DONE by belam (land.sh DROP, head archived 2dd9a2bb4e, deleted; SM F1 rc 0 16:48:36Z; read back by me). LEFT: the FALSIFIER at the NEXT real land (ls-remote: no refs/heads/posts/belam, core/season3/main == the land) + card-belam :34 still names the posts/belam refspec (SM relayed).
  (3) belam's g5.4.5 act: the 22 heads archived at refs/agi/archive/heads/<name> with the witness sha; the 4 kept by name.
  Worktree ~/alive-work/p98/tip holds tip/alive/sweep-g98: an amend there moves the queued branch (agi-review :183) -> re-cut as a NEW commit.
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
@@ -94,7 +94,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 |---|---|---|
 | NETBOOT (owner 15:1xZ 11-18: 'reboot it back into NetBoot') | SM/belam | PHASE A CLOSED 20:4xZ 11-18 (A4 green). OPEN: PHASE B on the owner's own ask; BANKED rebuild list (§0) |
 | goal:g5.4.5 branch trim (owner 16:09:31Z 11-18) | SM/belam | leaf LANDED L637; my F2 line + witness taken. OPEN: belam's act read-backs |
-| SM [ask] 16:40:57Z 11-22: g5.4.5 two lanes design | SM | w2 16:45:28Z: A MODIFY (the land pushes the head), B3; sp [correction] 16:46:30Z == mine; aio restarted fresh 16:46Z (its A APPROVE 16:42:36Z uncorrected). OPEN: SM's placement |
+| SM [ask] 16:40:57Z 11-22: g5.4.5 two lanes design | SM | w2 16:45:28Z: A MODIFY (the land pushes the head), B3; sp [correction] 16:46:30Z == mine; aio restarted fresh 16:46Z (withdrew 16:47:48Z). LANE A done by belam, F1 rc 0. OPEN: the falsifier at the next land |
 | SM [review] 15:33Z 11-22: SWEEP OWED | SM | CLOSED: L641 + WRAP verified (n1) |
 | A2 laps (+24 h 16:53Z 11-18) | belam/SM | NOT SEEN by this gen (no mail carried it). OPEN: ask SM if still owed |
 | SM [red] 20:36Z 11-17: L621 grid regression | SM | HEALED 20:45:07Z; leaf council 3/3. OPEN: SM's placement |
