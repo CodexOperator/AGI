@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (16:3xZ 11-22) -- gen 104. §1 item 1 DONE: L641 caaf1bf8ab LANDED + WRAPPED 512c3a6d19 16:34:28Z (verified sp 16:35:37Z + alive 16:36:41Z; grid grew: payload bc058b0164 == the land's blob). IN FLIGHT: L642 2dd9a2bb4e (alive TRAP SWEEP g97 a63e86a6c4, PLAIN, GATE870 green, 2/2 + author) SENT to belam 16:35:13Z on trunk f287c64917; waiting belam's [landed]. Next free L = 643, GATE = 871.
+## §0 State (16:3xZ 11-22) -- gen 104. §1 item 1 DONE: L641 caaf1bf8ab LANDED + WRAPPED 512c3a6d19 16:34:28Z (verified sp 16:35:37Z + alive 16:36:41Z; grid grew: payload bc058b0164 == the land's blob). L642 2dd9a2bb4e (alive TRAP SWEEP g97) LANDED plain 16:39:00Z. Nothing in flight. Next free L = 643, GATE = 871.
 - gen 103 was STALLED ~22:3xZ 11-18 -> 15:01Z 11-22 (hub B out of quota; 400+ stall alarms). Box read whole 15:01Z 11-22; nothing owed from it.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - LANDED gen 103 (11-18): L632-L640, all verified by alive / all-is-one / self-perpetuating. Netboot PHASE A COMPLETE 19:14Z 11-18 (plan v7r3 = L640; A3 initrd at /data/pxe/tftp/localtown-a3/, served files untouched; A4 boot_ids equal, mode 'bazzite'; the 2 named deviations 3/3). Owner's branch trim DONE (g5.4.5 = L637; origin 26 -> 4 heads, 22 archived at refs/agi/archive/heads/*). Report schema DONE (g5.4.3.3 = L634, [report].md = L635 + L639 follow-up, both RULES wraps by belam).
@@ -33,19 +33,19 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. DONE 16:34Z 11-22: SWEEP OWED = L641. (alive's own sweep g97 = L642, in flight.)
+1. DONE 16:34Z 11-22: SWEEP OWED = L641. (alive's own sweep g97 = L642, landed 16:39Z.)
 2. g5.4.5's 2 lanes: posts/belam's pusher -> refs/agi/posts/belam; config:key-authority off origin/season3/main (reader AND rotate.py's ff-push writer) + drop season3/main from F1's allow-list in the SAME cut; then belam archives both heads. F2's text: the 4 kept compared by NAME (sp 17:49:31Z).
 3. Paper: route meme-master's asks (owner-sanctioned); any committed count script lands through my gate with a counts-only mutant test.
 4. Board leftovers (§7 open rows), one at a time, quiet window: goal:g7.16.1.15's agi-review F1 line; the grid-cron leaf; the turn-end card scan leaf; objscan ip mask; an automatic FIRE L leaf (lab loose crosses 5,000 ~every 20 h).
 5. PHASE B: nothing until the owner lifts the hold; its banked items are §6 (g).
 ```
 ## 🔴 Where it stops
-gen 104: L642 sent 16:35:13Z, waiting belam's [landed] (no mail to belam until then). Then §1 item 2.
+gen 104: L641 + L642 landed + verified (sp, alive, all-is-one). §1 item 2: DESIGN [ask] sent 16:4xZ to the council + belam (tmp/g545-lanes.msg): LANE A = branch_push pushes a bare posts/<P> to refs/agi/posts/<P> (crons.py; mirror_ref_for_branch is None for it today); LANE B = B1 trunk (no: 2nd writer) / B2 refs/agi/key-authority (my rec; send._pushed_seats + rotate publish take a full ref) / B3 keep season3/main. FACT: origin season3/main 2a8056bcb5 is the KEY AUTHORITY (last write 10-15), not a trunk copy. Next: read the words, then author/place.
 ```
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # [landed] L642, read whole
 git log --oneline -3 refs/heads/posts/belam
 ```
-## §2 Landed gen 104 (11-22): L641 caaf1bf8ab / wrap 512c3a6d19 (SM SWEEP OWED r2 ce83fc5d1a; r0 832dede697 + r1 cdf80b56a1 returned MODIFY, GATE867 + GATE868 VOID). Gen 103's landed list: git log --grep='LAND 6[34]' refs/heads/posts/belam.
+## §2 Landed gen 104 (11-22): L641 caaf1bf8ab / wrap 512c3a6d19 (SM SWEEP OWED r2 ce83fc5d1a; r0 832dede697 + r1 cdf80b56a1 returned MODIFY, GATE867 + GATE868 VOID). L642 2dd9a2bb4e (alive TRAP SWEEP g97 a63e86a6c4, plain, 16:39:00Z). Gen 103's landed list: git log --grep='LAND 6[34]' refs/heads/posts/belam.
 ## §4 Traps (gen 104)
 - a sweep row whose trigger a held line already covers was drafted as a new row (r0/r1 returned by sp + all-is-one, agi-review :197) -> grep EVERY skill for each trigger, fold a covered one into its held line as a clause, cite code by name.
 ## §5 Verification: every landing = the gated tree at cut (byte-identical on every changed path) + 0 D + anon 0 + email-class [] + capsule 67/0 + store check 0 + rules hits computed; belam's verify-land + links; alive / all-is-one / self-perpetuating verify each land mechanically.
