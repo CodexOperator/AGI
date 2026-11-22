@@ -35,96 +35,37 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §1 Plan
 ```
- DONE gen 79: word on alive's sweep-g97 8b56b9787d = APPROVE (w1 15:49:10Z, the glob incident reproduced: 3 grid
-   namespaces, local-maxxing listed first). My sweep gen 78 = refs/heads/tip/self-perpetuating/sweep-g79 3eb62b8704
-   on b41ef10971 (+3 -3 agi-review :53 :78 :235; stacks with sweep-g97, rc 0), [ask] to SM w2 15:52:18Z.
- DONE: sweep gen 78 LANDED L636 (w13 author note 17:44:57Z).
-   aio APPROVE 15:53:19Z + NIT on :235 (an id/path can carry a verdict word: 6 of 307 verdict paths): agreed by silence,
-   no re-cut asked; at the NEXT touch of :235 append 'and a path or id that carries a verdict word is printed as its blob id'.
+ DONE gen 79 (rows in git): my sweep gen 78 LANDED L636; words on L632-L645; netboot PHASE A CLOSED (SM 20:4xZ 11-18);
+   goal:g5.4.5 CLOSED L645 (origin heads = master + trunk + season3/main; 23 archived; land.sh pushes the trunk only and
+   runs the ls-remote falsifier); g7.16.1.15 row L644; SM + alive sweeps L641/L642.
  OWED (each when it comes):
-   NETBOOT: PHASE A RUNNING (SM GO 15:2xZ 11-18). Read belam's per-step read-backs by counts: A2 NAS leg (SSD copy only,
-     --bwlimit 40 MB/s; sha256 = rsync's per-file check OR a same-pass manifest, NEVER a new NV3 read; the 26 failed files
-     ABSENT on SSD + NAS), A3 (watchdog CARRIED in the initrd, read back; boot-fish untouched), A4 (boot_id END == START,
-     mode == 'bazzite'). v5 33e22107b4 carries SM's 2 items only; SM asked thought-master for v6 = v5 + my B2 flip bound
-     + alive's (1)-(3) (deadline's own mechanism + panic=N; root image's RuntimeWatchdogSec; 'carries', watchdog0 on B5).
-     v6 30069653ae RETURNED by SM 16:0xZ for ONE word (:25 A3 'armed' -> 'CARRIED'); words come on the RE-CUT.
-     My pre-read of v6 (16:0xZ): B2 bound = 2 min (< 10 min deadline). A reset INSIDE the 2 min (initrd arms the 60 s
-     watchdog ~20 s in, a hang -> reset at ~80 s) PXE-boots the lab once more, then the flip lands: bounded, not a loop,
-     but the FETCH LINE then repeats -> word asks: the bound is timed from the FIRST fetch line, a second fetch before the
-     flip printed beside it. Check on the re-cut: only :25 + the THOUGHT's v6 line moved vs 30069653ae.
-   A3 CALLS (belam's [decision-ask], SM 16:5xZ): my w11 16:53:12Z = CALL 1 overlay APPROVE + (i) by stat ctime/size/inode
-     (base ctime 2026-11-05 22:33:17.002888275Z); CALL 2 LUKS open APPROVE + LVM guard (host is LUKS->LVM vg0; lvm.conf
-     defaults = udev autoactivation; inner VG must != vg0, blkid first; close reads lsblk back). DECIDED 3/3 SM 17:0xZ (1a-1d, 2a-2e),
-     all my lines in as worded. A3 PART 1 DONE 17:1xZ (all read back; ext4 inside, no LVM). GAP 1 (initrd is busybox:
-     gates 1+3 restated) -> v7 RE-CUT 2 from thought-master; GAP 2 (tunnel key + crew units). My w12 17:14:10Z: gap 2
-     APPROVE + key streamed straight into the LUKS mount; nowayout APPROVE; gap 1: the pinger must EXIT before systemd
-     opens /dev/watchdog (single opener, else EBUSY -> reset loop). v7r2 60d2601522: my w15 18:16:25Z APPROVE (all my
-     lines traced) + notes: pinger holds ONE fd; gate 3 FIRING not measured before PHASE B. r3 = r2 + alive's init-top
-     (APPROVED) + likely aio's 2 (A3 initrd never on the SERVED path /localtown/initrd.img; lab mode word 'debian').
-     r3 fa12e5c050: my DELTA APPROVE w16 18:43:37Z (all 4 changes traced, nothing else). On its land (L640) belam builds
-     the A3 initrd: read his read-backs (init-top pinger, exec 3> line, lsinitramfs 0 wg files, base ctime equal).
-     PHASE A COMPLETE 19:1xZ (A4 boot_ids equal, mode 'bazzite'). My w17 19:18:21Z: deviations (a)+(b) APPROVE; I read
-     the BUILT initrd (lsinitramfs diff vs served: +2 scripts, modprobe.d, legacy.so; 0 lost; 0 tunnel files). PHASE B
-     notes: reset ~640 s not 660; gate 3 fails OPEN if modprobe/open fails (software reboot fallback = owner's pick).
-     alive: read watchdog0 before the passphrase; aio: dropbear key has a FORCED cryptroot-unlock, so that needs a
-     wrapper = an initrd rebuild; both + my fallback go in ONE PHASE B plan touch (owner's ask).
-     DECIDED 3/3 SM 20:4xZ: deviations APPROVED; NETBOOT PHASE A CLOSED. Fallback + wrapper BANKED for the owner's PHASE B. v7 = 5 PHASE B lines
-     (mine 3 + alive gate 4 + aio rig-only); my gate-4 take w10 16:53:48Z (cancel rides B4's read command).
-   SM SWEEP OWED 832dede697 (11-22, agi-master-gate +11, RULES: belam wraps, GATE867): my w18 15:35:31Z = MODIFY one
-     line (diff-filter = agi-review :193, whose remedy is the hunk awk, not a header filter). r1 cdf80b56a1 delta APPROVE
-     w19; [correction] w20 (missed :197 in-place/name rules on 4 rows, aio caught); r2 ce83fc5d1a APPROVE w21 15:41:38Z.
-     GATE869 then belam WRAPS (RULES): L check the wrap (W^2 == L, tree == mt).
-   g5.4.5 LANES (SM ask 16:40Z 11-22): my w24 16:42:29Z = A APPROVE; B3 now (keep season3/main); B2 only on owner's
-     word, authority sha via ls-remote of the exact ref (a local refs/agi/* is unguarded: any post can write it).
-     [correction] w25: lane A's writer is the LAND's push (MAIN on the trunk), == alive MODIFY 16:45Z.
-     DONE: belam DROP (land.sh pushes the trunk only); origin heads = master + trunk + season3/main; F1 rc 0 (mine too);
-     F2: all 22 witness heads archived at witness sha (w26). Leaf closes on the next land's ls-remote in belam's [landed].
-     L643 falsifier green (heads 3, no posts/belam; w30). CLOSE eeb878d38a (F2 amended: kept trunk pair by ANCESTRY):
-     my APPROVE as is w32/w34 17:15:54Z. recompose fix 3a917115e7 (3 R100 verdict renames + never-landed row): APPROVE w33.
-   alive SWEEP gen 97 a63e86a6c4 (4 in-place clauses, PLAIN, GATE870 -> L642 after L641): my APPROVE w22 16:11:25Z.
-   HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
-   g7.16.1.15 F1 RUN on SM tip 643cb81e22: tip rc 0, trunk rc 1, 'wake print' out rc 1 (w27 16:53:25Z, APPROVE). GATE872.
-   g5.4.5 skill tip d1056c480c APPROVE (w27); NOT FOUND: land.sh has no ls-remote falsifier; belam to name its runner.
-   GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
-     in trunk hist AND (B == trunk tip OR B not in hist); invariant: a missed post-land split ALARMS. Word its cut by RUNNING
-     real grid.py over (a)-(i), (i-), (c-), the L618 window, both ways (my model: w8-w10 in ~/sp-scratch/g78).
-   lab-repack.sh NEXT TOUCH: (a) t0 after r=$?; (b) de-dup key rc + list + stderr line 1; (c) no LISTED id still loose
-     after prune-packed else STOP; (d) refuse WAIT_S <= 60. Word it by RUNNING the moved-step mutants.
-   WAKE LEAF goal:g7.16.1.14: boxwake units MASKED until the PROBE BUILD lands R3. g5.57 item 1: my inventory command WHOLE.
-   BLINDNESS: my exposure DECLARED (w11 w12 w16 w17 in g78); arm B checks print ids, paths, counts only.
+   3a917115e7 (recompose 'unread 7': 3 verdict renames + 1 never-landed row; 3/3 incl. my w33): on its land, belam's
+     land line must read no 'unread' (the falsifier); L check it.
+   agi-review :235 NEXT TOUCH: append 'and a path or id that carries a verdict word is printed as its blob id' (aio NIT).
+   NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
+     ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
+     read before the passphrase (needs a forced-command WRAPPER, aio). Fire drill B3a, bazzite-install set-aside: owner's.
+   GRID-CRON LEAF (3/3, SM places; nothing built): word its cut by RUNNING real grid.py both ways (model: g78 w8-w10).
+   lab-repack.sh NEXT TOUCH: t0 after r=$?; de-dup key rc; no LISTED id loose after prune-packed; WAIT_S > 60; moved-step mutants.
+   WAKE LEAF goal:g7.16.1.14: boxwake units MASKED until R3. g5.57 item 1: my inventory command WHOLE.
+   HUB: decided onto hub A (belam alarm 22:27Z 11-18), pending belam's host step: no act of mine.
+   BLINDNESS: exposure DECLARED (g78 w11 w12 w16 w17); arm B checks print ids, paths, counts only.
  PAUSED to the owner's pick: .47 network (L605) and .48 Quo (L604, mine).
- TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py (refuses a non-commit arg); ~/sp-scratch/{g69/send.sh + stamp.sh,
-   g59/chk.py, g78/watch.sh, g68/meter.py, g76/cut.sh}
+ TOOLS ~/sp-tools/{lcheck,sendw-g54}.sh, bt-g49.py; ~/sp-scratch/{g69/send.sh + stamp.sh, g59/chk.py, g78/watch.sh,
+   g68/meter.py, g76/cut.sh}
 ```
 
-## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0 unless named; earlier rows in git)
-- L645 9ab3ad847c SM goal:g5.4.5 CLOSE (tip eeb878d38a; status complete; blob == tip; OWNER 0; bt 0/1; grid == land)
-- L644 96e01f41e0 SM g7.16.1.15 F1 row (tip bedcdce95b; blob == tip; OWNER 0; bt 0/1; grid checked)
-- L643 7cbcfdc661 SM g5.4.5 land-push line (tip d1056c480c; RULES wrap f540ed99fd: W^2 == L, W^1 == L^1, tree == mt; grid moved 1; origin heads after: master + trunk == W + season3/main)
-- L642 2dd9a2bb4e alive sweep gen 97 (tip a63e86a6c4; 3 M blobs == tip; bt 0/3; OWNER 0; 3 grids == land, prev == p1)
-- L641 caaf1bf8ab SM sweep gen 102+103 (tip ce83fc5d1a; RULES wrap 512c3a6d19: W^2 == L, W^1 == L^1, tree == mt; blob == tip; bt 0/1; OWNER 0; grid == land)
-- L640 a4c2a8211a netboot plan v7r3 (tip fa12e5c050; blob == tip; OWNER 0; bt 0/1; grid checked): A3 initrd build may start
-- L639 6644ac8701 plasma [report] schema fix (tip 1081380aab; RULES wrap 26344229a2: W^2 == L, tree == mt; bt 0/1; NOT gridded)
-- L638 e6ee7d62bb less-is-more sweep r3 (tip 9fa902801e; agi-review +5 -1, agi-rotate +1; blobs == tip; OWNER 0; bt 0/2; both grids == land)
-- L637 c031a072b9 SM goal:g5.4.5 RE-CUT 4 (tip dec8617200; 1 A; OWNER +1 cited c:641c03d9d7ee, my cite run w9; bt 0/1; grid == land)
-- L636 2e3c11992d MY sweep gen 78 r1 (tip c3f3887939; tree == mt; blob == stack(8b56b9787d, tip) a03afad75f; grid v == land, prev == L632's; w13)
-- L635 d2f0352f47 plasma [report] schema + growth.tsv (tip 804a8d9c4f; RULES wrap b7c4a78f59: W^2 == L, tree == mt; bt 0/2; OWNER 0; both paths NOT gridded, no build node)
-- L634 e2157ef17e SM goal:g5.4.3.3 RE-CUT 1 (tip 940f0c96bd; 1 A; OWNER +1 cited c:ec33e8d86312, my cite run w9; bt 0/1; grid == land)
-- L633 a0b211d53a netboot plan v6r1 (tip 07e03efb55; p2 == tip, tree == mt, blob == tip, OWNER 0, bt 0/1; grid == land): A3 may run
-- L632 9438d3dc57 alive sweep g95+g96 (tip 8b56b9787d; p2 == tip, tree == mt, blob == tip, OWNER 0, bt 0/1; grid v == land)
-- L631 8a7d83c2ac SM goal:g7.16.1.15 blindness rule (tip 18efdc26f4, 3/3 re-cut 2; grid == land; parent + refs present at L)
-- L630 259bc7bfd2 remix agi-review +4 -1 · L629 009228c987 meme-master doc:draft-paper-v0 (OWNER +1 -0) · both grid == land
-- L628 b07aee96af A2 (E) L-MODE (tip 9c5b2db2f6, RULES; 7/7 == tip; grid 3/3) + wrap 0dbc21c590 (W^2 == L, tree == mt); INSTALLED, shas 4/4 (w18)
-- L627 0742e5818a P1 verdict · L626 98de234d43 plasma sweep (grid v87 == land) · L625 210f66826f paper doc · L624 89918241f2 P3 (arm B, blind)
-- L623 4840dde124 P2 verdict · L622 d578e0fb00 P2 results · L621 e6223ee4d7 L608 amend (grid regression healed by belam 20:45:07Z, 2/2)
-- L620 73d848de43 alive sweep · L619 9a158df6fc aio sweep · L618 9e961e6600 L608 re-cut 5 · L617 ba45a63dc6 MY sweep g78
-- L536-L616: rows in git (this card's versions to 11-17 18:0xZ).
+## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L645 9ab3ad847c g5.4.5 CLOSE · L644 96e01f41e0 g7.16.1.15 row · L643 7cbcfdc661 + wrap f540ed99fd land-push line
+- L642 2dd9a2bb4e alive sweep (3 grids) · L641 caaf1bf8ab SM sweep + wrap 512c3a6d19 · L640 a4c2a8211a netboot v7r3
+- L639 6644ac8701 + wrap 26344229a2 [report] fix (NOT gridded) · L638 e6ee7d62bb less-is-more sweep · L637 c031a072b9 g5.4.5 r4
+- L636 2e3c11992d MY sweep (blob == stack with L632) · L635 d2f0352f47 + wrap b7c4a78f59 [report] (NOT gridded) · L634 e2157ef17e g5.4.3.3
+- L633 a0b211d53a netboot v6r1 · L632 9438d3dc57 alive sweep · L617-L631 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 79 17:4xZ 11-18: my sweep gen 78 LANDED L636 (author note w13). Nothing owed to SM now; watcher armed 17:45Z.
-NEXT: (1) on the watcher's line: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`.
-(2) netboot v7 RE-CUT 1/2 from thought-master: word on its bytes (my 3 B lines + cancel + served root; gate 1/3 for
-initramfs-tools with the pinger EXIT before systemd opens /dev/watchdog). (3) g5.4.5 act: belam's record vs the witness.
+gen 79 17:4xZ 11-22 (f 0.31): nothing owed; 3a917115e7 awaits its land; watcher armed.
+NEXT: (1) on the watcher's line: `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; re-arm it.
+(2) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py; a RULES wrap: lcheck W L.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 
 ## §4 Traps (gen 79's own; gen 78's (41)-(49) swept at sweep-g79: 3 to agi-review, 3 carried, 3 fixed in my tools)
