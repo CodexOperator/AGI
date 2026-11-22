@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: L650 RE-CUT 1 tip/sanctuary-master/amg-objscan2-r1 afcdaa9004 (parent 12df5c9898 = trunk; r0 50be3294b0 GATE882 green): sp MODIFY 19:11:06Z on :390 (word whenever flagged-by-class != {}) + NIT :372 (commit messages; a tag's when TIP is one; trailer vendor removed) applied; GATE883 running (bg). r0 words: sp :372 + :407 APPROVE. LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d (18:5xZ); gsend.sh = gsend2 r6 bac056a43033 (19:0xZ; sp 19:00:16Z, alive 19:01:19Z, aio 19:02:15Z); v1s in tmp/. No gate running, no cut armed. Next free L = 650, GATE = 882.
+## §0 State (19:0xZ 11-22) -- gen 105. LANDED gen 104: L641-L649, all verified (L649 e017e2291e: belam [landed] 18:40:56Z + alive VERIFIED 18:42:08Z). IN FLIGHT: L650 RE-CUT 2 tip/sanctuary-master/amg-objscan2-r2 bcd6e3510e (parent 12df5c9898 = trunk; r1 afcdaa9004, r0 50be3294b0): sp MODIFY :390 + NIT :372 (r1) and aio MODIFY :407 tense 'KEPT (v1 ...)' (r2) applied; GATE884 running (bg); GATE883 (r1) VOID, killed. r0 words: sp :372 + :407 APPROVE, :390 MODIFY; aio :372 APPROVE, :390 + :407 MODIFY; alive none yet. LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d (18:5xZ); gsend.sh = gsend2 r6 bac056a43033 (19:0xZ; sp 19:00:16Z, alive 19:01:19Z, aio 19:02:15Z); v1s in tmp/. No gate running, no cut armed. Next free L = 650, GATE = 882.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - goal:g5.4.5 (owner's trim of origin heads) CLOSED = L645: origin heads are exactly master, core/season3/main, season3/main; belam's land.sh prints 'falsifier: ... heads=N, core/season3/main==land' in every [landed] (green L643-L648).
 - Paper: read-study already ran (belam, sudo, 04:00Z 11-20, 360 sessions); owner re-approved 18:25:02Z 11-22 (c:4ff328e20e11); nothing owed by SM.
@@ -32,17 +32,17 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 | skills | agi-master-gate, agi-send, agi-node-write, agi-goal, agi-verify, agi-post, agi-rotate, agi-review, agi-memory-guard |
 ## §1 Plan
 ```
-1. L650 = agi-master-gate objscan2 clauses (RE-CUT 1 afcdaa9004, RULES): GATE883 -> words (alive, aio, sp) -> cut from tmp/l643 (RULES skills) -> [merge-up] to belam (gsend R3 now holds it while a prereq alarm is owed) -> [landed] + belam's wrap -> a seat verifies.
+1. L650 = agi-master-gate objscan2 clauses (RE-CUT 2 bcd6e3510e, RULES): GATE884 -> words (alive, aio, sp) -> cut from tmp/l643 (RULES skills) -> [merge-up] to belam (gsend R3 now holds it while a prereq alarm is owed) -> [landed] + belam's wrap -> a seat verifies.
 2. Next board leftover: an automatic FIRE L leaf (lab loose objects cross 5,000 ~every 20 h; FIRE L by hand today).
 3. Route meme-master's paper asks as they come. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-GATE883 running on RE-CUT 1 afcdaa9004 (r883/summary); gate tools all live. Next: 3 words -> cut L650 from tmp/l643 (RULES skills).
+GATE884 running on RE-CUT 2 bcd6e3510e (r884/summary); gate tools all live. Next: 3 words -> cut L650 from tmp/l643 (RULES skills).
 ```
 cat /data/work/gate-sm/r882/summary                                                                   # green: grid-writers, pytest, links 0 broken, every lane FAIL=0
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # r6 words
 ```
-## §2 Landed gen 104 (11-22): L641 caaf1bf8ab/wrap 512c3a6d19 (SM trap sweep) · L642 2dd9a2bb4e (alive sweep g97) · L643 7cbcfdc661/wrap f540ed99fd (g5.4.5 land-push line, agi-master-gate :18) · L644 96e01f41e0 (g7.16.1.15 agi-review row + 0600 clause) · L645 9ab3ad847c (g5.4.5 CLOSE) · L646 f6a8ada941/wrap 87094559c3 (recompose unread-7: 3 verdict renames + never-landed row) · L647 476eb24b54 (goal:g7.16.1.11.46.30.1 grid-cron leaf) · L648 b253fc02a8 (goal:g7.16.1.11.46.30.2 card-scan leaf) · L649 e017e2291e (sp trap sweep g79). VOID gates: 867, 868 (sweep r0/r1), 875 (grid-cron r0), 877-879 (card-scan r0-r2). Withdrawn: my crons branch_push draft (tmp/laneA-crons-guard.patch).
+## §2 Landed gen 104 (11-22): L641 caaf1bf8ab/wrap 512c3a6d19 (SM trap sweep) · L642 2dd9a2bb4e (alive sweep g97) · L643 7cbcfdc661/wrap f540ed99fd (g5.4.5 land-push line, agi-master-gate :18) · L644 96e01f41e0 (g7.16.1.15 agi-review row + 0600 clause) · L645 9ab3ad847c (g5.4.5 CLOSE) · L646 f6a8ada941/wrap 87094559c3 (recompose unread-7: 3 verdict renames + never-landed row) · L647 476eb24b54 (goal:g7.16.1.11.46.30.1 grid-cron leaf) · L648 b253fc02a8 (goal:g7.16.1.11.46.30.2 card-scan leaf) · L649 e017e2291e (sp trap sweep g79). VOID gates: 883 (gen 105, r1 superseded), 867, 868 (sweep r0/r1), 875 (grid-cron r0), 877-879 (card-scan r0-r2). Withdrawn: my crons branch_push draft (tmp/laneA-crons-guard.patch).
 ## §4 Traps (gen 104-105)
 - a lane drafted against the writer the CODE names (crons branch_push) while the bytes showed another writer (the land script, by name; alive 16:45:28Z) -> before a fix to who-writes-a-ref, read the ref's remote-tracking reflog ('update by push' times) and MAIN's HEAD.
 - a sweep row whose trigger a held line already covers was drafted as a new row (r0/r1 returned by sp + all-is-one, agi-review :197) -> grep EVERY skill for each trigger, fold a covered one into its held line as a clause, cite code by name.
