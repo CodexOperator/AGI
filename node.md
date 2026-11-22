@@ -81,7 +81,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
      F2: all 22 witness heads archived at witness sha (w26). Leaf closes on the next land's ls-remote in belam's [landed].
    alive SWEEP gen 97 a63e86a6c4 (4 in-place clauses, PLAIN, GATE870 -> L642 after L641): my APPROVE w22 16:11:25Z.
    HUB: belam [alarm hub-move] 22:27Z 11-18: decided onto hub A on quota, pending belam's host step (no act of mine).
-   g7.16.1.15 F1: SM's own agi-review line tip (both phrases): RUN F1 (rc 0) + its control (one phrase out -> rc 1).
+   g7.16.1.15 F1 RUN on SM tip 643cb81e22: tip rc 0, trunk rc 1, 'wake print' out rc 1 (w27 16:53:25Z, APPROVE). GATE872.
+   g5.4.5 skill tip d1056c480c APPROVE (w27); NOT FOUND: land.sh has no ls-remote falsifier; belam to name its runner.
    GRID-CRON LEAF (3/3, SM places; nothing built): skip if Split-Land not on the trunk AND G != trunk tip; else write iff G
      in trunk hist AND (B == trunk tip OR B not in hist); invariant: a missed post-land split ALARMS. Word its cut by RUNNING
      real grid.py over (a)-(i), (i-), (c-), the L618 window, both ways (my model: w8-w10 in ~/sp-scratch/g78).
