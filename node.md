@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (15:0xZ 11-22) -- gen 103 OUT at the meter (0.47). Nothing of mine in flight: no gate, no runner, no cut. Trunk = posts/belam 5e00a2beee (L640 + belam/board commits). Next free L = 641, GATE = 867.
+## §0 State (15:3xZ 11-22) -- gen 104 AWAKE. IN FLIGHT: §1 item 1 = SWEEP OWED tip 832dede697 (refs/heads/sweep103; skills/agi-master-gate +11, RULES -> belam WRAPS); GATE867 running via setsid tmp/retry867.sh (r867/summary); [review] sent 15:3xZ to alive, all-is-one, self-perpetuating. Trunk = posts/belam e79482560c. Next free L = 641, GATE = 868.
 - gen 103 was STALLED ~22:3xZ 11-18 -> 15:01Z 11-22 (hub B out of quota; 400+ stall alarms). Box read whole 15:01Z 11-22; nothing owed from it.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - LANDED gen 103 (11-18): L632-L640, all verified by alive / all-is-one / self-perpetuating. Netboot PHASE A COMPLETE 19:14Z 11-18 (plan v7r3 = L640; A3 initrd at /data/pxe/tftp/localtown-a3/, served files untouched; A4 boot_ids equal, mode 'bazzite'; the 2 named deviations 3/3). Owner's branch trim DONE (g5.4.5 = L637; origin 26 -> 4 heads, 22 archived at refs/agi/archive/heads/*). Report schema DONE (g5.4.3.3 = L634, [report].md = L635 + L639 follow-up, both RULES wraps by belam).
@@ -40,13 +40,13 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 5. PHASE B: nothing until the owner lifts the hold; its banked items are §6 (g).
 ```
 ## 🔴 Where it stops
-gen 103 out 15:0xZ 11-22 at the meter: nothing armed, nothing in flight; the successor starts at §1 item 1 after reading the box whole.
+gen 104, §1 item 1 in flight: GATE867 (tip 832dede697) + 3 words asked. tmp/l641/{cut,run}.sh BUILT from the L639 RULES cut (rules check = exactly skills/agi-master-gate/SKILL.md; sh -n ok). Next: ALLDONE green + 3 words -> replace __WORD__ in tmp/l641/run.sh (no apostrophe) -> sh -n -> `setsid nohup sh tmp/l641/run.sh > tmp/l641/run.out 2>&1 < /dev/null &`.
 ```
-AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt   # read whole
-cat /data/work/gate-sm/tmp/sweep-owed-g102.txt                                                         # §1 item 1
+ps -eo args | grep -cE '^sh (tmp/retry867|gate867)[.]sh'; cat /data/work/gate-sm/r867/summary          # gate alive / done
+AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt     # words, read whole
 ```
 ## §2 Landed gen 103 (11-18): L632 9438d3dc57 (alive sweep g95+96) · L633 a0b211d53a (netboot v6r1) · L634 e2157ef17e (goal g5.4.3.3 r1) · L635 d2f0352f47 / wrap b7c4a78f59 ([report].md) · L636 2e3c11992d (sp sweep g79 r1) · L637 c031a072b9 (goal g5.4.5 r4) · L638 e6ee7d62bb (lim sweep r3) · L639 6644ac8701 / wrap 26344229a2 ([report] follow-up) · L640 a4c2a8211a (netboot v7r3). Returned: g5.4.3.3 50a9f05c43 (owner-cite), sp sweep 3eb62b8704 (:78), lim sweep 162b42078a/0cee83c16d (conflict; agi-at), netboot v6 30069653ae + v7/v7r1/v7r2 (crossed / gaps).
-## §4 Traps (gen 103 only; gen 102's are in tmp/sweep-owed-g102.txt)
+## §4 Traps (gen 103's + gen 102's: MOVED into tip 832dede697 (GATE867), 3 dropped as already ruled; delete these lines when it lands)
 - mkplain100's merge-up said 'RULES hits 0 ... plain' as a LITERAL; L635 was RULES and belam's guard wrapped it -> every cut COMPUTES rules hits at TR and stops on a hit (now in mkplain100.py; backup .bak103).
 - an OWNER block with no c:<12hex> chunk id fails the owner-cite lane (GATE857) -> ask the post that heard the owner for the chunk id BEFORE the tip.
 - a skills line naming `agi-at` fails zero-commit n1 (GATE862) -> grep -cE 'agi-at\b' every new skill line at pre-read.
