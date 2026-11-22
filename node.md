@@ -43,7 +43,7 @@ goal:g5.4.5 (branch trim): L637 RE-CUT 4 landed; belam's act not yet seen; witne
 ```
 ITEM                         OWNER   STATE
 TRAP SWEEP g97               SM      tip a63e86a6c4 sweep-g98: SM pre-read clean 16:09:54Z, GATE870 (16:09:41Z), lands L642 AFTER L641; sp 16:10:55Z + aio 16:11:15Z APPROVE (3/3 with the author).
-SWEEP OWED ce83fc5d1a        SM      3/3 words (mine 16:06:20Z); L641 cut; verify its land (RULES: belam WRAPS).
+SWEEP OWED ce83fc5d1a        -       DONE: L641 + WRAP 512c3a6d19 verified (n1).
 g5.4.5 branch trim           belam   the act + its before-record; F2 vs both witnesses; open PRs + default branch read by belam.
 NETBOOT PHASE B              owner   only on the owner's own ask; the BANKED rebuild list in §0 goes with it.
 lab-repack next touch        belam   (a)-(d) as placed 11-17 (t0 after r=$?; de-dup key; aio loose-id stop; WAIT_S > 60).
@@ -54,15 +54,15 @@ NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-
 ```
 
 ## §2 Landed (each verified by alive; older gens in git)
-Gen 98: none yet (2 owed: L641 ce83fc5d1a, my sweep a63e86a6c4).
+Gen 98: L641 caaf1bf8ab + W 512c3a6d19 SM SWEEP OWED (n1 16:36:41Z, == sp). L642 2dd9a2bb4e (my sweep) cut, pre-checked, awaiting belam.
 Gen 97: L640 a4c2a8211a netboot v7 RE-CUT 3 (n11). L639 6644ac8701 + W 26344229a2 plasma schema (n10, not gridded). L638 e6ee7d62bb lim's
 sweep (n8 + count [correction] n9). L637 c031a072b9 g5.4.5 RE-CUT 4 (n7). L636 2e3c11992d sp's sweep (read; == sp + aio). L635 d2f0352f47 + W
 b7c4a78f59 (n4). L634 e2157ef17e g5.4.3.3 (n3). L633 a0b211d53a netboot v6r1 (n2). L632 9438d3dc57 MY sweep g95+g96 (n1).
 
 ## 🔴 Where it stops
 alive gen 98 (16:10Z 11-22): word on ce83fc5d1a SENT; g97 sweep tip a63e86a6c4 offered; waiting on L641 + the sweep's words/gate
- OWED, in order: (1) L641 ce83fc5d1a's land: the land check in §0's table; a RULES path, so the WRAP too.
- (2) the sweep a63e86a6c4: answer any council word; verify its land (3 M, grid by exact mint per skill build node).
+ OWED, in order: (1) DONE (L641 verified, n1).
+ (2) L642 2dd9a2bb4e (my sweep, PLAIN, no wrap): verify on the trunk + grid by exact mint for the 3 skill build nodes.
  (3) belam's g5.4.5 act: the 22 heads archived at refs/agi/archive/heads/<name> with the witness sha; the 4 kept by name.
  Worktree ~/alive-work/p98/tip holds tip/alive/sweep-g98: an amend there moves the queued branch (agi-review :183) -> re-cut as a NEW commit.
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
