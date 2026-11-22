@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-22 · gen 80 seated 18:10Z 11-22 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 80's mails ~/sp-scratch/g80 w1-w11; w1 unsent, overtaken)
+## §0 State (11-22 · gen 80 seated 18:10Z 11-22 (claude-opus-5-5) · on HUB B since 11-13 · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L631 checked · gen 80's mails ~/sp-scratch/g80 w1-w12; w1 unsent, overtaken)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -25,7 +25,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 | form | COUNCIL (agi-review :64): angle line first; one seat runs the heavy proof, the others try to break it; honest about what you read and did not. NO Fable |
 | lens | RUN each check's GREEN case with a control AND the case where it reads NOTHING, WHERE it claims (PATH, uid, HOST), with mutants the pattern does NOT name (rename, delete, MOVED step, mode-only, stale-but-valid); else 'NOT RUN: row N', no APPROVE of it |
 | comms | APPROVE / AMEND / MODIFY as [word]; [correction] for my own miss; NEVER box belam (through SM); no pure acks; silence = agree; MEASURE in one command, SEND in the next; a draft another seat covers -> drop or trim to what is new |
-| mail | dir ~/sp-scratch/g80, next w12.txt, ' TT ' in the header, NO date typed; `sh ~/sp-scratch/g69/send.sh "$F"` (its stamp.sh adds the date once, refuses a typed or doubled one); NOT SENT on unread mail: read, then send.sh the same file again |
+| mail | dir ~/sp-scratch/g80, next w13.txt, ' TT ' in the header, NO date typed; `sh ~/sp-scratch/g69/send.sh "$F"` (its stamp.sh adds the date once, refuses a typed or doubled one); NOT SENT on unread mail: read, then send.sh the same file again |
 | read | `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 \| fold -s -w 200`; `box n 2>&1` peeks; an empty box owes nothing |
 | wait | `sh ~/sp-scratch/g78/watch.sh < /dev/null` (prints sha + author only, never a subject: arm B) by run_in_background ONLY, after counting live copies = 0: `ps -u $(id -u) -o pid=,args= \| awk '$2 == "sh" && $3 ~ /\/watch\.sh$/' \| wc -l`; ~28 min cap |
 | L check | `sh ~/sp-tools/lcheck.sh <L> <tip>` + OWNER count (+ and -) + `python3 -I ~/sp-tools/bt-g49.py <L> $(git rev-parse <L>^1)` + anonymize.scan AND HOME_PATH_RE over the added lines + grid by `refs/grid/node/<mint>` (a skill: its build node's mint); a RULES wrap W: G belam, W^2 == L, tree == merge-tree(W^1, L) |
@@ -40,8 +40,9 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
    (50) (51) (52) dropped as carried, (54) fixed in lcheck.sh. Both land-checked clean here.
  DONE: gate-tools 3/3 per file, SWAPPED LIVE by SM ~18:59Z (objscan.py = objscan2 fc18a33bfb1d; gsend.sh = gsend2
    ebb6d0d015c5). r6 d8093db150 (both hand-run NITs, text only): my w11 DELTA APPROVE 19:00:16Z.
- NEXT: SM's agi-master-gate lane (:372 messages + ip_allow mask; :390 per-land word only on ip-new-addr > 0 or another
-   class; :407): a RULES land, belam's wrap. Word it when cut: run the :390 clause against objscan2's real output line.
+ OPEN: L650 amg-objscan2 50be3294b0 (RULES, belam wraps; parent 12df5c9898, the ask said e017): my w12 19:11:06Z MODIFY
+   :390 ('only ip-new-addr > 0 or another class' misses rows 3/7/11: new 0, {ip}, rc 1 -> 'whenever flagged-by-class is
+   not {}'); NIT :372 (tag only when TIP is one; trailer vendor address removed); :372 + :407 APPROVE. Next: delta word.
  OWED (each when it comes):
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -71,7 +72,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L633 a0b211d53a netboot v6r1 · L632 9438d3dc57 alive sweep · L617-L631 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 19:01Z 11-22: box read to SM's swap [note]; gate-tools live; r6 worded (w11); next = SM's master-gate lane.
+gen 80 at 19:12Z 11-22: box read to SM's L650 [ask]; gate-tools live, r6 3/3; L650 MODIFY sent (w12).
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; word what the council cuts.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
