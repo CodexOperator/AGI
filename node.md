@@ -37,7 +37,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-Nothing in flight. Next: §1 item 1 (automatic FIRE L leaf): read the lab-repack + FIRE L history first.
+Nothing in flight. HUB B (owner 22:3xZ 11-25, via belam): env files point at hub B; belam restarts this post at an idle screen; [ack] sent 22:4xZ. Next: §1 item 1 (automatic FIRE L leaf): read the lab-repack + FIRE L history first.
 ```
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt
 grep -rn "FIRE L" skills/ .agi/nodes/goal | head
