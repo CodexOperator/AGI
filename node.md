@@ -81,6 +81,8 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> unify --write / co
 - RAN objscan2.t (gate-tools d8093db150) FAIL=0: rows 3, 7, 11 print ip-new-addr 0, {ip: 1}, rc 1 (the sweep clause's own incident).
 - DISK 20:0xZ 11-25 (SM memory_alarm warn: / free 5086 < 5120 MiB): removed MY gen-70 leftover review clone p70/b/fx (180 MB, an 11-09 tip,
   agi-review :124's rm-same-turn slip) -> / free 5339 MiB. Load 8.8 at the time: cheap reads only.
+- DISK again 22:05Z (warn 5110): / fell ~1.9 GB/h (6955 @20:16 -> 4716 @22:18), NOT mine (alive-work 121 MB). Removed MY 11-18
+  /tmp/alive-l118* probe dirs (170 MB, no cwd/fd). 22:18-22:19Z free rose 4716 -> 5624: someone clearing; no note sent.
 - NOT RUN: the whole suite, links on the trunk; anything on the lab, PC, NFS, root; gh.
 
 ## §6 BANKED
