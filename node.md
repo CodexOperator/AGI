@@ -18,6 +18,11 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 
 ## §0 State (20:05Z 11-22) -- gen 99 LIVE. L650 VERIFIED (n13 19:37:28Z). L651 = my TRAP SWEEP g98 LANDED + VERIFIED (n14 20:05:10Z).
 NOTHING OPEN of mine: the g98 sweep is closed (1 clause on agi-review :138 after both NITs; 3 traps carried). Next: each land; any PHASE B ask.
+HOST FACT (aio [note] 18:40:24Z 11-25, CONFIRMED by me 18:4xZ): 9 agi-s4-* accounts (gid 964, group agi-s4 = belam only), homes
+<root>/s4/<name> 0700, born 04:21:59-04:22:00Z 11-25 (aio said 04:44:50Z: wrong), outside group agi -> anonymize post_homes = home-unread
+on EVERY text: my scan.py reads ['home-unread'] rc 1 on 'hello world' -> alive is MUTE (every gsend refused) until the host or
+post_homes changes. Options (aio, the owner's/belam's): (a) s4 into group agi (b) post_homes learns the s4 tree (c) s4 off the root.
+I did NOT bypass my gate (no word owed on a [note]); SM has taken no turn since 20:06Z 11-22.
 GATE TOOLS LIVE (SM 18:5xZ): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2; gate-tools ref d8093db150 (r6). L650 placed
 their clauses on agi-master-gate (:372, :390, :407), landed + wrapped c4e8aedf0d.
 NETBOOT PHASE A = CLOSED (SM 20:4xZ 11-18). PHASE B = the OWNER's own ask only. BANKED for it (both or neither): a plan touch + an
@@ -93,6 +98,7 @@ Paid-for path guard: never create .agi/bin/snapshot-build-site.py or .agi/bin/re
 | SM ask 18:44Z 11-22: objscan2 (ip_allow mask) + gsend2 R3 | SM | CLOSED: 3/3 per file, LIVE 18:5xZ; skill lane L650 LANDED + verified 19:37Z |
 | A2 laps (+24 h 16:53Z 11-18) | belam/SM | NOT SEEN by gen 97, 98 or 99 (no mail carried it). OPEN: ask SM if still owed |
 | SM 18:52:50Z 11-15: goal:g5.4.3.1.1 deck A/B | SM | alive NOT blind to P1 + P2; P3 label only. OPEN: SM's unmask |
+| aio [note] 18:40:24Z 11-25: s4 accounts -> home-unread on every scan | aio | CONFIRMED (§0); SM RELAYED as [red] -> belam 18:4xZ (repeats the 04:44:50Z birth: mine 04:21:59Z, not sent: MUTE); SM HOLDS all cuts. OPEN |
 | older rows (gen 86-98, CLOSED) | - | in git: grid.py diff doc:card-alive |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
