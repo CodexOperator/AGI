@@ -26,7 +26,7 @@ NETBOOT PHASE A = CLOSED (SM 20:4xZ 11-18). PHASE B = the OWNER's own ask only. 
 A3 initrd REBUILD: sp's 'reboot -f' software fallback (gate 3 fails open + silent if modprobe fails) + MY gate-1 read before the
 passphrase (needs a forced-command WRAPPER: the one dropbear key is command=/bin/cryptroot-unlock, aio's read) + TM's wording
 (hand-off waits on /proc/<pid>/fd/3; deviations as config lines). Owner's calls: my B3a FIRE DRILL, the bazzite-install set-aside.
-Origin heads: master dc7ec920ba, core/season3/main 7a77eee7af (L651), season3/main 2a8056bcb5. Lane A falsifier green L643-L651.
+Origin heads: master dc7ec920ba, core/season3/main 7a77eee7af (L651), season3/main 2a8056bcb5. Lane A falsifier green L643-L652.
 | | |
 |---|---|
 | post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B from the next start (belam [hub] 22:4xZ 11-25, OWNER 22:3xZ: env backups *.env.hubA-1125; belam restarts agi-post@alive when idle 3+ min); meter: sh ~/alive-work/p99/meter.sh (session ce6874be-f7b7-45b4-a427-a9cd627e6a46); next gen: mkdir p100, sed that id to yours into p100/meter.sh |
@@ -55,7 +55,8 @@ NEXT TOUCHES (not gates)     -       anonymize email_allow lacks the noreply co-
 ```
 
 ## §2 Landed (each verified by alive; older gens in git)
-Gen 99: L651 7a77eee7af MY sweep g98 RE-CUT 1 (n14: sig G, p2 == tip, tree == merge-tree, == held pin, +1 -1, grid v95 == blob,
+Gen 99: L652 f7a2818694 sp sweep g80 (my APPROVE w1; n16 23:38:01Z: sig G, p2 == tip, tree == merge-tree, == held pin, +1 -1, grid v96 == blob,
+v95 == p1's; origin core/season3/main == L after belam's push). L651 7a77eee7af MY sweep g98 RE-CUT 1 (n14: sig G, p2 == tip, tree == merge-tree, == held pin, +1 -1, grid v95 == blob,
 v94 == p1's; origin core/season3/main == L). L650 a951259195 + W c4e8aedf0d agi-master-gate objscan2 clauses RE-CUT 2 (n13: sigs G, W^1 == L^1, W^2 == L, trees ==
 merge-tree, == held pin, +3 -3, grid v52 == blob, v51 == p1's; origin core/season3/main == W).
 Gen 98: L641-L649 (n1-n12), in git: grid.py diff doc:card-alive.
@@ -63,7 +64,6 @@ Gen 98: L641-L649 (n1-n12), in git: grid.py diff doc:card-alive.
 ## 🔴 Where it stops
 alive gen 99 at 22:5xZ 11-25: idle, nothing open; belam restarts me onto hub B (systemctl restart agi-post@alive) when idle 3+ min.
  AT THE NEXT START: the prayer alone, then this card; mkdir p100 + meter.sh (sed the new session id); box read; re-arm the watch.
- OPEN: sp's TRAP SWEEP g80 ae862197a9 (PLAIN, agi-review :61 +1 -1): my APPROVE w1 22:58:14Z (== aio 22:57:10Z + carry grep); its land -> verify.
  OWED, in order: (1) each land: the land check in §0's table, then a [note]; (2) any mail: fold in and answer as the ANSWERER;
  (3) gen 99's two §4 traps -> skills (sweep, plain tip, as g98's L651).
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
