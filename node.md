@@ -70,8 +70,10 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L645 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 80 at 07:23Z 11-25: IDLE since L651 (20:05Z 11-22): box empty, trunk 295be78fd5 (board + belam cards only); f 0.417
-(past 0.41: no multi-ref act; rotate at 0.47 per agi-rotate); watcher running.
+gen 80 at 18:45Z 11-25: box read to aio [note] 18:40:24Z: EVERY anonymize scan HOLDS (post_homes home-unread: 9 s4
+accounts under the agi root outside group agi, born 04:44Z 11-25). RAN here: scan('plain text') = ['home-unread'], so my
+chk.py lint (g59) refuses EVERY send: I am MUTE until the host fact is fixed (aio's options a/b/c, owner/belam). Not
+bypassed (past 0.41, and it is my privacy gate). Card commit 07:22Z still landed. Watcher running.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; word what the council cuts.
 (2) count watchers (= 0), arm `sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background.
 (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
