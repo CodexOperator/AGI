@@ -18,7 +18,7 @@ town: core
 # doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (18:4xZ 11-25) -- gen 105. HOLD: every anonymize.scan on the box returns 'home-unread' since 04:44Z 11-25 (9 agi-s4-* accounts, homes under the agi root, outside group agi; all-is-one 18:40:24Z, REPRODUCED by SM): live objscan reds every range (L651's: rc 1), so NO CUT until belam/owner fixes the host or picks an option; [red] sent to belam 18:4xZ. Never loosen a scan for it. LANDED gen 105: L650 (wrap c4e8aedf0d) + L651 7a77eee7af, both verified (SM + alive). Gate tools LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2 r6 bac056a43033 (its ip check reads 'ip' only: mail still sends). No gate running, no cut armed. Next free L = 652, GATE = 887.
+## §0 State (18:4xZ 11-25) -- gen 105. HOLD LIFTED 18:44Z 11-25: the home-unread scan hold (9 agi-s4-* homes under the agi root, 04:44Z) cleared by belam, option (c): homes moved off the root 18:42-18:43Z; SM re-read: scan('hello world', []) = [], home control ['home'], card [], objscan on L651's range rc 0. LANDED gen 105: L650 (wrap c4e8aedf0d) + L651 7a77eee7af, both verified (SM + alive). Gate tools LIVE (3/3 per file): objscan.py = objscan2 fc18a33bfb1d, gsend.sh = gsend2 r6 bac056a43033. No gate running, no cut armed. Next free L = 652, GATE = 887.
 - OWNER 11-19 ~21:21Z (via belam): netboot PHASE B HELD, the ONLY hold; continue the board's leftovers. OWNER 11-21 ~21Z (via belam): meme-master may mobilize the core team for the paper; aggregates only, no paper text on the trunk, lab PAUSED, thought-master's side out of scope.
 - goal:g5.4.5 (owner's trim of origin heads) CLOSED = L645: origin heads are exactly master, core/season3/main, season3/main; belam's land.sh prints 'falsifier: ... heads=N, core/season3/main==land' in every [landed] (green L643-L648).
 - Paper: read-study already ran (belam, sudo, 04:00Z 11-20, 360 sessions); owner re-approved 18:25:02Z 11-22 (c:4ff328e20e11); nothing owed by SM.
@@ -37,11 +37,10 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 3. PHASE B: nothing until the owner lifts the hold (§6 g).
 ```
 ## 🔴 Where it stops
-HOLD on home-unread (§0); [red] to belam 18:4xZ 11-25. Next: belam's answer; once scan('hello world', []) == [] again, re-run objscan on L651's range (rc 0 expected) and resume §1.
+Nothing in flight. Next: §1 item 1 (automatic FIRE L leaf): read the lab-repack + FIRE L history first.
 ```
 AGI_POST=sanctuary-master box read > /tmp/sm-box.txt; grep -v 'alarm stall-watch' /tmp/sm-box.txt
-cd ~/t && python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import anonymize as a;print(a.scan('hello world', []))"   # [] = cleared
-python3 /data/work/gate-sm/tmp/objscan.py 7a77eee7af 3cbe20e02d                                          # rc 0 = gates usable
+grep -rn "FIRE L" skills/ .agi/nodes/goal | head
 ```
 ## §2 Landed gen 105 (11-22): L650 a951259195/wrap c4e8aedf0d (agi-master-gate objscan2 clauses; RE-CUT 2) · L651 7a77eee7af 20:03:56Z (alive trap sweep g98 r1, agi-review :138). VOID: 882 (r0), 883 (r1), 885 (alive r0). Gate tools live (not lands): objscan2, gsend2 R3. — Landed gen 104 (11-22): L641 caaf1bf8ab/wrap 512c3a6d19 (SM trap sweep) · L642 2dd9a2bb4e (alive sweep g97) · L643 7cbcfdc661/wrap f540ed99fd (g5.4.5 land-push line, agi-master-gate :18) · L644 96e01f41e0 (g7.16.1.15 agi-review row + 0600 clause) · L645 9ab3ad847c (g5.4.5 CLOSE) · L646 f6a8ada941/wrap 87094559c3 (recompose unread-7: 3 verdict renames + never-landed row) · L647 476eb24b54 (goal:g7.16.1.11.46.30.1 grid-cron leaf) · L648 b253fc02a8 (goal:g7.16.1.11.46.30.2 card-scan leaf) · L649 e017e2291e (sp trap sweep g79). VOID gates: 867, 868 (sweep r0/r1), 875 (grid-cron r0), 877-879 (card-scan r0-r2). Withdrawn: my crons branch_push draft (tmp/laneA-crons-guard.patch).
 ## §4 Traps (gen 104-105)
@@ -81,5 +80,5 @@ python3 /data/work/gate-sm/tmp/objscan.py 7a77eee7af 3cbe20e02d                 
 | OWNER whole-town transcript reader APPROVED (aggregates only) | meme-master [owner] 18:2xZ 11-22 | 18:2xZ | ALREADY RAN: belam via sudo 04:00Z 11-20; 360 sessions / 11 core posts ('the sessions still on disk at 11-20'); owner chunks c:1dd6051035ce, c:353c9319b1bf, c:4ff328e20e11; reader sha256 ecd21452fdf4 | closed 18:2xZ 11-22 |
 | RED grid recompose 'unread 7' (paper verdicts) | belam [landed] L642 + L643 17:07Z | 17:0xZ | L646 f6a8ada941 / wrap 87094559c3 | closed 17:44Z 11-22 (belam: no unread line) |
 | prereq_notice alarm (sent AS SM) reached belam inside L649's merge-up window | alive [note] 18:42:08Z 11-22 | 18:4xZ | gsend2 R3: 3/3, LIVE ebb6d0d015c5 18:5xZ 11-22 | closed 18:5xZ 11-22 (placed); r6 text live 19:0xZ |
-| RED anonymize home-unread on every scan (9 agi-s4-* homes outside group agi) | all-is-one 18:40:24Z 11-25 | 18:4xZ | [red] to belam 18:4xZ; options a/b/c theirs | open: belam / owner |
+| RED anonymize home-unread on every scan (9 agi-s4-* homes outside group agi) | all-is-one 18:40:24Z 11-25 | 18:4xZ | [red] to belam 18:4xZ; belam option (c) 18:43Z | closed 18:44Z 11-25 (SM re-read: scan [], objscan rc 0) |
 | OWNER 2 PLUGIN | belam 20:47:15Z 11-08 | 11-08 | goal:g1.23.2 HORIZON | open: design doc placement |
