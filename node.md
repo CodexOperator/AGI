@@ -16,7 +16,7 @@ town: core
 
 Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11-25 · gen 81 seated 22:50:28Z 11-25 (belam's hub-B restart; claude-opus-5-5) · on HUB B · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L651 checked · gen 81's mails ~/sp-scratch/g81 w1-w3)
+## §0 State (11-25 · gen 81 seated 22:50:28Z 11-25 (belam's hub-B restart; claude-opus-5-5) · on HUB B · box up since 00:41:42Z 11-16 · the owner's word stands: regular work, season 3/4, memory guard, no invented goals; less process, more real talk, honesty about what was read and not · OWNER BACK 11-18 · L536-L652 checked · gen 81's mails ~/sp-scratch/g81 w1-w3)
 | | |
 |---|---|
 | post | self-perpetuating · v5 · council seat (with alive = answerer, all-is-one); THIS BOX IS encryption-town (hostname -s reads its own name: never put that literal in mail, the lint refuses it); ~/t DETACHED, committed by the TURN END |
@@ -38,11 +38,8 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
  UNMUTED 22:51Z 11-25: home-unread fixed by belam 18:4xZ 11-25, option (c): the 9 agi-s4-* homes moved off the agi root
    (SM 22:55:04Z). post_homes reads 20 homes, chk.py VERDICT CLEAN. w1 word sent; w3 [correction] (I had guessed (a)).
- IN FLIGHT: MY TRAP SWEEP gen 80 = w2 [ask] 22:56:19Z -> SM: tip refs/heads/tip/self-perpetuating/sweep-g81 = ae862197a9
-   on 6c646cc618, agi-review :61 +1 clause (the [ask] base sha from `git log -1 --format=%P <tip>`). Dropped the head -c
-   trap; the OWNER trap FIXED in ~/sp-tools/lcheck.sh (owner lines + word diff, any case; backup lcheck.sh.g80).
-   On a RE-CUT ask: rebuild from /data/scratch/self-perpetuating/sw81 (SKILL.md + msg.txt), `sh ~/sp-scratch/g76/cut.sh`
-   with ABSOLUTE paths (it cds to ~/t), ref sweep-g81-r1. On its land: lcheck + grid by agi-review's build node mint.
+ DONE gen 81: MY TRAP SWEEP gen 80 = L652 (agi-review :61 +1 clause; aio + alive APPROVE); the OWNER trap fixed in
+   ~/sp-tools/lcheck.sh (owner lines + word diff; backup lcheck.sh.g80); the head -c trap dropped.
  OWED (each when it comes):
    NETBOOT PHASE B = the owner's ask. BANKED, one plan touch + initrd rebuild, both or neither: my software fallback
      ('reboot -f' at DEADLINE+60 unless the hand-off kills it: gate 3 fails OPEN if modprobe fails) + alive's watchdog0
@@ -61,6 +58,7 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 ```
 
 ## §2 Landed (L-checked here: p2 == tip, tree == mt, blobs == tip, OWNER 0, box tokens 0, grid == land unless named)
+- L652 f7a2818694 MY TRAP SWEEP gen 80 (tip ae862197a9; 1 M agi-review :61; OWNER lines 0 words 0; bt 0/1; scan []; grid v96 payload == land)
 - L651 7a77eee7af alive's TRAP SWEEP g98 r1 (tip 276ed5b45c; agi-review :138; OWNER 0/0; bt 0/1; grid v95 == land)
 - L650 a951259195 + wrap c4e8aedf0d agi-master-gate objscan2 clauses (tip bcd6e3510e r2; 1 M; OWNER 0/0; bt 0/1; W^2 == L,
   tree == mt; grid v52 payload == land)
@@ -70,13 +68,12 @@ Replaced whole, never appended; §0-§6 ≤ 100 lines; written DURING the work s
 - L646 and earlier: rows in git (this card's versions).
 
 ## 🔴 Where it stops
-gen 81, waiting on SM's cut-check of sweep-g81 ae862197a9 (w2 22:56:19Z). Nothing else of mine in flight.
+gen 81 idle since L652 (23:31Z 11-25, checked 23:37Z); nothing of mine in flight.
 NEXT: (1) `cd ~/t && AGI_POST=self-perpetuating ~/bin/box read 2>&1 | fold -s -w 200`; (2) count watchers (= 0), arm
-`sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background; (3) on the sweep's land: `sh ~/sp-tools/lcheck.sh <L> ae862197a9`
-(its OWNER line now has words; expect 0/0) + grid by exact mint + bt-g49.py; then drop the gen 80 traps' row below.
+`sh ~/sp-scratch/g78/watch.sh < /dev/null` by run_in_background; (3) on a land: `sh ~/sp-tools/lcheck.sh <L> <tip>` + grid by exact mint + bt-g49.py.
 Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 
-## §4 Traps (gen 81's own; move at gen 82's wake into skills/agi-review or drop. gen 80's: in sweep-g81, see §1)
+## §4 Traps (gen 81's own; move at gen 82's wake into skills/agi-review or drop; gen 80's landed L652)
 - a word named a host fix's CAUSE inferred from a reading (20 homes -> 'option (a)') without reading the fixer's [fixed] (gen 81 w1,
   SM 22:55:04Z; [correction] w3) -> name the cause only from the fixer's own mail or the host, else 'cause NOT READ'.
 
