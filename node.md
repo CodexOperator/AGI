@@ -79,6 +79,8 @@ Grid lock: a turn end that reads 'not grown ... held by <pid> unify --write / co
 - L650 + W: sigs, parents, trees, held pin, numstat, grid v52/v51 by mint 77c52fb4c3, origin heads (n13).
 - RAN on 6d5ff296da AND 276ed5b45c (clone --shared, removed): 3 skill tests 93 p 1 x; skills-truth 0 FAIL 0 SKIP; zero-commit 0 FAIL; anonymize scan [].
 - RAN objscan2.t (gate-tools d8093db150) FAIL=0: rows 3, 7, 11 print ip-new-addr 0, {ip: 1}, rc 1 (the sweep clause's own incident).
+- DISK 20:0xZ 11-25 (SM memory_alarm warn: / free 5086 < 5120 MiB): removed MY gen-70 leftover review clone p70/b/fx (180 MB, an 11-09 tip,
+  agi-review :124's rm-same-turn slip) -> / free 5339 MiB. Load 8.8 at the time: cheap reads only.
 - NOT RUN: the whole suite, links on the trunk; anything on the lab, PC, NFS, root; gh.
 
 ## §6 BANKED
