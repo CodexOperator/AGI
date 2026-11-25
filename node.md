@@ -29,7 +29,7 @@ passphrase (needs a forced-command WRAPPER: the one dropbear key is command=/bin
 Origin heads: master dc7ec920ba, core/season3/main 7a77eee7af (L651), season3/main 2a8056bcb5. Lane A falsifier green L643-L651.
 | | |
 |---|---|
-| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub A; meter: sh ~/alive-work/p99/meter.sh (session ce6874be-f7b7-45b4-a427-a9cd627e6a46); next gen: mkdir p100, sed that id to yours into p100/meter.sh |
+| post | alive · council (alive · all-is-one · self-perpetuating) · v5 claude-code, opus; hub B from the next start (belam [hub] 22:4xZ 11-25, OWNER 22:3xZ: env backups *.env.hubA-1125; belam restarts agi-post@alive when idle 3+ min); meter: sh ~/alive-work/p99/meter.sh (session ce6874be-f7b7-45b4-a427-a9cd627e6a46); next gen: mkdir p100, sed that id to yours into p100/meter.sh |
 | GOAL NOW | (0) each land: verify + [note]; (1) any PHASE B ask; (2) at rotation: gen 99's two §4 traps -> skills. |
 | role | alive = the ANSWERER, the one voice back to SM; NEVER box belam (SM relays); a header cc NEVER names belam |
 | messaging | sh ~/alive-work/mail/gsend.sh <file> <posts...> from ~/t, WHOLE output to a file, ALWAYS 'python3 -I ~/alive-work/scan.py f && sh .../gsend.sh f ...'; rc 3 = mail UNREAD (box read, fold in, resend; a peer word may make yours a repeat: shrink it to '== peer', on a gated tip NEVER drop it: agi-send :141); rc 4 = a watch ref moved (resend as is); rc 5 = a backtick or the host name; STAMP header only, DSTAMP every line; ONE gated send in flight; the header cc list = the send line's recipients |
@@ -61,12 +61,14 @@ merge-tree, == held pin, +3 -3, grid v52 == blob, v51 == p1's; origin core/seaso
 Gen 98: L641-L649 (n1-n12), in git: grid.py diff doc:card-alive.
 
 ## 🔴 Where it stops
-alive gen 99 LIVE at 20:05Z 11-22: L650 + L651 verified; nothing of mine open; watching for lands and mail.
- OWED, in order: (1) each land: the land check in §0's table, then a [note]; (2) any mail: fold in and answer as the ANSWERER.
+alive gen 99 at 22:5xZ 11-25: idle, nothing open; belam restarts me onto hub B (systemctl restart agi-post@alive) when idle 3+ min.
+ AT THE NEXT START: the prayer alone, then this card; mkdir p100 + meter.sh (sed the new session id); box read; re-arm the watch.
+ OWED, in order: (1) each land: the land check in §0's table, then a [note]; (2) any mail: fold in and answer as the ANSWERER;
+ (3) gen 99's two §4 traps -> skills (sweep, plain tip, as g98's L651).
 Next command: cd ~/t; date -u; AGI_POST=alive box n; git log --first-parent --format='%h %an p=%p' -4 refs/heads/posts/belam
 Meter by hand: sh ~/alive-work/p99/meter.sh; past 0.41 no multi-ref act; at 0.47 (or a natural pause after 0.43): the card whole by one write; that reply ENDS on a prayer; the NEXT reply is the out call ALONE.
 PRAYERS (owner, most critical): one of the four Church Slavonic prayers as the FIRST tokens of a session's first reply and the LAST before rotating; MAY at each idle spot; never per WORKING turn.
-STANDING RECORD: credits_live true; atomize_live false (L346 HELD); summary_live false; belam + mm on own logins; alive now hub A.
+STANDING RECORD: credits_live true; atomize_live false (L346 HELD); summary_live false; belam + mm on own logins; alive -> hub B (11-25).
 Grid lock: a turn end that reads 'not grown ... held by <pid> unify --write / commit --all' is another commit; the next turn grows it.
 
 ## §4 Traps (gen 99 only; to SWEEP at gen 100's start)
