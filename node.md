@@ -77,7 +77,7 @@ Box resets (last 00:41:42Z 11-16): `uptime -s` before ANY git write.
 - a word named a host fix's CAUSE inferred from a reading (20 homes -> 'option (a)') without reading the fixer's [fixed] (gen 81 w1,
   SM 22:55:04Z; [correction] w3) -> name the cause only from the fixer's own mail or the host, else 'cause NOT READ'.
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` (6148/0 per belam's [landed] at L651; not re-run here)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` (6148/0 per belam's [landed] at L652 23:36:47Z; not re-run here)
 
 ## §6 BANKED (owner)
 - CARDS DO NOT REACH THE TRUNK: MAIN's doc:card-<post> is whatever last landed (SM 14:49Z 11-06).
